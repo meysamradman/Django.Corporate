@@ -1,0 +1,24 @@
+---
+trigger: always_on
+alwaysApply: true
+---
+
+ما یک اپ مدیا مرکزی داریم.
+تمام اپ ها و همه جا برای عکس و اپلود و ویدئو و غیره از این اپ استفاده میکنند.
+
+برای محدودیت حجم و تعداد و پسوند ها باید از :
+
+# Media Settings
+MEDIA_IMAGE_SIZE_LIMIT=5242880
+MEDIA_VIDEO_SIZE_LIMIT=157286400
+MEDIA_AUDIO_SIZE_LIMIT=20971520
+MEDIA_PDF_SIZE_LIMIT=10485760
+
+MEDIA_IMAGE_EXTENSIONS=jpg,jpeg,webp,png,svg,gif
+MEDIA_VIDEO_EXTENSIONS=mp4,webm,mov
+MEDIA_PDF_EXTENSIONS=pdf
+MEDIA_AUDIO_EXTENSIONS=mp3,ogg
+
+استفاده کنیم چون بعدا که در سرور بک اند رو بردیم بتوان از یه جا راحت این موارد رو ویرایش کنیم.
+
+پنل ادمین دیجنگو استفاده نمیکنما از ریکت استفاده میکنم

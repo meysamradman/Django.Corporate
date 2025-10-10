@@ -1,0 +1,640 @@
+---
+alwaysApply: true
+---
+
+┌─────────────────┐
+│      VIEW       │ ← HTTP Request/Response، Validation، Permission
+└─────────────────┘
+         ↓
+┌─────────────────┐
+│    SERIALIZER   │ ← Data Transformation، Format، Validation
+└─────────────────┘
+         ↓  
+┌─────────────────┐
+│     SERVICE     │ ← Business Logic، Cache، Complex Operations
+└─────────────────┘
+         ↓
+┌─────────────────┐
+│     MANAGER     │ ← Query Optimization، Database Operations
+└─────────────────┘
+
+
+# Django Architecture Pattern Documentation
+
+## File Structure
+
+```
+src/
+├── portfolio/
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── managers.py          # Query optimization layer
+│   │   ├── seo.py              # SEO mixin
+│   │   ├── portfolio.py        # Main model
+│   │   ├── category.py         # Category model
+│   │   ├── tag.py              # Tag model
+│   │   ├── option.py           # Option model
+│   │   └── media.py            # Media through model
+│   ├── services/
+│   │   ├── __init__.py
+│   │   └── admin/
+│   │       ├── __init__.py
+│   │       └── portfolio_services.py    # Business logic layer
+│   ├── serializers/
+│   │   ├── __init__.py
+│   │   └── admin/
+│   │       ├── __init__.py
+│   │       └── portfolio_serializer.py  # Data transformation layer
+│   ├── views/
+│   │   ├── __init__.py
+│   │   └── admin/
+│   │       ├── __init__.py
+│   │       └── portfolio_views.py       # HTTP request/response layer
+│   └── filters/
+│       ├── __init__.py
+│       └── admin/
+│           ├── __init__.py
+│           └── portfolio_filters.py     # Query filtering layer
+```
+
+## Layer Responsibilities
+
+### 1. Manager Layer (`managers.py`)
+**Purpose**: Query optimization and database operations
+
+**Responsibilities**:
+- Database query optimization
+- Prefetch and select_related configurations
+- Query method definitions
+- Database-level annotations and aggregations
+
+**Rules**:
+- No business logic
+- No HTTP-related code
+- No data formatting
+- Focus only on efficient database queries
+
+```python
+class PortfolioQuerySet(models.QuerySet):
+    def for_admin_listing(self):
+        return self.select_related('og_image').prefetch_related(
+            'categories',
+            Prefetch('portfolio_medias', 
+                    queryset=self.model.medias.through.objects.filter(is_main_image=True))
+        ).annotate(
+            categories_count=Count('categories', distinct=True),
+            media_count=Count('portfolio_medias', distinct=True)
+        )
+```
+
+### 2. Service Layer (`services/`)
+**Purpose**: Business logic and complex operations
+
+**Responsibilities**:
+- Business logic implementation
+- Data validation and processing
+- Cache management
+- Complex operations coordination
+- Analytics and reporting
+
+**Rules**:
+- No HTTP requests/responses
+- No data serialization
+- No pagination logic
+- Focus on business rules and logic
+
+```python
+class PortfolioAdminService:
+    @staticmethod
+    def get_filtered_queryset(filters=None, search=None):
+        queryset = Portfolio.objects.for_admin_listing()
+        
+        if filters:
+            if filters.get('status'):
+                queryset = queryset.filter(status=filters['status'])
+                
+        if search and search.strip():
+            queryset = queryset.search_optimized(search.strip())
+            
+        return queryset.order_by('-created_at')
+```
+
+### 3. Serializer Layer (`serializers/`)
+**Purpose**: Data transformation and field validation
+
+**Responsibilities**:
+- Data format transformation
+- Field-level validation
+- Data presentation logic
+- API field definitions
+
+**Rules**:
+- No business logic
+- No database queries (use prefetched data)
+- No HTTP handling
+- Focus on data transformation only
+
+```python
+class PortfolioAdminListSerializer(serializers.ModelSerializer):
+    seo_status = serializers.SerializerMethodField()
+    categories_count = serializers.IntegerField(read_only=True)
+    
+    def get_seo_status(self, obj):
+        # Data transformation only
+        score = sum([bool(obj.meta_title), bool(obj.meta_description)])
+        return {'score': score, 'total': 2}
+```
+
+### 4. View Layer (`views/`)
+**Purpose**: HTTP request/response handling
+
+**Responsibilities**:
+- HTTP request processing
+- Permission checking
+- Response formatting
+- Pagination handling
+- Error handling
+
+**Rules**:
+- No business logic
+- No direct database queries
+- Use services for business operations
+- Focus on HTTP layer only
+
+```python
+class PortfolioAdminViewSet(viewsets.ModelViewSet):
+    def list(self, request):
+        filters = self._extract_filters()
+        search = request.query_params.get('search')
+        
+        # Use service for business logic
+        queryset = PortfolioAdminService.get_filtered_queryset(filters, search)
+        
+        # Handle pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+```
+
+### 5. Filter Layer (`filters/`)
+**Purpose**: Query parameter filtering
+
+**Responsibilities**:
+- URL parameter to query conversion
+- Filter definitions
+- Complex filter logic
+
+**Rules**:
+- No business logic
+- Work with managers for optimization
+- Focus on filtering only
+
+## Data Flow
+
+```
+HTTP Request
+    ↓
+VIEW (Request Processing)
+    ↓
+FILTER (Query Parameters)
+    ↓  
+SERVICE (Business Logic)
+    ↓
+MANAGER (Query Optimization)
+    ↓
+DATABASE
+    ↓
+SERIALIZER (Data Transformation)
+    ↓
+VIEW (Response Formatting)
+    ↓
+HTTP Response
+```
+
+## Implementation Guidelines
+
+### View Implementation
+```python
+def list(self, request):
+    # 1. Extract parameters
+    filters = self._extract_filters()
+    search = request.query_params.get('search')
+    
+    # 2. Get data via service
+    queryset = PortfolioAdminService.get_filtered_queryset(filters, search)
+    
+    # 3. Apply pagination
+    page = self.paginate_queryset(queryset)
+    
+    # 4. Serialize data
+    serializer = self.get_serializer(page, many=True)
+    
+    # 5. Format response
+    return self.get_paginated_response(serializer.data)
+```
+
+### Service Implementation
+```python
+@staticmethod
+def get_filtered_queryset(filters=None, search=None):
+    # 1. Start with optimized queryset
+    queryset = Portfolio.objects.for_admin_listing()
+    
+    # 2. Apply business logic filters
+    if filters:
+        queryset = cls._apply_filters(queryset, filters)
+    
+    # 3. Apply search logic
+    if search:
+        queryset = queryset.search_optimized(search)
+    
+    # 4. Apply business rules (ordering, etc.)
+    return queryset.order_by('-created_at')
+```
+
+### Manager Implementation
+```python
+def for_admin_listing(self):
+    # Only query optimization
+    return self.select_related('og_image').prefetch_related(
+        'categories',
+        Prefetch('portfolio_medias', 
+                queryset=self.model.medias.through.objects.filter(is_main_image=True))
+    ).annotate(
+        categories_count=Count('categories', distinct=True)
+    )
+```
+
+### Serializer Implementation
+```python
+class PortfolioAdminListSerializer(serializers.ModelSerializer):
+    # Use computed fields from manager annotations
+    categories_count = serializers.IntegerField(read_only=True)
+    
+    # Transform data only
+    def get_seo_status(self, obj):
+        return {
+            'score': sum([bool(obj.meta_title), bool(obj.meta_description)]),
+            'status': 'complete' if obj.meta_title and obj.meta_description else 'incomplete'
+        }
+```
+
+## Common Anti-Patterns to Avoid
+
+### ❌ Wrong: Service handling pagination
+```python
+# DON'T DO THIS
+class PortfolioService:
+    @staticmethod
+    def get_portfolio_list(page=1, page_size=20):
+        queryset = Portfolio.objects.all()
+        paginator = Paginator(queryset, page_size)
+        return paginator.get_page(page)
+```
+
+### ❌ Wrong: Serializer with business logic
+```python
+# DON'T DO THIS
+class PortfolioSerializer(serializers.ModelSerializer):
+    def get_similar_portfolios(self, obj):
+        # Business logic in serializer - WRONG!
+        return Portfolio.objects.filter(categories__in=obj.categories.all())
+```
+
+### ❌ Wrong: View with database queries
+```python
+# DON'T DO THIS
+class PortfolioViewSet(viewsets.ModelViewSet):
+    def list(self, request):
+        portfolios = Portfolio.objects.filter(status='published')  # Direct query - WRONG!
+        return Response(portfolios)
+```
+
+## Module Organization Benefits
+
+1. **Separation of Concerns**: Each layer has single responsibility
+2. **Testability**: Each layer can be tested independently  
+3. **Reusability**: Services can be used in multiple views
+4. **Maintainability**: Changes in one layer don't affect others
+5. **Performance**: Optimizations concentrated in appropriate layers
+6. **Scalability**: Easy to scale individual components
+
+## Testing Strategy
+
+- **Manager Tests**: Query optimization and database operations
+- **Service Tests**: Business logic and data processing
+- **Serializer Tests**: Data transformation and validation
+- **View Tests**: HTTP requests/responses and permissions
+- **Integration Tests**: Full flow testing
+
+This architecture ensures clean, maintainable, and scalable Django applications.# Django Architecture Pattern Documentation
+
+## File Structure
+
+```
+src/
+├── portfolio/
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── managers.py          # Query optimization layer
+│   │   ├── seo.py              # SEO mixin
+│   │   ├── portfolio.py        # Main model
+│   │   ├── category.py         # Category model
+│   │   ├── tag.py              # Tag model
+│   │   ├── option.py           # Option model
+│   │   └── media.py            # Media through model
+│   ├── services/
+│   │   ├── __init__.py
+│   │   └── admin/
+│   │       ├── __init__.py
+│   │       └── portfolio_services.py    # Business logic layer
+│   ├── serializers/
+│   │   ├── __init__.py
+│   │   └── admin/
+│   │       ├── __init__.py
+│   │       └── portfolio_serializer.py  # Data transformation layer
+│   ├── views/
+│   │   ├── __init__.py
+│   │   └── admin/
+│   │       ├── __init__.py
+│   │       └── portfolio_views.py       # HTTP request/response layer
+│   └── filters/
+│       ├── __init__.py
+│       └── admin/
+│           ├── __init__.py
+│           └── portfolio_filters.py     # Query filtering layer
+```
+
+## Layer Responsibilities
+
+### 1. Manager Layer (`managers.py`)
+**Purpose**: Query optimization and database operations
+
+**Responsibilities**:
+- Database query optimization
+- Prefetch and select_related configurations
+- Query method definitions
+- Database-level annotations and aggregations
+
+**Rules**:
+- No business logic
+- No HTTP-related code
+- No data formatting
+- Focus only on efficient database queries
+
+```python
+class PortfolioQuerySet(models.QuerySet):
+    def for_admin_listing(self):
+        return self.select_related('og_image').prefetch_related(
+            'categories',
+            Prefetch('portfolio_medias', 
+                    queryset=self.model.medias.through.objects.filter(is_main_image=True))
+        ).annotate(
+            categories_count=Count('categories', distinct=True),
+            media_count=Count('portfolio_medias', distinct=True)
+        )
+```
+
+### 2. Service Layer (`services/`)
+**Purpose**: Business logic and complex operations
+
+**Responsibilities**:
+- Business logic implementation
+- Data validation and processing
+- Cache management
+- Complex operations coordination
+- Analytics and reporting
+
+**Rules**:
+- No HTTP requests/responses
+- No data serialization
+- No pagination logic
+- Focus on business rules and logic
+
+```python
+class PortfolioAdminService:
+    @staticmethod
+    def get_filtered_queryset(filters=None, search=None):
+        queryset = Portfolio.objects.for_admin_listing()
+        
+        if filters:
+            if filters.get('status'):
+                queryset = queryset.filter(status=filters['status'])
+                
+        if search and search.strip():
+            queryset = queryset.search_optimized(search.strip())
+            
+        return queryset.order_by('-created_at')
+```
+
+### 3. Serializer Layer (`serializers/`)
+**Purpose**: Data transformation and field validation
+
+**Responsibilities**:
+- Data format transformation
+- Field-level validation
+- Data presentation logic
+- API field definitions
+
+**Rules**:
+- No business logic
+- No database queries (use prefetched data)
+- No HTTP handling
+- Focus on data transformation only
+
+```python
+class PortfolioAdminListSerializer(serializers.ModelSerializer):
+    seo_status = serializers.SerializerMethodField()
+    categories_count = serializers.IntegerField(read_only=True)
+    
+    def get_seo_status(self, obj):
+        # Data transformation only
+        score = sum([bool(obj.meta_title), bool(obj.meta_description)])
+        return {'score': score, 'total': 2}
+```
+
+### 4. View Layer (`views/`)
+**Purpose**: HTTP request/response handling
+
+**Responsibilities**:
+- HTTP request processing
+- Permission checking
+- Response formatting
+- Pagination handling
+- Error handling
+
+**Rules**:
+- No business logic
+- No direct database queries
+- Use services for business operations
+- Focus on HTTP layer only
+
+```python
+class PortfolioAdminViewSet(viewsets.ModelViewSet):
+    def list(self, request):
+        filters = self._extract_filters()
+        search = request.query_params.get('search')
+        
+        # Use service for business logic
+        queryset = PortfolioAdminService.get_filtered_queryset(filters, search)
+        
+        # Handle pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+```
+
+### 5. Filter Layer (`filters/`)
+**Purpose**: Query parameter filtering
+
+**Responsibilities**:
+- URL parameter to query conversion
+- Filter definitions
+- Complex filter logic
+
+**Rules**:
+- No business logic
+- Work with managers for optimization
+- Focus on filtering only
+
+## Data Flow
+
+```
+HTTP Request
+    ↓
+VIEW (Request Processing)
+    ↓
+FILTER (Query Parameters)
+    ↓  
+SERVICE (Business Logic)
+    ↓
+MANAGER (Query Optimization)
+    ↓
+DATABASE
+    ↓
+SERIALIZER (Data Transformation)
+    ↓
+VIEW (Response Formatting)
+    ↓
+HTTP Response
+```
+
+## Implementation Guidelines
+
+### View Implementation
+```python
+def list(self, request):
+    # 1. Extract parameters
+    filters = self._extract_filters()
+    search = request.query_params.get('search')
+    
+    # 2. Get data via service
+    queryset = PortfolioAdminService.get_filtered_queryset(filters, search)
+    
+    # 3. Apply pagination
+    page = self.paginate_queryset(queryset)
+    
+    # 4. Serialize data
+    serializer = self.get_serializer(page, many=True)
+    
+    # 5. Format response
+    return self.get_paginated_response(serializer.data)
+```
+
+### Service Implementation
+```python
+@staticmethod
+def get_filtered_queryset(filters=None, search=None):
+    # 1. Start with optimized queryset
+    queryset = Portfolio.objects.for_admin_listing()
+    
+    # 2. Apply business logic filters
+    if filters:
+        queryset = cls._apply_filters(queryset, filters)
+    
+    # 3. Apply search logic
+    if search:
+        queryset = queryset.search_optimized(search)
+    
+    # 4. Apply business rules (ordering, etc.)
+    return queryset.order_by('-created_at')
+```
+
+### Manager Implementation
+```python
+def for_admin_listing(self):
+    # Only query optimization
+    return self.select_related('og_image').prefetch_related(
+        'categories',
+        Prefetch('portfolio_medias', 
+                queryset=self.model.medias.through.objects.filter(is_main_image=True))
+    ).annotate(
+        categories_count=Count('categories', distinct=True)
+    )
+```
+
+### Serializer Implementation
+```python
+class PortfolioAdminListSerializer(serializers.ModelSerializer):
+    # Use computed fields from manager annotations
+    categories_count = serializers.IntegerField(read_only=True)
+    
+    # Transform data only
+    def get_seo_status(self, obj):
+        return {
+            'score': sum([bool(obj.meta_title), bool(obj.meta_description)]),
+            'status': 'complete' if obj.meta_title and obj.meta_description else 'incomplete'
+        }
+```
+
+## Common Anti-Patterns to Avoid
+
+### ❌ Wrong: Service handling pagination
+```python
+# DON'T DO THIS
+class PortfolioService:
+    @staticmethod
+    def get_portfolio_list(page=1, page_size=20):
+        queryset = Portfolio.objects.all()
+        paginator = Paginator(queryset, page_size)
+        return paginator.get_page(page)
+```
+
+### ❌ Wrong: Serializer with business logic
+```python
+# DON'T DO THIS
+class PortfolioSerializer(serializers.ModelSerializer):
+    def get_similar_portfolios(self, obj):
+        # Business logic in serializer - WRONG!
+        return Portfolio.objects.filter(categories__in=obj.categories.all())
+```
+
+### ❌ Wrong: View with database queries
+```python
+# DON'T DO THIS
+class PortfolioViewSet(viewsets.ModelViewSet):
+    def list(self, request):
+        portfolios = Portfolio.objects.filter(status='published')  # Direct query - WRONG!
+        return Response(portfolios)
+```
+
+## Module Organization Benefits
+
+1. **Separation of Concerns**: Each layer has single responsibility
+2. **Testability**: Each layer can be tested independently  
+3. **Reusability**: Services can be used in multiple views
+4. **Maintainability**: Changes in one layer don't affect others
+5. **Performance**: Optimizations concentrated in appropriate layers
+6. **Scalability**: Easy to scale individual components
+
+## Testing Strategy
+
+- **Manager Tests**: Query optimization and database operations
+- **Service Tests**: Business logic and data processing
+- **Serializer Tests**: Data transformation and validation
+- **View Tests**: HTTP requests/responses and permissions
+- **Integration Tests**: Full flow testing
+
+This architecture ensures clean, maintainable, and scalable Django applications.

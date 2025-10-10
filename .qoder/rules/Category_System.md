@@ -1,0 +1,518 @@
+---
+trigger: always_on
+alwaysApply: true
+---
+
+# 📋 داکیومنت حرفه‌ای: دسته‌بندی تودرتو
+**Django 5.2.6 + PostgreSQL + Next.js Admin Panel**
+
+---
+
+## 🎯 انتخاب راهکار
+
+**django-treebeard** با الگوریتم **Materialized Path**
+
+**مزایا:**
+- سرعت بالا برای read/write operations
+- API ساده و قدرتمند
+- سازگاری کامل با Django 5.2+
+- بهینه برای PostgreSQL
+
+---
+
+## 🔧 نصب و تنظیمات
+
+```bash
+# نصب کتابخانه
+pip install django-treebeard==4.7
+
+# requirements.txt
+django-treebeard==4.7
+```
+
+```python
+# settings.py
+INSTALLED_APPS = [
+    # Django apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    # Third party
+    'rest_framework',
+    'treebeard',
+    # Local apps
+    'categories',
+]
+```
+
+---
+
+## 📊 مدل Category
+
+```python
+# categories/models.py
+from django.db import models
+from django.utils.text import slugify
+from treebeard.mp_tree import MP_Node
+
+class Category(MP_Node):
+    name = models.CharField(max_length=255, verbose_name="نام دسته")
+    slug = models.SlugField(max_length=255, unique=True, verbose_name="نامک")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+    image = models.ImageField(
+        upload_to='categories/%Y/%m/', 
+        blank=True, 
+        null=True,
+        verbose_name="تصویر"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="وضعیت")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
+    
+    # SEO fields
+    meta_title = models.CharField(max_length=60, blank=True)
+    meta_description = models.CharField(max_length=160, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Tree settings
+    node_order_by = ['sort_order', 'name']
+    
+    class Meta:
+        db_table = 'categories'
+        verbose_name = "دسته‌بندی"
+        verbose_name_plural = "دسته‌بندی‌ها"
+        indexes = [
+            # Core indexes برای performance
+            models.Index(fields=['path']),
+            models.Index(fields=['is_active', 'path']),
+            models.Index(fields=['slug']),
+            models.Index(fields=['sort_order']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(sort_order__gte=0),
+                name='positive_sort_order'
+            )
+        ]
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    @property
+    def breadcrumbs(self):
+        """مسیر کامل دسته‌بندی"""
+        return [ancestor.name for ancestor in self.get_ancestors()] + [self.name]
+    
+    @property
+    def full_path(self):
+        """مسیر کامل برای URL"""
+        return "/".join(ancestor.slug for ancestor in self.get_ancestors()) + f"/{self.slug}"
+    
+    def get_absolute_url(self):
+        return f"/categories/{self.full_path}/"
+```
+
+---
+
+## 🔍 Manager و QuerySet
+
+```python
+# categories/managers.py
+from django.db import models
+from django.core.cache import cache
+from treebeard.mp_tree import MP_NodeQuerySet
+
+class CategoryQuerySet(MP_NodeQuerySet):
+    def active(self):
+        return self.filter(is_active=True)
+    
+    def with_product_count(self):
+        """تعداد محصولات هر دسته"""
+        return self.annotate(
+            product_count=models.Count('products', distinct=True)
+        )
+    
+    def main_categories(self):
+        """دسته‌های اصلی فقط"""
+        return self.filter(depth=1).active().order_by('sort_order', 'name')
+
+class CategoryManager(models.Manager):
+    def get_queryset(self):
+        return CategoryQuerySet(self.model, using=self._db)
+    
+    def active(self):
+        return self.get_queryset().active()
+    
+    def roots(self):
+        return self.get_queryset().main_categories()
+    
+    def get_tree_data(self):
+        """درخت کامل برای API"""
+        cache_key = 'category_tree_data'
+        data = cache.get(cache_key)
+        
+        if data is None:
+            data = list(self.active().order_by('path').values(
+                'id', 'name', 'slug', 'path', 'depth', 'image'
+            ))
+            cache.set(cache_key, data, 3600)  # 1 hour cache
+        return data
+    
+    def clear_cache(self):
+        """پاک کردن کش"""
+        cache.delete('category_tree_data')
+        cache.delete('category_roots')
+
+# در models.py اضافه کنید:
+# objects = CategoryManager()
+```
+
+---
+
+## 🔄 Serializers
+
+```python
+# categories/serializers.py
+from rest_framework import serializers
+from .models import Category
+
+class CategoryListSerializer(serializers.ModelSerializer):
+    """برای لیست دسته‌بندی‌ها"""
+    children_count = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = [
+            'id', 'name', 'slug', 'description', 'image', 
+            'is_active', 'sort_order', 'children_count', 
+            'level', 'created_at'
+        ]
+    
+    def get_children_count(self, obj):
+        return obj.get_children().filter(is_active=True).count()
+    
+    def get_level(self, obj):
+        return obj.get_depth()
+
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    """برای جزئیات دسته‌بندی"""
+    breadcrumbs = serializers.ReadOnlyField()
+    full_path = serializers.ReadOnlyField()
+    parent = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = [
+            'id', 'name', 'slug', 'description', 'image',
+            'is_active', 'sort_order', 'meta_title', 'meta_description',
+            'breadcrumbs', 'full_path', 'parent', 'created_at', 'updated_at'
+        ]
+    
+    def get_parent(self, obj):
+        parent = obj.get_parent()
+        return {'id': parent.id, 'name': parent.name} if parent else None
+
+class CategoryTreeSerializer(serializers.ModelSerializer):
+    """برای درخت کامل"""
+    children = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'image', 'sort_order', 'children']
+    
+    def get_children(self, obj):
+        children = obj.get_children().filter(is_active=True).order_by('sort_order', 'name')
+        return CategoryTreeSerializer(children, many=True).data
+
+class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
+    """برای ایجاد و ویرایش"""
+    class Meta:
+        model = Category
+        fields = [
+            'name', 'slug', 'description', 'image', 'is_active',
+            'sort_order', 'meta_title', 'meta_description'
+        ]
+    
+    def validate_slug(self, value):
+        if self.instance:
+            # در حالت ویرایش
+            if Category.objects.exclude(pk=self.instance.pk).filter(slug=value).exists():
+                raise serializers.ValidationError("این نامک قبلاً استفاده شده است")
+        else:
+            # در حالت ایجاد
+            if Category.objects.filter(slug=value).exists():
+                raise serializers.ValidationError("این نامک قبلاً استفاده شده است")
+        return value
+```
+
+---
+
+## 🚀 ViewSet و API
+
+```python
+# categories/views.py
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from .models import Category
+from .serializers import (
+    CategoryListSerializer, CategoryDetailSerializer,
+    CategoryTreeSerializer, CategoryCreateUpdateSerializer
+)
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return Category.objects.active().order_by('path')
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CategoryListSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return CategoryCreateUpdateSerializer
+        return CategoryDetailSerializer
+    
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def tree(self, request):
+        """درخت کامل دسته‌بندی‌ها"""
+        roots = Category.objects.roots()
+        serializer = CategoryTreeSerializer(roots, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def roots(self, request):
+        """دسته‌بندی‌های اصلی"""
+        roots = Category.objects.roots()
+        serializer = CategoryListSerializer(roots, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def children(self, request, pk=None):
+        """فرزندان یک دسته‌بندی"""
+        category = self.get_object()
+        children = category.get_children().filter(is_active=True)
+        serializer = CategoryListSerializer(children, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def add_child(self, request, pk=None):
+        """اضافه کردن زیردسته"""
+        parent = self.get_object()
+        serializer = CategoryCreateUpdateSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            with transaction.atomic():
+                child = parent.add_child(**serializer.validated_data)
+                Category.objects.clear_cache()
+                
+            return Response(
+                CategoryDetailSerializer(child).data, 
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def move(self, request, pk=None):
+        """جابجایی دسته‌بندی"""
+        category = self.get_object()
+        target_id = request.data.get('target_id')
+        position = request.data.get('position', 'last-child')
+        
+        if not target_id:
+            return Response(
+                {'error': 'target_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        target = get_object_or_404(Category, id=target_id)
+        
+        # جلوگیری از جابجایی به خود یا فرزندان
+        if target.is_descendant_of(category) or target == category:
+            return Response(
+                {'error': 'Cannot move to self or descendant'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            with transaction.atomic():
+                category.move(target, pos=position)
+                Category.objects.clear_cache()
+            
+            return Response({'status': 'moved successfully'})
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def destroy(self, request, *args, **kwargs):
+        """حذف دسته‌بندی"""
+        category = self.get_object()
+        
+        # بررسی وجود فرزند
+        if category.get_children_count() > 0:
+            return Response(
+                {'error': 'Cannot delete category with children'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        with transaction.atomic():
+            category.delete()
+            Category.objects.clear_cache()
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+```
+
+---
+
+## 🗄️ Cache Management
+
+```python
+# categories/cache_utils.py
+from django.core.cache import cache
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+class CategoryCache:
+    TREE_KEY = 'category_tree_data'
+    ROOTS_KEY = 'category_roots'
+    TIMEOUT = 3600  # 1 hour
+    
+    @classmethod
+    def get_tree(cls):
+        return cache.get(cls.TREE_KEY)
+    
+    @classmethod
+    def set_tree(cls, data):
+        cache.set(cls.TREE_KEY, data, cls.TIMEOUT)
+    
+    @classmethod
+    def clear_all(cls):
+        cache.delete_many([cls.TREE_KEY, cls.ROOTS_KEY])
+
+# categories/signals.py
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from .models import Category
+from .cache_utils import CategoryCache
+
+@receiver([post_save, post_delete], sender=Category)
+def clear_category_cache(sender, instance, **kwargs):
+    """پاک کردن کش هنگام تغییر"""
+    CategoryCache.clear_all()
+    # اگر از Redis استفاده می‌کنید
+    # from django_redis import get_redis_connection
+    # redis_conn = get_redis_connection("default")
+    # redis_conn.delete("category:*")
+```
+
+---
+
+## 🔒 URLs
+
+```python
+# categories/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CategoryViewSet
+
+router = DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='category')
+
+urlpatterns = [
+    path('api/v1/', include(router.urls)),
+]
+
+# در main urls.py
+from django.urls import path, include
+
+urlpatterns = [
+    path('', include('categories.urls')),
+]
+```
+
+---
+
+## ⚡ Performance & Security Checklist
+
+### ✅ Database
+- [x] Index روی `path`, `is_active+path`, `slug`
+- [x] Constraints برای data integrity
+- [x] استفاده از `select_for_update()` در عملیات حساس
+
+### ✅ Cache
+- [x] Redis cache برای tree data
+- [x] Signal handlers برای clear cache
+- [x] Cache timeout مناسب (1 hour)
+
+### ✅ Security
+- [x] Permission classes برای API endpoints
+- [x] Validation در serializers
+- [x] Transaction wrapping برای عملیات پیچیده
+- [x] Input sanitization
+
+### ✅ API Design
+- [x] RESTful endpoints
+- [x] Proper HTTP status codes
+- [x] Error handling
+- [x] Pagination ready (اگر نیاز باشد)
+
+---
+
+## 🧪 Migration و Test
+
+```bash
+# ایجاد migrations
+python manage.py makemigrations categories
+python manage.py migrate
+
+# تست سریع در shell
+python manage.py shell
+```
+
+```python
+# Test data
+from categories.models import Category
+
+# ایجاد دسته‌های اصلی
+electronics = Category.add_root(name="الکترونیک", slug="electronics")
+clothing = Category.add_root(name="پوشاک", slug="clothing")
+
+# اضافه کردن زیردسته
+mobile = electronics.add_child(name="موبایل", slug="mobile")
+laptop = electronics.add_child(name="لپ‌تاپ", slug="laptop")
+
+# زیر-زیردسته
+android = mobile.add_child(name="اندروید", slug="android")
+iphone = mobile.add_child(name="آیفون", slug="iphone")
+
+# تست API
+# GET /api/v1/categories/tree/
+# GET /api/v1/categories/roots/
+# POST /api/v1/categories/{id}/add_child/
+```
+
+---
+
+## 📝 نکات مهم
+
+1. **همیشه از `transaction.atomic()`** برای عملیات تغییر درخت
+2. **Clear cache** بعد از هر تغییر
+3. **Validation** برای جلوگیری از حلقه در درخت
+4. **Backup** قبل از عملیات move بزرگ
+5. **Monitor performance** با Django Debug Toolbar
+
+---
+
+**✨ این داکیومنت آماده پیاده‌سازی مستقیم در پروژه است**

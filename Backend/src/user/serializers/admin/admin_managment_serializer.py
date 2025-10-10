@@ -1,0 +1,310 @@
+from rest_framework import serializers
+from src.user.serializers import (
+    BaseUserListSerializer,
+    BaseUserDetailSerializer,
+    BaseUserUpdateSerializer,
+    BaseUserFilterSerializer
+)
+from src.user.serializers.base_profile_serializer import AdminProfileSerializer, AdminProfileUpdateSerializer
+from src.user.utils import (
+    validate_identifier,
+    validate_email_address,
+    validate_mobile_number
+)
+from src.user.utils.permission_helper import PermissionHelper
+from django.core.exceptions import ValidationError
+from src.user.models import User
+from src.user.messages import AUTH_ERRORS
+
+class AdminListSerializer(BaseUserListSerializer):
+    profile = AdminProfileSerializer(source='admin_profile', read_only=True)
+    permissions = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+    
+    class Meta(BaseUserListSerializer.Meta):
+        fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
+                 'created_at', 'profile', 'full_name', 'permissions']
+    
+    def get_full_name(self, user):
+        """Get full name efficiently from prefetched profile"""
+        if hasattr(user, 'admin_profile') and user.admin_profile:
+            profile = user.admin_profile
+            if profile.first_name and profile.last_name:
+                return f"{profile.first_name} {profile.last_name}"
+            elif profile.first_name:
+                return profile.first_name
+            elif profile.last_name:
+                return profile.last_name
+        return user.mobile or user.email or f"User {user.id}"
+    
+    def get_permissions(self, user):
+        """ Simplified permissions for admin list - much faster """
+        # ✅ REGULAR USER: Simple response for website users
+        if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
+            return {
+                'access_level': 'user',
+                'roles': [],
+                'permissions_count': 0
+            }
+        
+        # SUPERUSER: Simple response
+        if user.is_superuser:
+            return {
+                'access_level': 'super_admin',
+                'roles': ['super_admin'],
+                'permissions_count': 'unlimited'
+            }
+        
+        # REGULAR ADMIN: Get only assigned roles
+        assigned_roles = []
+        try:
+            if hasattr(user, 'adminuserrole_set'):
+                user_role_assignments = user.adminuserrole_set.filter(
+                    is_active=True
+                ).select_related('role')
+                assigned_roles = [ur.role.name for ur in user_role_assignments]
+        except:
+            pass
+        
+        return {
+            'access_level': 'admin',
+            'roles': assigned_roles,
+            'permissions_count': len(assigned_roles) * 10 if assigned_roles else 0,
+            'has_permissions': len(assigned_roles) > 0
+        }
+
+class AdminDetailSerializer(BaseUserDetailSerializer):
+    profile = serializers.SerializerMethodField()  # Dynamic profile field
+    permissions = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+    
+    class Meta(BaseUserDetailSerializer.Meta):
+        fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
+                 'created_at', 'updated_at', 'profile', 'full_name', 'permissions']
+    
+    def get_profile(self, user):
+        """Get profile based on user type - admin or regular user"""
+        # ✅ ADMIN USER: Get admin_profile
+        if user.user_type == 'admin' and hasattr(user, 'admin_profile') and user.admin_profile:
+            return AdminProfileSerializer(user.admin_profile, context=self.context).data
+        # ✅ REGULAR USER: Get user_profile  
+        elif user.user_type == 'user' and hasattr(user, 'user_profile') and user.user_profile:
+            from src.user.serializers.base_profile_serializer import UserProfileSerializer
+            return UserProfileSerializer(user.user_profile, context=self.context).data
+        # ✅ NO PROFILE: Return None
+        return None
+    
+    def get_full_name(self, user):
+        """Get full name efficiently from prefetched profile - works for both admin and regular users"""
+        # ✅ ADMIN USER: Get name from admin_profile
+        if user.user_type == 'admin' and hasattr(user, 'admin_profile') and user.admin_profile:
+            profile = user.admin_profile
+            if profile.first_name and profile.last_name:
+                return f"{profile.first_name} {profile.last_name}"
+            elif profile.first_name:
+                return profile.first_name
+            elif profile.last_name:
+                return profile.last_name
+        # ✅ REGULAR USER: Get name from user_profile
+        elif user.user_type == 'user' and hasattr(user, 'user_profile') and user.user_profile:
+            profile = user.user_profile
+            if profile.first_name and profile.last_name:
+                return f"{profile.first_name} {profile.last_name}"
+            elif profile.first_name:
+                return profile.first_name
+            elif profile.last_name:
+                return profile.last_name
+        # ✅ FALLBACK: Use mobile or email
+        return user.mobile or user.email or f"User {user.id}"
+    
+    def get_permissions(self, user):
+        """ Complete permissions for admin detail - full data """
+        # ✅ REGULAR USER: Return user-level permissions
+        if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
+            return {
+                'access_level': 'user',
+                'permissions': [],
+                'roles': [],
+                'modules': [],
+                'actions': [],
+                'permission_summary': {
+                    'total_permissions': 0,
+                    'accessible_modules': 0,
+                    'available_actions': 0,
+                    'access_type': 'website_user'
+                }
+            }
+        
+        # SUPERUSER: Full response
+        if user.is_superuser:
+            return {
+                'access_level': 'super_admin',
+                'permissions': ['all'],
+                'roles': ['super_admin'],
+                'modules': ['all'],
+                'actions': ['all'],
+                'permission_summary': {
+                    'total_permissions': 'unlimited',
+                    'access_type': 'full_system_access',
+                    'restrictions': 'none'
+                }
+            }
+        
+        # REGULAR ADMIN: Get only assigned roles and their permissions
+        assigned_roles = []
+        permissions_list = []
+        modules = set()
+        actions = set()
+        
+        try:
+            if hasattr(user, 'adminuserrole_set'):
+                user_role_assignments = user.adminuserrole_set.filter(
+                    is_active=True
+                ).select_related('role')
+                
+                for ur in user_role_assignments:
+                    assigned_roles.append(ur.role.name)
+                    
+                    # Get role permissions
+                    role_permissions = ur.role.permissions.get('actions', [])
+                    role_modules = ur.role.permissions.get('modules', [])
+                    
+                    # Add to collections
+                    modules.update(role_modules)
+                    actions.update(role_permissions)
+                    
+                    # Create permission strings
+                    for module in role_modules:
+                        for action in role_permissions:
+                            if module != 'all' and action != 'all':
+                                permissions_list.append(f"{module}.{action}")
+        except Exception as e:
+            pass
+        
+        return {
+            'access_level': 'admin',
+            'permissions': sorted(permissions_list),
+            'roles': assigned_roles,
+            'modules': list(modules),
+            'actions': list(actions),
+            'permission_summary': {
+                'total_permissions': len(permissions_list),
+                'accessible_modules': len(modules),
+                'available_actions': len(actions),
+                'access_type': 'role_based_access'
+            }
+        }
+
+class AdminUpdateSerializer(serializers.Serializer):
+    # User fields
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    is_active = serializers.BooleanField(required=False)
+    is_staff = serializers.BooleanField(required=False)
+    is_superuser = serializers.BooleanField(required=False)
+    
+    # Add role_id field to accept the role from the frontend
+    role_id = serializers.CharField(required=False, allow_blank=True, allow_null=True) # Accept ID as string or empty string
+
+    # پذیرش آبجکت profile که از فرانت‌اند می‌آید
+    profile = AdminProfileUpdateSerializer(required=False) # Changed to AdminProfileUpdateSerializer
+    
+    # Support for direct profile picture upload (alternative to using media library)
+    profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
+
+    # Flattened Profile fields (matching frontend)
+    # Removed flattened profile fields as AdminProfileUpdateSerializer handles them
+
+    def validate_profile_picture(self, value):
+        """Validate uploaded profile picture file using media service"""
+        if value is None:
+            return value
+        
+        # Use central media validation
+        from src.media.utils.validators import validate_image_file
+        
+        try:
+            validate_image_file(value)
+            return value
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+    def validate_profile_picture_id(self, value):
+        """Validate profile picture ID"""
+        if value is None:
+            return value
+        
+        try:
+            from src.media.models import Media
+            Media.objects.get(id=value, media_type='image', is_active=True)
+            return value
+        except Media.DoesNotExist:
+            raise serializers.ValidationError("Invalid media ID or media is not an active image")
+    
+    def validate_email(self, value):
+        if value == "": 
+            return None
+        if value:
+            user_id = self.context.get('user_id')
+            try:
+                validate_email_address(value)
+                from django.db.models import Q
+                if User.objects.filter(~Q(id=user_id), email=value).exists():
+                    raise serializers.ValidationError(AUTH_ERRORS["auth_email_exists"])
+            except ValidationError:
+                raise serializers.ValidationError(AUTH_ERRORS["auth_invalid_email"])
+        return value
+    
+    def validate_mobile(self, value):
+        if value == "":
+            return None
+        if value:
+            user_id = self.context.get('user_id')
+            try:
+                validate_mobile_number(value)
+                from django.db.models import Q
+                if User.objects.filter(~Q(id=user_id), mobile=value).exists():
+                    raise serializers.ValidationError(AUTH_ERRORS["auth_mobile_exists"])
+            except ValidationError:
+                raise serializers.ValidationError(AUTH_ERRORS["auth_invalid_mobile"])
+        return value
+
+    def validate(self, data):
+        print(f">>>>> Validating data in AdminUpdateSerializer: {data}")
+        admin_user = self.context.get('admin_user')
+        if data.get('is_superuser') is True and not admin_user.is_superuser:
+            raise serializers.ValidationError({'is_superuser': AUTH_ERRORS["auth_only_superuser_set"]})
+
+        # Extract profile data if it exists
+        # Removed manual profile data mapping as AdminProfileUpdateSerializer handles it
+
+        print(f">>>>> After validation in AdminUpdateSerializer: {data}")
+        return data
+
+class AdminFilterSerializer(BaseUserFilterSerializer):
+    user_type = serializers.ChoiceField(
+        choices=['all', 'admin', 'user'],
+        default='all',
+        required=False
+    )
+    is_superuser = serializers.BooleanField(required=False, allow_null=True)
+    search = serializers.CharField(required=False, allow_blank=True)
+
+# AdminCreateSerializer removed - use AdminRegisterSerializer instead
+
+class BulkDeleteSerializer(serializers.Serializer):
+    ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        allow_empty=False,
+        min_length=1,
+        help_text="List of numeric User IDs to delete."
+    )
+    user_type = serializers.CharField(required=False)
+
+    def validate_ids(self, value):
+        if not value:
+            raise serializers.ValidationError("List of IDs cannot be empty.")
+        if not all(isinstance(item, int) for item in value):
+            raise serializers.ValidationError("All items in the list must be integers.")
+        return value
