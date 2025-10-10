@@ -12,11 +12,22 @@ import { Switch } from "@/components/elements/Switch";
 import { 
   FileText, Edit2, Image, 
   Loader2, Save,
-  Plus, Tag, FolderOpen
+  Plus, Tag, FolderOpen,
+  X, Play, Video, Music
 } from "lucide-react";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
 import { Media } from "@/types/shared/media";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
+import { PortfolioMediaGallery } from "@/components/portfolio";
+
+// Add this interface for managing multiple media selections
+interface PortfolioMedia {
+  featuredImage: Media | null;
+  imageGallery: Media[];
+  videoGallery: Media[]; // This will contain at most 1 video with cover
+  audioGallery: Media[]; // This will contain at most 1 audio with cover
+  pdfDocuments: Media[]; // This will contain at most 1 PDF with cover
+}
 
 const staticAdminData = {
   id: 2,
@@ -62,7 +73,14 @@ export default function CreatePortfolioPage() {
   const [activeTab, setActiveTab] = useState<string>("account");
   const [editMode, setEditMode] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+  // Replace single selectedMedia with portfolioMedia
+  const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
+    featuredImage: null,
+    imageGallery: [],
+    videoGallery: [],
+    audioGallery: [],
+    pdfDocuments: []
+  });
   const [formData, setFormData] = useState({
     name: "نمونه‌کار جدید",
     slug: "new-portfolio-item",
@@ -105,6 +123,14 @@ export default function CreatePortfolioPage() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSaving(false);
     alert("پیش‌نویس با موفقیت ذخیره شد!");
+  };
+
+  // Helper functions for managing portfolio media
+  const handleFeaturedImageSelect = (media: Media | null) => {
+    setPortfolioMedia(prev => ({
+      ...prev,
+      featuredImage: media
+    }));
   };
 
   return (
@@ -322,11 +348,54 @@ export default function CreatePortfolioPage() {
                     <CardDescription>مدیریت تصاویر و فایل‌های رسانه‌ای</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <MediaSelector
-                    selectedMedia={selectedMedia}
-                    onMediaSelect={setSelectedMedia}
-                    label="تصویر پروفایل"
-                    size="md"
+                  {/* Featured Image Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">تصویر شاخص</h3>
+                    <MediaSelector
+                      selectedMedia={portfolioMedia.featuredImage}
+                      onMediaSelect={handleFeaturedImageSelect}
+                      label="تصویر شاخص"
+                      size="lg"
+                    />
+                  </div>
+
+                  {/* Image Gallery Section */}
+                  <PortfolioMediaGallery
+                    mediaItems={portfolioMedia.imageGallery}
+                    onMediaSelect={(media) => setPortfolioMedia(prev => ({ ...prev, imageGallery: media }))}
+                    mediaType="image"
+                    title="گالری تصاویر"
+                    isGallery={true} // This is a gallery (multiple images)
+                  />
+
+                  {/* Video Gallery Section - Single video with cover */}
+                  <PortfolioMediaGallery
+                    mediaItems={portfolioMedia.videoGallery}
+                    onMediaSelect={(media) => setPortfolioMedia(prev => ({ ...prev, videoGallery: media }))}
+                    mediaType="video"
+                    title="ویدئو"
+                    isGallery={false} // This is a single item with cover
+                    maxSelection={1}
+                  />
+
+                  {/* Audio Gallery Section - Single audio with cover */}
+                  <PortfolioMediaGallery
+                    mediaItems={portfolioMedia.audioGallery}
+                    onMediaSelect={(media) => setPortfolioMedia(prev => ({ ...prev, audioGallery: media }))}
+                    mediaType="audio"
+                    title="فایل صوتی"
+                    isGallery={false} // This is a single item with cover
+                    maxSelection={1}
+                  />
+
+                  {/* PDF Documents Section - Single PDF with cover */}
+                  <PortfolioMediaGallery
+                    mediaItems={portfolioMedia.pdfDocuments}
+                    onMediaSelect={(media) => setPortfolioMedia(prev => ({ ...prev, pdfDocuments: media }))}
+                    mediaType="pdf"
+                    title="مستندات PDF"
+                    isGallery={false} // This is a single item with cover
+                    maxSelection={1}
                   />
                 </CardContent>
               </Card>

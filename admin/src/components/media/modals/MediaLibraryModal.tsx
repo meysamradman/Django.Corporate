@@ -225,8 +225,10 @@ export function MediaLibraryModal({
         onTabChange?.("select");
         setUploadProgress(0);
         clearFiles();
-        // Refresh media list after upload
-        fetchMedia(filters);
+        // Refresh media list after upload with a longer delay to ensure backend processing
+        setTimeout(() => {
+          fetchMedia(filters);
+        }, 1000);
       }, 1500);
     }
   };

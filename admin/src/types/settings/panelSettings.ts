@@ -10,4 +10,6 @@ export interface PanelSettings {
     favicon?: Media | null;
     logo_url?: string | null;
     favicon_url?: string | null;
+    logo_detail?: Media | null;
+    favicon_detail?: Media | null;
 }

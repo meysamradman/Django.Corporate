@@ -4,11 +4,10 @@ import React, { useState } from 'react';
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/elements/Dialog";
 import { Media } from '@/types/shared/media';
 import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
 import { mediaService } from '@/components/media/services';
-import { Image as ImageIcon, Upload as UploadIcon, X } from 'lucide-react';
+import { Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CoverImageManagerProps {
@@ -23,7 +22,7 @@ export function CoverImageManager({
   mediaType
 }: CoverImageManagerProps) {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
   const [newCoverImage, setNewCoverImage] = useState<Media | null>(null);
 
   // Get the URL for the current cover image using the shared service
@@ -59,38 +58,18 @@ export function CoverImageManager({
     setIsLibraryOpen(false);
   };
 
+  const handleUploadComplete = () => {
+    // After upload, switch to select tab to show newly uploaded media
+    setIsLibraryOpen(true);
+    setActiveTab("select");
+  };
+
   const handleRemoveCoverImage = () => {
     setNewCoverImage(null);
-    setPreviewUrl(null);
     onCoverImageChange(null);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Check if it's an image
-    if (!file.type.startsWith('image/')) {
-      toast.error('فایل انتخاب شده باید یک تصویر باشد');
-      return;
-    }
-    
-    // Check file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('حجم تصویر نباید بیشتر از 5 مگابایت باشد');
-      return;
-    }
-    
-    // Create preview
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    
-    // For now, we'll just show the preview
-    // In a full implementation, we would upload the file
-    toast.info('برای آپلود تصویر جدید، لطفاً از کتابخانه مدیا استفاده کنید');
-  };
-
-  const coverImageUrl = previewUrl || getCoverImageUrl();
+  const coverImageUrl = getCoverImageUrl();
 
   return (
     <div className="space-y-4">
@@ -124,44 +103,27 @@ export function CoverImageManager({
         </div>
       )}
       
-      <div className="flex gap-2">
-        <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="flex-1">
-              <ImageIcon className="h-4 w-4 ml-2" />
-              انتخاب از کتابخانه
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl h-[80vh] p-0">
-            <DialogHeader className="sr-only">
-              <DialogTitle>کتابخانه رسانه</DialogTitle>
-            </DialogHeader>
-            <MediaLibraryModal
-              isOpen={true}
-              onClose={() => setIsLibraryOpen(false)}
-              onSelect={handleSelectFromLibrary}
-              selectMultiple={false}
-              initialFileType="image"
-              showTabs={true}
-              activeTab="select"
-              onTabChange={() => {}}
-            />
-          </DialogContent>
-        </Dialog>
+      <div>
+        <Button 
+          variant="outline" 
+          className="w-full"
+          onClick={() => setIsLibraryOpen(true)}
+        >
+          <ImageIcon className="h-4 w-4 ml-2" />
+          انتخاب از کتابخانه
+        </Button>
         
-        <Label htmlFor="cover-image-upload" className="flex-1">
-          <Button variant="outline" className="w-full">
-            <UploadIcon className="h-4 w-4 ml-2" />
-            آپلود جدید
-          </Button>
-          <Input
-            id="cover-image-upload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-        </Label>
+        <MediaLibraryModal
+          isOpen={isLibraryOpen}
+          onClose={() => setIsLibraryOpen(false)}
+          onSelect={handleSelectFromLibrary}
+          selectMultiple={false}
+          initialFileType="image"
+          showTabs={true}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onUploadComplete={handleUploadComplete}
+        />
       </div>
       
       <p className="text-xs text-muted-foreground">

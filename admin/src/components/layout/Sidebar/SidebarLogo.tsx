@@ -6,13 +6,16 @@ import Image from 'next/image';
 export function SidebarLogo() {
   const { panelSettings } = useAuth();
 
+  // Use logo_detail if available, otherwise fallback to logo_url
+  const logoUrl = panelSettings?.logo_detail?.file_url || panelSettings?.logo_url;
+
   return (
     <div className="h-16 flex items-center justify-center border-b border-sdb-br">
-      {panelSettings?.logo_url ? (
+      {logoUrl ? (
         <div className="w-10 h-10 relative overflow-hidden rounded-md">
           <Image
-            src={panelSettings.logo_url}
-            alt={panelSettings.panel_title || 'پنل ادمین'}
+            src={logoUrl}
+            alt={panelSettings?.panel_title || 'پنل ادمین'}
             fill
             className="object-cover"
             unoptimized // For dynamic URLs with cache busting
@@ -28,4 +31,4 @@ export function SidebarLogo() {
       )}
     </div>
   );
-} 
+}

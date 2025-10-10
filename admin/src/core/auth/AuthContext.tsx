@@ -14,6 +14,7 @@ import { ApiResponse, MetaData } from '@/types/api/apiResponse';
 import { PanelSettings } from '@/types/settings/panelSettings';
 import { getPanelSettings } from '@/api/settings/panel/route';
 import { getQueryClient } from '@/core/utils/queryClient';
+import { FaviconManager } from '@/components/layout/FaviconManager';
 
 interface AuthLoginResponse extends LoginResponse {
   csrf_token?: string;
@@ -92,6 +93,8 @@ function serializePanelSettings(settings: PanelSettings | null): PanelSettings |
     favicon: settings.favicon,
     logo_url: settings.logo_url,
     favicon_url: settings.favicon_url,
+    logo_detail: settings.logo_detail,
+    favicon_detail: settings.favicon_detail,
   };
 }
 
@@ -419,30 +422,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const baseUrl = processedSettings.favicon_url.split('?')[0];
           processedSettings.favicon_url = `${baseUrl}?t=${timestamp}`;
         }
+        
+        // Also handle logo_detail and favicon_detail if they exist
+        if (processedSettings.logo_detail) {
+          if (processedSettings.logo_detail.file_url) {
+            const baseUrl = processedSettings.logo_detail.file_url.split('?')[0];
+            processedSettings.logo_detail.file_url = `${baseUrl}?t=${timestamp}`;
+          }
+        }
+        if (processedSettings.favicon_detail) {
+          if (processedSettings.favicon_detail.file_url) {
+            const baseUrl = processedSettings.favicon_detail.file_url.split('?')[0];
+            processedSettings.favicon_detail.file_url = `${baseUrl}?t=${timestamp}`;
+          }
+        }
       }
       setPanelSettings(processedSettings);
   };
-
-  // Simple client-side favicon update when panel settings change
-  useEffect(() => {
-    if (typeof window !== 'undefined' && panelSettings?.favicon_url) {
-      // Update favicon
-      let favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-      if (favicon) {
-        favicon.href = panelSettings.favicon_url;
-      } else {
-        favicon = document.createElement('link');
-        favicon.rel = 'icon';
-        favicon.href = panelSettings.favicon_url;
-        document.head.appendChild(favicon);
-      }
-      
-      // Update title
-      if (panelSettings.panel_title) {
-        document.title = panelSettings.panel_title;
-      }
-    }
-  }, [panelSettings?.favicon_url, panelSettings?.panel_title]);
 
   const value = {
     user,
@@ -458,7 +454,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     updatePanelSettingsInContext
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      <FaviconManager />
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
@@ -467,4 +468,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

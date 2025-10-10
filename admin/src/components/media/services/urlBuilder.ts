@@ -98,7 +98,7 @@ export const GetMediaCoverUrl = (media: Media): string => {
     
     // For videos and audio, if no cover is set, return empty string
     // We should not fallback to the main file URL as it's not an image
-    if (media.media_type === 'video' || media.media_type === 'audio') {
+    if (media.media_type === 'video' || media.media_type === 'audio' || media.media_type === 'pdf' || media.media_type === 'document') {
         return '';
     }
     

@@ -167,32 +167,37 @@ class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
             'alt_text': request.data.get('alt_text', ''),
         }
         
-        # Handle cover image for non-image media types
-        cover_image_file = request.FILES.get('cover_image')
-        if cover_image_file and media_type != 'image':
-            # First, save the cover image as a separate media object
-            cover_serializer = self.get_serializer(data={
-                'file': cover_image_file,
-                'media_type': 'image',
-                'title': f"Cover for {file.name}",
-                'alt_text': f"Cover image for {file.name}",
-            })
-            
-            if cover_serializer.is_valid():
-                cover_media = cover_serializer.save()
-                # Set the cover_image to the ID of the newly created cover media
-                serializer_data['cover_image'] = cover_media.id
-            else:
-                return APIResponse.error(
-                    message="Cover image validation failed",
-                    errors=cover_serializer.errors,
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
-        
+        # Create the main media object first
         serializer = self.get_serializer(data=serializer_data)
         
         if serializer.is_valid():
             media = serializer.save()
+            
+            # Handle cover image for non-image media types
+            cover_image_file = request.FILES.get('cover_image')
+            if cover_image_file and media_type != 'image':
+                # First, save the cover image as a separate media object
+                cover_serializer = self.get_serializer(data={
+                    'file': cover_image_file,
+                    'media_type': 'image',
+                    'title': f"Cover for {file.name}",
+                    'alt_text': f"Cover image for {file.name}",
+                })
+                
+                if cover_serializer.is_valid():
+                    cover_media = cover_serializer.save()
+                    # Update the main media object with the cover image
+                    media.cover_image = cover_media
+                    media.save(update_fields=['cover_image'])
+                else:
+                    # Delete the main media object if cover image validation fails
+                    media.delete()
+                    return APIResponse.error(
+                        message="Cover image validation failed",
+                        errors=cover_serializer.errors,
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    )
+            
             # Return the serialized media object with cover_image properly serialized
             response_serializer = self.get_serializer(media)
             return APIResponse.success(

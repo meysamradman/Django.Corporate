@@ -12,6 +12,8 @@ import LogoUploader from './LogoUploader';
 import { usePanelSettings, useUpdatePanelSettings } from '@/core/hooks/useAdminData';
 import { showSuccessToast } from '@/core/config/errorHandler';
 import { Skeleton } from "@/components/elements/Skeleton";
+import { Media } from '@/types/shared/media';
+import { PanelSettings } from '@/types/settings/panelSettings';
 
 // Define Zod schema for form validation
 const formSchema = z.object({
@@ -25,8 +27,8 @@ export default function PanelSettingsForm() {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
     
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [faviconFile, setFaviconFile] = useState<File | null>(null);
+    const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
+    const [selectedFavicon, setSelectedFavicon] = useState<Media | null>(null);
     
     // Track file deletions
     const [logoDeleted, setLogoDeleted] = useState<boolean>(false);
@@ -42,35 +44,28 @@ export default function PanelSettingsForm() {
     useEffect(() => {
         if (panelSettings) {
             form.reset({ panel_title: panelSettings.panel_title || "" });
+            // Set initial media
+            setSelectedLogo(panelSettings.logo_detail || panelSettings.logo || null);
+            setSelectedFavicon(panelSettings.favicon_detail || panelSettings.favicon || null);
             // Reset deletion states when new data comes from server
             setLogoDeleted(false);
             setFaviconDeleted(false);
         }
     }, [panelSettings, form]);
 
-    // Custom handlers for file operations
-    const handleLogoSelect = (file: File | null) => {
-        setLogoFile(file);
-        if (file) {
-            setLogoDeleted(false); // Reset deletion if new file selected
+    // Custom handlers for media operations
+    const handleLogoSelect = (media: Media | null) => {
+        setSelectedLogo(media);
+        if (media) {
+            setLogoDeleted(false); // Reset deletion if new media selected
         }
     };
 
-    const handleFaviconSelect = (file: File | null) => {
-        setFaviconFile(file);
-        if (file) {
-            setFaviconDeleted(false); // Reset deletion if new file selected
+    const handleFaviconSelect = (media: Media | null) => {
+        setSelectedFavicon(media);
+        if (media) {
+            setFaviconDeleted(false); // Reset deletion if new media selected
         }
-    };
-
-    const handleLogoDelete = () => {
-        setLogoFile(null);
-        setLogoDeleted(true);
-    };
-
-    const handleFaviconDelete = () => {
-        setFaviconFile(null);
-        setFaviconDeleted(true);
     };
 
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -83,16 +78,16 @@ export default function PanelSettingsForm() {
             // }
 
             // Handle logo
-            if (logoFile) {
-                formData.append('logo', logoFile);
+            if (selectedLogo?.id) {
+                formData.append('logo', selectedLogo.id.toString());
             }
             if (logoDeleted) {
                 formData.append('remove_logo', 'true');
             }
 
             // Handle favicon
-            if (faviconFile) {
-                formData.append('favicon', faviconFile);
+            if (selectedFavicon?.id) {
+                formData.append('favicon', selectedFavicon.id.toString());
             }
             if (faviconDeleted) {
                 formData.append('remove_favicon', 'true');
@@ -113,16 +108,8 @@ export default function PanelSettingsForm() {
             await updateSettings(formData);
 
             // Reset states after successful submission
-            setLogoFile(null);
-            setFaviconFile(null);
             setLogoDeleted(false);
             setFaviconDeleted(false);
-            
-            // Clear file inputs
-            const logoInput = document.getElementById('panel-logo') as HTMLInputElement;
-            if (logoInput) logoInput.value = '';
-            const faviconInput = document.getElementById('panel-favicon') as HTMLInputElement;
-            if (faviconInput) faviconInput.value = '';
 
         } catch (error) {
             console.error("Submission error caught in component:", error);
@@ -130,7 +117,9 @@ export default function PanelSettingsForm() {
     };
 
     // Check if there are changes to enable submit button
-    const hasChanges = logoFile !== null || faviconFile !== null || logoDeleted || faviconDeleted;
+    const hasChanges = selectedLogo !== (panelSettings?.logo_detail || panelSettings?.logo || null) || 
+                      selectedFavicon !== (panelSettings?.favicon_detail || panelSettings?.favicon || null) || 
+                      logoDeleted || faviconDeleted;
 
     if (isLoadingSettings) {
         return (
@@ -160,11 +149,9 @@ export default function PanelSettingsForm() {
                             <h3 className="text-sm font-medium">لوگوی پنل</h3>
                             <LogoUploader
                                 label="لوگوی پنل"
-                                currentImageUrl={panelSettings?.logo_url}
-                                onFileSelect={handleLogoSelect}
-                                onFileDelete={handleLogoDelete}
-                                isDeleted={logoDeleted}
-                                fieldId="panel-logo"
+                                selectedMedia={selectedLogo}
+                                onMediaSelect={handleLogoSelect}
+                                size="md"
                             />
                         </div>
 
@@ -174,11 +161,9 @@ export default function PanelSettingsForm() {
                             <h3 className="text-sm font-medium">فاویکون پنل</h3>
                             <LogoUploader
                                 label="فاویکون پنل"
-                                currentImageUrl={panelSettings?.favicon_url}
-                                onFileSelect={handleFaviconSelect}
-                                onFileDelete={handleFaviconDelete}
-                                isDeleted={faviconDeleted}
-                                fieldId="panel-favicon"
+                                selectedMedia={selectedFavicon}
+                                onMediaSelect={handleFaviconSelect}
+                                size="md"
                             />
                         </div>
                     </CardContent>
@@ -190,4 +175,4 @@ export default function PanelSettingsForm() {
             </form>
         </Form>
     );
-} 
+}

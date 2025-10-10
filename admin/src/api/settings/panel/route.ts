@@ -17,6 +17,6 @@ export const getPanelSettings = async (options?: { cache?: RequestCache, revalid
 };
 
 export const updatePanelSettings = async (data: FormData | PanelSettings): Promise<ApiResponse<PanelSettings>> => {
-    const response = await fetchApi.put<PanelSettings>(`${BASE_URL}/`, data);
+    const response = await fetchApi.put<PanelSettings>(`${BASE_URL}/update/`, data);
     return response;
 };

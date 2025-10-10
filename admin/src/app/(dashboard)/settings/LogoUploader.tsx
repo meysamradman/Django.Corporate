@@ -1,130 +1,135 @@
 'use client';
 
-import React, { useState, ChangeEvent, useEffect } from 'react';
-import Image from 'next/image';
+import React, { useState } from 'react';
 import { Button } from "@/components/elements/Button";
-import { mediaService } from '@/components/media/services';
-import { env } from '@/core/config/environment';
+import { Label } from "@/components/elements/Label";
+import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
+import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { Media } from "@/types/shared/media";
+import { ImagePlus, X } from "lucide-react";
 
 interface LogoUploaderProps {
     label: string;
-    currentImageUrl?: string | null;
-    onFileSelect: (file: File | null) => void; // Callback to pass file to parent
-    onFileDelete?: () => void; // Callback when delete button is clicked
-    isDeleted?: boolean; // External deleted state from parent
-    fieldId: string;
+    selectedMedia: Media | null;
+    onMediaSelect: (media: Media | null) => void;
+    showLabel?: boolean;
+    size?: "sm" | "md" | "lg";
+    className?: string;
 }
 
 export default function LogoUploader({ 
-    label, 
-    currentImageUrl, 
-    onFileSelect, 
-    onFileDelete,
-    isDeleted = false,
-    fieldId 
+    label,
+    selectedMedia,
+    onMediaSelect,
+    showLabel = true,
+    size = "md",
+    className = ""
 }: LogoUploaderProps) {
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [showMediaSelector, setShowMediaSelector] = useState(false);
+    const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
-    // Reset preview when currentImageUrl changes
-    useEffect(() => {
-        if (previewUrl) {
-            setPreviewUrl(null);
-        }
-    }, [currentImageUrl]);
-
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0] || null;
-
-        if (file) {
-            // Validate file using secure config (extension + MIME type)
-            const validation = mediaService.validateFileAdvanced(file);
-            if (!validation.isValid) {
-                alert(validation.errors.join(', '));
-                event.target.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+    const handleMediaSelect = (selectedMedia: Media | Media[]) => {
+        if (Array.isArray(selectedMedia)) {
+            onMediaSelect(selectedMedia[0] || null);
         } else {
-            setPreviewUrl(null);
+            onMediaSelect(selectedMedia);
         }
-
-        onFileSelect(file); // Pass file up to the form
+        setShowMediaSelector(false);
     };
 
-    const handleUploadClick = () => {
-        const input = document.getElementById(fieldId) as HTMLInputElement;
-        input?.click();
+    const handleUploadComplete = () => {
+        // بعد از آپلود، مودال انتخاب را باز کن
+        setShowMediaSelector(true);
+        setActiveTab("select");
     };
 
-    const handleReset = () => {
-        setPreviewUrl(null);
-        onFileSelect(null);
-        const input = document.getElementById(fieldId) as HTMLInputElement;
-        if (input) input.value = '';
-        
-        // Call parent's delete handler if provided
-        if (onFileDelete) {
-            onFileDelete();
-        }
+    const handleRemoveImage = () => {
+        onMediaSelect(null);
     };
 
-    // Use parent's deleted state or show current/preview image
-    const displayUrl = previewUrl || (isDeleted ? null : currentImageUrl);
+    const sizeClasses = {
+        sm: "w-20 h-20",
+        md: "w-32 h-32",
+        lg: "w-40 h-40"
+    };
+
+    const buttonSize = {
+        sm: "sm",
+        md: "sm",
+        lg: "default"
+    } as const;
+
+    const iconSize = {
+        sm: "h-3 w-3",
+        md: "h-4 w-4",
+        lg: "h-5 w-5"
+    };
 
     return (
-        <div className="flex items-center gap-6">
-            {/* Profile Image */}
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border">
-                {displayUrl ? (
-                    <Image 
-                        key={displayUrl} 
-                        src={displayUrl} 
-                        alt={label} 
-                        fill
-                        className="object-cover"
-                        unoptimized
-                        priority
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                        </svg>
-                    </div>
-                )}
-            </div>
-            <div className="space-y-2">
-                <div className="flex gap-4">
-                    <Button
-                        type="button"
-                        onClick={handleUploadClick}
+        <div className={`space-y-2 ${className}`}>
+            {showLabel && (
+                <Label>{label}</Label>
+            )}
+            
+            <div className="flex items-center gap-4">
+                <div className={`relative ${sizeClasses[size]} border rounded-lg overflow-hidden`}>
+                    {selectedMedia ? (
+                        <MediaThumbnail
+                            media={selectedMedia}
+                            alt={label}
+                            className="object-cover"
+                            fill
+                            sizes={`${size === "sm" ? "80px" : size === "md" ? "128px" : "160px"}`}
+                            showIcon={true}
+                        />
+                    ) : (
+                        <div className={`w-full h-full bg-muted flex items-center justify-center rounded-lg`}>
+                            <span className={`font-medium ${size === "sm" ? "text-sm" : size === "md" ? "text-lg" : "text-xl"}`}>
+                                IMG
+                            </span>
+                        </div>
+                    )}
+                </div>
+                
+                <div className="space-y-2">
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        size={buttonSize[size]}
+                        onClick={() => setShowMediaSelector(true)}
+                        className="flex gap-2"
                     >
-                        آپلود تصویر جدید
+                        <ImagePlus className={iconSize[size]} />
+                        مدیریت تصویر
                     </Button>
-                    {displayUrl && (
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={handleReset}
+                    
+                    {selectedMedia && (
+                        <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size={buttonSize[size]}
+                            onClick={handleRemoveImage}
+                            className="text-destructive hover:text-destructive"
                         >
-                            حذف
+                            <X className={iconSize[size]} />
+                            حذف تصویر
                         </Button>
                     )}
                 </div>
-
             </div>
-            <input
-                id={fieldId}
-                type="file"
-                accept={mediaService.getImageAcceptTypes()}
-                onChange={handleFileChange}
-                className="hidden"
+
+            {/* Media Library Modal with Tabs */}
+            <MediaLibraryModal
+                isOpen={showMediaSelector}
+                onClose={() => setShowMediaSelector(false)}
+                onSelect={handleMediaSelect}
+                selectMultiple={false}
+                initialFileType="image"
+                showTabs={true}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                onUploadComplete={handleUploadComplete}
             />
         </div>
     );
-} 
+}
