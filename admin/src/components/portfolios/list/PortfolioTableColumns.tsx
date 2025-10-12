@@ -164,7 +164,6 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (portfolio) => {
-              // TODO: Implement delete functionality
               console.log("Delete portfolio", portfolio.id);
             },
             isDestructive: true,
