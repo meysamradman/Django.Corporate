@@ -1,20 +1,14 @@
 from rest_framework import serializers
-from src.user.serializers import (
-    BaseUserListSerializer,
-    BaseUserDetailSerializer,
-    BaseUserUpdateSerializer,
-    BaseUserFilterSerializer
-)
-from src.user.serializers.base_profile_serializer import AdminProfileSerializer, AdminProfileUpdateSerializer
-from src.user.utils import (
-    validate_identifier,
-    validate_email_address,
-    validate_mobile_number
-)
-from src.user.utils.permission_helper import PermissionHelper
 from django.core.exceptions import ValidationError
-from src.user.models import User
+from datetime import datetime
+from src.user.models import User, AdminRole, AdminProfile
 from src.user.messages import AUTH_ERRORS
+from src.media.models import ImageMedia
+from src.user.serializers.base_management_serializer import BaseUserListSerializer, BaseUserDetailSerializer, BaseUserFilterSerializer
+from src.user.serializers.base_profile_serializer import AdminProfileSerializer, AdminProfileUpdateSerializer
+from src.user.utils.email_validator import validate_email_address
+from src.user.utils.mobile_validator import validate_mobile_number
+from django.db.models import Q
 
 class AdminListSerializer(BaseUserListSerializer):
     profile = AdminProfileSerializer(source='admin_profile', read_only=True)
@@ -25,17 +19,17 @@ class AdminListSerializer(BaseUserListSerializer):
         fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
                  'created_at', 'profile', 'full_name', 'permissions']
     
-    def get_full_name(self, user):
+    def get_full_name(self, obj):
         """Get full name efficiently from prefetched profile"""
-        if hasattr(user, 'admin_profile') and user.admin_profile:
-            profile = user.admin_profile
+        if hasattr(obj, 'admin_profile') and obj.admin_profile:
+            profile = obj.admin_profile
             if profile.first_name and profile.last_name:
                 return f"{profile.first_name} {profile.last_name}"
             elif profile.first_name:
                 return profile.first_name
             elif profile.last_name:
                 return profile.last_name
-        return user.mobile or user.email or f"User {user.id}"
+        return obj.mobile or obj.email or f"User {obj.id}"
     
     def get_permissions(self, user):
         """ Simplified permissions for admin list - much faster """
@@ -82,15 +76,15 @@ class AdminDetailSerializer(BaseUserDetailSerializer):
         fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
                  'created_at', 'updated_at', 'profile', 'full_name', 'permissions']
     
-    def get_profile(self, user):
+    def get_profile(self, obj):
         """Get profile based on user type - admin or regular user"""
         # ✅ ADMIN USER: Get admin_profile
-        if user.user_type == 'admin' and hasattr(user, 'admin_profile') and user.admin_profile:
-            return AdminProfileSerializer(user.admin_profile, context=self.context).data
+        if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
+            return AdminProfileSerializer(obj.admin_profile, context=self.context).data
         # ✅ REGULAR USER: Get user_profile  
-        elif user.user_type == 'user' and hasattr(user, 'user_profile') and user.user_profile:
+        elif obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
             from src.user.serializers.base_profile_serializer import UserProfileSerializer
-            return UserProfileSerializer(user.user_profile, context=self.context).data
+            return UserProfileSerializer(obj.user_profile, context=self.context).data
         # ✅ NO PROFILE: Return None
         return None
     
@@ -236,10 +230,10 @@ class AdminUpdateSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.media.models import Media
-            Media.objects.get(id=value, media_type='image', is_active=True)
+            from src.media.models import ImageMedia
+            image_media = ImageMedia.objects.get(id=value, is_active=True)
             return value
-        except Media.DoesNotExist:
+        except ImageMedia.DoesNotExist:
             raise serializers.ValidationError("Invalid media ID or media is not an active image")
     
     def validate_email(self, value):

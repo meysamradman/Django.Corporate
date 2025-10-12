@@ -24,7 +24,8 @@ export function MediaPreview({
 
   // Get appropriate background color for media type
   const getMediaBgColor = () => {
-    switch (media.media_type) {
+    const mediaType = media.media_type || 'file';
+    switch (mediaType) {
       case 'video':
         return 'bg-red-500/10';
       case 'audio':
@@ -39,7 +40,8 @@ export function MediaPreview({
 
   // Get play icon color
   const getPlayIconColor = () => {
-    switch (media.media_type) {
+    const mediaType = media.media_type || 'file';
+    switch (mediaType) {
       case 'video':
         return 'text-red-500';
       case 'audio':
@@ -74,7 +76,7 @@ export function MediaPreview({
       />
 
       {/* Play Icon Overlay for Video/Audio */}
-      {(media.media_type === 'video' || media.media_type === 'audio') && showPlayIcon && (
+      {((media.media_type || '') === 'video' || (media.media_type || '') === 'audio') && showPlayIcon && (
         <div className={cn(
           "absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300",
           isHovered ? "opacity-100" : "opacity-0"

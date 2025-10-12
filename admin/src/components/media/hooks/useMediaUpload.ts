@@ -169,7 +169,7 @@ export const useMediaUpload = () => {
         }
 
         // ✅ Simple upload - بدون simulation
-        await fetchApi.post('/admin/media/upload/', formData);
+        await fetchApi.post('/admin/media/', formData);
 
         // Mark as success
         setFiles(prev => prev.map(f => 

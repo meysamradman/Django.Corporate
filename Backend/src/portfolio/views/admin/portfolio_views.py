@@ -21,14 +21,14 @@ from src.portfolio.services.admin.portfolio_services import (
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireAdminRole
+from src.user.authorization.admin_permission import ContentManagerAccess
 
 
 class PortfolioAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Portfolio ViewSet for Admin Panel with SEO support
     """
-    permission_classes = [RequireAdminRole('super_admin', 'content_manager')]
+    permission_classes = [ContentManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']
@@ -61,10 +61,16 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         filters = {k: v for k, v in filters.items() if v is not None}
 
         search = request.query_params.get('search')
+        
+        # Get ordering parameters
+        order_by = request.query_params.get('order_by', 'created_at')
+        order_desc = self._parse_bool(request.query_params.get('order_desc', True))
 
         queryset = PortfolioAdminService.get_portfolio_queryset(
             filters=filters,
             search=search,
+            order_by=order_by,
+            order_desc=order_desc,
         )
 
         from django.core.paginator import Paginator

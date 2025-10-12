@@ -3,7 +3,7 @@ from datetime import datetime
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.email_validator import validate_email_address
 from src.user.models import User, AdminRole
-from src.media.models import Media
+from src.media.models import ImageMedia
 from src.user.messages import AUTH_ERRORS
 from ..base_register_serializer import BaseRegisterSerializer
 
@@ -101,9 +101,9 @@ class AdminRegisterSerializer(BaseRegisterSerializer):
             return value
         
         try:
-            media = Media.objects.get(id=value, media_type='image', is_active=True)
+            media = ImageMedia.objects.get(id=value, is_active=True)
             return value
-        except Media.DoesNotExist:
+        except ImageMedia.DoesNotExist:
             raise serializers.ValidationError("Invalid media ID or media is not an active image")
     
     def validate_profile_picture(self, value):

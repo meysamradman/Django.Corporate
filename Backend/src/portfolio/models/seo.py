@@ -36,10 +36,9 @@ class SEOMixin(models.Model):
         help_text="Description for social media sharing"
     )
     og_image = models.ForeignKey(
-        'media.Media',
+        'media.ImageMedia',
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        limit_choices_to={'media_type': 'image'},
         related_name='%(app_label)s_%(class)s_og_images',
         verbose_name="Open Graph Image"
     )

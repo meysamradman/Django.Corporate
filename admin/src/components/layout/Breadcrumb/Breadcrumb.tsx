@@ -20,13 +20,12 @@ export function Breadcrumb() {
             // Map segments to hardcoded Persian labels
             const segmentMap: Record<string, string> = {
                 'setting': 'تنظیمات',
-                'admin': 'ادمین',
                 'admins': 'ادمین‌ها',
                 'users': 'کاربران',
                 'profile': 'پروفایل',
                 'dashboard': 'داشبورد',
-                'blog': 'بلاگ',
-                'portfolio': 'نمونه کار',
+                'blogs': 'بلاگ',
+                'portfolios': 'نمونه‌کارها',
                 'media': 'رسانه',
                 'statistics': 'آمار',
                 'create': 'ایجاد',
@@ -45,6 +44,7 @@ export function Breadcrumb() {
                 'new': 'جدید',
                 'details': 'جزئیات',
                 'list': 'لیست',
+                'settings': 'تنظیمات',
             };
             
             return segmentMap[normalizedSegment] || 

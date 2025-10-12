@@ -1,10 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from src.media.models.media import Media
 from src.core.models import BaseModel
 from .location import Province, City
-import uuid
+from src.media.models.media import ImageMedia
 
 class UserProfile(BaseModel):
     
@@ -13,10 +12,10 @@ class UserProfile(BaseModel):
         related_name="user_profile", verbose_name="User profile", help_text="The user this profile belongs to."
     )
     profile_picture = models.ForeignKey(
-        Media, on_delete=models.SET_NULL,
+        ImageMedia, on_delete=models.SET_NULL,
         null=True, blank=True, related_name='user_profiles',
         verbose_name="Profile Picture", 
-        help_text="User's profile picture from media library"
+        help_text="User's profile picture"
     )
     first_name = models.CharField(
         max_length=30, null=True, blank=True,
@@ -78,4 +77,3 @@ class UserProfile(BaseModel):
 
     def __str__(self):
         return f"Profile of {self.user.mobile or self.user.email}"
-

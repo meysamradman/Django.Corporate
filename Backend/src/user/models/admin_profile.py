@@ -1,10 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from src.media.models.media import Media
 from src.core.models import BaseModel
 from .location import Province, City
-
+from src.media.models.media import ImageMedia
 
 class AdminProfile(BaseModel):
     
@@ -17,10 +16,10 @@ class AdminProfile(BaseModel):
         limit_choices_to={'is_staff': True}  # Only admin users
     )
     profile_picture = models.ForeignKey(
-        Media, on_delete=models.SET_NULL,
+        ImageMedia, on_delete=models.SET_NULL,
         null=True, blank=True, related_name='admin_profiles',
         verbose_name="Profile Picture", 
-        help_text="Admin's profile picture from media library"
+        help_text="Admin's profile picture"
     )
     first_name = models.CharField(
         max_length=50, 
@@ -91,4 +90,3 @@ class AdminProfile(BaseModel):
 
     def __str__(self):
         return f"Admin Profile: {self.admin_user.email or self.admin_user.mobile}"
-

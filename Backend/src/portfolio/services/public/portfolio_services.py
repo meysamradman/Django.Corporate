@@ -1,6 +1,6 @@
 from django.db.models import Q, Prefetch
 from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.models.media import PortfolioMedia
+from src.portfolio.models.media import PortfolioImage
 
 
 class PortfolioPublicService:
@@ -17,10 +17,10 @@ class PortfolioPublicService:
             'tags',
             'portfolio_options',
             Prefetch(
-                'portfolio_medias',
-                queryset=PortfolioMedia.objects.filter(
-                    is_main_image=True
-                ).select_related('media')
+                'images',
+                queryset=PortfolioImage.objects.filter(
+                    is_main=True
+                ).select_related('image')
             )
         )
         
@@ -58,7 +58,10 @@ class PortfolioPublicService:
             'categories',
             'tags',
             'portfolio_options',
-            'portfolio_medias__media'
+            'images__image',
+            'videos__video',
+            'audios__audio',
+            'documents__document'
         ).first()
         
     @staticmethod
@@ -74,7 +77,10 @@ class PortfolioPublicService:
             'categories',
             'tags',
             'portfolio_options',
-            'portfolio_medias__media'
+            'images__image',
+            'videos__video',
+            'audios__audio',
+            'documents__document'
         ).first()
     
     @staticmethod
@@ -89,10 +95,10 @@ class PortfolioPublicService:
         ).prefetch_related(
             'categories',
             Prefetch(
-                'portfolio_medias',
-                queryset=PortfolioMedia.objects.filter(
-                    is_main_image=True
-                ).select_related('media')
+                'images',
+                queryset=PortfolioImage.objects.filter(
+                    is_main=True
+                ).select_related('image')
             )
         ).order_by('-created_at')[:limit]
     
@@ -111,10 +117,9 @@ class PortfolioPublicService:
         ).prefetch_related(
             'categories',
             Prefetch(
-                'portfolio_medias',
-                queryset=PortfolioMedia.objects.filter(
-                    is_main_image=True
-                ).select_related('media')
+                'images',
+                queryset=PortfolioImage.objects.filter(
+                    is_main=True
+                ).select_related('image')
             )
         ).distinct().order_by('-created_at')[:limit]
-

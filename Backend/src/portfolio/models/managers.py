@@ -23,40 +23,39 @@ class PortfolioQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         """Optimized for admin listing pages with SEO status"""
-        from src.portfolio.models.media import PortfolioMedia
+        from src.portfolio.models.media import PortfolioImage
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags',
             Prefetch(
-                'portfolio_medias',
-                queryset=PortfolioMedia.objects.filter(is_main_image=True).select_related('media'),
+                'images',
+                queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
                 to_attr='main_image_media'
             )
         )
     
     def for_public_listing(self):
         """Optimized for public listing pages"""
-        from src.portfolio.models.media import PortfolioMedia
+        from src.portfolio.models.media import PortfolioImage
         return self.published().select_related('og_image').prefetch_related(
             'categories__image',  # Include category images
             Prefetch(
-                'portfolio_medias',
-                queryset=PortfolioMedia.objects.filter(is_main_image=True).select_related('media'),
+                'images',
+                queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
                 to_attr='main_image_media'
             )
         )
     
     def for_detail(self):
         """Optimized for detail pages with all relations"""
-        from src.portfolio.models.media import PortfolioMedia
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags', 
             'portfolio_options',
-            Prefetch(
-                'portfolio_medias', 
-                queryset=PortfolioMedia.objects.select_related('media').order_by('order')
-            )
+            'images',
+            'videos',
+            'audios',
+            'documents'
         )
     
     def with_seo_status(self):

@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.serializers.admin.tag_serializer import (
@@ -14,14 +16,15 @@ from src.portfolio.serializers.admin.tag_serializer import (
 from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.responses import APIResponse
-from src.user.authorization.admin_permission import RequireAdminRole
+from src.user.authorization.admin_permission import ContentManagerAccess
+from src.user.authorization.admin_permission import SimpleAdminPermission
 
 
 class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Tag ViewSet for Admin Panel with bulk operations
     """
-    permission_classes = [RequireAdminRole('super_admin', 'content_manager')]
+    permission_classes = [ContentManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioTagAdminFilter
     search_fields = ['name', 'description']
@@ -56,13 +59,13 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
 
         serializer = PortfolioTagAdminListSerializer(page_obj.object_list, many=True)
         data = {
-            'items': serializer.data,
+            'data': serializer.data,
             'pagination': {
-                'total_count': paginator.count,
-                'page_count': paginator.num_pages,
+                'count': paginator.count,
+                'total_pages': paginator.num_pages,
                 'current_page': page_obj.number,
-                'has_next': page_obj.has_next(),
-                'has_previous': page_obj.has_previous(),
+                'next': page_obj.has_next(),
+                'previous': page_obj.has_previous(),
                 'page_size': page_size,
             }
         }
@@ -91,6 +94,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         else:
             return PortfolioTagAdminDetailSerializer
     
+    @method_decorator(csrf_exempt)
     def create(self, request, *args, **kwargs):
         """Create tag with auto-slug generation"""
         serializer = self.get_serializer(data=request.data)

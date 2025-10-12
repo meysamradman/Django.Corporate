@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from rest_framework import serializers
 from datetime import datetime
-from src.media.models.media import Media
+from src.media.models.media import ImageMedia
 from src.user.models import UserProfile, AdminProfile, User, Province, City # Import location models
 from src.user.utils.permission_helper import PermissionHelper
 from .location_serializer import ProvinceCompactSerializer, CityCompactSerializer
@@ -11,8 +10,8 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
 
     class Meta:
-        model = Media
-        fields = ['id', 'public_id', 'title', 'media_type', 'file_url', "cover_image", 'alt_text', 'created_at', 'updated_at']
+        model = ImageMedia
+        fields = ['id', 'public_id', 'title', 'file_url', 'alt_text', 'created_at', 'updated_at']
 
     def get_file_url(self, obj):
         request = self.context.get('request')
@@ -62,7 +61,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     profile_picture = serializers.PrimaryKeyRelatedField(
-        queryset=Media.objects.filter(media_type='image', is_active=True),
+        queryset=ImageMedia.objects.filter(is_active=True),
         required=False, 
         allow_null=True,
         help_text="ID of an image from media library"
@@ -130,7 +129,7 @@ class AdminProfileSerializer(serializers.ModelSerializer):
 
 class AdminProfileUpdateSerializer(serializers.ModelSerializer):
     profile_picture = serializers.PrimaryKeyRelatedField(
-        queryset=Media.objects.filter(media_type='image', is_active=True),
+        queryset=ImageMedia.objects.filter(is_active=True),
         required=False, 
         allow_null=True,
         help_text="ID of an image from media library"

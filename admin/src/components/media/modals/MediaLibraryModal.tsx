@@ -449,7 +449,7 @@ export function MediaLibraryModal({
 
                               return (
                                   <div
-                                      key={item.id}
+                                      key={`media-item-${item.media_type}-${item.id}`}
                                       className={cn(
                                           "relative group aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all",
                                           isSelected ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent hover:border-muted-foreground/50"

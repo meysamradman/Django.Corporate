@@ -1,1 +1,0 @@
-export { PortfolioMediaGallery } from './PortfolioMediaGallery';

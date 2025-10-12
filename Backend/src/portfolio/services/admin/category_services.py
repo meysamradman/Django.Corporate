@@ -13,7 +13,7 @@ class PortfolioCategoryAdminService:
     def get_tree_queryset():
         """Get optimized queryset for tree operations"""
         return PortfolioCategory.objects.select_related('image').annotate(
-            portfolio_count=Count('portfolios', distinct=True)
+            portfolio_count=Count('portfolio_categories', distinct=True)
         ).order_by('path')
     
     @staticmethod
@@ -33,7 +33,7 @@ class PortfolioCategoryAdminService:
         if root_categories is None:
             root_categories = list(
                 PortfolioCategory.get_root_nodes().annotate(
-                    portfolio_count=Count('portfolios', distinct=True)
+                    portfolio_count=Count('portfolio_categories', distinct=True)
                 ).values(
                     'id', 'public_id', 'name', 'slug', 'portfolio_count'
                 )
@@ -66,7 +66,7 @@ class PortfolioCategoryAdminService:
                 return tree
             
             root_nodes = PortfolioCategory.get_root_nodes().annotate(
-                portfolio_count=Count('portfolios', distinct=True)
+                portfolio_count=Count('portfolio_categories', distinct=True)
             ).filter(is_active=True)
             
             tree_data = build_tree(root_nodes)
@@ -75,28 +75,31 @@ class PortfolioCategoryAdminService:
         return tree_data
 
     @staticmethod
-    def create_category(validated_data, created_by):
+    def create_category(validated_data, created_by=None):
         """Create category with proper tree positioning"""
         with transaction.atomic():
             # Handle parent positioning
             parent_id = validated_data.pop('parent_id', None)
             image_id = validated_data.pop('image_id', None)
             
+            # Remove created_by from validated_data as it's not a model field
+            validated_data.pop('created_by', None)
+            
             if parent_id:
                 # Add as child of parent
-                category = parent_id.add_child(**validated_data, created_by=created_by)
+                category = parent_id.add_child(**validated_data)
             else:
                 # Add as root category
-                category = PortfolioCategory.add_root(**validated_data, created_by=created_by)
+                category = PortfolioCategory.add_root(**validated_data)
             
             # Handle image assignment from central media app
             if image_id:
-                from src.media.models.media import Media
+                from src.media.models.media import ImageMedia
                 try:
-                    media = Media.objects.get(id=image_id, media_type='image')
+                    media = ImageMedia.objects.get(id=image_id)
                     category.image = media
                     category.save()
-                except Media.DoesNotExist:
+                except ImageMedia.DoesNotExist:
                     pass  # Invalid media ID, skip
             
             # Clear cache
@@ -105,7 +108,7 @@ class PortfolioCategoryAdminService:
             return category
 
     @staticmethod
-    def update_category_by_id(category_id, validated_data):
+    def update_category_by_id(category_id, validated_data, updated_by=None):
         """Update category with tree operations support"""
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
@@ -116,6 +119,9 @@ class PortfolioCategoryAdminService:
             # Handle parent change (move in tree)
             parent_id = validated_data.pop('parent_id', None)
             image_id = validated_data.pop('image_id', None)
+            
+            # Remove updated_by from validated_data as it's not a model field
+            validated_data.pop('updated_by', None)
             
             # Update basic fields
             for field, value in validated_data.items():
@@ -135,12 +141,12 @@ class PortfolioCategoryAdminService:
             
             # Handle image assignment from central media app
             if image_id is not None:
-                from src.media.models.media import Media
+                from src.media.models.media import ImageMedia
                 if image_id:
                     try:
-                        media = Media.objects.get(id=image_id, media_type='image')
+                        media = ImageMedia.objects.get(id=image_id)
                         category.image = media
-                    except Media.DoesNotExist:
+                    except ImageMedia.DoesNotExist:
                         pass  # Invalid media ID, skip
                 else:
                     category.image = None
@@ -161,7 +167,7 @@ class PortfolioCategoryAdminService:
             return {'success': False, 'error': 'دسته‌بندی یافت نشد.'}
         
         # Check if category has portfolios
-        portfolio_count = category.portfolios.count()
+        portfolio_count = category.portfolio_categories.count()
         if portfolio_count > 0:
             return {
                 'success': False, 
@@ -223,7 +229,7 @@ class PortfolioCategoryAdminService:
         if popular is None:
             popular = list(
                 PortfolioCategory.objects.annotate(
-                    portfolio_count=Count('portfolios')
+                    portfolio_count=Count('portfolio_categories')
                 ).filter(
                     portfolio_count__gt=0, is_active=True
                 ).order_by('-portfolio_count')[:limit].values(
@@ -262,7 +268,7 @@ class PortfolioCategoryAdminService:
         
         # Check for portfolios
         categories_with_portfolios = categories.annotate(
-            portfolio_count=Count('portfolios')
+            portfolio_count=Count('portfolio_categories')
         ).filter(portfolio_count__gt=0)
         
         if categories_with_portfolios.exists():
@@ -308,7 +314,7 @@ class PortfolioCategoryAdminService:
             active_categories = PortfolioCategory.objects.filter(is_active=True).count()
             public_categories = PortfolioCategory.objects.filter(is_public=True).count()
             used_categories = PortfolioCategory.objects.filter(
-                portfolios__isnull=False
+                portfolio_categories__isnull=False
             ).distinct().count()
             
             root_categories = PortfolioCategory.get_root_nodes().count()

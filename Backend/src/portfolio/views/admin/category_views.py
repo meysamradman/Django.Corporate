@@ -15,14 +15,14 @@ from src.portfolio.serializers.admin.category_serializer import (
 from src.portfolio.services.admin.category_services import PortfolioCategoryAdminService
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.responses import APIResponse
-from src.user.authorization.admin_permission import RequireAdminRole
+from src.user.authorization.admin_permission import ContentManagerAccess
 
 
 class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Category ViewSet for Admin Panel with tree operations
     """
-    permission_classes = [RequireAdminRole('super_admin', 'content_manager')]
+    permission_classes = [ContentManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioCategoryAdminFilter
     search_fields = ['name', 'description']
@@ -58,7 +58,7 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         if tree_mode:
             tree_data = PortfolioCategoryAdminService.get_tree_data()
             return APIResponse.success(
-                data={'items': tree_data, 'pagination': None},
+                data={'data': tree_data, 'pagination': None},
                 message="درخت دسته‌بندی‌ها با موفقیت دریافت شد."
             )
 
@@ -90,13 +90,13 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
 
         serializer = PortfolioCategoryAdminListSerializer(page_obj.object_list, many=True)
         data = {
-            'items': serializer.data,
+            'data': serializer.data,
             'pagination': {
-                'total_count': paginator.count,
-                'page_count': paginator.num_pages,
+                'count': paginator.count,
+                'total_pages': paginator.num_pages,
                 'current_page': page_obj.number,
-                'has_next': page_obj.has_next(),
-                'has_previous': page_obj.has_previous(),
+                'next': page_obj.has_next(),
+                'previous': page_obj.has_previous(),
                 'page_size': page_size,
             }
         }

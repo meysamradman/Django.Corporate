@@ -227,23 +227,26 @@ export default function MediaPage() {
   const someSelected = selectedIds.length > 0 && !allSelected;
 
   const handleDeleteSelected = async () => {
-      if (selectedIds.length === 0) return;
+      // Get the selected media items
+      const selectedMediaItems = mediaItems.filter(item => selectedItems[item.id]);
+      
+      if (selectedMediaItems.length === 0) return;
 
       setConfirmDialog({
           open: true,
-          title: `حذف ${selectedIds.length} رسانه`,
+          title: `حذف ${selectedMediaItems.length} رسانه`,
           description: "آیا مطمئن هستید که می‌خواهید رسانه‌های انتخاب شده را حذف کنید؟ این عملیات قابل بازگشت نیست (حذف نرم به صورت پیش‌فرض).",
           onConfirm: async () => {
               setConfirmDialog(prev => ({ ...prev, open: false }));
               
               toast.promise(
-                  mediaApi.bulkDeleteMedia(selectedIds),
+                  mediaApi.bulkDeleteMedia(selectedMediaItems),
                   {
                       loading: 'در حال حذف رسانه‌ها...',
                       success: (response) => {
                           fetchMedia(filters);
                           setSelectedItems({});
-                          return `${response.data?.deleted_count || selectedIds.length} رسانه برای حذف علامت‌گذاری شد.`;
+                          return `${response.data?.deleted_count || selectedMediaItems.length} رسانه برای حذف علامت‌گذاری شد.`;
                       },
                       error: (error) => {
                            return error instanceof Error ? error.message : 'خطا در حذف رسانه‌ها.';
@@ -427,7 +430,7 @@ export default function MediaPage() {
 
                   return (
                     <Card 
-                      key={item.id}
+                      key={`media-item-${item.media_type}-${item.id}`}  // Fixed: Include media_type to ensure uniqueness
                       className={cn(
                         "overflow-hidden group relative transition-all border-2 cursor-pointer hover:shadow-lg",
                         selectedItems[item.id] ? "border-primary shadow-md" : "border-transparent hover:border-muted-foreground/20"

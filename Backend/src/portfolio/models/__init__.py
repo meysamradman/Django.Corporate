@@ -2,7 +2,7 @@ from .portfolio import Portfolio
 from .option import PortfolioOption
 from .tag import PortfolioTag
 from .category import PortfolioCategory
-from .media import PortfolioMedia
+# PortfolioMedia is removed as it no longer exists
 from .seo import SEOMixin
 from .managers import (
     PortfolioQuerySet,
@@ -16,7 +16,7 @@ __all__ = [
     'PortfolioCategory',
     'PortfolioOption',
     'PortfolioTag',
-    'PortfolioMedia',
+    # 'PortfolioMedia' is removed as it no longer exists
     'SEOMixin',
     'PortfolioQuerySet',
     'PortfolioCategoryQuerySet',

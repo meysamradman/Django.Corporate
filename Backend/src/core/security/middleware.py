@@ -6,6 +6,7 @@ import logging
 from django.utils.deprecation import MiddlewareMixin
 from django.http import JsonResponse
 from django.core.cache import cache
+from django.conf import settings
 from rest_framework import status
 import time
 
@@ -121,3 +122,24 @@ class RateLimitMiddleware(MiddlewareMixin):
         # Increment counter
         cache.set(cache_key, requests + 1, timeout=60)  # 1 minute
         return False
+
+
+class CSRFExemptAdminMiddleware(MiddlewareMixin):
+    """
+    Middleware to exempt admin API endpoints from CSRF protection
+    Based on CSRF_EXEMPT_ADMIN_VIEWS setting
+    """
+    
+    def process_view(self, request, callback, callback_args, callback_kwargs):
+        """Process view to exempt admin API endpoints from CSRF validation"""
+        # Check if CSRF exemption for admin views is enabled
+        if not getattr(settings, 'CSRF_EXEMPT_ADMIN_VIEWS', False):
+            return None
+            
+        # Check if this is an admin API endpoint
+        if request.path.startswith('/api/admin/') and request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            # Exempt from CSRF validation
+            setattr(request, '_dont_enforce_csrf_checks', True)
+            logger.debug(f"CSRF checks exempted for admin API endpoint: {request.path}")
+            
+        return None

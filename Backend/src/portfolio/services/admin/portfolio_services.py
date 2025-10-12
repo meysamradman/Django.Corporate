@@ -4,8 +4,8 @@ from django.core.paginator import Paginator
 from django.core.cache import cache
 from django.utils import timezone
 from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.models.media import PortfolioMedia
-from src.media.models.media import Media
+from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
 
 class PortfolioAdminService:
@@ -15,14 +15,14 @@ class PortfolioAdminService:
     """
     
     @staticmethod
-    def get_portfolio_queryset(filters=None, search=None):
+    def get_portfolio_queryset(filters=None, search=None, order_by=None, order_desc=None):
         """Return optimized queryset for admin listing; pagination handled at view layer"""
         queryset = Portfolio.objects.select_related('og_image').prefetch_related(
             'categories',
             'tags',
             Prefetch(
-                'portfolio_medias',
-                queryset=PortfolioMedia.objects.filter(is_main_image=True).select_related('media'),
+                'images',
+                queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
                 to_attr='main_image_media'
             )
         )
@@ -69,14 +69,22 @@ class PortfolioAdminService:
                 Q(meta_description__icontains=search)
             )
         
-        # Order by
-        queryset = queryset.order_by('-created_at')
+        # Apply ordering
+        if order_by:
+            ordering_field = order_by
+            if order_desc:
+                ordering_field = f'-{order_by}'
+            queryset = queryset.order_by(ordering_field)
+        else:
+            # Default ordering
+            queryset = queryset.order_by('-created_at')
         
         # Add annotation for counts (optimized)
         queryset = queryset.annotate(
             categories_count=Count('categories', distinct=True),
             tags_count=Count('tags', distinct=True),
-            media_count=Count('portfolio_medias', distinct=True)
+            media_count=Count('images', distinct=True) + Count('videos', distinct=True) + 
+                       Count('audios', distinct=True) + Count('documents', distinct=True)
         )
         
         return queryset
@@ -89,10 +97,10 @@ class PortfolioAdminService:
                 'categories',
                 'tags',
                 'portfolio_options',
-                Prefetch(
-                    'portfolio_medias',
-                    queryset=PortfolioMedia.objects.select_related('media').order_by('order')
-                )
+                'images',
+                'videos',
+                'audios',
+                'documents'
             ).get(id=portfolio_id)
         except Portfolio.DoesNotExist:
             return None
@@ -114,9 +122,10 @@ class PortfolioAdminService:
         if not validated_data.get('og_description') and validated_data.get('meta_description'):
             validated_data['og_description'] = validated_data['meta_description']
         
-        # Auto-generate canonical URL
-        if not validated_data.get('canonical_url') and validated_data.get('slug'):
-            validated_data['canonical_url'] = f"/portfolio/{validated_data['slug']}/"
+        # Handle canonical URL - set to None if it's an invalid relative path
+        # The model will auto-generate it properly in the save method
+        if validated_data.get('canonical_url') == f"/portfolio/{validated_data.get('slug', '')}/":
+            validated_data['canonical_url'] = None
         
         return Portfolio.objects.create(**validated_data)
     
@@ -127,20 +136,18 @@ class PortfolioAdminService:
         
         if main_image_file:
             # Use central media app to create media
-            from src.media.services.media_service import MediaService
+            from src.media.services.media_services import MediaAdminService
             
-            media = MediaService.create_media(
-                file=main_image_file,
-                media_type='image',
-                title=f"Main image for {portfolio.title}",
-                created_by=created_by
-            )
+            media = MediaAdminService.create_media('image', {
+                'file': main_image_file,
+                'title': f"Main image for {portfolio.title}",
+            })
             
-            # Create portfolio media relation
-            PortfolioMedia.objects.create(
+            # Create portfolio image relation
+            PortfolioImage.objects.create(
                 portfolio=portfolio,
-                media=media,
-                is_main_image=True,
+                image=media,
+                is_main=True,
                 order=0
             )
             
@@ -180,30 +187,61 @@ class PortfolioAdminService:
     def add_media_to_portfolio(portfolio_id, media_files, created_by=None):
         """Add multiple media files to portfolio using central media app"""
         portfolio = get_object_or_404(Portfolio, id=portfolio_id)
-        from src.media.services.media_service import MediaService
+        from src.media.services.media_services import MediaAdminService
         
         created_medias = []
-        last_order = PortfolioMedia.objects.filter(portfolio=portfolio).count()
+        last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
+                     PortfolioVideo.objects.filter(portfolio=portfolio).count() +
+                     PortfolioAudio.objects.filter(portfolio=portfolio).count() +
+                     PortfolioDocument.objects.filter(portfolio=portfolio).count())
         
         for i, media_file in enumerate(media_files):
+            # Detect media type
+            file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
+            media_type = 'image'  # Default
+            
+            # Simple type detection
+            if file_ext in ['mp4', 'webm', 'mov']:
+                media_type = 'video'
+            elif file_ext in ['mp3', 'ogg', 'aac', 'm4a']:
+                media_type = 'audio'
+            elif file_ext == 'pdf':
+                media_type = 'pdf'
+            
             # Create media using central app
-            media = MediaService.create_media(
-                file=media_file,
-                media_type=MediaService.detect_media_type(media_file),
-                title=f"Media for {portfolio.title}",
-                created_by=created_by
-            )
+            media = MediaAdminService.create_media(media_type, {
+                'file': media_file,
+                'title': f"Media for {portfolio.title}",
+            })
             
-            # Create portfolio media relation
-            portfolio_media = PortfolioMedia.objects.create(
-                portfolio=portfolio,
-                media=media,
-                is_main_image=False,  # Only manual assignment for main image
-                order=last_order + i + 1
-            )
+            # Create portfolio media relation based on type
+            if media_type == 'image':
+                PortfolioImage.objects.create(
+                    portfolio=portfolio,
+                    image=media,
+                    order=last_order + i
+                )
+            elif media_type == 'video':
+                PortfolioVideo.objects.create(
+                    portfolio=portfolio,
+                    video=media,
+                    order=last_order + i
+                )
+            elif media_type == 'audio':
+                PortfolioAudio.objects.create(
+                    portfolio=portfolio,
+                    audio=media,
+                    order=last_order + i
+                )
+            elif media_type == 'pdf':
+                PortfolioDocument.objects.create(
+                    portfolio=portfolio,
+                    document=media,
+                    order=last_order + i
+                )
             
-            created_medias.append(portfolio_media)
-        
+            created_medias.append(media)
+            
         return created_medias
     
     @staticmethod
@@ -212,26 +250,26 @@ class PortfolioAdminService:
         portfolio = get_object_or_404(Portfolio, id=portfolio_id)
         
         # Remove current main image
-        PortfolioMedia.objects.filter(
+        PortfolioImage.objects.filter(
             portfolio=portfolio,
-            is_main_image=True
-        ).update(is_main_image=False)
+            is_main=True
+        ).update(is_main=False)
         
         # Set new main image
-        portfolio_media = get_object_or_404(
-            PortfolioMedia,
+        portfolio_image = get_object_or_404(
+            PortfolioImage,
             portfolio=portfolio,
-            media_id=media_id
+            image_id=media_id
         )
-        portfolio_media.is_main_image = True
-        portfolio_media.save()
+        portfolio_image.is_main = True
+        portfolio_image.save()
         
         # Also set as OG image if not set
         if not portfolio.og_image:
-            portfolio.og_image = portfolio_media.media
+            portfolio.og_image = portfolio_image.image
             portfolio.save(update_fields=['og_image'])
         
-        return portfolio_media
+        return portfolio_image
     
     @staticmethod
     def bulk_update_status(portfolio_ids, new_status):
@@ -316,17 +354,14 @@ class PortfolioAdminService:
         portfolio = get_object_or_404(Portfolio, id=portfolio_id)
         
         # Get associated media files for potential cleanup
-        portfolio_medias = PortfolioMedia.objects.filter(portfolio=portfolio)
-        media_ids = list(portfolio_medias.values_list('media_id', flat=True))
+        portfolio_medias = PortfolioImage.objects.filter(portfolio=portfolio)
+        media_ids = list(portfolio_medias.values_list('image_id', flat=True))
         
         # Delete portfolio (will cascade to PortfolioMedia)
         portfolio.delete()
         
-        # Optional: Clean up orphaned media files
-        # This should be done carefully - only if media is not used elsewhere
-        from src.media.services.media_service import MediaService
-        for media_id in media_ids:
-            MediaService.cleanup_orphaned_media(media_id)
+        # Note: Media cleanup is not implemented as there's no cleanup_orphaned_media method
+        # This should be handled separately if needed
         
         return True
 
@@ -394,9 +429,10 @@ class PortfolioAdminSEOService:
         if not portfolio.og_description and (portfolio.meta_description or portfolio.short_description):
             updates['og_description'] = (portfolio.meta_description or portfolio.short_description)[:300]
         
-        # Generate canonical URL
-        if not portfolio.canonical_url and portfolio.slug:
-            updates['canonical_url'] = f"/portfolio/{portfolio.slug}/"
+        # Generate canonical URL - let the model handle this properly
+        # Remove any invalid canonical_url that might have been set
+        if portfolio.canonical_url and not portfolio.canonical_url.startswith(('http://', 'https://')):
+            updates['canonical_url'] = None
         
         # Auto-set OG image from main image
         if not portfolio.og_image:

@@ -1,9 +1,66 @@
 from rest_framework import serializers
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.serializers.admin.category_serializer import PortfolioCategorySimpleAdminSerializer
 from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
 from src.portfolio.serializers.admin.option_serializer import PortfolioOptionAdminSerializer
-from src.portfolio.media.media_serialize import PortfolioMediaSerializer
+from src.media.serializers.media_serializer import MediaAdminSerializer
+
+
+class PortfolioMediaAdminSerializer(serializers.Serializer):
+    """Admin serializer for portfolio media"""
+    id = serializers.IntegerField(read_only=True)
+    public_id = serializers.UUIDField(read_only=True)
+    media_detail = MediaAdminSerializer(read_only=True, source='media')
+    is_main_image = serializers.BooleanField(read_only=True)
+    order = serializers.IntegerField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    
+    def to_representation(self, instance):
+        """Convert instance to appropriate serializer based on media type"""
+        # Determine media type based on instance class
+        if isinstance(instance, PortfolioImage):
+            return {
+                'id': instance.id,
+                'public_id': instance.public_id,
+                'media_detail': MediaAdminSerializer(instance.image, context=self.context).data,
+                'is_main_image': instance.is_main,
+                'order': instance.order,
+                'created_at': instance.created_at,
+                'updated_at': instance.updated_at,
+            }
+        elif isinstance(instance, PortfolioVideo):
+            return {
+                'id': instance.id,
+                'public_id': instance.public_id,
+                'media_detail': MediaAdminSerializer(instance.video, context=self.context).data,
+                'is_main_image': False,  # Videos don't have is_main field
+                'order': instance.order,
+                'created_at': instance.created_at,
+                'updated_at': instance.updated_at,
+            }
+        elif isinstance(instance, PortfolioAudio):
+            return {
+                'id': instance.id,
+                'public_id': instance.public_id,
+                'media_detail': MediaAdminSerializer(instance.audio, context=self.context).data,
+                'is_main_image': False,  # Audios don't have is_main field
+                'order': instance.order,
+                'created_at': instance.created_at,
+                'updated_at': instance.updated_at,
+            }
+        elif isinstance(instance, PortfolioDocument):
+            return {
+                'id': instance.id,
+                'public_id': instance.public_id,
+                'media_detail': MediaAdminSerializer(instance.document, context=self.context).data,
+                'is_main_image': False,  # Documents don't have is_main field
+                'order': instance.order,
+                'created_at': instance.created_at,
+                'updated_at': instance.updated_at,
+            }
+        return super().to_representation(instance)
 
 
 class PortfolioAdminListSerializer(serializers.ModelSerializer):
@@ -27,9 +84,10 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         """Get main image efficiently from prefetched data"""
         # استفاده از prefetch_related برای بهینگی
         try:
-            for media in obj.portfolio_medias.all():
-                if media.is_main_image and media.media:
-                    return media.media.file.url
+            # Get the main image from PortfolioImage model
+            main_image = obj.images.filter(is_main=True).first()
+            if main_image and main_image.image:
+                return main_image.image.file.url
         except Exception:
             pass
         return None
@@ -43,8 +101,12 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         return obj.tags.count() if hasattr(obj, 'tags') else 0
     
     def get_media_count(self, obj):
-        """Get media count from prefetched data"""
-        return len(getattr(obj, 'portfolio_medias', []))
+        """Get media count from all media types"""
+        image_count = obj.images.count()
+        video_count = obj.videos.count()
+        audio_count = obj.audios.count()
+        document_count = obj.documents.count()
+        return image_count + video_count + audio_count + document_count
     
     def get_seo_status(self, obj):
         """Check SEO completeness status"""
@@ -65,7 +127,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
     tags = PortfolioTagAdminSerializer(many=True, read_only=True)
     options = PortfolioOptionAdminSerializer(many=True, read_only=True, source="portfolio_options")
-    media = PortfolioMediaSerializer(many=True, read_only=True, source='portfolio_medias')
+    media = serializers.SerializerMethodField()
     
     # SEO computed fields
     seo_data = serializers.SerializerMethodField()
@@ -87,6 +149,28 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
             'seo_data', 'seo_preview', 'seo_completeness',
             'created_at', 'updated_at',
         ]
+    
+    def get_media(self, obj):
+        """Get all media for the portfolio"""
+        media_list = []
+        
+        # Get all types of media
+        images = obj.images.all()
+        videos = obj.videos.all()
+        audios = obj.audios.all()
+        documents = obj.documents.all()
+        
+        # Add all media to the list
+        for image in images:
+            media_list.append(PortfolioMediaAdminSerializer(image, context=self.context).data)
+        for video in videos:
+            media_list.append(PortfolioMediaAdminSerializer(video, context=self.context).data)
+        for audio in audios:
+            media_list.append(PortfolioMediaAdminSerializer(audio, context=self.context).data)
+        for document in documents:
+            media_list.append(PortfolioMediaAdminSerializer(document, context=self.context).data)
+            
+        return media_list
     
     def get_seo_data(self, obj):
         """Get comprehensive SEO data using SEOMixin methods"""

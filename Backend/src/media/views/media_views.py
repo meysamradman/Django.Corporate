@@ -3,82 +3,153 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.db.models.deletion import ProtectedError
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from src.core.pagination.pagination import StandardLimitPagination
 from src.core.responses import APIResponse, PaginationAPIResponse
 from src.media.filters.media_filters import MediaFilter
 from src.media.messages import MEDIA_SUCCESS, MEDIA_ERRORS
-from src.media.models.media import Media
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 
 
-class BaseMediaViewSet(viewsets.GenericViewSet):
-    queryset = Media.objects.filter(is_active=True)
+# -------------------- ViewSet BY ID --------------------
+class MediaAdminViewSet(viewsets.ModelViewSet):
+    authentication_classes = [CSRFExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    serializer_class = MediaAdminSerializer
+    pagination_class = StandardLimitPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = MediaFilter
     search_fields = ['title', 'is_active']
-    ordering_fields = ['created_at', 'media_type']
+    ordering_fields = ['created_at']
     ordering = ['-created_at']
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        if queryset.exists():
-            paginator = self.pagination_class()
-            paginated_data = paginator.paginate_queryset(queryset, request)
-            serializer = self.get_serializer(paginated_data, many=True)
-            return PaginationAPIResponse.paginated_success(
-                MEDIA_SUCCESS["media_list_success"],
-                {
-                    'results': serializer.data,
-                    'count': paginator.count,
-                    'next': paginator.get_next_link(),
-                    'previous': paginator.get_previous_link()
-                }
-            )
-        else:
-            return PaginationAPIResponse.paginated_success(
-                MEDIA_ERRORS["media_not_found"],
-                {
-                    'results': [],
-                    'count': 0,
-                    'next': None,
-                    'previous': None
-                }
-            )
-
-# -------------------- ViewSet BY ID --------------------
-class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
-    authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
-    serializer_class = MediaAdminSerializer
-    pagination_class = StandardLimitPagination
     
     def get_queryset(self):
-        # Admin users can see all media (including inactive)
-        return Media.objects.all().order_by('-created_at')
+        # Return a placeholder queryset
+        # The actual implementation is in the list method
+        return ImageMedia.objects.none()
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # Remove created_by since Media model doesn't have this field
-        serializer.save()
-        return APIResponse.success(
-            MEDIA_SUCCESS["media_created"],
-            serializer.data,
-            status_code=status.HTTP_201_CREATED
+    def list(self, request, *args, **kwargs):
+        # Override the list method to combine all media types
+        # This ensures we show all media types in the admin panel
+        
+        # Fetch all media types
+        image_media = list(ImageMedia.objects.all())
+        video_media = list(VideoMedia.objects.all())
+        audio_media = list(AudioMedia.objects.all())
+        document_media = list(DocumentMedia.objects.all())
+        
+        # Combine all media objects
+        all_media = image_media + video_media + audio_media + document_media
+        
+        # Apply filtering manually since we can't use Django FilterSet with multiple models
+        # Filter by title if provided
+        search_title = request.query_params.get('title', None)
+        if search_title:
+            all_media = [media for media in all_media if search_title.lower() in (media.title or '').lower()]
+        
+        # Filter by is_active if provided
+        is_active = request.query_params.get('is_active', None)
+        if is_active is not None:
+            is_active_bool = is_active.lower() == 'true'
+            all_media = [media for media in all_media if media.is_active == is_active_bool]
+        
+        # Sort by created_at (newest first)
+        all_media.sort(key=lambda x: x.created_at, reverse=True)
+        
+        # Apply pagination
+        paginator = self.pagination_class()
+        paginated_data = paginator.paginate_queryset(all_media, request)
+        
+        # Serialize the data
+        serializer = self.get_serializer(paginated_data, many=True)
+        
+        return PaginationAPIResponse.paginated_success(
+            MEDIA_SUCCESS["media_list_success"],
+            {
+                'results': serializer.data,
+                'count': len(all_media),
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link()
+            }
         )
 
-    def retrieve(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
+        # Auto-detect media type from file extension
+        file = request.FILES.get('file') or request.FILES.get('files')
+        if not file:
+            return APIResponse.error(
+                message="No file provided",
+                errors=None,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        file_ext = file.name.lower().split('.')[-1] if '.' in file.name else ''
+        media_type = 'image'  # Default
+        
+        # Simple type detection
+        if file_ext in ['mp4', 'webm', 'mov']:
+            media_type = 'video'
+        elif file_ext in ['mp3', 'ogg', 'aac', 'm4a']:
+            media_type = 'audio'
+        elif file_ext == 'pdf':
+            media_type = 'pdf'
+        
         try:
-            media = MediaAdminService.get_media_id(kwargs.get("pk"))
+            # Use the service to create the media
+            media = MediaAdminService.create_media(media_type, {
+                'file': file,
+                'title': request.data.get('title', file.name),
+                'alt_text': request.data.get('alt_text', ''),
+            })
+            
+            # Handle cover image for videos
+            if media_type == 'video':
+                cover_image_file = request.FILES.get('cover_image')
+                if cover_image_file:
+                    cover_media = MediaAdminService.create_media('image', {
+                        'file': cover_image_file,
+                        'title': f"Cover for {file.name}",
+                        'alt_text': f"Cover image for {file.name}",
+                    })
+                    media.cover_image = cover_media
+                    media.save(update_fields=['cover_image'])
+            
+            # Return the serialized media object
+            serializer = self.get_serializer(media)
+            return APIResponse.success(
+                MEDIA_SUCCESS["media_created"],
+                serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return APIResponse.error(
+                message=f"Failed to create media: {str(e)}",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+    def retrieve(self, request, *args, **kwargs):
+        # We need to determine the media type to retrieve the correct object
+        # For now, we'll try to find it in each model
+        media_id = kwargs.get("pk")
+        media = None
+        
+        for model in [ImageMedia, VideoMedia, AudioMedia, DocumentMedia]:
+            try:
+                media = model.objects.get(id=media_id)
+                break
+            except model.DoesNotExist:
+                continue
+        
+        if media:
             serializer = self.get_serializer(media)
             return APIResponse.success(MEDIA_SUCCESS["media_retrieved"], serializer.data)
-        except Exception:
+        else:
             return APIResponse.error(MEDIA_ERRORS["media_not_found"], status_code=status.HTTP_404_NOT_FOUND)
 
     def update(self, request, *args, **kwargs):
@@ -86,10 +157,32 @@ class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
             # Get the media object
             media_id = kwargs.get("pk")
             
-            # Use the service to update the media
-            updated_media = MediaAdminService.update_media_id(media_id, request.data)
+            # We need to determine the media type to update the correct object
+            media = None
+            media_type = None
             
-            # Return the serialized media object with cover_image properly serialized
+            model_map = {
+                'image': ImageMedia,
+                'video': VideoMedia,
+                'audio': AudioMedia,
+                'pdf': DocumentMedia,
+            }
+            
+            for mtype, model in model_map.items():
+                try:
+                    media = model.objects.get(id=media_id)
+                    media_type = mtype
+                    break
+                except model.DoesNotExist:
+                    continue
+            
+            if not media:
+                return APIResponse.error(MEDIA_ERRORS["media_not_found"], status_code=status.HTTP_404_NOT_FOUND)
+            
+            # Use the service to update the media
+            updated_media = MediaAdminService.update_media_by_id_and_type(media_id, media_type, request.data)
+            
+            # Return the serialized media object
             serializer = self.get_serializer(updated_media)
             return APIResponse.success(MEDIA_SUCCESS["media_updated"], serializer.data)
         except Exception as e:
@@ -101,10 +194,32 @@ class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
             # Get the media object
             media_id = kwargs.get("pk")
             
-            # Use the service to update the media
-            updated_media = MediaAdminService.update_media_id(media_id, request.data)
+            # We need to determine the media type to update the correct object
+            media = None
+            media_type = None
             
-            # Return the serialized media object with cover_image properly serialized
+            model_map = {
+                'image': ImageMedia,
+                'video': VideoMedia,
+                'audio': AudioMedia,
+                'pdf': DocumentMedia,
+            }
+            
+            for mtype, model in model_map.items():
+                try:
+                    media = model.objects.get(id=media_id)
+                    media_type = mtype
+                    break
+                except model.DoesNotExist:
+                    continue
+            
+            if not media:
+                return APIResponse.error(MEDIA_ERRORS["media_not_found"], status_code=status.HTTP_404_NOT_FOUND)
+            
+            # Use the service to update the media
+            updated_media = MediaAdminService.update_media_by_id_and_type(media_id, media_type, request.data)
+            
+            # Return the serialized media object
             serializer = self.get_serializer(updated_media)
             return APIResponse.success(MEDIA_SUCCESS["media_updated"], serializer.data)
         except Exception as e:
@@ -113,7 +228,33 @@ class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         try:
-            MediaAdminService.delete_media_id(kwargs.get("pk"))
+            # Get the media object
+            media_id = kwargs.get("pk")
+            
+            # We need to determine the media type to delete the correct object
+            media = None
+            media_type = None
+            
+            model_map = {
+                'image': ImageMedia,
+                'video': VideoMedia,
+                'audio': AudioMedia,
+                'pdf': DocumentMedia,
+            }
+            
+            for mtype, model in model_map.items():
+                try:
+                    media = model.objects.get(id=media_id)
+                    media_type = mtype
+                    break
+                except model.DoesNotExist:
+                    continue
+            
+            if not media:
+                return APIResponse.error(MEDIA_ERRORS["media_not_found"], status_code=status.HTTP_404_NOT_FOUND)
+            
+            # Use the service to delete the media
+            MediaAdminService.delete_media_by_id_and_type(media_id, media_type)
             return APIResponse.success(MEDIA_SUCCESS["media_deleted"], status_code=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return APIResponse.error(
@@ -136,119 +277,49 @@ class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
-    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
-    def upload(self, request):
-        """Upload media files"""
-        file = request.FILES.get('file') or request.FILES.get('files')
-        if not file:
-            return APIResponse.error(
-                message="No file provided",
-                errors=None,
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Auto-detect media type from file extension
-        file_ext = file.name.lower().split('.')[-1] if '.' in file.name else ''
-        media_type = 'image'  # Default
-        
-        # Simple type detection (Media model will validate)
-        if file_ext in ['mp4', 'webm', 'mov']:
-            media_type = 'video'
-        elif file_ext in ['mp3', 'ogg']:
-            media_type = 'audio'
-        elif file_ext == 'pdf':
-            media_type = 'pdf'
-        
-        # Prepare initial data for serializer
-        serializer_data = {
-            'file': file,
-            'media_type': media_type,
-            'title': request.data.get('title', file.name),
-            'alt_text': request.data.get('alt_text', ''),
-        }
-        
-        # Create the main media object first
-        serializer = self.get_serializer(data=serializer_data)
-        
-        if serializer.is_valid():
-            media = serializer.save()
-            
-            # Handle cover image for non-image media types
-            cover_image_file = request.FILES.get('cover_image')
-            if cover_image_file and media_type != 'image':
-                # First, save the cover image as a separate media object
-                cover_serializer = self.get_serializer(data={
-                    'file': cover_image_file,
-                    'media_type': 'image',
-                    'title': f"Cover for {file.name}",
-                    'alt_text': f"Cover image for {file.name}",
-                })
-                
-                if cover_serializer.is_valid():
-                    cover_media = cover_serializer.save()
-                    # Update the main media object with the cover image
-                    media.cover_image = cover_media
-                    media.save(update_fields=['cover_image'])
-                else:
-                    # Delete the main media object if cover image validation fails
-                    media.delete()
-                    return APIResponse.error(
-                        message="Cover image validation failed",
-                        errors=cover_serializer.errors,
-                        status_code=status.HTTP_400_BAD_REQUEST
-                    )
-            
-            # Return the serialized media object with cover_image properly serialized
-            response_serializer = self.get_serializer(media)
-            return APIResponse.success(
-                MEDIA_SUCCESS["media_created"],
-                response_serializer.data,
-                status_code=status.HTTP_201_CREATED
-            )
-        else:
-            return APIResponse.error(
-                message="Validation failed",
-                errors=serializer.errors,
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         """Bulk delete media files"""
         try:
-            media_ids = request.data.get('media_ids', [])
-            if not media_ids:
+            media_data = request.data.get('media_data', [])
+            if not media_data:
                 return APIResponse.error(
-                    message="No media IDs provided",
+                    message="No media data provided",
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            if not isinstance(media_ids, list):
+            if not isinstance(media_data, list):
                 return APIResponse.error(
-                    message="media_ids must be a list",
+                    message="media_data must be a list of {id, type} objects",
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
             # Delete media files
             deleted_count = 0
-            failed_ids = []
-            for media_id in media_ids:
+            failed_items = []
+            for item in media_data:
                 try:
-                    MediaAdminService.delete_media_id(media_id)
+                    media_id = item.get('id')
+                    media_type = item.get('type')
+                    if not media_id or not media_type:
+                        failed_items.append(item)
+                        continue
+                    
+                    MediaAdminService.delete_media_by_id_and_type(media_id, media_type)
                     deleted_count += 1
                 except ProtectedError:
-                    failed_ids.append(media_id)
+                    failed_items.append(item)
                     continue
                 except Exception:
-                    failed_ids.append(media_id)
+                    failed_items.append(item)
                     continue
             
             return APIResponse.success(
                 message=f"Successfully deleted {deleted_count} media files",
                 data={
                     'deleted_count': deleted_count, 
-                    'total_requested': len(media_ids),
-                    'failed_ids': failed_ids
+                    'total_requested': len(media_data),
+                    'failed_items': failed_items
                 },
                 status_code=status.HTTP_200_OK
             )
@@ -259,18 +330,106 @@ class MediaAdminViewSet(BaseMediaViewSet, viewsets.ModelViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
 # -------------------- ViewSet BY Public ID --------------------
-class MediaPublicViewSet(BaseMediaViewSet, viewsets.ReadOnlyModelViewSet):
+class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = MediaPublicSerializer
     pagination_class = StandardLimitPagination
-    lookup_field = 'public_id'
-    lookup_url_kwarg = 'public_id'
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = MediaFilter
+    search_fields = ['title', 'is_active']
+    ordering_fields = ['created_at']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        # For public viewset, we'll return images by default
+        # Other types can be filtered
+        return ImageMedia.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        # Override the list method to combine all media types
+        # This ensures we show all media types in the public view
+        
+        # Fetch all media types that are active
+        image_media = list(ImageMedia.objects.filter(is_active=True))
+        video_media = list(VideoMedia.objects.filter(is_active=True))
+        audio_media = list(AudioMedia.objects.filter(is_active=True))
+        document_media = list(DocumentMedia.objects.filter(is_active=True))
+        
+        # Combine all media objects
+        all_media = image_media + video_media + audio_media + document_media
+        
+        # Apply filtering manually since we can't use Django FilterSet with multiple models
+        # Filter by title if provided
+        search_title = request.query_params.get('title', None)
+        if search_title:
+            all_media = [media for media in all_media if search_title.lower() in (media.title or '').lower()]
+        
+        # Filter by is_active if provided (always true for public view)
+        is_active = request.query_params.get('is_active', 'true')
+        if is_active.lower() == 'true':
+            all_media = [media for media in all_media if media.is_active]
+        
+        # Sort by created_at (newest first)
+        all_media.sort(key=lambda x: x.created_at, reverse=True)
+        
+        # Apply pagination
+        paginator = self.pagination_class()
+        paginated_data = paginator.paginate_queryset(all_media, request)
+        
+        # Serialize the data
+        serializer = self.get_serializer(paginated_data, many=True)
+        
+        return PaginationAPIResponse.paginated_success(
+            MEDIA_SUCCESS["media_list_success"],
+            {
+                'results': serializer.data,
+                'count': len(all_media),
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link()
+            }
+        )
 
     def retrieve(self, request, *args, **kwargs):
-        media = MediaPublicService.get_media_by_public_id(kwargs.get("public_id"))
+        public_id = kwargs.get("pk")
+        media_type = request.query_params.get('type', 'image')
+        
+        media = MediaPublicService.get_media_by_public_id_and_type(public_id, media_type)
         if media:
             serializer = self.get_serializer(media)
             return APIResponse.success(message=MEDIA_SUCCESS["media_retrieved"], data=serializer.data)
 
         return APIResponse.error(MEDIA_ERRORS["media_not_found"], status_code=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'])
+    def by_type(self, request):
+        """Get media by type"""
+        media_type = request.query_params.get('type', 'image')
+        is_active = request.query_params.get('is_active', 'true').lower() == 'true'
+        
+        media_list = MediaPublicService.get_all_media_by_type(media_type, is_active)
+        
+        if media_list:
+            paginator = self.pagination_class()
+            paginated_data = paginator.paginate_queryset(media_list, request)
+            serializer = self.get_serializer(paginated_data, many=True)
+            return PaginationAPIResponse.paginated_success(
+                MEDIA_SUCCESS["media_list_success"],
+                {
+                    'results': serializer.data,
+                    'count': paginator.count,
+                    'next': paginator.get_next_link(),
+                    'previous': paginator.get_previous_link()
+                }
+            )
+        else:
+            return PaginationAPIResponse.paginated_success(
+                MEDIA_ERRORS["media_not_found"],
+                {
+                    'results': [],
+                    'count': 0,
+                    'next': None,
+                    'previous': None
+                }
+            )

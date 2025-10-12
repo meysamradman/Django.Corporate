@@ -2,8 +2,11 @@
 Media Models - مدل‌های مربوط به رسانه
 """
 # ✅ Import نسبی - چون در __init__.py هستیم
-from .media import Media
+from .media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
 __all__ = [
-    'Media'
+    'ImageMedia',
+    'VideoMedia', 
+    'AudioMedia',
+    'DocumentMedia',
 ]

@@ -248,7 +248,7 @@ export const mediaApi = {
     ): Promise<ApiResponse<Media>> => {
         try {
             // Use the correct endpoint for media upload
-            const endpoint = `${BASE_MEDIA_PATH}/upload/`;
+            const endpoint = `${BASE_MEDIA_PATH}/`;
             
             // Create a custom fetch with progress tracking
             const xhr = new XMLHttpRequest();
@@ -527,14 +527,21 @@ export const mediaApi = {
 
     /**
      * Bulk delete multiple media items
-     * @param mediaIds Array of media IDs to delete
+     * @param mediaItems Array of media items to delete
      */
     bulkDeleteMedia: async (
-        mediaIds: (number | string)[]
+        mediaItems: Media[]
     ): Promise<ApiResponse<{ deleted_count: number }>> => {
         try {
             const endpoint = `${BASE_MEDIA_PATH}/bulk-delete`;
-            return await fetchApi.post<{ deleted_count: number }>(endpoint, { media_ids: mediaIds });
+            // Fix: Send the correct data structure expected by the backend
+            // Backend expects media_data as array of {id, type} objects
+            const mediaData = mediaItems.map(item => ({ 
+                id: item.id, 
+                type: item.media_type || 'image' // Use media_type from the item or default to image
+            }));
+            
+            return await fetchApi.post<{ deleted_count: number }>(endpoint, { media_data: mediaData });
         } catch (error: unknown) {
             console.error(`API Error in bulkDeleteMedia:`, error);
             showErrorToast(error, `Failed to delete media items`);

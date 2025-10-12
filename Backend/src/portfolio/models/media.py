@@ -1,63 +1,150 @@
-from django.core.exceptions import ValidationError
 from django.db import models
+from django.core.exceptions import ValidationError
+
 from src.core.models.base import BaseModel
-from src.media.models.media import Media
 from src.portfolio.models.portfolio import Portfolio
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
+class PortfolioImage(BaseModel):
+    """تصاویر مربوط به نمونه‌کار (گالری تصاویر)"""
 
-class PortfolioMedia(BaseModel):
-    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE,
-        related_name='portfolio_medias',
-        verbose_name = "Portfolio",
-        help_text = "The portfolio to which this media belongs."
+    portfolio = models.ForeignKey(
+        Portfolio,
+        on_delete=models.CASCADE,
+        related_name="images",
+        db_index=True,
+        verbose_name="Portfolio",
+        help_text="نمونه‌کاری که این تصویر به آن تعلق دارد."
     )
-    media = models.ForeignKey(Media, on_delete=models.CASCADE,
-        related_name='portfolio_links',
-        verbose_name = "Media",
-        help_text = "The media file associated with the portfolio."
+    image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.CASCADE,
+        related_name="portfolio_links",
+        db_index=True,
+        verbose_name="Image File",
+        help_text="فایل تصویر مربوط به نمونه‌کار."
     )
-    is_main_image = models.BooleanField(
+    is_main = models.BooleanField(
         default=False,
-        verbose_name="Portfolio Image",
-        help_text="Indicates whether this image is the Portfolio image for the property. Only one Portfolio Image is allowed per portfolio."
+        db_index=True,
+        verbose_name="Main Image",
+        help_text="فقط یک تصویر می‌تواند تصویر اصلی نمونه‌کار باشد."
     )
-    order = models.PositiveIntegerField(
-        default=0,
-        verbose_name="Order",
-        help_text="The order of this media item in the portfolio."
-    )
+    order = models.PositiveIntegerField(default=0, db_index=True)
+
+    class Meta:
+        db_table = "portfolio_images"
+        ordering = ["order", "-created_at"]
+        verbose_name = "Portfolio Image"
+        verbose_name_plural = "Portfolio Images"
+        indexes = [
+            models.Index(fields=["portfolio", "is_main"]),
+            models.Index(fields=["portfolio", "order"]),
+        ]
 
     def clean(self):
-        if self.media.media_type == 'video' and not self.media.cover_image:
-            raise ValidationError("Each video must have an associated cover image.")
-
-        if self.is_main_image:
-            existing_main_image = PortfolioMedia.objects.filter(
+        """فقط یک تصویر اصلی مجاز است"""
+        if self.is_main:
+            exists = PortfolioImage.objects.filter(
                 portfolio=self.portfolio,
-                is_main_image=True
-            ).exclude(id=self.id).exists()
-            if existing_main_image:
+                is_main=True
+            ).exclude(pk=self.pk).exists()
+            if exists:
                 raise ValidationError("Only one main image is allowed per portfolio.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-        
-    def get_public_url(self):
-        """Get the public URL for this portfolio media item using the public_id"""
-        return f"/portfolio-media/{self.public_id}/"
-
-    class Meta:
-        ordering = ['order']
-        db_table = 'portfolio_media'
-        verbose_name = "Portfolio Media"
-        verbose_name_plural = "Portfolio Media"
-        indexes = [
-            models.Index(fields=['portfolio']),
-            models.Index(fields=['media']),
-            models.Index(fields=['is_main_image']),
-            models.Index(fields=['public_id']),
-        ]
 
     def __str__(self):
-        return f"{self.portfolio} - {self.media}"
+        return f"{self.portfolio.title} - {self.image.title or self.image.file.name}"
+
+
+class PortfolioVideo(BaseModel):
+    """ویدیوهای مربوط به نمونه‌کار"""
+
+    portfolio = models.ForeignKey(
+        Portfolio,
+        on_delete=models.CASCADE,
+        related_name="videos",
+        db_index=True
+    )
+    video = models.ForeignKey(
+        VideoMedia,
+        on_delete=models.CASCADE,
+        related_name="portfolio_links",
+        db_index=True
+    )
+    order = models.PositiveIntegerField(default=0, db_index=True)
+    autoplay = models.BooleanField(default=False)
+    mute = models.BooleanField(default=True)
+    show_cover = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "portfolio_videos"
+        ordering = ["order"]
+        verbose_name = "Portfolio Video"
+        verbose_name_plural = "Portfolio Videos"
+        indexes = [models.Index(fields=["portfolio", "order"])]
+
+    def __str__(self):
+        return f"{self.portfolio.title} - Video {self.video.title or self.video.file.name}"
+
+
+class PortfolioAudio(BaseModel):
+    """فایل‌های صوتی مربوط به نمونه‌کار"""
+
+    portfolio = models.ForeignKey(
+        Portfolio,
+        on_delete=models.CASCADE,
+        related_name="audios",
+        db_index=True
+    )
+    audio = models.ForeignKey(
+        AudioMedia,
+        on_delete=models.CASCADE,
+        related_name="portfolio_links",
+        db_index=True
+    )
+    order = models.PositiveIntegerField(default=0, db_index=True)
+    autoplay = models.BooleanField(default=False)
+    loop = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "portfolio_audios"
+        ordering = ["order"]
+        verbose_name = "Portfolio Audio"
+        verbose_name_plural = "Portfolio Audios"
+        indexes = [models.Index(fields=["portfolio", "order"])]
+
+    def __str__(self):
+        return f"{self.portfolio.title} - Audio {self.audio.title or self.audio.file.name}"
+
+
+class PortfolioDocument(BaseModel):
+    """اسناد (PDFها) مربوط به نمونه‌کار"""
+
+    portfolio = models.ForeignKey(
+        Portfolio,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        db_index=True
+    )
+    document = models.ForeignKey(
+        DocumentMedia,
+        on_delete=models.CASCADE,
+        related_name="portfolio_links",
+        db_index=True
+    )
+    order = models.PositiveIntegerField(default=0, db_index=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = "portfolio_documents"
+        ordering = ["order"]
+        verbose_name = "Portfolio Document"
+        verbose_name_plural = "Portfolio Documents"
+        indexes = [models.Index(fields=["portfolio", "order"])]
+
+    def __str__(self):
+        return f"{self.portfolio.title} - Document {self.document.title or self.document.file.name}"

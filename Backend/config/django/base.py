@@ -42,6 +42,7 @@ MIDDLEWARE = [
      'django.middleware.security.SecurityMiddleware',
      'src.core.security.middleware.SecurityLoggingMiddleware',  # Security logging
      'src.core.security.middleware.RateLimitMiddleware',       # Rate limiting
+     'src.core.security.middleware.CSRFExemptAdminMiddleware', # CSRF exemption for admin views
      'django.contrib.sessions.middleware.SessionMiddleware',
      'corsheaders.middleware.CorsMiddleware',
      # 'django.middleware.locale.LocaleMiddleware',  # غیرفعال - تک زبانه

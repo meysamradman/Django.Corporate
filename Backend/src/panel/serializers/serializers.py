@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from src.panel.models import PanelSettings
 from src.media.serializers.media_serializer import MediaAdminSerializer
-from src.media.models.media import Media
+from src.media.models.media import ImageMedia
 
 
 class PanelSettingsSerializer(serializers.ModelSerializer):
@@ -10,8 +10,8 @@ class PanelSettingsSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
     favicon_url = serializers.SerializerMethodField()
     # Make logo and favicon fields writable for media selection
-    logo = serializers.PrimaryKeyRelatedField(queryset=Media.objects.all(), required=False, allow_null=True)
-    favicon = serializers.PrimaryKeyRelatedField(queryset=Media.objects.all(), required=False, allow_null=True)
+    logo = serializers.PrimaryKeyRelatedField(queryset=ImageMedia.objects.all(), required=False, allow_null=True)
+    favicon = serializers.PrimaryKeyRelatedField(queryset=ImageMedia.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = PanelSettings

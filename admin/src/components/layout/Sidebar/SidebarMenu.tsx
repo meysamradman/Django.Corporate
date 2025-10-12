@@ -61,6 +61,9 @@ export const useMenuData = () => {
                             { title: "دسته‌بندی‌های نمونه کار", isTitle: true },
                             { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories" },
                             { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create" },
+                            { title: "تگ‌های نمونه کار", isTitle: true },
+                            { title: "لیست تگ‌ها", url: "/portfolios/tags" },
+                            { title: "ایجاد تگ", url: "/portfolios/tags/create" },
                         ],
                     },
                     {

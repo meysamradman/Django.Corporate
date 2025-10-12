@@ -37,7 +37,7 @@ class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSeriali
     
     def get_portfolio_count(self, obj):
         """Get portfolio count from annotation or database"""
-        return getattr(obj, 'portfolio_count', obj.portfolios.count())
+        return getattr(obj, 'portfolio_count', obj.portfolio_categories.count())
     
     def get_image_url(self, obj):
         """Get image URL if exists"""
@@ -93,7 +93,7 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
                 'public_id': child.public_id,
                 'name': child.name,
                 'slug': child.slug,
-                'portfolio_count': child.portfolios.count(),
+                'portfolio_count': child.portfolio_categories.count(),
                 'has_children': child.get_children_count() > 0
             }
             for child in children
@@ -120,7 +120,7 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
     
     def get_portfolio_count(self, obj):
         """Get total portfolio count including descendants"""
-        return getattr(obj, 'portfolio_count', obj.portfolios.count())
+        return getattr(obj, 'portfolio_count', obj.portfolio_categories.count())
     
     def get_tree_path(self, obj):
         """Get tree path for display"""
@@ -132,7 +132,7 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
     
     def get_recent_portfolios(self, obj):
         """Get recent portfolios in this category"""
-        portfolios = obj.portfolios.filter(
+        portfolios = obj.portfolio_categories.filter(
             status='published', is_public=True
         ).order_by('-created_at')[:5]
         
@@ -289,7 +289,7 @@ class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
     
     def get_portfolio_count(self, obj):
         """Get portfolio count"""
-        return getattr(obj, 'portfolio_count', obj.portfolios.count())
+        return getattr(obj, 'portfolio_count', obj.portfolio_categories.count())
     
     def get_level(self, obj):
         """Get tree level"""

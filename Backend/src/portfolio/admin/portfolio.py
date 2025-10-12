@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from treebeard.admin import TreeAdmin
 from treebeard.forms import movenodeform_factory
-from src.portfolio.models.media import PortfolioMedia
+from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.models.portfolio import Portfolio
@@ -26,32 +26,85 @@ class PortfolioTagInline(admin.TabularInline):
     verbose_name_plural = _("Portfolio Tags")
 
 
-class PortfolioMediaInline(admin.TabularInline):
-    model = PortfolioMedia
+class PortfolioImageInline(admin.TabularInline):
+    model = PortfolioImage
     extra = 1
-    verbose_name = _("Portfolio Media")
-    verbose_name_plural = _("Portfolio Media")
-    fields = ('media', 'is_main_image', 'order', 'preview_media')  # حذف video_cover
-    readonly_fields = ('preview_media',)
+    verbose_name = _("Portfolio Image")
+    verbose_name_plural = _("Portfolio Images")
+    fields = ('image', 'is_main', 'order', 'preview_image')
+    readonly_fields = ('preview_image',)
 
-    def preview_media(self, obj):
-        """نمایش پیش‌نمایش مدیا در ادمین"""
-        if obj.media:
-            if obj.media.media_type == "image":
-                return format_html(
-                    '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" />',
-                    obj.media.file.url
-                )
-            elif obj.media.media_type == "video":
-                # اگر ویدئو کاور نداشته باشد، از تصویر اصلی استفاده می‌کند
-                cover_url = obj.media.video_cover.url if obj.media.video_cover else obj.media.file.url
-                return format_html(
-                    '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" />',
-                    cover_url
-                )
+    def preview_image(self, obj):
+        """نمایش پیش‌نمایش تصویر در ادمین"""
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" />',
+                obj.image.file.url
+            )
         return "-"
 
-    preview_media.short_description = _("Preview")
+    preview_image.short_description = _("Preview")
+
+
+class PortfolioVideoInline(admin.TabularInline):
+    model = PortfolioVideo
+    extra = 1
+    verbose_name = _("Portfolio Video")
+    verbose_name_plural = _("Portfolio Videos")
+    fields = ('video', 'order', 'autoplay', 'mute', 'show_cover', 'preview_video')
+    readonly_fields = ('preview_video',)
+
+    def preview_video(self, obj):
+        """نمایش پیش‌نمایش ویدیو در ادمین"""
+        if obj.video:
+            cover_url = obj.video.video_cover.url if obj.video.video_cover else obj.video.file.url
+            return format_html(
+                '<img src="{}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" />',
+                cover_url
+            )
+        return "-"
+
+    preview_video.short_description = _("Preview")
+
+
+class PortfolioAudioInline(admin.TabularInline):
+    model = PortfolioAudio
+    extra = 1
+    verbose_name = _("Portfolio Audio")
+    verbose_name_plural = _("Portfolio Audios")
+    fields = ('audio', 'order', 'autoplay', 'loop', 'preview_audio')
+    readonly_fields = ('preview_audio',)
+
+    def preview_audio(self, obj):
+        """نمایش پیش‌نمایش صوت در ادمین"""
+        if obj.audio:
+            return format_html(
+                '<audio controls><source src="{}" type="audio/mpeg"></audio>',
+                obj.audio.file.url
+            )
+        return "-"
+
+    preview_audio.short_description = _("Preview")
+
+
+class PortfolioDocumentInline(admin.TabularInline):
+    model = PortfolioDocument
+    extra = 1
+    verbose_name = _("Portfolio Document")
+    verbose_name_plural = _("Portfolio Documents")
+    fields = ('document', 'order', 'title', 'preview_document')
+    readonly_fields = ('preview_document',)
+
+    def preview_document(self, obj):
+        """نمایش پیش‌نمایش سند در ادمین"""
+        if obj.document:
+            return format_html(
+                '<a href="{}" target="_blank">View Document</a>',
+                obj.document.file.url
+            )
+        return "-"
+
+    preview_document.short_description = _("Preview")
 
 
 class PortfolioAdmin(admin.ModelAdmin):
@@ -59,7 +112,7 @@ class PortfolioAdmin(admin.ModelAdmin):
     list_filter = ('status', 'is_featured', 'is_active', 'is_public', 'categories', 'tags')
     search_fields = ('title', 'slug', 'short_description', 'description', 'public_id')
     filter_horizontal = ('categories', 'tags')  # Use horizontal filter for categories and tags
-    inlines = [PortfolioMediaInline, PortfolioOptionInline]  # Add PortfolioOptionInline
+    inlines = [PortfolioImageInline, PortfolioVideoInline, PortfolioAudioInline, PortfolioDocumentInline, PortfolioOptionInline]  # Add PortfolioOptionInline
     readonly_fields = ('id', 'public_id', 'created_at', 'updated_at')
     
     fieldsets = (

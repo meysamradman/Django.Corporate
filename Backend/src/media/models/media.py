@@ -1,224 +1,266 @@
 import os
 import mimetypes
 import hashlib
+import time
 import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from src.core.models.base import BaseModel
 
-# Media type constants
+# -----------------------------
+# 📦 تنظیمات پایه و ابزارها
+# -----------------------------
+
 MEDIA_TYPE_CHOICES = [
     ('image', 'Image'),
     ('video', 'Video'),
-    ('pdf', 'PDF'),
     ('audio', 'Audio'),
+    ('pdf', 'PDF'),
 ]
 
-# File size limits from environment variables
+# اندازه مجاز فایل‌ها از ENV
 def get_file_size_limit(media_type):
-    """Get file size limit based on media type from environment variables"""
-    import os
+    """دریافت محدودیت حجم فایل از متغیرهای محیطی"""
     size_limits = {
-        'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 5242880)),  # 5MB default
-        'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 157286400)),  # 150MB default
-        'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20971520)),  # 20MB default
-        'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10485760)),  # 10MB default
+        'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 5 * 1024 * 1024)),   # 5MB
+        'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)), # 150MB
+        'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20 * 1024 * 1024)),  # 20MB
+        'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),      # 10MB
     }
-    return size_limits.get(media_type, 10 * 1024 * 1024)  # 10MB default fallback
+    return size_limits.get(media_type, 10 * 1024 * 1024)
 
-
-# File extension validation
+# پسوندهای مجاز
 ALLOWED_EXTENSIONS = {
-    'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,webp,png,svg,gif').split(','),
+    'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,png,webp,gif,svg').split(','),
     'video': os.getenv('MEDIA_VIDEO_EXTENSIONS', 'mp4,webm,mov').split(','),
-    'pdf': os.getenv('MEDIA_PDF_EXTENSIONS', 'pdf').split(','),
     'audio': os.getenv('MEDIA_AUDIO_EXTENSIONS', 'mp3,ogg,aac,m4a').split(','),
+    'pdf': os.getenv('MEDIA_PDF_EXTENSIONS', 'pdf').split(','),
 }
 
-
+# مسیر آپلود داینامیک
 def upload_media_path(instance, filename):
-    """Generate upload path for media files"""
+    """ساخت مسیر آپلود داینامیک بر اساس نوع و تاریخ"""
     name, ext = os.path.splitext(filename)
     ext = ext.lower()
-
-    # Create path based on media type and current date
     today = timezone.now().date()
-    return f"media/{instance.media_type}/{today.year}/{today.month:02d}/{today.day:02d}/{instance.public_id}{ext}"
+    model_name = instance._meta.model_name
+    
+    # Use a UUID for temporary files until the instance is saved
+    if instance.pk is None:
+        identifier = str(uuid.uuid4())[:8]  # Short UUID for temp files
+    else:
+        identifier = str(instance.pk)
+    
+    return f"media/{model_name}/{today.year}/{today.month:02d}/{today.day:02d}/{identifier}{ext}"
 
+# -----------------------------
+# 🧱 کلاس پایه Abstract
+# -----------------------------
 
-class Media(BaseModel):
-    """
-    مدل مدیا با پشتیبانی از انواع فایل‌ها و بهینه‌سازی برای API
-    """
-    media_type = models.CharField(
-        choices=MEDIA_TYPE_CHOICES,
-        max_length=10,
-        db_index=True,  # اضافه کردن ایندکس برای بهبود جستجو
-        verbose_name="Media Type",
-        help_text="Type of media file"
-    )
+class AbstractMedia(BaseModel):
+    """کلاس پایه abstract برای همه‌ی مدیاها"""
 
-    file = models.FileField(
-        upload_to=upload_media_path,
-        # حذف FileExtensionValidator چون در clean() بررسی می‌کنیم و انعطاف بیشتری داریم
-        verbose_name="File",
-        help_text="Uploaded media file"
-    )
+    file = models.FileField(upload_to=upload_media_path)
+    file_size = models.PositiveIntegerField(editable=False, null=True, blank=True)
+    mime_type = models.CharField(max_length=100, editable=False, blank=True)
+    title = models.CharField(max_length=100, blank=True)
+    alt_text = models.CharField(max_length=255, blank=True)
+    etag = models.CharField(max_length=40, editable=False, blank=True)
 
-    file_size = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        editable=False,
-        verbose_name="File Size (bytes)",
-        help_text="Size of the file in bytes"
-    )
+    class Meta:
+        abstract = True
+        ordering = ['created_at']
 
-    mime_type = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        editable=False,
-        verbose_name="MIME Type",
-        help_text="Media file MIME type"
-    )
-
-    cover_image = models.ForeignKey(
-        'self',  # Reference to another Media object
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name="Cover Image",
-        help_text="Cover image for non-image media types",
-        related_name='covered_media'
-    )
-
-    title = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        verbose_name="Title"
-    )
-
-    alt_text = models.CharField(
-        max_length=255,
-        blank=True,
-        verbose_name="ALT Text",
-        help_text="Alternative text for accessibility and SEO"
-    )
-
-    # افزودن فیلد کنترل درخواست‌های همزمان برای فایل‌های بزرگ
-    etag = models.CharField(
-        max_length=40,
-        null=True,
-        blank=True,
-        editable=False,
-        verbose_name="ETag",
-        help_text="Used for HTTP caching"
-    )
-
+    # -----------------------------
+    # 🧩 Validation
+    # -----------------------------
     def clean(self):
-        """اعتبارسنجی فایل آپلود شده"""
-        if not self.file:
-            return
-
-        # بررسی پسوند فایل
-        filename = self.file.name
-        ext = filename.split('.')[-1].lower()
-        valid_extensions = ALLOWED_EXTENSIONS.get(self.media_type, [])
-
-        if ext not in valid_extensions:
-            allowed_exts = ", ".join(valid_extensions)
-            raise ValidationError(f"Invalid file extension. Allowed extensions for {self.media_type}: {allowed_exts}")
-
-        # بررسی حجم فایل
-        max_size = get_file_size_limit(self.media_type)
-        if self.file.size > max_size:
-            max_size_mb = max_size / (1024 * 1024)
-            raise ValidationError(f"File size cannot exceed {max_size_mb} MB for {self.media_type} files")
-
-        # Cover image validation for non-image media types
-        if self.media_type != 'image' and self.cover_image:
-            # Check that the cover image is actually an image
-            if self.cover_image.media_type != 'image':
-                raise ValidationError("Cover image must be an image media type")
-
-            # Check cover image size limits
-            max_cover_size = get_file_size_limit('image')
-            if self.cover_image.file_size and self.cover_image.file_size > max_cover_size:
-                raise ValidationError("Cover image size cannot exceed 5MB")
-
-        # اجرای اعتبارسنجی‌های پدر
+        # Validation moved to child classes
         super().clean()
 
+    # -----------------------------
+    # 💾 Save
+    # -----------------------------
     def save(self, *args, **kwargs):
-        """ذخیره بهینه شده - فقط در صورت تغییر فایل محاسبات انجام می‌شود"""
-        # بررسی آیا فایل جدید است یا تغییر کرده
-        is_new_file = False
-        if self.pk:
-            try:
-                old_obj = Media.objects.get(pk=self.pk)
-                if old_obj.file != self.file or old_obj.cover_image != self.cover_image:
-                    is_new_file = True
-            except Media.DoesNotExist:
-                is_new_file = True
-        else:
-            is_new_file = True
-
-        # اعتبارسنجی فقط برای فایل جدید
-        if is_new_file:
-            self.full_clean()
-
-        # محاسبات فقط برای فایل جدید
-        if self.file and is_new_file:
+        if self.file and (not self.file_size or not self.etag):
             self.file_size = self.file.size
-
-            # MIME type detection
-            content_type, _ = mimetypes.guess_type(self.file.name)
-            if content_type:
-                self.mime_type = content_type
-
-            # ETag سریع بدون I/O
-            hash_string = f"{self.file.name}_{self.file_size}_{timezone.now().timestamp()}"
-            self.etag = hashlib.md5(hash_string.encode()).hexdigest()
+            self.mime_type, _ = mimetypes.guess_type(self.file.name)
+            # ETag سریع برای caching
+            unique_str = f"{self.file.name}_{self.file_size}_{time.time()}"
+            self.etag = hashlib.md5(unique_str.encode()).hexdigest()
 
         super().save(*args, **kwargs)
 
+    # -----------------------------
+    # 🗑️ Delete
+    # -----------------------------
     def delete(self, *args, **kwargs):
-        """حذف فایل‌های مربوطه پس از حذف مدل"""
-        if self.file:
-            if hasattr(self.file, 'path') and os.path.isfile(self.file.path):
-                try:
-                    os.remove(self.file.path)
-                except (FileNotFoundError, PermissionError, OSError):
-                    # نگذار حذف مدل به خاطر مشکل فایل فیزیکی شکست بخورد
-                    pass
-
-        if self.cover_image:
-            if hasattr(self.cover_image, 'path') and os.path.isfile(self.cover_image.path):
-                try:
-                    os.remove(self.cover_image.path)
-                except (FileNotFoundError, PermissionError, OSError):
-                    pass
-
+        storage = getattr(self.file, "storage", None)
+        name = getattr(self.file, "name", None)
         super().delete(*args, **kwargs)
+        if storage and name:
+            try:
+                storage.delete(name)
+            except Exception:
+                pass  # حذف فایل بدون خطای بحرانی
 
+    # -----------------------------
+    # 🔗 آدرس فایل
+    # -----------------------------
     def get_absolute_url(self):
-        """دریافت آدرس دانلود فایل"""
-        if self.file:
-            return self.file.url
-        return None
+        return self.file.url if self.file else None
 
-    def get_public_url(self):
-        """دریافت آدرس عمومی مدیا با استفاده از public_id"""
-        return f"/media/{self.public_id}/"
+# -----------------------------
+# 🖼️ مدل پایه برای تصاویر
+# -----------------------------
+class AbstractImageMedia(AbstractMedia):
+    file = models.ImageField(upload_to=upload_media_path)
 
-    class Meta(BaseModel.Meta):
-        db_table = 'media'
-        indexes = BaseModel.Meta.indexes + [
-            # فقط ضروری‌ترین indexes برای سرعت بالا
-            models.Index(fields=['media_type', 'is_active']),  # اصلی‌ترین query
-            models.Index(fields=['created_at']),  # مرتب‌سازی
-        ]
-        verbose_name = "Media"
-        verbose_name_plural = "Media"
+    class Meta(AbstractMedia.Meta):
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if not self.file:
+            return
+        
+        ext = self.file.name.split('.')[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS['image']:
+            raise ValidationError(f"Invalid image extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['image'])}")
+        
+        max_size = get_file_size_limit('image')
+        if self.file.size > max_size:
+            raise ValidationError(f"Image too large. Max: {max_size / (1024 * 1024):.1f} MB")
+
+# -----------------------------
+# 🎞️ مدل پایه برای ویدیو
+# -----------------------------
+class AbstractVideoMedia(AbstractMedia):
+    file = models.FileField(upload_to=upload_media_path)
+    duration = models.PositiveIntegerField(null=True, blank=True)
+    cover_image = models.ForeignKey(
+        'ImageMedia', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='covered_videos', help_text="Cover image for this video"
+    )
+
+    class Meta(AbstractMedia.Meta):
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if not self.file:
+            return
+        
+        ext = self.file.name.split('.')[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS['video']:
+            raise ValidationError(f"Invalid video extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['video'])}")
+        
+        max_size = get_file_size_limit('video')
+        if self.file.size > max_size:
+            raise ValidationError(f"Video too large. Max: {max_size / (1024 * 1024):.1f} MB")
+        
+        # بررسی cover_image برای ویدیوها
+        if self.cover_image and not isinstance(self.cover_image, ImageMedia):
+            raise ValidationError("Cover must be an ImageMedia instance.")
+
+# -----------------------------
+# 🎧 مدل پایه برای صوت
+# -----------------------------
+class AbstractAudioMedia(AbstractMedia):
+    file = models.FileField(upload_to=upload_media_path)
+    duration = models.PositiveIntegerField(null=True, blank=True)
+    cover_image = models.ForeignKey(
+        'ImageMedia', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='covered_audios', help_text="Cover image for this audio"
+    )
+
+    class Meta(AbstractMedia.Meta):
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if not self.file:
+            return
+        
+        ext = self.file.name.split('.')[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS['audio']:
+            raise ValidationError(f"Invalid audio extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['audio'])}")
+        
+        max_size = get_file_size_limit('audio')
+        if self.file.size > max_size:
+            raise ValidationError(f"Audio too large. Max: {max_size / (1024 * 1024):.1f} MB")
+        
+        # بررسی cover_image برای صوت‌ها
+        if self.cover_image and not isinstance(self.cover_image, ImageMedia):
+            raise ValidationError("Cover must be an ImageMedia instance.")
+
+# -----------------------------
+# 📄 مدل پایه برای اسناد
+# -----------------------------
+class AbstractDocumentMedia(AbstractMedia):
+    file = models.FileField(upload_to=upload_media_path)
+    cover_image = models.ForeignKey(
+        'ImageMedia', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='covered_documents', help_text="Cover image for this document"
+    )
+
+    class Meta(AbstractMedia.Meta):
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if not self.file:
+            return
+        
+        ext = self.file.name.split('.')[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS['pdf']:
+            raise ValidationError(f"Invalid document extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['pdf'])}")
+        
+        max_size = get_file_size_limit('pdf')
+        if self.file.size > max_size:
+            raise ValidationError(f"Document too large. Max: {max_size / (1024 * 1024):.1f} MB")
+        
+        # بررسی cover_image برای اسناد
+        if self.cover_image and not isinstance(self.cover_image, ImageMedia):
+            raise ValidationError("Cover must be an ImageMedia instance.")
+
+# -----------------------------
+# 📦 مدل‌های Concrete اصلی
+# -----------------------------
+
+class ImageMedia(AbstractImageMedia):
+    class Meta(AbstractImageMedia.Meta):
+        db_table = 'media_images'
+        verbose_name = "Image Media"
+        verbose_name_plural = "Image Media"
+
+class VideoMedia(AbstractVideoMedia):
+    class Meta(AbstractVideoMedia.Meta):
+        db_table = 'media_videos'
+        verbose_name = "Video Media"
+        verbose_name_plural = "Video Media"
+
+class AudioMedia(AbstractAudioMedia):
+    class Meta(AbstractAudioMedia.Meta):
+        db_table = 'media_audios'
+        verbose_name = "Audio Media"
+        verbose_name_plural = "Audio Media"
+
+class DocumentMedia(AbstractDocumentMedia):
+    class Meta(AbstractDocumentMedia.Meta):
+        db_table = 'media_documents'
+        verbose_name = "Document Media"
+        verbose_name_plural = "Document Media"

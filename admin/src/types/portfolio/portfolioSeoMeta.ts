@@ -6,7 +6,11 @@ export interface PortfolioSEOMeta extends Base {
     meta_description?: string | null;
     og_title?: string | null;
     og_description?: string | null;
-    portfolio_id: number;
     og_image_id?: number | null;
     og_image?: Pick<Media, 'id' | 'url'> | null;
+    canonical_url?: string | null;
+    robots_meta?: string | null;
+    structured_data?: Record<string, any> | null;
+    hreflang_data?: Record<string, any> | null;
+    portfolio_id: number;
 }

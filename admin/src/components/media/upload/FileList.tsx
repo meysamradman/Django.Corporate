@@ -39,7 +39,7 @@ export function FileList({
       <div className="space-y-4 max-h-[400px] overflow-y-auto p-1">
         {files.map(file => (
           <FileItem
-            key={file.id}
+            key={`file-item-${file.id}`}
             file={file}
             onRemove={onRemoveFile}
             onUpdateMetadata={onUpdateMetadata}

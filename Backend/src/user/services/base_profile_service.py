@@ -71,21 +71,21 @@ class BaseProfileService:
             if profile_picture is not None:
                 update_needed = True
                 try:
-                    from src.media.models.media import Media
+                    from src.media.models.media import ImageMedia
                     if profile_picture is None:
                         if profile.profile_picture:
                             old_media_to_delete = profile.profile_picture
                         profile.profile_picture = None
                     else:
-                        if isinstance(profile_picture, Media):
+                        if isinstance(profile_picture, ImageMedia):
                             if profile.profile_picture:
                                 old_media_to_delete = profile.profile_picture
                             profile.profile_picture = profile_picture
                         else:
-                            print(f">>> Error: profile_picture should be Media object, got {type(profile_picture)}")
+                            print(f">>> Error: profile_picture should be ImageMedia object, got {type(profile_picture)}")
                             
                 except ImportError:
-                    print(">>> Error: Could not import Media model.")
+                    print(">>> Error: Could not import ImageMedia model.")
                 except Exception as e:
                     print(f">>> Error processing profile picture: {str(e)}")
             

@@ -3,15 +3,14 @@ from django.db import models
 from treebeard.mp_tree import MP_Node
 from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
-from src.media.models.media import Media
+from src.media.models.media import ImageMedia
 from .managers import PortfolioCategoryQuerySet
 
 class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
     # Relations
     image = models.ForeignKey(
-        Media, 
+        ImageMedia, 
         on_delete=models.SET_NULL,
-        limit_choices_to={'media_type': 'image'},
         null=True, blank=True,
         verbose_name="Main Image"
     )

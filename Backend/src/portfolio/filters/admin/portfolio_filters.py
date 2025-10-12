@@ -22,6 +22,10 @@ class PortfolioAdminFilter(django_filters.FilterSet):
         help_text="Filter by public visibility"
     )
     
+    is_active = django_filters.BooleanFilter(
+        help_text="Filter by active status"
+    )
+    
     # Date filters
     created_after = django_filters.DateFilter(
         field_name='created_at',
@@ -120,7 +124,7 @@ class PortfolioAdminFilter(django_filters.FilterSet):
     class Meta:
         model = Portfolio
         fields = [
-            'status', 'is_featured', 'is_public',
+            'status', 'is_featured', 'is_public', 'is_active',
             'created_after', 'created_before',
             'category', 'category_slug', 'tag', 'tag_slug',
             'seo_status', 'has_meta_title', 'has_meta_description',

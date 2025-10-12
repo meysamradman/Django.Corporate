@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.portfolio import views
-from src.portfolio.media.media_views import PortfolioMediaViewSet
 
 router = DefaultRouter()
 router.register(r'admin/portfolio', views.PortfolioAdminViewSet, basename='admin-portfolio')
@@ -12,7 +11,7 @@ router.register(r'admin/portfolio-option', views.PortfolioOptionAdminViewSet, ba
 router.register(r'portfolio-option', views.PortfolioOptionPublicViewSet, basename='public-portfolio-option')
 router.register(r'admin/portfolio-tag', views.PortfolioTagAdminViewSet, basename='admin-portfolio-tag')
 router.register(r'portfolio-tag', views.PortfolioTagPublicViewSet, basename='public-portfolio-tag')
-router.register(r'admin/portfolio-media', PortfolioMediaViewSet, basename='admin-portfolio-media')
+# PortfolioMediaViewSet is removed as PortfolioMedia model no longer exists
 
 urlpatterns = [
     path('', include(router.urls)),

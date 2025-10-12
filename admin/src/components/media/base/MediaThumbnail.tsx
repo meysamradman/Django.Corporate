@@ -40,7 +40,7 @@ export function MediaThumbnail({
   // Get the appropriate URL for thumbnail
   const getThumbnailUrl = () => {
     // For images, use the file URL
-    if (media.media_type === 'image') {
+    if ((media.media_type || '') === 'image') {
       return mediaService.getMediaUrlFromObject(media);
     }
     
@@ -59,7 +59,8 @@ export function MediaThumbnail({
 
   // Get appropriate icon for media type
   const getMediaIcon = () => {
-    switch (media.media_type) {
+    const mediaType = media.media_type || 'file';
+    switch (mediaType) {
       case 'video':
         return <Play className="h-8 w-8" />;
       case 'audio':
@@ -74,7 +75,8 @@ export function MediaThumbnail({
 
   // Get appropriate background color for media type
   const getMediaBgColor = () => {
-    switch (media.media_type) {
+    const mediaType = media.media_type || 'file';
+    switch (mediaType) {
       case 'video':
         return 'bg-red-500/20';
       case 'audio':
@@ -102,7 +104,7 @@ export function MediaThumbnail({
           <div className="flex flex-col items-center justify-center text-muted-foreground">
             {getMediaIcon()}
             <span className="text-xs mt-1 font-medium">
-              {media.media_type.toUpperCase()}
+              {(media.media_type || 'file').toUpperCase()}
             </span>
           </div>
         )}
@@ -135,7 +137,7 @@ export function MediaThumbnail({
           onLoad={() => setLoaded(true)}
           style={style}
         />
-        {showIcon && media.media_type !== 'image' && (
+        {showIcon && (media.media_type || '') !== 'image' && (
           <div className={overlayClasses}>
             <div className="bg-white/90 rounded-full p-2 shadow-lg">
               {getMediaIcon()}
@@ -159,7 +161,7 @@ export function MediaThumbnail({
         onLoad={() => setLoaded(true)}
         style={style}
       />
-      {showIcon && media.media_type !== 'image' && (
+      {showIcon && (media.media_type || '') !== 'image' && (
         <div className={overlayClasses}>
           <div className="bg-white/90 rounded-full p-2 shadow-lg">
             {getMediaIcon()}

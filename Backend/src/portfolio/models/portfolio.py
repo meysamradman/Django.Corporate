@@ -2,7 +2,6 @@ from django.db import models
 from django.core.cache import cache
 from src.core.models.base import BaseModel
 from src.portfolio.models.seo import SEOMixin
-from src.media.models.media import Media
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.models.tag import PortfolioTag
 from .managers import PortfolioQuerySet
@@ -38,11 +37,6 @@ class Portfolio(BaseModel, SEOMixin):
         'PortfolioTag', 
         blank=True,
         related_name="portfolio_tags"
-    )
-    medias = models.ManyToManyField(
-        Media, 
-        through='PortfolioMedia',
-        related_name='portfolio_medias'
     )
     
     # Custom manager
@@ -81,8 +75,9 @@ class Portfolio(BaseModel, SEOMixin):
         
         if main_image is None:
             try:
-                main_media = self.portfolio_medias.select_related('media').get(is_main_image=True)
-                main_image = main_media.media
+                # Use the correct relationship - images from PortfolioImage model
+                main_media = self.images.select_related('image').filter(is_main=True).first()
+                main_image = main_media.image if main_media else None
             except Exception:
                 main_image = False  # Cache negative result too
             
@@ -125,8 +120,11 @@ class Portfolio(BaseModel, SEOMixin):
         if not self.og_description and self.meta_description:
             self.og_description = self.meta_description
         
+        # Only auto-generate canonical_url if it's not already set and we have a slug
+        # And ensure it's a valid URL format (not just a relative path)
         if not self.canonical_url and self.slug:
-            self.canonical_url = f"/portfolio/{self.slug}/"
+            # Let the model's get_absolute_url or get_public_url handle this properly
+            self.canonical_url = self.get_public_url()
         
         super().save(*args, **kwargs)
         
