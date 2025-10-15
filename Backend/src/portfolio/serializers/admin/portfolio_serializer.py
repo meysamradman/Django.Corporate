@@ -64,30 +64,49 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
 
 
 class PortfolioAdminListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for admin listing with SEO status"""
+    """Lightweight serializer for admin listing with SEO status and detailed media counts"""
     main_image_url = serializers.SerializerMethodField()
     categories_count = serializers.SerializerMethodField()
     tags_count = serializers.SerializerMethodField()
+    images_count = serializers.SerializerMethodField()
+    videos_count = serializers.SerializerMethodField()
+    audios_count = serializers.SerializerMethodField()
+    documents_count = serializers.SerializerMethodField()
     media_count = serializers.SerializerMethodField()
     seo_status = serializers.SerializerMethodField()
+    # Add separate media arrays for detailed view in list
+    images = serializers.SerializerMethodField()
+    videos = serializers.SerializerMethodField()
+    audios = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
     
     class Meta:
         model = Portfolio
         fields = [
             'id', 'public_id', 'status', 'title', 'slug',
-            'short_description', 'is_featured', 'is_public',
-            'main_image_url', 'categories_count', 'tags_count', 'media_count',
-            'seo_status', 'created_at', 'updated_at'
+            'short_description', 'description', 'is_featured', 'is_public',
+            'main_image_url', 'categories_count', 'tags_count', 
+            'images_count', 'videos_count', 'audios_count', 'documents_count', 'media_count',
+            'images', 'videos', 'audios', 'documents',  # Add media arrays
+            'seo_status', 'created_at', 'updated_at',
+            # SEO fields
+            'meta_title', 'meta_description', 'og_title', 'og_description',
+            'robots_meta', 'canonical_url'
         ]
     
     def get_main_image_url(self, obj):
-        """Get main image efficiently from prefetched data"""
-        # استفاده از prefetch_related برای بهینگی
+        """Get main image efficiently from prefetched data with caching"""
         try:
-            # Get the main image from PortfolioImage model
-            main_image = obj.images.filter(is_main=True).first()
-            if main_image and main_image.image:
-                return main_image.image.file.url
+            # First check if we have prefetched data
+            if hasattr(obj, 'main_image_media'):
+                main_image_media = getattr(obj, 'main_image_media', [])
+                if main_image_media and len(main_image_media) > 0 and main_image_media[0].image:
+                    return main_image_media[0].image.file.url if main_image_media[0].image.file else None
+            
+            # Fallback to model's method
+            main_image = obj.get_main_image()
+            if main_image and hasattr(main_image, 'file') and main_image.file:
+                return main_image.file.url
         except Exception:
             pass
         return None
@@ -100,13 +119,109 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         """Get tags count from prefetched data"""
         return obj.tags.count() if hasattr(obj, 'tags') else 0
     
+    def get_images_count(self, obj):
+        """Get images count"""
+        return obj.images.count() if hasattr(obj, 'images') else 0
+    
+    def get_videos_count(self, obj):
+        """Get videos count"""
+        return obj.videos.count() if hasattr(obj, 'videos') else 0
+    
+    def get_audios_count(self, obj):
+        """Get audios count"""
+        return obj.audios.count() if hasattr(obj, 'audios') else 0
+    
+    def get_documents_count(self, obj):
+        """Get documents count"""
+        return obj.documents.count() if hasattr(obj, 'documents') else 0
+    
     def get_media_count(self, obj):
         """Get media count from all media types"""
-        image_count = obj.images.count()
-        video_count = obj.videos.count()
-        audio_count = obj.audios.count()
-        document_count = obj.documents.count()
+        image_count = obj.images.count() if hasattr(obj, 'images') else 0
+        video_count = obj.videos.count() if hasattr(obj, 'videos') else 0
+        audio_count = obj.audios.count() if hasattr(obj, 'audios') else 0
+        document_count = obj.documents.count() if hasattr(obj, 'documents') else 0
         return image_count + video_count + audio_count + document_count
+    
+    def get_images(self, obj):
+        """Get basic image information for list view"""
+        if hasattr(obj, 'images'):
+            # Only get basic info to keep list view lightweight
+            try:
+                images = obj.images.select_related('image').filter(is_main=False)[:3]
+                return [
+                    {
+                        'id': img.id,
+                        'title': img.image.title if img.image else '',
+                        'url': img.image.file.url if img.image and img.image.file else None,
+                        'order': img.order
+                    }
+                    for img in images
+                ]
+            except Exception:
+                # Fallback if there are any issues with the query
+                return []
+        return []
+    
+    def get_videos(self, obj):
+        """Get basic video information for list view"""
+        if hasattr(obj, 'videos'):
+            # Only get basic info to keep list view lightweight
+            try:
+                videos = obj.videos.select_related('video__cover_image')[:2]
+                return [
+                    {
+                        'id': vid.id,
+                        'title': vid.video.title if vid.video else '',
+                        'cover_url': vid.video.cover_image.file.url if vid.video and vid.video.cover_image and vid.video.cover_image.file else None,
+                        'order': vid.order
+                    }
+                    for vid in videos
+                ]
+            except Exception:
+                # Fallback if there are any issues with the query
+                return []
+        return []
+    
+    def get_audios(self, obj):
+        """Get basic audio information for list view"""
+        if hasattr(obj, 'audios'):
+            # Only get basic info to keep list view lightweight
+            try:
+                audios = obj.audios.select_related('audio__cover_image')[:2]
+                return [
+                    {
+                        'id': aud.id,
+                        'title': aud.audio.title if aud.audio else '',
+                        'cover_url': aud.audio.cover_image.file.url if aud.audio and aud.audio.cover_image and aud.audio.cover_image.file else None,
+                        'order': aud.order
+                    }
+                    for aud in audios
+                ]
+            except Exception:
+                # Fallback if there are any issues with the query
+                return []
+        return []
+    
+    def get_documents(self, obj):
+        """Get basic document information for list view"""
+        if hasattr(obj, 'documents'):
+            # Only get basic info to keep list view lightweight
+            try:
+                documents = obj.documents.select_related('document__cover_image')[:2]
+                return [
+                    {
+                        'id': doc.id,
+                        'title': doc.document.title if doc.document else '',
+                        'cover_url': doc.document.cover_image.file.url if doc.document and doc.document.cover_image and doc.document.cover_image.file else None,
+                        'order': doc.order
+                    }
+                    for doc in documents
+                ]
+            except Exception:
+                # Fallback if there are any issues with the query
+                return []
+        return []
     
     def get_seo_status(self, obj):
         """Check SEO completeness status"""
@@ -151,24 +266,23 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         ]
     
     def get_media(self, obj):
-        """Get all media for the portfolio"""
+        """Get all media for the portfolio with optimized queries"""
+        # Use prefetch_related to reduce database queries
+        images = obj.images.select_related('image').all()
+        videos = obj.videos.select_related('video').all()
+        audios = obj.audios.select_related('audio').all()
+        documents = obj.documents.select_related('document').all()
+        
+        # Combine all media with type information
+        all_media = list(images) + list(videos) + list(audios) + list(documents)
+        
+        # Sort by order field, then by creation date
+        all_media.sort(key=lambda x: (getattr(x, 'order', 0), x.created_at))
+        
+        # Serialize all media
         media_list = []
-        
-        # Get all types of media
-        images = obj.images.all()
-        videos = obj.videos.all()
-        audios = obj.audios.all()
-        documents = obj.documents.all()
-        
-        # Add all media to the list
-        for image in images:
-            media_list.append(PortfolioMediaAdminSerializer(image, context=self.context).data)
-        for video in videos:
-            media_list.append(PortfolioMediaAdminSerializer(video, context=self.context).data)
-        for audio in audios:
-            media_list.append(PortfolioMediaAdminSerializer(audio, context=self.context).data)
-        for document in documents:
-            media_list.append(PortfolioMediaAdminSerializer(document, context=self.context).data)
+        for media in all_media:
+            media_list.append(PortfolioMediaAdminSerializer(media, context=self.context).data)
             
         return media_list
     
@@ -231,6 +345,13 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
         write_only=True, 
         required=False
     )
+    # Media files - we'll handle this in the view, not in the serializer
+    # This is just to document that media files can be sent
+    media_files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
     
     class Meta:
         model = Portfolio
@@ -241,12 +362,16 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta',
             # Relations
-            'categories_ids', 'tags_ids'
+            'categories_ids', 'tags_ids',
+            # Media
+            'media_files'
         ]
     
     def create(self, validated_data):
         categories_ids = validated_data.pop('categories_ids', [])
         tags_ids = validated_data.pop('tags_ids', [])
+        # Remove media_files from validated_data as we handle it in the view
+        media_files = validated_data.pop('media_files', [])
         
         # Auto-generate SEO fields if not provided
         if not validated_data.get('meta_title') and validated_data.get('title'):

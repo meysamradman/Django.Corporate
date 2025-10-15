@@ -26,6 +26,7 @@ import {
 } from "@/components/elements/AlertDialog";
 
 import { Portfolio } from "@/types/portfolio/portfolio";
+import { PortfolioFilters } from "@/components/portfolios/list/PortfolioTableFilters";
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
 import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
@@ -45,7 +46,7 @@ export default function PortfolioPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({});
+  const [clientFilters, setClientFilters] = useState<PortfolioFilters>({});
 
   // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -61,17 +62,23 @@ export default function PortfolioPage() {
   // Build query parameters
   const queryParams = {
     search: searchValue,
-    page: pagination.pageIndex + 1,
+    page: pagination.pageIndex + 1, // Convert zero-based to one-based indexing
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
+    // Add filter parameters
+    status: clientFilters.status as string,
+    is_featured: clientFilters.is_featured as boolean | undefined,
+    is_public: clientFilters.is_public as boolean | undefined,
   };
 
   // Use React Query for data fetching
   const { data: portfolios, isLoading, error } = useQuery({
-    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
+    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public],
     queryFn: async () => {
+      console.log('🔍 Fetching portfolios with params:', queryParams); // Debug log
       const response = await portfolioApi.getPortfolioList(queryParams);
+      console.log('🔍 Portfolio API Response:', response);
       return response;
     },
     staleTime: 0, // Always fetch fresh data
@@ -79,6 +86,15 @@ export default function PortfolioPage() {
 
   const data: Portfolio[] = portfolios?.data || [];
   const pageCount = portfolios?.pagination?.total_pages || 1;
+  
+  // Log the data to see what we're getting
+  console.log('📊 Portfolio Data:', data);
+  console.log('📊 Portfolio Pagination:', portfolios?.pagination);
+  console.log('📊 Calculated Page Count:', pageCount);
+  console.log('📊 Is Loading:', isLoading);
+  console.log('📊 Error:', error);
+  console.log('📊 Query Params:', queryParams);
+  console.log('📊 Pagination State:', pagination); // Debug log
 
   const deletePortfolioMutation = useMutation({
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
@@ -154,7 +170,9 @@ export default function PortfolioPage() {
   const columns = usePortfolioColumns(rowActions) as ColumnDef<Portfolio>[];
 
   const handleFilterChange = (filterId: string | number, value: unknown) => {
-    if (filterId === "search") {
+    const filterKey = filterId as string;
+    
+    if (filterKey === "search") {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
@@ -171,16 +189,21 @@ export default function PortfolioPage() {
       // Handle other filters
       setClientFilters(prev => ({
         ...prev,
-        [filterId]: value
+        [filterKey]: value as string | boolean | undefined
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
       // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
-        url.searchParams.set(String(filterId), String(value));
+        // For boolean values, convert to string
+        if (typeof value === 'boolean') {
+          url.searchParams.set(filterKey, value.toString());
+        } else {
+          url.searchParams.set(filterKey, String(value));
+        }
       } else {
-        url.searchParams.delete(String(filterId));
+        url.searchParams.delete(filterKey);
       }
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
@@ -221,6 +244,53 @@ export default function PortfolioPage() {
     }
     window.history.replaceState({}, '', url.toString());
   };
+
+  // Load filters from URL on initial load
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Load pagination from URL
+    if (urlParams.get('page')) {
+      const page = parseInt(urlParams.get('page')!, 10);
+      if (!isNaN(page) && page > 0) {
+        setPagination(prev => ({ ...prev, pageIndex: page - 1 })); // Convert one-based to zero-based indexing
+      }
+    }
+    if (urlParams.get('size')) {
+      const size = parseInt(urlParams.get('size')!, 10);
+      if (!isNaN(size) && size > 0) {
+        setPagination(prev => ({ ...prev, pageSize: size }));
+      }
+    }
+    
+    // Load sorting from URL
+    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
+      const orderBy = urlParams.get('order_by')!;
+      const orderDesc = urlParams.get('order_desc') === 'true';
+      setSorting([{ id: orderBy, desc: orderDesc }]);
+    }
+    
+    // Load search from URL
+    if (urlParams.get('search')) {
+      setSearchValue(urlParams.get('search')!);
+    }
+    
+    // Load filters from URL
+    const newClientFilters: PortfolioFilters = {};
+    if (urlParams.get('status')) {
+      newClientFilters.status = urlParams.get('status')!;
+    }
+    if (urlParams.get('is_featured') !== null) {
+      newClientFilters.is_featured = urlParams.get('is_featured') === 'true';
+    }
+    if (urlParams.get('is_public') !== null) {
+      newClientFilters.is_public = urlParams.get('is_public') === 'true';
+    }
+    
+    if (Object.keys(newClientFilters).length > 0) {
+      setClientFilters(newClientFilters);
+    }
+  }, []);
 
   // Show error state - but keep header visible
   if (error) {

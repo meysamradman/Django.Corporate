@@ -116,7 +116,7 @@ export default function AdminsPage() {
   });
 
   const data = response?.data || [];
-  const pageCount = response?.pagination?.total_pages || Math.ceil((response?.pagination?.count || 0) / pagination.pageSize) || 1;
+  const pageCount = response?.pagination?.total_pages || 1;
 
   // Delete mutations
   const deleteAdminMutation = useMutation({

@@ -72,4 +72,7 @@ def custom_exception_handler(exc, context):
         "data": error_data
     }
     
-    return JsonResponse(standardized_response, status=status_code) 
+    # When using custom renderers, we need to make sure the data structure
+    # is compatible with the renderer. The renderer expects the data to be
+    # in a specific format, so we structure our exception response accordingly.
+    return JsonResponse(standardized_response, status=status_code)

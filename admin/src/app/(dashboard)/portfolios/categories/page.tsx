@@ -77,7 +77,7 @@ export default function CategoryPage() {
   });
 
   const data: PortfolioCategory[] = Array.isArray(categories?.data) ? categories.data : [];
-  const pageCount = categories?.pagination?.total_pages || Math.ceil((categories?.pagination?.count || 0) / (categories?.pagination?.page_size || 10)) || 1;
+  const pageCount = categories?.pagination?.total_pages || 1;
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (categoryId: number) => {

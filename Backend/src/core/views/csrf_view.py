@@ -3,7 +3,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from src.core.responses import APIResponse
+from rest_framework.response import Response
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CSRFTokenView(APIView):
@@ -18,7 +18,5 @@ class CSRFTokenView(APIView):
         token = get_token(request)
         
         # Return the token in the response
-        return APIResponse.success(
-            message="CSRF token refreshed successfully",
-            data={"csrf_token": token}
-        ) 
+        # The renderer will automatically format this response
+        return Response({"csrf_token": token})

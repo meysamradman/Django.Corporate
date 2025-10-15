@@ -2,6 +2,7 @@ from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from src.user.serializers.base_profile_serializer import AdminCompleteProfileSerializer
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -27,10 +28,15 @@ class AdminProfileView(APIView):
             
             # Check if user has admin access
             if not (user.is_staff or user.is_superuser):
-                return APIResponse.error(
-                    message="Admin access required",
-                    status_code=403
-                )
+                return Response({
+                    "metaData": {
+                        "status": "error",
+                        "message": "Admin access required",
+                        "AppStatusCode": 403,
+                        "timestamp": "2025-10-14T21:49:06.041Z"
+                    },
+                    "data": {}
+                }, status=403)
             
             # Cache key based on user type
             cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
@@ -40,10 +46,15 @@ class AdminProfileView(APIView):
             if cached_data:
                 # Add fresh CSRF token
                 cached_data['csrf_token'] = get_token(request)
-                return APIResponse.success(
-                    message=AUTH_SUCCESS["auth_retrieved_successfully"],
-                    data=cached_data
-                )
+                return Response({
+                    "metaData": {
+                        "status": "success",
+                        "message": AUTH_SUCCESS["auth_retrieved_successfully"],
+                        "AppStatusCode": 200,
+                        "timestamp": "2025-10-14T21:49:06.041Z"
+                    },
+                    "data": cached_data
+                })
             
             # Fetch the User instance with related profile and permissions prefetched
             user = User.objects.select_related(
@@ -81,19 +92,29 @@ class AdminProfileView(APIView):
                 # Regular admin permissions might change
                 cache.set(cache_key, response_data, 300)   # 5 minutes
             
-            return APIResponse.success(
-                message=AUTH_SUCCESS["auth_retrieved_successfully"],
-                data=response_data
-            )
+            return Response({
+                "metaData": {
+                    "status": "success",
+                    "message": AUTH_SUCCESS["auth_retrieved_successfully"],
+                    "AppStatusCode": 200,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": response_data
+            })
         except User.DoesNotExist:
             raise Http404(AUTH_ERRORS["auth_user_not_found"])
         except Exception as e:
             # Log the error
             print(f"Error fetching admin profile: {str(e)}")
-            return APIResponse.error(
-                message=str(e),
-                status_code=500
-            )
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": str(e),
+                    "AppStatusCode": 500,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": {}
+            }, status=500)
     
     def _get_user_roles_with_permissions(self, user):
         """Get user's roles with their associated permissions."""
@@ -238,17 +259,27 @@ class AdminProfileView(APIView):
         
         # Security check 1: Authentication
         if not user.is_authenticated:
-            return APIResponse.error(
-                message="Authentication credentials were not provided.",
-                status_code=401
-            )
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": "Authentication credentials were not provided.",
+                    "AppStatusCode": 401,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": {}
+            }, status=401)
         
         # Security check 2: Admin access
         if not (user.is_staff and user.user_type == 'admin' and user.is_admin_active):
-            return APIResponse.error(
-                message="Admin access required",
-                status_code=403
-            )
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": "Admin access required",
+                    "AppStatusCode": 403,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": {}
+            }, status=403)
         
         # Security check 3: Only allow profile updates, not user model fields
         allowed_profile_fields = {
@@ -267,10 +298,15 @@ class AdminProfileView(APIView):
         # Security check 4: Validate only allowed fields
         invalid_fields = set(profile_data.keys()) - allowed_profile_fields
         if invalid_fields:
-            return APIResponse.error(
-                message=f"Invalid fields: {', '.join(invalid_fields)}. Only profile fields are allowed.",
-                status_code=400
-            )
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": f"Invalid fields: {', '.join(invalid_fields)}. Only profile fields are allowed.",
+                    "AppStatusCode": 400,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": {}
+            }, status=400)
         
         try:
             # Import the specific profile serializer for admin
@@ -310,16 +346,26 @@ class AdminProfileView(APIView):
                         context={'request': request}
                     )
                     
-                    return APIResponse.success(
-                        message="Profile updated successfully",
-                        data=response_serializer.data
-                    )
+                    return Response({
+                        "metaData": {
+                            "status": "success",
+                            "message": "Profile updated successfully",
+                            "AppStatusCode": 200,
+                            "timestamp": "2025-10-14T21:49:06.041Z"
+                        },
+                        "data": response_serializer.data
+                    })
                 else:
-                    return APIResponse.error(
-                        message="Validation failed",
-                        errors=serializer.errors,
-                        status_code=400
-                    )
+                    return Response({
+                        "metaData": {
+                            "status": "error",
+                            "message": "Validation failed",
+                            "AppStatusCode": 400,
+                            "timestamp": "2025-10-14T21:49:06.041Z"
+                        },
+                        "data": {},
+                        "errors": serializer.errors
+                    }, status=400)
             else:
                 # Profile was just created, return success
                 user.refresh_from_db()
@@ -328,14 +374,24 @@ class AdminProfileView(APIView):
                     context={'request': request}
                 )
                 
-                return APIResponse.success(
-                    message="Profile created successfully",
-                    data=response_serializer.data
-                )
+                return Response({
+                    "metaData": {
+                        "status": "success",
+                        "message": "Profile created successfully",
+                        "AppStatusCode": 200,
+                        "timestamp": "2025-10-14T21:49:06.041Z"
+                    },
+                    "data": response_serializer.data
+                })
                 
         except Exception as e:
             print(f"Error updating admin profile: {str(e)}")
-            return APIResponse.error(
-                message="Failed to update profile",
-                status_code=500
-            )
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": "Failed to update profile",
+                    "AppStatusCode": 500,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": {}
+            }, status=500)

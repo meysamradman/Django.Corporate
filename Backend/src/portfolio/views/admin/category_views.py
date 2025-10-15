@@ -14,7 +14,7 @@ from src.portfolio.serializers.admin.category_serializer import (
 )
 from src.portfolio.services.admin.category_services import PortfolioCategoryAdminService
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
-from src.core.responses import APIResponse
+from src.core.pagination import StandardLimitPagination
 from src.user.authorization.admin_permission import ContentManagerAccess
 
 
@@ -28,7 +28,7 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description']
     ordering_fields = ['path', 'created_at', 'name']
     ordering = ['path']  # Tree order by default
-    # Service-level/custom pagination is used; DRF pagination disabled
+    pagination_class = StandardLimitPagination  # Add DRF pagination
     
     def get_queryset(self):
         """Optimized queryset based on action"""
@@ -57,14 +57,8 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         tree_mode = request.GET.get('tree', '').lower() == 'true'
         if tree_mode:
             tree_data = PortfolioCategoryAdminService.get_tree_data()
-            return APIResponse.success(
-                data={'data': tree_data, 'pagination': None},
-                message="درخت دسته‌بندی‌ها با موفقیت دریافت شد."
-            )
+            return Response({'data': tree_data})
 
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'is_public': self._parse_bool(request.query_params.get('is_public')),
@@ -84,27 +78,14 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
                 Q(name__icontains=search) | Q(description__icontains=search)
             )
         
-        from django.core.paginator import Paginator
-        paginator = Paginator(queryset, page_size)
-        page_obj = paginator.get_page(page)
-
-        serializer = PortfolioCategoryAdminListSerializer(page_obj.object_list, many=True)
-        data = {
-            'data': serializer.data,
-            'pagination': {
-                'count': paginator.count,
-                'total_pages': paginator.num_pages,
-                'current_page': page_obj.number,
-                'next': page_obj.has_next(),
-                'previous': page_obj.has_previous(),
-                'page_size': page_size,
-            }
-        }
-
-        return APIResponse.success(
-            data=data,
-            message="فهرست دسته‌بندی‌ها با موفقیت دریافت شد."
-        )
+        # Apply DRF pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = PortfolioCategoryAdminListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = PortfolioCategoryAdminListSerializer(queryset, many=True)
+        return Response(serializer.data)
     
     @staticmethod
     def _parse_bool(value):
@@ -127,27 +108,20 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         
         # Return detailed response
         detail_serializer = PortfolioCategoryAdminDetailSerializer(category)
-        return APIResponse.success(
-            data=detail_serializer.data,
-            message="دسته‌بندی با موفقیت ایجاد شد.",
-            status_code=status.HTTP_201_CREATED
-        )
+        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
     
     def retrieve(self, request, *args, **kwargs):
         """Get category detail with tree information"""
         category = PortfolioCategoryAdminService.get_category_by_id(kwargs.get('pk'))
         
         if not category:
-            return APIResponse.error(
-                message="دسته‌بندی یافت نشد.",
-                status_code=status.HTTP_404_NOT_FOUND
+            return Response(
+                {"detail": "دسته‌بندی یافت نشد."},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = self.get_serializer(category)
-        return APIResponse.success(
-            data=serializer.data,
-            message="دسته‌بندی با موفقیت دریافت شد."
-        )
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         """Update category with tree operations"""
@@ -166,14 +140,11 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
             
             # Return detailed response
             detail_serializer = PortfolioCategoryAdminDetailSerializer(updated_category)
-            return APIResponse.success(
-                data=detail_serializer.data,
-                message="دسته‌بندی با موفقیت به‌روزرسانی شد."
-            )
+            return Response(detail_serializer.data)
         except Exception as e:
-            return APIResponse.error(
-                message=f"خطا در به‌روزرسانی: {str(e)}",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": f"خطا در به‌روزرسانی: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
     def destroy(self, request, *args, **kwargs):
@@ -182,14 +153,11 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         result = PortfolioCategoryAdminService.delete_category_by_id(category_id)
         
         if result['success']:
-            return APIResponse.success(
-                message="دسته‌بندی با موفقیت حذف شد.",
-                status_code=status.HTTP_204_NO_CONTENT
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return APIResponse.error(
-                message=result['error'],
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": result['error']},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -197,20 +165,14 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         """Get complete category tree"""
         tree_data = PortfolioCategoryAdminService.get_tree_data()
         
-        return APIResponse.success(
-            data=tree_data,
-            message="درخت دسته‌بندی‌ها با موفقیت دریافت شد."
-        )
+        return Response(tree_data)
     
     @action(detail=False, methods=['get'])
     def roots(self, request):
         """Get root categories only"""
         root_categories = PortfolioCategoryAdminService.get_root_categories()
         
-        return APIResponse.success(
-            data=root_categories,
-            message="دسته‌بندی‌های اصلی با موفقیت دریافت شدند."
-        )
+        return Response(root_categories)
     
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):
@@ -218,18 +180,15 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         category = PortfolioCategoryAdminService.get_category_by_id(pk)
         
         if not category:
-            return APIResponse.error(
-                message="دسته‌بندی یافت نشد.",
-                status_code=status.HTTP_404_NOT_FOUND
+            return Response(
+                {"detail": "دسته‌بندی یافت نشد."},
+                status=status.HTTP_404_NOT_FOUND
             )
         
         children = category.get_children().filter(is_active=True)
         serializer = PortfolioCategoryAdminListSerializer(children, many=True)
         
-        return APIResponse.success(
-            data=serializer.data,
-            message="زیردسته‌ها با موفقیت دریافت شدند."
-        )
+        return Response(serializer.data)
     
     @action(detail=True, methods=['get'])
     def breadcrumbs(self, request, pk=None):
@@ -237,17 +196,14 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         category = PortfolioCategoryAdminService.get_category_by_id(pk)
         
         if not category:
-            return APIResponse.error(
-                message="دسته‌بندی یافت نشد.",
-                status_code=status.HTTP_404_NOT_FOUND
+            return Response(
+                {"detail": "دسته‌بندی یافت نشد."},
+                status=status.HTTP_404_NOT_FOUND
             )
         
         breadcrumbs = PortfolioCategoryAdminService.get_breadcrumbs(category)
         
-        return APIResponse.success(
-            data=breadcrumbs,
-            message="مسیر دسته‌بندی با موفقیت دریافت شد."
-        )
+        return Response(breadcrumbs)
     
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
@@ -256,21 +212,19 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         position = request.data.get('position', 'last-child')
         
         if not target_id:
-            return APIResponse.error(
-                message="شناسه دسته‌بندی مقصد مورد نیاز است.",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": "شناسه دسته‌بندی مقصد مورد نیاز است."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         result = PortfolioCategoryAdminService.move_category(pk, target_id, position)
         
         if result['success']:
-            return APIResponse.success(
-                message="دسته‌بندی با موفقیت منتقل شد."
-            )
+            return Response({"detail": "دسته‌بندی با موفقیت منتقل شد."})
         else:
-            return APIResponse.error(
-                message=result['error'],
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": result['error']},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -279,10 +233,7 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         limit = int(request.GET.get('limit', 10))
         popular_categories = PortfolioCategoryAdminService.get_popular_categories(limit)
         
-        return APIResponse.success(
-            data=popular_categories,
-            message="دسته‌بندی‌های محبوب با موفقیت دریافت شدند."
-        )
+        return Response(popular_categories)
     
     @action(detail=False, methods=['post'])
     def bulk_delete(self, request):
@@ -290,22 +241,19 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         category_ids = request.data.get('category_ids', [])
         
         if not category_ids:
-            return APIResponse.error(
-                message="شناسه دسته‌بندی‌ها مورد نیاز است.",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": "شناسه دسته‌بندی‌ها مورد نیاز است."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         result = PortfolioCategoryAdminService.bulk_delete_categories(category_ids)
         
         if result['success']:
-            return APIResponse.success(
-                data={'deleted_count': result['deleted_count']},
-                message=f"{result['deleted_count']} دسته‌بندی با موفقیت حذف شدند."
-            )
+            return Response({'deleted_count': result['deleted_count']})
         else:
-            return APIResponse.error(
-                message=result['error'],
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": result['error']},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -313,7 +261,4 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         """Get category statistics for admin dashboard"""
         stats = PortfolioCategoryAdminService.get_category_statistics()
         
-        return APIResponse.success(
-            data=stats,
-            message="آمار دسته‌بندی‌ها با موفقیت دریافت شد."
-        )
+        return Response(stats)

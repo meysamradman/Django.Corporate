@@ -3,8 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.response import Response
+from rest_framework import status
 from django.middleware.csrf import get_token
-from src.core.responses import APIResponse
 from src.user.serializers.schema.admin_register_schema import admin_register_schema
 from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
@@ -38,19 +39,12 @@ class AdminRegisterView(APIView):
                     "csrf_token": get_token(request)
                 }
 
-                return APIResponse.success(
-                    message=AUTH_SUCCESS["auth_created"],
-                    data=response_data
-                )
+                # The renderer will automatically format this response
+                return Response(response_data, status=status.HTTP_201_CREATED)
 
             except (ValidationError, AuthenticationFailed) as e:
-                return APIResponse.error(
-                    message=str(e),
-                    status_code=400,
-                )
+                # The renderer will automatically format this error response
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return APIResponse.error(
-            message=AUTH_ERRORS["auth_validation_error"],
-            errors=serializer.errors,
-            status_code=400,
-        )
+        # The renderer will automatically format this validation error response
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

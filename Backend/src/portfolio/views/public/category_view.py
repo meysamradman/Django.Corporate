@@ -3,13 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from django.core.paginator import Paginator
+from rest_framework.response import Response
 
-from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import CATEGORY_ERRORS, CATEGORY_SUCCESS
 from src.portfolio.serializers.public.category_serializer import PortfolioCategoryPublicSerializer
 from src.portfolio.services.public.category_services import PortfolioCategoryPublicService
 from src.portfolio.filters.public.category_filters import PortfolioCategoryPublicFilter
+from src.core.pagination import StandardLimitPagination
 
 
 class PortfolioCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
@@ -21,6 +21,7 @@ class PortfolioCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['name', 'sort_order', 'portfolio_count']
     ordering = ['-portfolio_count', 'sort_order', 'name']
     lookup_field = 'slug'
+    pagination_class = StandardLimitPagination
 
     def get_queryset(self):
         return PortfolioCategoryPublicService.get_category_queryset()
@@ -31,13 +32,10 @@ class PortfolioCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if tree_mode:
             tree_data = PortfolioCategoryPublicService.get_tree_data()
             serializer = PortfolioCategoryPublicSerializer(tree_data, many=True)
-            return APIResponse.success(
-                data={'items': serializer.data, 'pagination': None},
-                message="Category tree retrieved successfully."
-            )
+            return Response({'items': serializer.data})
 
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
+        # Get base queryset
+        queryset = self.filter_queryset(self.get_queryset())
         
         filters = {
             'name': request.query_params.get('name'),
@@ -48,40 +46,35 @@ class PortfolioCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {k: v for k, v in filters.items() if v is not None}
         
         search = request.query_params.get('search')
-        queryset = PortfolioCategoryPublicService.get_category_queryset(filters=filters, search=search)
+        service_queryset = PortfolioCategoryPublicService.get_category_queryset(filters=filters, search=search)
         
-        paginator = Paginator(queryset, page_size)
-        page_obj = paginator.get_page(page)
+        # Intersect the service queryset with the DRF filtered queryset
+        filtered_ids = list(service_queryset.values_list('id', flat=True))
+        queryset = queryset.filter(id__in=filtered_ids)
         
-        serializer = PortfolioCategoryPublicSerializer(page_obj.object_list, many=True)
-        data = {
-            'items': serializer.data,
-            'pagination': {
-                'total_count': paginator.count,
-                'page_count': paginator.num_pages,
-                'current_page': page_obj.number,
-                'has_next': page_obj.has_next(),
-                'has_previous': page_obj.has_previous(),
-                'page_size': page_size,
-            }
-        }
-        return APIResponse.success(data=data, message="Category list retrieved successfully.")
+        # Apply DRF pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = PortfolioCategoryPublicSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = PortfolioCategoryPublicSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         """Get category by slug"""
         category = PortfolioCategoryPublicService.get_category_by_slug(kwargs.get('slug'))
         if category:
             serializer = self.get_serializer(category)
-            return APIResponse.success(message=CATEGORY_SUCCESS['category_retrieved'], data=serializer.data)
-        return APIResponse.error(CATEGORY_ERRORS['category_not_found'], status_code=status.HTTP_404_NOT_FOUND)
+            return Response(serializer.data)
+        return Response(
+            {"detail": CATEGORY_ERRORS['category_not_found']}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
 
     @action(detail=False, methods=['get'])
     def roots(self, request):
         """Get root categories"""
         categories = PortfolioCategoryPublicService.get_root_categories()
         serializer = PortfolioCategoryPublicSerializer(categories, many=True)
-        return APIResponse.success(data=serializer.data, message="Root categories retrieved successfully.")
-
-
-
-
+        return Response(serializer.data)

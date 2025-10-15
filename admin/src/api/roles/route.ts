@@ -14,10 +14,30 @@ export interface RoleListResponse {
     next: string | null
     previous: string | null
     page_size: number
+    current_page: number
+    total_pages: number
   }
 }
 
+// Backend pagination interface
+interface BackendPagination {
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  page_size?: number;
+}
 
+// Backend response interface
+interface BackendResponse<T> {
+  metaData: {
+    status: string;
+    message: string;
+    AppStatusCode: number;
+    timestamp: string;
+  };
+  pagination: BackendPagination;
+  data: T[];
+}
 
 export const roleApi = {
   getRoleList: async (params: RoleListParams = {}): Promise<ApiResponse<Role[]>> => {
@@ -40,7 +60,29 @@ export const roleApi = {
     const queryString = searchParams.toString()
     const url = `/admin/roles/${queryString ? `?${queryString}` : ''}`
     
-    return fetchApi.get<Role[]>(url)
+    const response = await fetchApi.get<BackendResponse<Role>>(url)
+    
+    // Parse pagination from the response
+    const backendPagination = response.pagination || {} as BackendPagination;
+    
+    // Calculate total pages based on count and page_size
+    const count = ('count' in backendPagination && typeof backendPagination.count === 'number') ? backendPagination.count : (Array.isArray(response.data) ? response.data.length : 0);
+    const pageSize = ('page_size' in backendPagination && typeof backendPagination.page_size === 'number') ? backendPagination.page_size : (params?.size || 10);
+    const totalPages = Math.ceil(count / pageSize);
+    
+    // Return response with proper pagination
+    return {
+      metaData: response.metaData,
+      data: Array.isArray(response.data) ? response.data : [],
+      pagination: {
+        count: count,
+        next: ('next' in backendPagination && typeof backendPagination.next === 'string') ? backendPagination.next : null,
+        previous: ('previous' in backendPagination && typeof backendPagination.previous === 'string') ? backendPagination.previous : null,
+        page_size: pageSize,
+        current_page: params?.page || 1,
+        total_pages: totalPages
+      }
+    } as ApiResponse<Role[]>
   },
 
   getRoleById: async (id: number): Promise<ApiResponse<Role>> => {

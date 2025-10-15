@@ -134,7 +134,10 @@ REST_FRAMEWORK = {
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'EXCEPTION_HANDLER': 'src.core.handlers.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'src.core.handlers.custom_exception_handler',
+    'DEFAULT_RENDERER_CLASSES': [
+        'src.core.responses.APIResponse',
+    ]
 }
 # تنظیمات CORS
 CORS_ALLOWED_ORIGINS = [

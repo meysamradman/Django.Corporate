@@ -22,8 +22,8 @@ class PortfolioQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        """Optimized for admin listing pages with SEO status"""
-        from src.portfolio.models.media import PortfolioImage
+        """Optimized for admin listing pages with SEO status and all media types"""
+        from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags',
@@ -31,7 +31,11 @@ class PortfolioQuerySet(models.QuerySet):
                 'images',
                 queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
                 to_attr='main_image_media'
-            )
+            ),
+            'images',
+            'videos',
+            'audios',
+            'documents'
         )
     
     def for_public_listing(self):

@@ -20,14 +20,32 @@ class AdminPanelSettingsViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         instance, _ = PanelSettings.objects.get_or_create()
         serializer = self.get_serializer(instance)
-        return APIResponse.success("Panel settings retrieved", serializer.data)
+        # Return response using DRF Response - renderer will format it
+        return Response({
+            "metaData": {
+                "status": "success",
+                "message": "Panel settings retrieved",
+                "AppStatusCode": 200,
+                "timestamp": "2025-10-14T21:56:49.556Z"
+            },
+            "data": serializer.data
+        })
 
     def update(self, request, *args, **kwargs):
         instance, _ = PanelSettings.objects.get_or_create()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return APIResponse.success("Panel settings updated", serializer.data)
+        # Return response using DRF Response - renderer will format it
+        return Response({
+            "metaData": {
+                "status": "success",
+                "message": "Panel settings updated",
+                "AppStatusCode": 200,
+                "timestamp": "2025-10-14T21:56:49.556Z"
+            },
+            "data": serializer.data
+        })
 
     @action(detail=False, methods=['put', 'patch'], url_path='update', parser_classes=[MultiPartParser, FormParser])
     def update_settings(self, request, *args, **kwargs):
@@ -36,4 +54,13 @@ class AdminPanelSettingsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return APIResponse.success("Panel settings updated", serializer.data)
+        # Return response using DRF Response - renderer will format it
+        return Response({
+            "metaData": {
+                "status": "success",
+                "message": "Panel settings updated",
+                "AppStatusCode": 200,
+                "timestamp": "2025-10-14T21:56:49.556Z"
+            },
+            "data": serializer.data
+        })

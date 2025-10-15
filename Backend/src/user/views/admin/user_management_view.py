@@ -1,5 +1,4 @@
 from rest_framework.exceptions import PermissionDenied, NotFound
-from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from django.utils.decorators import method_decorator
@@ -7,7 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth import get_user_model
 from django.http import Http404
 
-from src.core.responses import APIResponse, PaginationAPIResponse
+from src.core.responses import APIResponse
 from src.user.views.base_management_view import BaseManagementView
 from src.user.serializers.admin.user_management_serializer import (
     UserListSerializer,
@@ -112,16 +111,8 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                 # Serialize the paginated users
                 serializer = UserListSerializer(paginated_users, many=True, context={'request': request})
                 
-                # Return paginated response with pagination info from paginator
-                return PaginationAPIResponse.paginated_success(
-                    message=AUTH_SUCCESS["auth_users_retrieved_successfully"],
-                    paginated_data={
-                        'count': paginator.count,
-                        'next': paginator.get_next_link(),
-                        'previous': paginator.get_previous_link(),
-                        'results': serializer.data
-                    }
-                )
+                # Return paginated response using DRF's standard pagination response
+                return paginator.get_paginated_response(serializer.data)
             except Exception as e:
                 import traceback
                 print(f"Error in get_users_list: {str(e)}")

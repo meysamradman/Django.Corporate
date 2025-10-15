@@ -8,7 +8,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth import get_user_model
 from django.http import Http404
 
-from src.core.responses import APIResponse, PaginationAPIResponse
+from src.core.responses import APIResponse
 from src.user.views.base_management_view import BaseManagementView
 from src.user.serializers.admin import (
     AdminListSerializer,
@@ -86,8 +86,6 @@ class AdminManagementView(UserAuthMixin, BaseManagementView):
             # Force user_type to 'admin' for admin management
             user_type = 'admin'
 
-            # Pagination is handled by paginator class
-
             # Call the service method with better error handling
             try:
                 users_data = self.service_class.get_users_list(
@@ -113,16 +111,8 @@ class AdminManagementView(UserAuthMixin, BaseManagementView):
                 # Serialize the paginated users
                 serializer = AdminListSerializer(paginated_users, many=True, context={'request': request})
                 
-                # Return paginated response with pagination info from paginator
-                return PaginationAPIResponse.paginated_success(
-                    message=AUTH_SUCCESS["auth_users_retrieved_successfully"],
-                    paginated_data={
-                        'count': paginator.count,
-                        'next': paginator.get_next_link(),
-                        'previous': paginator.get_previous_link(),
-                        'results': serializer.data
-                    }
-                )
+                # Return paginated response using DRF's standard pagination response
+                return paginator.get_paginated_response(serializer.data)
             except Exception as e:
                 import traceback
                 print(f"Error in get_users_list: {str(e)}")

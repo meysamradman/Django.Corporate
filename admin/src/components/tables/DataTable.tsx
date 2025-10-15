@@ -140,8 +140,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
     }
   };
 
-
-
   return (
     <Card className="gap-0 shadow-sm border-0">
       <CardHeader className="border-b">
@@ -295,10 +293,14 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
       <CardFooter className="border-t">
         <PaginationControls
           currentPage={table.getState().pagination.pageIndex + 1}
-          totalPages={table.getPageCount()}
+          totalPages={pageCount} // Use the pageCount prop from API instead of table.getPageCount()
           onPageChange={(page: number) => table.setPageIndex(page - 1)}
           pageSize={table.getState().pagination.pageSize}
-          onPageSizeChange={(size: number) => table.setPageSize(size)}
+          onPageSizeChange={(size: number) => {
+            table.setPageSize(size);
+            // Reset to first page when page size changes
+            table.setPageIndex(0);
+          }}
           pageSizeOptions={[10, 20, 30, 40, 50]}
           showPageSize={true}
           showInfo={true}
@@ -312,4 +314,4 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
       </CardFooter>
     </Card>
   )
-} 
+}

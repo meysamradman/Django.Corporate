@@ -1,5 +1,4 @@
 from rest_framework import viewsets, status
-from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -9,7 +8,7 @@ from src.user.serializers.location_serializer import (
     ProvinceSerializer, ProvinceDetailSerializer,
     CitySerializer, CityDetailSerializer
 )
-from src.core.responses.response import APIResponse, PaginationAPIResponse
+from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 from src.user.messages.messages import AUTH_SUCCESS, AUTH_ERRORS
 
@@ -51,10 +50,9 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         cached_response = cache.get(cache_key)
         
         if cached_response:
-            return PaginationAPIResponse.paginated_success(
-                message=AUTH_SUCCESS["location_provinces_retrieved"],
-                paginated_data=cached_response
-            )
+            # Return paginated response using DRF's standard pagination response
+            paginator = self.pagination_class()
+            return paginator.get_paginated_response(cached_response)
         
         # استفاده از pagination کلاس والد
         queryset = self.get_queryset()
@@ -72,10 +70,8 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             # کش کردن نتیجه
             cache.set(cache_key, paginated_data, 1800)  # 30 minutes cache
             
-            return PaginationAPIResponse.paginated_success(
-                message=AUTH_SUCCESS["location_provinces_retrieved"],
-                paginated_data=paginated_data
-            )
+            # Return paginated response using DRF's standard pagination response
+            return self.paginator.get_paginated_response(serializer.data)
         
         # اگر pagination نباشد
         serializer = self.get_serializer(queryset, many=True)
@@ -98,6 +94,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
                 message=AUTH_ERRORS["location_province_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
+    
     @action(detail=True, methods=['get'])
     def cities(self, request, pk=None):
         """شهرهای یک استان"""
@@ -198,10 +195,9 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             cached_response = cache.get(cache_key)
             
             if cached_response:
-                return PaginationAPIResponse.paginated_success(
-                    message=AUTH_SUCCESS["location_province_cities_retrieved"],
-                    paginated_data=cached_response
-                )
+                # Return paginated response using DRF's standard pagination response
+                paginator = self.pagination_class()
+                return paginator.get_paginated_response(cached_response)
             
             try:
                 province = Province.objects.get(id=province_id, is_active=True)
@@ -222,10 +218,8 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                     # کش کردن نتیجه
                     cache.set(cache_key, paginated_data, 1800)  # 30 minutes cache
                     
-                    return PaginationAPIResponse.paginated_success(
-                        message=AUTH_SUCCESS["location_province_cities_retrieved"],
-                        paginated_data=paginated_data
-                    )
+                    # Return paginated response using DRF's standard pagination response
+                    return self.paginator.get_paginated_response(serializer.data)
                 
                 # اگر pagination نباشد
                 serializer = self.get_serializer(cities_queryset, many=True)
@@ -245,10 +239,9 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         cached_response = cache.get(cache_key)
         
         if cached_response:
-            return PaginationAPIResponse.paginated_success(
-                message=AUTH_SUCCESS["location_cities_retrieved"],
-                paginated_data=cached_response
-            )
+            # Return paginated response using DRF's standard pagination response
+            paginator = self.pagination_class()
+            return paginator.get_paginated_response(cached_response)
         
         queryset = self.get_queryset()
         page_obj = self.paginate_queryset(queryset)
@@ -265,10 +258,8 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             # کش کردن نتیجه
             cache.set(cache_key, paginated_data, 900)  # 15 minutes cache
             
-            return PaginationAPIResponse.paginated_success(
-                message=AUTH_SUCCESS["location_cities_retrieved"],
-                paginated_data=paginated_data
-            )
+            # Return paginated response using DRF's standard pagination response
+            return self.paginator.get_paginated_response(serializer.data)
         
         # اگر pagination نباشد
         serializer = self.get_serializer(queryset, many=True)

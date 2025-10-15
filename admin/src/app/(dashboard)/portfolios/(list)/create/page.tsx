@@ -14,6 +14,7 @@ import { Media } from "@/types/shared/media";
 import slugify from "slugify";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
+import { fetchApi } from "@/core/config/fetch";
 
 // Add this interface for managing multiple media selections
 interface PortfolioMedia {
@@ -68,7 +69,54 @@ export default function CreatePortfolioPage() {
   }, [formData.name, formData.slug]);
 
   const createPortfolioMutation = useMutation({
-    mutationFn: (data: any) => portfolioApi.createPortfolio(data),
+    mutationFn: async (data: any) => {
+      // First create the portfolio
+      const portfolio = await portfolioApi.createPortfolio(data);
+      
+      // Then add media files if we have any
+      const allMediaFiles: File[] = [];
+      
+      // Collect all media files from portfolioMedia
+      if (portfolioMedia.featuredImage && (portfolioMedia.featuredImage as any).file instanceof File) {
+        allMediaFiles.push((portfolioMedia.featuredImage as any).file);
+      }
+      
+      portfolioMedia.imageGallery.forEach(media => {
+        if ((media as any).file instanceof File) {
+          allMediaFiles.push((media as any).file);
+        }
+      });
+      
+      portfolioMedia.videoGallery.forEach(media => {
+        if ((media as any).file instanceof File) {
+          allMediaFiles.push((media as any).file);
+        }
+      });
+      
+      portfolioMedia.audioGallery.forEach(media => {
+        if ((media as any).file instanceof File) {
+          allMediaFiles.push((media as any).file);
+        }
+      });
+      
+      portfolioMedia.pdfDocuments.forEach(media => {
+        if ((media as any).file instanceof File) {
+          allMediaFiles.push((media as any).file);
+        }
+      });
+      
+      // If we have media files, upload them
+      if (allMediaFiles.length > 0) {
+        try {
+          await portfolioApi.addMediaToPortfolio(portfolio.id, allMediaFiles);
+        } catch (error) {
+          console.error("Error uploading media:", error);
+          // Don't fail the whole operation if media upload fails
+        }
+      }
+      
+      return portfolio;
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       router.push("/portfolios");

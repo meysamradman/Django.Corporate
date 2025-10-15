@@ -163,28 +163,39 @@ export const adminApi = {
             let data: AdminWithProfile[] = [];
             let pagination: Pagination = { count: 0, next: null, previous: null, page_size: finalFilters.size, current_page: finalFilters.page, total_pages: 0 };
 
-            const isDrfPaginatedResponse = (
-                res: any
-            ): res is { results: any[], count: number, next?: string | null, previous?: string | null } => {
-                return res && typeof res === 'object' && Array.isArray(res.results) && typeof res.count === 'number';
-            };
-
-            const isCustomPaginatedResponse = (
-                 res: any
-            ): res is { data: any[], pagination: Pagination, metaData?: any } => {
-                 return res && typeof res === 'object' && Array.isArray(res.data) && res.pagination && typeof res.pagination.count === 'number';
-            };
-
-            if (isCustomPaginatedResponse(response)) {
+            // Check for new API response format with pagination
+            if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data) && response.pagination) {
                 data = response.data;
                 pagination = response.pagination;
-            } else if (isDrfPaginatedResponse(response)) {
-                 data = response.results;
-                 pagination.count = response.count;
-                 pagination.next = response.next ?? null;
-                 pagination.previous = response.previous ?? null;
-                 pagination.total_pages = Math.ceil(response.count / pagination.page_size);
-            } else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
+            } 
+            // Check for new API response format without pagination
+            else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
+                data = response.data;
+                console.warn(`fetchUsersList for ${userType}: Response missing pagination info. Assuming single page.`);
+                pagination = {
+                    count: data.length,
+                    next: null,
+                    previous: null,
+                    page_size: data.length,
+                    current_page: 1,
+                    total_pages: 1
+                };
+            }
+            // Check for custom paginated response (old format)
+            else if (response && typeof response === 'object' && Array.isArray((response as any).data) && (response as any).pagination && typeof (response as any).pagination.count === 'number') {
+                data = (response as any).data;
+                pagination = (response as any).pagination;
+            } 
+            // Check for DRF paginated response (old format)
+            else if (response && typeof response === 'object' && Array.isArray((response as any).results) && typeof (response as any).count === 'number') {
+                 data = (response as any).results;
+                 pagination.count = (response as any).count;
+                 pagination.next = (response as any).next ?? null;
+                 pagination.previous = (response as any).previous ?? null;
+                 pagination.total_pages = Math.ceil((response as any).count / (pagination.page_size || 10));
+            } 
+            // Check for simple data array in metaData (fallback)
+            else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
                 const apiResponse = response as ApiResponse<AdminWithProfile[]>;
                 data = apiResponse.data;
                  console.warn(`fetchUsersList for ${userType}: Response missing pagination info. Assuming single page.`);

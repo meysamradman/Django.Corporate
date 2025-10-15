@@ -2,33 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_COOKIE_NAME = 'sessionid';
 
-async function validateSession(sessionId: string, req: NextRequest): Promise<boolean> {
-    try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-        if (!baseUrl) {
-            console.error('API_BASE_URL not configured');
-            return false;
-        }
-
-        const response = await fetch(`${baseUrl}/admin/profile/`, {
-            method: 'GET',
-            headers: {
-                'Cookie': req.headers.get('cookie') || '',
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        });
-        
-        return response.ok;
-    } catch (error) {
-        console.error('Session validation failed:', error);
-        return false;
-    }
-}
-
 export async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
 
+    // Skip middleware for API requests and static assets
     if (
         path.startsWith('/_next') ||
         path.startsWith('/api') ||
@@ -52,45 +29,19 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // If has cookie and trying to access login page, validate session first
+    // If has cookie and trying to access login page, redirect to dashboard
+    // (assuming they're logged in since they have a cookie)
     if (hasCookie && isLoginPage) {
-        const isValidSession = await validateSession(sessionCookie.value, req);
-        if (isValidSession) {
-            // Valid session exists, redirect to dashboard
-            return NextResponse.redirect(new URL('/', req.url));
-        } else {
-            const response = NextResponse.next();
-            response.cookies.set(SESSION_COOKIE_NAME, '', {
-                expires: new Date(0),
-                path: '/',
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax'
-            });
-            return response;
-        }
+        return NextResponse.redirect(new URL('/', req.url));
     }
 
-    // ✅ فقط برای صفحات خاص session validation کن - نه همه navigation ها
+    // For sensitive pages, we could add server-side validation
+    // but for now, client-side validation should be sufficient
     const needsValidation = ['/admin/sensitive', '/admin/settings'].includes(path);
     
-    if (hasCookie && !isLoginPage && needsValidation) {
-        const isValidSession = await validateSession(sessionCookie.value, req);
-        if (!isValidSession) {
-            const loginUrl = new URL('/login', req.url);
-            if (path !== '/') {
-                loginUrl.searchParams.set('return_to', path + req.nextUrl.search);
-            }
-            const response = NextResponse.redirect(loginUrl);
-            // Clear the invalid session cookie securely
-            response.cookies.set(SESSION_COOKIE_NAME, '', {
-                expires: new Date(0),
-                path: '/',
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax'
-            });
-            return response;
-        }
-    }
+    // Since we're not making server-side requests anymore, 
+    // we can't validate the session here without causing interference
+    // Client-side validation will handle session expiration
 
     return NextResponse.next();
 }

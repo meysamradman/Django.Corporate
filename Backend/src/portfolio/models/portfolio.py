@@ -42,7 +42,7 @@ class Portfolio(BaseModel, SEOMixin):
     # Custom manager
     objects = PortfolioQuerySet.as_manager()
 
-    class Meta:
+    class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'portfolio_listings'
         verbose_name = "Portfolio"
         verbose_name_plural = "Portfolio"
@@ -69,42 +69,66 @@ class Portfolio(BaseModel, SEOMixin):
         return f"/portfolio/p/{self.public_id}/"
     
     def get_main_image(self):
-        """Get main image with caching"""
+        """Get main image with caching and optimized query"""
+        # First check if we have prefetched data
+        if hasattr(self, 'main_image_media'):
+            # Use prefetched data if available
+            main_image_media = getattr(self, 'main_image_media', [])
+            if main_image_media and len(main_image_media) > 0:
+                return main_image_media[0].image if main_image_media[0].image else None
+            return None
+        
+        # Fallback to cache/database query
         cache_key = f"portfolio_main_image_{self.pk}"
         main_image = cache.get(cache_key)
         
         if main_image is None:
             try:
                 # Use the correct relationship - images from PortfolioImage model
+                # Optimized with select_related to reduce database queries
                 main_media = self.images.select_related('image').filter(is_main=True).first()
                 main_image = main_media.image if main_media else None
             except Exception:
                 main_image = False  # Cache negative result too
             
-            cache.set(cache_key, main_image, 3600)  # 1 hour cache
+            # Cache for 1 hour but with a more specific timeout
+            cache.set(cache_key, main_image, 1800)  # 30 minutes cache
         
         return main_image if main_image else None
     
     def generate_structured_data(self):
-        """Override SEOMixin to provide portfolio-specific structured data"""
-        main_image = self.get_main_image()
+        """Override SEOMixin to provide portfolio-specific structured data with caching"""
+        cache_key = f"portfolio_structured_data_{self.pk}"
+        structured_data = cache.get(cache_key)
         
-        return {
-            "@context": "https://schema.org",
-            "@type": "CreativeWork",
-            "name": self.get_meta_title(),
-            "description": self.get_meta_description(),
-            "url": self.get_public_url(),
-            "image": main_image.file.url if main_image else None,
-            "dateCreated": self.created_at.isoformat() if self.created_at else None,
-            "dateModified": self.updated_at.isoformat() if self.updated_at else None,
-            "creator": {
-                "@type": "Organization",
-                "name": "Your Company Name"  # This should come from settings
-            },
-            "keywords": [tag.name for tag in self.tags.all()[:5]],  # Limit to 5 tags
-            "about": [category.name for category in self.categories.all()[:3]]  # Limit to 3 categories
-        }
+        if structured_data is None:
+            main_image = self.get_main_image()
+            
+            # Get tags and categories with limits
+            tags = list(self.tags.values_list('name', flat=True)[:5])
+            categories = list(self.categories.values_list('name', flat=True)[:3])
+            
+            structured_data = {
+                "@context": "https://schema.org",
+                "@type": "CreativeWork",
+                "name": self.get_meta_title(),
+                "description": self.get_meta_description(),
+                "url": self.get_public_url(),
+                "image": main_image.file.url if main_image else None,
+                "dateCreated": self.created_at.isoformat() if self.created_at else None,
+                "dateModified": self.updated_at.isoformat() if self.updated_at else None,
+                "creator": {
+                    "@type": "Organization",
+                    "name": "Your Company Name"  # This should come from settings
+                },
+                "keywords": tags,
+                "about": categories
+            }
+            
+            # Cache for 30 minutes
+            cache.set(cache_key, structured_data, 1800)
+        
+        return structured_data
     
     def save(self, *args, **kwargs):
         # Auto-generate SEO fields efficiently
@@ -124,10 +148,15 @@ class Portfolio(BaseModel, SEOMixin):
         # And ensure it's a valid URL format (not just a relative path)
         if not self.canonical_url and self.slug:
             # Let the model's get_absolute_url or get_public_url handle this properly
-            self.canonical_url = self.get_public_url()
+            # We need to make sure it's a full URL, not just a relative path
+            relative_url = self.get_public_url()
+            # For now, we'll just set it to None to let the SEO mixin handle it properly
+            # In production, you might want to prepend your site's domain
+            self.canonical_url = None
         
         super().save(*args, **kwargs)
         
         # Clear related caches
         cache.delete(f"portfolio_main_image_{self.pk}")
+        cache.delete(f"portfolio_structured_data_{self.pk}")  # Clear structured data cache on save
         cache.delete(f"portfolio_schema_{self.pk}")  # Clear schema cache on save

@@ -53,11 +53,8 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const portfolio = row.original;
-        // Find the main image from portfolio media
-        const mainMedia = portfolio.portfolio_media?.find(pm => pm.is_main_image)?.media;
-        const imageUrl = mainMedia 
-          ? mediaService.getMediaUrlFromObject(mainMedia)
-          : "";
+        // Use the main_image_url directly from the API response
+        const imageUrl = portfolio.main_image_url || "";
           
         const getInitial = () => {
           if (!portfolio.title) return "؟";

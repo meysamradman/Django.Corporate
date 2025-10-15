@@ -77,7 +77,7 @@ export default function TagPage() {
   });
 
   const data: PortfolioTag[] = Array.isArray(tags?.data) ? tags.data : [];
-  const pageCount = tags?.pagination?.total_pages || Math.ceil((tags?.pagination?.count || 0) / (tags?.pagination?.page_size || 10)) || 1;
+  const pageCount = tags?.pagination?.total_pages || 1;
 
   const deleteTagMutation = useMutation({
     mutationFn: (tagId: number) => {

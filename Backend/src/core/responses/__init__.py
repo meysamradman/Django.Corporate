@@ -1,3 +1,3 @@
-from .response import APIResponse, PaginationAPIResponse
+from .response import APIResponse
 
-__all__ = ['APIResponse', 'PaginationAPIResponse']
+__all__ = ["APIResponse"]

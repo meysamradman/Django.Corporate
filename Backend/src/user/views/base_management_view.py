@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from src.core.responses import APIResponse, PaginationAPIResponse
+from src.core.responses import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 from functools import cached_property
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
@@ -52,15 +52,8 @@ class BaseManagementView(APIView):
         paginated_data = paginator.paginate_queryset(queryset, request)
         serializer = self.serializer_class(paginated_data, many=True, context={'request': request})
         
-        return PaginationAPIResponse.paginated_success(
-            message=AUTH_SUCCESS["auth_users_retrieved_successfully"],
-            paginated_data={
-                'count': paginator.count,
-                'next': paginator.get_next_link(),
-                'previous': paginator.get_previous_link(),
-                'results': serializer.data
-            }
-        )
+        # Return paginated response using DRF's standard pagination response
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
 

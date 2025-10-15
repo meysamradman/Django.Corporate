@@ -6,8 +6,9 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
-from src.core.responses import APIResponse
 from src.core.security.captcha import CaptchaRequiredMixin
 from src.core.security.throttling import AdminLoginThrottle
 from src.user.serializers.schema.admin_login_schema import admin_login_schema
@@ -75,26 +76,19 @@ class AdminLoginView(CaptchaRequiredMixin, APIView):
                             },
                             "csrf_token": csrf_token
                         }
-                        response = APIResponse.success(
-                            message=AUTH_SUCCESS["auth_logged_in"],
-                            data=response_data
-                        )
-                        return response
+                        # Now using standard DRF Response - renderer will format it
+                        return Response(response_data, status=status.HTTP_200_OK)
                     else:
                         raise AuthenticationFailed(AUTH_ERRORS["auth_inactive_account"])
                 else:
                     raise AuthenticationFailed(AUTH_ERRORS["auth_invalid_credentials"])
 
             except AuthenticationFailed as e:
-                return APIResponse.error(
-                    message=str(e),
-                    status_code=401
-                )
+                # Renderer will format this error response
+                return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
             except Exception as e:
-                return APIResponse.error(message="Internal server error.", status_code=500)
+                # Renderer will format this error response
+                return Response({"detail": "Internal server error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return APIResponse.error(
-            message=AUTH_ERRORS["auth_validation_error"],
-            errors=serializer.errors,
-            status_code=400
-        )
+        # Renderer will format this validation error response
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -15,7 +15,7 @@ from src.portfolio.serializers.admin.tag_serializer import (
 )
 from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
-from src.core.responses import APIResponse
+from src.core.pagination import StandardLimitPagination
 from src.user.authorization.admin_permission import ContentManagerAccess
 from src.user.authorization.admin_permission import SimpleAdminPermission
 
@@ -30,7 +30,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description']
     ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
-    # Service-level/custom pagination is used; DRF pagination disabled
+    pagination_class = StandardLimitPagination  # Add DRF pagination
     
     def get_queryset(self):
         """Optimized queryset based on action"""
@@ -43,9 +43,6 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """List tags with custom pagination (service-level style)"""
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 20))
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
         }
@@ -53,27 +50,15 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         search = request.query_params.get('search')
         
         queryset = PortfolioTagAdminService.get_tag_queryset(filters=filters, search=search)
-        from django.core.paginator import Paginator
-        paginator = Paginator(queryset, page_size)
-        page_obj = paginator.get_page(page)
-
-        serializer = PortfolioTagAdminListSerializer(page_obj.object_list, many=True)
-        data = {
-            'data': serializer.data,
-            'pagination': {
-                'count': paginator.count,
-                'total_pages': paginator.num_pages,
-                'current_page': page_obj.number,
-                'next': page_obj.has_next(),
-                'previous': page_obj.has_previous(),
-                'page_size': page_size,
-            }
-        }
-
-        return APIResponse.success(
-            data=data,
-            message="فهرست تگ‌ها با موفقیت دریافت شد."
-        )
+        
+        # Apply DRF pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = PortfolioTagAdminListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = PortfolioTagAdminListSerializer(queryset, many=True)
+        return Response(serializer.data)
     
     @staticmethod
     def _parse_bool(value):
@@ -108,27 +93,20 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         
         # Return detailed response
         detail_serializer = PortfolioTagAdminDetailSerializer(tag)
-        return APIResponse.success(
-            data=detail_serializer.data,
-            message="تگ با موفقیت ایجاد شد.",
-            status_code=status.HTTP_201_CREATED
-        )
+        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
     
     def retrieve(self, request, *args, **kwargs):
         """Get tag detail with usage statistics"""
         tag = PortfolioTagAdminService.get_tag_by_id(kwargs.get('pk'))
         
         if not tag:
-            return APIResponse.error(
-                message="تگ یافت نشد.",
-                status_code=status.HTTP_404_NOT_FOUND
+            return Response(
+                {"detail": "تگ یافت نشد."},
+                status=status.HTTP_404_NOT_FOUND
             )
         
         serializer = self.get_serializer(tag)
-        return APIResponse.success(
-            data=serializer.data,
-            message="تگ با موفقیت دریافت شد."
-        )
+        return Response(serializer.data)
     
     def update(self, request, *args, **kwargs):
         """Update tag with validation"""
@@ -136,9 +114,9 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         tag = PortfolioTagAdminService.get_tag_by_id(kwargs.get('pk'))
         
         if not tag:
-            return APIResponse.error(
-                message="تگ یافت نشد.",
-                status_code=status.HTTP_404_NOT_FOUND
+            return Response(
+                {"detail": "تگ یافت نشد."},
+                status=status.HTTP_404_NOT_FOUND
             )
         
         serializer = self.get_serializer(tag, data=request.data, partial=partial)
@@ -152,10 +130,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         
         # Return detailed response
         detail_serializer = PortfolioTagAdminDetailSerializer(updated_tag)
-        return APIResponse.success(
-            data=detail_serializer.data,
-            message="تگ با موفقیت به‌روزرسانی شد."
-        )
+        return Response(detail_serializer.data)
     
     def destroy(self, request, *args, **kwargs):
         """Delete tag with safety checks"""
@@ -163,14 +138,11 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         result = PortfolioTagAdminService.delete_tag_by_id(tag_id)
         
         if result['success']:
-            return APIResponse.success(
-                message="تگ با موفقیت حذف شد.",
-                status_code=status.HTTP_204_NO_CONTENT
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return APIResponse.error(
-                message=result['error'],
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": result['error']},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -179,10 +151,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         limit = int(request.GET.get('limit', 10))
         tags = PortfolioTagAdminService.get_popular_tags(limit)
         
-        return APIResponse.success(
-            data=tags,
-            message="تگ‌های محبوب با موفقیت دریافت شدند."
-        )
+        return Response(tags)
     
     @action(detail=False, methods=['post'])
     def bulk_delete(self, request):
@@ -190,22 +159,19 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         tag_ids = request.data.get('tag_ids', [])
         
         if not tag_ids:
-            return APIResponse.error(
-                message="شناسه تگ‌ها مورد نیاز است.",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": "شناسه تگ‌ها مورد نیاز است."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         result = PortfolioTagAdminService.bulk_delete_tags(tag_ids)
         
         if result['success']:
-            return APIResponse.success(
-                data={'deleted_count': result['deleted_count']},
-                message=f"{result['deleted_count']} تگ با موفقیت حذف شدند."
-            )
+            return Response({'deleted_count': result['deleted_count']})
         else:
-            return APIResponse.error(
-                message=result['error'],
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": result['error']},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'])
@@ -215,29 +181,26 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
         target_tag_id = request.data.get('target_tag_id')
         
         if not target_tag_id:
-            return APIResponse.error(
-                message="شناسه تگ مقصد مورد نیاز است.",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": "شناسه تگ مقصد مورد نیاز است."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         if source_tag_id == target_tag_id:
-            return APIResponse.error(
-                message="نمی‌توانید تگ را با خودش ادغام کنید.",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": "نمی‌توانید تگ را با خودش ادغام کنید."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             target_tag = PortfolioTagAdminService.merge_tags(source_tag_id, target_tag_id)
             detail_serializer = PortfolioTagAdminDetailSerializer(target_tag)
             
-            return APIResponse.success(
-                data=detail_serializer.data,
-                message="تگ‌ها با موفقیت ادغام شدند."
-            )
+            return Response(detail_serializer.data)
         except Exception as e:
-            return APIResponse.error(
-                message=f"خطا در ادغام تگ‌ها: {str(e)}",
-                status_code=status.HTTP_400_BAD_REQUEST
+            return Response(
+                {"detail": f"خطا در ادغام تگ‌ها: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -256,7 +219,4 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
             'popular_tags': PortfolioTagAdminService.get_popular_tags(5)
         }
         
-        return APIResponse.success(
-            data=stats,
-            message="آمار تگ‌ها با موفقیت دریافت شد."
-        )
+        return Response(stats)

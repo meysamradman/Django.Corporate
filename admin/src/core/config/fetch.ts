@@ -123,8 +123,8 @@ async function baseFetch<T>(
             fullUrl = `${env.API_BASE_URL}${url}`;
         }
         
+        console.log('🌐 Fetching URL:', fullUrl); // Debug log
         const response = await fetch(fullUrl, fetchOptions);
-        
         console.log('🌐 HTTP Response:', {
             url: fullUrl,
             status: response.status,
@@ -255,6 +255,19 @@ async function baseFetch<T>(
             
             // If it already has metaData, return as is
             return data as ApiResponse<T>;
+        }
+
+        // Handle case where data is null or undefined
+        if (response.ok && (!data || typeof data !== 'object')) {
+            return {
+                metaData: {
+                    status: 'success',
+                    message: `OK (${response.status})`,
+                    AppStatusCode: response.status,
+                    timestamp: new Date().toISOString()
+                },
+                data: null as T
+            };
         }
 
         return data as ApiResponse<T>;

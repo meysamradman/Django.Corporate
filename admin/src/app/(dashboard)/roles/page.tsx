@@ -110,7 +110,7 @@ export default function RolesPage() {
   const { data: response, isLoading, error, refetch } = useRoles(queryParams);
 
   const data = response?.data || [];
-  const pageCount = response?.pagination?.total_pages || Math.ceil((response?.pagination?.count || 0) / pagination.pageSize) || 1;
+  const pageCount = response?.pagination?.total_pages || 1;
 
   const deleteRoleMutation = useDeleteRole();
   const bulkDeleteMutation = useBulkDeleteRoles();

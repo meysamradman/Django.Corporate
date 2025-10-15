@@ -24,7 +24,11 @@ class PortfolioAdminService:
                 'images',
                 queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
                 to_attr='main_image_media'
-            )
+            ),
+            'images',
+            'videos',
+            'audios',
+            'documents'
         )
         
         # Apply filters
@@ -124,65 +128,53 @@ class PortfolioAdminService:
         
         # Handle canonical URL - set to None if it's an invalid relative path
         # The model will auto-generate it properly in the save method
-        if validated_data.get('canonical_url') == f"/portfolio/{validated_data.get('slug', '')}/":
-            validated_data['canonical_url'] = None
+        if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
+            canonical_url = validated_data['canonical_url']
+            # Check if it's a valid URL (starts with http or https)
+            if not canonical_url.startswith(('http://', 'https://')):
+                # If it's not a valid URL, set it to None
+                validated_data['canonical_url'] = None
         
         return Portfolio.objects.create(**validated_data)
     
     @staticmethod
-    def create_portfolio_with_main_image(validated_data, main_image_file, created_by=None):
-        """Create portfolio with main image from central media app"""
+    def create_portfolio_with_media(validated_data, media_files, created_by=None):
+        """Create portfolio with media files from central media app"""
+        # First create the portfolio
         portfolio = PortfolioAdminService.create_portfolio(validated_data, created_by)
         
-        if main_image_file:
-            # Use central media app to create media
-            from src.media.services.media_services import MediaAdminService
-            
-            media = MediaAdminService.create_media('image', {
-                'file': main_image_file,
-                'title': f"Main image for {portfolio.title}",
-            })
-            
-            # Create portfolio image relation
-            PortfolioImage.objects.create(
-                portfolio=portfolio,
-                image=media,
-                is_main=True,
-                order=0
+        if media_files:
+            # Add media using the existing service method
+            created_medias = PortfolioAdminService.add_media_to_portfolio(
+                portfolio.id,
+                media_files,
+                created_by=created_by
             )
             
-            # Auto-set as OG image if not provided
-            if not portfolio.og_image:
-                portfolio.og_image = media
-                portfolio.save(update_fields=['og_image'])
+            # If we have images, set the first one as main image
+            if created_medias:
+                # Check if any of the created media are images
+                from src.media.models.media import ImageMedia
+                image_medias = [media for media in created_medias if isinstance(media, ImageMedia)]
                 
+                if image_medias:
+                    # Set the first image as main image
+                    from src.portfolio.models.media import PortfolioImage
+                    first_image_media = image_medias[0]
+                    portfolio_image = PortfolioImage.objects.create(
+                        portfolio=portfolio,
+                        image=first_image_media,
+                        is_main=True,
+                        order=0
+                    )
+                    
+                    # Also set as OG image if not provided
+                    if not portfolio.og_image:
+                        portfolio.og_image = first_image_media
+                        portfolio.save(update_fields=['og_image'])
+        
         return portfolio
-    
-    @staticmethod
-    def update_portfolio(portfolio_id, validated_data):
-        """Update portfolio with SEO handling"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
-        
-        # Auto-generate SEO if not provided but title/description changed
-        if validated_data.get('title') and not validated_data.get('meta_title'):
-            validated_data['meta_title'] = validated_data['title'][:70]
-            
-        if validated_data.get('short_description') and not validated_data.get('meta_description'):
-            validated_data['meta_description'] = validated_data['short_description'][:300]
-        
-        # Auto-generate OG fields if not provided
-        if validated_data.get('meta_title') and not validated_data.get('og_title'):
-            validated_data['og_title'] = validated_data['meta_title']
-            
-        if validated_data.get('meta_description') and not validated_data.get('og_description'):
-            validated_data['og_description'] = validated_data['meta_description']
-        
-        for field, value in validated_data.items():
-            setattr(portfolio, field, value)
-        
-        portfolio.save()
-        return portfolio
-    
+
     @staticmethod
     def add_media_to_portfolio(portfolio_id, media_files, created_by=None):
         """Add multiple media files to portfolio using central media app"""
@@ -243,7 +235,7 @@ class PortfolioAdminService:
             created_medias.append(media)
             
         return created_medias
-    
+
     @staticmethod
     def set_main_image(portfolio_id, media_id):
         """Set main image for portfolio"""
