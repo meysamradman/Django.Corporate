@@ -11,10 +11,11 @@ import {
   Loader2, Save, Search
 } from "lucide-react";
 import { Media } from "@/types/shared/media";
-import slugify from "slugify";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { fetchApi } from "@/core/config/fetch";
+import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { generateSlug } from '@/core/utils/slugUtils';
 
 // Add this interface for managing multiple media selections
 interface PortfolioMedia {
@@ -55,63 +56,82 @@ export default function CreatePortfolioPage() {
     canonical_url: "",
     robots_meta: "",
   });
-
-  // Automatically generate slug from name
-  useEffect(() => {
-    if (formData.name && !formData.slug) {
-      const generatedSlug = slugify(formData.name, { 
-        lower: true, 
-        strict: true,
-        locale: 'en' // Use English locale for consistency
-      });
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name, formData.slug]);
+  
+  // Category and tag state
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
 
   const createPortfolioMutation = useMutation({
     mutationFn: async (data: any) => {
-      // First create the portfolio
+      // First create the portfolio with categories and tags
       const portfolio = await portfolioApi.createPortfolio(data);
       
-      // Then add media files if we have any
+      // Prepare media data for upload
       const allMediaFiles: File[] = [];
+      const allMediaIds: number[] = [];
       
-      // Collect all media files from portfolioMedia
-      if (portfolioMedia.featuredImage && (portfolioMedia.featuredImage as any).file instanceof File) {
-        allMediaFiles.push((portfolioMedia.featuredImage as any).file);
+      // Collect media files and IDs
+      // Featured Image
+      if (portfolioMedia.featuredImage) {
+        if ((portfolioMedia.featuredImage as any).file instanceof File) {
+          // New file to upload
+          allMediaFiles.push((portfolioMedia.featuredImage as any).file);
+        } else if (portfolioMedia.featuredImage.id) {
+          // Existing media from library
+          allMediaIds.push(portfolioMedia.featuredImage.id);
+        }
       }
       
+      // Image Gallery
       portfolioMedia.imageGallery.forEach(media => {
         if ((media as any).file instanceof File) {
+          // New file to upload
           allMediaFiles.push((media as any).file);
+        } else if (media.id) {
+          // Existing media from library
+          allMediaIds.push(media.id);
         }
       });
       
+      // Video Gallery
       portfolioMedia.videoGallery.forEach(media => {
         if ((media as any).file instanceof File) {
+          // New file to upload
           allMediaFiles.push((media as any).file);
+        } else if (media.id) {
+          // Existing media from library
+          allMediaIds.push(media.id);
         }
       });
       
+      // Audio Gallery
       portfolioMedia.audioGallery.forEach(media => {
         if ((media as any).file instanceof File) {
+          // New file to upload
           allMediaFiles.push((media as any).file);
+        } else if (media.id) {
+          // Existing media from library
+          allMediaIds.push(media.id);
         }
       });
       
+      // PDF Documents
       portfolioMedia.pdfDocuments.forEach(media => {
         if ((media as any).file instanceof File) {
+          // New file to upload
           allMediaFiles.push((media as any).file);
+        } else if (media.id) {
+          // Existing media from library
+          allMediaIds.push(media.id);
         }
       });
       
-      // If we have media files, upload them
-      if (allMediaFiles.length > 0) {
+      // Upload media if we have any files or existing media IDs
+      if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
         try {
-          await portfolioApi.addMediaToPortfolio(portfolio.id, allMediaFiles);
+          const mediaResponse = await portfolioApi.addMediaToPortfolio(portfolio.id, allMediaFiles, allMediaIds);
         } catch (error) {
-          console.error("Error uploading media:", error);
-          // Don't fail the whole operation if media upload fails
+          // Don't fail the whole operation if media processing fails
         }
       }
       
@@ -121,22 +141,69 @@ export default function CreatePortfolioPage() {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       router.push("/portfolios");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating portfolio:", error);
+      if (error.validationErrors) {
+        console.error("Validation errors:", error.validationErrors);
+      }
     },
   });
 
   const handleInputChange = (field: string, value: string | Media | null) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // If we're updating the name field, always generate/update slug
+    if (field === "name" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      // Update both name and slug
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else {
+      // Update only the specified field
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+  };
+
+  const handleTagToggle = (tag: PortfolioTag) => {
+    // Toggle tag selection
+    setSelectedTags(prev => {
+      if (prev.some(t => t.id === tag.id)) {
+        return prev.filter(t => t.id !== tag.id);
+      } else {
+        return [...prev, tag];
+      }
+    });
+  };
+
+  const handleTagRemove = (tagId: number) => {
+    setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
   const handleSave = async () => {
+    // Ensure the slug is properly formatted before sending to backend
+    let formattedSlug = formData.slug;
+    if (formattedSlug) {
+      formattedSlug = formattedSlug
+        .replace(/^-+|-+$/g, '') // Trim - from start and end
+        .substring(0, 60); // Ensure it doesn't exceed max length
+    }
+    
+    // Prepare categories and tags data
+    const categoriesIds = selectedCategory ? [parseInt(selectedCategory)] : [];
+    const tagsIds = selectedTags.map(tag => tag.id);
+    
     const portfolioData = {
       title: formData.name,
-      slug: formData.slug,
+      slug: formattedSlug,
       short_description: formData.short_description,
       description: formData.description,
       status: "published",
@@ -149,15 +216,29 @@ export default function CreatePortfolioPage() {
       og_image_id: formData.og_image?.id || undefined,
       canonical_url: formData.canonical_url || undefined,
       robots_meta: formData.robots_meta || undefined,
+      categories_ids: categoriesIds,
+      tags_ids: tagsIds,
     };
     
     createPortfolioMutation.mutate(portfolioData);
   };
 
   const handleSaveDraft = async () => {
+    // Ensure the slug is properly formatted before sending to backend
+    let formattedSlug = formData.slug;
+    if (formattedSlug) {
+      formattedSlug = formattedSlug
+        .replace(/^-+|-+$/g, '') // Trim - from start and end
+        .substring(0, 60); // Ensure it doesn't exceed max length
+    }
+    
+    // Prepare categories and tags data
+    const categoriesIds = selectedCategory ? [parseInt(selectedCategory)] : [];
+    const tagsIds = selectedTags.map(tag => tag.id);
+    
     const portfolioData = {
       title: formData.name,
-      slug: formData.slug,
+      slug: formattedSlug,
       short_description: formData.short_description,
       description: formData.description,
       status: "draft",
@@ -170,6 +251,8 @@ export default function CreatePortfolioPage() {
       og_image_id: formData.og_image?.id || undefined,
       canonical_url: formData.canonical_url || undefined,
       robots_meta: formData.robots_meta || undefined,
+      categories_ids: categoriesIds,
+      tags_ids: tagsIds,
     };
     
     createPortfolioMutation.mutate(portfolioData);
@@ -180,7 +263,6 @@ export default function CreatePortfolioPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">ایجاد نمونه‌کار جدید</h1>
-          <p className="text-muted-foreground">مدیریت اطلاعات نمونه‌کار</p>
         </div>
         <div className="flex gap-2">
           {!editMode && (
@@ -249,6 +331,11 @@ export default function CreatePortfolioPage() {
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
+              selectedCategory={selectedCategory}
+              selectedTags={selectedTags}
+              onCategoryChange={handleCategoryChange}
+              onTagToggle={handleTagToggle}
+              onTagRemove={handleTagRemove}
             />
           )}
           {activeTab === "media" && (

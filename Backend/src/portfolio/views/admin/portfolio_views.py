@@ -2,10 +2,12 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.models.category import PortfolioCategory
+from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.serializers.admin import (
     PortfolioAdminListSerializer,
     PortfolioAdminDetailSerializer,
@@ -45,56 +47,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return Portfolio.objects.all()
 
     def list(self, request, *args, **kwargs):
-        """List portfolios using service-level filtering with custom pagination"""
-        # Get base queryset
+        """Optimized list with better performance"""
+        # Get base queryset with optimizations
         queryset = self.filter_queryset(self.get_queryset())
         
-        # Apply additional filters from query parameters using service
-        filters = {
-            'status': request.query_params.get('status'),
-            'is_featured': self._parse_bool(request.query_params.get('is_featured')),
-            'is_public': self._parse_bool(request.query_params.get('is_public')),
-            'category_id': request.query_params.get('category_id'),
-            'seo_status': request.query_params.get('seo_status'),
-        }
-        # Remove None values for clean filtering
-        filters = {k: v for k, v in filters.items() if v is not None}
-
-        search = request.query_params.get('search')
-        
-        # Get ordering parameters
-        order_by = request.query_params.get('order_by', 'created_at')
-        order_desc = self._parse_bool(request.query_params.get('order_desc', True))
-        
-        # Apply service-level filtering to get the filtered queryset
-        if filters or search or order_by:
-            filtered_queryset = PortfolioAdminService.get_portfolio_queryset(
-                filters=filters,
-                search=search,
-                order_by=order_by,
-                order_desc=order_desc
-            )
-            
-            # Debug logging
-            total_count = filtered_queryset.count()
-            print(f"🔍 Total filtered queryset count: {total_count}")
-            
-            # Intersect the filtered queryset with the DRF filtered queryset
-            # We need to get the IDs from the service-filtered queryset and filter the DRF queryset
-            filtered_ids = list(filtered_queryset.values_list('id', flat=True))
-            queryset = queryset.filter(id__in=filtered_ids)
-        # If no filters, we still need to apply ordering to match the frontend expectation
-        elif order_by:
-            if order_desc:
-                queryset = queryset.order_by(f'-{order_by}')
-            else:
-                queryset = queryset.order_by(order_by)
-        
-        # Debug logging
-        intersected_count = queryset.count()
-        print(f"🔍 Intersected queryset count: {intersected_count}")
-        
-        # Apply DRF pagination
+        # Apply pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -138,11 +95,8 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 created_by=request.user
             )
         else:
-            # Create portfolio using service
-            portfolio = PortfolioAdminService.create_portfolio(
-                serializer.validated_data,
-                created_by=request.user
-            )
+            # Create portfolio using serializer's create method to handle categories_ids and tags_ids properly
+            portfolio = serializer.save()
         
         # Return detailed response
         detail_serializer = PortfolioAdminDetailSerializer(portfolio)
@@ -276,21 +230,127 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
         """Add media files to portfolio"""
+        import json
+        
         portfolio = self.get_object()
         media_files = request.FILES.getlist('media_files')
         
-        if not media_files:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_not_found"]},
-                status=status.HTTP_400_BAD_REQUEST
+        # Handle media_ids - it can come as a comma-separated string or JSON string in FormData
+        media_ids = []
+        media_ids_str = request.data.get('media_ids')
+        if media_ids_str:
+            try:
+                # Try to parse as JSON array first
+                if isinstance(media_ids_str, str) and media_ids_str.startswith('['):
+                    media_ids = json.loads(media_ids_str)
+                # If it's a comma-separated string, split it
+                elif isinstance(media_ids_str, str):
+                    media_ids = [int(id.strip()) for id in media_ids_str.split(',') if id.strip().isdigit()]
+                # If it's already a list
+                elif isinstance(media_ids_str, list):
+                    media_ids = media_ids_str
+            except (json.JSONDecodeError, TypeError, ValueError):
+                # If parsing fails, try to treat it as a single ID
+                try:
+                    if isinstance(media_ids_str, (str, int)) and str(media_ids_str).isdigit():
+                        media_ids = [int(media_ids_str)]
+                    else:
+                        media_ids = []
+                except (TypeError, ValueError):
+                    media_ids = []
+        
+        created_medias = []
+        
+        # Handle file uploads
+        if media_files:
+            # Add media using service
+            created_medias = PortfolioAdminService.add_media_to_portfolio(
+                portfolio.id,
+                media_files,
+                created_by=request.user
             )
         
-        # Add media using service
-        created_medias = PortfolioAdminService.add_media_to_portfolio(
-            portfolio.id,
-            media_files,
-            created_by=request.user
-        )
+        # Handle existing media association
+        if media_ids:
+            from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+            from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
+            
+            for media_id in media_ids:
+                try:
+                    # Try to get the media object
+                    image_media = ImageMedia.objects.filter(id=media_id).first()
+                    video_media = VideoMedia.objects.filter(id=media_id).first()
+                    audio_media = AudioMedia.objects.filter(id=media_id).first()
+                    document_media = DocumentMedia.objects.filter(id=media_id).first()
+                    
+                    # Determine media type and create appropriate portfolio media relation
+                    if image_media:
+                        # Check if this image is already associated with the portfolio
+                        if not PortfolioImage.objects.filter(portfolio=portfolio, image=image_media).exists():
+                            # Get the next order number
+                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
+                            
+                            # Check if portfolio already has a main image
+                            has_main_image = PortfolioImage.objects.filter(
+                                portfolio=portfolio,
+                                is_main=True
+                            ).exists()
+                            
+                            PortfolioImage.objects.create(
+                                portfolio=portfolio,
+                                image=image_media,
+                                is_main=not has_main_image,  # Set as main if no main image exists
+                                order=last_order
+                            )
+                    elif video_media:
+                        # Check if this video is already associated with the portfolio
+                        if not PortfolioVideo.objects.filter(portfolio=portfolio, video=video_media).exists():
+                            # Get the next order number
+                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
+                            
+                            PortfolioVideo.objects.create(
+                                portfolio=portfolio,
+                                video=video_media,
+                                order=last_order
+                            )
+                    elif audio_media:
+                        # Check if this audio is already associated with the portfolio
+                        if not PortfolioAudio.objects.filter(portfolio=portfolio, audio=audio_media).exists():
+                            # Get the next order number
+                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
+                            
+                            PortfolioAudio.objects.create(
+                                portfolio=portfolio,
+                                audio=audio_media,
+                                order=last_order
+                            )
+                    elif document_media:
+                        # Check if this document is already associated with the portfolio
+                        if not PortfolioDocument.objects.filter(portfolio=portfolio, document=document_media).exists():
+                            # Get the next order number
+                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
+                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
+                            
+                            PortfolioDocument.objects.create(
+                                portfolio=portfolio,
+                                document=document_media,
+                                order=last_order
+                            )
+                except Exception as e:
+                    # Log the error but continue with other media
+                    print(f"Error associating media {media_id}: {e}")
+                    continue
         
         # If this is the first image, set it as main image
         if created_medias:
@@ -323,7 +383,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                         portfolio.save(update_fields=['og_image'])
         
         return Response({'created_count': len(created_medias)})
-    
+
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
         """Set main image for portfolio"""
@@ -336,7 +396,21 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            portfolio_media = PortfolioAdminService.set_main_image(pk, media_id)
+            # First, remove main image flag from any existing main image
+            from src.portfolio.models.media import PortfolioImage
+            PortfolioImage.objects.filter(portfolio_id=pk, is_main=True).update(is_main=False)
+            
+            # Then set the new main image
+            # Check if this is a PortfolioImage, PortfolioVideo, etc.
+            portfolio_image = PortfolioImage.objects.filter(portfolio_id=pk, image_id=media_id).first()
+            if portfolio_image:
+                portfolio_image.is_main = True
+                portfolio_image.save()
+            else:
+                # If not found, we might need to create it or handle differently
+                # For now, let's just call the service method
+                portfolio_media = PortfolioAdminService.set_main_image(pk, media_id)
+            
             return Response({"detail": PORTFOLIO_SUCCESS["portfolio_updated"]})
         except Exception as e:
             return Response(
@@ -351,11 +425,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         
         return Response(report)
     
-    @action(detail=False, methods=['get'])
-    def statistics(self, request):
+    @action(detail=True, methods=['get'])
+    def statistics(self, request, *args, **kwargs):
         """Get portfolio statistics for dashboard"""
-        from django.db.models import Count
-        
         stats = {
             'total': Portfolio.objects.count(),
             'published': Portfolio.objects.filter(status='published').count(),
@@ -373,3 +445,101 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         stats['recent_portfolios'] = recent_serializer.data
         
         return Response(stats)
+    
+    @action(detail=True, methods=['post'])
+    def add_category(self, request, pk=None):
+        """Add a category to a portfolio"""
+        portfolio = self.get_object()
+        category_id = request.data.get('category_id')
+        
+        if not category_id:
+            return Response(
+                {"detail": "category_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            category = PortfolioCategory.objects.get(id=category_id)
+            portfolio.categories.add(category)
+            return Response({"detail": "Category added successfully"})
+        except PortfolioCategory.DoesNotExist:
+            return Response(
+                {"detail": "Category not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=True, methods=['post'])
+    def remove_category(self, request, pk=None):
+        """Remove a category from a portfolio"""
+        portfolio = self.get_object()
+        category_id = request.data.get('category_id')
+        
+        if not category_id:
+            return Response(
+                {"detail": "category_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            category = PortfolioCategory.objects.get(id=category_id)
+            portfolio.categories.remove(category)
+            return Response({"detail": "Category removed successfully"})
+        except PortfolioCategory.DoesNotExist:
+            return Response(
+                {"detail": "Category not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=True, methods=['post'])
+    def bulk_add_tags(self, request, pk=None):
+        """Add multiple tags to a portfolio"""
+        portfolio = self.get_object()
+        tag_ids = request.data.get('tag_ids', [])
+        
+        if not tag_ids:
+            return Response(
+                {"detail": "tag_ids is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            tags = PortfolioTag.objects.filter(id__in=tag_ids)
+            portfolio.tags.add(*tags)
+            return Response({"detail": f"Added {tags.count()} tags successfully"})
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=True, methods=['post'])
+    def bulk_remove_tags(self, request, pk=None):
+        """Remove multiple tags from a portfolio"""
+        portfolio = self.get_object()
+        tag_ids = request.data.get('tag_ids', [])
+        
+        if not tag_ids:
+            return Response(
+                {"detail": "tag_ids is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            tags = PortfolioTag.objects.filter(id__in=tag_ids)
+            portfolio.tags.remove(*tags)
+            return Response({"detail": f"Removed {tags.count()} tags successfully"})
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

@@ -53,8 +53,10 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const portfolio = row.original;
-        // Use the main_image_url directly from the API response
-        const imageUrl = portfolio.main_image_url || "";
+        // Use the main_image object directly from the API response
+        const imageUrl = portfolio.main_image?.file_url 
+          ? mediaService.getMediaUrlFromObject({ file_url: portfolio.main_image.file_url } as any)
+          : "";
           
         const getInitial = () => {
           if (!portfolio.title) return "؟";
@@ -136,6 +138,22 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
       minSize: 150,
     },
     {
+      accessorKey: "is_active", // اضافه کردن ستون فعال بودن
+      header: () => <div className="table-header-text">فعال</div>,
+      cell: ({ row }) => (
+        <div className="table-badge-container">
+          {row.original.is_active ? (
+            <Badge variant="green">فعال</Badge>
+          ) : (
+            <Badge variant="outline">غیرفعال</Badge>
+          )}
+        </div>
+      ),
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 150,
+    },
+    {
       accessorKey: "created_at",
       header: () => <div className="table-header-text">تاریخ ایجاد</div>,
       cell: ({ row }) => (
@@ -144,6 +162,48 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
         </div>
       ),
       enableSorting: true,
+      enableHiding: true,
+      minSize: 150,
+    },
+    {
+      accessorKey: "categories",
+      header: () => <div className="table-header-text">دسته‌بندی‌ها</div>,
+      cell: ({ row }) => {
+        const portfolio = row.original;
+        const categories = portfolio.categories || [];
+        
+        if (categories.length === 0) {
+          return (
+            <div className="table-cell-secondary">
+              <span className="text-muted-foreground">بدون دسته</span>
+            </div>
+          );
+        }
+        
+        // نمایش دسته‌بندی‌ها به صورت سلسله مراتبی
+        const renderCategoryPath = (category: any) => {
+          if (category.parent) {
+            return `${category.parent.name} > ${category.name}`;
+          }
+          return category.name;
+        };
+        
+        return (
+          <div className="flex flex-wrap gap-1">
+            {categories.slice(0, 2).map((category) => (
+              <Badge key={category.id} variant="outline" className="text-xs" title={renderCategoryPath(category)}>
+                {category.name.length > 15 ? `${category.name.substring(0, 15)}...` : category.name}
+              </Badge>
+            ))}
+            {categories.length > 2 && (
+              <Badge variant="outline" className="text-xs">
+                +{categories.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
       enableHiding: true,
       minSize: 150,
     },
@@ -161,7 +221,7 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (portfolio) => {
-              console.log("Delete portfolio", portfolio.id);
+              // Delete portfolio functionality would go here
             },
             isDestructive: true,
           },

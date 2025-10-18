@@ -61,6 +61,7 @@ class BaseProfileService:
             fields_actually_updated = []
             for field, value in profile_data.items():
                 current_value = getattr(profile, field, None)
+                # Regular field comparison
                 if str(value or '') != str(current_value or ''):
                     setattr(profile, field, value)
                     fields_actually_updated.append(field)
@@ -68,26 +69,36 @@ class BaseProfileService:
             
             print(f"--- BaseProfileService.update_user_profile --- Fields marked for update: {fields_actually_updated}")
             
+            # Handle profile_picture separately
             if profile_picture is not None:
-                update_needed = True
-                try:
-                    from src.media.models.media import ImageMedia
-                    if profile_picture is None:
-                        if profile.profile_picture:
-                            old_media_to_delete = profile.profile_picture
-                        profile.profile_picture = None
-                    else:
-                        if isinstance(profile_picture, ImageMedia):
+                # Get current profile picture ID
+                current_profile_picture = getattr(profile, 'profile_picture', None)
+                current_id = getattr(current_profile_picture, 'id', None) if current_profile_picture else None
+                new_id = getattr(profile_picture, 'id', None) if profile_picture else None
+                
+                # Check if profile picture actually changed
+                if current_id != new_id:
+                    update_needed = True
+                    try:
+                        from src.media.models.media import ImageMedia
+                        if profile_picture is None:
                             if profile.profile_picture:
                                 old_media_to_delete = profile.profile_picture
-                            profile.profile_picture = profile_picture
+                            profile.profile_picture = None
+                            fields_actually_updated.append('profile_picture')
                         else:
-                            print(f">>> Error: profile_picture should be ImageMedia object, got {type(profile_picture)}")
-                            
-                except ImportError:
-                    print(">>> Error: Could not import ImageMedia model.")
-                except Exception as e:
-                    print(f">>> Error processing profile picture: {str(e)}")
+                            if isinstance(profile_picture, ImageMedia):
+                                if profile.profile_picture:
+                                    old_media_to_delete = profile.profile_picture
+                                profile.profile_picture = profile_picture
+                                fields_actually_updated.append('profile_picture')
+                            else:
+                                print(f">>> Error: profile_picture should be ImageMedia object, got {type(profile_picture)}")
+                                
+                    except ImportError:
+                        print(">>> Error: Could not import ImageMedia model.")
+                    except Exception as e:
+                        print(f">>> Error processing profile picture: {str(e)}")
             
             if update_needed:
                 print(f"--- BaseProfileService.update_user_profile --- Saving profile with updated fields: {fields_actually_updated}")

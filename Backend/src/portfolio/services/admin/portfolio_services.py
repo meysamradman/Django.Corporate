@@ -208,9 +208,14 @@ class PortfolioAdminService:
             
             # Create portfolio media relation based on type
             if media_type == 'image':
+                # Always set the first image in this batch as main image if no main image exists
+                existing_main_image = PortfolioImage.objects.filter(portfolio=portfolio, is_main=True).exists()
+                should_be_main = (i == 0) and not existing_main_image
+                
                 PortfolioImage.objects.create(
                     portfolio=portfolio,
                     image=media,
+                    is_main=should_be_main,
                     order=last_order + i
                 )
             elif media_type == 'video':
@@ -297,11 +302,18 @@ class PortfolioAdminService:
     
     @staticmethod
     def get_seo_report():
+        """Get comprehensive SEO report with caching"""
+        # Try to get from cache first
+        cache_key = "portfolio_seo_report"
+        cached_report = cache.get(cache_key)
+        if cached_report:
+            return cached_report
+        
         """Get comprehensive SEO report"""
         total = Portfolio.objects.count()
         
         if total == 0:
-            return {
+            report_data = {
                 'total': 0,
                 'complete_seo': 0,
                 'partial_seo': 0,
@@ -310,6 +322,9 @@ class PortfolioAdminService:
                 'og_image_count': 0,
                 'canonical_url_count': 0
             }
+            # Cache for 10 minutes
+            cache.set(cache_key, report_data, 600)
+            return report_data
         
         complete_seo = Portfolio.objects.filter(
             meta_title__isnull=False,
@@ -330,7 +345,7 @@ class PortfolioAdminService:
         og_image_count = Portfolio.objects.filter(og_image__isnull=False).count()
         canonical_url_count = Portfolio.objects.filter(canonical_url__isnull=False).count()
         
-        return {
+        report_data = {
             'total': total,
             'complete_seo': complete_seo,
             'partial_seo': partial_seo,
@@ -339,6 +354,10 @@ class PortfolioAdminService:
             'og_image_count': og_image_count,
             'canonical_url_count': canonical_url_count
         }
+        
+        # Cache for 10 minutes
+        cache.set(cache_key, report_data, 600)
+        return report_data
     
     @staticmethod
     def delete_portfolio(portfolio_id):

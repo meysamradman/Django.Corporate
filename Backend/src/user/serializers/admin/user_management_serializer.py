@@ -12,7 +12,7 @@ class UserListSerializer(BaseUserListSerializer):
     profile = UserProfileSerializer(source='user_profile', read_only=True)
 
     class Meta(BaseUserListSerializer.Meta):
-        fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'created_at', 'profile', 'full_name']
+        fields = ['id', 'public_id', 'full_name', 'mobile', 'email', 'is_active', 'created_at', 'updated_at', 'profile']
 
 class UserDetailSerializer(BaseUserDetailSerializer):
     profile = UserProfileSerializer(source='user_profile', read_only=True)

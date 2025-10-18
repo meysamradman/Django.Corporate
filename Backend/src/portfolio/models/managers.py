@@ -29,8 +29,8 @@ class PortfolioQuerySet(models.QuerySet):
             'tags',
             Prefetch(
                 'images',
-                queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
-                to_attr='main_image_media'
+                queryset=PortfolioImage.objects.select_related('image'),
+                to_attr='all_images'
             ),
             'images',
             'videos',
@@ -190,5 +190,5 @@ class PortfolioOptionQuerySet(models.QuerySet):
     def with_portfolio_counts(self):
         return self.annotate(
             portfolio_count=Count('portfolio_options',
-                                filter=Q(portfolio_options__status='published'))
+                                filter=Q(portfolio_options__is_public=True))
         )

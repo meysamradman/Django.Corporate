@@ -8,7 +8,9 @@ from src.user.services.base_profile_service import BaseProfileService
 class BaseManagementService:
     @staticmethod
     def get_users_list(search=None, is_active=None, user_type='all', is_superuser=None, request=None):
-        queryset = User.objects.select_related('user_profile', 'admin_profile')
+        queryset = User.objects.select_related('user_profile', 'admin_profile').prefetch_related(
+            'admin_profile__profile_picture'  # Prefetch profile picture for admin profiles
+        )
         
         filters = {}
         
@@ -41,14 +43,19 @@ class BaseManagementService:
     def get_user_detail(user_id):
         """Get user with optimized profile prefetching"""
         try:
-            return User.objects.select_related('user_profile', 'admin_profile').prefetch_related('adminuserrole_set__role').get(id=user_id)
+            return User.objects.select_related('user_profile', 'admin_profile').prefetch_related(
+                'admin_profile__profile_picture',  # Prefetch profile picture for admin profiles
+                'adminuserrole_set__role'
+            ).get(id=user_id)
         except User.DoesNotExist:
             raise NotFound(AUTH_ERRORS["not_found"])
 
     @staticmethod
     def get_user_by_public_id(public_id):
         try:
-            return User.objects.select_related('user_profile').get(public_id=public_id)
+            return User.objects.select_related('user_profile', 'admin_profile').prefetch_related(
+                'admin_profile__profile_picture'  # Prefetch profile picture for admin profiles
+            ).get(public_id=public_id)
         except User.DoesNotExist:
             raise NotFound(AUTH_ERRORS["not_found"])
 

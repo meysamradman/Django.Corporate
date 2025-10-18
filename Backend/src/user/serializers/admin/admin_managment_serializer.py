@@ -11,13 +11,25 @@ from src.user.utils.mobile_validator import validate_mobile_number
 from django.db.models import Q
 
 class AdminListSerializer(BaseUserListSerializer):
-    profile = AdminProfileSerializer(source='admin_profile', read_only=True)
+    profile = serializers.SerializerMethodField()  # Dynamic profile field
     permissions = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     
     class Meta(BaseUserListSerializer.Meta):
-        fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
-                 'created_at', 'profile', 'full_name', 'permissions']
+        fields = ['id', 'public_id', 'full_name', 'mobile', 'email', 'is_active', 'is_staff', 'is_superuser', 
+                 'created_at', 'updated_at', 'profile', 'permissions']
+    
+    def get_profile(self, obj):
+        """Get profile based on user type - admin or regular user"""
+        # ✅ ADMIN USER: Get admin_profile
+        if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
+            return AdminProfileSerializer(obj.admin_profile, context=self.context).data
+        # ✅ REGULAR USER: Get user_profile  
+        elif obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
+            from src.user.serializers.base_profile_serializer import UserProfileSerializer
+            return UserProfileSerializer(obj.user_profile, context=self.context).data
+        # ✅ NO PROFILE: Return None
+        return None
     
     def get_full_name(self, obj):
         """Get full name efficiently from prefetched profile"""

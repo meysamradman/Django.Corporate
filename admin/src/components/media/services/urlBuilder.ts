@@ -6,36 +6,64 @@ import { env } from '@/core/config/environment';
 
 export const GetImageUrl = (imageName: string): string => {
     if (!imageName) return '';
+    // For relative paths, don't add the base URL
+    if (imageName.startsWith('/')) {
+        return imageName;
+    }
     return `${env.MEDIA_BASE_URL}/images/${imageName}`;
 };
 
 export const GetVideoUrl = (videoName: string): string => {
     if (!videoName) return '';
+    // For relative paths, don't add the base URL
+    if (videoName.startsWith('/')) {
+        return videoName;
+    }
     return `${env.MEDIA_BASE_URL}/videos/${videoName}`;
 };
 
 export const GetVideoCoverUrl = (coverName: string): string => {
     if (!coverName) return '';
+    // For relative paths, don't add the base URL
+    if (coverName.startsWith('/')) {
+        return coverName;
+    }
     return `${env.MEDIA_BASE_URL}/covers/video_covers/${coverName}`;
 };
 
 export const GetAudioUrl = (audioName: string): string => {
     if (!audioName) return '';
+    // For relative paths, don't add the base URL
+    if (audioName.startsWith('/')) {
+        return audioName;
+    }
     return `${env.MEDIA_BASE_URL}/audios/${audioName}`;
 };
 
 export const GetAudioCoverUrl = (coverName: string): string => {
     if (!coverName) return '';
+    // For relative paths, don't add the base URL
+    if (coverName.startsWith('/')) {
+        return coverName;
+    }
     return `${env.MEDIA_BASE_URL}/covers/audio_covers/${coverName}`;
 };
 
 export const GetPdfUrl = (pdfName: string): string => {
     if (!pdfName) return '';
+    // For relative paths, don't add the base URL
+    if (pdfName.startsWith('/')) {
+        return pdfName;
+    }
     return `${env.MEDIA_BASE_URL}/pdfs/${pdfName}`;
 };
 
 export const GetPdfCoverUrl = (coverName: string): string => {
     if (!coverName) return '';
+    // For relative paths, don't add the base URL
+    if (coverName.startsWith('/')) {
+        return coverName;
+    }
     return `${env.MEDIA_BASE_URL}/covers/pdf_covers/${coverName}`;
 };
 
@@ -45,6 +73,11 @@ export const GetCategoryImageUrl = (imageName: string): string => {
 
 export const GetMediaUrl = (mediaType: string, fileName: string): string => {
     if (!fileName) return '';
+    
+    // For relative paths, return as is
+    if (fileName.startsWith('/')) {
+        return fileName;
+    }
     
     const mediaHandlers: Record<string, (name: string) => string> = {
         'image': GetImageUrl,
@@ -58,23 +91,39 @@ export const GetMediaUrl = (mediaType: string, fileName: string): string => {
     return handler ? handler(fileName) : `${env.MEDIA_BASE_URL}/${fileName}`;
 };
 
+export const GetFullMediaUrl = (relativeUrl: string): string => {
+  // If it's already a full URL, return as is
+  if (relativeUrl.startsWith('http')) {
+    return relativeUrl;
+  }
+  
+  // If it starts with /media/, we need to avoid double /media/
+  if (relativeUrl.startsWith('/media/')) {
+    // Extract the base URL without the trailing /media part
+    const baseUrl = env.MEDIA_BASE_URL.endsWith('/media') 
+      ? env.MEDIA_BASE_URL.slice(0, -6)  // Remove '/media' from the end
+      : env.MEDIA_BASE_URL.split('/media')[0]; // Get everything before '/media'
+    
+    // Return the base URL + the full relative URL
+    return `${baseUrl}${relativeUrl}`;
+  }
+  
+  // For other relative URLs, prepend the MEDIA_BASE_URL
+  return `${env.MEDIA_BASE_URL}/${relativeUrl.replace(/^\/+/, '')}`;
+};
+
 export const GetMediaUrlFromObject = (media: Media): string => {
     if (!media) return '';
     
-    // If file_url exists, use it directly
+    // If file_url exists, use it and convert to full URL
     if (media.file_url) {
-        return media.file_url;
-    }
-    
-    // Try url field as fallback
-    if (media.url) {
-        return media.url;
+        return GetFullMediaUrl(media.file_url);
     }
     
     // Fallback: try to construct URL from file_name or title
     if (media.media_type === 'image' && (media.title || media.file_name)) {
         const fileName = media.file_name || media.title;
-        return GetImageUrl(fileName);
+        return GetFullMediaUrl(GetImageUrl(fileName));
     }
     
     return '';
@@ -83,17 +132,20 @@ export const GetMediaUrlFromObject = (media: Media): string => {
 export const GetMediaCoverUrl = (media: Media): string => {
     // First check if media has a cover_image_url property (from API response)
     if (media.cover_image_url) {
-        return media.cover_image_url;
+        return GetFullMediaUrl(media.cover_image_url);
     }
     
     // Then check cover_image.file_url (nested object)
     if (media?.cover_image && typeof media.cover_image === 'object' && 'file_url' in media.cover_image) {
-        return (media.cover_image as Media).file_url;
+        const coverUrl = (media.cover_image as Media).file_url;
+        if (coverUrl) {
+            return GetFullMediaUrl(coverUrl);
+        }
     }
     
     // Then check if cover_image is a string URL
     if (typeof media?.cover_image === 'string') {
-        return media.cover_image;
+        return GetFullMediaUrl(media.cover_image);
     }
     
     // For videos and audio, if no cover is set, return empty string

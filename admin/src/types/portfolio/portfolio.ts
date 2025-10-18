@@ -14,7 +14,13 @@ export interface Portfolio extends Base {
     description: string;
     is_featured: boolean;
     is_public: boolean;
-    main_image_url?: string | null;
+    is_active: boolean; // اضافه کردن فیلد فعال بودن
+    main_image?: {
+        id: number;
+        file_url: string;
+        title: string;
+        alt_text: string;
+    } | null;
     categories_count?: number;
     tags_count?: number;
     media_count?: number;

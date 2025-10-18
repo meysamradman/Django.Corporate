@@ -168,7 +168,7 @@ export function Sidebar({
             <aside className={sidebarClasses}>
                 <div className={iconStripClasses}>
                     <SidebarLogo/>
-                    <nav className="flex-1 py-4 overflow-y-auto">
+                    <nav className="flex-1 overflow-y-auto">
                         <NavMain groups={menuData.groups} onIconClick={handleIconClick} onLinkClick={onToggle}/>
                     </nav>
                     <div className="h-16 flex items-center justify-center border-t border-sdb-br">

@@ -14,9 +14,8 @@ class MediaCoverSerializer(serializers.ModelSerializer):
         ]
     
     def get_file_url(self, obj):
-        request = self.context.get('request')
-        if obj.file and request:
-            return request.build_absolute_uri(obj.file.url)
+        if obj.file:
+            return obj.file.url
         return None
 
 
@@ -27,15 +26,14 @@ class BaseMediaSerializer(serializers.ModelSerializer):
     
     class Meta:
         fields = [
-            'id', 'public_id', 'title', 'file', 'file_url', 
+            'id', 'public_id', 'title', 'file_url', 
             'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'media_type'
         ]
         read_only_fields = ['file_size', 'mime_type', 'created_at', 'updated_at', 'media_type']
 
     def get_file_url(self, obj):
-        request = self.context.get('request')
-        if obj.file and request:
-            return request.build_absolute_uri(obj.file.url)
+        if obj.file:
+            return obj.file.url
         return None
     
     def get_media_type(self, obj):
@@ -53,7 +51,6 @@ class BaseMediaSerializer(serializers.ModelSerializer):
 
 class ImageMediaSerializer(BaseMediaSerializer):
     """Serializer for image media"""
-    file = serializers.ImageField(required=False)
     media_type = serializers.SerializerMethodField()  # Add media_type field
     
     class Meta(BaseMediaSerializer.Meta):
@@ -75,9 +72,8 @@ class VideoMediaSerializer(BaseMediaSerializer):
         fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration', 'media_type']
 
     def get_cover_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.cover_image and request:
-            return request.build_absolute_uri(obj.cover_image.file.url)
+        if obj.cover_image:
+            return obj.cover_image.file.url
         return None
     
     def get_media_type(self, obj):
@@ -86,11 +82,18 @@ class VideoMediaSerializer(BaseMediaSerializer):
 
 class AudioMediaSerializer(BaseMediaSerializer):
     """Serializer for audio media"""
+    cover_image = MediaCoverSerializer(read_only=True)
+    cover_image_url = serializers.SerializerMethodField()
     media_type = serializers.SerializerMethodField()  # Add media_type field
     
     class Meta(BaseMediaSerializer.Meta):
         model = AudioMedia
-        fields = BaseMediaSerializer.Meta.fields + ['duration', 'media_type']
+        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration', 'media_type']
+
+    def get_cover_image_url(self, obj):
+        if obj.cover_image:
+            return obj.cover_image.file.url
+        return None
     
     def get_media_type(self, obj):
         return 'audio'
@@ -98,11 +101,18 @@ class AudioMediaSerializer(BaseMediaSerializer):
 
 class DocumentMediaSerializer(BaseMediaSerializer):
     """Serializer for document media"""
+    cover_image = MediaCoverSerializer(read_only=True)
+    cover_image_url = serializers.SerializerMethodField()
     media_type = serializers.SerializerMethodField()  # Add media_type field
     
     class Meta(BaseMediaSerializer.Meta):
         model = DocumentMedia
-        fields = BaseMediaSerializer.Meta.fields + ['media_type']
+        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'media_type']
+
+    def get_cover_image_url(self, obj):
+        if obj.cover_image:
+            return obj.cover_image.file.url
+        return None
     
     def get_media_type(self, obj):
         return 'document'
@@ -113,7 +123,6 @@ class MediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     title = serializers.CharField(required=False, allow_blank=True)
-    file = serializers.FileField(required=False)
     file_url = serializers.SerializerMethodField()
     file_size = serializers.IntegerField(read_only=True)
     mime_type = serializers.CharField(read_only=True)
@@ -139,15 +148,13 @@ class MediaAdminSerializer(serializers.Serializer):
         return 'file'  # fallback
     
     def get_file_url(self, obj):
-        request = self.context.get('request')
-        if hasattr(obj, 'file') and obj.file and request:
-            return request.build_absolute_uri(obj.file.url)
+        if hasattr(obj, 'file') and obj.file:
+            return obj.file.url
         return None
 
     def get_cover_image_url(self, obj):
-        request = self.context.get('request')
-        if hasattr(obj, 'cover_image') and obj.cover_image and request:
-            return request.build_absolute_uri(obj.cover_image.file.url)
+        if hasattr(obj, 'cover_image') and obj.cover_image:
+            return obj.cover_image.file.url
         return None
 
     def to_representation(self, instance):
@@ -189,15 +196,13 @@ class MediaPublicSerializer(serializers.Serializer):
         return 'file'  # fallback
     
     def get_file_url(self, obj):
-        request = self.context.get('request')
-        if hasattr(obj, 'file') and obj.file and request:
-            return request.build_absolute_uri(obj.file.url)
+        if hasattr(obj, 'file') and obj.file:
+            return obj.file.url
         return None
 
     def get_cover_image_url(self, obj):
-        request = self.context.get('request')
-        if hasattr(obj, 'cover_image') and obj.cover_image and request:
-            return request.build_absolute_uri(obj.cover_image.file.url)
+        if hasattr(obj, 'cover_image') and obj.cover_image:
+            return obj.cover_image.file.url
         return None
 
     def to_representation(self, instance):

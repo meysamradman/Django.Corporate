@@ -15,14 +15,14 @@ from src.portfolio.serializers.admin.option_serializer import (
 from src.portfolio.services.admin.option_services import PortfolioOptionAdminService
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireAdminRole
+from src.user.authorization.admin_permission import ContentManagerAccess
 
 
 class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Option ViewSet for Admin Panel with bulk operations and grouping
     """
-    permission_classes = [RequireAdminRole('super_admin', 'content_manager')]
+    permission_classes = [ContentManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioOptionAdminFilter
     search_fields = ['key', 'value', 'description']

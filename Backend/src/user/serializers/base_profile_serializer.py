@@ -14,9 +14,9 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'title', 'file_url', 'alt_text', 'created_at', 'updated_at']
 
     def get_file_url(self, obj):
-        request = self.context.get('request')
-        if obj.file and request:
-            return request.build_absolute_uri(obj.file.url)
+        # Use relative URL instead of absolute URL to prevent path duplication
+        if obj.file:
+            return obj.file.url
         return None
 
 

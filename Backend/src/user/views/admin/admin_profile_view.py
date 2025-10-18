@@ -44,8 +44,8 @@ class AdminProfileView(APIView):
             # Try to get from cache
             cached_data = cache.get(cache_key)
             if cached_data:
-                # Add fresh CSRF token
-                cached_data['csrf_token'] = get_token(request)
+                # Remove csrf_token from response for security
+                cached_data.pop('csrf_token', None)
                 return Response({
                     "metaData": {
                         "status": "success",
@@ -66,14 +66,17 @@ class AdminProfileView(APIView):
             ).get(id=request.user.id)
             
             # Get the current CSRF token
-            csrf_token = get_token(request)
+            # csrf_token = get_token(request)  # Remove this line
             
             # Directly instantiate the serializer class
-            serializer = self.serializer_class(user, context={'request': request, 'csrf_token': csrf_token})
+            serializer = self.serializer_class(user, context={'request': request})  # Remove csrf_token from context
             
             # Prepare response data
             response_data = serializer.data
             
+            # Remove csrf_token from response for security
+            response_data.pop('csrf_token', None)
+
             # Use centralized permission helper - eliminates code duplication
             permission_data = PermissionHelper.get_optimized_permissions(user)
             response_data.update(permission_data)

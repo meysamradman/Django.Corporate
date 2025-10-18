@@ -5,10 +5,11 @@ export interface PortfolioFilters {
   status?: string;
   is_featured?: boolean;
   is_public?: boolean;
-  // is_active?: boolean; // Removed because backend doesn't support filtering by is_active
+  is_active?: boolean; // اضافه کردن فیلتر فعال بودن
+  categories?: number | string; // اضافه کردن فیلتر دسته‌بندی - می‌تواند عدد یا رشته باشد
   
   // Index signature to allow Record<string, unknown> compatibility
-  [key: string]: string | boolean | undefined;
+  [key: string]: string | boolean | number | undefined;
 }
 
 // Filter options
@@ -32,7 +33,8 @@ export const usePortfolioFilterOptions = () => {
 // Filter configuration
 export const getPortfolioFilterConfig = (
   statusFilterOptions: { label: string; value: string }[],
-  booleanFilterOptions: { label: string; value: boolean }[]
+  booleanFilterOptions: { label: string; value: boolean }[],
+  categoryOptions: { label: string; value: string }[] = [] // تغییر نوع value به string
 ): FilterConfig[] => [
   {
     columnId: "status",
@@ -55,5 +57,18 @@ export const getPortfolioFilterConfig = (
     options: booleanFilterOptions,
     placeholder: "عمومی",
   },
-  // Removed is_active filter because backend doesn't support filtering by is_active
+  {
+    columnId: "is_active", // اضافه کردن فیلتر فعال بودن
+    title: "فعال",
+    type: "select",
+    options: booleanFilterOptions,
+    placeholder: "فعال",
+  },
+  {
+    columnId: "categories", // استفاده از نام ستون واقعی
+    title: "دسته‌بندی",
+    type: "hierarchical",
+    options: categoryOptions, // استفاده از گزینه‌های دسته‌بندی
+    placeholder: "انتخاب دسته‌بندی",
+  },
 ];

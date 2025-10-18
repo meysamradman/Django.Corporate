@@ -12,7 +12,15 @@ import {
 } from "lucide-react";
 import { Media } from "@/types/shared/media";
 import { Portfolio } from "@/types/portfolio/portfolio";
+import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { portfolioApi } from "@/api/portfolios/route";
+import { generateSlug } from '@/core/utils/slugUtils';
+
+// Extend Portfolio interface to include category and tag IDs for API calls
+interface PortfolioUpdateData extends Partial<Portfolio> {
+  categories_ids?: number[];
+  tags_ids?: number[];
+}
 
 // Add this interface for managing multiple media selections
 interface PortfolioMedia {
@@ -52,6 +60,10 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
     canonical_url: "",
     robots_meta: "",
   });
+  
+  // Category and tag state for edit page
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
 
   useEffect(() => {
@@ -80,6 +92,16 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
         canonical_url: portfolioData.canonical_url || "",
         robots_meta: portfolioData.robots_meta || "",
       });
+      
+      // Set category if available
+      if (portfolioData.categories && portfolioData.categories.length > 0) {
+        setSelectedCategory(String(portfolioData.categories[0].id));
+      }
+      
+      // Set tags if available
+      if (portfolioData.tags) {
+        setSelectedTags(portfolioData.tags);
+      }
       
       // Set media data if available
       if (portfolioData.portfolio_media) {
@@ -115,24 +137,24 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
     }
   };
 
-  // Automatically generate slug from name (only if slug is empty)
-  useEffect(() => {
-    if (formData.name && !formData.slug) {
-      const generatedSlug = formData.name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name, formData.slug]);
-
   const handleInputChange = (field: string, value: string | Media | null) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // If we're updating the name field, always generate/update slug
+    if (field === "name" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      // Update both name and slug
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else {
+      // Update only the specified field
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleSave = async () => {
@@ -140,12 +162,26 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
     
     setIsSaving(true);
     try {
-      // Update portfolio
-      const updatedPortfolio = await portfolioApi.updatePortfolio(portfolio.id, {
+      // Ensure the slug is properly formatted before sending to backend
+      let formattedSlug = formData.slug;
+      if (formattedSlug) {
+        formattedSlug = formattedSlug
+          .replace(/^-+|-+$/g, '') // Trim - from start and end
+          .substring(0, 60); // Ensure it doesn't exceed max length
+      }
+      
+      // Prepare category and tag IDs for the backend
+      const categoryIds = selectedCategory ? [parseInt(selectedCategory)] : [];
+      const tagIds = selectedTags.map(tag => tag.id);
+      
+      // Prepare update data with extended interface
+      const updateData: PortfolioUpdateData = {
         title: formData.name,
-        slug: formData.slug,
+        slug: formattedSlug,
         short_description: formData.short_description,
         description: formData.description,
+        categories_ids: categoryIds, // Use the correct field name expected by the backend
+        tags_ids: tagIds, // Use the correct field name expected by the backend
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
         og_title: formData.og_title || undefined,
@@ -153,9 +189,11 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
-      });
+      };
       
-      console.log("Portfolio updated:", updatedPortfolio);
+      // Update portfolio
+      const updatedPortfolio = await portfolioApi.updatePortfolio(portfolio.id, updateData);
+      
       // Redirect to portfolio list after saving
       router.push("/portfolios");
     } catch (error) {
@@ -170,12 +208,26 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
     
     setIsSaving(true);
     try {
-      // Update portfolio as draft
-      const updatedPortfolio = await portfolioApi.partialUpdatePortfolio(portfolio.id, {
+      // Ensure the slug is properly formatted before sending to backend
+      let formattedSlug = formData.slug;
+      if (formattedSlug) {
+        formattedSlug = formattedSlug
+          .replace(/^-+|-+$/g, '') // Trim - from start and end
+          .substring(0, 60); // Ensure it doesn't exceed max length
+      }
+      
+      // Prepare category and tag IDs for the backend
+      const categoryIds = selectedCategory ? [parseInt(selectedCategory)] : [];
+      const tagIds = selectedTags.map(tag => tag.id);
+      
+      // Prepare update data with extended interface
+      const updateData: PortfolioUpdateData = {
         title: formData.name,
-        slug: formData.slug,
+        slug: formattedSlug,
         short_description: formData.short_description,
         description: formData.description,
+        categories_ids: categoryIds, // Use the correct field name expected by the backend
+        tags_ids: tagIds, // Use the correct field name expected by the backend
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
         og_title: formData.og_title || undefined,
@@ -183,9 +235,11 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
-      });
+      };
       
-      console.log("Portfolio draft saved:", updatedPortfolio);
+      // Update portfolio as draft
+      const updatedPortfolio = await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
+      
       // Redirect to portfolio list after saving draft
       router.push("/portfolios");
     } catch (error) {

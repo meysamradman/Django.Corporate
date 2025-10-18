@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
+import { env } from '@/core/config/environment';
 import { cn } from '@/core/utils/cn';
 
 interface MediaImageProps {

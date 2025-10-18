@@ -123,14 +123,7 @@ async function baseFetch<T>(
             fullUrl = `${env.API_BASE_URL}${url}`;
         }
         
-        console.log('🌐 Fetching URL:', fullUrl); // Debug log
         const response = await fetch(fullUrl, fetchOptions);
-        console.log('🌐 HTTP Response:', {
-            url: fullUrl,
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
-        });
         
         let data: ApiResponse<T> | null = null;
         let errorText = '';
@@ -139,16 +132,8 @@ async function baseFetch<T>(
         try {
             if (contentType?.includes('application/json')) {
                 data = await response.json();
-                console.log('📜 Parsed JSON Response:', {
-                    responseOk: response.ok,
-                    parsedData: data
-                });
             } else {
                 errorText = await response.text();
-                console.log('📜 Text Response:', {
-                    responseOk: response.ok,
-                    textData: errorText
-                });
                 if (response.ok) {
                      return {
                         metaData: { 
@@ -188,17 +173,7 @@ async function baseFetch<T>(
         }
 
         if (!response.ok) {
-            console.error('❌ HTTP Error Response:', {
-                status: response.status,
-                statusText: response.statusText,
-                data: data,
-                errorText: errorText
-            });
-            
-            // Parse and log the full error details
             if (data && typeof data === 'object') {
-                console.error('❌ Full Backend Error Details:', JSON.stringify(data, null, 2));
-                
                 // Extract specific validation errors if available
                 if (data.data || data.errors) {
                     console.error('❌ Validation Errors:', {

@@ -23,17 +23,15 @@ class PanelSettingsSerializer(serializers.ModelSerializer):
         ]
 
     def get_logo_url(self, obj):
-        if obj.logo and obj.logo.file:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.logo.file.url)
+        if obj.logo and hasattr(obj.logo, 'file') and obj.logo.file:
+            # Return relative URL without duplicating /media/
+            return obj.logo.file.url
         return None
 
     def get_favicon_url(self, obj):
-        if obj.favicon and obj.favicon.file:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.favicon.file.url)
+        if obj.favicon and hasattr(obj.favicon, 'file') and obj.favicon.file:
+            # Return relative URL without duplicating /media/
+            return obj.favicon.file.url
         return None
 
     def update(self, instance, validated_data):

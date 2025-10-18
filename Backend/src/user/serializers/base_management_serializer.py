@@ -12,8 +12,8 @@ class BaseUserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
-                 'created_at', 'profile', 'full_name']
+        fields = ['id', 'public_id', 'full_name', 'mobile', 'email', 'is_active', 'is_staff', 'is_superuser', 
+                 'created_at', 'updated_at', 'profile']
 
     def get_full_name(self, obj):
         """Generate full name from user profile"""

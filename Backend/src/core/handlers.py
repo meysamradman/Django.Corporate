@@ -2,7 +2,7 @@ from datetime import datetime
 from rest_framework.views import exception_handler
 from rest_framework import status
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from django.http import JsonResponse
+from rest_framework.response import Response
 
 def custom_exception_handler(exc, context):
     """Optimized exception handler for React admin panel"""
@@ -61,18 +61,11 @@ def custom_exception_handler(exc, context):
         else:
             error_message = "Validation error"
 
-    # Optimized response structure for React admin panel
-    standardized_response = {
-        "metaData": {
-            "status": "error",
-            "message": error_message,
-            "AppStatusCode": status_code,
-            "timestamp": datetime.utcnow().isoformat()
-        },
-        "data": error_data
+    # Return simple data structure - let the renderer handle formatting
+    # This prevents double wrapping of the response
+    response.data = {
+        "detail": error_message,
+        **error_data  # Include any additional error data
     }
     
-    # When using custom renderers, we need to make sure the data structure
-    # is compatible with the renderer. The renderer expects the data to be
-    # in a specific format, so we structure our exception response accordingly.
-    return JsonResponse(standardized_response, status=status_code)
+    return response

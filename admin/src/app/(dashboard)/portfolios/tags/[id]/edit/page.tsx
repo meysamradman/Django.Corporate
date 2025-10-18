@@ -12,6 +12,7 @@ import { toast } from "@/components/elements/Sonner";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { generateSlug } from '@/core/utils/slugUtils';
 
 export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -57,24 +58,24 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
     },
   });
 
-  // Automatically generate slug from name (only if slug is empty)
-  useEffect(() => {
-    if (formData.name && !formData.slug) {
-      const generatedSlug = formData.name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name, formData.slug]);
-
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // If we're updating the name field, always generate/update slug
+    if (field === "name" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      // Update both name and slug
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else {
+      // Update only the specified field
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {

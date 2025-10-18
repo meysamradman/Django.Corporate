@@ -41,8 +41,11 @@ class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSeriali
     
     def get_image_url(self, obj):
         """Get image URL if exists"""
-        if obj.image and obj.image.file:
-            return obj.image.file.url
+        try:
+            if obj.image and hasattr(obj.image, 'file') and obj.image.file:
+                return obj.image.file.url
+        except:
+            pass
         return None
 
 
@@ -176,13 +179,15 @@ class PortfolioCategoryAdminCreateSerializer(serializers.ModelSerializer):
     
     def validate_name(self, value):
         """Validate name uniqueness"""
-        if PortfolioCategory.objects.filter(name=value).exists():
+        # Only check for existing name if this is a create operation
+        if not self.instance and PortfolioCategory.objects.filter(name=value).exists():
             raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
         return value
     
     def validate_slug(self, value):
         """Validate slug uniqueness"""
-        if value and PortfolioCategory.objects.filter(slug=value).exists():
+        # Only check for existing slug if this is a create operation
+        if value and not self.instance and PortfolioCategory.objects.filter(slug=value).exists():
             raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
         return value
     
@@ -228,7 +233,7 @@ class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
     
     def validate_name(self, value):
         """Validate name uniqueness excluding current instance"""
-        if PortfolioCategory.objects.exclude(
+        if self.instance and PortfolioCategory.objects.exclude(
             id=self.instance.id
         ).filter(name=value).exists():
             raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
@@ -236,7 +241,7 @@ class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
     
     def validate_slug(self, value):
         """Validate slug uniqueness excluding current instance"""
-        if value and PortfolioCategory.objects.exclude(
+        if value and self.instance and PortfolioCategory.objects.exclude(
             id=self.instance.id
         ).filter(slug=value).exists():
             raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")

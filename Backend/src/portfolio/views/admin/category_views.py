@@ -59,24 +59,8 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
             tree_data = PortfolioCategoryAdminService.get_tree_data()
             return Response({'data': tree_data})
 
-        filters = {
-            'is_active': self._parse_bool(request.query_params.get('is_active')),
-            'is_public': self._parse_bool(request.query_params.get('is_public')),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
-        search = request.query_params.get('search')
-        
-        queryset = PortfolioCategoryAdminService.get_tree_queryset()
-        if filters:
-            if filters.get('is_active') is not None:
-                queryset = queryset.filter(is_active=filters['is_active'])
-            if filters.get('is_public') is not None:
-                queryset = queryset.filter(is_public=filters['is_public'])
-        
-        if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) | Q(description__icontains=search)
-            )
+        # Use the Django Filter backend properly
+        queryset = self.filter_queryset(PortfolioCategoryAdminService.get_tree_queryset())
         
         # Apply DRF pagination
         page = self.paginate_queryset(queryset)

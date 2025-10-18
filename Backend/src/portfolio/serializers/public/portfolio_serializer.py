@@ -67,7 +67,6 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
                 'id': instance.id,
                 'public_id': instance.public_id,
                 'media': MediaPublicSerializer(instance.video, context=self.context).data,
-                'is_main_image': False,  # Videos don't have is_main field
                 'order': instance.order,
                 'created_at': instance.created_at,
             }
@@ -76,7 +75,6 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
                 'id': instance.id,
                 'public_id': instance.public_id,
                 'media': MediaPublicSerializer(instance.audio, context=self.context).data,
-                'is_main_image': False,  # Audios don't have is_main field
                 'order': instance.order,
                 'created_at': instance.created_at,
             }
@@ -85,7 +83,6 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
                 'id': instance.id,
                 'public_id': instance.public_id,
                 'media': MediaPublicSerializer(instance.document, context=self.context).data,
-                'is_main_image': False,  # Documents don't have is_main field
                 'order': instance.order,
                 'created_at': instance.created_at,
             }

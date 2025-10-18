@@ -17,6 +17,6 @@ class CSRFTokenView(APIView):
         # Get a new CSRF token
         token = get_token(request)
         
-        # Return the token in the response
+        # Return the token in a secure way - only in cookies/headers, not in response body
         # The renderer will automatically format this response
-        return Response({"csrf_token": token})
+        return Response({"message": "CSRF token is available in cookies"})

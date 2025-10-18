@@ -2,9 +2,10 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings as simple_jwt_settings
 from django.conf import settings
-from src.core.responses import APIResponse
+# Remove APIResponse import since we're using standard DRF Response
 
 from rest_framework import status
+from rest_framework.response import Response
 from .user_cookies import UserCookie
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 
@@ -20,10 +21,11 @@ class UserJWTRefreshView(TokenRefreshView):
         raw_token = request.COOKIES.get(refresh_token_cookie_name)
 
         if raw_token is None:
-            return APIResponse.error(
-                message=AUTH_ERRORS.get("auth_invalid_token", "Invalid token."),
-                status_code=status.HTTP_401_UNAUTHORIZED
-            )
+            # Use standard DRF Response - renderer will format it
+            response = Response({
+                "detail": AUTH_ERRORS.get("auth_invalid_token", "Invalid token.")
+            }, status=status.HTTP_401_UNAUTHORIZED)
+            return response
 
         # Manually create the serializer with the token from the cookie
         serializer = self.get_serializer(data={'refresh': raw_token})
@@ -32,18 +34,20 @@ class UserJWTRefreshView(TokenRefreshView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             error_detail = AUTH_ERRORS.get("auth_token_expired", str(e))
-            return APIResponse.error(
-                message=error_detail,
-                status_code=status.HTTP_401_UNAUTHORIZED
-            )
+            # Use standard DRF Response - renderer will format it
+            response = Response({
+                "detail": error_detail
+            }, status=status.HTTP_401_UNAUTHORIZED)
+            return response
         except Exception as e:
             error_detail = AUTH_ERRORS.get("auth_invalid_token", "Invalid token provided.")
             # Log the actual exception for debugging
             print(f"!!! UserJWTRefreshView Validation Error: {e}")
-            return APIResponse.error(
-                message=error_detail,
-                status_code=status.HTTP_401_UNAUTHORIZED
-            )
+            # Use standard DRF Response - renderer will format it
+            response = Response({
+                "detail": error_detail
+            }, status=status.HTTP_401_UNAUTHORIZED)
+            return response
 
         # Success Case
         validated_data = serializer.validated_data
@@ -52,10 +56,8 @@ class UserJWTRefreshView(TokenRefreshView):
         # Prepare response data
         response_data = {'access': access_token}
 
-        response = APIResponse.success(
-            message=AUTH_SUCCESS.get("auth_token_refreshed", "Token refreshed successfully."),
-            data=response_data
-        )
+        # Use standard DRF Response - renderer will format it
+        response = Response(response_data, status=status.HTTP_200_OK)
 
         # Set cookies for users
         new_refresh_token = validated_data.get('refresh')

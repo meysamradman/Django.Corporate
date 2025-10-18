@@ -4,7 +4,6 @@ export interface Media extends Base {
     title: string;
     media_type: string;
     file_url: string; 
-    url?: string; // Alternative URL field from backend
     file_name?: string; // File name from backend
     original_file_name?: string; // Original file name from backend
     file_size?: number;

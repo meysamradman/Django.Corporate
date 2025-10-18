@@ -44,7 +44,20 @@ def upload_media_path(instance, filename):
     name, ext = os.path.splitext(filename)
     ext = ext.lower()
     today = timezone.now().date()
+    
+    # Use simpler folder names based on media type (without 'media/' prefix)
     model_name = instance._meta.model_name
+    if model_name == 'imagemedia':
+        folder_name = 'image'
+    elif model_name == 'videomedia':
+        folder_name = 'video'
+    elif model_name == 'audiomedia':
+        folder_name = 'audio'
+    elif model_name == 'documentmedia':
+        folder_name = 'document'
+    else:
+        # For other media types, remove 'media' from the name
+        folder_name = model_name.replace('media', '')
     
     # Use a UUID for temporary files until the instance is saved
     if instance.pk is None:
@@ -52,7 +65,8 @@ def upload_media_path(instance, filename):
     else:
         identifier = str(instance.pk)
     
-    return f"media/{model_name}/{today.year}/{today.month:02d}/{today.day:02d}/{identifier}{ext}"
+    # Return path without 'media/' prefix since Django's MEDIA_URL already includes it
+    return f"{folder_name}/{today.year}/{today.month:02d}/{today.day:02d}/{identifier}{ext}"
 
 # -----------------------------
 # 🧱 کلاس پایه Abstract
@@ -68,7 +82,7 @@ class AbstractMedia(BaseModel):
     alt_text = models.CharField(max_length=255, blank=True)
     etag = models.CharField(max_length=40, editable=False, blank=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         abstract = True
         ordering = ['created_at']
 
@@ -228,14 +242,6 @@ class AbstractDocumentMedia(AbstractMedia):
         ext = self.file.name.split('.')[-1].lower()
         if ext not in ALLOWED_EXTENSIONS['pdf']:
             raise ValidationError(f"Invalid document extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['pdf'])}")
-        
-        max_size = get_file_size_limit('pdf')
-        if self.file.size > max_size:
-            raise ValidationError(f"Document too large. Max: {max_size / (1024 * 1024):.1f} MB")
-        
-        # بررسی cover_image برای اسناد
-        if self.cover_image and not isinstance(self.cover_image, ImageMedia):
-            raise ValidationError("Cover must be an ImageMedia instance.")
 
 # -----------------------------
 # 📦 مدل‌های Concrete اصلی

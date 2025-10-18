@@ -2,12 +2,16 @@
 
 import { useAuth } from '@/core/auth/AuthContext';
 import Image from 'next/image';
+import { mediaService } from '@/components/media/services';
 
 export function SidebarLogo() {
   const { panelSettings } = useAuth();
 
   // Use logo_detail if available, otherwise fallback to logo_url
-  const logoUrl = panelSettings?.logo_detail?.file_url || panelSettings?.logo_url;
+  const logoPath = panelSettings?.logo_detail?.file_url || panelSettings?.logo_url;
+  
+  // Use mediaService to properly construct the full URL
+  const logoUrl = logoPath ? mediaService.getMediaUrlFromObject({ file_url: logoPath } as any) : null;
 
   return (
     <div className="h-16 flex items-center justify-center border-b border-sdb-br">

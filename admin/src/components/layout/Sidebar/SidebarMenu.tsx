@@ -64,6 +64,9 @@ export const useMenuData = () => {
                             { title: "تگ‌های نمونه کار", isTitle: true },
                             { title: "لیست تگ‌ها", url: "/portfolios/tags" },
                             { title: "ایجاد تگ", url: "/portfolios/tags/create" },
+                            { title: "گزینه‌های نمونه کار", isTitle: true },
+                            { title: "لیست گزینه‌ها", url: "/portfolios/options" },
+                            { title: "ایجاد گزینه", url: "/portfolios/options/create" },
                         ],
                     },
                     {

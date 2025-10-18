@@ -60,6 +60,12 @@ class PortfolioAdminFilter(django_filters.FilterSet):
         help_text="Filter by tag slug"
     )
     
+    # Custom filter for categories__in
+    categories__in = django_filters.CharFilter(
+        method='filter_categories_in',
+        help_text="Filter by category IDs (comma-separated)"
+    )
+    
     # SEO filters
     seo_status = django_filters.ChoiceFilter(
         method='filter_seo_status',
@@ -129,7 +135,8 @@ class PortfolioAdminFilter(django_filters.FilterSet):
             'category', 'category_slug', 'tag', 'tag_slug',
             'seo_status', 'has_meta_title', 'has_meta_description',
             'has_og_image', 'has_canonical_url',
-            'search', 'has_main_image', 'media_count', 'media_count_gte'
+            'search', 'has_main_image', 'media_count', 'media_count_gte',
+            'categories__in'
         ]
     
     def filter_seo_status(self, queryset, name, value):
@@ -194,6 +201,17 @@ class PortfolioAdminFilter(django_filters.FilterSet):
         return queryset.annotate(
             media_count=Count('portfolio_medias')
         ).filter(media_count__gte=value)
+    
+    def filter_categories_in(self, queryset, name, value):
+        """Filter by category IDs (comma-separated)"""
+        if value:
+            try:
+                category_ids = [int(id.strip()) for id in value.split(',') if id.strip()]
+                if category_ids:
+                    return queryset.filter(categories__id__in=category_ids).distinct()
+            except ValueError:
+                pass  # Invalid category IDs, return all
+        return queryset
 
 
 class PortfolioSEOFilter(django_filters.FilterSet):

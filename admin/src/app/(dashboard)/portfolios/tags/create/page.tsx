@@ -12,7 +12,7 @@ import { toast } from "@/components/elements/Sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import slugify from "slugify";
+import { generateSlug } from '@/core/utils/slugUtils';
 
 export default function CreateTagPage() {
   const router = useRouter();
@@ -42,20 +42,36 @@ export default function CreateTagPage() {
   // Automatically generate slug from name (only if slug is empty)
   useEffect(() => {
     if (formData.name && !formData.slug) {
-      const generatedSlug = slugify(formData.name, { 
-        lower: true, 
-        strict: true,
-        locale: 'en' // Use English locale for consistency
-      });
+      // Use custom implementation for Persian characters with extended Unicode range
+      const generatedSlug = formData.name
+          .toLowerCase()
+          .replace(/[^\w\u0600-\u06FF\s-]/g, '') // Allow Persian characters and word characters
+          .replace(/\s+/g, '-') // Replace spaces with -
+          .replace(/-+/g, '-') // Replace multiple - with single -
+          .replace(/^-+|-+$/g, '') // Trim - from start and end
+          .substring(0, 60); // Ensure it doesn't exceed max length
       setFormData(prev => ({ ...prev, slug: generatedSlug }));
     }
   }, [formData.name, formData.slug]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // If we're updating the name field, always generate/update slug
+    if (field === "name" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      // Update both name and slug
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else {
+      // Update only the specified field
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {

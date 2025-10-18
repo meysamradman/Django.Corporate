@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/core/auth/AuthContext';
 import { useEffect } from 'react';
+import { mediaService } from '@/components/media/services';
 
 export function FaviconManager() {
   const { panelSettings } = useAuth();
@@ -13,7 +14,10 @@ export function FaviconManager() {
       existingFavicons.forEach(favicon => favicon.remove());
       
       // Use favicon_detail if available, otherwise fallback to favicon_url
-      const faviconUrl = panelSettings?.favicon_detail?.file_url || panelSettings?.favicon_url;
+      const faviconPath = panelSettings?.favicon_detail?.file_url || panelSettings?.favicon_url;
+      
+      // Use mediaService to properly construct the full URL
+      const faviconUrl = faviconPath ? mediaService.getMediaUrlFromObject({ file_url: faviconPath } as any) : null;
       
       if (faviconUrl) {
         // Create new favicon link

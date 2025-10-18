@@ -29,6 +29,7 @@ import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory"
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
 import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
+import { CategoryListParams } from "@/api/portfolios/route";
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -45,7 +46,10 @@ export default function CategoryPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({});
+  const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({
+    is_active: undefined, // اضافه کردن مقدار پیش‌فرض
+    is_public: undefined, // اضافه کردن مقدار پیش‌فرض
+  });
 
   // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -59,17 +63,20 @@ export default function CategoryPage() {
   });
 
   // Build query parameters
-  const queryParams = {
+  const queryParams: any = {
     search: searchValue,
     page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
+    // Add boolean filters - use string values directly
+    is_active: clientFilters.is_active as string || undefined, // استفاده مستقیم از مقدار string
+    is_public: clientFilters.is_public as string || undefined, // استفاده مستقیم از مقدار string
   };
 
   // Use React Query for data fetching
   const { data: categories, isLoading, error } = useQuery({
-    queryKey: ['categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
+    queryKey: ['categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
       return await portfolioApi.getCategories(queryParams);
     },
@@ -155,6 +162,50 @@ export default function CategoryPage() {
   ];
   
   const columns = useCategoryColumns(rowActions) as ColumnDef<PortfolioCategory>[];
+
+  // Load filters from URL on initial load
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Load pagination from URL
+    if (urlParams.get('page')) {
+      const page = parseInt(urlParams.get('page')!, 10);
+      if (!isNaN(page) && page > 0) {
+        setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
+      }
+    }
+    if (urlParams.get('size')) {
+      const size = parseInt(urlParams.get('size')!, 10);
+      if (!isNaN(size) && size > 0) {
+        setPagination(prev => ({ ...prev, pageSize: size }));
+      }
+    }
+    
+    // Load sorting from URL
+    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
+      const orderBy = urlParams.get('order_by')!;
+      const orderDesc = urlParams.get('order_desc') === 'true';
+      setSorting([{ id: orderBy, desc: orderDesc }]);
+    }
+    
+    // Load search from URL
+    if (urlParams.get('search')) {
+      setSearchValue(urlParams.get('search')!);
+    }
+    
+    // Load filters from URL
+    const newClientFilters: Record<string, unknown> = {};
+    if (urlParams.get('is_active') !== null) {
+      newClientFilters.is_active = urlParams.get('is_active'); // استفاده مستقیم از مقدار string
+    }
+    if (urlParams.get('is_public') !== null) {
+      newClientFilters.is_public = urlParams.get('is_public'); // استفاده مستقیم از مقدار string
+    }
+    
+    if (Object.keys(newClientFilters).length > 0) {
+      setClientFilters(newClientFilters);
+    }
+  }, []);
 
   const handleFilterChange = (filterId: string | number, value: unknown) => {
     if (filterId === "search") {

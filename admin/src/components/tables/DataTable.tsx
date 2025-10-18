@@ -29,6 +29,7 @@ import {
 
 import { DataTableSelectFilter } from "./DataTableSelectFilter"
 import { DataTableHierarchicalFilter, CategoryItem } from "./DataTableHierarchicalFilter"
+import { DataTableDateFilter } from "./DataTableDateFilter"
 import { Trash, Search } from "lucide-react"
 import { TableLoadingCompact } from "@/components/elements/TableLoading"
 import { PaginationControls } from "@/components/shared/Pagination"
@@ -47,9 +48,9 @@ export interface FilterOption {
 export interface FilterConfig {
   columnId: string;
   title: string;
-  options: FilterOption[];
+  options?: FilterOption[];
   placeholder?: string;
-  type?: 'select' | 'hierarchical';
+  type?: 'select' | 'hierarchical' | 'date';
 }
 
 export interface DeleteConfig {
@@ -168,9 +169,11 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
 
            <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
              {filterConfig.map((filter) => {
+               // برای فیلترهایی که مربوط به ستون جدول هستند
+               // بررسی می‌کنیم که ستون وجود دارد
                const column = table.getColumn(filter.columnId);
                
-               if (!column) return null;
+               if (!column && filter.columnId !== 'categories') return null;
                
                if (filter.type === 'hierarchical') {
                  return (
@@ -185,11 +188,23 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                  );
                }
                
+               if (filter.type === 'date') {
+                 return (
+                   <DataTableDateFilter
+                     key={filter.columnId}
+                     title={filter.title}
+                     value={clientFilters[filter.columnId as keyof TClientFilters] as string || undefined}
+                     onChange={(value) => onFilterChange(filter.columnId, value)}
+                     placeholder={filter.placeholder || "انتخاب تاریخ..."}
+                   />
+                 );
+               }
+               
                return (
                  <DataTableSelectFilter
                    key={filter.columnId}
                    title={filter.title}
-                   options={filter.options}
+                   options={filter.options || []}
                    placeholder={filter.placeholder || "انتخاب کنید..."}
                    value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | undefined}
                    onChange={(value) => onFilterChange(filter.columnId, value)}
@@ -197,6 +212,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                );
              })}
            </div>
+
          </div>
       </CardHeader>
 

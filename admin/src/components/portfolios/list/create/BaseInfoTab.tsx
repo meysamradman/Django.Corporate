@@ -9,19 +9,33 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Button } from "@/components/elements/Button";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
-import { FileText, Plus, FolderOpen, Tag } from "lucide-react";
+import { FileText, Plus, FolderOpen, Tag, X } from "lucide-react";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import slugify from "slugify";
+import { formatSlug } from '@/core/utils/slugUtils';
 
 interface BaseInfoTabProps {
     formData: any;
     handleInputChange: (field: string, value: string) => void;
     editMode: boolean;
+    selectedCategory: string;
+    selectedTags: PortfolioTag[];
+    onCategoryChange: (value: string) => void;
+    onTagToggle: (tag: PortfolioTag) => void;
+    onTagRemove: (tagId: number) => void;
 }
 
-export default function BaseInfoTab({ formData, handleInputChange, editMode }: BaseInfoTabProps) {
+export default function BaseInfoTab({ 
+    formData, 
+    handleInputChange, 
+    editMode,
+    selectedCategory,
+    selectedTags,
+    onCategoryChange,
+    onTagToggle,
+    onTagRemove
+}: BaseInfoTabProps) {
     const [categories, setCategories] = useState<PortfolioCategory[]>([]);
     const [tags, setTags] = useState<PortfolioTag[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
@@ -58,15 +72,8 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
 
     // Automatically generate slug from name when name changes and slug is empty
     useEffect(() => {
-        if (formData.name && !formData.slug) {
-            const generatedSlug = slugify(formData.name, { 
-                lower: true, 
-                strict: true,
-                locale: 'en' // Use English locale for consistency
-            });
-            handleInputChange("slug", generatedSlug);
-        }
-    }, [formData.name]);
+        // Slug generation is now handled in the parent component
+    });
 
     return (
         <TabsContent value="account" className="mt-6">
@@ -85,7 +92,9 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                                         <Input
                                             id="name"
                                             value={formData.name}
-                                            onChange={(e) => handleInputChange("name", e.target.value)}
+                                            onChange={(e) => {
+                                                handleInputChange("name", e.target.value);
+                                            }}
                                             disabled={!editMode}
                                             placeholder="نام نمونه‌کار"
                                         />
@@ -95,7 +104,11 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                                         <Input
                                             id="slug"
                                             value={formData.slug}
-                                            onChange={(e) => handleInputChange("slug", e.target.value)}
+                                            onChange={(e) => {
+                                                // Format the slug as the user types
+                                                const formattedSlug = formatSlug(e.target.value);
+                                                handleInputChange("slug", formattedSlug);
+                                            }}
                                             disabled={!editMode}
                                             placeholder="my-portfolio-item"
                                         />
@@ -140,7 +153,11 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                                 </Label>
                                 <div className="flex gap-4 w-full">
                                     <div className="flex-1">
-                                        <Select disabled={!editMode || loadingCategories}>
+                                        <Select 
+                                            disabled={!editMode || loadingCategories}
+                                            value={selectedCategory}
+                                            onValueChange={onCategoryChange}
+                                        >
                                             <SelectTrigger className="w-full">
                                                 <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "دسته‌بندی را انتخاب کنید"} />
                                             </SelectTrigger>
@@ -171,31 +188,64 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                                     <Tag className="w-4 h-4 text-green-500" />
                                     تگ‌ها *
                                 </Label>
-                                <div className="flex gap-4 w-full">
-                                    <div className="flex-1">
-                                        <Select disabled={!editMode || loadingTags}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {tags.map((tag) => (
-                                                    <SelectItem key={tag.id} value={String(tag.id)}>
-                                                        {tag.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                <div className="space-y-2">
+                                    {/* Display selected tags */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedTags.map(tag => (
+                                            <span 
+                                                key={tag.id} 
+                                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
+                                            >
+                                                {tag.name}
+                                                <button 
+                                                    type="button" 
+                                                    className="ml-1 text-green-800 hover:text-green-900"
+                                                    onClick={() => onTagRemove(tag.id)}
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </span>
+                                        ))}
                                     </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="p-0 bg-green-50 hover:bg-green-100 border-green-200 flex-shrink-0"
-                                        style={{ height: '34px', width: '34px' }}
-                                        disabled={!editMode}
-                                    >
-                                        <Plus className="w-3 h-3 text-green-600" />
-                                    </Button>
+                                    
+                                    {/* Tag selection dropdown */}
+                                    <div className="flex gap-4 w-full">
+                                        <div className="flex-1">
+                                            <Select 
+                                                disabled={!editMode || loadingTags}
+                                                onValueChange={(value) => {
+                                                    const tag = tags.find(t => String(t.id) === value);
+                                                    if (tag) onTagToggle(tag);
+                                                }}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {tags
+                                                        .filter(tag => !selectedTags.some(selected => selected.id === tag.id))
+                                                        .map((tag) => (
+                                                            <SelectItem 
+                                                                key={tag.id} 
+                                                                value={String(tag.id)}
+                                                            >
+                                                                {tag.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="p-0 bg-green-50 hover:bg-green-100 border-green-200 flex-shrink-0"
+                                            style={{ height: '34px', width: '34px' }}
+                                            disabled={!editMode}
+                                        >
+                                            <Plus className="w-3 h-3 text-green-600" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

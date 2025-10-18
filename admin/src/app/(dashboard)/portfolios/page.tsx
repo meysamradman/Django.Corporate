@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
 import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
-import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";
+import { usePortfolioFilterOptions, getPortfolioFilterConfig, PortfolioFilters } from "@/components/portfolios/list/PortfolioTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import Link from "next/link";
@@ -26,10 +26,32 @@ import {
 } from "@/components/elements/AlertDialog";
 
 import { Portfolio } from "@/types/portfolio/portfolio";
-import { PortfolioFilters } from "@/components/portfolios/list/PortfolioTableFilters";
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
 import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
+import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+
+// تابع تبدیل دسته‌بندی‌ها به فرمت سلسله مراتبی
+const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
+  // ابتدا دسته‌بندی‌های ریشه را پیدا می‌کنیم
+  const rootCategories = categories.filter(cat => !cat.parent_id);
+  
+  // تابع بازگشتی برای ساخت درخت
+  const buildTree = (category: PortfolioCategory): any => {
+    const children = categories.filter(cat => cat.parent_id === category.id);
+    
+    return {
+      id: category.id,
+      label: category.name,
+      value: category.id.toString(),
+      parent_id: category.parent_id,
+      children: children.map(buildTree)
+    };
+  };
+  
+  // ساخت درخت برای هر دسته‌بندی ریشه
+  return rootCategories.map(buildTree);
+};
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -37,8 +59,11 @@ export default function PortfolioPage() {
   const { getCRUDProps } = usePermissionProps();
   const portfolioAccess = getCRUDProps('portfolio');
   const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
-  const portfolioFilterConfig = getPortfolioFilterConfig(statusFilterOptions, booleanFilterOptions);
-
+  
+  // استیت برای دسته‌بندی‌ها
+  const [categories, setCategories] = useState<PortfolioCategory[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
+  
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -59,6 +84,34 @@ export default function PortfolioPage() {
     isBulk: false,
   });
 
+  // دریافت دسته‌بندی‌ها
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await portfolioApi.getCategories({
+          page: 1,
+          size: 1000, // دریافت همه دسته‌بندی‌ها
+          is_active: true,
+          is_public: true
+        });
+        
+        setCategories(response.data);
+        setCategoryOptions(convertCategoriesToHierarchical(response.data));
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
+
+  // ساخت کانفیگ فیلترها
+  const portfolioFilterConfig = getPortfolioFilterConfig(
+    statusFilterOptions, 
+    booleanFilterOptions,
+    categoryOptions
+  );
+
   // Build query parameters
   const queryParams = {
     search: searchValue,
@@ -70,31 +123,23 @@ export default function PortfolioPage() {
     status: clientFilters.status as string,
     is_featured: clientFilters.is_featured as boolean | undefined,
     is_public: clientFilters.is_public as boolean | undefined,
+    is_active: clientFilters.is_active as boolean | undefined, // اضافه کردن فیلتر فعال بودن
+    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined, // تبدیل دسته‌بندی به رشته
   };
 
   // Use React Query for data fetching
   const { data: portfolios, isLoading, error } = useQuery({
-    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public],
+    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
     queryFn: async () => {
-      console.log('🔍 Fetching portfolios with params:', queryParams); // Debug log
       const response = await portfolioApi.getPortfolioList(queryParams);
-      console.log('🔍 Portfolio API Response:', response);
       return response;
     },
     staleTime: 0, // Always fetch fresh data
+    retry: 1, // Retry once on failure
   });
 
   const data: Portfolio[] = portfolios?.data || [];
   const pageCount = portfolios?.pagination?.total_pages || 1;
-  
-  // Log the data to see what we're getting
-  console.log('📊 Portfolio Data:', data);
-  console.log('📊 Portfolio Pagination:', portfolios?.pagination);
-  console.log('📊 Calculated Page Count:', pageCount);
-  console.log('📊 Is Loading:', isLoading);
-  console.log('📊 Error:', error);
-  console.log('📊 Query Params:', queryParams);
-  console.log('📊 Pagination State:', pagination); // Debug log
 
   const deletePortfolioMutation = useMutation({
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
@@ -189,7 +234,7 @@ export default function PortfolioPage() {
       // Handle other filters
       setClientFilters(prev => ({
         ...prev,
-        [filterKey]: value as string | boolean | undefined
+        [filterKey]: value as string | boolean | number | undefined
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
@@ -199,6 +244,13 @@ export default function PortfolioPage() {
         // For boolean values, convert to string
         if (typeof value === 'boolean') {
           url.searchParams.set(filterKey, value.toString());
+        } else if (filterKey === 'categories' && value !== undefined) {
+          // For categories, we need to handle the value correctly
+          if (value === 'all' || value === '') {
+            url.searchParams.delete('categories');
+          } else {
+            url.searchParams.set(filterKey, String(value));
+          }
         } else {
           url.searchParams.set(filterKey, String(value));
         }
@@ -246,7 +298,7 @@ export default function PortfolioPage() {
   };
 
   // Load filters from URL on initial load
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
     // Load pagination from URL
@@ -286,6 +338,15 @@ export default function PortfolioPage() {
     if (urlParams.get('is_public') !== null) {
       newClientFilters.is_public = urlParams.get('is_public') === 'true';
     }
+    if (urlParams.get('is_active') !== null) { // اضافه کردن فیلتر فعال بودن
+      newClientFilters.is_active = urlParams.get('is_active') === 'true';
+    }
+    if (urlParams.get('categories')) {
+      // Convert to number if it's a valid number, otherwise keep as string
+      const categoriesValue = urlParams.get('categories')!;
+      const numValue = parseInt(categoriesValue, 10);
+      newClientFilters.categories = isNaN(numValue) ? categoriesValue : numValue;
+    }
     
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
@@ -301,11 +362,25 @@ export default function PortfolioPage() {
         </div>
         <div className="text-center py-8">
           <p className="text-red-500 mb-4">خطا در بارگذاری داده‌ها</p>
+          <p className="text-sm text-gray-500 mb-4">
+            سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
+          </p>
           <Button 
             onClick={() => window.location.reload()} 
             className="mt-4"
           >
             تلاش مجدد
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => {
+              // Clear any cached data and retry
+              queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+              window.location.reload();
+            }}
+            className="mt-4 mr-2"
+          >
+            پاک کردن کش و تلاش مجدد
           </Button>
         </div>
       </div>

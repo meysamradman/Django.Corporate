@@ -10,11 +10,12 @@ class PortfolioOption(BaseModel, SEOMixin):
         Portfolio, 
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="portfolio_options"
     )
     # Core fields
     name = models.CharField(max_length=100, unique=True, db_index=True)
-    slug = models.SlugField(max_length=60, unique=True, db_index=True)
+    slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     description = models.TextField(null=True, blank=True)
     is_public = models.BooleanField(default=True, db_index=True)
     

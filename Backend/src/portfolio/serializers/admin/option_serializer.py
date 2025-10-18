@@ -10,8 +10,8 @@ class PortfolioOptionAdminListSerializer(CountsMixin, serializers.ModelSerialize
     class Meta:
         model = PortfolioOption
         fields = [
-            'id', 'public_id', 'key', 'value', 'description', 
-            'is_active', 'portfolio_count', 'created_at', 'updated_at'
+            'id', 'public_id', 'name', 'slug', 'description', 
+            'is_active', 'is_public', 'portfolio_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
@@ -29,8 +29,8 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioOption
         fields = [
-            'id', 'public_id', 'key', 'value', 'description', 
-            'is_active', 'portfolio_count', 'related_options', 'popular_portfolios',
+            'id', 'public_id', 'name', 'slug', 'description', 
+            'is_active', 'is_public', 'portfolio_count', 'related_options', 'popular_portfolios',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -40,13 +40,13 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
         return getattr(obj, 'portfolio_count', obj.portfolio_options.count())
     
     def get_related_options(self, obj):
-        """Get other options with same key"""
-        if not obj.key:
+        """Get other options with same name"""
+        if not obj.name:
             return []
         
         related = PortfolioOption.objects.filter(
-            key=obj.key, is_active=True
-        ).exclude(id=obj.id).order_by('value')[:5]
+            name=obj.name, is_active=True
+        ).exclude(id=obj.id).order_by('name')[:5]
         
         return [
             {
@@ -82,40 +82,32 @@ class PortfolioOptionAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioOption
         fields = [
-            'key', 'value', 'description', 'is_active'
+            'name', 'slug', 'description', 'is_active', 'is_public'
         ]
     
     def validate(self, data):
-        """Validate key-value combination"""
-        key = data.get('key')
-        value = data.get('value')
+        """Validate name uniqueness"""
+        name = data.get('name')
         
-        if key and value:
-            if PortfolioOption.objects.filter(key=key, value=value).exists():
+        if name:
+            if PortfolioOption.objects.filter(name=name).exists():
                 raise serializers.ValidationError({
-                    'non_field_errors': [f'گزینه با کلید "{key}" و مقدار "{value}" قبلاً وجود دارد.']
+                    'non_field_errors': [f'گزینه با نام "{name}" قبلاً وجود دارد.']
                 })
         
         return data
     
-    def validate_key(self, value):
-        """Validate key format"""
+    def validate_name(self, value):
+        """Validate name"""
         if not value or not value.strip():
-            raise serializers.ValidationError("کلید نمی‌تواند خالی باشد.")
-        
-        # Key should be alphanumeric with underscores/hyphens
-        import re
-        if not re.match(r'^[a-zA-Z0-9_-]+$', value):
-            raise serializers.ValidationError(
-                "کلید فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد."
-            )
+            raise serializers.ValidationError("نام نمی‌تواند خالی باشد.")
         
         return value
     
-    def validate_value(self, value):
-        """Validate value"""
+    def validate_slug(self, value):
+        """Validate slug"""
         if not value or not value.strip():
-            raise serializers.ValidationError("مقدار نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError("اسلاگ نمی‌تواند خالی باشد.")
         return value
 
 
@@ -125,42 +117,34 @@ class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioOption
         fields = [
-            'key', 'value', 'description', 'is_active'
+            'name', 'slug', 'description', 'is_active', 'is_public'
         ]
     
     def validate(self, data):
-        """Validate key-value combination excluding current instance"""
-        key = data.get('key')
-        value = data.get('value')
+        """Validate name uniqueness excluding current instance"""
+        name = data.get('name')
         
-        if key and value:
+        if name and self.instance:
             if PortfolioOption.objects.exclude(
                 id=self.instance.id
-            ).filter(key=key, value=value).exists():
+            ).filter(name=name).exists():
                 raise serializers.ValidationError({
-                    'non_field_errors': [f'گزینه با کلید "{key}" و مقدار "{value}" قبلاً وجود دارد.']
+                    'non_field_errors': [f'گزینه با نام "{name}" قبلاً وجود دارد.']
                 })
         
         return data
     
-    def validate_key(self, value):
-        """Validate key format"""
+    def validate_name(self, value):
+        """Validate name"""
         if not value or not value.strip():
-            raise serializers.ValidationError("کلید نمی‌تواند خالی باشد.")
-        
-        # Key should be alphanumeric with underscores/hyphens
-        import re
-        if not re.match(r'^[a-zA-Z0-9_-]+$', value):
-            raise serializers.ValidationError(
-                "کلید فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد."
-            )
+            raise serializers.ValidationError("نام نمی‌تواند خالی باشد.")
         
         return value
     
-    def validate_value(self, value):
-        """Validate value"""
+    def validate_slug(self, value):
+        """Validate slug"""
         if not value or not value.strip():
-            raise serializers.ValidationError("مقدار نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError("اسلاگ نمی‌تواند خالی باشد.")
         return value
 
 
@@ -169,7 +153,7 @@ class PortfolioOptionSimpleAdminSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PortfolioOption
-        fields = ['id', 'public_id', 'key', 'value']
+        fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = ['id', 'public_id']
 
 

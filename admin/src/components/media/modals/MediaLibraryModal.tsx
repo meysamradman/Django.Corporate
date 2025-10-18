@@ -33,6 +33,7 @@ import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { toast } from "@/components/elements/Sonner";
 import { mediaService } from '@/components/media/services';
+import { env } from '@/core/config/environment';
 import { Card, CardContent } from "@/components/elements/Card";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
@@ -441,12 +442,6 @@ export function MediaLibraryModal({
                               const isSelected = !!selectedMedia[item.id];
                               const displayName = item.title || item.original_file_name || item.file_name || 'Untitled';
                               
-                              // Use the shared service to get cover image URL
-                              const coverImageUrl = mediaService.getMediaCoverUrl(item);
-                              
-                              // Create a modified media object with cover image URL if available
-                              const mediaWithCover = coverImageUrl ? {...item, file_url: coverImageUrl} : item;
-
                               return (
                                   <div
                                       key={`media-item-${item.media_type}-${item.id}`}
@@ -462,7 +457,7 @@ export function MediaLibraryModal({
                                   >
                                       <div className="relative w-full h-full">
                                           <MediaPreview
-                                              media={mediaWithCover}
+                                              media={item}
                                               className="h-full"
                                               showPlayIcon={true}
                                           />

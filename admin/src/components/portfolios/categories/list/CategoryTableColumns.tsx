@@ -53,9 +53,12 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
         const category = row.original;
-        const imageUrl = category.image 
-          ? mediaService.getMediaUrlFromObject(category.image)
-          : "";
+        // Use image_url field from API response
+        const imageUrl = category.image_url 
+          ? mediaService.getMediaUrlFromObject({ file_url: category.image_url } as any)
+          : category.image 
+            ? mediaService.getMediaUrlFromObject(category.image)
+            : "";
           
         const getInitial = () => {
           if (!category.name) return "؟";

@@ -21,6 +21,15 @@ import {
 import { PaginationControlsProps } from '@/types/shared/pagination';
 
 const generatePaginationRange = (currentPage: number, totalPages: number, siblingCount: number): (number | '...')[] => {
+  // Handle edge cases
+  if (totalPages <= 0) {
+    return [];
+  }
+  
+  if (totalPages === 1) {
+    return [1];
+  }
+
   const totalPageNumbers = siblingCount + 5;
 
   if (totalPages <= totalPageNumbers) {
@@ -73,7 +82,7 @@ export function PaginationControls({
   showFirstLast = true,
   showPageNumbers = true
 }: PaginationControlsProps) {
-  // اگر totalPages صفر یا منفی باشه، فقط info و page size نمایش بده
+  // Handle edge cases
   if (totalPages <= 0) {
     return (
       <div className={cn("flex w-full flex-col items-center justify-between gap-4 overflow-auto px-0 sm:flex-row sm:gap-8", className)} dir="rtl">
@@ -111,7 +120,10 @@ export function PaginationControls({
     );
   }
 
-  const paginationRange = generatePaginationRange(currentPage, totalPages, siblingCount);
+  // Make sure currentPage is within valid range
+  const validCurrentPage = Math.max(1, Math.min(currentPage, totalPages));
+  
+  const paginationRange = generatePaginationRange(validCurrentPage, totalPages, siblingCount);
 
   return (
     <div className={cn("flex w-full flex-col items-center justify-between gap-4 overflow-auto px-0 sm:flex-row sm:gap-8", className)} dir="rtl">
@@ -154,7 +166,7 @@ export function PaginationControls({
                 <PaginationLink
                   onClick={() => onPageChange(1)}
                   isActive={false}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className={validCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                   aria-label="صفحه اول"
                 >
                   <ChevronsLeft className="h-4 w-4" />
@@ -165,9 +177,9 @@ export function PaginationControls({
             {/* Previous Page Button */}
             <PaginationItem>
               <PaginationLink
-                onClick={() => onPageChange(currentPage - 1)}
+                onClick={() => onPageChange(validCurrentPage - 1)}
                 isActive={false}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={validCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 aria-label="صفحه قبل"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -188,8 +200,8 @@ export function PaginationControls({
                 <PaginationItem key={pageNumber}>
                   <PaginationLink
                     onClick={() => onPageChange(pageNumber as number)}
-                    isActive={pageNumber === currentPage}
-                    className={pageNumber !== currentPage ? "cursor-pointer" : "cursor-default"}
+                    isActive={pageNumber === validCurrentPage}
+                    className={pageNumber !== validCurrentPage ? "cursor-pointer" : "cursor-default"}
                   >
                     {pageNumber}
                   </PaginationLink>
@@ -200,9 +212,9 @@ export function PaginationControls({
             {/* Next Page Button */}
             <PaginationItem>
               <PaginationLink
-                onClick={() => onPageChange(currentPage + 1)}
+                onClick={() => onPageChange(validCurrentPage + 1)}
                 isActive={false}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={validCurrentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 aria-label="صفحه بعد"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -215,7 +227,7 @@ export function PaginationControls({
                 <PaginationLink
                   onClick={() => onPageChange(totalPages)}
                   isActive={false}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className={validCurrentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                   aria-label="صفحه آخر"
                 >
                   <ChevronsRight className="h-4 w-4" />

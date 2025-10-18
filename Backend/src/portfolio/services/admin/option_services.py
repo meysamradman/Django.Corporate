@@ -16,18 +16,17 @@ class PortfolioOptionAdminService:
         if filters:
             if filters.get('is_active') is not None:
                 queryset = queryset.filter(is_active=filters['is_active'])
-            if filters.get('key'):
-                queryset = queryset.filter(key=filters['key'])
+            if filters.get('name'):
+                queryset = queryset.filter(name=filters['name'])
         
         if search:
             queryset = queryset.filter(
-                Q(key__icontains=search) |
-                Q(value__icontains=search) |
+                Q(name__icontains=search) |
                 Q(description__icontains=search)
             )
         
-        # Order by usage count and key
-        return queryset.order_by('-portfolio_count', 'key')
+        # Order by usage count and name
+        return queryset.order_by('-portfolio_count', 'name')
     
     @staticmethod
     def get_option_by_id(option_id):
@@ -49,19 +48,18 @@ class PortfolioOptionAdminService:
     @staticmethod
     def create_option(validated_data, created_by=None):
         """Create option with validation"""
-        # Check for duplicate key-value pairs
-        key = validated_data.get('key')
-        value = validated_data.get('value')
+        # Check for duplicate name
+        name = validated_data.get('name')
         
-        if key and value:
+        if name:
             existing = PortfolioOption.objects.filter(
-                key=key, value=value
+                name=name
             ).first()
             
             if existing:
                 return {
                     'success': False,
-                    'error': f'Option with key "{key}" and value "{value}" already exists.',
+                    'error': f'Option with name "{name}" already exists.',
                     'existing_option': existing
                 }
         
@@ -138,10 +136,10 @@ class PortfolioOptionAdminService:
         used_options = PortfolioOption.objects.filter(
             id__in=option_ids,
             portfolio_options__isnull=False
-        ).distinct().values_list('id', 'key', 'value')
+        ).distinct().values_list('id', 'name')
         
         if used_options:
-            used_names = [f'{key}:{value}' for _, key, value in used_options]
+            used_names = [f'{name}' for _, name in used_options]
             return {
                 'success': False,
                 'error': f'Cannot delete options that are in use: {", ".join(used_names)}'
@@ -162,10 +160,10 @@ class PortfolioOptionAdminService:
     
     @staticmethod
     def get_options_by_key(key):
-        """Get all options with specific key"""
+        """Get all options with specific name"""
         return PortfolioOption.objects.filter(
-            key=key, is_active=True
-        ).order_by('value')
+            name=key, is_active=True
+        ).order_by('name')
     
     @staticmethod
     def get_popular_options(limit=10):
@@ -179,7 +177,7 @@ class PortfolioOptionAdminService:
             ).filter(
                 usage_count__gt=0
             ).order_by('-usage_count')[:limit].values(
-                'id', 'key', 'value', 'usage_count'
+                'id', 'name', 'usage_count'
             ))
             cache.set(cache_key, options, 3600)  # 1 hour cache
         
@@ -187,8 +185,8 @@ class PortfolioOptionAdminService:
     
     @staticmethod
     def get_unique_keys():
-        """Get all unique option keys"""
+        """Get all unique option names"""
         return PortfolioOption.objects.values_list(
-            'key', flat=True
-        ).distinct().order_by('key')
+            'name', flat=True
+        ).distinct().order_by('name')
 

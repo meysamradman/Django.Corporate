@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
+import { env } from '@/core/config/environment';
 import { cn } from '@/core/utils/cn';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
@@ -36,6 +37,9 @@ export function MediaPlayer({
 
   // Get media URL
   const mediaUrl = mediaService.getMediaUrlFromObject(media);
+  
+  // Ensure we have a full URL for media playback
+  const fullMediaUrl = mediaUrl.startsWith('/') ? `${env.MEDIA_BASE_URL}${mediaUrl}` : mediaUrl;
 
   // Handle play/pause
   const togglePlayPause = () => {
@@ -176,7 +180,7 @@ export function MediaPlayer({
       return (
         <video
           ref={mediaRef as React.RefObject<HTMLVideoElement>}
-          src={mediaUrl}
+          src={fullMediaUrl}
           className="w-full h-full object-contain"
           controls={controls}
           autoPlay={autoPlay}
@@ -188,7 +192,7 @@ export function MediaPlayer({
       return (
         <audio
           ref={mediaRef as React.RefObject<HTMLAudioElement>}
-          src={mediaUrl}
+          src={fullMediaUrl}
           controls={controls}
           autoPlay={autoPlay}
           muted={isMuted}

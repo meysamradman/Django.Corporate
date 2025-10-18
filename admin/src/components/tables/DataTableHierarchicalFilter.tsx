@@ -69,9 +69,14 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
     if (newValue === "all") {
       onChange(undefined)
     } else {
+      // Find the original value type (number or string) from the items
       const findItemValue = (items: CategoryItem[]): TValue | undefined => {
         for (const item of items) {
-          if (item.value === newValue) return item.id as TValue;
+          if (item.value === newValue) {
+            // Return the original id type (number or string)
+            const id = item.id;
+            return (typeof value === 'number' && typeof id === 'number') ? id as TValue : String(id) as TValue;
+          }
           if (item.children?.length) {
             const childValue = findItemValue(item.children);
             if (childValue !== undefined) return childValue;
@@ -95,10 +100,10 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
           className="flex items-center"
         >
           <div
-            style={{ marginLeft: `${depth * 16}px` }}
+            style={{ marginRight: `${depth * 16}px` }}
             className={cn(
               "flex items-center flex-1",
-              depth > 0 && "relative before:absolute before:left-[-8px] before:h-full before:w-[2px] before:bg-muted/50"
+              depth > 0 && "relative before:absolute before:right-[-8px] before:h-full before:w-[2px] before:bg-muted/50"
             )}
           >
             {item.children?.length ? (
@@ -175,4 +180,4 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
       </Popover>
     </div>
   )
-} 
+}

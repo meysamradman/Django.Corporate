@@ -145,7 +145,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setPanelSettings(null);
         }
     } catch (error) {
-        console.error('AuthContext: Error fetching panel settings:', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('AuthContext: Error fetching panel settings:', error);
+        }
         setPanelSettings(null);
     }
   }, []);

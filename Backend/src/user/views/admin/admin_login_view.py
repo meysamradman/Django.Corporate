@@ -65,7 +65,7 @@ class AdminLoginView(CaptchaRequiredMixin, APIView):
                 if user is not None and user.is_staff and user.has_admin_access():
                     if user.is_active:
                         login(request, user)
-                        csrf_token = get_token(request)
+                        # Remove csrf_token from response for security
                         response_data = {
                             "user": {
                                 "id": user.id,
@@ -73,15 +73,12 @@ class AdminLoginView(CaptchaRequiredMixin, APIView):
                                 "email": user.email,
                                 "is_staff": user.is_staff,
                                 "is_superuser": user.is_superuser,
-                            },
-                            "csrf_token": csrf_token
+                            }
                         }
                         # Now using standard DRF Response - renderer will format it
                         return Response(response_data, status=status.HTTP_200_OK)
                     else:
                         raise AuthenticationFailed(AUTH_ERRORS["auth_inactive_account"])
-                else:
-                    raise AuthenticationFailed(AUTH_ERRORS["auth_invalid_credentials"])
 
             except AuthenticationFailed as e:
                 # Renderer will format this error response

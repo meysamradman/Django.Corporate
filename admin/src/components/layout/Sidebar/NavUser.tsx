@@ -20,7 +20,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
   const displayUser = user || {
     full_name: "کاربر",
     email: 'user@example.com',
-    is_super: false,
+    is_superuser: false,
     profile: null
   };
 
@@ -52,8 +52,8 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
 
   // Get profile image URL
   const getProfileImageUrl = () => {
-    if (displayUser.profile?.profile_picture?.url) {
-      return mediaService.getUserProfileImageUrl(displayUser.profile.profile_picture.url);
+    if (displayUser.profile?.profile_picture?.file_url) {
+      return mediaService.getMediaUrlFromObject(displayUser.profile.profile_picture);
     }
     return null;
   };
@@ -101,7 +101,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
             size === 'md' && "text-xs",
             size === 'lg' && "text-sm"
           )}>
-            {displayUser.is_super ? 'مدیر ارشد' : 'مدیر'}
+            {displayUser.is_superuser ? 'مدیر ارشد' : 'مدیر'}
           </span>
         </div>
       )}

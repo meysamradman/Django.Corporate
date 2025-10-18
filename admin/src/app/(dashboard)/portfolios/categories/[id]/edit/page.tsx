@@ -13,9 +13,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import slugify from "slugify";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
 import { Media } from "@/types/shared/media";
+import { generateSlug } from '@/core/utils/slugUtils';
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -49,6 +49,22 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Function to render category with indentation based on level
+  const renderCategoryOption = (category: PortfolioCategory) => {
+    // Calculate indentation based on category level
+    const level = category.level || 1;
+    const indentation = " ".repeat(level - 1); // Using em space for better alignment
+    
+    // Add indicator for root categories
+    const prefix = level === 1 ? "📂 " : "├─ ";
+    
+    return (
+      <SelectItem key={category.id} value={category.id.toString()}>
+        {indentation}{prefix}{category.name}
+      </SelectItem>
+    );
+  };
+
   // Update form data when category data is fetched
   useEffect(() => {
     if (category) {
@@ -79,23 +95,24 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     },
   });
 
-  // Automatically generate slug from name (only if slug is empty)
-  useEffect(() => {
-    if (formData.name && !formData.slug) {
-      const generatedSlug = slugify(formData.name, { 
-        lower: true, 
-        strict: true,
-        locale: 'en' // Use English locale for consistency
-      });
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name, formData.slug]);
-
   const handleInputChange = (field: string, value: string | boolean | number | null) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // If we're updating the name field, always generate/update slug
+    if (field === "name" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      // Update both name and slug
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else {
+      // Update only the specified field
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleParentChange = (value: string) => {
@@ -200,16 +217,15 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                   <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="null">بدون والد</SelectItem>
+                  <SelectItem value="null">بدون والد (دسته‌بندی مادر)</SelectItem>
                   {categories?.data
                     ?.filter(cat => cat.id !== categoryId) // Exclude current category
-                    .map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    .map((category) => renderCategoryOption(category))}
                 </SelectContent>
               </Select>
+              <p className="text-sm text-muted-foreground">
+                دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند.
+              </p>
             </div>
 
             <div className="space-y-2">

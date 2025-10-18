@@ -12,6 +12,7 @@ export interface PortfolioCategory extends Base {
     level?: number | null;
     parent?: Pick<PortfolioCategory, 'id' | 'public_id'> | null;
     image?: Media | null;
+    image_url?: string | null; // Add this field to match the API response
     seo?: PortfolioSEOMeta | null;
     description?: string;
 }

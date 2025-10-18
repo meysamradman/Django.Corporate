@@ -35,8 +35,8 @@ class AdminRegisterView(APIView):
                         "is_active": user.is_active,
                         "is_staff": user.is_staff,
                         "is_superuser": user.is_superuser
-                    },
-                    "csrf_token": get_token(request)
+                    }
+                    # Remove csrf_token from response for security
                 }
 
                 # The renderer will automatically format this response
