@@ -190,16 +190,16 @@ CSRF_EXEMPT_ADMIN_VIEWS = True  # New setting to disable CSRF for admin API endp
 
 # Admin Session Settings (Using Django Sessions)
 SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_AGE = 12 * 60 * 60 # 12 hours (previously 60 for testing)
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60  # 3 days default
+SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
 
-USER_ACCESS_TOKEN_LIFETIME = timedelta(days=1)
-USER_REFRESH_TOKEN_LIFETIME = timedelta(days=15)
+USER_ACCESS_TOKEN_LIFETIME = timedelta(days=int(os.getenv('USER_ACCESS_TOKEN_LIFETIME_DAYS', 1)))
+USER_REFRESH_TOKEN_LIFETIME = timedelta(days=int(os.getenv('USER_REFRESH_TOKEN_LIFETIME_DAYS', 15)))
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=int(os.getenv('USER_ACCESS_TOKEN_LIFETIME_DAYS', 1))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.getenv('USER_REFRESH_TOKEN_LIFETIME_DAYS', 15))),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
@@ -216,8 +216,8 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_PATH': '/',
     'AUTH_COOKIE_SAMESITE': 'Lax',              # Set SameSite to 'Lax' (Recommended) or 'Strict'
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(days=1), # Match ACCESS_TOKEN_LIFETIME
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=15), # Match REFRESH_TOKEN_LIFETIME
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=int(os.getenv('USER_ACCESS_TOKEN_LIFETIME_DAYS', 1))), # Match ACCESS_TOKEN_LIFETIME
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=int(os.getenv('USER_REFRESH_TOKEN_LIFETIME_DAYS', 15))), # Match REFRESH_TOKEN_LIFETIME
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -251,11 +251,11 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
-        'TIMEOUT': 3600,  # 1 hour
+        'TIMEOUT': int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,  # 3 days default
     }
 }
 
-CACHE_TTL = 60 * 15
+CACHE_TTL = int(os.getenv('DEFAULT_CACHE_TIMEOUT_SECONDS', 60 * 15))
 
 # CAPTCHA Settings
 CAPTCHA_EXPIRY_SECONDS = int(os.getenv('CAPTCHA_EXPIRY_SECONDS', 300))  # 5 minutes

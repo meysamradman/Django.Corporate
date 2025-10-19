@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from rest_framework.response import Response
 from django.conf import settings
@@ -70,11 +71,11 @@ class UserCookie(BaseCookie):
     
     @classmethod
     def get_access_token_lifetime(cls):
-        return getattr(settings, 'USER_ACCESS_TOKEN_LIFETIME', timedelta(minutes=15))
+        return getattr(settings, 'USER_ACCESS_TOKEN_LIFETIME', timedelta(days=int(os.getenv('USER_ACCESS_TOKEN_LIFETIME_DAYS', 1))))
     
     @classmethod
     def get_refresh_token_lifetime(cls):
-        return getattr(settings, 'USER_REFRESH_TOKEN_LIFETIME', timedelta(days=7))
+        return getattr(settings, 'USER_REFRESH_TOKEN_LIFETIME', timedelta(days=int(os.getenv('USER_REFRESH_TOKEN_LIFETIME_DAYS', 15))))
     
     @classmethod
     def get_samesite_setting(cls):
@@ -96,7 +97,7 @@ class AdminSessionCookie:
             httponly=True,
             secure=not settings.DEBUG,
             samesite='Strict',
-            max_age=3600,  # 1 hour
+            max_age=int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,  # 3 days default
         )
         return response
     

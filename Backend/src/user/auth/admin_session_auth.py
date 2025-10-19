@@ -1,3 +1,4 @@
+import os
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
@@ -75,8 +76,8 @@ class AdminSessionAuthentication(BaseAuthentication):
                 user_id = session.get_decoded().get('_auth_user_id')
                 if user_id:
                     user = User.objects.get(id=user_id)
-                    # Cache for 5 minutes
-                    cache.set(cache_key, user_id, 300)
+                    # Cache for 3 days default
+                    cache.set(cache_key, user_id, int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
                     return user
             except Session.DoesNotExist:
                 pass
@@ -101,7 +102,7 @@ class AdminSessionAuthentication(BaseAuthentication):
         try:
             # Update in cache to avoid frequent DB writes
             cache_key = f"admin_last_activity_{user.id}"
-            cache.set(cache_key, timezone.now().isoformat(), 3600)  # 1 hour
+            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)  # 3 days default
         except Exception as e:
             logger.warning(f"Failed to update user activity: {e}")
 
@@ -122,11 +123,12 @@ class AdminSessionService:
         request.session['_auth_user_id'] = str(user.id)
         request.session['user_type'] = 'admin'
         request.session['login_time'] = timezone.now().isoformat()
+        request.session.set_expiry(int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
         request.session.save()
         
         # Cache session data
         cache_key = f"admin_session_{request.session.session_key}"
-        cache.set(cache_key, user.id, 3600)  # 1 hour
+        cache.set(cache_key, user.id, int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)  # 3 days default
         
         # Update user login info
         user.last_login_admin = timezone.now()

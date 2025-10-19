@@ -8,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Save, ChevronDown, ChevronRight } from "lucide-react";
+import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 
 
 const roleSchema = z.object({
@@ -28,17 +30,7 @@ export default function CreateRolePage() {
   const createRoleMutation = useCreateRole();
   const { data: permissions, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
   
-  // Debug log for permissions
-  React.useEffect(() => {
-    console.log('🔍 Permissions Debug:', {
-      permissions,
-      isLoading: permissionsLoading,
-      error: permissionsError
-    });
-  }, [permissions, permissionsLoading, permissionsError]);
-  
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
-  const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
 
   const {
     register,
@@ -47,16 +39,6 @@ export default function CreateRolePage() {
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
   });
-
-  const toggleResource = (resource: string) => {
-    const newExpanded = new Set(expandedResources);
-    if (newExpanded.has(resource)) {
-      newExpanded.delete(resource);
-    } else {
-      newExpanded.add(resource);
-    }
-    setExpandedResources(newExpanded);
-  };
 
   const togglePermission = (permissionId: number) => {
     setSelectedPermissions(prev => {
@@ -68,24 +50,21 @@ export default function CreateRolePage() {
     });
   };
 
-  const toggleResourcePermissions = (resource: string, permissionIds: number[]) => {
-    const resourcePermissions = permissionIds.filter(id => {
-      const permission = permissions?.find(group => 
-        group.permissions.some(p => p.id === id)
-      )?.permissions.find(p => p.id === id);
-      return permission?.resource === resource;
-    });
-
-    const allSelected = resourcePermissions.every(id => selectedPermissions.includes(id));
+  const toggleAllResourcePermissions = (resourcePermissions: any[]) => {
+    // Get all permission IDs for this resource
+    const resourcePermissionIds = resourcePermissions.map(p => p.id);
+    
+    // Check if all permissions for this resource are currently selected
+    const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
     
     if (allSelected) {
-      // Remove all permissions for this resource
-      setSelectedPermissions(prev => prev.filter(id => !resourcePermissions.includes(id)));
+      // Deselect all permissions for this resource
+      setSelectedPermissions(prev => prev.filter(id => !resourcePermissionIds.includes(id)));
     } else {
-      // Add all permissions for this resource
+      // Select all permissions for this resource
       setSelectedPermissions(prev => {
         const newSelected = [...prev];
-        resourcePermissions.forEach(id => {
+        resourcePermissionIds.forEach(id => {
           if (!newSelected.includes(id)) {
             newSelected.push(id);
           }
@@ -95,46 +74,239 @@ export default function CreateRolePage() {
     }
   };
 
+  const isPermissionSelected = (permissionId: number | undefined) => {
+    if (!permissionId) return false;
+    return selectedPermissions.includes(permissionId);
+  };
+
+  const areAllResourcePermissionsSelected = (resourcePermissions: any[]) => {
+    const resourcePermissionIds = resourcePermissions.map(p => p.id);
+    return resourcePermissionIds.every(id => selectedPermissions.includes(id));
+  };
+
   const onSubmit = async (data: RoleFormData) => {
     try {
-      console.log('🚀 Sending role data:', {
-        ...data,
-        permission_ids: selectedPermissions.length > 0 ? selectedPermissions : undefined,
-      })
-      
+      console.log('Submitting role with permissions:', selectedPermissions);
       const result = await createRoleMutation.mutateAsync({
         ...data,
         permission_ids: selectedPermissions.length > 0 ? selectedPermissions : undefined,
       });
       
-      console.log('✅ Role creation success:', result)
       router.push("/roles");
     } catch (error) {
       console.error("❌ Create role error:", error);
-      console.error("❌ Error details:", {
-        message: (error as any)?.message,
-        response: (error as any)?.response,
-        stack: (error as any)?.stack
-      });
     }
   };
 
-  const getResourceDisplayName = (resource: string) => {
-    return resource
-      .split('.')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  // Get icon based on resource name
+  const getResourceIcon = (resourceName: string) => {
+    const lowerResourceName = resourceName.toLowerCase();
+    
+    if (lowerResourceName.includes('admin') || lowerResourceName.includes('user')) {
+      return <Users className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('media')) {
+      return <Image className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('portfolio') || lowerResourceName.includes('blog')) {
+      return <FileText className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('statistics') || lowerResourceName.includes('analytics')) {
+      return <BarChart3 className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('settings') || lowerResourceName.includes('panel')) {
+      return <Settings className="h-4 w-4" />;
+    } else {
+      return <Shield className="h-4 w-4" />;
+    }
   };
+
+  // Group permissions by resource and organize actions
+  const getOrganizedPermissions = () => {
+    if (!permissions) return [];
+    
+    // Create a map of resources and their permissions
+    const resourceMap: Record<string, any> = {};
+    
+    permissions.forEach(group => {
+      if (!resourceMap[group.resource]) {
+        resourceMap[group.resource] = {
+          resource: group.resource,
+          display_name: group.display_name,
+          permissions: []
+        };
+      }
+      
+      // Add all permissions for this resource
+      resourceMap[group.resource].permissions.push(...group.permissions);
+    });
+    
+    // Convert to array
+    return Object.values(resourceMap);
+  };
+
+  // Get specific action permission for a resource
+  const getActionPermission = (resourcePermissions: any[], action: string) => {
+    // List of possible action names for each type
+    const actionVariants: Record<string, string[]> = {
+      'view': ['view', 'list', 'read', 'get'],
+      'create': ['create', 'post', 'write', 'add'],
+      'edit': ['edit', 'update', 'put', 'patch', 'modify'],
+      'delete': ['delete', 'remove', 'destroy']
+    };
+    
+    const variants = actionVariants[action] || [action];
+    
+    return resourcePermissions.find(p => 
+      variants.includes(p.action.toLowerCase())
+    );
+  };
+
+  const organizedPermissions = getOrganizedPermissions();
 
   return (
     <div className="space-y-6">
       {/* Header */}
-            <div>
+      <div>
         <h1 className="page-title">ایجاد نقش جدید</h1>
       </div>
 
       {/* Form */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
+        {/* Permissions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>دسترسی‌ها</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              دسترسی‌های مورد نیاز برای این نقش را انتخاب کنید
+            </p>
+          </CardHeader>
+          <CardContent>
+            {permissionsLoading ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            ) : permissionsError ? (
+              <div className="text-center text-red-500 py-8">
+                <p>خطا در بارگیری دسترسی‌ها</p>
+                <p className="text-sm mt-2">{String(permissionsError)}</p>
+              </div>
+            ) : permissions && permissions.length > 0 ? (
+              <div className="space-y-4">
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                // Select all permissions
+                                const allPermissionIds = organizedPermissions.flatMap(
+                                  (resource: any) => resource.permissions.map((p: any) => p.id)
+                                );
+                                setSelectedPermissions(allPermissionIds);
+                              } else {
+                                // Deselect all permissions
+                                setSelectedPermissions([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead>منبع</TableHead>
+                        <TableHead className="text-center">مشاهده</TableHead>
+                        <TableHead className="text-center">ایجاد</TableHead>
+                        <TableHead className="text-center">ویرایش</TableHead>
+                        <TableHead className="text-center">حذف</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {organizedPermissions.map((resource: any) => (
+                        <TableRow key={resource.resource}>
+                          <TableCell>
+                            <Checkbox
+                              checked={areAllResourcePermissionsSelected(resource.permissions)}
+                              onCheckedChange={() => toggleAllResourcePermissions(resource.permissions)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {getResourceIcon(resource.display_name)}
+                              {getPermissionTranslation(resource.display_name, 'resource')}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'view')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'view');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'create')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'create');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'edit')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'edit');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'delete')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'delete');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {selectedPermissions.length > 0 && (
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm font-medium">
+                      دسترسی‌های انتخاب شده: {selectedPermissions.length}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                دسترسی‌ای موجود نیست
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Basic Info */}
         <Card>
           <CardHeader>
@@ -171,7 +343,7 @@ export default function CreateRolePage() {
                   className="flex items-center gap-2"
                 >
                   {createRoleMutation.isPending ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
@@ -187,94 +359,6 @@ export default function CreateRolePage() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-
-        {/* Permissions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>دسترسی‌ها</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              دسترسی‌های مورد نیاز برای این نقش را انتخاب کنید
-            </p>
-          </CardHeader>
-          <CardContent>
-            {permissionsLoading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
-                ))}
-              </div>
-            ) : permissionsError ? (
-              <div className="text-center text-red-500 py-8">
-                <p>خطا در بارگیری دسترسی‌ها</p>
-                <p className="text-sm mt-2">{String(permissionsError)}</p>
-              </div>
-            ) : permissions && permissions.length > 0 ? (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {permissions.map((group) => (
-                  <div key={group.resource} className="border rounded-lg">
-                    <div
-                      onClick={() => toggleResource(group.resource)}
-                      className="w-full flex items-center justify-between p-3 text-left hover:bg-muted/50 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        {expandedResources.has(group.resource) ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                        <span className="font-medium">{group.display_name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          ({group.permissions.length})
-                        </span>
-                      </div>
-                      <Checkbox
-                        checked={group.permissions.every(p => selectedPermissions.includes(p.id))}
-                        onCheckedChange={() => toggleResourcePermissions(
-                          group.resource, 
-                          group.permissions.map(p => p.id)
-                        )}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                    
-                    {expandedResources.has(group.resource) && (
-                      <div className="border-t p-3 space-y-2">
-                        {group.permissions.map((permission) => (
-                          <div key={permission.id} className="flex items-center gap-2">
-                            <Checkbox
-                              checked={selectedPermissions.includes(permission.id)}
-                              onCheckedChange={() => togglePermission(permission.id)}
-                            />
-                            <div className="flex-1">
-                              <div className="font-medium">{permission.action}</div>
-                              {permission.description && (
-                                <div className="text-sm text-muted-foreground">
-                                  {permission.description}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                دسترسی‌ای موجود نیست
-              </div>
-            )}
-            
-            {selectedPermissions.length > 0 && (
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                <div className="text-sm font-medium">
-                  دسترسی‌های انتخاب شده: {selectedPermissions.length}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>

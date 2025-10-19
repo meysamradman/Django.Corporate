@@ -28,7 +28,7 @@ function PaginationContent({
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex flex-row items-center gap-1", className)}
+      className={cn("flex flex-row items-center gap-2", className)}
       {...props}
     />
   )
@@ -55,10 +55,14 @@ function PaginationLink({
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
-        buttonVariants({
-          variant: isActive ? "outline" : "ghost",
-          size,
-        }),
+        // Base styles
+        "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        // Size styles
+        size === "icon" ? "h-9 w-9" : "h-9 px-3",
+        // Active state - like the image
+        isActive 
+          ? "bg-gray-100 text-gray-900 rounded-md" 
+          : "text-gray-600 hover:text-gray-900",
         className
       )}
       {...props}
@@ -73,12 +77,11 @@ function PaginationPrevious({
   return (
     <PaginationLink
       aria-label="Go to previous page"
-      size="default"
-      className={cn("gap-1 px-2.5 flex-row-reverse", className)}
+      size="icon"
+      className={cn("text-gray-600 hover:text-gray-900", className)}
       {...props}
     >
-      <span className="hidden sm:block">قبلی</span>
-      <ChevronRightIcon />
+      <ChevronRightIcon className="h-4 w-4" />
     </PaginationLink>
   )
 }
@@ -90,12 +93,11 @@ function PaginationNext({
   return (
     <PaginationLink
       aria-label="Go to next page"
-      size="default"
-      className={cn("gap-1 px-2.5 flex-row-reverse", className)}
+      size="icon"
+      className={cn("text-gray-600 hover:text-gray-900", className)}
       {...props}
     >
-      <span className="hidden sm:block">بعدی</span>
-      <ChevronLeftIcon />
+      <ChevronLeftIcon className="h-4 w-4" />
     </PaginationLink>
   )
 }
@@ -125,4 +127,4 @@ export {
   PaginationPrevious,
   PaginationNext,
   PaginationEllipsis,
-} 
+}

@@ -1,3 +1,5 @@
+import os
+import os
 from django.contrib.auth import authenticate, login
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -65,6 +67,8 @@ class AdminLoginView(CaptchaRequiredMixin, APIView):
                 if user is not None and user.is_staff and user.has_admin_access():
                     if user.is_active:
                         login(request, user)
+                        # Set proper session cookie expiration
+                        request.session.set_expiry(int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
                         # Remove csrf_token from response for security
                         response_data = {
                             "user": {

@@ -12,7 +12,7 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Badge } from "@/components/elements/Badge";
-import { ArrowLeft, Save, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, ChevronDown, ChevronRight, Shield } from "lucide-react";
 
 
 const roleSchema = z.object({
@@ -301,7 +301,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         {/* Permissions */}
         <Card>
           <CardHeader>
-            <CardTitle>دسترسی‌ها</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              دسترسی‌ها
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
               دسترسی‌های مربوط به این نقش را انتخاب کنید
             </p>
@@ -309,7 +312,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           <CardContent>
             {/* Base Permissions Info */}
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-semibold text-sm mb-2 text-blue-700">🟢 دسترسی‌های پایه:</h4>
+              <h4 className="font-semibold text-sm mb-2 text-blue-700 flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                🟢 دسترسی‌های پایه:
+              </h4>
               <p className="text-xs text-blue-600 mb-2">این دسترسی‌ها به صورت خودکار به همه ادمین‌ها تعلق دارد:</p>
               <div className="flex flex-wrap gap-1">
                 {basePermissions ? (
@@ -336,28 +342,30 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 ))}
               </div>
             ) : permissions && permissions.length > 0 ? (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {permissions.map((group) => {
                   // Check if this group contains base permissions
                   const basePermissionIds = getBasePermissionIds([group]);
                   const hasBasePermissions = basePermissionIds.length > 0;
                   
                   return (
-                    <div key={group.resource} className="border rounded-lg">
+                    <div key={group.resource} className="border rounded-lg bg-card shadow-sm hover:shadow-md transition-shadow">
                       <div
                         onClick={() => toggleResource(group.resource)}
-                        className="w-full flex items-center justify-between p-3 text-left hover:bg-muted/50 cursor-pointer"
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 cursor-pointer rounded-lg"
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           {expandedResources.has(group.resource) ? (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
                           ) : (
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
                           )}
-                          <span className="font-medium">{group.display_name}</span>
-                          <span className="text-sm text-muted-foreground">
-                            ({group.permissions.length})
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-base">{group.display_name}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {group.permissions.length} دسترسی
+                            </span>
+                          </div>
                           {hasBasePermissions && (
                             <Badge variant="blue" className="text-xs">پایه</Badge>
                           )}
@@ -369,16 +377,17 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                             group.permissions.map(p => p.id)
                           )}
                           onClick={(e) => e.stopPropagation()}
+                          className="rounded-md"
                         />
                       </div>
                       
                       {expandedResources.has(group.resource) && (
-                        <div className="border-t p-3 space-y-2">
+                        <div className="border-t p-4 bg-muted/30 rounded-b-lg space-y-3">
                           {group.permissions.map((permission) => {
                             const isBasePermission = getBasePermissionIds([group]).includes(permission.id);
                             
                             return (
-                              <div key={permission.id} className="flex items-center gap-2">
+                              <div key={permission.id} className="flex items-start gap-3 p-3 bg-background rounded-md border">
                                 <Checkbox
                                   checked={selectedPermissions.includes(permission.id)}
                                   onCheckedChange={() => {
@@ -387,6 +396,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                                     }
                                   }}
                                   disabled={isBasePermission}
+                                  className="mt-0.5 rounded-md"
                                 />
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
@@ -396,7 +406,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                                     )}
                                   </div>
                                   {permission.description && (
-                                    <div className="text-sm text-muted-foreground">
+                                    <div className="text-sm text-muted-foreground mt-1">
                                       {permission.description}
                                     </div>
                                   )}
@@ -417,8 +427,9 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             )}
             
             {selectedPermissions.length > 0 && (
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                <div className="text-sm font-medium">
+              <div className="mt-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <div className="text-sm font-medium flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
                   دسترسی‌های انتخاب شده: {selectedPermissions.length}
                 </div>
               </div>

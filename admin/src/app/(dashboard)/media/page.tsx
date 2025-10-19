@@ -516,7 +516,7 @@ export default function MediaPage() {
                 showInfo={true}
                 selectedCount={selectedIds.length}
                 totalCount={totalCount}
-                infoText={`${selectedIds.length} از ${totalCount} انتخاب شده`}
+                infoText={`${((filters.page || 1) - 1) * (filters.size || DEFAULT_MEDIA_PAGE_SIZE) + 1} - ${Math.min((filters.page || 1) * (filters.size || DEFAULT_MEDIA_PAGE_SIZE), totalCount)} از ${totalCount}`}
                 showFirstLast={true}
                 showPageNumbers={true}
               />

@@ -322,7 +322,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
           showInfo={true}
           selectedCount={table.getFilteredSelectedRowModel().rows.length}
           totalCount={table.getFilteredRowModel().rows.length}
-          infoText={`${table.getFilteredSelectedRowModel().rows.length} از ${table.getFilteredRowModel().rows.length} انتخاب شده`}
+          infoText={`${((table.getState().pagination.pageIndex) * table.getState().pagination.pageSize) + 1} - ${Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} از ${table.getFilteredRowModel().rows.length}`}
           showFirstLast={true}
           showPageNumbers={true}
           siblingCount={1}
