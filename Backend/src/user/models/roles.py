@@ -162,6 +162,20 @@ class AdminUserRole(BaseModel):
     def __str__(self):
         return f"{self.user} - {self.role}"
     
+    def update_permissions_cache(self):
+        """Update permissions cache from role permissions"""
+        # ✅ FIX: Ensure permissions is always a valid dict
+        role_permissions = self.role.permissions if self.role.permissions else {}
+        self.permissions_cache = role_permissions
+        
+        # Save without calling clean() again to avoid re-validation
+        super(AdminUserRole, self).save(update_fields=['permissions_cache', 'last_cache_update'])
+        
+        # Clear Redis cache
+        from django.core.cache import cache
+        cache_key = f"admin_permissions_{self.user_id}"
+        cache.delete(cache_key)
+    
     @property
     def is_expired(self):
         """Check if role assignment is expired"""

@@ -5,24 +5,16 @@ import { useRouter } from "next/navigation";
 import { useCreateRole, usePermissions } from "@/components/auth/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
-import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield } from "lucide-react";
+import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { getPermissionTranslation } from "@/core/messages/permissions";
-
-
-const roleSchema = z.object({
-  name: z.string().min(2, "نام نقش باید حداقل 2 کاراکتر باشد"),
-  description: z.string().optional(),
-  permission_ids: z.array(z.number()).optional(),
-});
-
-type RoleFormData = z.infer<typeof roleSchema>;
+import { roleFormSchema, roleFormDefaults, RoleFormValues } from "@/core/validations/roleSchema";
+import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { extractFieldErrors, hasFieldErrors, showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
+import { msg } from "@/core/messages/message";
 
 export default function CreateRolePage() {
   const router = useRouter();
@@ -36,17 +28,24 @@ export default function CreateRolePage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RoleFormData>({
-    resolver: zodResolver(roleSchema),
+    setError,
+    clearErrors,
+    setValue,
+  } = useForm<RoleFormValues>({
+    resolver: zodResolver(roleFormSchema) as any,
+    defaultValues: roleFormDefaults as any,
   });
 
   const togglePermission = (permissionId: number) => {
     setSelectedPermissions(prev => {
-      if (prev.includes(permissionId)) {
-        return prev.filter(id => id !== permissionId);
-      } else {
-        return [...prev, permissionId];
-      }
+      const newPermissions = prev.includes(permissionId)
+        ? prev.filter(id => id !== permissionId)
+        : [...prev, permissionId];
+      
+      // Sync با form
+      setValue("permission_ids", newPermissions, { shouldValidate: true });
+      
+      return newPermissions;
     });
   };
 
@@ -57,21 +56,24 @@ export default function CreateRolePage() {
     // Check if all permissions for this resource are currently selected
     const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
     
-    if (allSelected) {
-      // Deselect all permissions for this resource
-      setSelectedPermissions(prev => prev.filter(id => !resourcePermissionIds.includes(id)));
-    } else {
-      // Select all permissions for this resource
-      setSelectedPermissions(prev => {
-        const newSelected = [...prev];
-        resourcePermissionIds.forEach(id => {
-          if (!newSelected.includes(id)) {
-            newSelected.push(id);
-          }
-        });
-        return newSelected;
-      });
-    }
+    setSelectedPermissions(prev => {
+      const newSelected = allSelected
+        ? prev.filter(id => !resourcePermissionIds.includes(id))
+        : (() => {
+            const updated = [...prev];
+            resourcePermissionIds.forEach(id => {
+              if (!updated.includes(id)) {
+                updated.push(id);
+              }
+            });
+            return updated;
+          })();
+      
+      // Sync با form
+      setValue("permission_ids", newSelected, { shouldValidate: true });
+      
+      return newSelected;
+    });
   };
 
   const isPermissionSelected = (permissionId: number | undefined) => {
@@ -84,17 +86,40 @@ export default function CreateRolePage() {
     return resourcePermissionIds.every(id => selectedPermissions.includes(id));
   };
 
-  const onSubmit = async (data: RoleFormData) => {
+  const onSubmit = async (data: RoleFormValues) => {
     try {
-      console.log('Submitting role with permissions:', selectedPermissions);
+      console.log('Submitting role with permissions:', data.permission_ids);
       const result = await createRoleMutation.mutateAsync({
         ...data,
-        permission_ids: selectedPermissions.length > 0 ? selectedPermissions : undefined,
+        permission_ids: data.permission_ids,
       });
       
+      // نمایش پیام موفقیت
+      showSuccessToast(msg.ui("roleCreated"));
+      
+      // انتقال به صفحه لیست
       router.push("/roles");
     } catch (error) {
       console.error("❌ Create role error:", error);
+      
+      // بررسی خطاهای فیلدها از Django
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        // Set کردن خطاها در فرم
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          setError(field as any, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // نمایش پیام خطای کلی
+        showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+      } else {
+        // نمایش خطای عمومی
+        showErrorToast(error);
+      }
     }
   };
 
@@ -198,16 +223,15 @@ export default function CreateRolePage() {
                         <TableHead className="w-12">
                           <Checkbox
                             onCheckedChange={(checked) => {
-                              if (checked) {
-                                // Select all permissions
-                                const allPermissionIds = organizedPermissions.flatMap(
-                                  (resource: any) => resource.permissions.map((p: any) => p.id)
-                                );
-                                setSelectedPermissions(allPermissionIds);
-                              } else {
-                                // Deselect all permissions
-                                setSelectedPermissions([]);
-                              }
+                              const allPermissionIds = organizedPermissions.flatMap(
+                                (resource: any) => resource.permissions.map((p: any) => p.id)
+                              );
+                              
+                              const newPermissions = checked ? allPermissionIds : [];
+                              setSelectedPermissions(newPermissions);
+                              
+                              // Sync با form
+                              setValue("permission_ids", newPermissions, { shouldValidate: true });
                             }}
                           />
                         </TableHead>
@@ -298,6 +322,14 @@ export default function CreateRolePage() {
                     </div>
                   </div>
                 )}
+                
+                {/* نمایش خطا برای دسترسی‌ها */}
+                {errors.permission_ids?.message && (
+                  <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 mt-4 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>{String(errors.permission_ids.message)}</span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center text-muted-foreground py-8">
@@ -314,27 +346,24 @@ export default function CreateRolePage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <Label htmlFor="name">نام *</Label>
-                <Input
-                  id="name"
-                  {...register("name")}
-                  placeholder="نام نقش را وارد کنید"
-                  className={errors.name ? "border-red-500" : ""}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
-                )}
-              </div>
+              <FormFieldInput
+                label="نام"
+                id="name"
+                required
+                error={errors.name?.message}
+                placeholder="نام نقش را وارد کنید"
+                {...register("name")}
+              />
 
-              <div>
-                <Label htmlFor="description">توضیحات</Label>
-                <Input
-                  id="description"
-                  {...register("description")}
-                  placeholder="توضیحات نقش را وارد کنید"
-                />
-              </div>
+              <FormFieldTextarea
+                label="توضیحات"
+                id="description"
+                error={errors.description?.message}
+                placeholder="توضیحات نقش را وارد کنید (حداکثر ۳۰۰ کاراکتر)"
+                rows={3}
+                maxLength={300}
+                {...register("description")}
+              />
 
               <div className="flex gap-4 pt-4">
                 <Button

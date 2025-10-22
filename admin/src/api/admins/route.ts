@@ -300,11 +300,30 @@ export const adminApi = {
 
     updateUserByType: async (userId: number, flattenedUserData: Record<string, any>, userType: UserType): Promise<AdminWithProfile> => {
         try {
-            // Directly send JSON data, assume profile_picture_id is already part of flattenedUserData
-            const response = await fetchApi.put<AdminWithProfile>(`/admin/management/${userId}/`, flattenedUserData);
+            // Extract role_id before sending to API
+            const { role_id, ...dataToSend } = flattenedUserData;
             
-            if (flattenedUserData.role_id !== undefined && userType === 'admin') {
-         
+            // Directly send JSON data, assume profile_picture_id is already part of flattenedUserData
+            const response = await fetchApi.put<AdminWithProfile>(`/admin/management/${userId}/`, dataToSend);
+            
+            // Handle role assignment if provided
+            if (role_id !== undefined && userType === 'admin') {
+                try {
+                    // If role_id is 'none' or empty, we should remove all roles
+                    if (role_id === 'none' || role_id === '' || role_id === null) {
+                        // Get current roles and remove them
+                        const currentRoles = await adminApi.getAdminRoles(userId);
+                        for (const role of currentRoles) {
+                            await adminApi.removeRoleFromAdmin(userId, role.role);
+                        }
+                    } else {
+                        // Assign the new role
+                        await adminApi.assignRoleToAdmin(userId, Number(role_id));
+                    }
+                } catch (roleError) {
+                    console.error('Error updating admin role:', roleError);
+                    // Don't fail the entire update if role assignment fails
+                }
             }
             
             if (response && response.data) {

@@ -24,6 +24,8 @@ const AUTH_MESSAGES = {
 const VALIDATION_MESSAGES = {
   // General
   required: "{field} الزامی است",
+  minLength: "{field} باید حداقل {min} کاراکتر باشد",
+  maxLength: "{field} نباید بیشتر از {max} کاراکتر باشد",
   
   // Mobile
   mobileRequired: "شماره موبایل الزامی است",
@@ -44,7 +46,47 @@ const VALIDATION_MESSAGES = {
   // National ID
   nationalIdRequired: "کد ملی الزامی است",
   nationalIdLength: "کد ملی باید ۱۰ رقم باشد",
-  nationalIdInvalid: "کد ملی معتبر نیست"
+  nationalIdInvalid: "کد ملی معتبر نیست",
+  
+  // Admin Form
+  fullNameRequired: "نام کامل الزامی است",
+  fullNameMinLength: "نام کامل باید حداقل ۲ کاراکتر باشد",
+  fullNameMaxLength: "نام کامل نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  firstNameMaxLength: "نام نباید بیشتر از ۵۰ کاراکتر باشد",
+  lastNameMaxLength: "نام خانوادگی نباید بیشتر از ۵۰ کاراکتر باشد",
+  addressMaxLength: "آدرس نباید بیشتر از ۵۰۰ کاراکتر باشد",
+  departmentMaxLength: "بخش نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  positionMaxLength: "سمت نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  bioMaxLength: "بیوگرافی نباید بیشتر از ۱۰۰۰ کاراکتر باشد",
+  notesMaxLength: "یادداشت‌ها نباید بیشتر از ۱۰۰۰ کاراکتر باشد",
+  passwordComplexity: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
+  
+  // Portfolio
+  portfolioNameRequired: "نام نمونه‌کار الزامی است",
+  portfolioNameMinLength: "نام نمونه‌کار باید حداقل ۳ کاراکتر باشد",
+  portfolioNameMaxLength: "نام نمونه‌کار نباید بیشتر از ۲۰۰ کاراکتر باشد",
+  portfolioSlugRequired: "لینک (اسلاگ) الزامی است",
+  portfolioSlugInvalid: "لینک (اسلاگ) فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و خط تیره باشد",
+  portfolioSlugMaxLength: "لینک (اسلاگ) نباید بیشتر از ۶۰ کاراکتر باشد",
+  portfolioShortDescMaxLength: "توضیحات کوتاه نباید بیشتر از ۳۰۰ کاراکتر باشد",
+  portfolioCategoryRequired: "انتخاب دسته‌بندی الزامی است",
+  portfolioFeaturedImageRequired: "انتخاب تصویر شاخص الزامی است",
+  
+  // Role
+  roleNameRequired: "نام نقش الزامی است",
+  roleNameMinLength: "نام نقش باید حداقل ۲ کاراکتر باشد",
+  roleNameMaxLength: "نام نقش نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  roleDescMaxLength: "توضیحات نقش نباید بیشتر از ۳۰۰ کاراکتر باشد",
+  rolePermissionsRequired: "انتخاب حداقل یک دسترسی الزامی است",
+  
+  // SEO
+  metaTitleMaxLength: "عنوان متا نباید بیشتر از ۷۰ کاراکتر باشد",
+  metaDescMaxLength: "توضیحات متا نباید بیشتر از ۱۶۰ کاراکتر باشد",
+  ogTitleMaxLength: "عنوان Open Graph نباید بیشتر از ۷۰ کاراکتر باشد",
+  ogDescMaxLength: "توضیحات Open Graph نباید بیشتر از ۱۶۰ کاراکتر باشد",
+  
+  // URL
+  urlInvalid: "آدرس وارد شده معتبر نیست"
 } as const;
 
 // Common UI Messages (برای loading، confirm، etc.)
@@ -70,7 +112,18 @@ const COMMON_UI_MESSAGES = {
   created: "با موفقیت ایجاد شد",
   updated: "با موفقیت به‌روزرسانی شد",
   deleted: "با موفقیت حذف شد",
-  saved: "با موفقیت ذخیره شد"
+  saved: "با موفقیت ذخیره شد",
+  
+  // Portfolio Success Messages
+  portfolioCreated: "نمونه‌کار با موفقیت ایجاد شد",
+  portfolioUpdated: "نمونه‌کار با موفقیت به‌روزرسانی شد",
+  portfolioDeleted: "نمونه‌کار با موفقیت حذف شد",
+  portfolioDraftSaved: "پیش‌نویس با موفقیت ذخیره شد",
+  
+  // Role Success Messages
+  roleCreated: "نقش با موفقیت ایجاد شد",
+  roleUpdated: "نقش با موفقیت به‌روزرسانی شد",
+  roleDeleted: "نقش با موفقیت حذف شد"
 } as const;
 
 // Helper function for parameter replacement

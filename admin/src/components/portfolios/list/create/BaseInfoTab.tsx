@@ -1,45 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { UseFormReturn } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Button } from "@/components/elements/Button";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
-import { FileText, Plus, FolderOpen, Tag, X } from "lucide-react";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { Plus, FolderOpen, Tag, X } from "lucide-react";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { formatSlug } from '@/core/utils/slugUtils';
 
 interface BaseInfoTabProps {
-    formData: any;
-    handleInputChange: (field: string, value: string) => void;
+    form: UseFormReturn<PortfolioFormValues>;
     editMode: boolean;
-    selectedCategory: string;
-    selectedTags: PortfolioTag[];
-    onCategoryChange: (value: string) => void;
-    onTagToggle: (tag: PortfolioTag) => void;
-    onTagRemove: (tagId: number) => void;
 }
 
 export default function BaseInfoTab({ 
-    formData, 
-    handleInputChange, 
+    form,
     editMode,
-    selectedCategory,
-    selectedTags,
-    onCategoryChange,
-    onTagToggle,
-    onTagRemove
 }: BaseInfoTabProps) {
     const [categories, setCategories] = useState<PortfolioCategory[]>([]);
     const [tags, setTags] = useState<PortfolioTag[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [loadingTags, setLoadingTags] = useState(true);
+    
+    // Get form state
+    const { register, formState: { errors }, watch, setValue } = form;
+    const selectedTags = watch("selectedTags") || [];
+    const nameValue = watch("name");
 
     useEffect(() => {
         // Fetch categories
@@ -70,10 +65,31 @@ export default function BaseInfoTab({
         fetchTags();
     }, []);
 
-    // Automatically generate slug from name when name changes and slug is empty
+    // Auto-generate slug from name
     useEffect(() => {
-        // Slug generation is now handled in the parent component
-    });
+        if (nameValue && !watch("slug")) {
+            const slug = nameValue
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^\u0600-\u06FFa-z0-9-]/g, '')
+                .replace(/--+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            setValue("slug", slug);
+        }
+    }, [nameValue, watch, setValue]);
+    
+    const handleTagToggle = (tag: PortfolioTag) => {
+        const currentTags = selectedTags;
+        if (currentTags.some((t: PortfolioTag) => t.id === tag.id)) {
+            setValue("selectedTags", currentTags.filter((t: PortfolioTag) => t.id !== tag.id));
+        } else {
+            setValue("selectedTags", [...currentTags, tag]);
+        }
+    };
+
+    const handleTagRemove = (tagId: number) => {
+        setValue("selectedTags", selectedTags.filter((tag: PortfolioTag) => tag.id !== tagId));
+    };
 
     return (
         <TabsContent value="account" className="mt-6">
@@ -87,54 +103,53 @@ export default function BaseInfoTab({
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name">نام *</Label>
-                                        <Input
-                                            id="name"
-                                            value={formData.name}
-                                            onChange={(e) => {
-                                                handleInputChange("name", e.target.value);
-                                            }}
-                                            disabled={!editMode}
-                                            placeholder="نام نمونه‌کار"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="slug">لینک (اسلاگ) *</Label>
-                                        <Input
-                                            id="slug"
-                                            value={formData.slug}
-                                            onChange={(e) => {
-                                                // Format the slug as the user types
-                                                const formattedSlug = formatSlug(e.target.value);
-                                                handleInputChange("slug", formattedSlug);
-                                            }}
-                                            disabled={!editMode}
-                                            placeholder="my-portfolio-item"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="short_description">توضیحات کوتاه *</Label>
-                                    <Textarea
-                                        id="short_description"
-                                        value={formData.short_description}
-                                        onChange={(e) => handleInputChange("short_description", e.target.value)}
+                                    <FormFieldInput
+                                        label="نام"
+                                        id="name"
+                                        required
+                                        error={errors.name?.message}
+                                        placeholder="نام نمونه‌کار"
                                         disabled={!editMode}
-                                        placeholder="یک توضیح کوتاه درباره نمونه‌کار..."
-                                        rows={3}
+                                        {...register("name")}
+                                    />
+                                    
+                                    <FormFieldInput
+                                        label="لینک (اسلاگ)"
+                                        id="slug"
+                                        required
+                                        error={errors.slug?.message}
+                                        placeholder="نمونه-کار-من یا my-portfolio-item"
+                                        disabled={!editMode}
+                                        {...register("slug", {
+                                            onChange: (e) => {
+                                                const formattedSlug = formatSlug(e.target.value);
+                                                setValue("slug", formattedSlug);
+                                            }
+                                        })}
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="description">توضیحات بلند *</Label>
+                                <FormFieldTextarea
+                                    label="توضیحات کوتاه"
+                                    id="short_description"
+                                    error={errors.short_description?.message}
+                                    placeholder="یک توضیح کوتاه درباره نمونه‌کار... (حداکثر ۳۰۰ کاراکتر)"
+                                    rows={3}
+                                    disabled={!editMode}
+                                    maxLength={300}
+                                    {...register("short_description")}
+                                />
+
+                                <FormField
+                                    label="توضیحات بلند"
+                                    error={errors.description?.message}
+                                >
                                     <TipTapEditor
-                                        content={formData.description}
-                                        onChange={(content: string) => handleInputChange("description", content)}
-                                        placeholder="توضیحات کامل نمونه‌کار را وارد کنید..."
+                                        content={watch("description") || ""}
+                                        onChange={(content: string) => setValue("description", content)}
+                                        placeholder="توضیحات کامل نمونه‌کار را وارد کنید... (اختیاری)"
                                     />
-                                </div>
+                                </FormField>
                             </CardContent>
                         </Card>
                     </div>
@@ -146,17 +161,20 @@ export default function BaseInfoTab({
                             <CardTitle className="text-sm">تنظیمات</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-8">
-                            <div className="space-y-2 w-full">
-                                <Label htmlFor="category" className="flex items-center gap-2">
+                            <FormField
+                                label="دسته‌بندی"
+                                required
+                                error={errors.selectedCategory?.message}
+                            >
+                                <div className="flex items-center gap-2 mb-2">
                                     <FolderOpen className="w-4 h-4 text-blue-500" />
-                                    دسته‌بندی *
-                                </Label>
+                                </div>
                                 <div className="flex gap-4 w-full">
                                     <div className="flex-1">
                                         <Select 
                                             disabled={!editMode || loadingCategories}
-                                            value={selectedCategory}
-                                            onValueChange={onCategoryChange}
+                                            value={watch("selectedCategory")}
+                                            onValueChange={(value) => setValue("selectedCategory", value)}
                                         >
                                             <SelectTrigger className="w-full">
                                                 <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "دسته‌بندی را انتخاب کنید"} />
@@ -181,32 +199,36 @@ export default function BaseInfoTab({
                                         <Plus className="w-3 h-3 text-blue-600" />
                                     </Button>
                                 </div>
-                            </div>
+                            </FormField>
 
-                            <div className="space-y-2 w-full">
-                                <Label htmlFor="tags" className="flex items-center gap-2">
+                            <FormField
+                                label="تگ‌ها (اختیاری)"
+                                error={errors.selectedTags?.message}
+                            >
+                                <div className="flex items-center gap-2 mb-2">
                                     <Tag className="w-4 h-4 text-green-500" />
-                                    تگ‌ها *
-                                </Label>
+                                </div>
                                 <div className="space-y-2">
                                     {/* Display selected tags */}
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedTags.map(tag => (
-                                            <span 
-                                                key={tag.id} 
-                                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
-                                            >
-                                                {tag.name}
-                                                <button 
-                                                    type="button" 
-                                                    className="ml-1 text-green-800 hover:text-green-900"
-                                                    onClick={() => onTagRemove(tag.id)}
+                                    {selectedTags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedTags.map((tag: PortfolioTag) => (
+                                                <span 
+                                                    key={tag.id} 
+                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
                                                 >
-                                                    <X className="w-3 h-3" />
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
+                                                    {tag.name}
+                                                    <button 
+                                                        type="button" 
+                                                        className="ml-1 text-green-800 hover:text-green-900"
+                                                        onClick={() => handleTagRemove(tag.id)}
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                     
                                     {/* Tag selection dropdown */}
                                     <div className="flex gap-4 w-full">
@@ -215,15 +237,15 @@ export default function BaseInfoTab({
                                                 disabled={!editMode || loadingTags}
                                                 onValueChange={(value) => {
                                                     const tag = tags.find(t => String(t.id) === value);
-                                                    if (tag) onTagToggle(tag);
+                                                    if (tag) handleTagToggle(tag);
                                                 }}
                                             >
                                                 <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
+                                                    <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید (اختیاری)"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {tags
-                                                        .filter(tag => !selectedTags.some(selected => selected.id === tag.id))
+                                                        .filter(tag => !selectedTags.some((selected: PortfolioTag) => selected.id === tag.id))
                                                         .map((tag) => (
                                                             <SelectItem 
                                                                 key={tag.id} 
@@ -247,7 +269,7 @@ export default function BaseInfoTab({
                                         </Button>
                                     </div>
                                 </div>
-                            </div>
+                            </FormField>
                         </CardContent>
                     </Card>
                 </div>

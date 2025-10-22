@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, lazy, Suspense, useEffect } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
@@ -13,9 +14,10 @@ import {
 import { Media } from "@/types/shared/media";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
-import { fetchApi } from "@/core/config/fetch";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { portfolioFormSchema, portfolioFormDefaults, PortfolioFormValues } from "@/core/validations/portfolioSchema";
+import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
+import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
+import { msg } from "@/core/messages/message";
 
 // Add this interface for managing multiple media selections
 interface PortfolioMedia {
@@ -35,7 +37,6 @@ export default function CreatePortfolioPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("account");
   const [editMode, setEditMode] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
     featuredImage: null,
     imageGallery: [],
@@ -43,85 +44,84 @@ export default function CreatePortfolioPage() {
     audioGallery: [],
     pdfDocuments: []
   });
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    short_description: "",
-    description: "",
-    meta_title: "",
-    meta_description: "",
-    og_title: "",
-    og_description: "",
-    og_image: null as Media | null,
-    canonical_url: "",
-    robots_meta: "",
-  });
   
-  // Category and tag state
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
+  // React Hook Form با Zod validation
+  const form = useForm<PortfolioFormValues>({
+    resolver: zodResolver(portfolioFormSchema) as any,
+    defaultValues: portfolioFormDefaults as any,
+    mode: "onSubmit", // Validation فقط موقع submit
+  });
 
   const createPortfolioMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: PortfolioFormValues & { status: "draft" | "published" }) => {
       // First create the portfolio with categories and tags
-      const portfolio = await portfolioApi.createPortfolio(data);
+      const portfolioData = {
+        title: data.name,
+        slug: data.slug,
+        short_description: data.short_description || "",
+        description: data.description || "",
+        status: data.status as "draft" | "published",
+        is_featured: false,
+        is_public: true,
+        meta_title: data.meta_title || undefined,
+        meta_description: data.meta_description || undefined,
+        og_title: data.og_title || undefined,
+        og_description: data.og_description || undefined,
+        canonical_url: data.canonical_url || undefined,
+        robots_meta: data.robots_meta || undefined,
+        categories_ids: data.selectedCategory ? [parseInt(data.selectedCategory)] : [],
+        tags_ids: data.selectedTags.map(tag => tag.id),
+      };
+      
+      const portfolio = await portfolioApi.createPortfolio(portfolioData);
       
       // Prepare media data for upload
       const allMediaFiles: File[] = [];
       const allMediaIds: number[] = [];
       
       // Collect media files and IDs
-      // Featured Image
-      if (portfolioMedia.featuredImage) {
+      // Featured Image از form state
+      if (data.featuredImage) {
+        allMediaIds.push(data.featuredImage.id);
+      }
+      
+      // سایر media ها از portfolioMedia
+      if (portfolioMedia.featuredImage && portfolioMedia.featuredImage.id !== data.featuredImage?.id) {
         if ((portfolioMedia.featuredImage as any).file instanceof File) {
-          // New file to upload
           allMediaFiles.push((portfolioMedia.featuredImage as any).file);
         } else if (portfolioMedia.featuredImage.id) {
-          // Existing media from library
           allMediaIds.push(portfolioMedia.featuredImage.id);
         }
       }
       
-      // Image Gallery
       portfolioMedia.imageGallery.forEach(media => {
         if ((media as any).file instanceof File) {
-          // New file to upload
           allMediaFiles.push((media as any).file);
         } else if (media.id) {
-          // Existing media from library
           allMediaIds.push(media.id);
         }
       });
       
-      // Video Gallery
       portfolioMedia.videoGallery.forEach(media => {
         if ((media as any).file instanceof File) {
-          // New file to upload
           allMediaFiles.push((media as any).file);
         } else if (media.id) {
-          // Existing media from library
           allMediaIds.push(media.id);
         }
       });
       
-      // Audio Gallery
       portfolioMedia.audioGallery.forEach(media => {
         if ((media as any).file instanceof File) {
-          // New file to upload
           allMediaFiles.push((media as any).file);
         } else if (media.id) {
-          // Existing media from library
           allMediaIds.push(media.id);
         }
       });
       
-      // PDF Documents
       portfolioMedia.pdfDocuments.forEach(media => {
         if ((media as any).file instanceof File) {
-          // New file to upload
           allMediaFiles.push((media as any).file);
         } else if (media.id) {
-          // Existing media from library
           allMediaIds.push(media.id);
         }
       });
@@ -129,133 +129,81 @@ export default function CreatePortfolioPage() {
       // Upload media if we have any files or existing media IDs
       if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
         try {
-          const mediaResponse = await portfolioApi.addMediaToPortfolio(portfolio.id, allMediaFiles, allMediaIds);
+          await portfolioApi.addMediaToPortfolio(portfolio.id, allMediaFiles, allMediaIds);
         } catch (error) {
-          // Don't fail the whole operation if media processing fails
+          console.warn("Media upload failed, but portfolio created:", error);
         }
       }
       
       return portfolio;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      
+      // نمایش پیام موفقیت
+      const successMessage = variables.status === "draft" 
+        ? msg.ui("portfolioDraftSaved")
+        : msg.ui("portfolioCreated");
+      showSuccessToast(successMessage);
+      
+      // انتقال به صفحه لیست
       router.push("/portfolios");
     },
     onError: (error: any) => {
       console.error("Error creating portfolio:", error);
-      if (error.validationErrors) {
-        console.error("Validation errors:", error.validationErrors);
+      
+      // بررسی خطاهای فیلدها از Django
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        // Set کردن خطاها در فرم
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          // Map کردن field names از Django به React Hook Form
+          const fieldMap: Record<string, any> = {
+            'title': 'name',
+            'categories_ids': 'selectedCategory',
+            'tags_ids': 'selectedTags',
+          };
+          
+          const formField = fieldMap[field] || field;
+          form.setError(formField as any, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // نمایش پیام خطای کلی
+        showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+      } else {
+        // نمایش خطای عمومی
+        showErrorToast(error);
       }
     },
   });
 
-  const handleInputChange = (field: string, value: string | Media | null) => {
-    // If we're updating the name field, always generate/update slug
-    if (field === "name" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-      
-      // Update both name and slug
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else {
-      // Update only the specified field
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-  };
-
-  const handleTagToggle = (tag: PortfolioTag) => {
-    // Toggle tag selection
-    setSelectedTags(prev => {
-      if (prev.some(t => t.id === tag.id)) {
-        return prev.filter(t => t.id !== tag.id);
-      } else {
-        return [...prev, tag];
-      }
+  // Handler برای ذخیره فرم
+  const handleSave = async () => {
+    // Validation اتوماتیک توسط Zod انجام می‌شود
+    const isValid = await form.trigger();
+    if (!isValid) return;
+    
+    const data = form.getValues();
+    createPortfolioMutation.mutate({
+      ...data,
+      status: "published" as const
     });
   };
 
-  const handleTagRemove = (tagId: number) => {
-    setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
-  };
-
-  const handleSave = async () => {
-    // Ensure the slug is properly formatted before sending to backend
-    let formattedSlug = formData.slug;
-    if (formattedSlug) {
-      formattedSlug = formattedSlug
-        .replace(/^-+|-+$/g, '') // Trim - from start and end
-        .substring(0, 60); // Ensure it doesn't exceed max length
-    }
-    
-    // Prepare categories and tags data
-    const categoriesIds = selectedCategory ? [parseInt(selectedCategory)] : [];
-    const tagsIds = selectedTags.map(tag => tag.id);
-    
-    const portfolioData = {
-      title: formData.name,
-      slug: formattedSlug,
-      short_description: formData.short_description,
-      description: formData.description,
-      status: "published",
-      is_featured: false,
-      is_public: true,
-      meta_title: formData.meta_title || undefined,
-      meta_description: formData.meta_description || undefined,
-      og_title: formData.og_title || undefined,
-      og_description: formData.og_description || undefined,
-      og_image_id: formData.og_image?.id || undefined,
-      canonical_url: formData.canonical_url || undefined,
-      robots_meta: formData.robots_meta || undefined,
-      categories_ids: categoriesIds,
-      tags_ids: tagsIds,
-    };
-    
-    createPortfolioMutation.mutate(portfolioData);
-  };
-
+  // Handler برای ذخیره پیش‌نویس
   const handleSaveDraft = async () => {
-    // Ensure the slug is properly formatted before sending to backend
-    let formattedSlug = formData.slug;
-    if (formattedSlug) {
-      formattedSlug = formattedSlug
-        .replace(/^-+|-+$/g, '') // Trim - from start and end
-        .substring(0, 60); // Ensure it doesn't exceed max length
-    }
+    const isValid = await form.trigger();
+    if (!isValid) return;
     
-    // Prepare categories and tags data
-    const categoriesIds = selectedCategory ? [parseInt(selectedCategory)] : [];
-    const tagsIds = selectedTags.map(tag => tag.id);
-    
-    const portfolioData = {
-      title: formData.name,
-      slug: formattedSlug,
-      short_description: formData.short_description,
-      description: formData.description,
-      status: "draft",
-      is_featured: false,
-      is_public: true,
-      meta_title: formData.meta_title || undefined,
-      meta_description: formData.meta_description || undefined,
-      og_title: formData.og_title || undefined,
-      og_description: formData.og_description || undefined,
-      og_image_id: formData.og_image?.id || undefined,
-      canonical_url: formData.canonical_url || undefined,
-      robots_meta: formData.robots_meta || undefined,
-      categories_ids: categoriesIds,
-      tags_ids: tagsIds,
-    };
-    
-    createPortfolioMutation.mutate(portfolioData);
+    const data = form.getValues();
+    createPortfolioMutation.mutate({
+      ...data,
+      status: "draft" as const
+    });
   };
 
   return (
@@ -328,18 +276,13 @@ export default function CreatePortfolioPage() {
         }>
           {activeTab === "account" && (
             <BaseInfoTab 
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={editMode}
-              selectedCategory={selectedCategory}
-              selectedTags={selectedTags}
-              onCategoryChange={handleCategoryChange}
-              onTagToggle={handleTagToggle}
-              onTagRemove={handleTagRemove}
             />
           )}
           {activeTab === "media" && (
             <MediaTab 
+              form={form as any}
               portfolioMedia={portfolioMedia}
               setPortfolioMedia={setPortfolioMedia}
               editMode={editMode}
@@ -347,8 +290,7 @@ export default function CreatePortfolioPage() {
           )}
           {activeTab === "seo" && (
             <SEOTab 
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={editMode}
             />
           )}

@@ -121,7 +121,6 @@ export function EditAdminForm({ adminData }: EditAdminFormProps) {
             toast.success("پروفایل با موفقیت به‌روزرسانی شد");
             setEditMode(false);
         } catch (error) {
-            console.error('Error saving profile:', error);
             toast.error("خطا در ذخیره پروفایل. لطفاً دوباره تلاش کنید.");
         } finally {
             setIsSaving(false);

@@ -97,19 +97,10 @@ export const GetFullMediaUrl = (relativeUrl: string): string => {
     return relativeUrl;
   }
   
-  // If it starts with /media/, we need to avoid double /media/
-  if (relativeUrl.startsWith('/media/')) {
-    // Extract the base URL without the trailing /media part
-    const baseUrl = env.MEDIA_BASE_URL.endsWith('/media') 
-      ? env.MEDIA_BASE_URL.slice(0, -6)  // Remove '/media' from the end
-      : env.MEDIA_BASE_URL.split('/media')[0]; // Get everything before '/media'
-    
-    // Return the base URL + the full relative URL
-    return `${baseUrl}${relativeUrl}`;
-  }
-  
-  // For other relative URLs, prepend the MEDIA_BASE_URL
-  return `${env.MEDIA_BASE_URL}/${relativeUrl.replace(/^\/+/, '')}`;
+  // حالا که .env درست شده، فقط ترکیب می‌کنیم
+  // env.MEDIA_BASE_URL = http://localhost:8000
+  // relativeUrl = /media/image/2025/...
+  return `${env.MEDIA_BASE_URL}${relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`}`;
 };
 
 export const GetMediaUrlFromObject = (media: Media): string => {

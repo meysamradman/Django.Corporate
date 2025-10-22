@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { DataTableRowActions, DataTableRowAction } from "@/components/tables/DataTableRowActions";
 import { Role } from "@/types/auth/permission";
 import { formatDate } from "@/core/utils/format";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 
 export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDef<Role>[] => {
 
@@ -39,9 +40,18 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
       header: () => "نام",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
+        const displayName = row.original.display_name;
+        const isSystemRole = row.original.is_system_role;
+        
+        // ✅ برای نقش‌های سیستمی از ترجمه استفاده می‌کنیم
+        // ✅ برای نقش‌های سفارشی از display_name استفاده می‌کنیم
+        const persianName = isSystemRole 
+          ? getPermissionTranslation(name, 'role') 
+          : displayName;
+        
         return (
           <div className="table-cell-primary table-cell-wide">
-            {name}
+            {persianName}
           </div>
         );
       },

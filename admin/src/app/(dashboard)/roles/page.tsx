@@ -96,15 +96,19 @@ export default function RolesPage() {
   });
 
   // Build query parameters
-  const queryParams = React.useMemo(() => ({
-    search: searchValue,
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-    order_desc: sorting.length > 0 ? sorting[0].desc : true,
-    is_active: clientFilters.is_active,
-    is_system_role: clientFilters.is_system_role,
-  }), [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role]);
+  const queryParams = React.useMemo(() => {
+    const params = {
+      search: searchValue,
+      page: pagination.pageIndex + 1,
+      size: pagination.pageSize,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      is_active: clientFilters.is_active,
+      is_system_role: clientFilters.is_system_role,
+    };
+    
+    return params;
+  }, [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role]);
 
   // Use React Query for data fetching
   const { data: response, isLoading, error, refetch } = useRoles(queryParams);
@@ -117,12 +121,6 @@ export default function RolesPage() {
   
 
 
-  // Debug log to see what we're getting
-  React.useEffect(() => {
-    if (data.length > 0) {
-      console.log('🔍 Total roles loaded:', data.length);
-    }
-  }, [data]);
 
   // Row actions for each role
   const rowActions: DataTableRowAction<Role>[] = [
@@ -202,7 +200,7 @@ export default function RolesPage() {
         await deleteRoleMutation.mutateAsync(deleteConfirm.roleId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error is handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };

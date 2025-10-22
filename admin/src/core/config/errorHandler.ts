@@ -66,6 +66,49 @@ function getUserMessage(error: ApiError): string {
     }
 }
 
+/**
+ * استخراج خطاهای فیلدها از پاسخ Django
+ * 
+ * @param error - خطای API
+ * @returns آبجکتی شامل خطاهای هر فیلد
+ * 
+ * @example
+ * const fieldErrors = extractFieldErrors(error);
+ * // { name: "این فیلد الزامی است", slug: "این مقدار قبلاً استفاده شده است" }
+ */
+export function extractFieldErrors(error: unknown): Record<string, string> {
+    const fieldErrors: Record<string, string> = {};
+    
+    if (error instanceof ApiError) {
+        // Django validation errors
+        if (error.response.AppStatusCode === 400 || error.response.AppStatusCode === 422) {
+            const data = error.response._data;
+            
+            // Check if data has field-level errors
+            if (data && typeof data === 'object') {
+                Object.entries(data).forEach(([field, messages]) => {
+                    if (Array.isArray(messages) && messages.length > 0) {
+                        // اولین پیام خطا را برمی‌گردانیم
+                        fieldErrors[field] = messages[0];
+                    } else if (typeof messages === 'string') {
+                        fieldErrors[field] = messages;
+                    }
+                });
+            }
+        }
+    }
+    
+    return fieldErrors;
+}
+
+/**
+ * بررسی اینکه آیا خطا شامل field-level errors است
+ */
+export function hasFieldErrors(error: unknown): boolean {
+    const fieldErrors = extractFieldErrors(error);
+    return Object.keys(fieldErrors).length > 0;
+}
+
 export function handleApiError(error: unknown, customMessage?: string): string {
     let errorMessage = customMessage || ErrorMessages.UNKNOWN_ERROR;
     

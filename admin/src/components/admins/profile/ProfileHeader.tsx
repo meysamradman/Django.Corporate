@@ -47,7 +47,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                 const { toast } = await import('@/components/elements/Sonner');
                 toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
             } catch (error) {
-                console.error('Error saving profile image:', error);
                 const { toast } = await import('@/components/elements/Sonner');
                 toast.error("خطا در ذخیره عکس پروفایل");
             }

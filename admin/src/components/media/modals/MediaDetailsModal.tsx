@@ -20,6 +20,7 @@ import { mediaService } from '@/components/media/services';
 import { mediaApi } from '@/api/media/route';
 import { toast } from 'sonner';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
+import { TruncatedText } from '@/components/shared/TruncatedText';
 
 interface MediaDetailsModalProps {
   media: Media | null;
@@ -101,26 +102,21 @@ export function MediaDetailsModal({
 
       // Handle cover image changes
       if (newCoverImage !== media.cover_image) {
-        console.log('Updating cover image:', newCoverImage);
-        console.log('Previous cover image:', media.cover_image);
         // Use the dedicated updateCoverImage function
         if (newCoverImage === null) {
           // Remove cover image
-          console.log('Removing cover image');
           const response = await mediaApi.updateCoverImage(media.id, null);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         } else if (typeof newCoverImage === 'object' && 'id' in newCoverImage) {
           // Set cover image to an existing media
-          console.log('Setting cover image to media ID:', newCoverImage.id);
           const response = await mediaApi.updateCoverImage(media.id, newCoverImage.id);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         } else if (typeof newCoverImage === 'number') {
           // Set cover image by ID
-          console.log('Setting cover image by ID:', newCoverImage);
           const response = await mediaApi.updateCoverImage(media.id, newCoverImage);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
@@ -129,9 +125,7 @@ export function MediaDetailsModal({
       }
 
       // Update other fields
-      console.log('Updating media with data:', updateData);
       const response = await mediaApi.updateMedia(media.id, updateData);
-      console.log('Update media response:', response);
       
       if (response.metaData.status === 'success' && response.data) {
         toast.success('تغییرات با موفقیت ذخیره شد');
@@ -151,14 +145,12 @@ export function MediaDetailsModal({
       }
     } catch (error) {
       toast.error('خطا در ذخیره تغییرات');
-      console.error('Error updating media:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleCoverImageChange = (coverImage: Media | number | null) => {
-    console.log('Cover image changed to:', coverImage);
     setNewCoverImage(coverImage);
   };
 
@@ -259,158 +251,189 @@ export function MediaDetailsModal({
     }
   };
 
-  const debugMediaItem = (item: Media | null) => {
-    if (!item) return;
-    console.log('Media details item:', item);
-    console.log('Media type:', item.media_type);
-    console.log('File URL:', item.file_url);
-    console.log('Cover image:', item.cover_image);
-    console.log('Cover image URL:', item.cover_image_url);
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] p-0" aria-describedby="media-details-description">
-        <DialogHeader className="p-4 border-b">
-          <DialogTitle className="flex items-center gap-2">
-            {getFileTypeIcon()}
-            <span className="truncate max-w-xs">
+      <DialogContent className="w-[90vw] sm:w-[80vw] md:w-[70vw] lg:w-[1000px] max-h-[90vh] overflow-y-auto p-0" showCloseButton={false} aria-describedby="media-details-description">
+        <DialogTitle className="sr-only">جزئیات رسانه</DialogTitle>
+        <DialogDescription id="media-details-description" className="sr-only">
+          جزئیات رسانه شامل اطلاعات فایل، نوع رسانه، اندازه و کاور رسانه می‌باشد.
+        </DialogDescription>
+        
+        {/* Header */}
+        <div className="bg-muted/50 border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              {getFileTypeIcon()}
               {isEditing ? 'ویرایش رسانه' : (media.title || 'جزئیات رسانه')}
-            </span>
-          </DialogTitle>
-          <DialogDescription id="media-details-description" className="sr-only">
-            جزئیات رسانه شامل اطلاعات فایل، نوع رسانه، اندازه و کاور رسانه می‌باشد.
-          </DialogDescription>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="absolute top-4 left-4 h-8 w-8 p-0"
-            aria-label="بستن"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogHeader>
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0 cursor-pointer hover:bg-muted-foreground/10"
+              aria-label="بستن"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
-        <div className="flex flex-col md:flex-row p-4 gap-6">
-          {/* Media Preview */}
-          <div className="md:w-1/2 flex items-center justify-center bg-muted rounded-lg overflow-hidden h-64 md:h-80">
-            {renderMediaContent()}
+        {/* Main Content */}
+        <div className="flex flex-col lg:flex-row">
+          {/* Right Pane - Media Preview */}
+          <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l border-border">
+            <div className="space-y-4">
+              {/* Media Preview */}
+              <div className="relative w-64 h-64 mx-auto lg:w-full lg:h-80 bg-muted rounded-lg overflow-hidden border border-border">
+                {renderMediaContent()}
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-2 justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="h-8 w-8 p-0 cursor-pointer hover:bg-muted-foreground/10"
+                  title="دانلود"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
 
-          {/* Media Details */}
-          <div className="md:w-1/2 space-y-4">
+          {/* Left Pane - Media Details */}
+          <div className="w-full lg:w-1/2 p-4 lg:p-6 space-y-6">
             {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="media-title">عنوان</Label>
-                  <Input
-                    id="media-title"
-                    value={editedMedia?.title || ''}
-                    onChange={(e) => editedMedia && setEditedMedia({ ...editedMedia, title: e.target.value })}
-                    placeholder="عنوان رسانه"
-                  />
+              <>
+                {/* Editable Fields Section */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="media-title" className="text-sm font-medium">نام فایل</Label>
+                    <Input
+                      id="media-title"
+                      value={editedMedia?.title || ''}
+                      onChange={(e) => editedMedia && setEditedMedia({ ...editedMedia, title: e.target.value })}
+                      placeholder="نام فایل"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="media-alt-text" className="text-sm font-medium">متن جایگزین</Label>
+                    <Input
+                      id="media-alt-text"
+                      value={editedMedia?.alt_text || ''}
+                      onChange={(e) => editedMedia && setEditedMedia({ ...editedMedia, alt_text: e.target.value })}
+                      placeholder="متن جایگزین"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      این متن در صورت عدم نمایش تصویر نمایش داده می‌شود.
+                    </p>
+                  </div>
+                  
+                  {media.media_type !== 'image' && renderCoverImageSection()}
                 </div>
-                
-                <div>
-                  <Label htmlFor="media-alt-text">متن جایگزین</Label>
-                  <Textarea
-                    id="media-alt-text"
-                    value={editedMedia?.alt_text || ''}
-                    onChange={(e) => editedMedia && setEditedMedia({ ...editedMedia, alt_text: e.target.value })}
-                    placeholder="متن جایگزین برای دسترس‌پذیری"
-                  />
+              </>
+            ) : (
+              <>
+                {/* Metadata Section */}
+                <div className="bg-muted/30 rounded-lg border border-border p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div className="sm:col-span-2 flex gap-2">
+                      <span className="font-medium text-muted-foreground">نام فایل:</span>
+                      <TruncatedText 
+                        text={media.title || media.original_file_name || media.file_name} 
+                        maxLength={50}
+                        className="flex-1"
+                      />
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">نوع فایل:</span>
+                      <p className="mt-1">{media.media_type}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">حجم:</span>
+                      <p className="mt-1">{media.file_size ? mediaService.formatBytes(media.file_size) : 'نامشخص'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">تاریخ:</span>
+                      <p className="mt-1">{new Date(media.created_at).toLocaleDateString('fa-IR')}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">شناسه:</span>
+                      <p className="mt-1">{media.id}</p>
+                    </div>
+                    {media.mime_type && (
+                      <div>
+                        <span className="font-medium text-muted-foreground">فرمت:</span>
+                        <p className="mt-1">{media.mime_type.split('/')[1]?.toUpperCase()}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {media.alt_text && (
+                  <div>
+                    <span className="text-sm font-medium text-muted-foreground">متن جایگزین:</span>
+                    <p className="mt-1 text-sm">{media.alt_text}</p>
+                  </div>
+                )}
                 
                 {media.media_type !== 'image' && renderCoverImageSection()}
-              </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-muted/50 border-t border-border px-6 py-4">
+          <div className="flex gap-3 justify-between">
+            {isEditing ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                >
+                  انصراف
+                </Button>
+                <Button 
+                  onClick={handleSaveEdit}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                      در حال ذخیره...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 ml-2" />
+                      ذخیره
+                    </>
+                  )}
+                </Button>
+              </>
             ) : (
-              <div>
-                <h3 className="font-semibold text-lg mb-2">اطلاعات رسانه</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">نوع فایل:</span>
-                    <span className="font-medium">{media.media_type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">نام فایل:</span>
-                    <span className="font-medium truncate max-w-[150px]">{media.original_file_name || media.file_name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">اندازه:</span>
-                    <span className="font-medium">{media.file_size ? mediaService.formatBytes(media.file_size) : 'نامشخص'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">تاریخ ایجاد:</span>
-                    <span className="font-medium">{new Date(media.created_at).toLocaleDateString('fa-IR')}</span>
-                  </div>
-                  {media.alt_text && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">متن جایگزین:</span>
-                      <span className="font-medium">{media.alt_text}</span>
-                    </div>
-                  )}
+              <>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={onClose}>
+                    بستن
+                  </Button>
                 </div>
-              </div>
+                {showEditButton && (
+                  <Button onClick={handleStartEdit}>
+                    <Edit3 className="h-4 w-4 ml-2" />
+                    ویرایش
+                  </Button>
+                )}
+              </>
             )}
-
-            {media.media_type !== 'image' && !isEditing && (
-              renderCoverImageSection()
-            )}
-
-            <div className="flex gap-2 pt-4">
-              {isEditing ? (
-                <>
-                  <Button 
-                    onClick={handleCancelEdit} 
-                    variant="outline"
-                    disabled={isSaving}
-                    className="flex-1"
-                  >
-                    انصراف
-                  </Button>
-                  <Button 
-                    onClick={handleSaveEdit} 
-                    disabled={isSaving}
-                    className="flex-1"
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                        در حال ذخیره...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 ml-2" />
-                        ذخیره
-                      </>
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    onClick={handleDownload} 
-                    disabled={isDownloading}
-                    className="flex-1"
-                  >
-                    <Download className="h-4 w-4 ml-2" />
-                    {isDownloading ? 'در حال دانلود...' : 'دانلود'}
-                  </Button>
-                  
-                  {showEditButton && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleStartEdit}
-                      className="flex-1"
-                    >
-                      <Edit3 className="h-4 w-4 ml-2" />
-                      ویرایش
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
           </div>
         </div>
       </DialogContent>

@@ -21,6 +21,13 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         """Override create to set is_system_role=False for user-created roles"""
         # User-created roles should NOT be system roles
         validated_data['is_system_role'] = False
+        
+        # ✅ FIX: Ensure permissions is always a valid dict
+        if 'permissions' not in validated_data or validated_data['permissions'] is None:
+            validated_data['permissions'] = {}
+        elif not isinstance(validated_data['permissions'], dict):
+            validated_data['permissions'] = {}
+        
         return super().create(validated_data)
     
     def validate_name(self, value):
@@ -56,19 +63,22 @@ class AdminRoleSerializer(serializers.ModelSerializer):
     
     def validate_permissions(self, value):
         """Validate permissions JSON structure"""
+        # ✅ FIX: Handle None or empty values
+        if value is None:
+            return {}
+        
         if not isinstance(value, dict):
             raise serializers.ValidationError("Permissions must be a valid JSON object")
         
-        # If empty dict, allow it (no permissions)
+        # ✅ FIX: If empty dict, return it (no permissions - valid for custom roles)
         if not value:
-            return value
+            return {}
         
-        # Validate required keys
+        # Validate required keys (at least one should be present if not empty)
         allowed_keys = {'modules', 'actions', 'restrictions', 'special'}
         if not any(key in value for key in allowed_keys):
-            raise serializers.ValidationError(
-                "Permissions must contain at least one of: modules, actions, restrictions, special"
-            )
+            # ✅ FIX: If no valid keys, return empty dict instead of error
+            return {}
         
         # Validate modules
         if 'modules' in value:
@@ -120,6 +130,8 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source='user.email', read_only=True)
     user_mobile = serializers.CharField(source='user.mobile', read_only=True)
     assigned_by_name = serializers.CharField(source='assigned_by.email', read_only=True)
+    # Include role details with permissions
+    role = AdminRoleSerializer(read_only=True)
     
     class Meta:
         model = AdminUserRole
@@ -131,7 +143,7 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 'public_id', 'assigned_at', 'permissions_cache', 
             'last_cache_update', 'role_name', 'role_display_name',
-            'user_email', 'user_mobile', 'assigned_by_name'
+            'user_email', 'user_mobile', 'assigned_by_name', 'role'
         ]
     
     def validate_user(self, value):
@@ -164,19 +176,18 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
 class AdminRoleListSerializer(serializers.ModelSerializer):
     """
     Simplified serializer for role lists
+    ✅ OPTIMIZED: Uses annotated users_count from queryset (no N+1 query problem)
     """
-    users_count = serializers.SerializerMethodField()
+    users_count = serializers.IntegerField(read_only=True)  # ✅ Read from annotation
     
     class Meta:
         model = AdminRole
         fields = [
             'id', 'public_id', 'name', 'display_name', 'description',
-            'level', 'is_system_role', 'is_active', 'users_count'
+            'level', 'is_system_role', 'is_active', 'users_count',
+            'created_at', 'updated_at'  # ✅ اضافه شدن فیلدهای تاریخ
         ]
-    
-    def get_users_count(self, obj):
-        """Get count of users with this role"""
-        return obj.adminuserrole_set.filter(is_active=True).count()
+        read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
 
 class AdminRolePermissionsSerializer(serializers.ModelSerializer):
@@ -190,6 +201,16 @@ class AdminRolePermissionsSerializer(serializers.ModelSerializer):
     
     def validate_permissions(self, value):
         """Use the same validation as AdminRoleSerializer"""
+        # ✅ FIX: Use the same validation logic
+        if value is None:
+            return {}
+        
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Permissions must be a valid JSON object")
+        
+        if not value:
+            return {}
+        
         serializer = AdminRoleSerializer()
         return serializer.validate_permissions(value)
 

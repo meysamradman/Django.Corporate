@@ -4,6 +4,11 @@
  * 
  * @param text - The input text to convert to a slug
  * @returns A formatted slug string
+ * 
+ * @example
+ * generateSlug('نمونه کار من')     // 'نمونه-کار-من'
+ * generateSlug('My Portfolio')      // 'my-portfolio'
+ * generateSlug('پروژه Test 123')   // 'پروژه-test-123'
  */
 export const generateSlug = (text: string): string => {
   if (!text) return '';

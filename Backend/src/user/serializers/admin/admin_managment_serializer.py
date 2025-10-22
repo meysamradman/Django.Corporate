@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from datetime import datetime
-from src.user.models import User, AdminRole, AdminProfile
+from src.user.models import User, AdminRole
 from src.user.messages import AUTH_ERRORS
 from src.media.models import ImageMedia
 from src.user.serializers.base_management_serializer import BaseUserListSerializer, BaseUserDetailSerializer, BaseUserFilterSerializer
@@ -14,10 +14,11 @@ class AdminListSerializer(BaseUserListSerializer):
     profile = serializers.SerializerMethodField()  # Dynamic profile field
     permissions = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()  # Add roles field
     
     class Meta(BaseUserListSerializer.Meta):
         fields = ['id', 'public_id', 'full_name', 'mobile', 'email', 'is_active', 'is_staff', 'is_superuser', 
-                 'created_at', 'updated_at', 'profile', 'permissions']
+                 'created_at', 'updated_at', 'profile', 'permissions', 'roles']
     
     def get_profile(self, obj):
         """Get profile based on user type - admin or regular user"""
@@ -42,6 +43,32 @@ class AdminListSerializer(BaseUserListSerializer):
             elif profile.last_name:
                 return profile.last_name
         return obj.mobile or obj.email or f"User {obj.id}"
+    
+    def get_roles(self, obj):
+        """Get user roles for admin list"""
+        # SUPERUSER: Return super_admin role
+        if obj.is_superuser:
+            return [{'name': 'super_admin', 'display_name': 'Super Admin'}]
+        
+        # REGULAR ADMIN: Get only assigned roles
+        assigned_roles = []
+        try:
+            if hasattr(obj, 'adminuserrole_set'):
+                user_role_assignments = obj.adminuserrole_set.filter(
+                    is_active=True
+                ).select_related('role')
+                assigned_roles = [
+                    {
+                        'id': ur.role.id,
+                        'name': ur.role.name,
+                        'display_name': ur.role.display_name
+                    } 
+                    for ur in user_role_assignments
+                ]
+        except:
+            pass
+        
+        return assigned_roles
     
     def get_permissions(self, user):
         """ Simplified permissions for admin list - much faster """
@@ -275,6 +302,22 @@ class AdminUpdateSerializer(serializers.Serializer):
             except ValidationError:
                 raise serializers.ValidationError(AUTH_ERRORS["auth_invalid_mobile"])
         return value
+
+    def validate_role_id(self, value):
+        """Validate role ID"""
+        if value is None or value == "" or value == "none":
+            return None
+        
+        try:
+            role_id = int(value)
+            from src.user.models import AdminRole
+            # Check if role exists and is active
+            AdminRole.objects.get(id=role_id, is_active=True)
+            return role_id
+        except (ValueError, TypeError):
+            raise serializers.ValidationError("Invalid role ID format")
+        except AdminRole.DoesNotExist:
+            raise serializers.ValidationError("Role not found or inactive")
 
     def validate(self, data):
         print(f">>>>> Validating data in AdminUpdateSerializer: {data}")

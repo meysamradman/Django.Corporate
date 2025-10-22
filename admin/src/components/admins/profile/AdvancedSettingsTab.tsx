@@ -7,77 +7,35 @@ import { Switch } from "@/components/elements/Switch";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { AdminWithProfile } from "@/types/auth/admin";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/elements/Table";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Edit2, Loader2, AlertTriangle } from "lucide-react";
+import { Edit2, Loader2, AlertTriangle, Users, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { roleApi } from "@/api/roles/route";
 import { adminApi } from "@/api/admins/route";
 import { useAuth } from "@/core/auth/AuthContext";
 import { hasPermission } from "@/core/auth/permissionUtils";
-import { Role, PermissionGroup } from "@/types/auth/permission";
+import { Role } from "@/types/auth/permission";
+import { Badge } from "@/components/elements/Badge";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 
 interface AdvancedSettingsTabProps {
     admin: AdminWithProfile;
 }
 
-const MODULE_NAME_MAP: Record<string, string> = {
-    'admin': 'مدیریت ادمین‌ها',
-    'user': 'مدیریت کاربران',
-    'role': 'مدیریت نقش‌ها', 
-    'permission': 'مدیریت دسترسی‌ها',
-    'portfolio': 'مدیریت نمونه کارها',
-    'blog': 'مدیریت بلاگ',
-    'media': 'مدیریت رسانه',
-    'settings': 'تنظیمات سیستم',
-    'statistics': 'آمار و گزارشات',
-    'audit_log': 'گزارش فعالیت‌ها'
-};
-
-const ACTION_NAME_MAP: Record<string, string> = {
-    'view': 'مشاهده',
-    'list': 'مشاهده لیست', 
-    'create': 'ایجاد',
-    'edit': 'ویرایش',
-    'update': 'ویرایش',
-    'delete': 'حذف',
-    'manage': 'مدیریت کامل',
-    'export': 'خروجی',
-    'import': 'ورودی',
-    'approve': 'تایید',
-    'publish': 'انتشار'
-};
-
-interface ModulePermission {
-    id: string;
-    module: string;
-    permissions: Record<string, boolean>;
+interface RoleAssignment {
+    roleId: number;
+    assigned: boolean;
 }
-
-interface RolePermissionData {
-    modules: string[];
-    actions: string[];
-}
-
-type PermissionKey = 'view' | 'modify' | 'publish' | 'configure';
 
 export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     const { user } = useAuth();
-    const [modulePermissions, setModulePermissions] = useState<ModulePermission[]>([]);
     const [adminRoles, setAdminRoles] = useState<Role[]>([]);
-    const [availableActions, setAvailableActions] = useState<string[]>([]);
+    const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+    const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
     const [editMode, setEditMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [originalPermissions, setOriginalPermissions] = useState<ModulePermission[]>([]);
     const [adminStatusData, setAdminStatusData] = useState({
         is_active: admin.is_active,
         is_superuser: admin.is_superuser
@@ -108,154 +66,106 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             setIsLoading(true);
             setError(null);
 
-            // Load available permissions
-            const permissionsResponse = await roleApi.getPermissions();
-            const permissionGroups = permissionsResponse.data;
-
-            // Extract unique actions
-            const actions = new Set<string>();
-            permissionGroups.forEach(group => {
-                group.permissions.forEach(permission => {
-                    actions.add(permission.action.toLowerCase());
-                });
-            });
-            setAvailableActions(Array.from(actions));
+            // Load available roles
+            const rolesResponse = await roleApi.getRoleList({ is_active: true });
+            let rolesData: Role[] = [];
+            
+            if (rolesResponse.data && Array.isArray(rolesResponse.data)) {
+                rolesData = rolesResponse.data;
+            } else if (rolesResponse.data && typeof rolesResponse.data === 'object' && 'results' in rolesResponse.data && Array.isArray((rolesResponse.data as any).results)) {
+                rolesData = (rolesResponse.data as any).results;
+            } else if (rolesResponse && Array.isArray(rolesResponse)) {
+                rolesData = rolesResponse;
+            }
+            
+            setAvailableRoles(rolesData);
 
             // Load admin roles
-            const rolesResponse = await adminApi.getAdminRoles(admin.id);
-            setAdminRoles(rolesResponse);
-
-            // Convert role permissions to module permissions structure
-            const modulePermsMap = new Map<string, Record<string, boolean>>();
+            const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
             
-            // Initialize all modules with false permissions
-            Object.keys(MODULE_NAME_MAP).forEach(module => {
-                modulePermsMap.set(module, {});
-                Array.from(actions).forEach(action => {
-                    modulePermsMap.get(module)![action] = false;
-                });
-            });
-
-            // Special handling for Super Admin - they have ALL permissions
-            if (admin.is_superuser) {
-                // Super admin gets all permissions enabled
-                Object.keys(MODULE_NAME_MAP).forEach(module => {
-                    Array.from(actions).forEach(action => {
-                        modulePermsMap.get(module)![action] = true;
-                    });
-                });
-            } else {
-                // Apply permissions from roles for regular admins
-                rolesResponse.forEach((role: Role) => {
-                    if (role.permissions) {
-                        const rolePermissions = role.permissions as RolePermissionData;
-                        const modules = rolePermissions.modules || [];
-                        const roleActions = rolePermissions.actions || [];
-
-                        // Handle 'all' modules case
-                        if (modules.includes('all')) {
-                            // Grant all actions to all modules
-                            Object.keys(MODULE_NAME_MAP).forEach(module => {
-                                roleActions.forEach(action => {
-                                    modulePermsMap.get(module)![action] = true;
-                                });
-                            });
-                        } else {
-                            // Grant specific module permissions
-                            modules.forEach(module => {
-                                if (modulePermsMap.has(module)) {
-                                    // Handle 'all' actions case
-                                    if (roleActions.includes('all')) {
-                                        Array.from(actions).forEach(action => {
-                                            modulePermsMap.get(module)![action] = true;
-                                        });
-                                    } else {
-                                        roleActions.forEach(action => {
-                                            modulePermsMap.get(module)![action] = true;
-                                        });
-                                    }
-                                }
-                            });
-                        }
+            // ✅ FIX: Extract role details from AdminUserRole structure
+            const adminRolesData = Array.isArray(adminRolesResponse) 
+                ? adminRolesResponse.map((assignment: any) => {
+                    // AdminUserRole has nested 'role' object
+                    if (assignment.role && typeof assignment.role === 'object') {
+                        return assignment.role; // Return the nested role object
                     }
-                });
-            }
+                    // Fallback: if it's already a role object
+                    return assignment;
+                  })
+                : [];
+            
+            setAdminRoles(adminRolesData);
 
-            // Convert to array format
-            const modulePermissionsArray: ModulePermission[] = [];
-            modulePermsMap.forEach((permissions, moduleId) => {
-                modulePermissionsArray.push({
-                    id: moduleId,
-                    module: MODULE_NAME_MAP[moduleId] || moduleId,
-                    permissions
+            // Initialize role assignments
+            const initialAssignments: RoleAssignment[] = rolesData.map((role: Role) => {
+                // ✅ FIX: Check against extracted role IDs
+                const assigned = adminRolesData.some((adminRole: any) => {
+                    return adminRole.id === role.id;
                 });
+                
+                return {
+                    roleId: role.id,
+                    assigned: assigned
+                };
             });
-
-            setModulePermissions(modulePermissionsArray);
-            setOriginalPermissions(JSON.parse(JSON.stringify(modulePermissionsArray)));
+            
+            setRoleAssignments(initialAssignments);
             
         } catch (error) {
-            console.error('Error loading admin data:', error);
-            setError('خطا در بارگذاری اطلاعات دسترسی‌ها');
+            setError(getPermissionTranslation('خطا در بارگذاری اطلاعات دسترسی‌ها', 'description'));
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handlePermissionChange = (moduleId: string, action: string) => {
+    const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode || !canManagePermissions) return;
         
-        // Prevent editing permissions for Super Admin
-        if (admin.is_superuser) {
-            toast.info('سوپر ادمین به صورت خودکار تمام دسترسی‌ها را دارد');
-            return;
-        }
-        
-        setModulePermissions(prev =>
-            prev.map(p =>
-                p.id === moduleId 
-                    ? { 
-                        ...p, 
-                        permissions: {
-                            ...p.permissions,
-                            [action]: !p.permissions[action]
-                        }
-                    } 
-                    : p
+        setRoleAssignments(prev => 
+            prev.map(assignment => 
+                assignment.roleId === roleId 
+                    ? { ...assignment, assigned } 
+                    : assignment
             )
         );
     };
 
     const handleStatusChange = async (field: 'is_active' | 'is_superuser', value: boolean) => {
         if (!canManagePermissions) {
-            toast.error('شما دسترسی تغییر وضعیت این ادمین را ندارید');
+            toast.error(getPermissionTranslation('شما دسترسی تغییر وضعیت این ادمین را ندارید', 'description'));
             return;
         }
 
         try {
             await adminApi.updateUserStatusByType(admin.id, value, 'admin');
             setAdminStatusData(prev => ({ ...prev, [field]: value }));
-            toast.success('وضعیت ادمین با موفقیت به‌روزرسانی شد');
+            toast.success(getPermissionTranslation('وضعیت ادمین با موفقیت به‌روزرسانی شد', 'description'));
         } catch (error) {
-            console.error('Error updating admin status:', error);
-            toast.error('خطا در به‌روزرسانی وضعیت ادمین');
+            toast.error(getPermissionTranslation('خطا در به‌روزرسانی وضعیت ادمین', 'description'));
         }
     };
 
     const handleCancel = () => {
-        setModulePermissions(JSON.parse(JSON.stringify(originalPermissions)));
+        // ✅ FIX: Reset role assignments to original state
+        const originalAssignments = availableRoles.map((role: Role) => ({
+            roleId: role.id,
+            // adminRoles now contains extracted role objects
+            assigned: adminRoles.some((adminRole: any) => adminRole.id === role.id)
+        }));
+        setRoleAssignments(originalAssignments);
         setEditMode(false);
     };
 
     const handleSave = async () => {
         if (!canManagePermissions) {
-            toast.error('شما دسترسی ویرایش دسترسی‌ها را ندارید');
+            toast.error(getPermissionTranslation('شما دسترسی ویرایش دسترسی‌ها را ندارید', 'description'));
             return;
         }
 
         // Prevent editing permissions for Super Admin
         if (admin.is_superuser) {
-            toast.info('سوپر ادمین به صورت خودکار تمام دسترسی‌ها را دارد');
+            toast.info(getPermissionTranslation('سوپر ادمین به صورت خودکار تمام دسترسی‌ها را دارد', 'description'));
             setEditMode(false);
             return;
         }
@@ -263,52 +173,91 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         try {
             setIsSaving(true);
             
-            // Convert module permissions back to role format
-            const allModules = new Set<string>();
-            const allActions = new Set<string>();
+            // ✅ FIX: Handle role assignments
+            // Get current assignments - adminRoles now contains extracted role objects
+            const currentAssignedRoleIds = adminRoles.map((role: any) => role.id);
             
-            modulePermissions.forEach(module => {
-                Object.entries(module.permissions).forEach(([action, hasAccess]) => {
-                    if (hasAccess) {
-                        allModules.add(module.id);
-                        allActions.add(action);
-                    }
-                });
-            });
-
-            // Create/Update admin role with new permissions
-            const roleData = {
-                name: `نقش سفارشی ${admin.full_name}`,
-                description: `نقش سفارشی برای ادمین ${admin.full_name}`,
-                permissions: {
-                    modules: Array.from(allModules),
-                    actions: Array.from(allActions)
-                }
-            };
-
-            // Check if admin has existing custom role
-            const existingCustomRole = adminRoles.find(role => 
-                role.name.includes('نقش سفارشی') || 
-                role.name.includes(admin.full_name)
+            const newAssignedRoleIds = roleAssignments
+                .filter(assignment => assignment.assigned)
+                .map(assignment => assignment.roleId);
+            
+            // Find roles to remove (currently assigned but not selected)
+            const rolesToRemove = currentAssignedRoleIds.filter(
+                (roleId: number) => !newAssignedRoleIds.includes(roleId)
             );
-
-            if (existingCustomRole) {
-                await roleApi.updateRole(existingCustomRole.id, roleData);
-            } else {
-                const newRole = await roleApi.createRole(roleData);
-                await adminApi.assignRoleToAdmin(admin.id, newRole.data.id);
-            }
-
-            setOriginalPermissions(JSON.parse(JSON.stringify(modulePermissions)));
-            setEditMode(false);
-            toast.success("دسترسی‌های ادمین با موفقیت ذخیره شد");
             
-            // Reload data to reflect changes
+            // Find roles to add (selected but not currently assigned)
+            const rolesToAdd = newAssignedRoleIds.filter(
+                (roleId: number) => !currentAssignedRoleIds.includes(roleId)
+            );
+            
+            // Remove roles
+            for (const roleId of rolesToRemove) {
+                try {
+                    await adminApi.removeRoleFromAdmin(admin.id, roleId);
+                } catch (error) {
+                    // Error silently ignored - user will see if roles weren't removed
+                }
+            }
+            
+            // Add roles with detailed error tracking
+            const assignResults: { success: number[], failed: { id: number, error: string }[] } = {
+                success: [],
+                failed: []
+            };
+            
+            for (const roleId of rolesToAdd) {
+                try {
+                    await adminApi.assignRoleToAdmin(admin.id, roleId);
+                    assignResults.success.push(roleId);
+                } catch (error: any) {
+                    // Get role name for better error message
+                    const failedRole = availableRoles.find(r => r.id === roleId);
+                    const roleName = failedRole?.display_name || `Role ${roleId}`;
+                    
+                    // Extract error message from API response
+                    let errorMessage = 'خطای نامشخص';
+                    if (error?.response?.data?.data?.validation_errors) {
+                        errorMessage = JSON.stringify(error.response.data.data.validation_errors);
+                    } else if (error?.response?.data?.metaData?.message) {
+                        errorMessage = error.response.data.metaData.message;
+                    } else if (error?.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    assignResults.failed.push({ id: roleId, error: `${roleName}: ${errorMessage}` });
+                }
+            }
+            
+            // Show appropriate toast message based on results
+            if (assignResults.failed.length === 0) {
+                // All successful
+                toast.success(getPermissionTranslation("نقش‌های ادمین با موفقیت به‌روزرسانی شد", 'description'));
+            } else if (assignResults.success.length === 0) {
+                // All failed
+                toast.error(
+                    getPermissionTranslation('خطا در تخصیص تمام نقش‌ها', 'description'),
+                    {
+                        description: assignResults.failed.map(f => f.error).join('\n')
+                    }
+                );
+            } else {
+                // Partial success
+                toast.warning(
+                    getPermissionTranslation('بعضی نقش‌ها با خطا مواجه شدند', 'description'),
+                    {
+                        description: `✅ موفق: ${assignResults.success.length}\n❌ ناموفق: ${assignResults.failed.length}`
+                    }
+                );
+            }
+            
+            setEditMode(false);
+            
+            // Reload data to reflect changes (even if some failed)
             await loadAdminData();
             
         } catch (error) {
-            console.error('Error saving permissions:', error);
-            toast.error("خطا در ذخیره دسترسی‌ها");
+            toast.error(getPermissionTranslation('خطا در ذخیره تغییرات', 'description'));
         } finally {
             setIsSaving(false);
         }
@@ -316,20 +265,24 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
     return (
         <TabsContent value="advanced_settings" className="mt-6 space-y-6">
+            <h1 className="page-title">
+                {getPermissionTranslation('پروفایل ادمین', 'resource')}
+            </h1>
+
             {/* Admin Settings Card */}
             <Card>
                 <CardHeader>
-                    <CardTitle>تنظیمات مدیریتی</CardTitle>
+                    <CardTitle>{getPermissionTranslation('تنظیمات مدیریتی', 'resource')}</CardTitle>
                     <CardDescription>
-                        این تنظیمات حساس فقط توسط سوپر ادمین قابل تغییر است.
+                        {getPermissionTranslation('این تنظیمات حساس فقط توسط سوپر ادمین قابل تغییر است.', 'description')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label htmlFor="account-status" className="text-base">وضعیت حساب</Label>
+                            <Label htmlFor="account-status" className="text-base">{getPermissionTranslation('وضعیت حساب', 'resource')}</Label>
                             <p className="text-sm text-muted-foreground">
-                                حساب کاربری این ادمین را فعال یا غیرفعال کنید.
+                                {getPermissionTranslation('حساب کاربری این ادمین را فعال یا غیرفعال کنید.', 'description')}
                             </p>
                         </div>
                         <Switch
@@ -341,9 +294,9 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     </div>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label htmlFor="super-admin-access" className="text-base">دسترسی سوپر ادمین</Label>
+                            <Label htmlFor="super-admin-access" className="text-base">{getPermissionTranslation('دسترسی سوپر ادمین', 'resource')}</Label>
                             <p className="text-sm text-muted-foreground">
-                                این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.
+                                {getPermissionTranslation('این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.', 'description')}
                             </p>
                         </div>
                         <Switch
@@ -357,14 +310,14 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     {/* Admin Roles Display */}
                     {adminRoles.length > 0 && (
                         <div className="rounded-lg border p-4">
-                            <Label className="text-base">نقش‌های فعلی</Label>
+                            <Label className="text-base">{getPermissionTranslation('نقش‌های فعلی', 'resource')}</Label>
                             <div className="mt-2 flex flex-wrap gap-2">
                                 {adminRoles.map((role) => (
                                     <span
                                         key={role.id}
                                         className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
                                     >
-                                        {role.display_name || role.name}
+                                        {getPermissionTranslation(role.name, 'role')}
                                     </span>
                                 ))}
                             </div>
@@ -373,13 +326,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 </CardContent>
             </Card>
 
-            {/* Roles Card */}
+            {/* Role Assignment Card - Simplified role assignment without detailed permissions */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>دسترسی‌های نقش</CardTitle>
+                        <CardTitle className="flex items-center gap-2">
+                            <Shield className="h-5 w-5 text-primary" />
+                            {getPermissionTranslation('اختصاص نقش‌ها', 'resource')}
+                        </CardTitle>
                         <CardDescription>
-                            سطوح دسترسی برای ماژول‌های مختلف سیستم را مدیریت کنید.
+                            {getPermissionTranslation('نقش‌های مورد نیاز برای این ادمین را انتخاب کنید.', 'description')}
                         </CardDescription>
                     </div>
                     <div className="flex gap-2">
@@ -392,7 +348,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                     disabled={isLoading || isSaving}
                                 >
                                     <Edit2 className="w-4 h-4 me-2" />
-                                    {editMode ? "لغو" : (admin.is_superuser ? "مشاهده دسترسی‌ها" : "ویرایش دسترسی‌ها")}
+                                    {editMode ? getPermissionTranslation("لغو", 'action') : getPermissionTranslation("ویرایش نقش‌ها", 'resource')}
                                 </Button>
                                 {editMode && !admin.is_superuser && (
                                     <Button 
@@ -401,73 +357,87 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                         disabled={isSaving}
                                     >
                                         {isSaving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-                                        ذخیره
+                                        {getPermissionTranslation("ذخیره", 'action')}
                                     </Button>
                                 )}
                             </>
                         ) : (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <AlertTriangle className="w-4 h-4" />
-                                فقط مشاهده (عدم دسترسی ویرایش)
+                                {getPermissionTranslation('فقط مشاهده (عدم دسترسی ویرایش)', 'description')}
                             </div>
                         )}
                     </div>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent>
                     {/* Super Admin Info */}
                     {admin.is_superuser && (
                         <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                             <div className="flex items-center gap-2">
                                 <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                <h4 className="font-semibold text-sm text-green-700">سوپر ادمین - دسترسی کامل</h4>
+                                <h4 className="font-semibold text-sm text-green-700">{getPermissionTranslation('سوپر ادمین - دسترسی کامل', 'description')}</h4>
                             </div>
                             <p className="text-xs text-green-600 mt-1">
-                                این کاربر به عنوان سوپر ادمین به صورت خودکار تمام ماژول‌ها و عملیات را در اختیار دارد.
+                                {getPermissionTranslation('این کاربر به عنوان سوپر ادمین به صورت خودکار تمام ماژول‌ها و عملیات را در اختیار دارد.', 'description')}
                             </p>
                         </div>
                     )}
                     
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="w-6 h-6 animate-spin me-2" />
-                            در حال بارگذاری دسترسی‌ها...
+                        <div className="space-y-2">
+                            {[...Array(5)].map((_, i) => (
+                                <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                            ))}
                         </div>
                     ) : error ? (
                         <div className="flex items-center justify-center py-8 text-red-600">
                             <AlertTriangle className="w-5 h-5 me-2" />
                             {error}
                         </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[250px] text-right">ماژول</TableHead>
-                                    {availableActions.map((action) => (
-                                        <TableHead key={action} className="text-center">
-                                            {ACTION_NAME_MAP[action] || action}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {modulePermissions.map((moduleData) => (
-                                    <TableRow key={moduleData.id}>
-                                        <TableCell className="font-medium text-right">
-                                            {moduleData.module}
-                                        </TableCell>
-                                        {availableActions.map((action) => (
-                                            <TableCell key={`${moduleData.id}-${action}`} className="text-center">
+                    ) : availableRoles && availableRoles.length > 0 ? (
+                        <div className="space-y-4">
+                            <div className="rounded-md border">
+                                <div className="p-4 space-y-3">
+                                    {availableRoles.map((role) => (
+                                        <div key={role.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50">
+                                            <div className="flex items-center gap-3">
                                                 <Checkbox
-                                                    checked={moduleData.permissions[action] || false}
-                                                    onCheckedChange={() => handlePermissionChange(moduleData.id, action)}
+                                                    id={`role-${role.id}`}
+                                                    checked={roleAssignments.find(a => a.roleId === role.id)?.assigned}
+                                                    onCheckedChange={(checked) => handleRoleAssignmentChange(role.id, !!checked)}
                                                     disabled={!editMode || !canManagePermissions || admin.is_superuser}
                                                 />
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                                <Label htmlFor={`role-${role.id}`} className="font-medium">
+                                                    {getPermissionTranslation(role.name, 'role')}
+                                                </Label>
+                                                {role.is_system_role && (
+                                                    <Badge variant="outline" className="text-xs">
+                                                        {getPermissionTranslation('سیستمی', 'description')}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {getPermissionTranslation(role.name, 'roleDescription') || role.description}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {editMode && !admin.is_superuser && (
+                                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                                    <div className="text-sm font-medium">
+                                        {getPermissionTranslation('نقش‌های انتخاب شده:', 'resource')} {
+                                            roleAssignments.filter(a => a.assigned).length
+                                        }
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-8">
+                            {getPermissionTranslation('نقشی موجود نیست', 'description')}
+                        </div>
                     )}
                 </CardContent>
             </Card>

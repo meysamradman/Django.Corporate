@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avata
 import Link from "next/link";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 
 export const useAdminColumns = (
   rowActions: DataTableRowAction<AdminWithProfile>[]
@@ -56,7 +57,7 @@ export const useAdminColumns = (
           adminId: admin.id,
           profile: profile,
           profilePicture: profile?.profile_picture,
-          profilePictureUrl: profile?.profile_picture?.url
+          profilePictureUrl: profile?.profile_picture?.file_url
         });
         
         const profilePictureUrl = profile?.profile_picture 
@@ -126,12 +127,54 @@ export const useAdminColumns = (
       minSize: 200,
     },
     {
-      accessorKey: "is_superuser",
-      header: () => "نقش",
+      accessorKey: "roles",
+      header: () => "نقش‌ها",
       cell: ({ row }) => {
         const admin = row.original;
         const isSuper = admin.is_superuser;
         const roles = admin.roles || [];
+        
+        // Super admin always shows as super admin
+        if (isSuper) {
+          return (
+            <div className="table-badge-container">
+              <Badge variant="default">{getPermissionTranslation('super_admin', 'role')}</Badge>
+            </div>
+          );
+        }
+        
+        // If has specific roles, show them
+        if (roles.length > 0) {
+          return (
+            <div className="table-badge-container flex flex-wrap gap-1">
+              {roles.map((role: any, index) => (
+                <Badge key={index} variant="outline">
+                  {typeof role === 'string' ? getPermissionTranslation(role, 'role') : 
+                   role.name ? getPermissionTranslation(role.name, 'role') : 
+                   role.display_name || 'نقش نامشخص'}
+                </Badge>
+              ))}
+            </div>
+          );
+        }
+        
+        // Default admin role
+        return (
+          <div className="table-badge-container">
+            <Badge variant="outline">ادمین عادی</Badge>
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: true,
+      minSize: 200,
+    },
+    {
+      accessorKey: "is_superuser",
+      header: () => "نوع ادمین",
+      cell: ({ row }) => {
+        const admin = row.original;
+        const isSuper = admin.is_superuser;
         
         // Super admin always shows as super admin
         if (isSuper) {
@@ -142,20 +185,7 @@ export const useAdminColumns = (
           );
         }
         
-        // If has specific roles, show them
-        if (roles.length > 0) {
-          return (
-            <div className="table-badge-container flex flex-wrap gap-1">
-              {roles.map((role, index) => (
-                <Badge key={index} variant="outline">
-                  {role.name}
-                </Badge>
-              ))}
-            </div>
-          );
-        }
-        
-        // Default admin role
+        // Regular admin
         return (
           <div className="table-badge-container">
             <Badge variant="outline">ادمین عادی</Badge>

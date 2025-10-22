@@ -107,14 +107,10 @@ export function MediaLibraryModal({
       ordering: currentFilters.ordering,
     };
 
-    console.log('Sending filters to API:', apiFilters);
-
     try {
       const response = await mediaApi.getMediaList(apiFilters, {
         cache: 'no-store',
       });
-      
-      console.log('API Response:', response);
       
       if (response.metaData.status === 'success') {
         // Ensure we're getting the data correctly from the response
@@ -258,8 +254,6 @@ export function MediaLibraryModal({
   const handleEditMedia = (media: Media) => {
     // For now, just close the detail modal
     setIsDetailModalOpen(false);
-    // In a real implementation, you would open an edit modal here
-    console.log('Edit media:', media);
   };
 
   const selectedIds = Object.keys(selectedMedia);

@@ -274,8 +274,6 @@ export default function MediaPage() {
   const handleEditMedia = (media: Media) => {
     // For now, just close the detail modal
     setDetailModalOpen(false);
-    // In a real implementation, you would open an edit modal here
-    console.log('Edit media:', media);
   };
 
   const handleMediaUpdated = (updatedMedia: Media) => {
@@ -289,23 +287,13 @@ export default function MediaPage() {
       setDetailMedia(updatedMedia);
     }
     
-    // Show success message
-    toast.success('تغییرات رسانه با موفقیت ذخیره شد');
-    
-    // Removed debug logging for production
+    // Toast is shown in MediaDetailsModal - no need to show again here
   };
 
   useEffect(() => {
     fetchMedia(filters);
   }, [fetchMedia, filters]);
 
-  const debugMediaItem = (item: Media) => {
-    console.log('Media item:', item);
-    console.log('Media type:', item.media_type);
-    console.log('File URL:', item.file_url);
-    console.log('Cover image:', item.cover_image);
-    console.log('Cover image URL:', item.cover_image_url);
-  };
 
   return (
     <div className="space-y-6">
@@ -419,82 +407,76 @@ export default function MediaPage() {
                   // Use the shared service to get cover image URL
                   const coverImageUrl = mediaService.getMediaCoverUrl(item);
                   const hasCoverImage = !!coverImageUrl && coverImageUrl.length > 0;
-                  
-                  // Debug logging for troubleshooting
-                  if (item.media_type === 'video' || item.media_type === 'audio') {
-                    console.log('Media item:', item.id, item.title);
-                    console.log('Cover image data:', item.cover_image);
-                    console.log('Cover image URL:', coverImageUrl);
-                    console.log('Has cover image:', hasCoverImage);
-                  }
 
                   return (
                     <Card 
-                      key={`media-item-${item.media_type}-${item.id}`}  // Fixed: Include media_type to ensure uniqueness
+                      key={`media-item-${item.media_type}-${item.id}`}
                       className={cn(
-                        "overflow-hidden group relative transition-all border-2 cursor-pointer hover:shadow-lg",
+                        "overflow-hidden group relative transition-all border-2 cursor-pointer hover:shadow-lg p-0",
                         selectedItems[item.id] ? "border-primary shadow-md" : "border-transparent hover:border-muted-foreground/20"
                       )}
                       onClick={() => handleMediaClick(item)}
                     >
-                      <div className="block focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md">
-                        <CardContent className="p-0 w-full h-48 flex items-center justify-center bg-muted relative">
-                          {hasCoverImage ? (
-                            <MediaImage
-                              media={item}
-                              src={coverImageUrl}
-                              alt={item.alt_text || item.title || 'تصویر رسانه'}
-                              fill
-                              className="object-cover rounded-md transition-transform duration-300 group-hover:scale-105"
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
-                            />
-                          ) : item.media_type === 'image' && (item.file_url || item.url) ? (
-                            <MediaImage
-                              media={item}
-                              src={item.file_url || item.url || ''}
-                              alt={item.alt_text || item.title || 'تصویر رسانه'}
-                              fill
-                              className="object-cover rounded-md transition-transform duration-300 group-hover:scale-105"
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
-                            />
-                          ) : (
-                            <div className="flex flex-col items-center justify-center w-full h-full">
-                              <ImageOff className="h-8 w-8 text-muted-foreground mb-2" />
-                              <span className="text-xs text-muted-foreground capitalize">
-                                {item.media_type === 'video' ? 'ویدیو' : item.media_type === 'audio' ? 'صوت' : item.media_type}
-                              </span>
+                      {/* Image Container */}
+                      <div className="w-full h-48 flex items-center justify-center bg-muted relative overflow-hidden">
+                        {hasCoverImage ? (
+                          <MediaImage
+                            media={item}
+                            src={coverImageUrl}
+                            alt={item.alt_text || item.title || 'تصویر رسانه'}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
+                          />
+                        ) : item.media_type === 'image' && (item.file_url || item.url) ? (
+                          <MediaImage
+                            media={item}
+                            src={item.file_url || item.url || ''}
+                            alt={item.alt_text || item.title || 'تصویر رسانه'}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center w-full h-full">
+                            <ImageOff className="h-8 w-8 text-muted-foreground mb-2" />
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {item.media_type === 'video' ? 'ویدیو' : item.media_type === 'audio' ? 'صوت' : item.media_type}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Video/Audio icon overlay */}
+                        {(item.media_type === 'video' || item.media_type === 'audio') && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="bg-black/50 rounded-full p-3">
+                              {item.media_type === 'video' ? (
+                                <Play className="h-6 w-6 text-white" />
+                              ) : (
+                                <FileAudio className="h-6 w-6 text-white" />
+                              )}
                             </div>
-                          )}
-                          
-                          {/* Video/Audio icon overlay */}
-                          {(item.media_type === 'video' || item.media_type === 'audio') && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-black/50 rounded-full p-3">
-                                {item.media_type === 'video' ? (
-                                  <Play className="h-6 w-6 text-white" />
-                                ) : (
-                                  <FileAudio className="h-6 w-6 text-white" />
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
+                          </div>
+                        )}
                       </div>
-                      <div className="absolute top-2 right-2 z-10">
+
+                      {/* Checkbox - Top Right */}
+                      <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           id={`select-${item.id}`}
                           checked={!!selectedItems[item.id]}
                           onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
                           aria-label={`انتخاب ${item.title || 'رسانه'}`}
-                          className="bg-background/70 border-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                          onClick={(e) => e.stopPropagation()}
+                          className="bg-background/90 border-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                         />
                       </div>
+
+                      {/* Title Overlay - Bottom */}
                       <div className={cn(
-                        "absolute bottom-0 left-0 right-0 p-2 text-white text-xs z-0 transition-all duration-300 bg-gradient-to-t from-black/80 to-transparent pointer-events-none",
+                        "absolute bottom-0 left-0 right-0 p-3 text-xs z-0 transition-all duration-300 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none",
                         selectedItems[item.id] ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                       )}>
-                        <p className="font-medium truncate" title={displayName}>{displayName}</p>
+                        <p className="font-semibold truncate drop-shadow-lg text-white" style={{ color: '#ffffff' }} title={displayName}>{displayName}</p>
                       </div>
                     </Card>
                   );

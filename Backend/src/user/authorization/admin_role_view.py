@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from django.db import transaction
+from django.db import transaction, models
 from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -51,15 +51,24 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             # Get query parameters
             is_active = request.query_params.get('is_active')
+            is_system_role = request.query_params.get('is_system_role')
             search = request.query_params.get('search', '').strip()
             
-            # Build queryset
-            queryset = AdminRole.objects.all().order_by('level', 'name')
+            # Build queryset with optimization for users_count
+            from django.db.models import Count
+            queryset = AdminRole.objects.annotate(
+                users_count=Count('adminuserrole', filter=models.Q(adminuserrole__is_active=True))
+            ).order_by('level', 'name')
             
             # Apply filters
             if is_active is not None:
                 is_active_bool = is_active.lower() in ('true', '1', 'yes')
                 queryset = queryset.filter(is_active=is_active_bool)
+            
+            # ✅ Filter by is_system_role
+            if is_system_role is not None:
+                is_system_role_bool = is_system_role.lower() in ('true', '1', 'yes')
+                queryset = queryset.filter(is_system_role=is_system_role_bool)
             
             if search:
                 queryset = queryset.filter(
@@ -330,6 +339,7 @@ class AdminRoleView(viewsets.ViewSet):
             serializer = UserRoleAssignmentSerializer(data=request.data)
             
             if not serializer.is_valid():
+                logger.error(f"Serializer validation failed: {serializer.errors}")
                 return Response({
                     "metaData": {
                         "status": "error",
@@ -337,7 +347,10 @@ class AdminRoleView(viewsets.ViewSet):
                         "AppStatusCode": 400,
                         "timestamp": "2025-10-14T22:11:51.985Z"
                     },
-                    "data": {},
+                    "data": {
+                        "validation_errors": serializer.errors,
+                        "request_data": request.data
+                    },
                     "errors": serializer.errors
                 }, status=400)
             
@@ -352,20 +365,44 @@ class AdminRoleView(viewsets.ViewSet):
             
             with transaction.atomic():
                 for role in roles:
-                    # Check if assignment already exists
-                    existing = AdminUserRole.objects.filter(
-                        user=user, role=role, is_active=True
-                    ).first()
-                    
-                    if not existing:
-                        assignment = AdminUserRole.objects.create(
-                            user=user,
-                            role=role,
-                            assigned_by=request.user,
-                            expires_at=expires_at
-                        )
-                        assignment.update_permissions_cache()
-                        created_assignments.append(assignment)
+                    try:
+                        # ✅ FIX: Check if assignment exists (active OR inactive)
+                        existing = AdminUserRole.objects.filter(
+                            user=user, role=role
+                        ).first()
+                        
+                        if existing:
+                            # If exists but inactive, reactivate it
+                            if not existing.is_active:
+                                logger.info(f"Reactivating role {role.id} ({role.name}) for user {user.id} ({user.email})")
+                                existing.is_active = True
+                                existing.assigned_by = request.user
+                                existing.expires_at = expires_at
+                                existing.save()
+                                existing.update_permissions_cache()
+                                created_assignments.append(existing)
+                            else:
+                                # Already active, skip
+                                logger.info(f"Role {role.id} ({role.name}) already assigned to user {user.id}")
+                        else:
+                            # Create new assignment
+                            logger.info(f"Assigning role {role.id} ({role.name}) to user {user.id} ({user.email})")
+                            
+                            assignment = AdminUserRole.objects.create(
+                                user=user,
+                                role=role,
+                                assigned_by=request.user,
+                                expires_at=expires_at
+                            )
+                            assignment.update_permissions_cache()
+                            created_assignments.append(assignment)
+                    except ValidationError as ve:
+                        logger.error(f"Validation error assigning role {role.id} ({role.name}): {ve}")
+                        # Re-raise to be caught by outer exception handler
+                        raise ValidationError(f"نقش '{role.display_name}' (ID: {role.id}): {str(ve)}")
+                    except Exception as e:
+                        logger.error(f"Error assigning role {role.id} ({role.name}): {type(e).__name__}: {e}")
+                        raise Exception(f"نقش '{role.display_name}' (ID: {role.id}): {str(e)}")
                 
                 # Clear user's permission cache
                 AdminPermissionCache.clear_user_cache(user_id)
@@ -397,16 +434,27 @@ class AdminRoleView(viewsets.ViewSet):
                 },
                 "data": {}
             }, status=404)
-        except Exception as e:
-            logger.error(f"Error assigning roles: {e}")
+        except ValidationError as e:
+            logger.error(f"Validation error assigning roles: {e}")
             return Response({
                 "metaData": {
                     "status": "error",
-                    "message": "Failed to assign roles",
+                    "message": f"Validation error: {str(e)}",
+                    "AppStatusCode": 400,
+                    "timestamp": "2025-10-14T22:11:51.985Z"
+                },
+                "data": {"validation_errors": e.message_dict if hasattr(e, 'message_dict') else str(e)}
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Error assigning roles: {type(e).__name__}: {e}", exc_info=True)
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": f"Failed to assign roles: {str(e)}",
                     "AppStatusCode": 500,
                     "timestamp": "2025-10-14T22:11:51.985Z"
                 },
-                "data": {}
+                "data": {"error_type": type(e).__name__, "error_details": str(e)}
             }, status=500)
     
     @action(detail=True, methods=['delete'])

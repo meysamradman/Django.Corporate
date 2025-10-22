@@ -12,8 +12,16 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Badge } from "@/components/elements/Badge";
-import { ArrowLeft, Save, ChevronDown, ChevronRight, Shield } from "lucide-react";
-
+import { ArrowLeft, Save, Loader2, Shield, Users, Image, FileText, Settings, BarChart3 } from "lucide-react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/elements/Table";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 
 const roleSchema = z.object({
   name: z.string().min(2, "نام نقش باید حداقل 2 کاراکتر باشد"),
@@ -23,6 +31,25 @@ const roleSchema = z.object({
 
 type RoleFormData = z.infer<typeof roleSchema>;
 
+// Get icon based on resource name
+const getResourceIcon = (resourceName: string) => {
+    const lowerResourceName = resourceName.toLowerCase();
+    
+    if (lowerResourceName.includes('admin') || lowerResourceName.includes('user')) {
+      return <Users className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('media')) {
+      return <Image className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('portfolio') || lowerResourceName.includes('blog')) {
+      return <FileText className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('statistics') || lowerResourceName.includes('analytics')) {
+      return <BarChart3 className="h-4 w-4" />;
+    } else if (lowerResourceName.includes('settings') || lowerResourceName.includes('panel')) {
+      return <Settings className="h-4 w-4" />;
+    } else {
+      return <Shield className="h-4 w-4" />;
+    }
+};
+
 export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
 
@@ -30,11 +57,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   const roleId = parseInt(resolvedParams.id);
   const updateRoleMutation = useUpdateRole();
   const { data: role, isLoading: roleLoading } = useRole(roleId);
-  const { data: permissions, isLoading: permissionsLoading } = usePermissions();
+  const { data: permissions, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
   const { data: basePermissions } = useBasePermissions();
   
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
-  const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set());
 
   const {
     register,
@@ -57,12 +83,22 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
   // Set selected permissions based on role's current permissions + base permissions
   useEffect(() => {
-    if (role && role.permissions && permissions) {
-      const currentPermissions: number[] = [];
-      
-      // Add base permission IDs (these should always be selected)
+    if (role && permissions) {
+      // Get base permission IDs (these should always be selected)
       const basePermissionIds = getBasePermissionIds(permissions);
-      currentPermissions.push(...basePermissionIds);
+      
+      // Get role-specific permission IDs
+      const rolePermissionIds: number[] = [];
+      
+      // ✅ FIX: Handle empty or malformed permissions
+      const roleModules = role.permissions?.modules || [];
+      const roleActions = role.permissions?.actions || [];
+      
+      // If role has no permissions, only use base permissions
+      if (roleModules.length === 0 && roleActions.length === 0) {
+        setSelectedPermissions([...basePermissionIds]);
+        return;
+      }
       
       // Convert role permissions structure to individual permission IDs
       permissions.forEach(group => {
@@ -72,20 +108,20 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             return;
           }
           
-          // Check if this permission should be selected based on role's modules and actions
-          const hasModule = role.permissions.modules?.includes('all') || 
-                           role.permissions.modules?.includes(permission.resource);
-          const hasAction = role.permissions.actions?.includes('all') || 
-                           role.permissions.actions?.includes(permission.action.toLowerCase());
+          // ✅ FIX: Better handling of 'all' and specific modules/actions
+          const hasModule = roleModules.includes('all') || 
+                           roleModules.includes(permission.resource);
+          const hasAction = roleActions.includes('all') || 
+                           roleActions.includes(permission.action?.toLowerCase());
           
           if (hasModule && hasAction) {
-            currentPermissions.push(permission.id);
+            rolePermissionIds.push(permission.id);
           }
         });
       });
       
-      setSelectedPermissions(currentPermissions);
-      console.log('Set selected permissions from role:', currentPermissions);
+      // Combine base and role permissions
+      setSelectedPermissions([...basePermissionIds, ...rolePermissionIds]);
     }
   }, [role, permissions]);
   
@@ -110,16 +146,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     return basePermissionIds;
   };
 
-  const toggleResource = (resource: string) => {
-    const newExpanded = new Set(expandedResources);
-    if (newExpanded.has(resource)) {
-      newExpanded.delete(resource);
-    } else {
-      newExpanded.add(resource);
-    }
-    setExpandedResources(newExpanded);
-  };
-
   const togglePermission = (permissionId: number) => {
     setSelectedPermissions(prev => {
       if (prev.includes(permissionId)) {
@@ -130,24 +156,21 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     });
   };
 
-  const toggleResourcePermissions = (resource: string, permissionIds: number[]) => {
-    const resourcePermissions = permissionIds.filter(id => {
-      const permission = permissions?.find(group => 
-        group.permissions.some(p => p.id === id)
-      )?.permissions.find(p => p.id === id);
-      return permission?.resource === resource;
-    });
-
-    const allSelected = resourcePermissions.every(id => selectedPermissions.includes(id));
+  const toggleAllResourcePermissions = (resourcePermissions: any[]) => {
+    // Get all permission IDs for this resource
+    const resourcePermissionIds = resourcePermissions.map(p => p.id);
+    
+    // Check if all permissions for this resource are currently selected
+    const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
     
     if (allSelected) {
-      // Remove all permissions for this resource
-      setSelectedPermissions(prev => prev.filter(id => !resourcePermissions.includes(id)));
+      // Deselect all permissions for this resource
+      setSelectedPermissions(prev => prev.filter(id => !resourcePermissionIds.includes(id)));
     } else {
-      // Add all permissions for this resource
+      // Select all permissions for this resource
       setSelectedPermissions(prev => {
         const newSelected = [...prev];
-        resourcePermissions.forEach(id => {
+        resourcePermissionIds.forEach(id => {
           if (!newSelected.includes(id)) {
             newSelected.push(id);
           }
@@ -155,6 +178,57 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         return newSelected;
       });
     }
+  };
+
+  const isPermissionSelected = (permissionId: number | undefined) => {
+    if (!permissionId) return false;
+    return selectedPermissions.includes(permissionId);
+  };
+
+  const areAllResourcePermissionsSelected = (resourcePermissions: any[]) => {
+    const resourcePermissionIds = resourcePermissions.map(p => p.id);
+    return resourcePermissionIds.every(id => selectedPermissions.includes(id));
+  };
+
+  // Group permissions by resource and organize actions
+  const getOrganizedPermissions = () => {
+    if (!permissions) return [];
+    
+    // Create a map of resources and their permissions
+    const resourceMap: Record<string, any> = {};
+    
+    permissions.forEach(group => {
+      if (!resourceMap[group.resource]) {
+        resourceMap[group.resource] = {
+          resource: group.resource,
+          display_name: group.display_name,
+          permissions: []
+        };
+      }
+      
+      // Add all permissions for this resource
+      resourceMap[group.resource].permissions.push(...group.permissions);
+    });
+    
+    // Convert to array
+    return Object.values(resourceMap);
+  };
+
+  // Get specific action permission for a resource
+  const getActionPermission = (resourcePermissions: any[], action: string) => {
+    // List of possible action names for each type
+    const actionVariants: Record<string, string[]> = {
+      'view': ['view', 'list', 'read', 'get'],
+      'create': ['create', 'post', 'write', 'add'],
+      'edit': ['edit', 'update', 'put', 'patch', 'modify'],
+      'delete': ['delete', 'remove', 'destroy']
+    };
+    
+    const variants = actionVariants[action] || [action];
+    
+    return resourcePermissions.find(p => 
+      variants.includes(p.action.toLowerCase())
+    );
   };
 
   const onSubmit = async (data: RoleFormData) => {
@@ -232,6 +306,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     );
   }
 
+  const organizedPermissions = getOrganizedPermissions();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -242,7 +318,145 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       </div>
 
       {/* Form */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
+        {/* Permissions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>دسترسی‌ها</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              دسترسی‌های مورد نیاز برای این نقش را انتخاب کنید
+            </p>
+          </CardHeader>
+          <CardContent>
+            {permissionsLoading ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            ) : permissionsError ? (
+              <div className="text-center text-red-500 py-8">
+                <p>خطا در بارگیری دسترسی‌ها</p>
+                <p className="text-sm mt-2">{String(permissionsError)}</p>
+              </div>
+            ) : permissions && permissions.length > 0 ? (
+              <div className="space-y-4">
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                // Select all permissions
+                                const allPermissionIds = organizedPermissions.flatMap(
+                                  (resource: any) => resource.permissions.map((p: any) => p.id)
+                                );
+                                setSelectedPermissions(allPermissionIds);
+                              } else {
+                                // Deselect all permissions
+                                setSelectedPermissions([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead>منبع</TableHead>
+                        <TableHead className="text-center">مشاهده</TableHead>
+                        <TableHead className="text-center">ایجاد</TableHead>
+                        <TableHead className="text-center">ویرایش</TableHead>
+                        <TableHead className="text-center">حذف</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {organizedPermissions.map((resource: any) => (
+                        <TableRow key={resource.resource}>
+                          <TableCell>
+                            <Checkbox
+                              checked={areAllResourcePermissionsSelected(resource.permissions)}
+                              onCheckedChange={() => toggleAllResourcePermissions(resource.permissions)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {getResourceIcon(resource.display_name)}
+                              {getPermissionTranslation(resource.display_name, 'resource')}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'view')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'view');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'create')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'create');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'edit')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'edit');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={isPermissionSelected(
+                                  getActionPermission(resource.permissions, 'delete')?.id
+                                )}
+                                onCheckedChange={() => {
+                                  const perm = getActionPermission(resource.permissions, 'delete');
+                                  if (perm) togglePermission(perm.id);
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {selectedPermissions.length > 0 && (
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm font-medium">
+                      دسترسی‌های انتخاب شده: {selectedPermissions.length}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                دسترسی‌ای موجود نیست
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Basic Info */}
         <Card>
           <CardHeader>
@@ -251,7 +465,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="name">نام نقش *</Label>
+                <Label htmlFor="name">نام *</Label>
                 <Input
                   id="name"
                   {...register("name")}
@@ -279,7 +493,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   className="flex items-center gap-2"
                 >
                   {updateRoleMutation.isPending ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
@@ -295,145 +509,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-
-        {/* Permissions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
-              دسترسی‌ها
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              دسترسی‌های مربوط به این نقش را انتخاب کنید
-            </p>
-          </CardHeader>
-          <CardContent>
-            {/* Base Permissions Info */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-semibold text-sm mb-2 text-blue-700 flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                🟢 دسترسی‌های پایه:
-              </h4>
-              <p className="text-xs text-blue-600 mb-2">این دسترسی‌ها به صورت خودکار به همه ادمین‌ها تعلق دارد:</p>
-              <div className="flex flex-wrap gap-1">
-                {basePermissions ? (
-                  basePermissions.map((basePerm: any) => (
-                    <Badge key={basePerm.id} variant="default">
-                      {basePerm.display_name}
-                    </Badge>
-                  ))
-                ) : (
-                  // Fallback
-                  <>
-                    <Badge variant="default">مشاهده Dashboard</Badge>
-                    <Badge variant="default">مشاهده Media</Badge>
-                    <Badge variant="default">ویرایش پروفایل</Badge>
-                  </>
-                )}
-              </div>
-            </div>
-            
-            {permissionsLoading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
-                ))}
-              </div>
-            ) : permissions && permissions.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {permissions.map((group) => {
-                  // Check if this group contains base permissions
-                  const basePermissionIds = getBasePermissionIds([group]);
-                  const hasBasePermissions = basePermissionIds.length > 0;
-                  
-                  return (
-                    <div key={group.resource} className="border rounded-lg bg-card shadow-sm hover:shadow-md transition-shadow">
-                      <div
-                        onClick={() => toggleResource(group.resource)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 cursor-pointer rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          {expandedResources.has(group.resource) ? (
-                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                          )}
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-base">{group.display_name}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {group.permissions.length} دسترسی
-                            </span>
-                          </div>
-                          {hasBasePermissions && (
-                            <Badge variant="blue" className="text-xs">پایه</Badge>
-                          )}
-                        </div>
-                        <Checkbox
-                          checked={group.permissions.every(p => selectedPermissions.includes(p.id))}
-                          onCheckedChange={() => toggleResourcePermissions(
-                            group.resource, 
-                            group.permissions.map(p => p.id)
-                          )}
-                          onClick={(e) => e.stopPropagation()}
-                          className="rounded-md"
-                        />
-                      </div>
-                      
-                      {expandedResources.has(group.resource) && (
-                        <div className="border-t p-4 bg-muted/30 rounded-b-lg space-y-3">
-                          {group.permissions.map((permission) => {
-                            const isBasePermission = getBasePermissionIds([group]).includes(permission.id);
-                            
-                            return (
-                              <div key={permission.id} className="flex items-start gap-3 p-3 bg-background rounded-md border">
-                                <Checkbox
-                                  checked={selectedPermissions.includes(permission.id)}
-                                  onCheckedChange={() => {
-                                    if (!isBasePermission) {
-                                      togglePermission(permission.id);
-                                    }
-                                  }}
-                                  disabled={isBasePermission}
-                                  className="mt-0.5 rounded-md"
-                                />
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">{permission.action}</span>
-                                    {isBasePermission && (
-                                      <Badge variant="blue" className="text-xs">پایه</Badge>
-                                    )}
-                                  </div>
-                                  {permission.description && (
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                      {permission.description}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                دسترسی‌ای یافت نشد
-              </div>
-            )}
-            
-            {selectedPermissions.length > 0 && (
-              <div className="mt-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <div className="text-sm font-medium flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-primary" />
-                  دسترسی‌های انتخاب شده: {selectedPermissions.length}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>

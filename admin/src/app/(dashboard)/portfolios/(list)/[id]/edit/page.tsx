@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, lazy, Suspense } from "react";
+import { use, useState, useEffect, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/elements/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
@@ -31,11 +30,13 @@ interface PortfolioMedia {
   pdfDocuments: Media[];
 }
 
+const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
+const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
 
-export default function EditPortfolioPage({ params }: { params: { id: string } }) {
+export default function EditPortfolioPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params);
   const [activeTab, setActiveTab] = useState<string>("account");
   const [editMode, setEditMode] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -108,16 +109,26 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
         const mediaData = portfolioData.portfolio_media;
         
         // Parse media data from portfolio
-        const featuredImage = mediaData.find(m => m.is_main_image)?.media || null;
+        // Type guard to check if media item is an image with is_main_image property
+        const featuredImage = mediaData.find(m => 
+          'is_main_image' in m && m.is_main_image
+        )?.media || null;
+        
         const imageGallery = mediaData
-          .filter(m => m.media.media_type === 'image' && !m.is_main_image)
+          .filter(m => 
+            m.media.media_type === 'image' && 
+            !('is_main_image' in m && m.is_main_image)
+          )
           .map(m => m.media);
+        
         const videoGallery = mediaData
           .filter(m => m.media.media_type === 'video')
           .map(m => m.media);
+        
         const audioGallery = mediaData
           .filter(m => m.media.media_type === 'audio')
           .map(m => m.media);
+        
         const pdfDocuments = mediaData
           .filter(m => m.media.media_type === 'pdf')
           .map(m => m.media);
@@ -155,6 +166,25 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
         [field]: value
       }));
     }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+  };
+
+  const handleTagToggle = (tag: PortfolioTag) => {
+    // Toggle tag selection
+    setSelectedTags(prev => {
+      if (prev.some(t => t.id === tag.id)) {
+        return prev.filter(t => t.id !== tag.id);
+      } else {
+        return [...prev, tag];
+      }
+    });
+  };
+
+  const handleTagRemove = (tagId: number) => {
+    setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
   const handleSave = async () => {
@@ -340,57 +370,23 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
           </TabsTrigger>
         </TabsList>
 
-        <div className="mt-6">
+        <Suspense fallback={
+          <div className="mt-6">
+            <Skeleton className="w-full h-64" />
+            <Skeleton className="w-full h-64 mt-4" />
+          </div>
+        }>
           {activeTab === "account" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>اطلاعات پایه</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">نام</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">اسلاگ</label>
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e) => handleInputChange("slug", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">توضیحات کوتاه</label>
-                    <textarea
-                      value={formData.short_description}
-                      onChange={(e) => handleInputChange("short_description", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      rows={3}
-                      disabled={!editMode}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">توضیحات کامل</label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      rows={6}
-                      disabled={!editMode}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <BaseInfoTab 
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={editMode}
+              selectedCategory={selectedCategory}
+              selectedTags={selectedTags}
+              onCategoryChange={handleCategoryChange}
+              onTagToggle={handleTagToggle}
+              onTagRemove={handleTagRemove}
+            />
           )}
           {activeTab === "media" && (
             <MediaTab 
@@ -400,110 +396,13 @@ export default function EditPortfolioPage({ params }: { params: { id: string } }
             />
           )}
           {activeTab === "seo" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>اطلاعات SEO</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">عنوان متا (Meta Title)</label>
-                    <input
-                      type="text"
-                      value={formData.meta_title}
-                      onChange={(e) => handleInputChange("meta_title", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      disabled={!editMode}
-                      placeholder="عنوان صفحه برای موتورهای جستجو"
-                      maxLength={70}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      حداکثر 70 کاراکتر توصیه می‌شود
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">توضیحات متا (Meta Description)</label>
-                    <textarea
-                      value={formData.meta_description}
-                      onChange={(e) => handleInputChange("meta_description", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      rows={3}
-                      disabled={!editMode}
-                      placeholder="توضیحات صفحه برای موتورهای جستجو"
-                      maxLength={300}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      بین 120 تا 160 کاراکتر توصیه می‌شود
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">عنوان Open Graph</label>
-                    <input
-                      type="text"
-                      value={formData.og_title}
-                      onChange={(e) => handleInputChange("og_title", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      disabled={!editMode}
-                      placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                      maxLength={70}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">توضیحات Open Graph</label>
-                    <textarea
-                      value={formData.og_description}
-                      onChange={(e) => handleInputChange("og_description", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      rows={3}
-                      disabled={!editMode}
-                      placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                      maxLength={300}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">تصویر Open Graph</label>
-                    <div className="mt-1">
-                      {formData.og_image ? (
-                        <div className="flex items-center gap-2">
-                          <img 
-                            src={formData.og_image.url} 
-                            alt="OG Image" 
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                          <span className="text-sm">{formData.og_image.id}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">تصویری انتخاب نشده است</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">آدرس کانونیکال (Canonical URL)</label>
-                    <input
-                      type="url"
-                      value={formData.canonical_url}
-                      onChange={(e) => handleInputChange("canonical_url", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      disabled={!editMode}
-                      placeholder="https://example.com/portfolio/item"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">دستورالعمل ربات‌های جستجو (Robots Meta)</label>
-                    <input
-                      type="text"
-                      value={formData.robots_meta}
-                      onChange={(e) => handleInputChange("robots_meta", e.target.value)}
-                      className="w-full p-2 border rounded"
-                      disabled={!editMode}
-                      placeholder="index,follow"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SEOTab 
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={editMode}
+            />
           )}
-        </div>
+        </Suspense>
       </Tabs>
     </div>
   );

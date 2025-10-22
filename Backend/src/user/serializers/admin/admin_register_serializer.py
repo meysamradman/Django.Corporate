@@ -121,16 +121,21 @@ class AdminRegisterSerializer(BaseRegisterSerializer):
             raise serializers.ValidationError(str(e))
     
     def validate_role_id(self, value):
-        """Validate role exists"""
-        if value is None:
-            return value
+        """Validate role ID"""
+        if value is None or value == "" or value == "none":
+            return None
         
         try:
-            AdminRole.objects.get(id=value, is_active=True)
-            return value
+            role_id = int(value)
+            # Check if role exists and is active
+            from src.user.models import AdminRole
+            AdminRole.objects.get(id=role_id, is_active=True)
+            return role_id
+        except (ValueError, TypeError):
+            raise serializers.ValidationError("Invalid role ID format")
         except AdminRole.DoesNotExist:
-            raise serializers.ValidationError("Invalid role ID or role is not active")
-    
+            raise serializers.ValidationError("Role not found or inactive")
+
     def validate(self, data):
         """Cross-field validation with proper superuser permissions check"""
         admin_user = self.context.get('admin_user')
