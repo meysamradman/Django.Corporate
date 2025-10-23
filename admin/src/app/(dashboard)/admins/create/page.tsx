@@ -33,7 +33,7 @@ export default function CreateAdminPage() {
     const [roles, setRoles] = useState<Role[]>([]);
     const [loadingRoles, setLoadingRoles] = useState(true);
     const [rolesError, setRolesError] = useState<string | null>(null);
-    
+
     // React Hook Form با Zod validation
     const form = useForm<AdminFormValues>({
         resolver: zodResolver(adminFormSchema) as any,
@@ -49,6 +49,9 @@ export default function CreateAdminPage() {
                 last_name: string | null;
                 birth_date: string | null;
                 national_id: string | null;
+                phone: string | null;
+                province: string | null;
+                city: string | null;
                 address: string | null;
                 department: string | null;
                 position: string | null;
@@ -60,6 +63,9 @@ export default function CreateAdminPage() {
             profileData.last_name = data.profile_last_name || null;
             profileData.birth_date = data.profile_birth_date || null;
             profileData.national_id = data.profile_national_id || null;
+            profileData.phone = data.profile_phone || null;
+            profileData.province = data.profile_province || null;
+            profileData.city = data.profile_city || null;
             profileData.address = data.profile_address || null;
             profileData.department = data.profile_department || null;
             profileData.position = data.profile_position || null;
@@ -88,7 +94,7 @@ export default function CreateAdminPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
-            showSuccessToast(msg.ui("adminCreated"));
+            showSuccessToast(msg.ui("created"));
             router.push("/admins");
         },
         onError: (error: any) => {
@@ -105,6 +111,9 @@ export default function CreateAdminPage() {
                         'profile.first_name': 'profile_first_name',
                         'profile.last_name': 'profile_last_name',
                         'profile.national_id': 'profile_national_id',
+                        'profile.phone': 'profile_phone',
+                        'profile.province': 'profile_province',
+                        'profile.city': 'profile_city',
                     };
                     
                     const formField = fieldMap[field] || field;
@@ -228,13 +237,13 @@ export default function CreateAdminPage() {
                         </div>
                     }>
                         {activeTab === "base-info" && (
-                            <BaseInfoTab 
+                            <BaseInfoTab
                                 form={form as any}
                                 editMode={editMode}
                             />
                         )}
                         {activeTab === "profile" && (
-                            <ProfileTab 
+                            <ProfileTab
                                 form={form as any}
                                 selectedMedia={selectedMedia}
                                 setSelectedMedia={setSelectedMedia}
@@ -242,7 +251,7 @@ export default function CreateAdminPage() {
                             />
                         )}
                         {activeTab === "permissions" && (
-                            <PermissionsTab 
+                            <PermissionsTab
                                 form={form as any}
                                 roles={roles}
                                 loadingRoles={loadingRoles}

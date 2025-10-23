@@ -4,6 +4,35 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { roleApi } from '@/api/roles/route'
 import { RoleListParams } from '@/types/auth/permission'
 import { toast } from '@/components/elements/Sonner';
+import { getPermissionTranslation } from '@/core/messages/permissions';
+
+// Simple translation function for role errors
+const translateRoleError = (message: string): string => {
+  if (!message) return message;
+  
+  // Use centralized translation function
+  const translated = getPermissionTranslation(message, 'roleError');
+  if (translated !== message) {
+    return translated;
+  }
+  
+  // Return original message if no translation found
+  return message;
+};
+
+// Simple translation function for success messages
+const translateRoleSuccess = (message: string): string => {
+  if (!message) return message;
+  
+  // Use centralized translation function
+  const translated = getPermissionTranslation(message, 'roleSuccess');
+  if (translated !== message) {
+    return translated;
+  }
+  
+  // Return original message if no translation found
+  return message;
+};
 
 // New: Hook to fetch permissions
 export const usePermissions = () => {
@@ -63,9 +92,16 @@ export const useCreateRole = () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
       toast.success('نقش با موفقیت ایجاد شد')
     },
-    onError: (error) => {
-      console.error('Create role error:', error)
-      toast.error('خطا در ایجاد نقش')
+    onError: (error: any) => {
+      // Check if it's a validation error from backend
+      if (error?.metaData?.message) {
+        const translatedMessage = translateRoleError(error.metaData.message);
+        toast.error(translatedMessage)
+      } else if (error?.message) {
+        toast.error(error.message)
+      } else {
+        toast.error('خطا در ایجاد نقش')
+      }
     },
   })
 }
@@ -80,9 +116,16 @@ export const useUpdateRole = () => {
       queryClient.invalidateQueries({ queryKey: ['role', id] })
       toast.success('نقش با موفقیت بروزرسانی شد')
     },
-    onError: (error) => {
-      console.error('Update role error:', error)
-      toast.error('خطا در بروزرسانی نقش')
+    onError: (error: any) => {
+      // Check if it's a validation error from backend
+      if (error?.metaData?.message) {
+        const translatedMessage = translateRoleError(error.metaData.message);
+        toast.error(translatedMessage)
+      } else if (error?.message) {
+        toast.error(error.message)
+      } else {
+        toast.error('خطا در بروزرسانی نقش')
+      }
     },
   })
 }
@@ -96,9 +139,16 @@ export const useDeleteRole = () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
       toast.success('نقش با موفقیت حذف شد')
     },
-    onError: (error) => {
-      console.error('Delete role error:', error)
-      toast.error('خطا در حذف نقش')
+    onError: (error: any) => {
+      // Check if it's a validation error from backend
+      if (error?.metaData?.message) {
+        const translatedMessage = translateRoleError(error.metaData.message);
+        toast.error(translatedMessage)
+      } else if (error?.message) {
+        toast.error(error.message)
+      } else {
+        toast.error('خطا در حذف نقش')
+      }
     },
   })
 }
@@ -108,13 +158,27 @@ export const useBulkDeleteRoles = () => {
   
   return useMutation({
     mutationFn: roleApi.bulkDeleteRoles,
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
-      toast.success('نقش‌ها با موفقیت حذف شدند')
+      if (response?.data?.deleted_count) {
+        const successMessage = translateRoleSuccess(
+          `Successfully deleted ${response.data.deleted_count} admin roles`
+        );
+        toast.success(successMessage)
+      } else {
+        toast.success('نقش‌ها با موفقیت حذف شدند')
+      }
     },
-    onError: (error) => {
-      console.error('Bulk delete roles error:', error)
-      toast.error('خطا در حذف نقش‌ها')
+    onError: (error: any) => {
+      // Check if it's a validation error from backend
+      if (error?.metaData?.message) {
+        const translatedMessage = translateRoleError(error.metaData.message);
+        toast.error(translatedMessage)
+      } else if (error?.message) {
+        toast.error(error.message)
+      } else {
+        toast.error('خطا در حذف نقش‌ها')
+      }
     },
   })
 }
@@ -129,9 +193,16 @@ export const useUpdateRoleStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
       toast.success('وضعیت نقش با موفقیت تغییر کرد')
     },
-    onError: (error) => {
-      console.error('Update role status error:', error)
-      toast.error('خطا در تغییر وضعیت نقش')
+    onError: (error: any) => {
+      // Check if it's a validation error from backend
+      if (error?.metaData?.message) {
+        const translatedMessage = translateRoleError(error.metaData.message);
+        toast.error(translatedMessage)
+      } else if (error?.message) {
+        toast.error(error.message)
+      } else {
+        toast.error('خطا در تغییر وضعیت نقش')
+      }
     },
   })
-} 
+}

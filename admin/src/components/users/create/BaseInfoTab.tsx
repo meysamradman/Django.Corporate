@@ -4,9 +4,9 @@ import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { UseFormReturn } from "react-hook-form";
-import { AdminFormValues } from "@/core/validations/adminSchema";
+import { UserFormValues } from "@/core/validations/userSchema";
 
-// Function to prevent non-numeric input except for the mobile field which needs to start with 09
+// Function to prevent non-numeric input
 const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
   // Allow: backspace, delete, tab, escape, enter
   if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
@@ -34,7 +34,7 @@ const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
 };
 
 interface BaseInfoTabProps {
-  form: UseFormReturn<AdminFormValues>;
+  form: UseFormReturn<UserFormValues>;
   editMode: boolean;
 }
 

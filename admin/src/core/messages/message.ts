@@ -48,6 +48,9 @@ const VALIDATION_MESSAGES = {
   nationalIdLength: "کد ملی باید ۱۰ رقم باشد",
   nationalIdInvalid: "کد ملی معتبر نیست",
   
+  // Phone
+  phoneInvalid: "شماره تلفن معتبر نیست",
+  
   // Admin Form
   fullNameRequired: "نام کامل الزامی است",
   fullNameMinLength: "نام کامل باید حداقل ۲ کاراکتر باشد",
@@ -59,6 +62,9 @@ const VALIDATION_MESSAGES = {
   positionMaxLength: "سمت نباید بیشتر از ۱۰۰ کاراکتر باشد",
   bioMaxLength: "بیوگرافی نباید بیشتر از ۱۰۰۰ کاراکتر باشد",
   notesMaxLength: "یادداشت‌ها نباید بیشتر از ۱۰۰۰ کاراکتر باشد",
+  phoneMaxLength: "تلفن نباید بیشتر از ۱۵ کاراکتر باشد",
+  provinceMaxLength: "نام استان نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  cityMaxLength: "نام شهر نباید بیشتر از ۱۰۰ کاراکتر باشد",
   passwordComplexity: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
   
   // Portfolio
@@ -173,3 +179,6 @@ export const msg = {
 
 // Export constants
 export { ERROR_MESSAGES, COMMON_UI_MESSAGES, VALIDATION_MESSAGES, AUTH_MESSAGES }; 
+
+
+

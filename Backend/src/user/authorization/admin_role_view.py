@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from django.db import transaction, models
@@ -26,7 +25,7 @@ from .admin_permission import (
 )
 from .role_permissions import RolePermissionManager
 from .create_admin_roles import create_default_admin_roles, get_role_summary
-from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
+from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
 import logging
 
 logger = logging.getLogger(__name__)
@@ -86,27 +85,18 @@ class AdminRoleView(viewsets.ViewSet):
                 return paginator.get_paginated_response(serializer.data)
             
             serializer = AdminRoleListSerializer(queryset, many=True)
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": AUTH_SUCCESS["auth_users_retrieved_successfully"],
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": serializer.data
-            })
+            return APIResponse.success(
+                message=AUTH_SUCCESS["auth_users_retrieved_successfully"],
+                data=serializer.data,
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error listing admin roles: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve admin roles",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_retrieve_admin_roles"],
+                status_code=500
+            )
     
     def retrieve(self, request, pk=None):
         """Get specific admin role details"""
@@ -114,37 +104,23 @@ class AdminRoleView(viewsets.ViewSet):
             role = AdminRole.objects.get(pk=pk, is_active=True)
             serializer = AdminRoleSerializer(role)
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": AUTH_SUCCESS["user_retrieved_successfully"],
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": serializer.data
-            })
+            return APIResponse.success(
+                message=AUTH_SUCCESS["user_retrieved_successfully"],
+                data=serializer.data,
+                status_code=200
+            )
             
         except AdminRole.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Admin role not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["admin_role_not_found"],
+                status_code=404
+            )
         except Exception as e:
             logger.error(f"Error retrieving admin role {pk}: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve admin role",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_retrieve_admin_role"],
+                status_code=500
+            )
     
     def create(self, request):
         """Create new admin role (Super Admin only)"""
@@ -152,16 +128,11 @@ class AdminRoleView(viewsets.ViewSet):
             serializer = AdminRoleSerializer(data=request.data)
             
             if not serializer.is_valid():
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Validation failed",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {},
-                    "errors": serializer.errors
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["validation_failed"],
+                    errors=serializer.errors,
+                    status_code=400
+                )
             
             with transaction.atomic():
                 role = serializer.save()
@@ -169,27 +140,18 @@ class AdminRoleView(viewsets.ViewSet):
                 # Clear cache since we added a new role
                 AdminPermissionCache.clear_all_admin_cache()
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": AUTH_SUCCESS["user_created_successfully"],
-                    "AppStatusCode": 201,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": AdminRoleSerializer(role).data
-            }, status=201)
+            return APIResponse.success(
+                message=ROLE_SUCCESS["admin_role_created_successfully"],
+                data=AdminRoleSerializer(role).data,
+                status_code=201
+            )
             
         except Exception as e:
             logger.error(f"Error creating admin role: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to create admin role",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_create_admin_role"],
+                status_code=500
+            )
     
     def update(self, request, pk=None):
         """Update admin role (Super Admin only)"""
@@ -198,29 +160,19 @@ class AdminRoleView(viewsets.ViewSet):
             
             # Prevent modification of system roles unless explicitly allowed
             if role.is_system_role and not request.data.get('force_update_system_role'):
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "System roles cannot be modified. Use force_update_system_role=true to override.",
-                        "AppStatusCode": 403,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=403)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["system_roles_cannot_be_modified"],
+                    status_code=403
+                )
             
             serializer = AdminRoleSerializer(role, data=request.data, partial=True)
             
             if not serializer.is_valid():
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Validation failed",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {},
-                    "errors": serializer.errors
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["validation_failed"],
+                    errors=serializer.errors,
+                    status_code=400
+                )
             
             with transaction.atomic():
                 updated_role = serializer.save()
@@ -231,37 +183,23 @@ class AdminRoleView(viewsets.ViewSet):
                     user_role.update_permissions_cache()
                     AdminPermissionCache.clear_user_cache(user_role.user_id)
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": AUTH_SUCCESS["user_updated_successfully"],
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": AdminRoleSerializer(updated_role).data
-            })
+            return APIResponse.success(
+                message=ROLE_SUCCESS["admin_role_updated_successfully"],
+                data=AdminRoleSerializer(updated_role).data,
+                status_code=200
+            )
             
         except AdminRole.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Admin role not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["admin_role_not_found"],
+                status_code=404
+            )
         except Exception as e:
             logger.error(f"Error updating admin role {pk}: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to update admin role",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_update_admin_role"],
+                status_code=500
+            )
     
     def destroy(self, request, pk=None):
         """Delete admin role (Super Admin only)"""
@@ -270,15 +208,10 @@ class AdminRoleView(viewsets.ViewSet):
             
             # Prevent deletion of system roles
             if role.is_system_role:
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "System roles cannot be deleted",
-                        "AppStatusCode": 403,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=403)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["system_roles_cannot_be_deleted"],
+                    status_code=403
+                )
             
             # Check if role is assigned to any users
             assigned_users_count = AdminUserRole.objects.filter(
@@ -286,51 +219,32 @@ class AdminRoleView(viewsets.ViewSet):
             ).count()
             
             if assigned_users_count > 0:
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": f"Cannot delete role. It is assigned to {assigned_users_count} users.",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["role_cannot_delete_assigned"],
+                    status_code=400
+                )
             
             with transaction.atomic():
                 role.delete()
                 AdminPermissionCache.clear_all_admin_cache()
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": AUTH_SUCCESS["user_deleted_successfully"],
-                    "AppStatusCode": 204,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=204)
+            return APIResponse.success(
+                message=ROLE_SUCCESS["admin_role_deleted_successfully"],
+                data={},
+                status_code=204
+            )
             
         except AdminRole.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Admin role not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["admin_role_not_found"],
+                status_code=404
+            )
         except Exception as e:
             logger.error(f"Error deleting admin role {pk}: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to delete admin role",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_delete_admin_role"],
+                status_code=500
+            )
     
     @action(detail=False, methods=['post'])
     def assign_role(self, request):
@@ -340,19 +254,11 @@ class AdminRoleView(viewsets.ViewSet):
             
             if not serializer.is_valid():
                 logger.error(f"Serializer validation failed: {serializer.errors}")
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Validation failed",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {
-                        "validation_errors": serializer.errors,
-                        "request_data": request.data
-                    },
-                    "errors": serializer.errors
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["validation_failed"],
+                    errors=serializer.errors,
+                    status_code=400
+                )
             
             user_id = serializer.validated_data['user_id']
             role_ids = serializer.validated_data['role_ids']
@@ -399,63 +305,46 @@ class AdminRoleView(viewsets.ViewSet):
                     except ValidationError as ve:
                         logger.error(f"Validation error assigning role {role.id} ({role.name}): {ve}")
                         # Re-raise to be caught by outer exception handler
-                        raise ValidationError(f"نقش '{role.display_name}' (ID: {role.id}): {str(ve)}")
+                        raise ValidationError(ROLE_ERRORS["validation_error_assigning_role"].format(role_name=role.display_name, role_id=role.id, error=str(ve)))
                     except Exception as e:
                         logger.error(f"Error assigning role {role.id} ({role.name}): {type(e).__name__}: {e}")
-                        raise Exception(f"نقش '{role.display_name}' (ID: {role.id}): {str(e)}")
+                        raise Exception(ROLE_ERRORS["error_assigning_role"].format(role_name=role.display_name, role_id=role.id, error=str(e)))
                 
                 # Clear user's permission cache
                 AdminPermissionCache.clear_user_cache(user_id)
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": f"Successfully assigned {len(created_assignments)} roles to user",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {
+            return APIResponse.success(
+                message=ROLE_SUCCESS["role_assigned_successfully"],
+                data={
                     'user_id': user_id,
                     'assigned_roles': len(created_assignments),
                     'assignments': [
                         AdminRoleAssignmentSerializer(assignment).data 
                         for assignment in created_assignments
                     ]
-                }
-            })
+                },
+                status_code=200
+            )
             
         except User.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "User not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["user_not_found"],
+                status_code=404
+            )
         except ValidationError as e:
             logger.error(f"Validation error assigning roles: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": f"Validation error: {str(e)}",
-                    "AppStatusCode": 400,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {"validation_errors": e.message_dict if hasattr(e, 'message_dict') else str(e)}
-            }, status=400)
+            return APIResponse.error(
+                message=ROLE_ERRORS["validation_error_detail"].format(error=str(e)),
+                errors={"validation_errors": e.message_dict if hasattr(e, 'message_dict') else str(e)},
+                status_code=400
+            )
         except Exception as e:
             logger.error(f"Error assigning roles: {type(e).__name__}: {e}", exc_info=True)
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": f"Failed to assign roles: {str(e)}",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {"error_type": type(e).__name__, "error_details": str(e)}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_assign_roles"].format(error=str(e)),
+                errors={"error_type": type(e).__name__, "error_details": str(e)},
+                status_code=500
+            )
     
     @action(detail=True, methods=['delete'])
     def remove_role(self, request, pk=None):
@@ -465,15 +354,10 @@ class AdminRoleView(viewsets.ViewSet):
             user_id = request.query_params.get('user_id')
             
             if not user_id:
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "user_id parameter is required",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["user_id_parameter_required"],
+                    status_code=400
+                )
             
             assignment = AdminUserRole.objects.get(
                 user_id=user_id,
@@ -488,37 +372,23 @@ class AdminRoleView(viewsets.ViewSet):
                 # Clear user's permission cache
                 AdminPermissionCache.clear_user_cache(int(user_id))
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "Role removed from user successfully",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            })
+            return APIResponse.success(
+                message=ROLE_SUCCESS["role_removed_from_user_successfully"],
+                data={},
+                status_code=200
+            )
             
         except AdminUserRole.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Role assignment not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["role_assignment_not_found"],
+                status_code=404
+            )
         except Exception as e:
             logger.error(f"Error removing role: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to remove role",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_remove_role"],
+                status_code=500
+            )
     
     @action(detail=False, methods=['post'])
     def fix_custom_roles(self, request):
@@ -526,15 +396,10 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             # Only super admin can fix roles
             if not request.user.is_full_admin_user():
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Only super admin can fix custom roles",
-                        "AppStatusCode": 403,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=403)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["only_super_admin_can_fix_custom_roles"],
+                    status_code=403
+                )
             
             # Get predefined system role names
             system_role_names = [
@@ -556,30 +421,21 @@ class AdminRoleView(viewsets.ViewSet):
                 
                 AdminPermissionCache.clear_all_admin_cache()
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": f"Fixed {fixed_count} roles that were incorrectly marked as system roles",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {
+            return APIResponse.success(
+                message=ROLE_SUCCESS["custom_roles_fixed_successfully"],
+                data={
                     'fixed_count': fixed_count,
                     'fixed_roles': [role.name for role in incorrect_roles]
-                }
-            })
+                },
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error fixing custom roles: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to fix custom roles",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_fix_custom_roles"],
+                status_code=500
+            )
     
     @action(detail=False, methods=['post'])
     def bulk_delete(self, request):
@@ -588,15 +444,10 @@ class AdminRoleView(viewsets.ViewSet):
             role_ids = request.data.get('ids', [])
             
             if not role_ids:
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "No role IDs provided",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["no_role_ids_provided"],
+                    status_code=400
+                )
             
             # Get roles to delete
             roles_to_delete = AdminRole.objects.filter(
@@ -606,15 +457,10 @@ class AdminRoleView(viewsets.ViewSet):
             # Check for system roles
             system_roles = roles_to_delete.filter(is_system_role=True)
             if system_roles.exists():
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Cannot delete system roles",
-                        "AppStatusCode": 403,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=403)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["cannot_delete_system_roles"],
+                    status_code=403
+                )
             
             # Check for roles assigned to users
             assigned_roles = roles_to_delete.filter(
@@ -623,15 +469,10 @@ class AdminRoleView(viewsets.ViewSet):
             
             if assigned_roles.exists():
                 assigned_count = assigned_roles.count()
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": f"Cannot delete {assigned_count} roles that are assigned to users",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["roles_cannot_delete_assigned"].format(count=assigned_count),
+                    status_code=400
+                )
             
             # Delete roles
             with transaction.atomic():
@@ -639,27 +480,18 @@ class AdminRoleView(viewsets.ViewSet):
                 roles_to_delete.delete()
                 AdminPermissionCache.clear_all_admin_cache()
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": f"Successfully deleted {deleted_count} admin roles",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {'deleted_count': deleted_count}
-            }, status=200)
+            return APIResponse.success(
+                message=ROLE_SUCCESS["roles_deleted_successfully"],
+                data={'deleted_count': deleted_count},
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error bulk deleting admin roles: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to bulk delete admin roles",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_bulk_delete_admin_roles"],
+                status_code=500
+            )
     
     @action(detail=False, methods=['get'])
     def user_roles(self, request):
@@ -668,15 +500,10 @@ class AdminRoleView(viewsets.ViewSet):
             user_id = request.query_params.get('user_id')
             
             if not user_id:
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "user_id parameter is required",
-                        "AppStatusCode": 400,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=400)
+                return APIResponse.error(
+                    message=ROLE_ERRORS["user_id_parameter_required"],
+                    status_code=400
+                )
             
             user = User.objects.get(id=user_id)
             
@@ -687,42 +514,28 @@ class AdminRoleView(viewsets.ViewSet):
             
             serializer = AdminRoleAssignmentSerializer(assignments, many=True)
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "User roles retrieved successfully",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {
+            return APIResponse.success(
+                message=ROLE_SUCCESS["user_roles_retrieved_successfully"],
+                data={
                     'user_id': user_id,
                     'user_email': user.email,
                     'user_mobile': user.mobile,
                     'roles': serializer.data
-                }
-            })
+                },
+                status_code=200
+            )
             
         except User.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "User not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["user_not_found"],
+                status_code=404
+            )
         except Exception as e:
             logger.error(f"Error getting user roles: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve user roles",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message=ROLE_ERRORS["failed_to_retrieve_user_roles"],
+                status_code=500
+            )
     
     @action(detail=True, methods=['get'])
     def role_permissions(self, request, pk=None):
@@ -731,42 +544,28 @@ class AdminRoleView(viewsets.ViewSet):
             role = AdminRole.objects.get(pk=pk, is_active=True)
             serializer = AdminRolePermissionsSerializer(role)
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "Role permissions retrieved successfully",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {
+            return APIResponse.success(
+                message=ROLE_SUCCESS["admin_role_retrieved_successfully"],
+                data={
                     'role_id': role.id,
                     'role_name': role.name,
                     'role_display_name': role.display_name,
                     'permissions': serializer.data['permissions']
-                }
-            })
+                },
+                status_code=200
+            )
             
         except AdminRole.DoesNotExist:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Admin role not found",
-                    "AppStatusCode": 404,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=404)
+            return APIResponse.error(
+                message=ROLE_ERRORS["admin_role_not_found"],
+                status_code=404
+            )
         except Exception as e:
             logger.error(f"Error getting role permissions: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve role permissions",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message="Failed to retrieve role permissions",
+                status_code=500
+            )
     
     @action(detail=False, methods=['get'])
     def permissions(self, request):
@@ -805,27 +604,18 @@ class AdminRoleView(viewsets.ViewSet):
                     'permissions': permissions_for_module
                 })
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "Available permissions retrieved successfully",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": permission_groups
-            })
+            return APIResponse.success(
+                message="Available permissions retrieved successfully",
+                data=permission_groups,
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error getting available permissions: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve available permissions",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message="Failed to retrieve available permissions",
+                status_code=500
+            )
     
     @action(detail=False, methods=['get'])
     def base_permissions(self, request):
@@ -867,27 +657,18 @@ class AdminRoleView(viewsets.ViewSet):
                 },
             ]
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "Base permissions retrieved successfully",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": base_permissions
-            })
+            return APIResponse.success(
+                message="Base permissions retrieved successfully",
+                data=base_permissions,
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error getting base permissions: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve base permissions",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message="Failed to retrieve base permissions",
+                status_code=500
+            )
     
     @action(detail=False, methods=['post'])
     def setup_default_roles(self, request):
@@ -897,15 +678,10 @@ class AdminRoleView(viewsets.ViewSet):
             
             # Only super admin can setup roles
             if not request.user.is_full_admin_user():
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Only super admin can setup default roles",
-                        "AppStatusCode": 403,
-                        "timestamp": "2025-10-14T22:11:51.985Z"
-                    },
-                    "data": {}
-                }, status=403)
+                return APIResponse.error(
+                    message="Only super admin can setup default roles",
+                    status_code=403
+                )
             
             # Create/update default roles
             result = create_default_admin_roles(
@@ -913,14 +689,9 @@ class AdminRoleView(viewsets.ViewSet):
                 verbose=False
             )
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "Default roles setup completed",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {
+            return APIResponse.success(
+                message="Default roles setup completed",
+                data={
                     'summary': {
                         'created': result['created'],
                         'updated': result['updated'],
@@ -928,20 +699,16 @@ class AdminRoleView(viewsets.ViewSet):
                         'total_processed': result['total_processed']
                     },
                     'details': result['results']
-                }
-            })
+                },
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error setting up default roles: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to setup default roles",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message="Failed to setup default roles",
+                status_code=500
+            )
     
     @action(detail=False, methods=['get'])
     def summary(self, request):
@@ -949,24 +716,15 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             summary = get_role_summary()
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": "Roles summary retrieved successfully",
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": summary
-            })
+            return APIResponse.success(
+                message="Roles summary retrieved successfully",
+                data=summary,
+                status_code=200
+            )
             
         except Exception as e:
             logger.error(f"Error getting roles summary: {e}")
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to retrieve roles summary",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T22:11:51.985Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(
+                message="Failed to retrieve roles summary",
+                status_code=500
+            )

@@ -2,13 +2,13 @@ import { z } from "zod";
 import { msg } from "@/core/messages/message";
 
 /**
- * Zod Schema برای Validation فرم ادمین
+ * Zod Schema برای Validation فرم کاربر
  * 
  * @description
- * این Schema تمام فیلدهای فرم ادمین را validate می‌کند
+ * این Schema تمام فیلدهای فرم کاربر را validate می‌کند
  * و از message system برای نمایش خطاها استفاده می‌کند
  */
-export const adminFormSchema = z.object({
+export const userFormSchema = z.object({
   // اطلاعات پایه (BaseInfoTab)
   // ✅ ضروری: موبایل
   mobile: z
@@ -38,15 +38,6 @@ export const adminFormSchema = z.object({
     .min(1, { message: msg.validation("fullNameRequired") })
     .min(2, { message: msg.validation("fullNameMinLength") })
     .max(100, { message: msg.validation("fullNameMaxLength") }),
-  
-  // ❌ اختیاری: سوپر ادمین
-  is_superuser: z.boolean().default(false),
-  
-  // ❌ اختیاری: نقش
-  role_id: z
-    .string()
-    .optional()
-    .or(z.literal("none")),
   
   // اطلاعات پروفایل (ProfileTab)
   // ❌ اختیاری: نام
@@ -121,31 +112,10 @@ export const adminFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   
-  // ❌ اختیاری: بخش
-  profile_department: z
-    .string()
-    .max(100, { message: msg.validation("departmentMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
-  // ❌ اختیاری: سمت
-  profile_position: z
-    .string()
-    .max(100, { message: msg.validation("positionMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
   // ❌ اختیاری: بیوگرافی
   profile_bio: z
     .string()
     .max(1000, { message: msg.validation("bioMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
-  // ❌ اختیاری: یادداشت‌ها
-  profile_notes: z
-    .string()
-    .max(1000, { message: msg.validation("notesMaxLength") })
     .optional()
     .or(z.literal("")),
   
@@ -159,18 +129,16 @@ export const adminFormSchema = z.object({
 /**
  * TypeScript Type از Zod Schema
  */
-export type AdminFormValues = z.infer<typeof adminFormSchema>;
+export type UserFormValues = z.infer<typeof userFormSchema>;
 
 /**
  * Default Values برای فرم
  */
-export const adminFormDefaults: Partial<AdminFormValues> = {
+export const userFormDefaults: Partial<UserFormValues> = {
   mobile: "",
   email: "",
   password: "",
   full_name: "",
-  is_superuser: false,
-  role_id: "none",
   profile_first_name: "",
   profile_last_name: "",
   profile_birth_date: "",
@@ -179,9 +147,6 @@ export const adminFormDefaults: Partial<AdminFormValues> = {
   profile_province: "",
   profile_city: "",
   profile_address: "",
-  profile_department: "",
-  profile_position: "",
   profile_bio: "",
-  profile_notes: "",
   profile_picture: null,
 };

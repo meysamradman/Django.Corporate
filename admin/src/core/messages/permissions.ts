@@ -128,13 +128,27 @@ export const PERMISSION_TRANSLATIONS = {
     'media files': 'فایل‌های رسانه',
     'portfolio items': 'آیتم‌های نمونه کار',
     'admin roles': 'نقش‌های ادمین',
+  },
+  
+  // Role error messages
+  roleErrors: {
+    'Cannot delete role. It is assigned to {count} users.': 'امکان حذف نقشی که به {count} کاربر اختصاص داده شده وجود ندارد. لطفاً ابتدا نقش را از کاربران مربوطه جدا کنید.',
+    'Cannot delete {count} roles that are assigned to users': 'امکان حذف {count} نقش که به کاربران اختصاص داده شده وجود ندارد. لطفاً ابتدا این نقش‌ها را از کاربران مربوطه جدا کنید.',
+    'System roles cannot be deleted': 'نقش‌های سیستمی قابل حذف نیستند.',
+    'No role IDs provided': 'شناسه‌های نقش برای حذف ارائه نشده است.',
+  },
+  
+  // Role success messages
+  roleSuccess: {
+    'Successfully deleted {deleted_count} admin roles': '{deleted_count} نقش با موفقیت حذف شدند.',
+    'Role deleted successfully': 'نقش با موفقیت حذف شد.',
   }
 } as const;
 
 // Helper function to get translation
 export function getPermissionTranslation(
   text: string, 
-  type: 'resource' | 'action' | 'description' | 'role' | 'roleDescription' = 'resource'
+  type: 'resource' | 'action' | 'description' | 'role' | 'roleDescription' | 'roleError' | 'roleSuccess' = 'resource'
 ): string {
   if (!text) return text;
   
@@ -166,6 +180,50 @@ export function getPermissionTranslation(
     case 'roleDescription':
       if (translations.roleDescriptions[normalizedText as keyof typeof translations.roleDescriptions]) {
         return translations.roleDescriptions[normalizedText as keyof typeof translations.roleDescriptions];
+      }
+      break;
+    case 'roleError':
+      // Check for exact match first
+      if (translations.roleErrors[normalizedText as keyof typeof translations.roleErrors]) {
+        return translations.roleErrors[normalizedText as keyof typeof translations.roleErrors];
+      }
+      // Check for partial match with parameter replacement
+      for (const [key, value] of Object.entries(translations.roleErrors)) {
+        // Create regex pattern to match the key with numbers
+        const escapedKey = key.replace(/{count}|{deleted_count}/g, '(\\d+)');
+        const regex = new RegExp(escapedKey);
+        const match = normalizedText.match(regex);
+        
+        if (match) {
+          // Replace parameters in the message
+          let result = value as string;
+          if (match[1]) {
+            result = result.replace(/{count}|{deleted_count}/g, match[1]);
+          }
+          return result;
+        }
+      }
+      break;
+    case 'roleSuccess':
+      // Check for exact match first
+      if (translations.roleSuccess[normalizedText as keyof typeof translations.roleSuccess]) {
+        return translations.roleSuccess[normalizedText as keyof typeof translations.roleSuccess];
+      }
+      // Check for partial match with parameter replacement
+      for (const [key, value] of Object.entries(translations.roleSuccess)) {
+        // Create regex pattern to match the key with numbers
+        const escapedKey = key.replace(/{deleted_count}/g, '(\\d+)');
+        const regex = new RegExp(escapedKey);
+        const match = normalizedText.match(regex);
+        
+        if (match) {
+          // Replace parameters in the message
+          let result = value as string;
+          if (match[1]) {
+            result = result.replace(/{deleted_count}/g, match[1]);
+          }
+          return result;
+        }
       }
       break;
   }

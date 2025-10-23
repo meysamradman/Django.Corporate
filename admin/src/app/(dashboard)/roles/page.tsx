@@ -199,8 +199,9 @@ export default function RolesPage() {
       } else if (!deleteConfirm.isBulk && deleteConfirm.roleId) {
         await deleteRoleMutation.mutateAsync(deleteConfirm.roleId);
       }
-    } catch (error) {
-      // Error is handled by mutation
+    } catch (error: any) {
+      // Error is handled by mutation, but we can provide additional context here if needed
+
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };

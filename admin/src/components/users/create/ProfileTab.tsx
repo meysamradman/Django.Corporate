@@ -11,19 +11,12 @@ import { Media } from "@/types/shared/media";
 import { User, Camera } from "lucide-react";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { AdminFormValues } from "@/core/validations/adminSchema";
+import { UserFormValues } from "@/core/validations/userSchema";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { locationApi } from "@/api/location/route";
 import { useEffect } from "react";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
-
-interface ProfileTabProps {
-  form: UseFormReturn<AdminFormValues>;
-  selectedMedia: Media | null;
-  setSelectedMedia: (media: Media | null) => void;
-  editMode: boolean;
-}
 
 // Function to prevent non-numeric input
 const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -51,6 +44,13 @@ const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
   }
 };
+
+interface ProfileTabProps {
+  form: UseFormReturn<UserFormValues>;
+  selectedMedia: Media | null;
+  setSelectedMedia: (media: Media | null) => void;
+  editMode: boolean;
+}
 
 export default function ProfileTab({
   form,
@@ -317,7 +317,7 @@ export default function ProfileTab({
                   <Label htmlFor="profile_bio">بیوگرافی</Label>
                   <Textarea
                     id="profile_bio"
-                    placeholder="توضیحات کوتاه درباره ادمین"
+                    placeholder="توضیحات کوتاه درباره کاربر"
                     rows={4}
                     disabled={!editMode}
                     className={errors.profile_bio ? "border-destructive" : ""}

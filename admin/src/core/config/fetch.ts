@@ -176,10 +176,6 @@ async function baseFetch<T>(
             if (data && typeof data === 'object') {
                 // Extract specific validation errors if available
                 if (data.data || data.errors) {
-                    console.error('❌ Validation Errors:', {
-                        validationErrors: data.data || data.errors,
-                        message: data.metaData?.message
-                    });
                 }
             }
             

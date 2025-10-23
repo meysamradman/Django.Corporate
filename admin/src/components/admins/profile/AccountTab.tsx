@@ -9,12 +9,41 @@ import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import {
-    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone
+    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
 } from "lucide-react";
 import { AdminWithProfile } from "@/types/auth/admin";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { locationApi } from "@/api/location/route";
 import { useState, useEffect } from "react";
+import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
+import { formatDate } from "@/core/utils/format";
+
+// Function to prevent non-numeric input
+const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  // Allow: backspace, delete, tab, escape, enter
+  if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+    (e.keyCode === 65 && e.ctrlKey === true) ||
+    (e.keyCode === 67 && e.ctrlKey === true) ||
+    (e.keyCode === 86 && e.ctrlKey === true) ||
+    (e.keyCode === 88 && e.ctrlKey === true) ||
+    // Allow: home, end, left, right
+    (e.keyCode >= 35 && e.keyCode <= 39)) {
+    return; // let it happen, don't do anything
+  }
+  // Ensure that it is a number and stop the keypress
+  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+    e.preventDefault();
+  }
+};
+
+// Function to prevent non-numeric paste
+const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const paste = e.clipboardData.getData('text');
+  if (!/^\d*$/.test(paste)) {
+    e.preventDefault();
+  }
+};
 
 interface FormData {
     firstName: string;
@@ -27,6 +56,7 @@ interface FormData {
     province: string;
     city: string;
     bio: string;
+    birthDate: string; // Add birthDate field
 }
 
 interface AccountTabProps {
@@ -121,6 +151,12 @@ export function AccountTab({
             handleInputChange("city", cityName);
         }
     };
+
+    // Handle birth date change
+    const handleBirthDateChange = (dateString: string) => {
+        handleInputChange("birthDate", dateString);
+    };
+    
     return (
         <TabsContent value="account" className="mt-6 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -150,6 +186,13 @@ export function AccountTab({
                                     )}
                                     <span>وضعیت:</span>
                                     <span className="text-muted-foreground">{admin.is_active ? "فعال" : "غیرفعال"}</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <span>تاریخ تولد:</span>
+                                    <span className="text-muted-foreground">
+                                        {formData.birthDate ? formatDate(formData.birthDate) : "وارد نشده"}
+                                    </span>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <Globe className="w-4 h-4 text-muted-foreground" />
@@ -246,16 +289,27 @@ export function AccountTab({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="mobile">موبایل</Label>
-                                    <Input
-                                        id="mobile"
-                                        type="tel"
-                                        value={formData.mobile || ""}
-                                        onChange={(e) => handleInputChange("mobile", e.target.value)}
+                                    <Label htmlFor="birthDate">تاریخ تولد</Label>
+                                    <PersianDatePicker
+                                        value={formData.birthDate || ""}
+                                        onChange={handleBirthDateChange}
+                                        placeholder="تاریخ تولد را انتخاب کنید"
                                         disabled={!editMode}
-                                        placeholder="شماره موبایل خود را وارد کنید"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="nationalId">کد ملی</Label>
+                                    <Input
+                                        id="nationalId"
+                                        value={formData.nationalId || ""}
+                                        onChange={(e) => handleInputChange("nationalId", e.target.value)}
+                                        disabled={!editMode}
+                                        placeholder="کد ملی خود را وارد کنید"
+                                        inputMode="numeric"
+                                        onKeyDown={preventNonNumeric}
+                                        onPaste={preventNonNumericPaste}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -267,11 +321,28 @@ export function AccountTab({
                                         onChange={(e) => handleInputChange("phone", e.target.value)}
                                         disabled={!editMode}
                                         placeholder="تلفن ثابت را وارد کنید"
+                                        inputMode="tel"
+                                        onKeyDown={preventNonNumeric}
+                                        onPaste={preventNonNumericPaste}
                                     />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="mobile">موبایل</Label>
+                                    <Input
+                                        id="mobile"
+                                        type="tel"
+                                        value={formData.mobile || ""}
+                                        onChange={(e) => handleInputChange("mobile", e.target.value)}
+                                        disabled={!editMode}
+                                        placeholder="شماره موبایل خود را وارد کنید"
+                                        inputMode="tel"
+                                        onKeyDown={preventNonNumeric}
+                                        onPaste={preventNonNumericPaste}
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="email">ایمیل</Label>
                                     <Input
@@ -281,16 +352,6 @@ export function AccountTab({
                                         onChange={(e) => handleInputChange("email", e.target.value)}
                                         disabled={!editMode}
                                         placeholder="آدرس ایمیل خود را وارد کنید"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="nationalId">کد ملی</Label>
-                                    <Input
-                                        id="nationalId"
-                                        value={formData.nationalId || ""}
-                                        onChange={(e) => handleInputChange("nationalId", e.target.value)}
-                                        disabled={!editMode}
-                                        placeholder="کد ملی خود را وارد کنید"
                                     />
                                 </div>
                             </div>

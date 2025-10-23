@@ -50,25 +50,26 @@ export const RolesSection: React.FC = () => {
   // Debug log to see what we're getting from API
   React.useEffect(() => {
     if (currentAdmin) {
-      console.log('🔍 Current Admin Debug:', {
-        id: currentAdmin.id,
-        full_name: currentAdmin.full_name,
-        is_super: currentAdmin.is_super,
-        roles_count: currentAdmin.roles?.length || 0,
-        roles_data: currentAdmin.roles,
-        raw_admin: currentAdmin
-      })
+      // Removed debug logs to prevent console output
+      // console.log('🔍 Current Admin Debug:', {
+      //   id: currentAdmin.id,
+      //   full_name: currentAdmin.full_name,
+      //   is_super: currentAdmin.is_super,
+      //   roles_count: currentAdmin.roles?.length || 0,
+      //   roles_data: currentAdmin.roles,
+      //   raw_admin: currentAdmin
+      // })
       
       // More detailed check for super admin
-      if (currentAdmin.is_super) {
-        console.log('🟠 SUPERUSER DETECTED:', {
-          should_have_roles: true,
-          actual_roles: currentAdmin.roles,
-          roles_length: currentAdmin.roles?.length,
-          is_array: Array.isArray(currentAdmin.roles),
-          roles_type: typeof currentAdmin.roles
-        })
-      }
+      // if (currentAdmin.is_super) {
+      //   console.log('🟠 SUPERUSER DETECTED:', {
+      //     should_have_roles: true,
+      //     actual_roles: currentAdmin.roles,
+      //     roles_length: currentAdmin.roles?.length,
+      //     is_array: Array.isArray(currentAdmin.roles),
+      //     roles_type: typeof currentAdmin.roles
+      //   })
+      // }
     }
   }, [currentAdmin])
 

@@ -67,6 +67,7 @@ export function EditAdminForm({ adminData }: EditAdminFormProps) {
         city: adminData.profile?.city?.name || "",
         bio: adminData.profile?.bio || "",
         profileImage: adminData.profile?.profile_picture || null,
+        birthDate: adminData.profile?.birth_date || "", // Add birthDate field
     });
     const [isSaving, setIsSaving] = useState(false);
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
@@ -113,6 +114,7 @@ export function EditAdminForm({ adminData }: EditAdminFormProps) {
                 bio: formData.bio,
                 national_id: formData.nationalId,
                 profile_picture: formData.profileImage?.id || null,
+                birth_date: formData.birthDate || null, // Add birth_date field
             };
             
             
