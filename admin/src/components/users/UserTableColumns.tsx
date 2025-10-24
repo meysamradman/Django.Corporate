@@ -63,7 +63,7 @@ export const useUserColumns = (
         };
 
         return (
-          <Link href={`/user/profile/${user.id}`} className="flex items-center gap-3 hover:underline">
+          <Link href={`/users/${user.id}/details`} className="flex items-center gap-3 hover:underline">
             <Avatar className="table-avatar">
               {profilePictureUrl ? (
                 <AvatarImage src={profilePictureUrl} alt={fullName} />

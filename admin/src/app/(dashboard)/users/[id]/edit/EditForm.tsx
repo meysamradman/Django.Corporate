@@ -4,17 +4,14 @@ import React, { useState } from "react";
 import { toast } from "@/components/elements/Sonner";
 import { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, AlertCircle } from "lucide-react";
+import { User, AlertCircle, Shield } from "lucide-react";
 import { ProfileHeader } from "@/components/users/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
 import dynamic from "next/dynamic";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-// @ts-ignore - TypeScript caching issue, file exists
-import { userFormSchema, UserFormValues } from "@/core/validations/userSchema";
 import { Media } from "@/types/shared/media";
 
+// اینجا دیگه نیاز به form و validation نداریم چون مثل ادمین‌ها کار می‌کنیم
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
         <div className="space-y-4 rounded-lg border p-6">
@@ -30,13 +27,14 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-const BaseInfoTab = dynamic(
-    () => import("@/components/users/create/BaseInfoTab").then((mod) => mod.default),
+// بیا tabs رو مثل ادمین‌ها dynamic import کنیم
+const AccountTab = dynamic(
+    () => import("@/components/users/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })),
     { loading: () => <TabContentSkeleton />, ssr: false }
 );
 
-const ProfileTab = dynamic(
-    () => import("@/components/users/create/ProfileTab").then((mod) => mod.default),
+const SecurityTab = dynamic(
+    () => import("@/components/users/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })),
     { loading: () => <TabContentSkeleton />, ssr: false }
 );
 
@@ -45,43 +43,48 @@ interface EditUserFormProps {
 }
 
 export function EditUserForm({ userData }: EditUserFormProps) {
-    const [activeTab, setActiveTab] = useState("base-info");
+    const [activeTab, setActiveTab] = useState("account");
     const [editMode, setEditMode] = useState(false);
-    const [selectedMedia, setSelectedMedia] = useState<Media | null>(userData.profile?.profile_picture || null);
-
-    // React Hook Form with Zod validation
-    const form = useForm<UserFormValues>({
-        resolver: zodResolver(userFormSchema) as any,
-        defaultValues: {
-            mobile: userData.mobile || "",
-            email: userData.email || "",
-            password: "",
-            full_name: userData.full_name || "",
-            profile_first_name: userData.profile?.first_name || "",
-            profile_last_name: userData.profile?.last_name || "",
-            profile_birth_date: userData.profile?.birth_date || "",
-            profile_national_id: userData.profile?.national_id || "",
-            profile_phone: userData.profile?.phone || "",
-            profile_province: userData.profile?.province?.name || "",
-            profile_city: userData.profile?.city?.name || "",
-            profile_address: userData.profile?.address || "",
-            profile_bio: userData.profile?.bio || "",
-            profile_picture: userData.profile?.profile_picture || null,
-        } as any,
-        mode: "onSubmit", // Validation only on submit
+    const [formData, setFormData] = useState({
+        firstName: userData.profile?.first_name || "",
+        lastName: userData.profile?.last_name || "",
+        email: userData.email || "",
+        mobile: userData.mobile || "",
+        phone: userData.profile?.phone || "",
+        nationalId: userData.profile?.national_id || "",
+        address: userData.profile?.address || "",
+        province: userData.profile?.province?.name || "",
+        city: userData.profile?.city?.name || "",
+        bio: userData.profile?.bio || "",
+        profileImage: userData.profile?.profile_picture || null,
+        birthDate: userData.profile?.birth_date || "",
     });
-
-    const { watch, setValue } = form;
-    const formData = watch();
-
     const [isSaving, setIsSaving] = useState(false);
+    const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
+        userData.profile?.province?.id || null
+    );
+    const [selectedCityId, setSelectedCityId] = useState<number | null>(
+        userData.profile?.city?.id || null
+    );
 
     const handleInputChange = (field: string, value: string | any) => {
         if (field === "cancel") {
             setEditMode(false);
             return;
         }
-        // This is handled by React Hook Form now
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleProvinceChange = (provinceName: string, provinceId: number) => {
+        handleInputChange("province", provinceName);
+        handleInputChange("city", ""); // Reset city when province changes
+        setSelectedProvinceId(provinceId);
+        setSelectedCityId(null);
+    };
+
+    const handleCityChange = (cityName: string, cityId: number) => {
+        handleInputChange("city", cityName);
+        setSelectedCityId(cityId);
     };
 
     const handleSaveProfile = async () => {
@@ -89,40 +92,22 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         
         setIsSaving(true);
         try {
-            // Get form data
-            const data = form.getValues();
-            
-            // Prepare data for API - with correct structure
             const updateData: Record<string, any> = {
-                mobile: data.mobile,
-                full_name: data.full_name,
-                first_name: data.profile_first_name || "",
-                last_name: data.profile_last_name || "",
-                birth_date: data.profile_birth_date || null,
-                national_id: data.profile_national_id || null,
-                phone: data.profile_phone || null,
-                address: data.profile_address || null,
-                bio: data.profile_bio || null,
-                profile_picture: selectedMedia?.id || null,
+                mobile: formData.mobile,
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                birth_date: formData.birthDate || null,
+                national_id: formData.nationalId || null,
+                phone: formData.phone || null,
+                address: formData.address || null,
+                bio: formData.bio || null,
+                profile_picture: formData.profileImage?.id || null,
+                province: selectedProvinceId,
+                city: selectedCityId,
             };
             
-            // Add email only if it's not empty
-            if (data.email) {
-                updateData.email = data.email;
-            }
-            
-            // Add password only if it's provided
-            if (data.password) {
-                updateData.password = data.password;
-            }
-            
-            // Add province and city only if they exist
-            if (data.profile_province) {
-                updateData.province = data.profile_province;
-            }
-            
-            if (data.profile_city) {
-                updateData.city = data.profile_city;
+            if (formData.email) {
+                updateData.email = formData.email;
             }
             
             await adminApi.updateUser(userData.id, updateData);
@@ -140,41 +125,38 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         <div className="space-y-6">
             <ProfileHeader 
                 user={userData} 
-                formData={{
-                    firstName: formData.profile_first_name || "",
-                    lastName: formData.profile_last_name || "",
-                    mobile: formData.mobile,
-                    profileImage: selectedMedia,
-                }} 
-                onProfileImageChange={setSelectedMedia}
+                formData={formData}
+                onProfileImageChange={(media) => handleInputChange("profileImage", media)}
             />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
-                    <TabsTrigger value="base-info">
+                    <TabsTrigger value="account">
                         <User className="w-4 h-4 me-2" />
-                        اطلاعات پایه
+                        حساب کاربری
                     </TabsTrigger>
-                    <TabsTrigger value="profile">
-                        <AlertCircle className="w-4 h-4 me-2" />
-                        پروفایل
+                    <TabsTrigger value="security">
+                        <Shield className="w-4 h-4 me-2" />
+                        امنیت
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="base-info">
-                    <BaseInfoTab
-                        form={form}
+                <TabsContent value="account">
+                    <AccountTab
+                        user={userData}
+                        formData={formData}
                         editMode={editMode}
+                        setEditMode={setEditMode}
+                        handleInputChange={handleInputChange}
+                        handleSaveProfile={handleSaveProfile}
+                        isSaving={isSaving}
+                        onProvinceChange={handleProvinceChange}
+                        onCityChange={handleCityChange}
                     />
                 </TabsContent>
 
-                <TabsContent value="profile">
-                    <ProfileTab
-                        form={form}
-                        selectedMedia={selectedMedia}
-                        setSelectedMedia={setSelectedMedia}
-                        editMode={editMode}
-                    />
+                <TabsContent value="security">
+                    <SecurityTab />
                 </TabsContent>
             </Tabs>
         </div>

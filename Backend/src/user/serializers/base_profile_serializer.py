@@ -314,8 +314,12 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         """Smart response based on user type - Optimized for performance"""
         data = super().to_representation(instance)
         
-        # Use centralized permission helper - eliminates code duplication
-        permission_data = PermissionHelper.get_optimized_permissions(instance)
-        data.update(permission_data)
+        # ✅ فقط برای ادمین‌ها فیلد permissions رو اضافه می‌کنیم
+        # یوزرهای معمولی به permissions نیازی ندارن
+        if instance.user_type == 'admin' or instance.is_staff or instance.is_superuser:
+            # Use centralized permission helper - eliminates code duplication
+            from src.user.utils.permission_helper import PermissionHelper
+            permission_data = PermissionHelper.get_optimized_permissions(instance)
+            data.update(permission_data)
         
         return data

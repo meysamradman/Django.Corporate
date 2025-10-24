@@ -39,7 +39,7 @@ export default function CreateUserPage() {
         mutationFn: async (data: UserFormValues) => {
             // آماده کردن دیتا برای API - CORRECTED STRUCTURE
             const userDataToSubmit: Record<string, unknown> = {
-                mobile: data.mobile,
+                identifier: data.mobile, // ✅ تغییر از mobile به identifier
                 full_name: data.full_name,
                 password: data.password,
                 is_active: true,
@@ -50,7 +50,7 @@ export default function CreateUserPage() {
 
             // Add email only if it's provided
             if (data.email) {
-                userDataToSubmit.email = data.email;
+                userDataToSubmit.identifier = data.email; // ✅ اگر email داریم، identifier رو تغییر می‌دیم
             }
 
             // Add profile fields directly to the main object (not nested)

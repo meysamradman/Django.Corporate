@@ -264,6 +264,7 @@ export const adminApi = {
 
     fetchUserById: async (
         userId: number,
+        userType: UserType = 'admin',
         options?: {
             cookieHeader?: string;
         }
@@ -273,7 +274,9 @@ export const adminApi = {
                 cache: 'no-store' as RequestCache,
                 cookieHeader: options?.cookieHeader,
             };
-            const endpointUrl = `/admin/management/${userId}/`;
+            
+            // Determine endpoint based on user type
+            const endpointUrl = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
     
             const response = await fetchApi.get<AdminWithProfile>(endpointUrl, fetchOptions);
             return response.data;
@@ -290,8 +293,11 @@ export const adminApi = {
                 is_superuser: userType === 'admin' ? (flattenedUserData.is_superuser ?? false) : false
             };
 
+            // Determine endpoint based on user type
+            const endpoint = userType === 'admin' ? '/admin/management/' : '/admin/users-management/';
+            
             // Directly send JSON data, assume profile_picture_id is already part of flattenedUserData
-            const response = await fetchApi.post<AdminWithProfile>('/admin/management/', dataToSend);
+            const response = await fetchApi.post<AdminWithProfile>(endpoint, dataToSend);
             return response.data;
         } catch (error) {
             throw error;
@@ -303,8 +309,11 @@ export const adminApi = {
             // Extract role_id before sending to API
             const { role_id, ...dataToSend } = flattenedUserData;
             
+            // Determine endpoint based on user type
+            const endpoint = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
+            
             // Directly send JSON data, assume profile_picture_id is already part of flattenedUserData
-            const response = await fetchApi.put<AdminWithProfile>(`/admin/management/${userId}/`, dataToSend);
+            const response = await fetchApi.put<AdminWithProfile>(endpoint, dataToSend);
             
             // Handle role assignment if provided
             if (role_id !== undefined && userType === 'admin') {
@@ -358,7 +367,8 @@ export const adminApi = {
 
     updateUserStatusByType: async (userId: number, isActive: boolean, userType: UserType): Promise<AdminWithProfile> => {
         try {
-            const endpointUrl = `/admin/management/${userId}/`;
+            // Determine endpoint based on user type
+            const endpointUrl = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
             const payload = { is_active: isActive };
     
             const response = await fetchApi.put<AdminWithProfile>(endpointUrl, payload);
@@ -459,7 +469,7 @@ export const adminApi = {
             cookieHeader?: string;
         }
     ): Promise<AdminWithProfile> => {
-        return adminApi.fetchUserById(adminId, options);
+        return adminApi.fetchUserById(adminId, 'admin', options);
     },
 
     createAdmin: async (adminData: Partial<AdminWithProfile>, profilePicture?: File): Promise<AdminWithProfile> => {
@@ -492,7 +502,7 @@ export const adminApi = {
     },
 
     getUserById: async (userId: number, options?: { cookieHeader?: string }): Promise<AdminWithProfile> => {
-        return adminApi.fetchUserById(userId, options);
+        return adminApi.fetchUserById(userId, 'user', options);
     },
 
     createUser: async (userData: Partial<AdminWithProfile>, profilePicture?: File): Promise<AdminWithProfile> => {

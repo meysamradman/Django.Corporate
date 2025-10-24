@@ -122,7 +122,30 @@ class BaseRegisterService:
             )
             
             # Create admin profile
-            from src.user.models import AdminProfile
+            from src.user.models import AdminProfile, UserProfile
+            
+            # ✅ GLOBAL UNIQUE VALIDATION for national_id
+            national_id = profile_fields.get('national_id')
+            if national_id and national_id.strip():
+                # Check if national_id exists in ANY profile (Admin or User)
+                from django.db.models import Q
+                existing_admin_profile = AdminProfile.objects.filter(
+                    national_id=national_id
+                ).first()
+                
+                if not existing_admin_profile:
+                    # Also check UserProfile
+                    existing_user_profile = UserProfile.objects.filter(
+                        national_id=national_id
+                    ).first()
+                    
+                    if existing_user_profile:
+                        print(f"National ID {national_id} already exists in UserProfile")
+                        profile_fields['national_id'] = None  # Remove duplicate
+                else:
+                    print(f"National ID {national_id} already exists in AdminProfile")
+                    profile_fields['national_id'] = None  # Remove duplicate
+            
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
             # Handle profile picture (either ID or file upload)
@@ -176,26 +199,61 @@ class BaseRegisterService:
         validate_register_password(password)
         user.set_password(password)
         user.save()
+        print("User created/updated successfully")
+        print(f"Validated data: {validated_data}")
+        print(f"User type: {user.user_type}")
+        print(f"Profile fields check: {any(k in validated_data for k in ['first_name', 'last_name', 'birth_date', 'bio', 'address', 'national_id', 'phone', 'province', 'city'])}")
         
         # ✅ Handle profile data for regular users (after user creation)
-        if user.user_type == 'user' and (validated_data.get('profile') or any(k in validated_data for k in ['first_name', 'last_name', 'birth_date', 'bio', 'address'])):
-            from src.user.models import UserProfile
+        # FIXED: Always try to update profile for regular users if any profile field exists
+        if user.user_type == 'user':
+            from src.user.models import UserProfile, AdminProfile
             
             # Get or create profile (signal should have created it, but ensure it exists)
             try:
                 profile, created = UserProfile.objects.get_or_create(user=user)
+                print(f"Profile retrieved/created for user {user.id}: {profile.id}, created: {created}")
                 
-                # Extract profile data from nested 'profile' structure
+                # Extract profile data from nested 'profile' structure or directly from validated_data
                 nested_profile = validated_data.get('profile', {})
+                print(f"Nested profile data: {nested_profile}")
+                print(f"Validated data: {validated_data}")
                 
-                # Update profile fields
+                # Update profile fields - check both nested profile and validated_data
                 profile_field_mapping = {
                     'first_name': nested_profile.get('first_name') or validated_data.get('first_name'),
                     'last_name': nested_profile.get('last_name') or validated_data.get('last_name'),
                     'birth_date': nested_profile.get('birth_date') or validated_data.get('birth_date'),
                     'bio': nested_profile.get('bio') or validated_data.get('bio'),
                     'address': nested_profile.get('address') or validated_data.get('address'),
+                    'national_id': nested_profile.get('national_id') or validated_data.get('national_id'),
+                    'phone': nested_profile.get('phone') or validated_data.get('phone'),
+                    'province': nested_profile.get('province') or validated_data.get('province'),
+                    'city': nested_profile.get('city') or validated_data.get('city'),
                 }
+                print(f"Profile field mapping: {profile_field_mapping}")
+                
+                # ✅ GLOBAL UNIQUE VALIDATION for national_id
+                national_id = profile_field_mapping.get('national_id')
+                if national_id and national_id.strip():
+                    # Check if national_id exists in ANY profile (Admin or User)
+                    from django.db.models import Q
+                    existing_profile = UserProfile.objects.filter(
+                        Q(national_id=national_id) & ~Q(user=user)
+                    ).first()
+                    
+                    if not existing_profile:
+                        # Also check AdminProfile
+                        existing_admin_profile = AdminProfile.objects.filter(
+                            national_id=national_id
+                        ).first()
+                        
+                        if existing_admin_profile:
+                            print(f"National ID {national_id} already exists in AdminProfile")
+                            profile_field_mapping['national_id'] = None  # Remove duplicate
+                    else:
+                        print(f"National ID {national_id} already exists in UserProfile")
+                        profile_field_mapping['national_id'] = None  # Remove duplicate
                 
                 # Only update fields with values
                 has_updates = False
@@ -203,6 +261,7 @@ class BaseRegisterService:
                     if value is not None and value != '':
                         setattr(profile, field, value)
                         has_updates = True
+                        print(f"Setting {field} to {value}")
                 
                 # Add profile picture if provided (either ID or file upload)
                 profile_picture_media_id = None
@@ -215,14 +274,31 @@ class BaseRegisterService:
                 if profile_picture_media_id:
                     profile.profile_picture_id = profile_picture_media_id
                     has_updates = True
+                    print(f"Setting profile picture ID to {profile_picture_media_id}")
                 
                 # Save only if we have updates
                 if has_updates:
-                    profile.save()
-                    print(f"Profile updated for user {user.id}: {profile_field_mapping}")
+                    try:
+                        profile.save()
+                        print(f"Profile updated for user {user.id}: {profile_field_mapping}")
+                    except ValidationError as ve:
+                        print(f"Profile validation error: {ve}")
+                        # Handle specific validation errors
+                        if 'national_id' in str(ve):
+                            print("National ID already exists, skipping national_id field")
+                            # Remove national_id and try again
+                            profile.national_id = None
+                            profile.save()
+                            print(f"Profile updated without national_id for user {user.id}")
+                        else:
+                            raise ve
+                else:
+                    print(f"No updates for profile of user {user.id}")
                 
             except Exception as e:
                 print(f"Profile creation/update failed: {e}")
+                import traceback
+                traceback.print_exc()
                 # Don't fail user creation if profile fails
                 pass
         

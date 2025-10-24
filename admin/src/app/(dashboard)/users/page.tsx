@@ -176,17 +176,10 @@ export default function UsersPage() {
   // تعریف ستون‌های جدول
   const columns = useUserColumns([
     {
-      label: "مشاهده",
-      icon: <Eye className="h-4 w-4" />,
-      onClick: (user: UserWithProfile) => {
-        window.open(`/user/profile/${user.id}`, '_blank');
-      },
-    },
-    {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (user: UserWithProfile) => {
-        window.location.href = `/user/${user.id}/edit`;
+        window.location.href = `/users/${user.id}/edit`;
       },
     },
     {
@@ -296,7 +289,7 @@ export default function UsersPage() {
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/user/create">
+            <Link href="/users/create">
               <Plus />
               افزودن کاربر
             </Link>

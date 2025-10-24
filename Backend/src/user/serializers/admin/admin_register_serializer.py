@@ -176,8 +176,58 @@ class AdminRegisterSerializer(BaseRegisterSerializer):
 class UserRegisterByAdminSerializer(BaseRegisterSerializer):
     """
     Serializer مخصوص ثبت نام یوزر عادی توسط ادمین در پنل ادمین - بهینه شده
+    ✅ شامل تمام فیلدهای profile برای یوزرهای معمولی
     """
     identifier = serializers.CharField(required=True)
+    
+    # Profile fields برای یوزرهای معمولی
+    first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
+    last_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
+    birth_date = serializers.DateField(required=False, allow_null=True)
+    national_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
+    address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
+    bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    province = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
+    city = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
+    
+    # Media field for profile picture - support both ID and file upload
+    profile_picture_id = serializers.IntegerField(required=False, allow_null=True)
+    profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
+
+    def validate_profile_picture_id(self, value):
+        """Validate profile picture exists and is an image"""
+        if value is None:
+            return value
+        
+        try:
+            from src.media.models import Media
+            media = Media.objects.get(id=value, media_type='image')
+            return value
+        except Media.DoesNotExist:
+            raise serializers.ValidationError("تصویر پروفایل یافت نشد")
+        except Exception as e:
+            raise serializers.ValidationError(f"خطا در اعتبارسنجی تصویر: {str(e)}")
+
+    def validate_profile_picture(self, value):
+        """Validate uploaded profile picture file using media service"""
+        if value is None:
+            return value
+        
+        try:
+            from src.media.services.media_service import MediaService
+            # Basic file validation
+            if value.size > 5 * 1024 * 1024:  # 5MB limit
+                raise serializers.ValidationError("حجم فایل نباید از 5 مگابایت بیشتر باشد")
+            
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+            if value.content_type not in allowed_types:
+                raise serializers.ValidationError("فرمت فایل باید JPEG، PNG، WebP یا GIF باشد")
+            
+            return value
+        except Exception as e:
+            raise serializers.ValidationError(f"خطا در اعتبارسنجی فایل: {str(e)}")
 
     def validate_identifier(self, value):
         """Validate identifier (email or mobile)"""
@@ -203,5 +253,26 @@ class UserRegisterByAdminSerializer(BaseRegisterSerializer):
             raise serializers.ValidationError({
                 'non_field_errors': AUTH_ERRORS.get("auth_not_authorized", "Not authorized to create users")
             })
+        
+        # Validate profile picture consistency (can't have both ID and file)
+        if data.get('profile_picture_id') and data.get('profile_picture'):
+            raise serializers.ValidationError({
+                'profile_picture': 'نمی‌توان همزمان ID تصویر و فایل جدید ارسال کرد. یکی را انتخاب کنید.'
+            })
+        
+        # Convert identifier to mobile or email
+        identifier = data.get('identifier')
+        if identifier:
+            try:
+                from src.user.utils.validate_identifier import validate_identifier
+                email, mobile = validate_identifier(identifier)
+                if email:
+                    data['email'] = email
+                elif mobile:
+                    data['mobile'] = mobile
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'identifier': str(e)
+                })
         
         return super().validate(data)

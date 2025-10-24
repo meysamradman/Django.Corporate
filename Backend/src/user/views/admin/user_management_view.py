@@ -183,6 +183,9 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                 admin_user=request.user
             )
             
+            # Refresh user to get updated profile data
+            user.refresh_from_db()
+            
             # Return serialized user data
             response_serializer = self.serializer_class(user, context={'request': request})
             return APIResponse.success(
