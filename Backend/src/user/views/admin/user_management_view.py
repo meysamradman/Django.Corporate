@@ -114,11 +114,8 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                 # Return paginated response using DRF's standard pagination response
                 return paginator.get_paginated_response(serializer.data)
             except Exception as e:
-                import traceback
-                print(f"Error in get_users_list: {str(e)}")
-                print(traceback.format_exc())
                 return APIResponse.error(
-                    message=f"Error fetching users: {str(e)}",
+                    message=AUTH_ERRORS["error_fetching_users"],
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
                 
@@ -128,11 +125,8 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         except Exception as e:
-            import traceback
-            print(f"Unexpected error in get method: {str(e)}")
-            print(traceback.format_exc())
             return APIResponse.error(
-                message=f"An error occurred: {str(e)}",
+                message=AUTH_ERRORS["error_occurred"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -213,7 +207,7 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
             deleted_count = self.service_class.bulk_delete_users(user_ids, admin_user=request.user)
             
             return APIResponse.success(
-                message=f"{deleted_count} users were successfully deleted",
+                message=AUTH_SUCCESS["users_deleted_successfully"].format(count=deleted_count),
                 data={'deleted_count': deleted_count}
             )
         except Exception as e:
@@ -228,11 +222,25 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
             user = self.service_class.get_user_detail(user_id)
             if user.is_staff:
                 return APIResponse.error(
-                    message="Cannot update admin user in user management",
+                    message=AUTH_ERRORS["cannot_update_admin_user"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
+            # Check national_id uniqueness before serializer validation
+            profile_data = request.data.get('profile', {})
+            national_id = profile_data.get('national_id')
+            if national_id:
+                from src.user.models import UserProfile
+                # Check if this national_id already exists for another user
+                existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(user_id=user_id).first()
+                if existing_profile:
+                    return APIResponse.error(
+                        message=AUTH_ERRORS["national_id_exists"],
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    )
+            
             serializer = self.update_serializer_class(
+                instance=user,  # ⭐ این خط مهمه! Django باید بفهمه داره update می‌کنه
                 data=request.data, 
                 context={'user_id': user_id, 'admin_user': request.user, 'request': request}
             )
@@ -265,7 +273,7 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
             user = self.service_class.get_user_detail(user_id)
             if user.is_staff:
                 return APIResponse.error(
-                    message="Cannot delete admin user in user management",
+                    message=AUTH_ERRORS["cannot_delete_admin_user"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             

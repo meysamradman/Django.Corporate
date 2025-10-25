@@ -248,10 +248,7 @@ export function AccountTab({
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
-                                <CardTitle>اطلاعات حساب کاربری</CardTitle>
-                                <CardDescription>
-                                    اطلاعات شخصی خود را مدیریت کنید
-                                </CardDescription>
+                                <CardTitle>اطلاعات کاربری</CardTitle>
                             </div>
                             <div className="flex gap-2">
                                 <Button variant="outline" size="sm" onClick={() => setEditMode(!editMode)}>

@@ -48,12 +48,16 @@ class BaseUserDetailSerializer(serializers.ModelSerializer):
 
 class BaseUserUpdateSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=False, allow_blank=True)
+    mobile = serializers.CharField(required=False, allow_blank=True)  # ⭐ اضافه کردن mobile field
+    email = serializers.EmailField(required=False, allow_blank=True)  # ⭐ اضافه کردن email field
     password = serializers.CharField(required=False, write_only=True)
     is_active = serializers.BooleanField(required=False)
     profile = UserProfileUpdateSerializer(required=False)
 
     def validate(self, data):
         identifier = data.get('identifier')
+        mobile = data.get('mobile')
+        email = data.get('email')
         user_id = self.context.get('user_id')
 
         if identifier and identifier.strip():  # Only validate if identifier is not empty
@@ -72,6 +76,46 @@ class BaseUserUpdateSerializer(serializers.Serializer):
                         raise serializers.ValidationError({'identifier': AUTH_ERRORS["auth_mobile_exists"]})
             except serializers.ValidationError:
                 raise serializers.ValidationError({'identifier': AUTH_ERRORS["auth_identifier_error"]})
+        
+        # ⭐ اضافه کردن validation برای mobile مستقل
+        if mobile and mobile.strip():
+            try:
+                validated_mobile = validate_mobile_number(mobile)
+                data['mobile'] = validated_mobile
+                
+                # چک کردن یکتایی mobile
+                if User.objects.filter(~Q(id=user_id), mobile=validated_mobile).exists():
+                    raise serializers.ValidationError({'mobile': 'شماره موبایل قبلاً استفاده شده است.'})
+            except serializers.ValidationError as e:
+                raise serializers.ValidationError({'mobile': str(e)})
+        
+        # ⭐ اضافه کردن validation برای email مستقل
+        if email and email.strip():
+            try:
+                validated_email = validate_email_address(email)
+                data['email'] = validated_email
+                
+                # چک کردن یکتایی email
+                if User.objects.filter(~Q(id=user_id), email=validated_email).exists():
+                    raise serializers.ValidationError({'email': 'ایمیل قبلاً استفاده شده است.'})
+            except serializers.ValidationError as e:
+                raise serializers.ValidationError({'email': str(e)})
+
+        # Validate profile data if present
+        profile_data = data.get('profile')
+        if profile_data and user_id:
+            national_id = profile_data.get('national_id')
+            if national_id:
+                from src.user.models import UserProfile
+                
+                # Check if this national_id already exists for another user
+                existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(user_id=user_id).first()
+                if existing_profile:
+                    raise serializers.ValidationError({
+                        'profile': {
+                            'national_id': ['کد ملی قبلاً توسط کاربر دیگری استفاده شده است.']
+                        }
+                    })
 
         return data
 

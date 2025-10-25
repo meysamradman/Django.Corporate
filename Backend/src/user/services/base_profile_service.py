@@ -41,10 +41,7 @@ class BaseProfileService:
         Updates user profile with the given data.
         Handles profile picture upload efficiently for both AdminProfile and UserProfile.
         """
-        print(f"--- BaseProfileService.update_user_profile --- User: {user.id}, UserType: {user.user_type}, Received Profile Data:", profile_data)
-        
         if not profile_data:
-            print("--- BaseProfileService.update_user_profile --- No profile data received, returning.")
             return BaseProfileService.get_user_profile(user) # Return current profile if no data
 
         try:
@@ -52,7 +49,6 @@ class BaseProfileService:
             # Use correct field name based on profile model
             user_field_name = 'admin_user' if profile_model.__name__ == 'AdminProfile' else 'user'
             profile, created = profile_model.objects.get_or_create(**{user_field_name: user})
-            print(f"--- BaseProfileService.update_user_profile --- Profile instance {'created' if created else 'retrieved'}: {profile.id} (Type: {profile_model.__name__})")
             
             profile_picture = profile_data.pop('profile_picture', None)
             old_media_to_delete = None
@@ -61,13 +57,40 @@ class BaseProfileService:
             fields_actually_updated = []
             for field, value in profile_data.items():
                 current_value = getattr(profile, field, None)
-                # Regular field comparison
-                if str(value or '') != str(current_value or ''):
-                    setattr(profile, field, value)
-                    fields_actually_updated.append(field)
-                    update_needed = True
+                
+                # Special handling for foreign key fields (province, city)
+                if field in ['province', 'city']:
+                    # For foreign keys, compare IDs
+                    current_id = getattr(current_value, 'id', None) if current_value else None
+                    new_id = value if isinstance(value, int) else getattr(value, 'id', None) if value else None
+                    if new_id != current_id:
+                        # Convert ID to object for Django ForeignKey
+                        if isinstance(value, int):
+                            try:
+                                if field == 'province':
+                                    from src.user.models.location import Province
+                                    fk_object = Province.objects.get(id=value)
+                                elif field == 'city':
+                                    from src.user.models.location import City
+                                    fk_object = City.objects.get(id=value)
+                                else:
+                                    fk_object = value
+                                setattr(profile, field, fk_object)
+                                fields_actually_updated.append(field)
+                                update_needed = True
+                            except Exception as e:
+                                pass
+                        else:
+                            setattr(profile, field, value)
+                            fields_actually_updated.append(field)
+                            update_needed = True
+                else:
+                    # Regular field comparison
+                    if str(value or '') != str(current_value or ''):
+                        setattr(profile, field, value)
+                        fields_actually_updated.append(field)
+                        update_needed = True
             
-            print(f"--- BaseProfileService.update_user_profile --- Fields marked for update: {fields_actually_updated}")
             
             # Handle profile_picture separately
             if profile_picture is not None:
@@ -93,30 +116,35 @@ class BaseProfileService:
                                 profile.profile_picture = profile_picture
                                 fields_actually_updated.append('profile_picture')
                             else:
-                                print(f">>> Error: profile_picture should be ImageMedia object, got {type(profile_picture)}")
-                                
+                                pass
                     except ImportError:
-                        print(">>> Error: Could not import ImageMedia model.")
+                        pass
                     except Exception as e:
-                        print(f">>> Error processing profile picture: {str(e)}")
+                        pass
             
             if update_needed:
-                print(f"--- BaseProfileService.update_user_profile --- Saving profile with updated fields: {fields_actually_updated}")
+                # Check for national_id uniqueness before saving
+                if 'national_id' in fields_actually_updated:
+                    national_id = getattr(profile, 'national_id', None)
+                    if national_id:
+                        # Check if this national_id already exists for another user
+                        from src.user.models import UserProfile
+                        existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(id=profile.id).first()
+                        if existing_profile:
+                            raise ValueError(f"کد ملی {national_id} قبلاً توسط کاربر دیگری استفاده شده است.")
+                
                 profile.save()
-                print("--- BaseProfileService.update_user_profile --- Profile saved successfully.")
                 
                 if old_media_to_delete:
                     try:
                         old_media_to_delete.delete()
                     except Exception as e:
-                        print(f">>> Warning: Failed to delete old media {old_media_to_delete.id}: {str(e)}")
+                        pass
             else:
-                print("--- BaseProfileService.update_user_profile --- No update needed based on field comparison.")
-                
+                pass
             return profile
                     
         except Exception as e:
-            print(f">>> ERROR updating profile in BaseProfileService for user {user.id}: {str(e)}")
             import traceback
             traceback.print_exc()
             raise ValidationError(f"Failed to update profile: {str(e)}")

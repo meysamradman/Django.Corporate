@@ -16,6 +16,9 @@ AUTH_SUCCESS = {
     "user_created_successfully": "کاربر با موفقیت ایجاد شد",
     "user_updated_successfully": "کاربر با موفقیت به‌روزرسانی شد",
     "user_deleted_successfully": "کاربر با موفقیت حذف شد",
+    "users_deleted_successfully": "{count} کاربر با موفقیت حذف شدند",
+    "error_fetching_users": "خطا در دریافت کاربران",
+    "error_occurred": "خطایی رخ داد",
     "otp_settings_retrieved_successfully": "تنظیمات کد تایید با موفقیت دریافت شد",
     "auth_token_refreshed": "توکن با موفقیت تجدید شد",
     # Location Messages
@@ -122,4 +125,7 @@ AUTH_ERRORS = {
     "location_city_not_found": "شهر یافت نشد",
     "location_province_inactive": "استان غیرفعال است",
     "location_city_inactive": "شهر غیرفعال است",
+    "cannot_update_admin_user": "امکان به‌روزرسانی کاربر ادمین در مدیریت کاربران وجود ندارد",
+    "cannot_delete_admin_user": "امکان حذف کاربر ادمین در مدیریت کاربران وجود ندارد",
+    "national_id_exists": "کد ملی قبلاً توسط کاربر دیگری استفاده شده است",
 }

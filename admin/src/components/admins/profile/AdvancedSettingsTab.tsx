@@ -272,10 +272,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             {/* Admin Settings Card */}
             <Card>
                 <CardHeader>
-                    <CardTitle>{getPermissionTranslation('تنظیمات مدیریتی', 'resource')}</CardTitle>
-                    <CardDescription>
-                        {getPermissionTranslation('این تنظیمات حساس فقط توسط سوپر ادمین قابل تغییر است.', 'description')}
-                    </CardDescription>
+                    <CardTitle>تنظیمات پیشرفته</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex items-center justify-between rounded-lg border p-4">
@@ -330,13 +327,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="flex items-center gap-2">
-                            <Shield className="h-5 w-5 text-primary" />
-                            {getPermissionTranslation('اختصاص نقش‌ها', 'resource')}
-                        </CardTitle>
-                        <CardDescription>
-                            {getPermissionTranslation('نقش‌های مورد نیاز برای این ادمین را انتخاب کنید.', 'description')}
-                        </CardDescription>
+                        <CardTitle>اختصاص نقش‌ها</CardTitle>
                     </div>
                     <div className="flex gap-2">
                         {canManagePermissions ? (

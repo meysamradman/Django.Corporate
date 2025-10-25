@@ -66,33 +66,115 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         allow_null=True,
         help_text="ID of an image from media library"
     )
+    # Support for direct file upload as alternative
+    profile_picture_file = serializers.ImageField(
+        required=False, 
+        allow_null=True, 
+        write_only=True,
+        help_text="Direct image file upload (alternative to profile_picture ID)"
+    )
     
     class Meta:
         model = UserProfile
-        fields = ['first_name', 'last_name', 'birth_date', 'address', 'phone', 'province', 'city', 'bio', 'national_id', 'profile_picture']
+        fields = [
+            'first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'province', 'city', 'profile_picture',
+            'bio', 'profile_picture_file'
+        ]
         extra_kwargs = {
             'first_name': {'required': False},
             'last_name': {'required': False},
             'birth_date': {'required': False},
+            'national_id': {'required': False, 'validators': []},  # ⭐ غیرفعال کردن validator های خودکار Django (از جمله unique)
             'address': {'required': False},
             'phone': {'required': False},
             'province': {'required': False},
             'city': {'required': False},
             'bio': {'required': False},
-            'national_id': {'required': False}
         }
         
     def validate_national_id(self, value):
-        if value and not value.isdigit():
+        # اگه کد ملی خالی یا None هست، بی‌خیالش شو (برای partial update)
+        if not value or value == '':
+            return value
+            
+        if not value.isdigit():
             raise serializers.ValidationError("National ID must contain only numbers")
-        if value and len(value) != 10:
+        if len(value) != 10:
             raise serializers.ValidationError("National ID must be 10 digits")
+        
+        # بررسی یکتایی فقط برای مقادیر غیر خالی
+        user_id = self.context.get('user_id')
+        
+        # اگه user_id نیست، یعنی داره ساخته میشه (نه ویرایش)
+        if not user_id:
+            if UserProfile.objects.filter(national_id=value).exists():
+                raise serializers.ValidationError("User Profile with this National ID already exists.")
+            return value
+        
+        # برای update: پروفایل فعلی رو از بررسی حذف کن
+        try:
+            user = User.objects.get(id=user_id)
+            
+            if hasattr(user, 'user_profile') and user.user_profile and user.user_profile.id:
+                # اگه همون کد ملی رو داره، اجازه بده
+                if user.user_profile.national_id == value:
+                    return value
+                
+                # اگه کد ملی متفاوته، چک کن که تکراری نباشه
+                if UserProfile.objects.filter(national_id=value).exclude(id=user.user_profile.id).exists():
+                    raise serializers.ValidationError("User Profile with this National ID already exists.")
+            else:
+                # یوزر پروفایل نداره، با همه چک کن
+                if UserProfile.objects.filter(national_id=value).exists():
+                    raise serializers.ValidationError("User Profile with this National ID already exists.")
+        except User.DoesNotExist:
+            # یوزر وجود نداره، با همه چک کن
+            if UserProfile.objects.filter(national_id=value).exists():
+                raise serializers.ValidationError("User Profile with this National ID already exists.")
+        
         return value
         
     def validate_birth_date(self, value):
         if value and value > datetime.now().date():
             raise serializers.ValidationError("Birth date cannot be in the future")
         return value
+    
+    def validate_profile_picture_file(self, value):
+        """Validate uploaded profile picture file using media service"""
+        if value is None:
+            return value
+        
+        # Use central media validation
+        from src.media.utils.validators import validate_image_file
+        
+        try:
+            validate_image_file(value)
+            return value
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+    
+    def validate(self, data):
+        """Cross-field validation"""
+        # Check national_id uniqueness
+        national_id = data.get('national_id')
+        if national_id:
+            user_id = self.context.get('user_id')
+            if user_id:
+                from src.user.models import UserProfile
+                # Check if this national_id already exists for another user
+                existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(user_id=user_id).first()
+                if existing_profile:
+                    raise serializers.ValidationError({
+                        'national_id': ['کد ملی قبلاً توسط کاربر دیگری استفاده شده است.']
+                    })
+        
+        # Can't have both profile_picture ID and file upload
+        if data.get('profile_picture') and data.get('profile_picture_file'):
+            raise serializers.ValidationError({
+                'profile_picture_file': 'نمی‌توان همزمان ID تصویر و فایل جدید ارسال کرد. یکی را انتخاب کنید.'
+            })
+        
+        return data
 
 # --- AdminProfile Serializers (for Admin Users) ---
 class AdminProfileSerializer(serializers.ModelSerializer):
@@ -166,10 +248,40 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_national_id(self, value):
-        if value and not value.isdigit():
+        # اگه کد ملی خالی یا None هست، بی‌خیالش شو (برای partial update)
+        if not value or value == '':
+            return value
+            
+        if not value.isdigit():
             raise serializers.ValidationError("National ID must contain only numbers")
-        if value and len(value) != 10:
+        if len(value) != 10:
             raise serializers.ValidationError("National ID must be 10 digits")
+        
+        # بررسی یکتایی فقط برای مقادیر غیر خالی
+        user_id = self.context.get('user_id')
+        
+        # اگه user_id نیست، یعنی داره ساخته میشه (نه ویرایش)
+        if not user_id:
+            if AdminProfile.objects.filter(national_id=value).exists():
+                raise serializers.ValidationError("Admin Profile with this National ID already exists.")
+            return value
+        
+        # برای update: پروفایل فعلی رو از بررسی حذف کن
+        try:
+            user = User.objects.get(id=user_id)
+            if hasattr(user, 'admin_profile') and user.admin_profile and user.admin_profile.id:
+                # پروفایل فعلی رو exclude کن
+                if AdminProfile.objects.filter(national_id=value).exclude(id=user.admin_profile.id).exists():
+                    raise serializers.ValidationError("Admin Profile with this National ID already exists.")
+            else:
+                # یوزر پروفایل نداره، با همه چک کن
+                if AdminProfile.objects.filter(national_id=value).exists():
+                    raise serializers.ValidationError("Admin Profile with this National ID already exists.")
+        except User.DoesNotExist:
+            # یوزر وجود نداره، با همه چک کن
+            if AdminProfile.objects.filter(national_id=value).exists():
+                raise serializers.ValidationError("Admin Profile with this National ID already exists.")
+        
         return value
     
     def validate_profile_picture_file(self, value):

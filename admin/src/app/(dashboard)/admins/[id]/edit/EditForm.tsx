@@ -103,27 +103,78 @@ export function EditAdminForm({ adminData }: EditAdminFormProps) {
         
         setIsSaving(true);
         try {
-            // آماده کردن دیتا برای API - با ID ها بجای نام
-            const profileData = {
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                phone: formData.phone,
-                address: formData.address,
-                province: selectedProvinceId, // ID بجای نام
-                city: selectedCityId, // ID بجای نام
-                bio: formData.bio,
-                national_id: formData.nationalId,
-                profile_picture: formData.profileImage?.id || null,
-                birth_date: formData.birthDate || null, // Add birth_date field
+            // آماده کردن دیتا برای API - با profile object و validation
+            const profileData: Record<string, any> = {
+                profile: {
+                    first_name: formData.firstName || null,
+                    last_name: formData.lastName || null,
+                    phone: formData.phone || null,
+                    address: formData.address || null,
+                    province: selectedProvinceId || null, // ID بجای نام
+                    city: selectedCityId || null, // ID بجای نام
+                    bio: formData.bio || null,
+                    national_id: formData.nationalId && formData.nationalId.trim() !== '' ? formData.nationalId : null,
+                    profile_picture: formData.profileImage?.id || null,
+                    birth_date: formData.birthDate || null, // Add birth_date field
+                }
             };
             
+            // اضافه کردن فیلدهای user (email, mobile) در سطح اصلی
+            if (formData.email) {
+                profileData.email = formData.email;
+            }
             
-            await adminApi.updateProfile(profileData);
+            if (formData.mobile) {
+                profileData.mobile = formData.mobile;
+            }
+            
+            
+            console.log('Sending admin update data:', profileData);
+            console.log('Admin ID:', adminData.id);
+            
+            const result = await adminApi.updateUserByType(adminData.id, profileData, 'admin');
+            console.log('Admin update result:', result);
             
             toast.success("پروفایل با موفقیت به‌روزرسانی شد");
             setEditMode(false);
         } catch (error) {
-            toast.error("خطا در ذخیره پروفایل. لطفاً دوباره تلاش کنید.");
+            console.error('Admin update error:', error);
+            console.error('Admin error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            
+            // Log full error object for debugging
+            if (error && typeof error === 'object') {
+                console.error('Full error object:', error);
+                if ('response' in error && error.response) {
+                    console.error('Error response:', error.response);
+                }
+            }
+            
+            // Handle specific validation errors
+            let errorMessage = "خطا در ذخیره پروفایل. لطفاً دوباره تلاش کنید.";
+            
+            if (error && typeof error === 'object' && 'response' in error && error.response) {
+                const response = error.response as any;
+                if (response.errors) {
+                    // Handle national_id duplicate error
+                    if (response.errors.profile && response.errors.profile.national_id) {
+                        errorMessage = "کد ملی وارد شده قبلاً برای ادمین دیگری استفاده شده است.";
+                    }
+                    // Handle other validation errors
+                    else if (response.errors.profile) {
+                        const profileErrors = response.errors.profile;
+                        if (profileErrors.birth_date) {
+                            errorMessage = "تاریخ تولد نمی‌تواند در آینده باشد.";
+                        } else if (profileErrors.national_id) {
+                            errorMessage = "کد ملی باید 10 رقم باشد.";
+                        }
+                    }
+                }
+            }
+            
+            toast.error(errorMessage);
         } finally {
             setIsSaving(false);
         }

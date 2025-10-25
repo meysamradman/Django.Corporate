@@ -320,7 +320,10 @@ class AdminUpdateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Role not found or inactive")
 
     def validate(self, data):
-        print(f">>>>> Validating data in AdminUpdateSerializer: {data}")
+        print(f">>>>> STEP 3: Validating data in AdminUpdateSerializer.validate()")
+        print(f">>>>> Data received in validate: {data}")
+        print(f">>>>> Data keys: {data.keys()}")
+        
         admin_user = self.context.get('admin_user')
         if data.get('is_superuser') is True and not admin_user.is_superuser:
             raise serializers.ValidationError({'is_superuser': AUTH_ERRORS["auth_only_superuser_set"]})
@@ -328,8 +331,88 @@ class AdminUpdateSerializer(serializers.Serializer):
         # Extract profile data if it exists
         # Removed manual profile data mapping as AdminProfileUpdateSerializer handles it
 
-        print(f">>>>> After validation in AdminUpdateSerializer: {data}")
+        print(f">>>>> STEP 4: After validation in AdminUpdateSerializer - returning data")
         return data
+    
+    def to_internal_value(self, data):
+        """Override to set proper instance for nested profile serializer"""
+        # Get the user being updated
+        user_id = self.context.get('user_id')
+        print(f">>>>> AdminUpdateSerializer.to_internal_value - user_id: {user_id}")
+        print(f">>>>> AdminUpdateSerializer.to_internal_value - data: {data}")
+        print(f">>>>> AdminUpdateSerializer.to_internal_value - email in data: {'email' in data}")
+        if 'email' in data:
+            print(f">>>>> AdminUpdateSerializer.to_internal_value - email value: {data['email']}")
+        
+        if user_id:
+            try:
+                from src.user.models import User
+                user = User.objects.get(id=user_id)
+                print(f">>>>> User found: {user.id}, has admin_profile: {hasattr(user, 'admin_profile')}")
+                
+                if hasattr(user, 'admin_profile') and user.admin_profile:
+                    # Set the instance for the nested profile serializer
+                    data['profile'] = data.get('profile', {})
+                    # Pass the admin_profile instance to the nested serializer
+                    if 'profile' in data:
+                        profile_data = data['profile']
+                        print(f">>>>> Profile data before validation: {profile_data}")
+                        print(f">>>>> Admin profile ID: {user.admin_profile.id}")
+                        print(f">>>>> Admin profile national_id: {user.admin_profile.national_id}")
+                        
+                        # Create a temporary serializer to validate with proper instance
+                        # Make sure user_id is in the context for national_id validation
+                        context_with_user_id = self.context.copy()
+                        context_with_user_id['user_id'] = user_id
+                        temp_serializer = AdminProfileUpdateSerializer(
+                            instance=user.admin_profile,
+                            data=profile_data,
+                            partial=True,
+                            context=context_with_user_id
+                        )
+                        if temp_serializer.is_valid():
+                            print(f">>>>> Validation SUCCESS! Validated data: {temp_serializer.validated_data}")
+                            # Convert objects to IDs for super().to_internal_value()
+                            profile_data_for_super = {}
+                            for key, value in temp_serializer.validated_data.items():
+                                if hasattr(value, 'id'):  # If it's a model instance
+                                    profile_data_for_super[key] = value.id
+                                    print(f">>>>> Converting {key} object to ID: {value.id}")
+                                else:
+                                    profile_data_for_super[key] = value
+                            data['profile'] = profile_data_for_super
+                            print(f">>>>> Profile data successfully added to data (objects converted to IDs)")
+                        else:
+                            print(f">>>>> Validation FAILED! Errors: {temp_serializer.errors}")
+                            print(f">>>>> Raising ValidationError with profile errors")
+                            raise serializers.ValidationError({'profile': temp_serializer.errors})
+            except User.DoesNotExist:
+                print(f">>>>> User not found with id: {user_id}")
+                pass
+        
+        print(f">>>>> STEP 5: About to call super().to_internal_value(data)")
+        print(f">>>>> STEP 5: Data being passed to super: {data}")
+        
+        # Remove profile from data before calling super() to avoid double validation
+        profile_data = data.pop('profile', None)
+        print(f">>>>> STEP 5: Removed profile from data to avoid double validation")
+        print(f">>>>> STEP 5: Data after removing profile: {data}")
+        
+        try:
+            result = super().to_internal_value(data)
+            print(f">>>>> STEP 5: super().to_internal_value() completed successfully")
+            print(f">>>>> STEP 5: Result from super: {result}")
+            
+            # Add profile data back to result
+            if profile_data:
+                result['profile'] = profile_data
+                print(f">>>>> STEP 5: Added profile data back to result")
+            
+            return result
+        except Exception as e:
+            print(f">>>>> STEP 5: ERROR in super().to_internal_value(): {e}")
+            print(f">>>>> STEP 5: Error type: {type(e)}")
+            raise e
 
 class AdminFilterSerializer(BaseUserFilterSerializer):
     user_type = serializers.ChoiceField(

@@ -114,9 +114,6 @@ class AdminManagementView(UserAuthMixin, BaseManagementView):
                 # Return paginated response using DRF's standard pagination response
                 return paginator.get_paginated_response(serializer.data)
             except Exception as e:
-                import traceback
-                print(f"Error in get_users_list: {str(e)}")
-                print(traceback.format_exc())
                 return APIResponse.error(
                     message=f"Error fetching users: {str(e)}",
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -128,9 +125,6 @@ class AdminManagementView(UserAuthMixin, BaseManagementView):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         except Exception as e:
-            import traceback
-            print(f"Unexpected error in get method: {str(e)}")
-            print(traceback.format_exc())
             return APIResponse.error(
                 message=f"An error occurred: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

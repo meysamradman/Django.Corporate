@@ -94,27 +94,38 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         try {
             const updateData: Record<string, any> = {
                 mobile: formData.mobile,
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                birth_date: formData.birthDate || null,
-                national_id: formData.nationalId || null,
-                phone: formData.phone || null,
-                address: formData.address || null,
-                bio: formData.bio || null,
-                profile_picture: formData.profileImage?.id || null,
-                province: selectedProvinceId,
-                city: selectedCityId,
+                profile: {
+                    first_name: formData.firstName,
+                    last_name: formData.lastName,
+                    birth_date: formData.birthDate || null,
+                    national_id: formData.nationalId || null,
+                    phone: formData.phone || null,
+                    address: formData.address || null,
+                    bio: formData.bio || null,
+                    profile_picture: formData.profileImage?.id || null,
+                    province: selectedProvinceId,
+                    city: selectedCityId,
+                }
             };
             
             if (formData.email) {
                 updateData.email = formData.email;
             }
             
-            await adminApi.updateUser(userData.id, updateData);
+            console.log('Sending update data:', updateData);
+            console.log('User ID:', userData.id);
+            
+            const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
+            console.log('Update result:', result);
             
             toast.success("پروفایل کاربر با موفقیت به‌روزرسانی شد");
             setEditMode(false);
         } catch (error) {
+            console.error('Update error:', error);
+            console.error('Error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
             toast.error("خطا در ذخیره پروفایل. لطفاً دوباره تلاش کنید.");
         } finally {
             setIsSaving(false);

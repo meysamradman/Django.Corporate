@@ -108,7 +108,6 @@ class AdminProfileView(APIView):
             raise Http404(AUTH_ERRORS["auth_user_not_found"])
         except Exception as e:
             # Log the error
-            print(f"Error fetching admin profile: {str(e)}")
             return Response({
                 "metaData": {
                     "status": "error",
@@ -332,7 +331,7 @@ class AdminProfileView(APIView):
                     admin_profile, 
                     data=profile_data, 
                     partial=True,  # Allow partial updates
-                    context={'request': request}
+                    context={'request': request, 'user_id': user.id}
                 )
                 
                 if serializer.is_valid():
@@ -388,7 +387,6 @@ class AdminProfileView(APIView):
                 })
                 
         except Exception as e:
-            print(f"Error updating admin profile: {str(e)}")
             return Response({
                 "metaData": {
                     "status": "error",

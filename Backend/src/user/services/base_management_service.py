@@ -63,8 +63,6 @@ class BaseManagementService:
     def update_user(user_id, validated_data, admin_user=None):
         """Updates user and profile based on validated data from the view/serializer."""
         # <<< --- START LOGGING --- >>>
-        print(f"--- BaseManagementService.update_user --- User ID: {user_id}")
-        print(f"--- BaseManagementService.update_user --- Received Validated Data:", validated_data)
         # <<< --- END LOGGING --- >>>
         try:
             if admin_user is not None:
@@ -142,7 +140,7 @@ class BaseManagementService:
 
             # ===== Profile Fields Processing =====
             # 1. Direct profile fields
-            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio']
+            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone']
             for field in profile_model_fields:
                 if field in validated_data:
                     profile_fields_to_update[field] = validated_data.pop(field)
@@ -194,7 +192,6 @@ class BaseManagementService:
                     if media:
                         profile_fields_to_update['profile_picture_id'] = media.id
                 except Exception as e:
-                    print(f"Profile picture upload failed: {e}")
                     # Don't fail user update if picture upload fails
                     pass
             elif profile_picture:
@@ -219,7 +216,6 @@ class BaseManagementService:
                         # Clear all AdminUserRole assignments for this user
                         from src.user.models import AdminUserRole
                         AdminUserRole.objects.filter(user=user, is_active=True).update(is_active=False)
-                        print(f">>> Cleared all AdminUserRole assignments for user {user.id}")
                     else:
                         role_id = int(role_id_str)
                         from src.user.models import AdminRole, AdminUserRole
@@ -230,7 +226,6 @@ class BaseManagementService:
                             
                             # VALIDATION: super_admin role can only be assigned to superusers
                             if role.name == 'super_admin' and not user.is_superuser:
-                                print(f"Warning: Cannot assign 'super_admin' role to non-superuser {user.id}. Skipping role assignment.")
                                 return user
                             
                             # First, deactivate all existing role assignments
@@ -250,22 +245,19 @@ class BaseManagementService:
                                 user_role.is_active = True
                                 user_role.save()
                             
-                            print(f">>> Set AdminRole {role.name} (ID: {role.id}) for user {user.id}")
                             
                             # Clear permission cache
                             from src.user.utils.permission_helper import PermissionHelper
                             PermissionHelper.clear_user_cache(user.id)
                             
                         except AdminRole.DoesNotExist:
-                            print(f"Warning: AdminRole with ID {role_id_str} not found. Role not updated.")
-                            
+                            pass
                 except ValueError:
-                     print(f"Warning: Invalid role ID format: {role_id_str}. Role not updated.")
+                    pass
                 except Exception as e:
-                     print(f"Error updating user AdminRole: {str(e)}")
+                    pass
 
             # <<< --- START LOGGING --- >>>
-            print(f"--- BaseManagementService.update_user --- Profile Fields to Update:", profile_fields_to_update)
             # <<< --- END LOGGING --- >>>
 
             # Update profile if anything to update or need to remove picture
@@ -274,14 +266,11 @@ class BaseManagementService:
                 
                 # Process profile picture removal if requested
                 if should_remove_picture:
-                    print("--- BaseManagementService.update_user --- Removing profile picture...")
                     BaseProfileService.update_profile_image(user, None)
                 
                 # Process other profile fields if there are any
                 if profile_fields_to_update:
-                    print("--- BaseManagementService.update_user --- Calling BaseProfileService.update_user_profile...")
                     BaseProfileService.update_user_profile(user, profile_fields_to_update)
-                    print("--- BaseManagementService.update_user --- Finished calling BaseProfileService.update_user_profile.")
            
             # No need to refresh from DB - we already updated our user object
             return user
@@ -290,7 +279,6 @@ class BaseManagementService:
             raise NotFound(AUTH_ERRORS["not_found"])
         except Exception as e:
             # Keep a comprehensive error log
-            print(f"Error during user update: {str(e)}")
             import traceback
             traceback.print_exc()
             raise

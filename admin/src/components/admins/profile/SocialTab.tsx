@@ -52,9 +52,6 @@ export function SocialTab({
             <Card>
                 <CardHeader>
                     <CardTitle>شبکه‌های اجتماعی</CardTitle>
-                    <CardDescription>
-                        لینک پروفایل‌های اجتماعی خود را وارد کنید.
-                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">

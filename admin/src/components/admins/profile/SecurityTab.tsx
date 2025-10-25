@@ -40,7 +40,7 @@ export function SecurityTab() {
             {/* Change Password */}
             <Card>
                 <CardHeader>
-                    <CardTitle>تغییر رمز عبور</CardTitle>
+                    <CardTitle>امنیت</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {newPassword && passwordStrength < 100 && (

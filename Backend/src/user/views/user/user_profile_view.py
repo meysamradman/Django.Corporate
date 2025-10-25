@@ -12,7 +12,7 @@ class UserProfileView(BaseProfileView):
     def put(self, request, *args, **kwargs):
         try:
             user = self.service_class.get_user_profile(request.user)
-            serializer = UserProfileUpdateSerializer(user, data=request.data, context={'request': request}, partial=True)
+            serializer = UserProfileUpdateSerializer(user, data=request.data, context={'request': request, 'user_id': request.user.id}, partial=True)
             if serializer.is_valid(raise_exception=True):
                 updated_profile = self.service_class.update_user_profile(request.user, serializer.validated_data)
                 response_serializer = self.serializer_class(updated_profile, context={'request': request})
