@@ -92,7 +92,18 @@ const VALIDATION_MESSAGES = {
   ogDescMaxLength: "توضیحات Open Graph نباید بیشتر از ۱۶۰ کاراکتر باشد",
   
   // URL
-  urlInvalid: "آدرس وارد شده معتبر نیست"
+  urlInvalid: "آدرس وارد شده معتبر نیست",
+  
+  // Profile Update Errors
+  userProfileUpdateFailed: "خطا در به‌روزرسانی پروفایل کاربر",
+  adminProfileUpdateFailed: "خطا در به‌روزرسانی پروفایل ادمین",
+  
+  // Field Validation Errors
+  auth_mobile_invalid: "شماره موبایل معتبر نیست",
+  auth_email_invalid: "ایمیل معتبر نیست",
+  national_id_exists: "کد ملی قبلاً توسط کاربر دیگری استفاده شده است",
+  first_name_required: "نام الزامی است",
+  last_name_required: "نام خانوادگی الزامی است"
 } as const;
 
 // Common UI Messages (برای loading، confirm، etc.)
@@ -129,7 +140,11 @@ const COMMON_UI_MESSAGES = {
   // Role Success Messages
   roleCreated: "نقش با موفقیت ایجاد شد",
   roleUpdated: "نقش با موفقیت به‌روزرسانی شد",
-  roleDeleted: "نقش با موفقیت حذف شد"
+  roleDeleted: "نقش با موفقیت حذف شد",
+  
+  // Profile Success Messages
+  userProfileUpdated: "پروفایل کاربر با موفقیت به‌روزرسانی شد",
+  adminProfileUpdated: "پروفایل ادمین با موفقیت به‌روزرسانی شد"
 } as const;
 
 // Helper function for parameter replacement

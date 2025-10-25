@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
 import dynamic from "next/dynamic";
 import { Media } from "@/types/shared/media";
+import { getErrorMessage, getUIMessage, getValidationMessage } from "@/core/messages/message";
 
 // اینجا دیگه نیاز به form و validation نداریم چون مثل ادمین‌ها کار می‌کنیم
 const TabContentSkeleton = () => (
@@ -60,6 +61,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         birthDate: userData.profile?.birth_date || "",
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
         userData.profile?.province?.id || null
     );
@@ -73,6 +75,15 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             return;
         }
         setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // پاک کردن خطای فیلد وقتی کاربر شروع به تایپ می‌کند
+        if (fieldErrors[field]) {
+            setFieldErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
+        }
     };
 
     const handleProvinceChange = (provinceName: string, provinceId: number) => {
@@ -91,6 +102,8 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         if (isSaving) return;
         
         setIsSaving(true);
+        setFieldErrors({}); // پاک کردن خطاهای قبلی
+        
         try {
             const updateData: Record<string, any> = {
                 mobile: formData.mobile,
@@ -118,15 +131,61 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
             console.log('Update result:', result);
             
-            toast.success("پروفایل کاربر با موفقیت به‌روزرسانی شد");
+            toast.success(getUIMessage('userProfileUpdated'));
             setEditMode(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Update error:', error);
             console.error('Error details:', {
                 message: error instanceof Error ? error.message : 'Unknown error',
                 stack: error instanceof Error ? error.stack : undefined
             });
-            toast.error("خطا در ذخیره پروفایل. لطفاً دوباره تلاش کنید.");
+            
+            // بررسی خطاهای فیلدها
+            if (error?.response?.errors) {
+                const errorData = error.response.errors;
+                const newFieldErrors: Record<string, string> = {};
+                
+                // بررسی خطاهای فیلدهای خاص
+                if (errorData.mobile) {
+                    newFieldErrors.mobile = getValidationMessage('auth_mobile_invalid');
+                }
+                if (errorData.email) {
+                    newFieldErrors.email = getValidationMessage('auth_email_invalid');
+                }
+                if (errorData.profile?.national_id) {
+                    // بررسی نوع خطای کد ملی
+                    if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
+                        newFieldErrors.nationalId = getValidationMessage('national_id_exists');
+                    } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
+                        newFieldErrors.nationalId = getValidationMessage('nationalIdLength');
+                    } else {
+                        newFieldErrors.nationalId = getValidationMessage('nationalIdInvalid');
+                    }
+                }
+                if (errorData.profile?.first_name) {
+                    newFieldErrors.firstName = getValidationMessage('first_name_required');
+                }
+                if (errorData.profile?.last_name) {
+                    newFieldErrors.lastName = getValidationMessage('last_name_required');
+                }
+                
+                // بررسی خطاهای کلی
+                if (errorData.detail) {
+                    // اگر خطای کلی وجود داشت، آن را در toast نمایش بده
+                    toast.error(errorData.detail);
+                    return;
+                }
+                
+                // اگر خطاهای فیلد وجود داشت، آنها را نمایش بده
+                if (Object.keys(newFieldErrors).length > 0) {
+                    setFieldErrors(newFieldErrors);
+                    return; // از نمایش toast جلوگیری کن
+                }
+            }
+            
+            // نمایش پیام خطای کلی
+            const errorMessage = getValidationMessage('userProfileUpdateFailed');
+            toast.error(errorMessage);
         } finally {
             setIsSaving(false);
         }
@@ -161,6 +220,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                         handleInputChange={handleInputChange}
                         handleSaveProfile={handleSaveProfile}
                         isSaving={isSaving}
+                        fieldErrors={fieldErrors}
                         onProvinceChange={handleProvinceChange}
                         onCityChange={handleCityChange}
                     />

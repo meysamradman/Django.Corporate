@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
 from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_register_password
-from src.user.models import User
+from src.user.models import User, UserProfile
 from src.user.services.base_profile_service import BaseProfileService
 
 class BaseManagementService:
@@ -151,6 +151,21 @@ class BaseManagementService:
             for key in prefix_keys:
                 field = key[len(profile_prefix):]  # Remove prefix
                 if field in profile_model_fields:
+                    # اعتبارسنجی کد ملی قبل از اضافه کردن به profile_fields_to_update
+                    if field == 'national_id':
+                        national_id_value = validated_data[key]
+                        if national_id_value:
+                            # چک کردن تکراری نبودن کد ملی
+                            existing_profile = None
+                            try:
+                                existing_profile = UserProfile.objects.filter(national_id=national_id_value).exclude(user_id=user_id).first()
+                            except:
+                                pass
+                            
+                            if existing_profile:
+                                from src.user.messages import AUTH_ERRORS
+                                raise ValidationError({"national_id": AUTH_ERRORS["national_id_exists"]})
+                    
                     profile_fields_to_update[field] = validated_data.pop(key)
 
             # 3. Nested profile object
@@ -158,6 +173,21 @@ class BaseManagementService:
             if isinstance(nested_profile, dict):
                 for field in profile_model_fields:
                     if field in nested_profile:
+                        # اعتبارسنجی کد ملی قبل از اضافه کردن به profile_fields_to_update
+                        if field == 'national_id':
+                            national_id_value = nested_profile[field]
+                            if national_id_value:
+                                # چک کردن تکراری نبودن کد ملی
+                                existing_profile = None
+                                try:
+                                    existing_profile = UserProfile.objects.filter(national_id=national_id_value).exclude(user_id=user_id).first()
+                                except:
+                                    pass
+                                
+                                if existing_profile:
+                                    from src.user.messages import AUTH_ERRORS
+                                    raise ValidationError({"national_id": AUTH_ERRORS["national_id_exists"]})
+                        
                         profile_fields_to_update[field] = nested_profile[field]
             
             # Handle explicit profile picture removal

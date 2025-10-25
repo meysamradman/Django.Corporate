@@ -39,9 +39,9 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                 
                 // Import adminApi dynamically
                 const { adminApi } = await import('@/api/admins/route');
-                await adminApi.updateUser(user.id, {
+                await adminApi.updateUserByType(user.id, {
                     profile_picture: profilePictureId,
-                } as any);
+                }, 'user');
                 
                 // Show success message
                 const { toast } = await import('@/components/elements/Sonner');

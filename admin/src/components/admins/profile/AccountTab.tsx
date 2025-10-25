@@ -8,6 +8,7 @@ import { Separator } from "@/components/elements/Separator";
 import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { FormField } from "@/components/forms/FormField";
 import {
     User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
 } from "lucide-react";
@@ -67,6 +68,7 @@ interface AccountTabProps {
     handleInputChange: (field: string, value: string) => void;
     handleSaveProfile: () => void;
     isSaving?: boolean;
+    fieldErrors?: Record<string, string>;
     onProvinceChange?: (provinceName: string, provinceId: number) => void;
     onCityChange?: (cityName: string, cityId: number) => void;
 }
@@ -79,6 +81,7 @@ export function AccountTab({
     handleInputChange,
     handleSaveProfile,
     isSaving = false,
+    fieldErrors = {},
     onProvinceChange,
     onCityChange,
 }: AccountTabProps) {
@@ -264,8 +267,11 @@ export function AccountTab({
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="firstName">نام</Label>
+                                <FormField
+                                    label="نام"
+                                    error={fieldErrors.firstName}
+                                    required
+                                >
                                     <Input
                                         id="firstName"
                                         value={formData.firstName || ""}
@@ -273,9 +279,12 @@ export function AccountTab({
                                         disabled={!editMode}
                                         placeholder="نام خود را وارد کنید"
                                     />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="lastName">نام خانوادگی</Label>
+                                </FormField>
+                                <FormField
+                                    label="نام خانوادگی"
+                                    error={fieldErrors.lastName}
+                                    required
+                                >
                                     <Input
                                         id="lastName"
                                         value={formData.lastName || ""}
@@ -283,7 +292,7 @@ export function AccountTab({
                                         disabled={!editMode}
                                         placeholder="نام خانوادگی خود را وارد کنید"
                                     />
-                                </div>
+                                </FormField>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -296,8 +305,10 @@ export function AccountTab({
                                         disabled={!editMode}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="nationalId">کد ملی</Label>
+                                <FormField
+                                    label="کد ملی"
+                                    error={fieldErrors.nationalId}
+                                >
                                     <Input
                                         id="nationalId"
                                         value={formData.nationalId || ""}
@@ -308,7 +319,7 @@ export function AccountTab({
                                         onKeyDown={preventNonNumeric}
                                         onPaste={preventNonNumericPaste}
                                     />
-                                </div>
+                                </FormField>
                                 <div className="space-y-2">
                                     <Label htmlFor="phone">تلفن</Label>
                                     <Input
@@ -326,8 +337,11 @@ export function AccountTab({
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="mobile">موبایل</Label>
+                                <FormField
+                                    label="موبایل"
+                                    error={fieldErrors.mobile}
+                                    required
+                                >
                                     <Input
                                         id="mobile"
                                         type="tel"
@@ -339,9 +353,11 @@ export function AccountTab({
                                         onKeyDown={preventNonNumeric}
                                         onPaste={preventNonNumericPaste}
                                     />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">ایمیل</Label>
+                                </FormField>
+                                <FormField
+                                    label="ایمیل"
+                                    error={fieldErrors.email}
+                                >
                                     <Input
                                         id="email"
                                         type="email"
@@ -350,7 +366,7 @@ export function AccountTab({
                                         disabled={!editMode}
                                         placeholder="آدرس ایمیل خود را وارد کنید"
                                     />
-                                </div>
+                                </FormField>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

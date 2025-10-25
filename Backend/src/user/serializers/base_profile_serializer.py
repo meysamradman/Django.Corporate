@@ -15,7 +15,7 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
 
     def get_file_url(self, obj):
         # Use relative URL instead of absolute URL to prevent path duplication
-        if obj.file:
+        if obj and obj.file:
             return obj.file.url
         return None
 
@@ -307,6 +307,18 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
             })
         
         return data
+    
+    def to_internal_value(self, data):
+        """Convert profile_picture ID from string to integer"""
+        if isinstance(data, dict) and 'profile_picture' in data and data.get('profile_picture'):
+            profile_picture_value = data['profile_picture']
+            
+            # Convert string to int if needed
+            if isinstance(profile_picture_value, str) and profile_picture_value.isdigit():
+                data = data.copy()
+                data['profile_picture'] = int(profile_picture_value)
+        
+        return super().to_internal_value(data)
 
 # --- New Serializer for Admin Profile View ---
 class AdminCompleteProfileSerializer(serializers.ModelSerializer):

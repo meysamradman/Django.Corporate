@@ -59,17 +59,15 @@ class AdminProfileView(APIView):
             # Fetch the User instance with related profile and permissions prefetched
             user = User.objects.select_related(
                 'user_profile',
-                'admin_profile'
+                'admin_profile',
+                'admin_profile__profile_picture'
             ).prefetch_related(
                 'groups__permissions',
                 'user_permissions'
             ).get(id=request.user.id)
             
-            # Get the current CSRF token
-            # csrf_token = get_token(request)  # Remove this line
-            
             # Directly instantiate the serializer class
-            serializer = self.serializer_class(user, context={'request': request})  # Remove csrf_token from context
+            serializer = self.serializer_class(user, context={'request': request})
             
             # Prepare response data
             response_data = serializer.data
@@ -343,6 +341,7 @@ class AdminProfileView(APIView):
                     
                     # Return updated user data with profile
                     user.refresh_from_db()
+                    
                     response_serializer = AdminCompleteProfileSerializer(
                         user, 
                         context={'request': request}

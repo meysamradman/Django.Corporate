@@ -93,6 +93,7 @@ export const adminApi = {
         city?: number | null; // ID بجای نام
         bio?: string;
         national_id?: string;
+        profile_picture?: number | null; // ID عکس پروفایل
     }): Promise<AdminWithProfile> => {
         try {
             const response = await fetchApi.put<AdminWithProfile>('/admin/profile/', profileData);

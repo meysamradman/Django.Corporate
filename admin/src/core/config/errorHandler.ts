@@ -35,11 +35,13 @@ function getErrorType(statusCode: number): keyof typeof HttpErrorType {
 }
 
 function getUserMessage(error: ApiError): string {
-    if (error.response.AppStatusCode === 401) {
-        return error.message;
-    }
-    if (error.response.AppStatusCode === 422 && error.response.message) {
+    // اگر پیام خطا از بک‌اند موجود باشد، از آن استفاده کن
+    if (error.response.message) {
         return error.response.message;
+    }
+    
+    if (error.response.AppStatusCode === 401) {
+        return ErrorMessages.UNAUTHORIZED;
     }
     
     switch (error.response.AppStatusCode) {
@@ -48,6 +50,7 @@ function getUserMessage(error: ApiError): string {
         case 404:
             return ErrorMessages.NOT_FOUND;
         case 400:
+        case 422:
             return ErrorMessages.BAD_REQUEST;
         case 500:
             return ErrorMessages.SERVER_ERROR;
@@ -55,7 +58,7 @@ function getUserMessage(error: ApiError): string {
             const errorType = getErrorType(error.response.AppStatusCode);
             switch (errorType) {
                 case HttpErrorType.CLIENT_ERROR:
-                    return error.response.message || ErrorMessages.BAD_REQUEST;
+                    return ErrorMessages.BAD_REQUEST;
                 case HttpErrorType.SERVER_ERROR:
                     return ErrorMessages.SERVER_ERROR;
                 case HttpErrorType.NETWORK_ERROR:
