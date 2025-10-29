@@ -6,11 +6,11 @@ const defaultOptions = {
   closeButton: true,
 };
 
+// Wrapper functions - حالا toast خودش رنگ‌ها رو اضافه می‌کنه
 export const showSuccessToast = (message: string, description?: string) => {
   return toast.success(message, {
     ...defaultOptions,
     description,
-    className: 'success-toast',
   });
 };
 
@@ -18,7 +18,6 @@ export const showErrorToast = (message: string, description?: string) => {
   return toast.error(message, {
     ...defaultOptions,
     description,
-    className: 'error-toast',
     duration: 5000,
   });
 };
@@ -27,7 +26,6 @@ export const showWarningToast = (message: string, description?: string) => {
   return toast.warning(message, {
     ...defaultOptions,
     description,
-    className: 'warning-toast',
   });
 };
 
@@ -35,14 +33,12 @@ export const showInfoToast = (message: string, description?: string) => {
   return toast.info(message, {
     ...defaultOptions,
     description,
-    className: 'info-toast',
   });
 };
 
 export const showLoadingToast = (message: string) => {
   return toast.loading(message, {
     ...defaultOptions,
-    className: 'loading-toast',
   });
 };
 

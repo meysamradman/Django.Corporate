@@ -1,9 +1,8 @@
 import { AdminWithProfile } from "@/types/auth/admin";
 
 export interface LoginResponse {
-    access_token: string;
-    refresh_token: string;
-    user: AdminWithProfile;
+    user_id: number;
+    is_superuser: boolean;
 }
 
 export interface LoginRequest {

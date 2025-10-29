@@ -1,50 +1,44 @@
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.response import Response
-from rest_framework import status
-from django.middleware.csrf import get_token
-from src.user.serializers.schema.admin_register_schema import admin_register_schema
+from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
+from src.core.responses import APIResponse
 from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
-from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
-from src.user.services import BaseRegisterService
+from src.user.services.admin.admin_register_service import AdminRegisterService
+from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
+from src.user.models import User
+from src.user.auth.auth_mixin import UserAuthMixin
+from src.user.authorization import SimpleAdminPermission
 
 
-class AdminRegisterView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [SessionAuthentication]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]  # Support for file uploads
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class AdminRegisterView(UserAuthMixin, APIView):
+    authentication_classes = [CSRFExemptSessionAuthentication]
+    permission_classes = [SimpleAdminPermission]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-    @admin_register_schema
     def post(self, request):
-        serializer = AdminRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                user = BaseRegisterService.register_user_from_serializer(
-                    validated_data=serializer.validated_data,
-                    admin_user=request.user
-                )
-
-                response_data = {
-                    "user": {
-                        "id": user.id,
-                        "mobile": user.mobile,
-                        "email": user.email,
-                        "is_active": user.is_active,
-                        "is_staff": user.is_staff,
-                        "is_superuser": user.is_superuser
-                    }
-                    # Remove csrf_token from response for security
-                }
-
-                # The renderer will automatically format this response
-                return Response(response_data, status=status.HTTP_201_CREATED)
-
-            except (ValidationError, AuthenticationFailed) as e:
-                # The renderer will automatically format this error response
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        # The renderer will automatically format this validation error response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        """ثبت‌نام ادمین جدید"""
+        serializer = AdminRegisterSerializer(data=request.data, context={'admin_user': request.user})
+        
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_validation_error"],
+                errors=serializer.errors
+            )
+            
+        try:
+            admin = AdminRegisterService.register_admin_from_serializer(
+                validated_data=serializer.validated_data,
+                admin_user=request.user
+            )
+            
+            from src.user.serializers.admin.admin_management_serializer import AdminDetailSerializer
+            response_serializer = AdminDetailSerializer(admin, context={'request': request})
+            return APIResponse.success(
+                message=AUTH_SUCCESS["user_created_successfully"],
+                data=response_serializer.data
+            )
+        except Exception as e:
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])

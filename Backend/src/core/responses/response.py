@@ -36,9 +36,13 @@ class APIResponse(JSONRenderer):
                 "AppStatusCode": status_code,
                 "timestamp": datetime.utcnow().isoformat()
             },
-            'data': {},
-            'errors': errors if errors is not None else {}
+            'data': {}
         }
+        
+        # فقط اگه errors پر باشه اضافه کن
+        if errors:
+            response_data['errors'] = errors
+            
         return Response(response_data, status=status_code)
     
     def render(self, data, accepted_media_type=None, renderer_context=None):

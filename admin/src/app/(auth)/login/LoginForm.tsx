@@ -8,29 +8,20 @@ import { Input} from '@/components/elements/Input';
 import { showSuccessToast, showErrorToast } from '@/core/config/errorHandler';
 import { Label} from '@/components/elements/Label';
 import { RadioGroup, RadioGroupItem } from '@/components/elements/RadioGroup';
+import { FormField, FormFieldInput } from "@/components/forms/FormField";
 import { useAuth } from '@/core/auth/AuthContext';
 import { RotateCw, Loader2 } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-// Validation schemas
-const passwordLoginSchema = z.object({
-  mobile: z.string()
-    .min(1, 'شماره موبایل الزامی است')
-    .regex(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
-  password: z.string().min(1, 'رمز عبور الزامی است'),
-  captchaAnswer: z.string().min(1, 'کپچا الزامی است'),
-});
-
-const otpLoginSchema = z.object({
-  mobile: z.string().regex(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
-  otp: z.string().min(1, 'کد یکبار مصرف الزامی است'),
-  captchaAnswer: z.string().min(1, 'کپچا الزامی است'),
-});
-
-type PasswordLoginForm = z.infer<typeof passwordLoginSchema>;
-type OtpLoginForm = z.infer<typeof otpLoginSchema>;
+import { filterNumericOnly } from '@/core/utils/validations';
+import { 
+  passwordLoginSchema, 
+  otpLoginSchema, 
+  type PasswordLoginForm, 
+  type OtpLoginForm 
+} from '@/core/validations/loginSchema';
+import { msg } from '@/core/messages/message';
 
 export function LoginForm() {
     const { login, loginWithOTP, isLoading: authLoading } = useAuth();
@@ -127,14 +118,28 @@ export function LoginForm() {
 
         try {
             await login(data.mobile, data.password, captchaId, data.captchaAnswer);
-            showSuccessToast("ورود موفقیت‌آمیز");
+            showSuccessToast(msg.auth("loginSuccess"));
             // Navigation is handled by AuthContext after successful login
         } catch (error) {
-            showErrorToast(error, "خطا در ورود");
-            if (error instanceof ApiError && error.response.AppStatusCode === 400 && error.message.includes('CAPTCHA')) {
-                fetchCaptchaChallenge();
-                passwordForm.setValue('captchaAnswer', '');
+            console.error('Login error:', error);
+            
+            // Handle specific error types
+            let errorMessage = msg.auth("loginFailed");
+            
+            if (error instanceof ApiError) {
+                errorMessage = error.response?.message || error.message || msg.auth("loginFailed");
+                
+                // Refresh CAPTCHA if it's invalid
+                if (error.response?.AppStatusCode === 400 && errorMessage.includes('CAPTCHA')) {
+                    fetchCaptchaChallenge();
+                    passwordForm.setValue('captchaAnswer', '');
+                }
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
             }
+            
+            // Show error toast only once
+            showErrorToast(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }
@@ -144,12 +149,12 @@ export function LoginForm() {
         const mobile = otpForm.getValues('mobile');
         
         if (!mobile) {
-            showErrorToast(new Error('شماره موبایل الزامی است'));
+            showErrorToast(new Error(msg.validation("mobileRequired")));
             return;
         }
 
         if (!/^09[0-9]{9}$/.test(mobile)) {
-            showErrorToast(new Error('شماره موبایل معتبر نیست'));
+            showErrorToast(new Error(msg.validation("mobileInvalid")));
             return;
         }
 
@@ -159,9 +164,21 @@ export function LoginForm() {
             await authApi.sendOTP(mobile);
             setOtpSent(true);
             setResendTimer(60);
-            showSuccessToast("کد یکبار مصرف ارسال شد");
+            showSuccessToast(msg.auth("otpSent"));
         } catch (error) {
-            showErrorToast(error, "خطا در ورود");
+            console.error('Send OTP error:', error);
+            
+            // Handle specific error types
+            let errorMessage = msg.auth("otpSendFailed");
+            
+            if (error instanceof ApiError) {
+                errorMessage = error.response?.message || error.message || msg.auth("otpSendFailed");
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+            
+            // Show error toast only once
+            showErrorToast(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }
@@ -177,14 +194,28 @@ export function LoginForm() {
 
         try {
             await loginWithOTP(data.mobile, data.otp, captchaId, data.captchaAnswer);
-            showSuccessToast("ورود موفقیت‌آمیز");
+            showSuccessToast(msg.auth("loginSuccess"));
             // Navigation is handled by AuthContext after successful login
         } catch (error) {
-            showErrorToast(error, "خطا در ورود");
-            if (error instanceof ApiError && error.response.AppStatusCode === 400 && error.message.includes('CAPTCHA')) {
-                fetchCaptchaChallenge();
-                otpForm.setValue('captchaAnswer', '');
+            console.error('OTP Login error:', error);
+            
+            // Handle specific error types
+            let errorMessage = msg.auth("loginFailed");
+            
+            if (error instanceof ApiError) {
+                errorMessage = error.response?.message || error.message || msg.auth("loginFailed");
+                
+                // Refresh CAPTCHA if it's invalid
+                if (error.response?.AppStatusCode === 400 && errorMessage.includes('CAPTCHA')) {
+                    fetchCaptchaChallenge();
+                    otpForm.setValue('captchaAnswer', '');
+                }
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
             }
+            
+            // Show error toast only once
+            showErrorToast(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }
@@ -222,38 +253,43 @@ export function LoginForm() {
 
             {loginType === 'password' ? (
                 <form onSubmit={passwordForm.handleSubmit(handlePasswordLogin)} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="mobile">شماره موبایل</Label>
-                        <Input
-                            id="mobile"
-                            type="tel"
-                            placeholder="شماره موبایل خود را وارد کنید"
-                            {...passwordForm.register("mobile")}
-                            className={passwordForm.formState.errors.mobile ? "border-red-500" : ""}
-                        />
-                        {passwordForm.formState.errors.mobile && (
-                            <p className="text-sm text-red-500">{passwordForm.formState.errors.mobile.message}</p>
-                        )}
-                    </div>
+                    <FormFieldInput
+                        id="mobile"
+                        label="شماره موبایل"
+                        type="tel"
+                        placeholder="09123456789"
+                        maxLength={11}
+                        {...passwordForm.register("mobile", {
+                            onChange: (e) => {
+                                // فقط عدد بپذیر
+                                const filteredValue = filterNumericOnly(e.target.value);
+                                e.target.value = filteredValue;
+                                passwordForm.setValue("mobile", filteredValue);
+                            }
+                        })}
+                        error={passwordForm.formState.errors.mobile?.message}
+                        required
+                        disabled={loading}
+                    />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password">رمز عبور</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="رمز عبور خود را وارد کنید"
-                            {...passwordForm.register("password")}
-                            className={passwordForm.formState.errors.password ? "border-red-500" : ""}
-                        />
-                        {passwordForm.formState.errors.password && (
-                            <p className="text-sm text-red-500">{passwordForm.formState.errors.password.message}</p>
-                        )}
-                    </div>
+                    <FormFieldInput
+                        id="password"
+                        label="رمز عبور"
+                        type="password"
+                        placeholder="رمز عبور خود را وارد کنید"
+                        {...passwordForm.register("password")}
+                        error={passwordForm.formState.errors.password?.message}
+                        required
+                        disabled={loading}
+                    />
 
                     {/* CAPTCHA */}
                     {captchaId && (
-                        <div className="space-y-2">
-                            <Label htmlFor="captchaAnswer">کپچا</Label>
+                        <FormField
+                            label="کپچا"
+                            error={passwordForm.formState.errors.captchaAnswer?.message}
+                            required
+                        >
                             <div className="flex items-center gap-2">
                                 <div className="flex-1">
                                     <Input
@@ -262,6 +298,7 @@ export function LoginForm() {
                                         placeholder="کد کپچا را وارد کنید"
                                         {...passwordForm.register("captchaAnswer")}
                                         className={passwordForm.formState.errors.captchaAnswer ? "border-red-500" : ""}
+                                        disabled={loading}
                                     />
                                 </div>
                                 <Button
@@ -269,7 +306,7 @@ export function LoginForm() {
                                     variant="outline"
                                     size="icon"
                                     onClick={fetchCaptchaChallenge}
-                                    disabled={captchaLoading}
+                                    disabled={captchaLoading || loading}
                                     className="shrink-0"
                                 >
                                     {captchaLoading ? (
@@ -280,16 +317,13 @@ export function LoginForm() {
                                 </Button>
                             </div>
                             {captchaDigits && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-2">
                                     <div className="h-10 px-4 bg-gray-100 border rounded flex items-center justify-center font-mono text-lg font-bold text-gray-800 tracking-wider min-w-32">
                                         {captchaDigits}
                                     </div>
                                 </div>
                             )}
-                            {passwordForm.formState.errors.captchaAnswer && (
-                                <p className="text-sm text-red-500">{passwordForm.formState.errors.captchaAnswer.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     )}
 
                     <Button type="submit" className="w-full" disabled={loading}>
@@ -298,38 +332,52 @@ export function LoginForm() {
                 </form>
             ) : (
                 <form onSubmit={otpForm.handleSubmit(handleOTPLogin)} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="mobile">شماره موبایل</Label>
-                        <Input
-                            id="mobile"
-                            type="tel"
-                            placeholder="شماره موبایل خود را وارد کنید (مثال: 09123456789)"
-                            {...otpForm.register("mobile")}
-                            className={otpForm.formState.errors.mobile ? "border-red-500" : ""}
-                        />
-                        {otpForm.formState.errors.mobile && (
-                            <p className="text-sm text-red-500">{otpForm.formState.errors.mobile.message}</p>
-                        )}
-                    </div>
+                    <FormFieldInput
+                        id="mobile"
+                        label="شماره موبایل"
+                        type="tel"
+                        placeholder="09123456789"
+                        maxLength={11}
+                        {...otpForm.register("mobile", {
+                            onChange: (e) => {
+                                // فقط عدد بپذیر
+                                const filteredValue = filterNumericOnly(e.target.value);
+                                e.target.value = filteredValue;
+                                otpForm.setValue("mobile", filteredValue);
+                            }
+                        })}
+                        error={otpForm.formState.errors.mobile?.message}
+                        required
+                        disabled={loading}
+                    />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="otp">کد یکبار مصرف</Label>
-                        <Input
-                            id="otp"
-                            type="text"
-                            placeholder="کد یکبار مصرف را وارد کنید"
-                            {...otpForm.register("otp")}
-                            className={`text-center tracking-widest ${otpForm.formState.errors.otp ? "border-red-500" : ""}`}
-                        />
-                        {otpForm.formState.errors.otp && (
-                            <p className="text-sm text-red-500">{otpForm.formState.errors.otp.message}</p>
-                        )}
-                    </div>
+                    <FormFieldInput
+                        id="otp"
+                        label="کد یکبار مصرف"
+                        type="text"
+                        placeholder="کد یکبار مصرف را وارد کنید"
+                        maxLength={otpLength}
+                        {...otpForm.register("otp", {
+                            onChange: (e) => {
+                                // فقط عدد بپذیر
+                                const filteredValue = filterNumericOnly(e.target.value);
+                                e.target.value = filteredValue;
+                                otpForm.setValue("otp", filteredValue);
+                            }
+                        })}
+                        className={`text-center tracking-widest ${otpForm.formState.errors.otp ? "border-red-500" : ""}`}
+                        error={otpForm.formState.errors.otp?.message}
+                        required
+                        disabled={loading}
+                    />
 
                     {/* CAPTCHA */}
                     {captchaId && (
-                        <div className="space-y-2">
-                            <Label htmlFor="captchaAnswer">کپچا</Label>
+                        <FormField
+                            label="کپچا"
+                            error={otpForm.formState.errors.captchaAnswer?.message}
+                            required
+                        >
                             <div className="flex items-center gap-2">
                                 <div className="flex-1">
                                     <Input
@@ -338,6 +386,7 @@ export function LoginForm() {
                                         placeholder="کد کپچا را وارد کنید"
                                         {...otpForm.register("captchaAnswer")}
                                         className={otpForm.formState.errors.captchaAnswer ? "border-red-500" : ""}
+                                        disabled={loading}
                                     />
                                 </div>
                                 <Button
@@ -345,7 +394,7 @@ export function LoginForm() {
                                     variant="outline"
                                     size="icon"
                                     onClick={fetchCaptchaChallenge}
-                                    disabled={captchaLoading}
+                                    disabled={captchaLoading || loading}
                                     className="shrink-0"
                                 >
                                     {captchaLoading ? (
@@ -356,16 +405,13 @@ export function LoginForm() {
                                 </Button>
                             </div>
                             {captchaDigits && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-2">
                                     <div className="h-10 px-4 bg-gray-100 border rounded flex items-center justify-center font-mono text-lg font-bold text-gray-800 tracking-wider min-w-32">
                                         {captchaDigits}
                                     </div>
                                 </div>
                             )}
-                            {otpForm.formState.errors.captchaAnswer && (
-                                <p className="text-sm text-red-500">{otpForm.formState.errors.captchaAnswer.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     )}
 
                     <div className="flex gap-2">

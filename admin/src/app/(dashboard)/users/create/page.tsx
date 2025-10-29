@@ -50,7 +50,7 @@ export default function CreateUserPage() {
 
             // Add email only if it's provided
             if (data.email) {
-                userDataToSubmit.identifier = data.email; // ✅ اگر email داریم، identifier رو تغییر می‌دیم
+                userDataToSubmit.email = data.email;
             }
 
             // Add profile fields directly to the main object (not nested)
@@ -74,12 +74,13 @@ export default function CreateUserPage() {
                 userDataToSubmit.phone = data.profile_phone;
             }
             
-            if (data.profile_province) {
-                userDataToSubmit.province = data.profile_province;
+            // Use province_id and city_id directly (they are already numbers)
+            if (data.profile_province_id) {
+                userDataToSubmit.province_id = data.profile_province_id;
             }
             
-            if (data.profile_city) {
-                userDataToSubmit.city = data.profile_city;
+            if (data.profile_city_id) {
+                userDataToSubmit.city_id = data.profile_city_id;
             }
             
             if (data.profile_address) {
@@ -116,8 +117,8 @@ export default function CreateUserPage() {
                         'last_name': 'profile_last_name',
                         'national_id': 'profile_national_id',
                         'phone': 'profile_phone',
-                        'province': 'profile_province',
-                        'city': 'profile_city',
+                        'province_id': 'profile_province_id',
+                        'city_id': 'profile_city_id',
                     };
                     
                     const formField = fieldMap[field] || field;

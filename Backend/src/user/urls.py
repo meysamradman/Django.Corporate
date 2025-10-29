@@ -1,7 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.user.auth.user_jwt_refresh import UserJWTRefreshView
-from src.user.views.admin import AdminLoginView, AdminRegisterView, AdminLogoutView, AdminManagementView, AdminProfileView, UserManagementView
+from src.user.views.admin import (
+    AdminLoginView, AdminRegisterView, AdminLogoutView, 
+    AdminManagementView, AdminProfileView, UserManagementView
+)
 from src.user.authorization import AdminRoleView, AdminPermissionView
 from src.user.views.otp_views import SendOTPView, VerifyOTPView, OTPSettingsView
 from src.user.views.user.user_login_view import UserLoginView
@@ -20,7 +23,7 @@ urlpatterns = [
     # Admin Auth Captcha alias
     path('admin/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha')),
     path('admin/management/', AdminManagementView.as_view(), name='admin-management'),
-    path('admin/management/<int:user_id>/', AdminManagementView.as_view(), name='admin-management-detail'),
+    path('admin/management/<int:admin_id>/', AdminManagementView.as_view(), name='admin-management-detail'),
     path('admin/management/by-public-id/<uuid:public_id>/', AdminManagementView.get_by_public_id, name='admin-management-detail-public'),
     path('admin/management/bulk-delete/', AdminManagementView.as_view(), {'action': 'bulk-delete'}, name='admin-management-bulk-delete'),
     path('admin/profile/', AdminProfileView.as_view(), name='admin-profile'),
@@ -57,4 +60,3 @@ urlpatterns += [
     path('mobile/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('mobile/otp-settings/', OTPSettingsView.as_view(), name='otp-settings'),
 ]
-

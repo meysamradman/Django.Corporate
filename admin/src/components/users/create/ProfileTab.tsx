@@ -66,9 +66,10 @@ export default function ProfileTab({
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
-  // Watch the birth date field
+  // Watch the birth date field and location fields
   const birthDateValue = watch("profile_birth_date");
-  const provinceValue = watch("profile_province");
+  const provinceIdValue = watch("profile_province_id");
+  const cityIdValue = watch("profile_city_id");
   
   // Fetch provinces on component mount
   useEffect(() => {
@@ -89,16 +90,12 @@ export default function ProfileTab({
 
   // Fetch cities when province changes
   useEffect(() => {
-    if (provinceValue && provinces.length > 0) {
+    if (provinceIdValue) {
       const fetchCities = async () => {
         setLoadingCities(true);
         try {
-          // Find province ID by name
-          const selectedProvince = provinces.find(p => p.name === provinceValue);
-          if (selectedProvince) {
-            const cities = await locationApi.getCitiesCompactByProvince(selectedProvince.id);
-            setCities(cities);
-          }
+          const cities = await locationApi.getCitiesCompactByProvince(provinceIdValue);
+          setCities(cities);
         } catch (error) {
           console.error("Error fetching cities:", error);
         } finally {
@@ -110,7 +107,7 @@ export default function ProfileTab({
     } else {
       setCities([]);
     }
-  }, [provinceValue, provinces]);
+  }, [provinceIdValue]);
 
   const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
     if (Array.isArray(selectedMedia)) {
@@ -135,14 +132,24 @@ export default function ProfileTab({
   };
   
   // Handle province change
-  const handleProvinceChange = (provinceName: string) => {
-    setValue("profile_province", provinceName);
-    setValue("profile_city", ""); // Reset city when province changes
+  const handleProvinceChange = (provinceId: string) => {
+    const id = parseInt(provinceId, 10);
+    if (!isNaN(id)) {
+      setValue("profile_province_id", id);
+    } else {
+      setValue("profile_province_id", null);
+    }
+    setValue("profile_city_id", null); // Reset city when province changes
   };
   
   // Handle city change
-  const handleCityChange = (cityName: string) => {
-    setValue("profile_city", cityName);
+  const handleCityChange = (cityId: string) => {
+    const id = parseInt(cityId, 10);
+    if (!isNaN(id)) {
+      setValue("profile_city_id", id);
+    } else {
+      setValue("profile_city_id", null);
+    }
   };
 
   return (
@@ -242,9 +249,9 @@ export default function ProfileTab({
                 <h3 className="text-lg font-medium mb-4">موقعیت جغرافیایی</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="profile_province">استان</Label>
+                    <Label htmlFor="profile_province_id">استان</Label>
                     <Select
-                      value={provinceValue || ""}
+                      value={provinceIdValue ? provinceIdValue.toString() : ""}
                       onValueChange={handleProvinceChange}
                       disabled={!editMode || loadingProvinces}
                     >
@@ -253,7 +260,7 @@ export default function ProfileTab({
                       </SelectTrigger>
                       <SelectContent>
                         {provinces.map((province) => (
-                          <SelectItem key={province.id} value={province.name}>
+                          <SelectItem key={province.id} value={province.id.toString()}>
                             {province.name}
                           </SelectItem>
                         ))}
@@ -262,15 +269,15 @@ export default function ProfileTab({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="profile_city">شهر</Label>
+                    <Label htmlFor="profile_city_id">شهر</Label>
                     <Select
-                      value={watch("profile_city") || ""}
+                      value={cityIdValue ? cityIdValue.toString() : ""}
                       onValueChange={handleCityChange}
-                      disabled={!editMode || loadingCities || !provinceValue}
+                      disabled={!editMode || loadingCities || !provinceIdValue}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={
-                          !provinceValue 
+                          !provinceIdValue 
                             ? "ابتدا استان را انتخاب کنید" 
                             : loadingCities 
                               ? "در حال بارگذاری..." 
@@ -281,7 +288,7 @@ export default function ProfileTab({
                       </SelectTrigger>
                       <SelectContent>
                         {cities.map((city) => (
-                          <SelectItem key={city.id} value={city.name}>
+                          <SelectItem key={city.id} value={city.id.toString()}>
                             {city.name}
                           </SelectItem>
                         ))}

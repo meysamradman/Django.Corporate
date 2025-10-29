@@ -10,6 +10,24 @@ SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'src.user.views.admin.user_management_view': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 APPEND_SLASH = False  # Disable automatic slash appending to prevent POST redirect issues
 LOCAL_APPS = [
     'src.core.apps.CoreConfig',
@@ -41,7 +59,7 @@ MIDDLEWARE = [
      # "debug_toolbar.middleware.DebugToolbarMiddleware",
      'django.middleware.security.SecurityMiddleware',
      'src.core.security.middleware.SecurityLoggingMiddleware',  # Security logging
-     'src.core.security.middleware.RateLimitMiddleware',       # Rate limiting
+     # 'src.core.security.middleware.RateLimitMiddleware',       # حذف شد - تداخل با DRF throttling
      'src.core.security.middleware.CSRFExemptAdminMiddleware', # CSRF exemption for admin views
      'django.contrib.sessions.middleware.SessionMiddleware',
      'corsheaders.middleware.CorsMiddleware',
@@ -111,7 +129,7 @@ from rest_framework.authentication import SessionAuthentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        # 'src.user.auth.admin_session_auth.AdminSessionAuthentication',  # Moved to specific views
+        'src.user.auth.admin_session_auth.CSRFExemptSessionAuthentication',
         # 'src.user.common.authentication.CookieJWTAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
@@ -125,9 +143,9 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/hour',        # Anonymous users: 100 requests per hour
         'user': '1000/hour',       # Authenticated users: 1000 requests per hour
-        'login': '5/min',          # Login attempts: 5 per minute
-        'admin': '200/hour',       # Admin users: 200 requests per hour
-        'admin_login': '3/min',    # Admin login attempts: 3 per minute
+        # Admin throttling removed - admins can work freely without limits
+        'admin_login': '3/min',    # Admin login attempts: 3 per minute (only for login security)
+        'user_login': '5/min',     # User login attempts: 5 per minute
         'captcha': '10/min',       # CAPTCHA requests: 10 per minute
         'failed_login': '10/hour', # Failed login attempts: 10 per hour
         'security': '20/hour',     # Security operations: 20 per hour
@@ -189,7 +207,7 @@ CSRF_USE_SESSIONS = True
 CSRF_EXEMPT_ADMIN_VIEWS = True  # New setting to disable CSRF for admin API endpoints
 
 # Admin Session Settings (Using Django Sessions)
-SESSION_COOKIE_NAME = 'sessionid'
+# SESSION_COOKIE_NAME = 'sessionid'  # Commented out to use custom admin_session_id
 SESSION_COOKIE_AGE = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60  # 3 days default
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
@@ -308,6 +326,11 @@ LOGGING = {
             'propagate': True,
         },
         'src.user.common.services': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'src.user.auth.admin_session_auth': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,

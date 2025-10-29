@@ -2,6 +2,7 @@ import { Media } from "@/types/shared/media";
 import { Base } from "@/types/shared/base";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 
+// User Base Interface
 export interface User extends Base {
     mobile: string;
     email: string | null;
@@ -12,6 +13,7 @@ export interface User extends Base {
     full_name: string;
 }
 
+// User Profile Interface
 export interface UserProfile extends Base {
     first_name: string;
     last_name: string;
@@ -19,15 +21,14 @@ export interface UserProfile extends Base {
     national_id: string | null;
     birth_date: string | null;
     address: string | null;
-    phone: string | null;  // ✅ فیلد جدید
-    province: ProvinceCompact | null;  // ✅ فیلد جدید
-    city: CityCompact | null;  // ✅ فیلد جدید
+    phone: string | null;
+    province: ProvinceCompact | null;
+    city: CityCompact | null;
     bio: string | null;
     profile_picture: Media | null;
 }
 
-
-
+// User With Profile Interface
 export interface UserWithProfile extends Base {
     mobile: string;
     email: string;
@@ -45,6 +46,48 @@ export interface UserWithProfile extends Base {
     identifier?: string;
     role_id?: number | string | null;
     full_name?: string;
+}
+
+// User Creation Request Interface
+export interface UserCreateRequest {
+    identifier: string;
+    password: string;
+    full_name: string;
+    is_active: boolean;
+    is_staff: boolean;
+    is_superuser: boolean;
+    user_type: string;
+    
+    // Profile fields
+    first_name?: string;
+    last_name?: string;
+    birth_date?: string;
+    national_id?: string;
+    address?: string;
+    phone?: string;
+    province_id?: number;
+    city_id?: number;
+    bio?: string;
+    profile_picture_id?: number;
+}
+
+// User Update Request Interface
+export interface UserUpdateRequest {
+    mobile?: string;
+    email?: string;
+    is_active?: boolean;
+    
+    // Profile fields
+    first_name?: string;
+    last_name?: string;
+    birth_date?: string;
+    national_id?: string;
+    address?: string;
+    phone?: string;
+    province_id?: number;
+    city_id?: number;
+    bio?: string;
+    profile_picture_id?: number;
 }
 
 // API Request/Response Types

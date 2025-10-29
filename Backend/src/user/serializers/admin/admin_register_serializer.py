@@ -5,234 +5,325 @@ from src.user.utils.email_validator import validate_email_address
 from src.user.models import User, AdminRole
 from src.media.models import ImageMedia
 from src.user.messages import AUTH_ERRORS
-from ..base_register_serializer import BaseRegisterSerializer
+from src.user.utils.national_id_validator import validate_national_id_format
 
 
-class AdminRegisterSerializer(BaseRegisterSerializer):
+class AdminRegisterSerializer(serializers.Serializer):
     """
-    Serializer مخصوص ثبت نام ادمین در پنل ادمین - بهینه شده
-    Note: is_staff=True is automatically set for all admins
-    is_superuser can be set only by existing superusers
+    سریالایزر مخصوص ثبت‌نام ادمین در پنل ادمین - بهینه شده
+    توجه: is_staff=True به طور خودکار برای همه ادمین‌ها تنظیم می‌شود
+    is_superuser فقط توسط سوپر ادمین‌ها قابل تنظیم است
     """
-    mobile = serializers.CharField(required=True)
+    mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    password = serializers.CharField(required=True, write_only=True, min_length=8)
     
-    # ✅ Allow is_superuser selection for admin creation (with validation)
     is_superuser = serializers.BooleanField(default=False, required=False)
     
-    # ✅ Add user_type field to distinguish between admin and regular user creation
     user_type = serializers.ChoiceField(
-        choices=[('admin', 'Admin'), ('user', 'Regular User')], 
+        choices=[('admin', 'ادمین'), ('user', 'کاربر معمولی')], 
         default='admin', 
         required=False
     )
     
-    # Profile fields - nested structure
     profile = serializers.DictField(required=False, allow_empty=True)
     
-    # Flattened profile fields for backward compatibility
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     last_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     birth_date = serializers.DateField(required=False, allow_null=True)
     national_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
     address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=15)
     department = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
     position = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
     bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
-    # Media field for profile picture - support both ID and file upload
+    # فیلدهای مکان‌یابی
+    province_id = serializers.IntegerField(required=False, allow_null=True)
+    city_id = serializers.IntegerField(required=False, allow_null=True)
+    
     profile_picture_id = serializers.IntegerField(required=False, allow_null=True)
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
     
-    # Role field
     role_id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate_mobile(self, value):
-        """Validate mobile number format and uniqueness"""
-        if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_required", "Mobile number is required"))
-        
+        """اعتبارسنجی فرمت شماره موبایل و یکتا بودن"""
+        if value == "" or value is None:
+            return None
+            
         try:
             validated_mobile = validate_mobile_number(value)
             
-            # Check uniqueness
             if User.objects.filter(mobile=validated_mobile).exists():
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_exists", "This mobile number already exists"))
+                raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_exists"))
             
             return validated_mobile
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_email(self, value):
-        """Validate email format and uniqueness"""
+        """اعتبارسنجی فرمت ایمیل و یکتا بودن"""
         if value == "":
             return None
         if value:
             try:
                 validated_email = validate_email_address(value)
                 
-                # Check uniqueness
                 if User.objects.filter(email=validated_email).exists():
-                    raise serializers.ValidationError(AUTH_ERRORS.get("auth_email_exists", "This email already exists"))
+                    raise serializers.ValidationError(AUTH_ERRORS.get("auth_email_exists"))
                 
                 return validated_email
             except Exception as e:
-                raise serializers.ValidationError(str(e))
+                raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         return value
     
+    def validate_password(self, value):
+        """اعتبارسنجی رمز عبور"""
+        if not value:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_password_required"))
+        
+        try:
+            from src.user.utils.password_validator import validate_register_password
+            validate_register_password(value)
+            return value
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+    
     def validate_birth_date(self, value):
-        """Validate birth date"""
+        """اعتبارسنجی تاریخ تولد"""
         if value and value > datetime.now().date():
-            raise serializers.ValidationError("Birth date cannot be in the future")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         return value
     
     def validate_national_id(self, value):
-        """Validate national ID"""
-        if value and not value.isdigit():
-            raise serializers.ValidationError("National ID must contain only numbers")
-        if value and len(value) != 10:
-            raise serializers.ValidationError("National ID must be 10 digits")
-        return value
+        """اعتبارسنجی کد ملی"""
+        return validate_national_id_format(value)
+    
+    def validate_phone(self, value):
+        """اعتبارسنجی شماره تلفن"""
+        if not value or value.strip() == "":
+            return None
+        
+        try:
+            from src.user.utils.phone_validator import validate_phone_number_optional
+            return validate_phone_number_optional(value)
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
     
     def validate_profile_picture_id(self, value):
-        """Validate profile picture exists and is an image"""
+        """اعتبارسنجی وجود تصویر پروفایل"""
         if value is None:
             return value
         
         try:
-            media = ImageMedia.objects.get(id=value, is_active=True)
+            from src.media.models import ImageMedia
+            media = ImageMedia.objects.get(id=value)
             return value
         except ImageMedia.DoesNotExist:
-            raise serializers.ValidationError("Invalid media ID or media is not an active image")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+        except Exception as e:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_profile_picture(self, value):
-        """Validate uploaded profile picture file using media service"""
+        """اعتبارسنجی فایل تصویر پروفایل آپلود شده با استفاده از سرویس مدیا"""
         if value is None:
             return value
         
-        # Use central media validation
         from src.media.utils.validators import validate_image_file
         
         try:
             validate_image_file(value)
             return value
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_role_id(self, value):
-        """Validate role ID"""
+        """اعتبارسنجی ID نقش"""
         if value is None or value == "" or value == "none":
             return None
         
         try:
             role_id = int(value)
-            # Check if role exists and is active
-            from src.user.models import AdminRole
             AdminRole.objects.get(id=role_id, is_active=True)
             return role_id
         except (ValueError, TypeError):
-            raise serializers.ValidationError("Invalid role ID format")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         except AdminRole.DoesNotExist:
-            raise serializers.ValidationError("Role not found or inactive")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+    
+    def validate_province_id(self, value):
+        """اعتبارسنجی ID استان"""
+        if value is None or value == "" or value == "none":
+            return None
+        
+        try:
+            from src.user.models.location import Province
+            province_id = int(value)
+            Province.objects.get(id=province_id, is_active=True)
+            return province_id
+        except (ValueError, TypeError):
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+        except Province.DoesNotExist:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+    
+    def validate_city_id(self, value):
+        """اعتبارسنجی ID شهر"""
+        if value is None or value == "" or value == "none":
+            return None
+        
+        try:
+            from src.user.models.location import City
+            city_id = int(value)
+            City.objects.get(id=city_id, is_active=True)
+            return city_id
+        except (ValueError, TypeError):
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+        except City.DoesNotExist:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate(self, data):
-        """Cross-field validation with proper superuser permissions check"""
+        """اعتبارسنجی بین فیلدی با بررسی دسترسی‌های سوپر ادمین"""
         admin_user = self.context.get('admin_user')
         
-        # ✅ Check if current admin can create superuser
         if data.get('is_superuser') is True and not admin_user.is_superuser:
             raise serializers.ValidationError({
-                'is_superuser': AUTH_ERRORS.get("auth_only_superuser_create", "Only superuser can create superuser")
+                'is_superuser': AUTH_ERRORS.get("auth_only_superuser_create")
             })
         
-        # Ensure at least mobile or email is provided
         if not data.get('mobile') and not data.get('email'):
             raise serializers.ValidationError({
-                'non_field_errors': AUTH_ERRORS.get("auth_email_or_mobile_required", "Either email or mobile is required")
+                'non_field_errors': AUTH_ERRORS.get("auth_email_or_mobile_required")
             })
         
-        # Handle nested profile data
         profile_data = data.get('profile', {})
         if profile_data:
-            # Extract profile fields from nested structure
-            for field in ['first_name', 'last_name', 'birth_date', 'department', 'position', 'bio', 'notes']:
+            for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'department', 'position', 'bio', 'notes', 'province_id', 'city_id']:
                 if field in profile_data and field not in data:
                     data[field] = profile_data[field]
             
-            # Handle profile_picture from nested structure (ID)
             if 'profile_picture' in profile_data and 'profile_picture_id' not in data:
                 data['profile_picture_id'] = profile_data['profile_picture']
         
-        # Validate profile picture consistency (can't have both ID and file)
         if data.get('profile_picture_id') and data.get('profile_picture'):
             raise serializers.ValidationError({
-                'profile_picture': 'نمی‌توان همزمان ID تصویر و فایل جدید ارسال کرد. یکی را انتخاب کنید.'
+                'profile_picture': AUTH_ERRORS.get("auth_validation_error")
             })
         
         return data
 
 
-class UserRegisterByAdminSerializer(BaseRegisterSerializer):
+class AdminCreateRegularUserSerializer(serializers.Serializer):
     """
-    Serializer مخصوص ثبت نام یوزر عادی توسط ادمین در پنل ادمین - بهینه شده
-    ✅ شامل تمام فیلدهای profile برای یوزرهای معمولی
+    سریالایزر مخصوص ثبت‌نام کاربر معمولی توسط ادمین در پنل ادمین - بهینه شده
+    شامل تمام فیلدهای پروفایل برای کاربران معمولی
     """
     identifier = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True, min_length=6)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     
-    # Profile fields برای یوزرهای معمولی
+    # فیلد profile برای استخراج داده‌های پروفایل
+    profile = serializers.DictField(required=False, allow_empty=True)
+    
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     last_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     birth_date = serializers.DateField(required=False, allow_null=True)
     national_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
     address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
+    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=15)
     bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    province = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
-    city = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
+    province_id = serializers.IntegerField(required=False, allow_null=True)
+    city_id = serializers.IntegerField(required=False, allow_null=True)
     
-    # Media field for profile picture - support both ID and file upload
     profile_picture_id = serializers.IntegerField(required=False, allow_null=True)
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_profile_picture_id(self, value):
-        """Validate profile picture exists and is an image"""
+        """اعتبارسنجی وجود تصویر پروفایل"""
         if value is None:
             return value
         
         try:
-            from src.media.models import Media
-            media = Media.objects.get(id=value, media_type='image')
+            from src.media.models import ImageMedia
+            media = ImageMedia.objects.get(id=value)
             return value
-        except Media.DoesNotExist:
-            raise serializers.ValidationError("تصویر پروفایل یافت نشد")
+        except ImageMedia.DoesNotExist:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         except Exception as e:
-            raise serializers.ValidationError(f"خطا در اعتبارسنجی تصویر: {str(e)}")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+
+    def validate_password(self, value):
+        """اعتبارسنجی رمز عبور"""
+        if not value:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_password_required"))
+        
+        if len(value) < 6:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_password_too_short"))
+        
+        return value
+
+    def validate_province_id(self, value):
+        """اعتبارسنجی وجود استان"""
+        if value is None:
+            return value
+        
+        try:
+            from src.user.models.location import Province
+            province = Province.objects.get(id=value, is_active=True)
+            return value
+        except Province.DoesNotExist:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+        except Exception as e:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+
+    def validate_city_id(self, value):
+        """اعتبارسنجی وجود شهر"""
+        if value is None:
+            return value
+        
+        try:
+            from src.user.models.location import City
+            city = City.objects.get(id=value, is_active=True)
+            return value
+        except City.DoesNotExist:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+        except Exception as e:
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_profile_picture(self, value):
-        """Validate uploaded profile picture file using media service"""
+        """اعتبارسنجی فایل تصویر پروفایل آپلود شده"""
         if value is None:
             return value
         
         try:
-            from src.media.services.media_service import MediaService
-            # Basic file validation
-            if value.size > 5 * 1024 * 1024:  # 5MB limit
-                raise serializers.ValidationError("حجم فایل نباید از 5 مگابایت بیشتر باشد")
+            from src.media.utils.validators import validate_image_file
+            if value.size > 5 * 1024 * 1024:
+                raise serializers.ValidationError(AUTH_ERRORS.get("auth_file_size_exceed"))
             
-            # Check file type
             allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
             if value.content_type not in allowed_types:
-                raise serializers.ValidationError("فرمت فایل باید JPEG، PNG، WebP یا GIF باشد")
+                raise serializers.ValidationError(AUTH_ERRORS.get("auth_file_must_be_image"))
             
             return value
         except Exception as e:
-            raise serializers.ValidationError(f"خطا در اعتبارسنجی فایل: {str(e)}")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
+    def validate_phone(self, value):
+        """اعتبارسنجی شماره تلفن"""
+        if not value or value.strip() == "":
+            return None
+        
+        try:
+            from src.user.utils.phone_validator import validate_phone_number_optional
+            return validate_phone_number_optional(value)
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+    
     def validate_identifier(self, value):
-        """Validate identifier (email or mobile)"""
+        """اعتبارسنجی شناسه (ایمیل یا موبایل)"""
         if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty", "Identifier cannot be empty"))
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         
         try:
             from src.user.utils.validate_identifier import validate_identifier
@@ -242,25 +333,23 @@ class UserRegisterByAdminSerializer(BaseRegisterSerializer):
             elif mobile:
                 return mobile
             else:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_error", "Invalid identifier format"))
+                raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_error"))
         except Exception as e:
             raise serializers.ValidationError(str(e))
 
     def validate(self, data):
-        """Admin context validation"""
+        """اعتبارسنجی در زمینه ادمین"""
         admin_user = self.context.get('admin_user')
         if not admin_user or not admin_user.has_admin_access():
             raise serializers.ValidationError({
-                'non_field_errors': AUTH_ERRORS.get("auth_not_authorized", "Not authorized to create users")
+                'non_field_errors': AUTH_ERRORS.get("auth_not_authorized")
             })
         
-        # Validate profile picture consistency (can't have both ID and file)
         if data.get('profile_picture_id') and data.get('profile_picture'):
             raise serializers.ValidationError({
-                'profile_picture': 'نمی‌توان همزمان ID تصویر و فایل جدید ارسال کرد. یکی را انتخاب کنید.'
+                'profile_picture': AUTH_ERRORS.get("auth_validation_error")
             })
         
-        # Convert identifier to mobile or email
         identifier = data.get('identifier')
         if identifier:
             try:
@@ -272,7 +361,102 @@ class UserRegisterByAdminSerializer(BaseRegisterSerializer):
                     data['mobile'] = mobile
             except Exception as e:
                 raise serializers.ValidationError({
-                    'identifier': str(e)
+                    'identifier': AUTH_ERRORS.get("auth_validation_error")
+                })
+        
+        # Handle explicit email field
+        if 'email' in data and data['email']:
+            try:
+                from src.user.utils.validate_identifier import validate_identifier
+                email, mobile = validate_identifier(data['email'])
+                if email:
+                    data['email'] = email
+                else:
+                    raise serializers.ValidationError({
+                        'email': 'ایمیل معتبر نیست'
+                    })
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'email': 'ایمیل معتبر نیست'
+                })
+        
+        # Handle phone field for user profile
+        if 'phone' in data and data['phone']:
+            try:
+                from src.user.utils.phone_validator import validate_phone_number_optional
+                data['phone'] = validate_phone_number_optional(data['phone'])
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'phone': str(e)
+                })
+        
+        # Handle profile data extraction
+        profile_data = data.get('profile', {})
+        if profile_data:
+            for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'bio', 'province_id', 'city_id']:
+                if field in profile_data and field not in data:
+                    data[field] = profile_data[field]
+        
+        # Also check if province_id and city_id are in main data
+        if 'province_id' in data and data['province_id']:
+            try:
+                from src.user.models.location import Province
+                Province.objects.get(id=data['province_id'], is_active=True)
+            except Province.DoesNotExist:
+                raise serializers.ValidationError({
+                    'province_id': 'استان انتخاب شده معتبر نیست'
+                })
+        
+        if 'city_id' in data and data['city_id']:
+            try:
+                from src.user.models.location import City
+                City.objects.get(id=data['city_id'], is_active=True)
+            except City.DoesNotExist:
+                raise serializers.ValidationError({
+                    'city_id': 'شهر انتخاب شده معتبر نیست'
+                })
+            
+            if 'profile_picture' in profile_data and 'profile_picture_id' not in data:
+                data['profile_picture_id'] = profile_data['profile_picture']
+        
+        # Handle phone field validation after profile data extraction
+        if 'phone' in data and data['phone']:
+            try:
+                from src.user.utils.phone_validator import validate_phone_number_optional
+                data['phone'] = validate_phone_number_optional(data['phone'])
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'phone': str(e)
+                })
+        
+        # Handle national_id field validation
+        if 'national_id' in data and data['national_id']:
+            try:
+                from src.user.utils.national_id_validator import validate_national_id_format
+                data['national_id'] = validate_national_id_format(data['national_id'])
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'national_id': str(e)
+                })
+        
+        # Handle phone field validation for user profile
+        if 'phone' in data and data['phone']:
+            try:
+                from src.user.utils.phone_validator import validate_phone_number_optional
+                data['phone'] = validate_phone_number_optional(data['phone'])
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'phone': str(e)
+                })
+        
+        # Handle national_id field validation for user profile
+        if 'national_id' in data and data['national_id']:
+            try:
+                from src.user.utils.national_id_validator import validate_national_id_format
+                data['national_id'] = validate_national_id_format(data['national_id'])
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'national_id': str(e)
                 })
         
         return super().validate(data)

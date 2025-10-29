@@ -68,7 +68,7 @@ export default function ProfileTab({
 
   // Watch the birth date field
   const birthDateValue = watch("profile_birth_date");
-  const provinceValue = watch("profile_province");
+  const provinceValue = watch("profile_province_id");
   
   // Fetch provinces on component mount
   useEffect(() => {
@@ -93,12 +93,9 @@ export default function ProfileTab({
       const fetchCities = async () => {
         setLoadingCities(true);
         try {
-          // Find province ID by name
-          const selectedProvince = provinces.find(p => p.name === provinceValue);
-          if (selectedProvince) {
-            const cities = await locationApi.getCitiesCompactByProvince(selectedProvince.id);
-            setCities(cities);
-          }
+          // provinceValue is now the ID directly
+          const cities = await locationApi.getCitiesCompactByProvince(provinceValue);
+          setCities(cities);
         } catch (error) {
           console.error("Error fetching cities:", error);
         } finally {
@@ -135,14 +132,14 @@ export default function ProfileTab({
   };
   
   // Handle province change
-  const handleProvinceChange = (provinceName: string) => {
-    setValue("profile_province", provinceName);
-    setValue("profile_city", ""); // Reset city when province changes
+  const handleProvinceChange = (provinceId: string) => {
+    setValue("profile_province_id", Number(provinceId));
+    setValue("profile_city_id", null); // Reset city when province changes
   };
   
   // Handle city change
-  const handleCityChange = (cityName: string) => {
-    setValue("profile_city", cityName);
+  const handleCityChange = (cityId: string) => {
+    setValue("profile_city_id", Number(cityId));
   };
 
   return (
@@ -242,9 +239,9 @@ export default function ProfileTab({
                 <h3 className="text-lg font-medium mb-4">موقعیت جغرافیایی</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="profile_province">استان</Label>
+                    <Label htmlFor="profile_province_id">استان</Label>
                     <Select
-                      value={provinceValue || ""}
+                      value={provinceValue?.toString() || ""}
                       onValueChange={handleProvinceChange}
                       disabled={!editMode || loadingProvinces}
                     >
@@ -253,7 +250,7 @@ export default function ProfileTab({
                       </SelectTrigger>
                       <SelectContent>
                         {provinces.map((province) => (
-                          <SelectItem key={province.id} value={province.name}>
+                          <SelectItem key={province.id} value={province.id.toString()}>
                             {province.name}
                           </SelectItem>
                         ))}
@@ -262,9 +259,9 @@ export default function ProfileTab({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="profile_city">شهر</Label>
+                    <Label htmlFor="profile_city_id">شهر</Label>
                     <Select
-                      value={watch("profile_city") || ""}
+                      value={watch("profile_city_id")?.toString() || ""}
                       onValueChange={handleCityChange}
                       disabled={!editMode || loadingCities || !provinceValue}
                     >
@@ -281,7 +278,7 @@ export default function ProfileTab({
                       </SelectTrigger>
                       <SelectContent>
                         {cities.map((city) => (
-                          <SelectItem key={city.id} value={city.name}>
+                          <SelectItem key={city.id} value={city.id.toString()}>
                             {city.name}
                           </SelectItem>
                         ))}

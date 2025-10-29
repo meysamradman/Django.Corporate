@@ -132,8 +132,8 @@ export const PERMISSION_TRANSLATIONS = {
   
   // Role error messages
   roleErrors: {
-    'Cannot delete role. It is assigned to {count} users.': 'امکان حذف نقشی که به {count} کاربر اختصاص داده شده وجود ندارد. لطفاً ابتدا نقش را از کاربران مربوطه جدا کنید.',
-    'Cannot delete {count} roles that are assigned to users': 'امکان حذف {count} نقش که به کاربران اختصاص داده شده وجود ندارد. لطفاً ابتدا این نقش‌ها را از کاربران مربوطه جدا کنید.',
+    'Cannot delete role. It is assigned to {count} users.': 'نقش به {count} کاربر اختصاص دارد. ابتدا نقش را از کاربران جدا کنید.',
+    'Cannot delete {count} roles that are assigned to users': 'نقش‌ها به کاربران اختصاص دارند. ابتدا نقش‌ها را از کاربران جدا کنید.',
     'System roles cannot be deleted': 'نقش‌های سیستمی قابل حذف نیستند.',
     'No role IDs provided': 'شناسه‌های نقش برای حذف ارائه نشده است.',
   },

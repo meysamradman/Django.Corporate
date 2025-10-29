@@ -91,19 +91,17 @@ export const userFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   
-  // ❌ اختیاری: استان
-  profile_province: z
-    .string()
-    .max(100, { message: msg.validation("provinceMaxLength") })
+  // ❌ اختیاری: استان ID (عدد)
+  profile_province_id: z
+    .number()
     .optional()
-    .or(z.literal("")),
+    .nullable(),
   
-  // ❌ اختیاری: شهر
-  profile_city: z
-    .string()
-    .max(100, { message: msg.validation("cityMaxLength") })
+  // ❌ اختیاری: شهر ID (عدد)
+  profile_city_id: z
+    .number()
     .optional()
-    .or(z.literal("")),
+    .nullable(),
   
   // ❌ اختیاری: آدرس
   profile_address: z
@@ -144,8 +142,8 @@ export const userFormDefaults: Partial<UserFormValues> = {
   profile_birth_date: "",
   profile_national_id: "",
   profile_phone: "",
-  profile_province: "",
-  profile_city: "",
+  profile_province_id: null,
+  profile_city_id: null,
   profile_address: "",
   profile_bio: "",
   profile_picture: null,

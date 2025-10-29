@@ -5,7 +5,8 @@ from src.portfolio.serializers.mixins import CountsMixin
 
 class PortfolioTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     """Optimized list view for admin with usage statistics"""
-    portfolio_count = serializers.SerializerMethodField()
+    # Use annotated field from queryset - no database queries!
+    portfolio_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = PortfolioTag
@@ -14,10 +15,6 @@ class PortfolioTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
             'is_active', 'portfolio_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-    
-    def get_portfolio_count(self, obj):
-        """Get portfolio count from annotation or database"""
-        return getattr(obj, 'portfolio_count', obj.portfolio_tags.count())
 
 
 class PortfolioTagAdminDetailSerializer(serializers.ModelSerializer):

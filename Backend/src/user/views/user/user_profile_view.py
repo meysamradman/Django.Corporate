@@ -1,20 +1,42 @@
-from src.user.views.base_profile_view import BaseProfileView
-from src.user.serializers.base_profile_serializer import UserProfileSerializer, UserProfileUpdateSerializer # Import new serializers
-from src.user.services import BaseProfileService
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from src.core.responses import APIResponse
+from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
+from src.user.authorization import AdminRolePermission
+from src.user.auth.auth_mixin import UserAuthMixin
+from src.user.serializers.user.user_profile_serializer import UserProfileSerializer, UserProfileUpdateSerializer
+from src.user.services.user.user_profile_service import UserProfileService
 from src.user.auth import UserJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-class UserProfileView(BaseProfileView):
-    authentication_classes = [UserJWTAuthentication, JWTAuthentication]
-    serializer_class = UserProfileSerializer # Changed to UserProfileSerializer for GET
-    service_class = BaseProfileService
 
-    def put(self, request, *args, **kwargs):
+class UserProfileView(UserAuthMixin, APIView):
+    authentication_classes = [UserJWTAuthentication, JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = UserProfileSerializer
+
+    def get(self, request):
         try:
-            user = self.service_class.get_user_profile(request.user)
+            user = UserProfileService.get_user_profile(request.user)
+            serializer = self.serializer_class(user, context={'request': request})
+            return APIResponse.success(
+                message=AUTH_SUCCESS["auth_retrieved_successfully"],
+                data=serializer.data
+            )
+        except Exception as e:
+            return APIResponse.error(
+                message=AUTH_ERRORS["error_occurred"],
+                status_code=500
+            )
+
+    def put(self, request):
+        try:
+            user = UserProfileService.get_user_profile(request.user)
             serializer = UserProfileUpdateSerializer(user, data=request.data, context={'request': request, 'user_id': request.user.id}, partial=True)
             if serializer.is_valid(raise_exception=True):
-                updated_profile = self.service_class.update_user_profile(request.user, serializer.validated_data)
+                updated_profile = UserProfileService.update_user_profile(request.user, serializer.validated_data)
                 response_serializer = self.serializer_class(updated_profile, context={'request': request})
                 return APIResponse.success(
                     message=AUTH_SUCCESS["auth_profile_updated"],
@@ -27,6 +49,6 @@ class UserProfileView(BaseProfileView):
             )
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=AUTH_ERRORS["error_occurred"],
                 status_code=500
             )

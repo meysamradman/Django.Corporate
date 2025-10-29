@@ -139,107 +139,25 @@ class PortfolioAdminService:
     
     @staticmethod
     def create_portfolio_with_media(validated_data, media_files, created_by=None):
-        """Create portfolio with media files from central media app"""
+        """Create portfolio with media files from central media app using optimized service"""
         # First create the portfolio
         portfolio = PortfolioAdminService.create_portfolio(validated_data, created_by)
         
         if media_files:
-            # Add media using the existing service method
-            created_medias = PortfolioAdminService.add_media_to_portfolio(
-                portfolio.id,
-                media_files,
+            # Add media using the new optimized service
+            from src.portfolio.services.admin import PortfolioAdminMediaService
+            result = PortfolioAdminMediaService.add_media_bulk(
+                portfolio_id=portfolio.id,
+                media_files=media_files,
                 created_by=created_by
             )
             
-            # If we have images, set the first one as main image
-            if created_medias:
-                # Check if any of the created media are images
-                from src.media.models.media import ImageMedia
-                image_medias = [media for media in created_medias if isinstance(media, ImageMedia)]
-                
-                if image_medias:
-                    # Set the first image as main image
-                    from src.portfolio.models.media import PortfolioImage
-                    first_image_media = image_medias[0]
-                    portfolio_image = PortfolioImage.objects.create(
-                        portfolio=portfolio,
-                        image=first_image_media,
-                        is_main=True,
-                        order=0
-                    )
-                    
-                    # Also set as OG image if not provided
-                    if not portfolio.og_image:
-                        portfolio.og_image = first_image_media
-                        portfolio.save(update_fields=['og_image'])
+            # The service handles setting the main image automatically
         
         return portfolio
 
-    @staticmethod
-    def add_media_to_portfolio(portfolio_id, media_files, created_by=None):
-        """Add multiple media files to portfolio using central media app"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
-        from src.media.services.media_services import MediaAdminService
-        
-        created_medias = []
-        last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
-                     PortfolioVideo.objects.filter(portfolio=portfolio).count() +
-                     PortfolioAudio.objects.filter(portfolio=portfolio).count() +
-                     PortfolioDocument.objects.filter(portfolio=portfolio).count())
-        
-        for i, media_file in enumerate(media_files):
-            # Detect media type
-            file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
-            media_type = 'image'  # Default
-            
-            # Simple type detection
-            if file_ext in ['mp4', 'webm', 'mov']:
-                media_type = 'video'
-            elif file_ext in ['mp3', 'ogg', 'aac', 'm4a']:
-                media_type = 'audio'
-            elif file_ext == 'pdf':
-                media_type = 'pdf'
-            
-            # Create media using central app
-            media = MediaAdminService.create_media(media_type, {
-                'file': media_file,
-                'title': f"Media for {portfolio.title}",
-            })
-            
-            # Create portfolio media relation based on type
-            if media_type == 'image':
-                # Always set the first image in this batch as main image if no main image exists
-                existing_main_image = PortfolioImage.objects.filter(portfolio=portfolio, is_main=True).exists()
-                should_be_main = (i == 0) and not existing_main_image
-                
-                PortfolioImage.objects.create(
-                    portfolio=portfolio,
-                    image=media,
-                    is_main=should_be_main,
-                    order=last_order + i
-                )
-            elif media_type == 'video':
-                PortfolioVideo.objects.create(
-                    portfolio=portfolio,
-                    video=media,
-                    order=last_order + i
-                )
-            elif media_type == 'audio':
-                PortfolioAudio.objects.create(
-                    portfolio=portfolio,
-                    audio=media,
-                    order=last_order + i
-                )
-            elif media_type == 'pdf':
-                PortfolioDocument.objects.create(
-                    portfolio=portfolio,
-                    document=media,
-                    order=last_order + i
-                )
-            
-            created_medias.append(media)
-            
-        return created_medias
+    # Removed: This method is now handled by PortfolioAdminMediaService.add_media_bulk
+    # which provides better performance and avoids N+1 query problems
 
     @staticmethod
     def set_main_image(portfolio_id, media_id):

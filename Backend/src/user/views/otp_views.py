@@ -5,12 +5,14 @@ from src.user.auth import UserCookie
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.serializers import SendOTPSerializer, VerifyOTPSerializer
 from src.user.services import OTPService
+from src.core.security.throttling import CaptchaThrottle
 
 from src.user.utils.otp_validator import get_otp_length
 
 
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [CaptchaThrottle]  # اضافه کردن throttling برای جلوگیری از spam
 
     def post(self, request):
         serializer = SendOTPSerializer(data=request.data)
@@ -24,7 +26,7 @@ class SendOTPView(APIView):
                 )
             except Exception as e:
                 return APIResponse.error(
-                    message=str(e),
+                    message=AUTH_ERRORS["otp_send_failed"],
                     status_code=400
                 )
         return APIResponse.error(
@@ -66,7 +68,7 @@ class VerifyOTPView(APIView):
                 return response
             except Exception as e:
                 return APIResponse.error(
-                    message=str(e),
+                    message=AUTH_ERRORS["otp_invalid"],
                     status_code=400
                 )
         return APIResponse.error(
@@ -88,4 +90,4 @@ class OTPSettingsView(APIView):
         return APIResponse.success(
             message=AUTH_SUCCESS["otp_settings_retrieved_successfully"],
             data=otp_settings
-        ) 
+        )

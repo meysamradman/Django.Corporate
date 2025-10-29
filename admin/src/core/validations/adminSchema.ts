@@ -100,19 +100,21 @@ export const adminFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   
-  // ❌ اختیاری: استان
-  profile_province: z
-    .string()
-    .max(100, { message: msg.validation("provinceMaxLength") })
+  // ❌ اختیاری: استان (ID)
+  profile_province_id: z
+    .number()
+    .int()
+    .positive({ message: msg.validation("provinceRequired") })
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(null)),
   
-  // ❌ اختیاری: شهر
-  profile_city: z
-    .string()
-    .max(100, { message: msg.validation("cityMaxLength") })
+  // ❌ اختیاری: شهر (ID)
+  profile_city_id: z
+    .number()
+    .int()
+    .positive({ message: msg.validation("cityRequired") })
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(null)),
   
   // ❌ اختیاری: آدرس
   profile_address: z
@@ -176,8 +178,8 @@ export const adminFormDefaults: Partial<AdminFormValues> = {
   profile_birth_date: "",
   profile_national_id: "",
   profile_phone: "",
-  profile_province: "",
-  profile_city: "",
+  profile_province_id: null,
+  profile_city_id: null,
   profile_address: "",
   profile_department: "",
   profile_position: "",

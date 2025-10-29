@@ -64,8 +64,8 @@ export default function CreateAdminPage() {
             profileData.birth_date = data.profile_birth_date || null;
             profileData.national_id = data.profile_national_id || null;
             profileData.phone = data.profile_phone || null;
-            profileData.province = data.profile_province || null;
-            profileData.city = data.profile_city || null;
+            profileData.province_id = data.profile_province_id || null;
+            profileData.city_id = data.profile_city_id || null;
             profileData.address = data.profile_address || null;
             profileData.department = data.profile_department || null;
             profileData.position = data.profile_position || null;
@@ -112,8 +112,8 @@ export default function CreateAdminPage() {
                         'profile.last_name': 'profile_last_name',
                         'profile.national_id': 'profile_national_id',
                         'profile.phone': 'profile_phone',
-                        'profile.province': 'profile_province',
-                        'profile.city': 'profile_city',
+                        'profile.province_id': 'profile_province_id',
+                        'profile.city_id': 'profile_city_id',
                     };
                     
                     const formField = fieldMap[field] || field;

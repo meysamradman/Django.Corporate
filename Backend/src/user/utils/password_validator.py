@@ -5,12 +5,16 @@ from src.user.messages import AUTH_ERRORS
 
 
 def validate_login_password(value):
+    if value is None:
+        raise ValidationError(AUTH_ERRORS["auth_password_empty"])
     value = value.strip()
     if not value:
         raise ValidationError(AUTH_ERRORS["auth_password_empty"])
     return value
 
 def validate_register_password(value):
+    if value is None:
+        raise ValidationError(AUTH_ERRORS["auth_password_empty"])
     value = value.strip()
 
     if not value:

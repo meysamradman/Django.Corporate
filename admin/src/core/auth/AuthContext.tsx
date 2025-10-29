@@ -16,9 +16,7 @@ import { getPanelSettings } from '@/api/settings/panel/route';
 import { getQueryClient } from '@/core/utils/queryClient';
 import { FaviconManager } from '@/components/layout/FaviconManager';
 
-interface AuthLoginResponse extends LoginResponse {
-  csrf_token?: string;
-}
+// CSRF token is now only available in cookies, not in response body
 
 interface ExtendedMetaData extends MetaData {
   csrf_token?: string;
@@ -66,12 +64,13 @@ function getCsrfTokenFromCookie(): string | null {
 }
 
 // Helper function to serialize user data for Next.js 15 compatibility
-function serializeUser(user: UserWithProfile | null): UserWithProfile | null {
+function serializeUser(user: any | null): UserWithProfile | null {
   if (!user) return null;
   
   // Create a plain object copy to avoid class/prototype issues
   return {
     ...user,
+    user_type: user.user_type || 'admin', // Default to admin for admin users
     permissions: Array.isArray(user.permissions) ? [...user.permissions] : [],
     permission_categories: user.permission_categories ? { ...user.permission_categories } : {},
     profile: user.profile ? { ...user.profile } : undefined,
@@ -106,28 +105,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Function to explicitly refresh CSRF token
+  // Function to explicitly refresh CSRF token - بهینه شده
   const refreshCSRFToken = useCallback(async (): Promise<string | null> => {
     try {
+      // فقط از cookie بخون - بدون API call اضافی
       const cookieToken = getCsrfTokenFromCookie();
       if (cookieToken) {
         csrfTokenStore.setToken(cookieToken);
         return cookieToken;
       }
       
-      // Attempt to trigger CSRF cookie refresh by fetching profile
-      try {
-          await fetchApi.get('/admin/profile/');
-      } catch (profileError) {
-          // Ignore profile fetch error during CSRF refresh attempt
-      }
-      
-      const newCookieToken = getCsrfTokenFromCookie();
-      if (newCookieToken) {
-        csrfTokenStore.setToken(newCookieToken);
-        return newCookieToken;
-      }
-      
+      // اگر cookie نبود، null برگردون - API call اضافی نکن
       return null;
     } catch (error) {
       // Ignore general errors during CSRF refresh
@@ -156,20 +144,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
+      // 1. Get user data
       const userData = await authApi.getCurrentAdminUser({ cache: 'no-store' }); 
       if (userData) {
         setUser(serializeUser(userData));
+        
+        // 2. Get CSRF token from cookie - سریع
         const csrfToken = getCsrfTokenFromCookie();
         if (csrfToken) {
           csrfTokenStore.setToken(csrfToken);
-        } else {
-          await refreshCSRFToken();
         }
-        // Fetch panel settings after successful user check
-        await fetchPanelSettings(); 
+        
+        // 3. Load panel settings in background - موازی
+        fetchPanelSettings().catch(error => {
+          console.warn('Panel settings loading failed:', error);
+        });
       } else {
         setUser(null);
-        setPanelSettings(null); // Clear settings if user is null
+        setPanelSettings(null);
         // Redirect to login if on protected route
         if (!publicPaths.includes(pathname)) {
           router.push('/login');
@@ -178,7 +170,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       if (error instanceof ApiError && error.response.AppStatusCode === 401) {
         // User session is invalid/expired
-
         setUser(null);
         setPanelSettings(null);
         csrfTokenStore.setToken(null);
@@ -207,45 +198,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     checkUserStatus();
   }, [checkUserStatus]);
 
-  const login = async (mobile: string, password?: string, captchaId?: string, captchaAnswer?: string) => {
-    startTransition(async () => {
-    setIsLoading(true);
-    try {
-      const loginData: LoginRequest = {
-        mobile,
-        login_type: 'password',
-        password: password || '',
-        captcha_id: captchaId || '',
-        captcha_answer: captchaAnswer || '',
-      };
-      
-      await authApi.login(loginData);
-      
-      await refreshUser();
-      
-      const csrfToken = getCsrfTokenFromCookie();
-      if (csrfToken) {
-        csrfTokenStore.setToken(csrfToken);
-      } else {
-        await refreshCSRFToken();
+    const login = async (mobile: string, password?: string, captchaId?: string, captchaAnswer?: string) => {
+      setIsLoading(true);
+      try {
+        const loginData: LoginRequest = {
+          mobile,
+          login_type: 'password',
+          password: password || '',
+          captcha_id: captchaId || '',
+          captcha_answer: captchaAnswer || '',
+        };
+        
+        // 1. Login and get session cookie + CSRF cookie
+        await authApi.login(loginData);
+        
+        // 2. Get CSRF token from cookie (set by backend) - سریع
+        const csrfToken = getCsrfTokenFromCookie();
+        if (csrfToken) {
+          csrfTokenStore.setToken(csrfToken);
+        }
+        
+        // 3. Navigate immediately - بدون انتظار
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnTo = urlParams.get('return_to') || '/';
+        router.push(returnTo);
+        
+        // 4. Load user data and settings in background - موازی
+        Promise.all([
+          refreshUser(),
+          fetchPanelSettings()
+        ]).catch(error => {
+          console.warn('Background data loading failed:', error);
+        });
+        
+      } catch (error) {
+        setUser(null);
+        setPanelSettings(null);
+        // Re-throw error to be handled by LoginForm
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
-      
-      // Navigate to intended destination or dashboard after successful login
-      const urlParams = new URLSearchParams(window.location.search);
-      const returnTo = urlParams.get('return_to') || '/';
-      router.push(returnTo);
-    } catch (error) {
-      setUser(null);
-      setPanelSettings(null);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-    });
-  };
+    };
 
   const loginWithOTP = async (mobile: string, otp: string, captchaId?: string, captchaAnswer?: string) => {
-    startTransition(async () => {
     setIsLoading(true);
     try {
       const loginData: LoginRequest = {
@@ -256,35 +252,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         captcha_answer: captchaAnswer || '',
       };
 
-      const response = await authApi.login(loginData) as AuthLoginResponse;
+      // 1. Login and get session cookie + CSRF cookie
+      await authApi.login(loginData);
 
-      if (response) {
-        await refreshUser();
-
-        const csrfToken = getCsrfTokenFromCookie();
-        if (csrfToken) {
-          csrfTokenStore.setToken(csrfToken);
-        } else if (response.csrf_token) {
-          csrfTokenStore.setToken(response.csrf_token);
-        } else {
-          await refreshCSRFToken();
-        }
-        
-        // Navigate to intended destination or dashboard after successful OTP login
-        const urlParams = new URLSearchParams(window.location.search);
-        const returnTo = urlParams.get('return_to') || '/';
-        router.push(returnTo);
-      } else {
-        throw new Error('OTP Login request failed or returned unexpected response');
+      // 2. Get CSRF token from cookie (set by backend) - سریع
+      const csrfToken = getCsrfTokenFromCookie();
+      if (csrfToken) {
+        csrfTokenStore.setToken(csrfToken);
       }
+      
+      // 3. Navigate immediately - بدون انتظار
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnTo = urlParams.get('return_to') || '/';
+      router.push(returnTo);
+      
+      // 4. Load user data and settings in background - موازی
+      Promise.all([
+        refreshUser(),
+        fetchPanelSettings()
+      ]).catch(error => {
+        console.warn('Background data loading failed:', error);
+      });
+      
     } catch (error) {
       setUser(null);
       setPanelSettings(null);
+      // Re-throw error to be handled by LoginForm
       throw error;
     } finally {
       setIsLoading(false);
     }
-    });
   };
 
   // Helper function to clear all auth-related cookies
@@ -385,17 +382,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userData = await authApi.getCurrentAdminUser({ cache: 'no-store' });
       if (userData) {
         setUser(serializeUser(userData));
+        
+        // Get CSRF token from cookie - سریع
         const csrfToken = getCsrfTokenFromCookie();
         if (csrfToken) {
           csrfTokenStore.setToken(csrfToken);
-        } else {
-          await refreshCSRFToken();
         }
-        // Also refresh settings when user is refreshed
-        await fetchPanelSettings(); 
+        
+        // Load settings in background - موازی
+        fetchPanelSettings().catch(error => {
+          console.warn('Panel settings loading failed:', error);
+        });
       } else {
         setUser(null);
-        setPanelSettings(null); // Clear settings if user is null
+        setPanelSettings(null);
         csrfTokenStore.setToken(null);
       }
     } catch (error) {
@@ -403,7 +403,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
          console.error('Error refreshing user:', error);
       }
       setUser(null);
-      setPanelSettings(null); // Clear settings on error
+      setPanelSettings(null);
       csrfTokenStore.setToken(null);
     }
   };

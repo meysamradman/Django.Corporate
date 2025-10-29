@@ -71,11 +71,8 @@ async function baseFetch<T>(
         headers['X-CSRFToken'] = csrfToken;
     }
 
-    // Add admin session ID for authentication
-    const adminSessionId = getAdminSessionId();
-    if (adminSessionId) {
-        headers['Cookie'] = `sessionid=${adminSessionId}`;
-    }
+    // Session authentication is handled by credentials: 'include'
+    // No need to manually set sessionid in headers
 
     // Add stored CSRF token if available
     const storedToken = csrfTokenStore.getStoredToken();

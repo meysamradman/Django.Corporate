@@ -1,6 +1,6 @@
 import { fetchApi } from '@/core/config/fetch'
 import { ApiResponse, Pagination } from '@/types/api/apiResponse'
-import { AdminWithProfile } from '@/types/auth/admin';
+import { AdminWithProfile, AdminCreateRequest, AdminUpdateRequest } from '@/types/auth/admin';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 
 export type UserStatus = 'active' | 'inactive' | 'all';
@@ -288,11 +288,24 @@ export const adminApi = {
 
     createUserByType: async (flattenedUserData: Record<string, any>, userType: UserType): Promise<AdminWithProfile> => {
         try {
-            const dataToSend = {
+            const dataToSend: Record<string, any> = {
                 ...flattenedUserData,
                 is_staff: userType === 'admin',
                 is_superuser: userType === 'admin' ? (flattenedUserData.is_superuser ?? false) : false
             };
+
+            // Normalize location keys for regular users: province/city -> province_id/city_id
+            // Only do this if province_id/city_id are not already set
+            if (userType === 'user') {
+                if (dataToSend.province !== undefined && dataToSend.province_id === undefined) {
+                    dataToSend.province_id = dataToSend.province;
+                    delete dataToSend.province;
+                }
+                if (dataToSend.city !== undefined && dataToSend.city_id === undefined) {
+                    dataToSend.city_id = dataToSend.city;
+                    delete dataToSend.city;
+                }
+            }
 
             // Determine endpoint based on user type
             const endpoint = userType === 'admin' ? '/admin/management/' : '/admin/users-management/';
@@ -308,7 +321,21 @@ export const adminApi = {
     updateUserByType: async (userId: number, flattenedUserData: Record<string, any>, userType: UserType): Promise<AdminWithProfile> => {
         try {
             // Extract role_id before sending to API
-            const { role_id, ...dataToSend } = flattenedUserData;
+            const { role_id, ...rest } = flattenedUserData;
+            const dataToSend: Record<string, any> = { ...rest };
+
+            // Normalize location keys for regular users: province/city -> province_id/city_id
+            // Only do this if province_id/city_id are not already set
+            if (userType === 'user') {
+                if (dataToSend.province !== undefined && dataToSend.province_id === undefined) {
+                    dataToSend.province_id = dataToSend.province;
+                    delete dataToSend.province;
+                }
+                if (dataToSend.city !== undefined && dataToSend.city_id === undefined) {
+                    dataToSend.city_id = dataToSend.city;
+                    delete dataToSend.city;
+                }
+            }
             
             // Determine endpoint based on user type
             const endpoint = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
@@ -473,11 +500,11 @@ export const adminApi = {
         return adminApi.fetchUserById(adminId, 'admin', options);
     },
 
-    createAdmin: async (adminData: Partial<AdminWithProfile>, profilePicture?: File): Promise<AdminWithProfile> => {
+    createAdmin: async (adminData: AdminCreateRequest, profilePicture?: File): Promise<AdminWithProfile> => {
         return adminApi.createUserByType(adminData, 'admin');
     },
 
-    updateAdmin: async (adminId: number, adminData: Record<string, any>, profilePicture?: File, shouldRemoveImage?: boolean): Promise<AdminWithProfile> => {
+    updateAdmin: async (adminId: number, adminData: AdminUpdateRequest, profilePicture?: File, shouldRemoveImage?: boolean): Promise<AdminWithProfile> => {
 
         return adminApi.updateUserByType(adminId, adminData, 'admin');
     },
@@ -506,11 +533,11 @@ export const adminApi = {
         return adminApi.fetchUserById(userId, 'user', options);
     },
 
-    createUser: async (userData: Partial<AdminWithProfile>, profilePicture?: File): Promise<AdminWithProfile> => {
+    createUser: async (userData: any, profilePicture?: File): Promise<AdminWithProfile> => {
         return adminApi.createUserByType(userData, 'user');
     },
 
-    updateUser: async (userId: number, userData: Partial<AdminWithProfile>, profilePicture?: File, shouldRemoveImage?: boolean): Promise<AdminWithProfile> => {
+    updateUser: async (userId: number, userData: any, profilePicture?: File, shouldRemoveImage?: boolean): Promise<AdminWithProfile> => {
         return adminApi.updateUserByType(userId, userData, 'user');
     },
 

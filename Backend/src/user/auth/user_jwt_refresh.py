@@ -23,7 +23,7 @@ class UserJWTRefreshView(TokenRefreshView):
         if raw_token is None:
             # Use standard DRF Response - renderer will format it
             response = Response({
-                "detail": AUTH_ERRORS.get("auth_invalid_token", "Invalid token.")
+                "detail": AUTH_ERRORS.get("auth_invalid_token")
             }, status=status.HTTP_401_UNAUTHORIZED)
             return response
 
@@ -33,14 +33,14 @@ class UserJWTRefreshView(TokenRefreshView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
-            error_detail = AUTH_ERRORS.get("auth_token_expired", str(e))
+            error_detail = AUTH_ERRORS.get("auth_token_expired")
             # Use standard DRF Response - renderer will format it
             response = Response({
                 "detail": error_detail
             }, status=status.HTTP_401_UNAUTHORIZED)
             return response
         except Exception as e:
-            error_detail = AUTH_ERRORS.get("auth_invalid_token", "Invalid token provided.")
+            error_detail = AUTH_ERRORS.get("auth_invalid_token")
             # Log the actual exception for debugging
             print(f"!!! UserJWTRefreshView Validation Error: {e}")
             # Use standard DRF Response - renderer will format it

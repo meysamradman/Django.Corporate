@@ -5,6 +5,7 @@ from django.utils import timezone
 from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_otp, generate_otp, get_otp_expiry_time
 from src.user.models import User
+from src.user.utils.jwt_tokens import generate_jwt_tokens
 
 class OTPService:
 
@@ -116,4 +117,10 @@ class OTPService:
             return user
 
         except Exception as e:
-            raise Exception(str(e)) 
+            raise Exception(str(e))
+            
+    def get_tokens(self, user):
+        """
+        دریافت توکن‌های JWT برای کاربر
+        """
+        return generate_jwt_tokens(user)

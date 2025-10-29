@@ -6,11 +6,13 @@ from src.media.serializers import MediaAdminSerializer
 
 class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     """Optimized list view for category tree with usage statistics"""
-    portfolio_count = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
     has_children = serializers.SerializerMethodField()
     parent_name = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
+    
+    # Use annotated field from queryset - no database queries!
+    portfolio_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = PortfolioCategory
@@ -34,10 +36,6 @@ class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSeriali
         """Get parent category name"""
         parent = obj.get_parent()
         return parent.name if parent else None
-    
-    def get_portfolio_count(self, obj):
-        """Get portfolio count from annotation or database"""
-        return getattr(obj, 'portfolio_count', obj.portfolio_categories.count())
     
     def get_image_url(self, obj):
         """Get image URL if exists"""
@@ -276,9 +274,11 @@ class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
 class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
     """Tree serializer for hierarchical display"""
     children = serializers.SerializerMethodField()
-    portfolio_count = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
+    
+    # Use annotated field from queryset - no database queries!
+    portfolio_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = PortfolioCategory
@@ -291,10 +291,6 @@ class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
         """Get children recursively"""
         children = obj.get_children().filter(is_active=True, is_public=True)
         return PortfolioCategoryTreeSerializer(children, many=True).data if children else []
-    
-    def get_portfolio_count(self, obj):
-        """Get portfolio count"""
-        return getattr(obj, 'portfolio_count', obj.portfolio_categories.count())
     
     def get_level(self, obj):
         """Get tree level"""

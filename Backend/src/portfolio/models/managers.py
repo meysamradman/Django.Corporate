@@ -36,6 +36,13 @@ class PortfolioQuerySet(models.QuerySet):
             'videos',
             'audios',
             'documents'
+        ).annotate(
+            total_media_count=Count('images', distinct=True) + 
+                             Count('videos', distinct=True) +
+                             Count('audios', distinct=True) +
+                             Count('documents', distinct=True),
+            categories_count=Count('categories', distinct=True),
+            tags_count=Count('tags', distinct=True)
         )
     
     def for_public_listing(self):

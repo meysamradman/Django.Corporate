@@ -12,8 +12,10 @@ from src.portfolio.serializers.admin import (
     PortfolioAdminListSerializer,
     PortfolioAdminDetailSerializer,
     PortfolioAdminCreateSerializer,
-    PortfolioAdminUpdateSerializer
+    PortfolioAdminUpdateSerializer,
+    PortfolioMediaSerializer
 )
+from src.portfolio.services.admin import PortfolioAdminMediaService
 from src.portfolio.services.admin.portfolio_services import (
     PortfolioAdminService,
     PortfolioAdminStatusService,
@@ -229,160 +231,25 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        """Add media files to portfolio"""
-        import json
+        """Add media files to portfolio with optimized performance"""
         
-        portfolio = self.get_object()
+        # Validate input data
+        serializer = PortfolioMediaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Extract validated data
         media_files = request.FILES.getlist('media_files')
+        media_ids = serializer.validated_data.get('media_ids', [])
         
-        # Handle media_ids - it can come as a comma-separated string or JSON string in FormData
-        media_ids = []
-        media_ids_str = request.data.get('media_ids')
-        if media_ids_str:
-            try:
-                # Try to parse as JSON array first
-                if isinstance(media_ids_str, str) and media_ids_str.startswith('['):
-                    media_ids = json.loads(media_ids_str)
-                # If it's a comma-separated string, split it
-                elif isinstance(media_ids_str, str):
-                    media_ids = [int(id.strip()) for id in media_ids_str.split(',') if id.strip().isdigit()]
-                # If it's already a list
-                elif isinstance(media_ids_str, list):
-                    media_ids = media_ids_str
-            except (json.JSONDecodeError, TypeError, ValueError):
-                # If parsing fails, try to treat it as a single ID
-                try:
-                    if isinstance(media_ids_str, (str, int)) and str(media_ids_str).isdigit():
-                        media_ids = [int(media_ids_str)]
-                    else:
-                        media_ids = []
-                except (TypeError, ValueError):
-                    media_ids = []
+        # Use optimized service to add media
+        result = PortfolioAdminMediaService.add_media_bulk(
+            portfolio_id=pk,
+            media_files=media_files,
+            media_ids=media_ids,
+            created_by=request.user
+        )
         
-        created_medias = []
-        
-        # Handle file uploads
-        if media_files:
-            # Add media using service
-            created_medias = PortfolioAdminService.add_media_to_portfolio(
-                portfolio.id,
-                media_files,
-                created_by=request.user
-            )
-        
-        # Handle existing media association
-        if media_ids:
-            from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
-            from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
-            
-            for media_id in media_ids:
-                try:
-                    # Try to get the media object
-                    image_media = ImageMedia.objects.filter(id=media_id).first()
-                    video_media = VideoMedia.objects.filter(id=media_id).first()
-                    audio_media = AudioMedia.objects.filter(id=media_id).first()
-                    document_media = DocumentMedia.objects.filter(id=media_id).first()
-                    
-                    # Determine media type and create appropriate portfolio media relation
-                    if image_media:
-                        # Check if this image is already associated with the portfolio
-                        if not PortfolioImage.objects.filter(portfolio=portfolio, image=image_media).exists():
-                            # Get the next order number
-                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
-                            
-                            # Check if portfolio already has a main image
-                            has_main_image = PortfolioImage.objects.filter(
-                                portfolio=portfolio,
-                                is_main=True
-                            ).exists()
-                            
-                            PortfolioImage.objects.create(
-                                portfolio=portfolio,
-                                image=image_media,
-                                is_main=not has_main_image,  # Set as main if no main image exists
-                                order=last_order
-                            )
-                    elif video_media:
-                        # Check if this video is already associated with the portfolio
-                        if not PortfolioVideo.objects.filter(portfolio=portfolio, video=video_media).exists():
-                            # Get the next order number
-                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
-                            
-                            PortfolioVideo.objects.create(
-                                portfolio=portfolio,
-                                video=video_media,
-                                order=last_order
-                            )
-                    elif audio_media:
-                        # Check if this audio is already associated with the portfolio
-                        if not PortfolioAudio.objects.filter(portfolio=portfolio, audio=audio_media).exists():
-                            # Get the next order number
-                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
-                            
-                            PortfolioAudio.objects.create(
-                                portfolio=portfolio,
-                                audio=audio_media,
-                                order=last_order
-                            )
-                    elif document_media:
-                        # Check if this document is already associated with the portfolio
-                        if not PortfolioDocument.objects.filter(portfolio=portfolio, document=document_media).exists():
-                            # Get the next order number
-                            last_order = (PortfolioImage.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioVideo.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioAudio.objects.filter(portfolio=portfolio).count() +
-                                         PortfolioDocument.objects.filter(portfolio=portfolio).count())
-                            
-                            PortfolioDocument.objects.create(
-                                portfolio=portfolio,
-                                document=document_media,
-                                order=last_order
-                            )
-                except Exception as e:
-                    # Log the error but continue with other media
-                    print(f"Error associating media {media_id}: {e}")
-                    continue
-        
-        # If this is the first image, set it as main image
-        if created_medias:
-            from src.media.models.media import ImageMedia
-            from src.portfolio.models.media import PortfolioImage
-            
-            # Check if any of the created media are images
-            image_medias = [media for media in created_medias if isinstance(media, ImageMedia)]
-            
-            if image_medias:
-                # Check if portfolio already has a main image
-                has_main_image = PortfolioImage.objects.filter(
-                    portfolio=portfolio,
-                    is_main=True
-                ).exists()
-                
-                if not has_main_image:
-                    # Set the first image as main image
-                    first_image_media = image_medias[0]
-                    PortfolioImage.objects.create(
-                        portfolio=portfolio,
-                        image=first_image_media,
-                        is_main=True,
-                        order=0
-                    )
-                    
-                    # Also set as OG image if not provided
-                    if not portfolio.og_image:
-                        portfolio.og_image = first_image_media
-                        portfolio.save(update_fields=['og_image'])
-        
-        return Response({'created_count': len(created_medias)})
+        return Response(result)
 
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):

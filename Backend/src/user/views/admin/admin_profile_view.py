@@ -3,7 +3,7 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from src.user.serializers.base_profile_serializer import AdminCompleteProfileSerializer
+from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
@@ -65,6 +65,14 @@ class AdminProfileView(APIView):
                 'groups__permissions',
                 'user_permissions'
             ).get(id=request.user.id)
+            
+            # Debug: Check if profile_picture exists
+            if hasattr(user, 'admin_profile') and user.admin_profile:
+                print(f"🔍 AdminProfile Debug - profile_picture: {user.admin_profile.profile_picture}")
+                if user.admin_profile.profile_picture:
+                    print(f"🔍 Profile Picture Debug - ID: {user.admin_profile.profile_picture.id}, URL: {user.admin_profile.profile_picture.file.url}")
+                else:
+                    print("🔍 Profile Picture Debug - No profile picture found")
             
             # Directly instantiate the serializer class
             serializer = self.serializer_class(user, context={'request': request})
@@ -310,7 +318,7 @@ class AdminProfileView(APIView):
         
         try:
             # Import the specific profile serializer for admin
-            from src.user.serializers.base_profile_serializer import AdminProfileUpdateSerializer
+            from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
             
             # Get or create admin profile
             from src.user.models import AdminProfile
@@ -329,7 +337,11 @@ class AdminProfileView(APIView):
                     admin_profile, 
                     data=profile_data, 
                     partial=True,  # Allow partial updates
-                    context={'request': request, 'user_id': user.id}
+                    context={
+                        'request': request, 
+                        'user_id': user.id,
+                        'admin_user_id': user.id  # Add admin_user_id for validation
+                    }
                 )
                 
                 if serializer.is_valid():
@@ -339,9 +351,38 @@ class AdminProfileView(APIView):
                     cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
                     cache.delete(cache_key)
                     
-                    # Return updated user data with profile
-                    user.refresh_from_db()
+                    # Debug: Check profile_picture before update
+                    print(f"🔍 Before Update - profile_picture: {admin_profile.profile_picture}")
+                    if admin_profile.profile_picture:
+                        print(f"🔍 Before Update - Profile Picture ID: {admin_profile.profile_picture.id}")
                     
+                    # Refresh user and related profile data from database
+                    user.refresh_from_db()
+                    if hasattr(user, 'admin_profile'):
+                        user.admin_profile.refresh_from_db()
+                        # Also refresh the profile picture specifically
+                        if hasattr(user.admin_profile, 'profile_picture') and user.admin_profile.profile_picture:
+                            user.admin_profile.profile_picture.refresh_from_db()
+                    
+                    # Re-fetch user with fresh data from database
+                    user = User.objects.select_related(
+                        'user_profile',
+                        'admin_profile',
+                        'admin_profile__profile_picture'
+                    ).prefetch_related(
+                        'groups__permissions',
+                        'user_permissions'
+                    ).get(id=user.id)
+                    
+                    # Debug: Check profile_picture after update
+                    if hasattr(user, 'admin_profile') and user.admin_profile:
+                        print(f"🔍 After Update - profile_picture: {user.admin_profile.profile_picture}")
+                        if user.admin_profile.profile_picture:
+                            print(f"🔍 After Update - Profile Picture ID: {user.admin_profile.profile_picture.id}, URL: {user.admin_profile.profile_picture.file.url}")
+                        else:
+                            print("🔍 After Update - No profile picture found")
+                    
+                    from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
                     response_serializer = AdminCompleteProfileSerializer(
                         user, 
                         context={'request': request}
@@ -370,6 +411,18 @@ class AdminProfileView(APIView):
             else:
                 # Profile was just created, return success
                 user.refresh_from_db()
+                
+                # Re-fetch user with fresh data from database
+                user = User.objects.select_related(
+                    'user_profile',
+                    'admin_profile',
+                    'admin_profile__profile_picture'
+                ).prefetch_related(
+                    'groups__permissions',
+                    'user_permissions'
+                ).get(id=user.id)
+                
+                from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
                 response_serializer = AdminCompleteProfileSerializer(
                     user, 
                     context={'request': request}
@@ -395,3 +448,15 @@ class AdminProfileView(APIView):
                 },
                 "data": {}
             }, status=500)
+        
+        def delete(self, request, *args, **kwargs):
+            """Delete current admin profile"""
+            return Response({
+                "metaData": {
+                    "status": "error",
+                    "message": "Method not allowed",
+                    "AppStatusCode": 405,
+                    "timestamp": "2025-10-14T21:49:06.041Z"
+                },
+                "data": {}
+            }, status=405)

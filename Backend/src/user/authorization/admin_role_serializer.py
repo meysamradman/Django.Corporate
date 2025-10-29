@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from src.user.models import AdminRole, AdminUserRole, User
 from django.core.exceptions import ValidationError
+from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
 
 
 class AdminRoleSerializer(serializers.ModelSerializer):
@@ -33,7 +34,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         """Validate role name - support Persian/Arabic text"""
         if not value or not value.strip():
-            raise serializers.ValidationError("Role name is required")
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         
         # Keep original text for Persian/Arabic support
         cleaned_name = value.strip()
@@ -150,7 +151,7 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
         """Validate that user is an admin user"""
         if not value.is_staff or not value.is_admin_active:
             raise serializers.ValidationError(
-                "Only admin users can be assigned admin roles"
+                ROLE_ERRORS.get("role_only_admin_can_be_assigned")
             )
         return value
     
@@ -167,7 +168,7 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
             
             if existing:
                 raise serializers.ValidationError(
-                    "User already has this role assigned"
+                    ROLE_ERRORS.get("role_already_assigned")
                 )
         
         return attrs
@@ -232,11 +233,11 @@ class UserRoleAssignmentSerializer(serializers.Serializer):
             user = User.objects.get(id=value)
             if not user.is_staff or not user.is_admin_active:
                 raise serializers.ValidationError(
-                    "Only admin users can be assigned admin roles"
+                    ROLE_ERRORS.get("role_only_admin_can_be_assigned")
                 )
             return value
         except User.DoesNotExist:
-            raise serializers.ValidationError("User not found")
+            raise serializers.ValidationError(ROLE_ERRORS.get("user_not_found"))
     
     def validate_role_ids(self, value):
         """Validate all roles exist and are active"""
@@ -247,7 +248,7 @@ class UserRoleAssignmentSerializer(serializers.Serializer):
         missing_roles = set(value) - set(existing_roles)
         if missing_roles:
             raise serializers.ValidationError(
-                "Invalid role IDs: {}".format(', '.join(map(str, missing_roles)))
+                ROLE_ERRORS.get("role_invalid_ids")
             )
         
         return value

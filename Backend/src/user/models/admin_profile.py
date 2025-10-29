@@ -64,6 +64,7 @@ class AdminProfile(BaseModel):
     phone = models.CharField(
         max_length=15, 
         null=True, blank=True,
+        unique=True,  # اضافه کردن unique constraint
         db_index=True,  # اضافه کردن index برای performance
         verbose_name="Phone Number", 
         help_text="Admin's additional phone number (different from mobile for authentication)"

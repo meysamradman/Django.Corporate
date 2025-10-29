@@ -1,16 +1,17 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
+
+from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.models import Province, City
 from src.user.serializers.location_serializer import (
     ProvinceSerializer, ProvinceDetailSerializer,
     CitySerializer, CityDetailSerializer
 )
-from src.core.responses.response import APIResponse
+from src.core.responses import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
-from src.user.messages.messages import AUTH_SUCCESS, AUTH_ERRORS
+
 
 
 class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -275,7 +276,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         
         if not province_id:
             return APIResponse.error(
-                message="شناسه استان الزامی است",
+                message=AUTH_ERRORS.get("auth_validation_error"),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         

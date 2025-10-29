@@ -7,7 +7,8 @@ const ERROR_MESSAGES = {
   validation: "خطا در اعتبارسنجی اطلاعات",
   timeout: "زمان اتصال به پایان رسید",
   database: "خطای پایگاه داده",
-  unknownError: "خطای نامشخص. لطفاً دوباره تلاش کنید"
+  unknownError: "خطای نامشخص. لطفاً دوباره تلاش کنید",
+  otpSendFailed: "خطا در ارسال کد یکبار مصرف"
 } as const;
 
 // Auth Messages
@@ -17,7 +18,9 @@ const AUTH_MESSAGES = {
   loginFailed: "ورود ناموفق",
   invalidCredentials: "نام کاربری یا رمز عبور اشتباه است",
   sessionExpired: "جلسه کاری منقضی شده است",
-  accessDenied: "دسترسی غیر مجاز"
+  accessDenied: "دسترسی غیر مجاز",
+  otpSent: "کد یکبار مصرف ارسال شد",
+  otpSendFailed: "خطا در ارسال کد یکبار مصرف"
 } as const;
 
 // Validation Messages
@@ -43,6 +46,10 @@ const VALIDATION_MESSAGES = {
   passwordNumber: "رمز عبور باید حداقل یک عدد داشته باشد",
   passwordSpecial: "رمز عبور باید حداقل یک کاراکتر ویژه داشته باشد (!@#$%^&*)",
   
+  // Login Form
+  captchaRequired: "کپچا الزامی است",
+  otpRequired: "کد یکبار مصرف الزامی است",
+  
   // National ID
   nationalIdRequired: "کد ملی الزامی است",
   nationalIdLength: "کد ملی باید ۱۰ رقم باشد",
@@ -65,6 +72,8 @@ const VALIDATION_MESSAGES = {
   phoneMaxLength: "تلفن نباید بیشتر از ۱۵ کاراکتر باشد",
   provinceMaxLength: "نام استان نباید بیشتر از ۱۰۰ کاراکتر باشد",
   cityMaxLength: "نام شهر نباید بیشتر از ۱۰۰ کاراکتر باشد",
+  provinceRequired: "انتخاب استان الزامی است",
+  cityRequired: "انتخاب شهر الزامی است",
   passwordComplexity: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
   
   // Portfolio
@@ -103,7 +112,8 @@ const VALIDATION_MESSAGES = {
   auth_email_invalid: "ایمیل معتبر نیست",
   national_id_exists: "کد ملی قبلاً توسط کاربر دیگری استفاده شده است",
   first_name_required: "نام الزامی است",
-  last_name_required: "نام خانوادگی الزامی است"
+  last_name_required: "نام خانوادگی الزامی است",
+  
 } as const;
 
 // Common UI Messages (برای loading، confirm، etc.)

@@ -6,8 +6,8 @@ from src.user.models import UserProfile
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Create UserProfile only for regular users (user_type='user')"""
-    if created and instance.user_type == 'user' and not instance.is_staff:
+    """Create UserProfile only for regular users (user_type='regular')"""
+    if created and instance.user_type == 'regular' and not instance.is_staff:
         # Only create UserProfile for regular users
         try:
             UserProfile.objects.get_or_create(user=instance)
@@ -19,7 +19,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def save_user_profile(sender, instance, **kwargs):
     """Save UserProfile for regular users only"""
-    if instance.user_type == 'user' and not instance.is_staff:
+    if instance.user_type == 'regular' and not instance.is_staff:
         if not hasattr(instance, 'user_profile'):
             try:
                 UserProfile.objects.get_or_create(user=instance)

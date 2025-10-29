@@ -4,19 +4,20 @@ from datetime import datetime
 from src.user.models import User, AdminRole
 from src.user.messages import AUTH_ERRORS
 from src.media.models import ImageMedia
-from src.user.serializers.base_management_serializer import BaseUserListSerializer, BaseUserDetailSerializer, BaseUserFilterSerializer
-from src.user.serializers.base_profile_serializer import AdminProfileSerializer, AdminProfileUpdateSerializer
+from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
+from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer, AdminProfileUpdateSerializer
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
 from django.db.models import Q
 
-class AdminListSerializer(BaseUserListSerializer):
+class AdminListSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()  # Dynamic profile field
     permissions = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()  # Add roles field
     
-    class Meta(BaseUserListSerializer.Meta):
+    class Meta:
+        model = User
         fields = ['id', 'public_id', 'full_name', 'mobile', 'email', 'is_active', 'is_staff', 'is_superuser', 
                  'created_at', 'updated_at', 'profile', 'permissions', 'roles']
     
@@ -27,7 +28,6 @@ class AdminListSerializer(BaseUserListSerializer):
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
         # ✅ REGULAR USER: Get user_profile  
         elif obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
-            from src.user.serializers.base_profile_serializer import UserProfileSerializer
             return UserProfileSerializer(obj.user_profile, context=self.context).data
         # ✅ NO PROFILE: Return None
         return None
@@ -106,12 +106,13 @@ class AdminListSerializer(BaseUserListSerializer):
             'has_permissions': len(assigned_roles) > 0
         }
 
-class AdminDetailSerializer(BaseUserDetailSerializer):
+class AdminDetailSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()  # Dynamic profile field
     permissions = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     
-    class Meta(BaseUserDetailSerializer.Meta):
+    class Meta:
+        model = User
         fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
                  'created_at', 'updated_at', 'profile', 'full_name', 'permissions']
     
@@ -122,7 +123,6 @@ class AdminDetailSerializer(BaseUserDetailSerializer):
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
         # ✅ REGULAR USER: Get user_profile  
         elif obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
-            from src.user.serializers.base_profile_serializer import UserProfileSerializer
             return UserProfileSerializer(obj.user_profile, context=self.context).data
         # ✅ NO PROFILE: Return None
         return None
@@ -269,7 +269,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.media.models import ImageMedia
             image_media = ImageMedia.objects.get(id=value, is_active=True)
             return value
         except ImageMedia.DoesNotExist:
@@ -282,7 +281,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             user_id = self.context.get('user_id')
             try:
                 validate_email_address(value)
-                from django.db.models import Q
                 if User.objects.filter(~Q(id=user_id), email=value).exists():
                     raise serializers.ValidationError(AUTH_ERRORS["auth_email_exists"])
             except ValidationError:
@@ -296,7 +294,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             user_id = self.context.get('user_id')
             try:
                 validate_mobile_number(value)
-                from django.db.models import Q
                 if User.objects.filter(~Q(id=user_id), mobile=value).exists():
                     raise serializers.ValidationError(AUTH_ERRORS["auth_mobile_exists"])
             except ValidationError:
@@ -310,7 +307,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         
         try:
             role_id = int(value)
-            from src.user.models import AdminRole
             # Check if role exists and is active
             AdminRole.objects.get(id=role_id, is_active=True)
             return role_id
@@ -346,7 +342,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         
         if user_id:
             try:
-                from src.user.models import User
                 user = User.objects.get(id=user_id)
                 print(f">>>>> User found: {user.id}, has admin_profile: {hasattr(user, 'admin_profile')}")
                 
@@ -361,9 +356,9 @@ class AdminUpdateSerializer(serializers.Serializer):
                         print(f">>>>> Admin profile national_id: {user.admin_profile.national_id}")
                         
                         # Create a temporary serializer to validate with proper instance
-                        # Make sure user_id is in the context for national_id validation
+                        # Make sure admin_user_id is in the context for national_id validation
                         context_with_user_id = self.context.copy()
-                        context_with_user_id['user_id'] = user_id
+                        context_with_user_id['admin_user_id'] = user_id
                         temp_serializer = AdminProfileUpdateSerializer(
                             instance=user.admin_profile,
                             data=profile_data,
@@ -414,7 +409,7 @@ class AdminUpdateSerializer(serializers.Serializer):
             print(f">>>>> STEP 5: Error type: {type(e)}")
             raise e
 
-class AdminFilterSerializer(BaseUserFilterSerializer):
+class AdminFilterSerializer(serializers.Serializer):
     user_type = serializers.ChoiceField(
         choices=['all', 'admin', 'user'],
         default='all',

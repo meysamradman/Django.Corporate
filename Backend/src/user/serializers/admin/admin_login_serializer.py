@@ -1,31 +1,54 @@
 from rest_framework import serializers
-from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.messages import AUTH_ERRORS
-from ..base_login_serializer import BaseLoginSerializer
+from src.user.utils.mobile_validator import validate_mobile_number
 
 
-class AdminLoginSerializer(BaseLoginSerializer):
+class AdminLoginSerializer(serializers.Serializer):
     """
-    Serializer مخصوص ورود ادمین - فقط موبایل (نه identifier)
+    سریالایزر برای ورود ادمین
     """
-    # Fields specific to Admin login
     mobile = serializers.CharField(required=True)
-    
-    # Configuration برای Admin - override Base settings
-    use_identifier = False
-    require_captcha = True  # ادمین‌ها حتماً کپتچا دارند
-    login_field_name = 'mobile'
-    
-    # Override captcha fields to be required
+    password = serializers.CharField(required=True, write_only=True)
     captcha_id = serializers.CharField(required=True)
     captcha_answer = serializers.CharField(required=True)
+    otp_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate_mobile(self, value):
-        """Validate mobile number format"""
+        """اعتبارسنجی شماره موبایل"""
         if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_required", "Mobile number is required"))
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_required"))
         
         try:
-            return validate_mobile_number(value)
+            validated_mobile = validate_mobile_number(value)
+            return validated_mobile
         except Exception as e:
             raise serializers.ValidationError(str(e))
+
+    def validate(self, data):
+        """اعتبارسنجی داده‌ها"""
+        mobile = data.get('mobile')
+        password = data.get('password')
+        captcha_id = data.get('captcha_id')
+        captcha_answer = data.get('captcha_answer')
+        
+        if not mobile:
+            raise serializers.ValidationError({
+                'mobile': AUTH_ERRORS.get("auth_mobile_required")
+            })
+        
+        if not password:
+            raise serializers.ValidationError({
+                'password': AUTH_ERRORS.get("auth_password_required")
+            })
+            
+        if not captcha_id:
+            raise serializers.ValidationError({
+                'captcha_id': AUTH_ERRORS.get("auth_captcha_id_required")
+            })
+            
+        if not captcha_answer:
+            raise serializers.ValidationError({
+                'captcha_answer': AUTH_ERRORS.get("auth_captcha_answer_required")
+            })
+        
+        return data

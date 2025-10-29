@@ -142,13 +142,6 @@ export function showErrorToast(error: unknown, customMessage?: string): void {
 
     toast.error(getUIMessage('error'), {
         description: message,
-        classNames: {
-            toast: 'bg-white border-red-200 dark:bg-gray-800 dark:border-red-700',
-            title: '!text-red-600 dark:!text-red-400',
-            description: '!text-red-700 dark:!text-red-400',
-            icon: '!stroke-red-500 dark:!stroke-red-400',
-            closeButton: 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700',
-        }
     });
 }
 
@@ -160,13 +153,6 @@ export function showSuccessToast(message: string): void {
 
     toast.success(getUIMessage('success'), {
         description: message,
-        classNames: {
-            toast: 'bg-white border-green-200 dark:bg-gray-800 dark:border-green-700',
-            title: '!text-green-600 dark:!text-green-400',
-            description: '!text-green-700 dark:!text-green-400',
-            icon: '!stroke-green-500 dark:!stroke-green-400',
-            closeButton: 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700',
-        }
     });
 }
 
@@ -178,15 +164,8 @@ export function showValidationToast(validationKey: keyof typeof import('@/core/m
 
     const message = getValidationMessage(validationKey, params);
     
-    toast.error(getErrorMessage('validation'), {
+    toast.warning(getErrorMessage('validation'), {
         description: message,
-        classNames: {
-            toast: 'bg-white border-orange-200 dark:bg-gray-800 dark:border-orange-700',
-            title: '!text-orange-600 dark:!text-orange-400',
-            description: '!text-orange-700 dark:!text-orange-400', 
-            icon: '!stroke-orange-500 dark:!stroke-orange-400',
-            closeButton: 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700',
-        }
     });
 }
 

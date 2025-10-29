@@ -33,7 +33,6 @@ export default function RootLayout({
                 <AuthProvider>
                     {children}
                     <Toaster
-                        className={fontPersian.className}
                         position="top-right"
                         closeButton
                         duration={4000}

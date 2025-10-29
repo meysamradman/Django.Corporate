@@ -1,95 +1,97 @@
-import os
-import os
-from django.contrib.auth import authenticate, login
-from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from src.core.security.captcha import CaptchaRequiredMixin
-from src.core.security.throttling import AdminLoginThrottle
-from src.user.serializers.schema.admin_login_schema import admin_login_schema
-from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
+from rest_framework.parsers import JSONParser
+from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
+from src.core.responses import APIResponse
 from src.user.serializers.admin.admin_login_serializer import AdminLoginSerializer
+from src.user.services.admin.admin_auth_service import AdminAuthService
+from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
+from django.middleware.csrf import get_token
+from src.core.security.captcha.services import CaptchaService
+from src.core.security.captcha.messages import CAPTCHA_ERRORS
+from src.core.security.throttling import AdminLoginThrottle
+import os
 
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class AdminLoginView(CaptchaRequiredMixin, APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = [SessionAuthentication]
-    throttle_classes = [AdminLoginThrottle]
+@method_decorator(csrf_exempt, name='dispatch')
+class AdminLoginView(APIView):
+    authentication_classes = [CSRFExemptSessionAuthentication]
+    permission_classes = []
+    throttle_classes = [AdminLoginThrottle]  # اضافه کردن throttling برای امنیت بیشتر
+    parser_classes = [JSONParser]
 
-    @admin_login_schema
+    def get(self, request):
+        """دریافت CSRF token برای فرم ورود"""
+        csrf_token = get_token(request)
+        return APIResponse.success(
+            message="CSRF token generated successfully",
+            data={'csrf_token': csrf_token}
+        )
+
     def post(self, request):
-        # Validate CAPTCHA first for admin login
-        captcha_error = self.captcha_required(request.data)
-        if captcha_error:
-            return captcha_error
-            
+        """ورود ادمین"""
         serializer = AdminLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            mobile = serializer.validated_data['mobile']
+        
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_validation_error"],
+                errors=serializer.errors
+            )
+            
+        try:
+            mobile = serializer.validated_data.get('mobile')
             password = serializer.validated_data.get('password')
-            login_type = serializer.validated_data.get('login_type', 'password')
-
-            try:
-                # Admin login only with mobile number
-                try:
-                    user_to_auth = User.objects.get(
-                        mobile=mobile, 
-                        is_staff=True,
-                        user_type='admin',
-                        is_admin_active=True
-                    )
-                except User.DoesNotExist:
-                    raise AuthenticationFailed(AUTH_ERRORS["auth_invalid_credentials"])
-                except User.MultipleObjectsReturned:
-                    raise AuthenticationFailed(AUTH_ERRORS["auth_invalid_credentials"])
-
-                # Handle different login types
-                if login_type == 'password':
-                    user = authenticate(request, username=user_to_auth.mobile, password=password)
-                elif login_type == 'otp':
-                    # OTP verification would happen here
-                    # For now, we'll assume OTP is verified
-                    otp = serializer.validated_data.get('otp')
-                    # TODO: Implement OTP verification
-                    user = user_to_auth  # Placeholder
-                else:
-                    raise AuthenticationFailed(AUTH_ERRORS["auth_invalid_login_type"])
-
-                if user is not None and user.is_staff and user.has_admin_access():
-                    if user.is_active:
-                        login(request, user)
-                        # Set proper session cookie expiration
-                        request.session.set_expiry(int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
-                        # Remove csrf_token from response for security
-                        response_data = {
-                            "user": {
-                                "id": user.id,
-                                "mobile": user.mobile,
-                                "email": user.email,
-                                "is_staff": user.is_staff,
-                                "is_superuser": user.is_superuser,
-                            }
-                        }
-                        # Now using standard DRF Response - renderer will format it
-                        return Response(response_data, status=status.HTTP_200_OK)
-                    else:
-                        raise AuthenticationFailed(AUTH_ERRORS["auth_inactive_account"])
-
-            except AuthenticationFailed as e:
-                # Renderer will format this error response
-                return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-            except Exception as e:
-                # Renderer will format this error response
-                return Response({"detail": "Internal server error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # Renderer will format this validation error response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            captcha_id = serializer.validated_data.get('captcha_id')
+            captcha_answer = serializer.validated_data.get('captcha_answer')
+            otp_code = serializer.validated_data.get('otp_code')
+            
+            # Validate CAPTCHA - فعال کردن کپتچا برای امنیت بیشتر
+            if not CaptchaService.verify_captcha(captcha_id, captcha_answer):
+                return APIResponse.error(
+                    message=CAPTCHA_ERRORS.get("captcha_invalid"),
+                    status_code=400
+                )
+            
+            admin, session_key = AdminAuthService.authenticate_admin(
+                mobile=mobile,
+                password=password,
+                otp_code=otp_code,
+                request=request
+            )
+            
+            if admin:
+                # تنظیم کوکی session
+                response = APIResponse.success(
+                    message=AUTH_SUCCESS["auth_logged_in"],
+                    data={
+                        'user_id': admin.id,
+                        'is_superuser': admin.is_superuser
+                    }
+                )
+                
+                # تنظیم CSRF token فقط بعد از موفقیت‌آمیز بودن authentication
+                csrf_token = get_token(request)
+                response.set_cookie(
+                    'csrftoken',
+                    csrf_token,
+                    max_age=3600,  # 1 hour
+                    httponly=False,  # Frontend needs to read this
+                    samesite='Strict',
+                    secure=not os.getenv('DEBUG', 'True').lower() == 'true'
+                )
+                
+                # Debug: Check if session was created properly
+                print(f"DEBUG: Session created: {session_key}")
+                print(f"DEBUG: Session data: {request.session.get('_auth_user_id')}")
+                print(f"DEBUG: Session exists: {request.session.exists(session_key)}")
+                
+                return response
+            else:
+                return APIResponse.error(
+                    message=AUTH_ERRORS["auth_invalid_credentials"],
+                    status_code=401
+                )
+        except Exception as e:
+            return APIResponse.error(message=AUTH_ERRORS["auth_invalid_credentials"])

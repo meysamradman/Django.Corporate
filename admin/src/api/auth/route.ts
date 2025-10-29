@@ -4,6 +4,16 @@ import {AdminWithProfile} from '@/types/auth/admin';
 import {showErrorToast} from '@/core/config/errorHandler';
 
 export const authApi = {
+    getCSRFToken: async (): Promise<{csrf_token: string}> => {
+        try {
+            const response = await fetchApi.get<{csrf_token: string}>('/admin/login/');
+            return response.data;
+        } catch (error) {
+            showErrorToast(error, 'Failed to get CSRF token');
+            throw error;
+        }
+    },
+
     login: async (data: LoginRequest): Promise<LoginResponse> => {
         try {
             const response = await fetchApi.post<LoginResponse>('/admin/login/', data);

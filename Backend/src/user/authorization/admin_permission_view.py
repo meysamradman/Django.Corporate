@@ -1,14 +1,14 @@
 from rest_framework import viewsets, status
-from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication
+from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.cache import cache
 
 from src.core.responses import APIResponse
 from src.user.models import AdminRole, AdminUserRole, User
+from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from .admin_permission import (
     SuperAdminOnly,
     require_admin_roles,
@@ -27,7 +27,7 @@ class AdminPermissionView(viewsets.ViewSet):
     High-performance implementation for Django 5.2.6
     Located in authorization module for better organization
     """
-    authentication_classes = [SessionAuthentication]
+    authentication_classes = [CSRFExemptSessionAuthentication]
     
     def get_permissions(self):
         """Dynamic permission assignment based on action"""
@@ -55,7 +55,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             if not user_id:
                 return APIResponse.error(
-                    message="user_id is required",
+                    message=AUTH_ERRORS.get("auth_validation_error"),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -64,7 +64,7 @@ class AdminPermissionView(viewsets.ViewSet):
             # Check if user is admin
             if not user.is_admin_active:
                 return APIResponse.success(
-                    message="Permission check completed",
+                    message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
                     data={
                         'user_id': user_id,
                         'has_permission': False,
@@ -75,7 +75,7 @@ class AdminPermissionView(viewsets.ViewSet):
             # Super admin always has access
             if user.is_admin_full:
                 return APIResponse.success(
-                    message="Permission check completed",
+                    message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
                     data={
                         'user_id': user_id,
                         'has_permission': True,
@@ -89,7 +89,7 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
             return APIResponse.success(
-                message="Permission check completed",
+                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
                 data={
                     'user_id': user_id,
                     'has_permission': has_permission,
@@ -99,13 +99,13 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except User.DoesNotExist:
             return APIResponse.error(
-                message="User not found",
+                message=AUTH_ERRORS.get("auth_user_not_found"),
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             logger.error(f"Error checking permission: {e}")
             return APIResponse.error(
-                message="Failed to check permission",
+                message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -117,7 +117,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             if not user_id:
                 return APIResponse.error(
-                    message="user_id parameter is required",
+                    message=AUTH_ERRORS.get("auth_validation_error"),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -140,7 +140,7 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
             return APIResponse.success(
-                message="User permissions retrieved successfully",
+                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
                 data={
                     'user_id': user_id,
                     'user_email': user.email,
@@ -154,13 +154,13 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except User.DoesNotExist:
             return APIResponse.error(
-                message="User not found",
+                message=AUTH_ERRORS.get("auth_user_not_found"),
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             logger.error(f"Error getting user permissions: {e}")
             return APIResponse.error(
-                message="Failed to retrieve user permissions",
+                message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -169,14 +169,14 @@ class AdminPermissionView(viewsets.ViewSet):
         """Get list of available modules in the system"""
         try:
             return APIResponse.success(
-                message="Available modules retrieved successfully",
+                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
                 data=AVAILABLE_MODULES
             )
             
         except Exception as e:
             logger.error(f"Error getting available modules: {e}")
             return APIResponse.error(
-                message="Failed to retrieve available modules",
+                message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -185,14 +185,14 @@ class AdminPermissionView(viewsets.ViewSet):
         """Get list of available actions in the system"""
         try:
             return APIResponse.success(
-                message="Available actions retrieved successfully",
+                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
                 data=AVAILABLE_ACTIONS
             )
             
         except Exception as e:
             logger.error(f"Error getting available actions: {e}")
             return APIResponse.error(
-                message="Failed to retrieve available actions",
+                message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

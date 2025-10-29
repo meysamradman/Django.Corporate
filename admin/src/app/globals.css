@@ -2,6 +2,76 @@
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 
+/* Sonner Toast Colors - استفاده از @theme inline colors */
+.success-toast {
+  background-color: #22c55e !important; /* سبز روشن‌تر */
+  color: white !important;
+  border-color: #16a34a !important;
+}
+
+/* اطمینان از سفید بودن نوشته در success toast */
+.success-toast * {
+  color: white !important;
+}
+
+.success-toast [data-title] {
+  color: white !important;
+}
+
+.success-toast [data-description] {
+  color: white !important;
+}
+
+.error-toast {
+  background-color: var(--color-destructive) !important; /* از @theme inline */
+  color: white !important; /* همیشه سفید برای contrast بهتر */
+  border-color: var(--color-destructive) !important;
+}
+
+.warning-toast {
+  background-color: #f59e0b !important; /* نارنجی - ثابت */
+  color: white !important;
+  border-color: #d97706 !important;
+}
+
+.info-toast {
+  background-color: var(--color-primary) !important; /* از @theme inline */
+  color: white !important; /* همیشه سفید برای contrast بهتر */
+  border-color: var(--color-primary) !important;
+}
+
+.loading-toast {
+  background-color: var(--color-muted-foreground) !important; /* از @theme inline */
+  color: white !important;
+  border-color: var(--color-muted-foreground) !important;
+}
+
+/* Dark mode support برای success و warning */
+.dark .success-toast {
+  background-color: #16a34a !important; /* سبز روشن‌تر در dark mode */
+  color: white !important;
+  border-color: #15803d !important;
+}
+
+/* اطمینان از سفید بودن نوشته در dark mode success toast */
+.dark .success-toast * {
+  color: white !important;
+}
+
+.dark .success-toast [data-title] {
+  color: white !important;
+}
+
+.dark .success-toast [data-description] {
+  color: white !important;
+}
+
+.dark .warning-toast {
+  background-color: #d97706 !important; /* نارنجی تیره‌تر در dark mode */
+  color: white !important;
+  border-color: #b45309 !important;
+}
+
 :root {
   --radius: 0.625rem;
   --background: #f6f8fa;

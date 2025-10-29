@@ -167,7 +167,8 @@ class Portfolio(BaseModel, SEOMixin):
     
     def generate_structured_data(self):
         """Override SEOMixin to provide portfolio-specific structured data with caching"""
-        cache_key = f"portfolio_structured_data_{self.pk}"
+        from src.portfolio.utils.cache import PortfolioCacheKeys
+        cache_key = PortfolioCacheKeys.structured_data(self.pk)
         structured_data = cache.get(cache_key)
         
         if structured_data is None:
@@ -225,9 +226,10 @@ class Portfolio(BaseModel, SEOMixin):
         
         super().save(*args, **kwargs)
         
-        # Clear related caches
-        cache.delete(f"portfolio_main_image_{self.pk}")
-        cache.delete(f"portfolio_structured_data_{self.pk}")  # Clear structured data cache on save
+        # Clear related caches using standardized keys
+        from src.portfolio.utils.cache import PortfolioCacheKeys
+        cache.delete(PortfolioCacheKeys.main_image(self.pk))
+        cache.delete(PortfolioCacheKeys.structured_data(self.pk))
         cache.delete(f"portfolio_schema_{self.pk}")  # Clear schema cache on save
         cache.delete(f"portfolio_seo_preview_{self.pk}")  # Clear SEO preview cache
         cache.delete(f"portfolio_seo_data_{self.pk}")  # Clear SEO data cache

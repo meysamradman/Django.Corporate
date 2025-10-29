@@ -5,7 +5,7 @@ from src.core.responses import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.auth.user_cookies import UserCookie
 from src.user.serializers.user.user_register_serializer import UserRegisterSerializer
-from src.user.services import BaseRegisterService
+from src.user.services.user.user_register_service import UserRegisterService
 
 
 class UserRegisterView(APIView):
@@ -18,11 +18,11 @@ class UserRegisterView(APIView):
             password = serializer.validated_data["password"]
 
             try:
-                user = BaseRegisterService.register_user_from_serializer(
+                user = UserRegisterService.register_user_from_serializer(
                     validated_data=serializer.validated_data,
                     admin_user=None
                 )
-                tokens = BaseRegisterService.get_tokens(user)
+                tokens = UserRegisterService.get_tokens(user)
 
                 response_data = {
                     "user": {
@@ -46,7 +46,7 @@ class UserRegisterView(APIView):
 
             except ValidationError as e:
                 return APIResponse.error(
-                    message=str(e),
+                    message=AUTH_ERRORS["auth_validation_error"],
                     status_code=400,
                 )
 

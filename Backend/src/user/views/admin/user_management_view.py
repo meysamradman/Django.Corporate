@@ -1,13 +1,11 @@
-from rest_framework.exceptions import PermissionDenied, NotFound
-from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.contrib.auth import get_user_model
-from django.http import Http404
-
+from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses import APIResponse
-from src.user.views.base_management_view import BaseManagementView
 from src.user.serializers.admin.user_management_serializer import (
     UserListSerializer,
     UserDetailSerializer,
@@ -15,14 +13,11 @@ from src.user.serializers.admin.user_management_serializer import (
     UserFilterSerializer,
     BulkDeleteSerializer
 )
-from src.user.serializers.admin.admin_register_serializer import UserRegisterByAdminSerializer
-from src.user.services import BaseManagementService
+from src.user.serializers.admin.admin_register_serializer import AdminCreateRegularUserSerializer
+from src.user.services.admin.user_management_service import UserManagementService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
-from django.core.exceptions import ValidationError
 from src.user.models import User
 from src.user.auth.auth_mixin import UserAuthMixin
-from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from django.middleware.csrf import get_token
 from src.user.authorization import (
     AdminRolePermission,
     UserManagementPermission,
@@ -31,49 +26,40 @@ from src.user.authorization import (
     SuperAdminOnly,
     UserManagerAccess
 )
+from src.core.pagination.pagination import StandardLimitPagination
+# Throttling removed for admin operations - admins can work freely
 
-# User model is imported from models
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class UserManagementView(UserAuthMixin, BaseManagementView):
+class UserManagementView(UserAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    serializer_class = UserDetailSerializer
-    service_class = BaseManagementService
-    filter_serializer_class = UserFilterSerializer
-    create_serializer_class = UserRegisterByAdminSerializer
-    update_serializer_class = UserUpdateSerializer
-    bulk_delete_serializer_class = BulkDeleteSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = StandardLimitPagination
+    # No throttling for admin operations - admins can work freely
 
     def get_permissions(self):
-        """Dynamic permission assignment based on HTTP method"""
-        # Use SimpleAdminPermission for now to fix immediate issues
+        """دسترسی بر اساس action - مدیریت کاربران عادی"""
+        # برای مدیریت کاربران عادی، فقط ادمین‌ها دسترسی دارند
         return [SimpleAdminPermission()]
 
-    def check_admin_permission(self):
-        if not self.current_user.is_staff:
-            raise PermissionDenied(AUTH_ERRORS["auth_not_authorized"])
-
     def get(self, request, user_id=None):
-        """Get regular users with AdminRole-based permissions"""
+        """دریافت لیست کاربران یا جزئیات یک کاربر"""
         try:
-            self.check_admin_permission()
-            
             if user_id:
                 try:
-                    user = self.service_class.get_user_detail(user_id)
-                    # Ensure it's a regular user
+                    user = UserManagementService.get_user_detail(user_id)
+                    # اطمینان از اینکه کاربر معمولی است
                     if user.is_staff:
-                        raise NotFound("Admin user not found in user management")
+                        raise NotFound(AUTH_ERRORS["not_found"])
                     serializer = UserDetailSerializer(user, context={'request': request})
                     return APIResponse.success(
                         message=AUTH_SUCCESS["user_retrieved_successfully"],
                         data=serializer.data
                     )
                 except Exception as e:
-                    return APIResponse.error(message=str(e))
+                    return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
-            # Filter validation
-            filter_serializer = self.filter_serializer_class(data=request.query_params)
+            filter_serializer = UserFilterSerializer(data=request.query_params)
             if not filter_serializer.is_valid():
                 return APIResponse.error(
                     message=AUTH_ERRORS["auth_validation_error"],
@@ -84,19 +70,13 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
             search_value = validated_filters.get('search')
             is_active_filter = validated_filters.get('is_active')
 
-            # Force user_type to 'user' for regular users
-            user_type = 'user'
-
-            # Call the service method with better error handling
             try:
-                users_data = self.service_class.get_users_list(
+                users_data = UserManagementService.get_users_list(
                     search=search_value,
                     is_active=is_active_filter,
-                    user_type=user_type,
                     request=request
                 )
                 
-                # Handle different data structures from service
                 if isinstance(users_data, dict) and 'users' in users_data:
                     users = users_data['users']
                 elif isinstance(users_data, tuple) and len(users_data) == 2:
@@ -104,14 +84,11 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                 else:
                     users = users_data
                 
-                # Get paginated users using the standard pagination class
                 paginator = self.pagination_class()
                 paginated_users = paginator.paginate_queryset(users, request)
                 
-                # Serialize the paginated users
                 serializer = UserListSerializer(paginated_users, many=True, context={'request': request})
                 
-                # Return paginated response using DRF's standard pagination response
                 return paginator.get_paginated_response(serializer.data)
             except Exception as e:
                 return APIResponse.error(
@@ -121,7 +98,7 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                 
         except PermissionDenied as e:
             return APIResponse.error(
-                message=str(e),
+                message=AUTH_ERRORS["auth_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         except Exception as e:
@@ -132,36 +109,32 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
 
     @staticmethod
     def get_by_public_id(request, public_id=None):
-        """Get a user by public_id"""
+        """دریافت کاربر بر اساس public_id"""
         try:
-            user = BaseManagementService.get_user_by_public_id(public_id)
-            # Ensure it's a regular user
+            user = UserManagementService.get_user_by_public_id(public_id)
+            # اطمینان از اینکه کاربر معمولی است
             if user.is_staff:
-                raise NotFound("Admin user not found in user management")
+                raise NotFound(AUTH_ERRORS["not_found"])
             serializer = UserDetailSerializer(user, context={'request': request})
             return APIResponse.success(
                 message=AUTH_SUCCESS["user_retrieved_successfully"],
                 data=serializer.data
             )
         except Exception as e:
-            return APIResponse.error(message=str(e))
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def post(self, request, *args, **kwargs):
-        """
-        POST handling logic that delegates to appropriate handlers.
-        This is a router method that calls different methods based on the action parameter.
-        """
+        """مدیریت درخواست‌های POST - ایجاد کاربر یا حذف دسته‌ای"""
         bulk_action = kwargs.get('action')
         
         if bulk_action == 'bulk-delete':
             return self.bulk_delete_post(request)
         else:
-            # Default case - create a new regular user
             return self.create_user_post(request)
 
     def create_user_post(self, request):
-        """Handle POST request to create a new regular user"""
-        serializer = self.create_serializer_class(data=request.data, context={'admin_user': request.user})
+        """مدیریت درخواست POST برای ایجاد کاربر جدید"""
+        serializer = AdminCreateRegularUserSerializer(data=request.data, context={'admin_user': request.user})
         
         if not serializer.is_valid():
             return APIResponse.error(
@@ -170,68 +143,64 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
             )
             
         try:
-            # Use BaseRegisterService for creating regular users
-            from src.user.services import BaseRegisterService
-            user = BaseRegisterService.register_user_from_serializer(
+            # استفاده از سرویس ثبت‌نام کاربر
+            from src.user.services.user.user_register_service import UserRegisterService
+            user = UserRegisterService.register_user_from_serializer(
                 validated_data=serializer.validated_data,
                 admin_user=request.user
             )
             
-            # Refresh user to get updated profile data
             user.refresh_from_db()
             
-            # Return serialized user data
-            response_serializer = self.serializer_class(user, context={'request': request})
+            response_serializer = UserDetailSerializer(user, context={'request': request})
             return APIResponse.success(
                 message=AUTH_SUCCESS["user_created_successfully"],
                 data=response_serializer.data
             )
         except Exception as e:
-            return APIResponse.error(message=str(e))
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error creating user: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def bulk_delete_post(self, request):
-        """Handle bulk deletion of users via POST"""
-        # Validate incoming data
-        serializer = self.bulk_delete_serializer_class(data=request.data)
+        """مدیریت حذف دسته‌ای کاربران"""
+        serializer = BulkDeleteSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_validation_error"],
                 errors=serializer.errors
             )
             
-        # Extract user IDs to delete
         user_ids = serializer.validated_data.get('ids', [])
         
         try:
-            # Call service to perform bulk deletion
-            deleted_count = self.service_class.bulk_delete_users(user_ids, admin_user=request.user)
+            deleted_count = UserManagementService.bulk_delete_users(user_ids, admin_user=request.user)
             
             return APIResponse.success(
                 message=AUTH_SUCCESS["users_deleted_successfully"].format(count=deleted_count),
                 data={'deleted_count': deleted_count}
             )
         except Exception as e:
-            return APIResponse.error(message=str(e))
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def put(self, request, user_id):
-        """Handles updating a regular user, including profile data and picture."""
+        """مدیریت به‌روزرسانی کاربر"""
         try:
-            self.check_admin_permission()
-            
-            # Get the user and ensure it's a regular user
-            user = self.service_class.get_user_detail(user_id)
+            user = UserManagementService.get_user_detail(user_id)
             if user.is_staff:
                 return APIResponse.error(
                     message=AUTH_ERRORS["cannot_update_admin_user"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Check national_id uniqueness before serializer validation
             profile_data = request.data.get('profile', {})
             national_id = profile_data.get('national_id')
             if national_id:
                 from src.user.models import UserProfile
-                # Check if this national_id already exists for another user
                 existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(user_id=user_id).first()
                 if existing_profile:
                     return APIResponse.error(
@@ -239,50 +208,46 @@ class UserManagementView(UserAuthMixin, BaseManagementView):
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
             
-            serializer = self.update_serializer_class(
-                instance=user,  # ⭐ این خط مهمه! Django باید بفهمه داره update می‌کنه
+            serializer = UserUpdateSerializer(
+                instance=user,
                 data=request.data, 
                 context={'user_id': user_id, 'admin_user': request.user, 'request': request}
             )
             
             if not serializer.is_valid():
+                # Debug: Log validation errors
+                print(f"🔍 UserUpdateSerializer validation errors: {serializer.errors}")
                 return APIResponse.error(
                     message=AUTH_ERRORS["auth_validation_error"],
                     errors=serializer.errors
                 )
             
-            # Update the user
-            updated_user = self.service_class.update_user(user_id, serializer.validated_data, request.user)
+            updated_user = UserManagementService.update_user(user_id, serializer.validated_data, request.user)
             
-            # Return updated user data
-            response_serializer = self.serializer_class(updated_user, context={'request': request})
+            response_serializer = UserDetailSerializer(updated_user, context={'request': request})
             return APIResponse.success(
                 message=AUTH_SUCCESS["user_updated_successfully"],
                 data=response_serializer.data
             )
             
         except Exception as e:
-            return APIResponse.error(message=str(e))
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def delete(self, request, user_id):
-        """Delete a regular user"""
+        """حذف کاربر"""
         try:
-            self.check_admin_permission()
-            
-            # Get the user and ensure it's a regular user
-            user = self.service_class.get_user_detail(user_id)
+            user = UserManagementService.get_user_detail(user_id)
             if user.is_staff:
                 return APIResponse.error(
                     message=AUTH_ERRORS["cannot_delete_admin_user"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Delete the user
-            self.service_class.delete_user(user_id, admin_user=request.user)
+            UserManagementService.delete_user(user_id, admin_user=request.user)
             
             return APIResponse.success(
                 message=AUTH_SUCCESS["user_deleted_successfully"]
             )
             
         except Exception as e:
-            return APIResponse.error(message=str(e))
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])

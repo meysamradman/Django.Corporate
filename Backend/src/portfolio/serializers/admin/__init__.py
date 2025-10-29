@@ -5,6 +5,7 @@ from .portfolio_serializer import (
     PortfolioAdminCreateSerializer,
     PortfolioAdminUpdateSerializer
 )
+from .media_serializer import PortfolioMediaSerializer
 from .option_serializer import (
     PortfolioOptionAdminSerializer,
     PortfolioOptionAdminListSerializer,
@@ -38,6 +39,7 @@ __all__ = [
     'PortfolioAdminDetailSerializer', 
     'PortfolioAdminCreateSerializer',
     'PortfolioAdminUpdateSerializer',
+    'PortfolioMediaSerializer',
     
     # Category Serializers
     'PortfolioCategoryAdminSerializer',  # Backward compatibility

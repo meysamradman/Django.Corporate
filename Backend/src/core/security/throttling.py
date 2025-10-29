@@ -38,6 +38,33 @@ class AdminLoginThrottle(AnonRateThrottle):
         return super().throttle_failure()
 
 
+class UserLoginThrottle(AnonRateThrottle):
+    """
+    Throttling for regular user login attempts
+    Less restrictive than admin login
+    """
+    scope = 'user_login'
+    
+    def get_cache_key(self, request, view):
+        """
+        Generate cache key based on IP address for user login
+        """
+        if request.user and request.user.is_authenticated:
+            # If user is already authenticated, don't throttle
+            return None
+            
+        # Use IP address for anonymous user login attempts
+        ident = self.get_ident(request)
+        return f"user_login_{self.scope}_{ident}"
+    
+    def throttle_failure(self):
+        """
+        Log failed throttling attempts for security monitoring
+        """
+        logger.warning(f"User login throttling triggered for IP: {self.get_ident(self.request)}")
+        return super().throttle_failure()
+
+
 class AdminAPIThrottle(UserRateThrottle):
     """
     Throttling for admin API endpoints
@@ -51,6 +78,70 @@ class AdminAPIThrottle(UserRateThrottle):
         """
         if request.user and request.user.is_authenticated and request.user.is_staff:
             return f"admin_api_{self.scope}_{request.user.id}"
+        return None
+
+
+class AdminManagementThrottle(UserRateThrottle):
+    """
+    Special throttling for admin management operations
+    More restrictive than regular admin API
+    """
+    scope = 'admin_management'
+    
+    def get_cache_key(self, request, view):
+        """
+        Generate cache key based on admin user ID for management operations
+        """
+        if request.user and request.user.is_authenticated and request.user.is_staff:
+            return f"admin_mgmt_{self.scope}_{request.user.id}"
+        return None
+
+
+class AdminUserCreationThrottle(UserRateThrottle):
+    """
+    Special throttling for user creation operations
+    Very restrictive to prevent spam user creation
+    """
+    scope = 'admin_user_creation'
+    
+    def get_cache_key(self, request, view):
+        """
+        Generate cache key based on admin user ID for user creation
+        """
+        if request.user and request.user.is_authenticated and request.user.is_staff:
+            return f"admin_user_create_{self.scope}_{request.user.id}"
+        return None
+
+
+class AdminBulkOperationThrottle(UserRateThrottle):
+    """
+    Special throttling for bulk operations (delete, update)
+    Reasonable limits for daily work
+    """
+    scope = 'admin_bulk_ops'
+    
+    def get_cache_key(self, request, view):
+        """
+        Generate cache key based on admin user ID for bulk operations
+        """
+        if request.user and request.user.is_authenticated and request.user.is_staff:
+            return f"admin_bulk_{self.scope}_{request.user.id}"
+        return None
+
+
+class AdminHeavyWorkThrottle(UserRateThrottle):
+    """
+    Throttling for heavy admin operations (reports, exports, etc.)
+    More lenient for legitimate heavy work
+    """
+    scope = 'admin_heavy_work'
+    
+    def get_cache_key(self, request, view):
+        """
+        Generate cache key based on admin user ID for heavy operations
+        """
+        if request.user and request.user.is_authenticated and request.user.is_staff:
+            return f"admin_heavy_{self.scope}_{request.user.id}"
         return None
 
 

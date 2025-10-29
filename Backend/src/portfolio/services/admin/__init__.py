@@ -2,6 +2,7 @@ from .category_services import PortfolioCategoryAdminService
 from .option_services import PortfolioOptionAdminService
 from .portfolio_services import PortfolioAdminService, PortfolioAdminStatusService, PortfolioAdminSEOService
 from .tag_services import PortfolioTagAdminService
+from .media_services import PortfolioAdminMediaService
 
 __all__ = [
     'PortfolioAdminService',
@@ -10,4 +11,5 @@ __all__ = [
     'PortfolioCategoryAdminService',
     'PortfolioOptionAdminService',
     'PortfolioTagAdminService',
+    'PortfolioAdminMediaService',
 ]

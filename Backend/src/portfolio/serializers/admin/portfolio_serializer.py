@@ -64,14 +64,16 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
 class PortfolioAdminListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for admin listing with SEO status and detailed media counts"""
     main_image = serializers.SerializerMethodField()
-    categories_count = serializers.SerializerMethodField()
-    tags_count = serializers.SerializerMethodField()
-    media_count = serializers.SerializerMethodField()
+    categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
+    
+    # Use annotated fields from queryset - no database queries!
+    media_count = serializers.IntegerField(source='total_media_count', read_only=True)
+    categories_count = serializers.IntegerField(read_only=True)
+    tags_count = serializers.IntegerField(read_only=True)
+    
     seo_status = serializers.SerializerMethodField()
     # Add media for display in list view
     media = serializers.SerializerMethodField()
-    # Add categories for display in list view
-    categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
     
     class Meta:
         model = Portfolio
@@ -87,119 +89,14 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_media(self, obj):
-        """Get all media for the portfolio with optimized queries for list view"""
-        try:
-            # Get main image ID to exclude it from media list
-            main_image_id = None
-            main_image_data = self.get_main_image(obj)
-            if main_image_data and 'id' in main_image_data:
-                main_image_id = main_image_data['id']
-            
-            # Use prefetch_related to reduce database queries if available
-            if hasattr(obj, 'images') and hasattr(obj, 'videos') and hasattr(obj, 'audios') and hasattr(obj, 'documents'):
-                # Use prefetched data if available
-                images = list(obj.images.all())
-                videos = list(obj.videos.all())
-                audios = list(obj.audios.all())
-                documents = list(obj.documents.all())
-            else:
-                # Fallback to database queries
-                images = list(obj.images.select_related('image').all())
-                videos = list(obj.videos.select_related('video').all())
-                audios = list(obj.audios.select_related('audio').all())
-                documents = list(obj.documents.select_related('document').all())
-            
-            # Combine all media with type information
-            all_media = images + videos + audios + documents
-            
-            # Filter out main image from media list
-            if main_image_id:
-                filtered_media = []
-                for m in all_media:
-                    # Check if this is the main image and skip it
-                    if hasattr(m, 'is_main') and m.is_main:
-                        continue
-                    if hasattr(m, 'image') and m.image and m.image.id == main_image_id:
-                        continue
-                    filtered_media.append(m)
-                all_media = filtered_media
-            
-            # Sort by order field, then by creation date
-            all_media.sort(key=lambda x: (getattr(x, 'order', 0), x.created_at))
-            
-            # Serialize all media (limit to first 5 for performance in list view)
-            media_list = []
-            for media in all_media[:5]:  # Limit to 5 items in list view
-                media_list.append(PortfolioMediaAdminSerializer(media, context=self.context).data)
-                
-            return media_list
-        except Exception:
-            return []
+        """Get media count for list view - lightweight"""
+        # For list view, we only need count, not detailed media
+        # The actual media details are loaded in detail view only
+        return []
 
     def get_main_image(self, obj):
-        """Get main image details by querying database directly"""
-        try:
-            # First try to get main image from PortfolioImage
-            main_image = obj.images.select_related('image').filter(is_main=True).first()
-            if main_image and main_image.image:
-                return {
-                    'id': main_image.image.id,
-                    'file_url': main_image.image.file.url if hasattr(main_image.image, 'file') and main_image.image.file else None,
-                    'title': main_image.image.title,
-                    'alt_text': main_image.image.alt_text
-                }
-            else:
-                # If no main image, try to get cover image from first video
-                video = obj.videos.select_related('video__cover_image').first()
-                if video and video.video.cover_image:
-                    cover_image = video.video.cover_image
-                    return {
-                        'id': cover_image.id,
-                        'file_url': cover_image.file.url if hasattr(cover_image, 'file') and cover_image.file else None,
-                        'title': cover_image.title,
-                        'alt_text': cover_image.alt_text
-                    }
-                else:
-                    # If no video cover, try to get cover image from first audio
-                    audio = obj.audios.select_related('audio__cover_image').first()
-                    if audio and audio.audio.cover_image:
-                        cover_image = audio.audio.cover_image
-                        return {
-                            'id': cover_image.id,
-                            'file_url': cover_image.file.url if hasattr(cover_image, 'file') and cover_image.file else None,
-                            'title': cover_image.title,
-                            'alt_text': cover_image.alt_text
-                        }
-                    else:
-                        # If no audio cover, try to get cover image from first document
-                        document = obj.documents.select_related('document__cover_image').first()
-                        if document and document.document.cover_image:
-                            cover_image = document.document.cover_image
-                            return {
-                                'id': cover_image.id,
-                                'file_url': cover_image.file.url if hasattr(cover_image, 'file') and cover_image.file else None,
-                                'title': cover_image.title,
-                                'alt_text': cover_image.alt_text
-                            }
-        except Exception:
-            pass
-        return None
-    
-    def get_categories_count(self, obj):
-        """Get categories count from prefetched data"""
-        return obj.categories.count() if hasattr(obj, 'categories') else 0
-    
-    def get_tags_count(self, obj):
-        """Get tags count from prefetched data"""
-        return obj.tags.count() if hasattr(obj, 'tags') else 0
-    
-    def get_media_count(self, obj):
-        """Get media count from all media types"""
-        image_count = obj.images.count() if hasattr(obj, 'images') else 0
-        video_count = obj.videos.count() if hasattr(obj, 'videos') else 0
-        audio_count = obj.audios.count() if hasattr(obj, 'audios') else 0
-        document_count = obj.documents.count() if hasattr(obj, 'documents') else 0
-        return image_count + video_count + audio_count + document_count
+        """Get main image details using model method with caching"""
+        return obj.get_main_image_details()
     
     def get_seo_status(self, obj):
         """Check SEO completeness status"""
@@ -245,53 +142,8 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         ]
     
     def get_main_image(self, obj):
-        """Get main image details by querying database directly"""
-        try:
-            # First try to get main image from PortfolioImage
-            main_image = obj.images.select_related('image').filter(is_main=True).first()
-            if main_image and main_image.image:
-                return {
-                    'id': main_image.image.id,
-                    'file_url': main_image.image.file.url if hasattr(main_image.image, 'file') and main_image.image.file else None,
-                    'title': main_image.image.title,
-                    'alt_text': main_image.image.alt_text
-                }
-            else:
-                # If no main image, try to get cover image from first video
-                video = obj.videos.select_related('video__cover_image').first()
-                if video and video.video.cover_image:
-                    cover_image = video.video.cover_image
-                    return {
-                        'id': cover_image.id,
-                        'file_url': cover_image.file.url if hasattr(cover_image, 'file') and cover_image.file else None,
-                        'title': cover_image.title,
-                        'alt_text': cover_image.alt_text
-                    }
-                else:
-                    # If no video cover, try to get cover image from first audio
-                    audio = obj.audios.select_related('audio__cover_image').first()
-                    if audio and audio.audio.cover_image:
-                        cover_image = audio.audio.cover_image
-                        return {
-                            'id': cover_image.id,
-                            'file_url': cover_image.file.url if hasattr(cover_image, 'file') and cover_image.file else None,
-                            'title': cover_image.title,
-                            'alt_text': cover_image.alt_text
-                        }
-                    else:
-                        # If no audio cover, try to get cover image from first document
-                        document = obj.documents.select_related('document__cover_image').first()
-                        if document and document.document.cover_image:
-                            cover_image = document.document.cover_image
-                            return {
-                                'id': cover_image.id,
-                                'file_url': cover_image.file.url if hasattr(cover_image, 'file') and cover_image.file else None,
-                                'title': cover_image.title,
-                                'alt_text': cover_image.alt_text
-                            }
-        except Exception:
-            pass
-        return None
+        """Get main image details using model method with caching"""
+        return obj.get_main_image_details()
     
     def get_media(self, obj):
         """Get all media for the portfolio with optimized queries"""
