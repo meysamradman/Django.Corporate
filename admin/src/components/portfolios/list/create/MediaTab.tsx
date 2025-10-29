@@ -27,26 +27,71 @@ interface PortfolioMedia {
     pdfDocuments: Media[];
 }
 
-interface MediaTabProps {
+// Props interface for react-hook-form approach (create page)
+interface MediaTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
     portfolioMedia: PortfolioMedia;
     setPortfolioMedia: (media: PortfolioMedia) => void;
     editMode: boolean;
 }
 
-export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, editMode }: MediaTabProps) {
+// Props interface for manual state approach (edit page)
+interface MediaTabManualProps {
+    portfolioMedia: PortfolioMedia;
+    setPortfolioMedia: (media: PortfolioMedia) => void;
+    editMode: boolean;
+    featuredImage?: Media | null;
+    onFeaturedImageChange?: (media: Media | null) => void;
+}
+
+// Union type for both approaches
+type MediaTabProps = MediaTabFormProps | MediaTabManualProps;
+
+export default function MediaTab(props: MediaTabProps) {
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-    const { formState: { errors }, setValue, watch } = form;
-    const featuredImage = watch("featuredImage");
+    
+    // Check which approach is being used
+    const isFormApproach = 'form' in props;
+    
+    // Get form state based on approach
+    const formState = isFormApproach ? props.form.formState : { errors: {} };
+    const setValue = isFormApproach ? props.form.setValue : null;
+    const watch = isFormApproach ? props.form.watch : null;
+    
+    // For manual approach, use props directly
+    const {
+        portfolioMedia,
+        setPortfolioMedia,
+        editMode,
+        featuredImage: manualFeaturedImage,
+        onFeaturedImageChange
+    } = isFormApproach 
+        ? { 
+            portfolioMedia: props.portfolioMedia, 
+            setPortfolioMedia: props.setPortfolioMedia, 
+            editMode: props.editMode,
+            featuredImage: undefined,
+            onFeaturedImageChange: undefined
+        } 
+        : props;
+    
+    // Watch featured image for form approach
+    const formFeaturedImage = isFormApproach ? watch?.("featuredImage") : undefined;
+    const currentFeaturedImage = isFormApproach ? formFeaturedImage : manualFeaturedImage || portfolioMedia?.featuredImage;
 
     const handleFeaturedImageSelect = (media: Media | Media[] | null) => {
         const selected = Array.isArray(media) ? media[0] || null : media;
         
-        // Set در form برای validation
-        setValue("featuredImage", selected, { shouldValidate: true });
+        if (isFormApproach) {
+            // Set در form برای validation
+            setValue?.("featuredImage", selected, { shouldValidate: true });
+        } else {
+            // Call the manual change handler if provided
+            onFeaturedImageChange?.(selected);
+        }
         
         // Set در portfolioMedia برای نمایش (backward compatibility)
-        setPortfolioMedia({
+        setPortfolioMedia?.({
             ...portfolioMedia,
             featuredImage: selected
         });
@@ -55,8 +100,13 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
     };
 
     const handleRemoveFeaturedImage = () => {
-        setValue("featuredImage", null, { shouldValidate: true });
-        setPortfolioMedia({
+        if (isFormApproach) {
+            setValue?.("featuredImage", null, { shouldValidate: true });
+        } else {
+            onFeaturedImageChange?.(null);
+        }
+        
+        setPortfolioMedia?.({
             ...portfolioMedia,
             featuredImage: null
         });
@@ -72,8 +122,8 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                     <Card>
                         <CardContent className="p-6">
                             <PortfolioMediaGallery
-                                mediaItems={portfolioMedia.imageGallery}
-                                onMediaSelect={(media) => setPortfolioMedia({ ...portfolioMedia, imageGallery: media })}
+                                mediaItems={portfolioMedia?.imageGallery || []}
+                                onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, imageGallery: media })}
                                 mediaType="image"
                                 title="گالری تصاویر"
                                 isGallery={true}
@@ -85,8 +135,8 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                     <Card>
                         <CardContent className="p-6">
                             <PortfolioMediaGallery
-                                mediaItems={portfolioMedia.videoGallery}
-                                onMediaSelect={(media) => setPortfolioMedia({ ...portfolioMedia, videoGallery: media })}
+                                mediaItems={portfolioMedia?.videoGallery || []}
+                                onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, videoGallery: media })}
                                 mediaType="video"
                                 title="ویدیو"
                                 isGallery={false}
@@ -99,8 +149,8 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                     <Card>
                         <CardContent className="p-6">
                             <PortfolioMediaGallery
-                                mediaItems={portfolioMedia.audioGallery}
-                                onMediaSelect={(media) => setPortfolioMedia({ ...portfolioMedia, audioGallery: media })}
+                                mediaItems={portfolioMedia?.audioGallery || []}
+                                onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, audioGallery: media })}
                                 mediaType="audio"
                                 title="فایل صوتی"
                                 isGallery={false}
@@ -113,8 +163,8 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                      <Card>
                         <CardContent className="p-6">
                             <PortfolioMediaGallery
-                                mediaItems={portfolioMedia.pdfDocuments}
-                                onMediaSelect={(media) => setPortfolioMedia({ ...portfolioMedia, pdfDocuments: media })}
+                                mediaItems={portfolioMedia?.pdfDocuments || []}
+                                onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, pdfDocuments: media })}
                                 mediaType="pdf"
                                 title="مستندات (PDF)"
                                 isGallery={false}
@@ -126,7 +176,7 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
 
                 {/* Right Column: Featured Image */}
                 <div className="lg:col-span-1 space-y-6">
-                    <Card className={`sticky top-24 ${errors.featuredImage ? 'border-red-500' : ''}`}>
+                    <Card className={`sticky top-24 ${(formState.errors as any)?.featuredImage ? 'border-red-500' : ''}`}>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 تصویر شاخص
@@ -137,11 +187,11 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {portfolioMedia.featuredImage ? (
+                            {currentFeaturedImage ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
                                     <NextImage
-                                        src={mediaService.getMediaUrlFromObject(portfolioMedia.featuredImage)}
-                                        alt={portfolioMedia.featuredImage.alt_text || "تصویر شاخص"}
+                                        src={mediaService.getMediaUrlFromObject(currentFeaturedImage)}
+                                        alt={currentFeaturedImage.alt_text || "تصویر شاخص"}
                                         fill
                                         className="object-cover"
                                         unoptimized
@@ -152,6 +202,7 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                                             size="sm"
                                             onClick={() => setIsMediaModalOpen(true)}
                                             className="mx-1"
+                                            disabled={!editMode}
                                         >
                                             تغییر تصویر
                                         </Button>
@@ -161,6 +212,7 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                                             size="sm"
                                             onClick={handleRemoveFeaturedImage}
                                             className="mx-1"
+                                            disabled={!editMode}
                                         >
                                             <X className="w-4 h-4" />
                                             حذف
@@ -169,8 +221,8 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                                 </div>
                             ) : (
                                 <div
-                                    onClick={() => setIsMediaModalOpen(true)}
-                                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                                    onClick={() => editMode && setIsMediaModalOpen(true)}
+                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <UploadCloud className="w-12 h-12 text-muted-foreground" />
                                     <p className="mt-4 text-lg font-semibold">انتخاب تصویر شاخص</p>
@@ -181,10 +233,10 @@ export default function MediaTab({ form, portfolioMedia, setPortfolioMedia, edit
                             )}
                             
                             {/* نمایش خطا */}
-                            {errors.featuredImage?.message && (
+                            {(formState.errors as any)?.featuredImage?.message && (
                                 <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 mt-3">
                                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                    <span>{String(errors.featuredImage.message)}</span>
+                                    <span>{String((formState.errors as any).featuredImage.message)}</span>
                                 </div>
                             )}
                         </CardContent>

@@ -187,6 +187,13 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
+  const handleFeaturedImageChange = (media: Media | null) => {
+    setPortfolioMedia(prev => ({
+      ...prev,
+      featuredImage: media
+    }));
+  };
+
   const handleSave = async () => {
     if (!portfolio) return;
     
@@ -393,6 +400,8 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               portfolioMedia={portfolioMedia}
               setPortfolioMedia={setPortfolioMedia}
               editMode={editMode}
+              featuredImage={portfolioMedia.featuredImage}
+              onFeaturedImageChange={handleFeaturedImageChange}
             />
           )}
           {activeTab === "seo" && (

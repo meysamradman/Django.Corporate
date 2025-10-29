@@ -17,24 +17,60 @@ import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { formatSlug } from '@/core/utils/slugUtils';
 
-interface BaseInfoTabProps {
+// Props interface for react-hook-form approach (create page)
+interface BaseInfoTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
     editMode: boolean;
 }
 
-export default function BaseInfoTab({ 
-    form,
-    editMode,
-}: BaseInfoTabProps) {
+// Props interface for manual state approach (edit page)
+interface BaseInfoTabManualProps {
+    formData: any;
+    handleInputChange: (field: string, value: any) => void;
+    editMode: boolean;
+    selectedCategory: string;
+    selectedTags: PortfolioTag[];
+    onCategoryChange: (value: string) => void;
+    onTagToggle: (tag: PortfolioTag) => void;
+    onTagRemove: (tagId: number) => void;
+}
+
+// Union type for both approaches
+type BaseInfoTabProps = BaseInfoTabFormProps | BaseInfoTabManualProps;
+
+export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [categories, setCategories] = useState<PortfolioCategory[]>([]);
     const [tags, setTags] = useState<PortfolioTag[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [loadingTags, setLoadingTags] = useState(true);
     
-    // Get form state
-    const { register, formState: { errors }, watch, setValue } = form;
-    const selectedTags = watch("selectedTags") || [];
-    const nameValue = watch("name");
+    // Check which approach is being used
+    const isFormApproach = 'form' in props;
+    
+    // Get form state based on approach
+    const { register, formState: { errors }, watch, setValue } = isFormApproach 
+        ? props.form 
+        : { register: null, formState: { errors: {} }, watch: null, setValue: null };
+    
+    // For manual approach, use props directly
+    const {
+        formData,
+        handleInputChange,
+        editMode,
+        selectedCategory,
+        selectedTags,
+        onCategoryChange,
+        onTagToggle,
+        onTagRemove
+    } = isFormApproach ? {} as any : props;
+    
+    // Watch values for form approach
+    const nameValue = isFormApproach ? watch?.("name") : formData?.name;
+    const slugValue = isFormApproach ? watch?.("slug") : formData?.slug;
+    const shortDescriptionValue = isFormApproach ? watch?.("short_description") : formData?.short_description;
+    const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
+    const formSelectedCategory = isFormApproach ? watch?.("selectedCategory") : selectedCategory;
+    const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : selectedTags || [];
 
     useEffect(() => {
         // Fetch categories
@@ -65,30 +101,86 @@ export default function BaseInfoTab({
         fetchTags();
     }, []);
 
-    // Auto-generate slug from name
+    // Auto-generate slug from name (form approach)
     useEffect(() => {
-        if (nameValue && !watch("slug")) {
+        if (isFormApproach && nameValue && !watch?.("slug")) {
             const slug = nameValue
                 .toLowerCase()
                 .replace(/\s+/g, '-')
                 .replace(/[^\u0600-\u06FFa-z0-9-]/g, '')
                 .replace(/--+/g, '-')
                 .replace(/^-+|-+$/g, '');
-            setValue("slug", slug);
+            setValue?.("slug", slug);
         }
-    }, [nameValue, watch, setValue]);
-    
-    const handleTagToggle = (tag: PortfolioTag) => {
-        const currentTags = selectedTags;
-        if (currentTags.some((t: PortfolioTag) => t.id === tag.id)) {
-            setValue("selectedTags", currentTags.filter((t: PortfolioTag) => t.id !== tag.id));
+    }, [nameValue, watch, setValue, isFormApproach]);
+
+    const handleTagToggleFn = (tag: PortfolioTag) => {
+        if (isFormApproach) {
+            const currentTags = watch?.("selectedTags") || [];
+            if (currentTags.some((t: PortfolioTag) => t.id === tag.id)) {
+                setValue?.("selectedTags", currentTags.filter((t: PortfolioTag) => t.id !== tag.id));
+            } else {
+                setValue?.("selectedTags", [...currentTags, tag]);
+            }
         } else {
-            setValue("selectedTags", [...currentTags, tag]);
+            onTagToggle?.(tag);
         }
     };
 
-    const handleTagRemove = (tagId: number) => {
-        setValue("selectedTags", selectedTags.filter((tag: PortfolioTag) => tag.id !== tagId));
+    const handleTagRemoveFn = (tagId: number) => {
+        if (isFormApproach) {
+            const currentTags = watch?.("selectedTags") || [];
+            setValue?.("selectedTags", currentTags.filter((tag: PortfolioTag) => tag.id !== tagId));
+        } else {
+            onTagRemove?.(tagId);
+        }
+    };
+
+    // Handle input changes for manual approach
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (isFormApproach) {
+            // For form approach, let react-hook-form handle it
+        } else {
+            handleInputChange?.("name", value);
+            // Auto-generate slug
+            if (value && !formData?.slug) {
+                const slug = value
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^\u0600-\u06FFa-z0-9-]/g, '')
+                    .replace(/--+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                handleInputChange?.("slug", slug);
+            }
+        }
+    };
+
+    const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const formattedSlug = formatSlug(value);
+        if (isFormApproach) {
+            // For form approach, let react-hook-form handle it
+        } else {
+            handleInputChange?.("slug", formattedSlug);
+        }
+    };
+
+    const handleShortDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        if (isFormApproach) {
+            // For form approach, let react-hook-form handle it
+        } else {
+            handleInputChange?.("short_description", value);
+        }
+    };
+
+    const handleDescriptionChange = (content: string) => {
+        if (isFormApproach) {
+            setValue?.("description", content);
+        } else {
+            handleInputChange?.("description", content);
+        }
     };
 
     return (
@@ -103,50 +195,91 @@ export default function BaseInfoTab({
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <FormFieldInput
-                                        label="نام"
-                                        id="name"
-                                        required
-                                        error={errors.name?.message}
-                                        placeholder="نام نمونه‌کار"
-                                        disabled={!editMode}
-                                        {...register("name")}
-                                    />
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="نام"
+                                            id="name"
+                                            required
+                                            error={errors.name?.message}
+                                            placeholder="نام نمونه‌کار"
+                                            disabled={!editMode}
+                                            {...register!("name", {
+                                                onChange: handleNameChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="نام"
+                                            id="name"
+                                            required
+                                            error={errors.name?.message}
+                                            placeholder="نام نمونه‌کار"
+                                            disabled={!editMode}
+                                            value={formData?.name || ""}
+                                            onChange={handleNameChange}
+                                        />
+                                    )}
                                     
-                                    <FormFieldInput
-                                        label="لینک (اسلاگ)"
-                                        id="slug"
-                                        required
-                                        error={errors.slug?.message}
-                                        placeholder="نمونه-کار-من یا my-portfolio-item"
-                                        disabled={!editMode}
-                                        {...register("slug", {
-                                            onChange: (e) => {
-                                                const formattedSlug = formatSlug(e.target.value);
-                                                setValue("slug", formattedSlug);
-                                            }
-                                        })}
-                                    />
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="لینک (اسلاگ)"
+                                            id="slug"
+                                            required
+                                            error={errors.slug?.message}
+                                            placeholder="نمونه-کار-من یا my-portfolio-item"
+                                            disabled={!editMode}
+                                            {...register!("slug", {
+                                                onChange: handleSlugChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="لینک (اسلاگ)"
+                                            id="slug"
+                                            required
+                                            error={errors.slug?.message}
+                                            placeholder="نمونه-کار-من یا my-portfolio-item"
+                                            disabled={!editMode}
+                                            value={formData?.slug || ""}
+                                            onChange={handleSlugChange}
+                                        />
+                                    )}
                                 </div>
 
-                                <FormFieldTextarea
-                                    label="توضیحات کوتاه"
-                                    id="short_description"
-                                    error={errors.short_description?.message}
-                                    placeholder="یک توضیح کوتاه درباره نمونه‌کار... (حداکثر ۳۰۰ کاراکتر)"
-                                    rows={3}
-                                    disabled={!editMode}
-                                    maxLength={300}
-                                    {...register("short_description")}
-                                />
+                                {isFormApproach ? (
+                                    <FormFieldTextarea
+                                        label="توضیحات کوتاه"
+                                        id="short_description"
+                                        error={errors.short_description?.message}
+                                        placeholder="یک توضیح کوتاه درباره نمونه‌کار... (حداکثر ۳۰۰ کاراکتر)"
+                                        rows={3}
+                                        disabled={!editMode}
+                                        maxLength={300}
+                                        {...register!("short_description", {
+                                            onChange: handleShortDescriptionChange
+                                        })}
+                                    />
+                                ) : (
+                                    <FormFieldTextarea
+                                        label="توضیحات کوتاه"
+                                        id="short_description"
+                                        error={errors.short_description?.message}
+                                        placeholder="یک توضیح کوتاه درباره نمونه‌کار... (حداکثر ۳۰۰ کاراکتر)"
+                                        rows={3}
+                                        disabled={!editMode}
+                                        maxLength={300}
+                                        value={formData?.short_description || ""}
+                                        onChange={handleShortDescriptionChange}
+                                    />
+                                )}
 
                                 <FormField
                                     label="توضیحات بلند"
                                     error={errors.description?.message}
                                 >
                                     <TipTapEditor
-                                        content={watch("description") || ""}
-                                        onChange={(content: string) => setValue("description", content)}
+                                        content={descriptionValue || ""}
+                                        onChange={handleDescriptionChange}
                                         placeholder="توضیحات کامل نمونه‌کار را وارد کنید... (اختیاری)"
                                     />
                                 </FormField>
@@ -173,8 +306,14 @@ export default function BaseInfoTab({
                                     <div className="flex-1">
                                         <Select 
                                             disabled={!editMode || loadingCategories}
-                                            value={watch("selectedCategory")}
-                                            onValueChange={(value) => setValue("selectedCategory", value)}
+                                            value={formSelectedCategory || ""}
+                                            onValueChange={(value) => {
+                                                if (isFormApproach) {
+                                                    setValue?.("selectedCategory", value);
+                                                } else {
+                                                    onCategoryChange?.(value);
+                                                }
+                                            }}
                                         >
                                             <SelectTrigger className="w-full">
                                                 <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "دسته‌بندی را انتخاب کنید"} />
@@ -210,9 +349,9 @@ export default function BaseInfoTab({
                                 </div>
                                 <div className="space-y-2">
                                     {/* Display selected tags */}
-                                    {selectedTags.length > 0 && (
+                                    {formSelectedTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedTags.map((tag: PortfolioTag) => (
+                                            {formSelectedTags.map((tag: PortfolioTag) => (
                                                 <span 
                                                     key={tag.id} 
                                                     className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
@@ -221,7 +360,7 @@ export default function BaseInfoTab({
                                                     <button 
                                                         type="button" 
                                                         className="ml-1 text-green-800 hover:text-green-900"
-                                                        onClick={() => handleTagRemove(tag.id)}
+                                                        onClick={() => handleTagRemoveFn(tag.id)}
                                                     >
                                                         <X className="w-3 h-3" />
                                                     </button>
@@ -237,7 +376,7 @@ export default function BaseInfoTab({
                                                 disabled={!editMode || loadingTags}
                                                 onValueChange={(value) => {
                                                     const tag = tags.find(t => String(t.id) === value);
-                                                    if (tag) handleTagToggle(tag);
+                                                    if (tag) handleTagToggleFn(tag);
                                                 }}
                                             >
                                                 <SelectTrigger className="w-full">
@@ -245,7 +384,7 @@ export default function BaseInfoTab({
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {tags
-                                                        .filter(tag => !selectedTags.some((selected: PortfolioTag) => selected.id === tag.id))
+                                                        .filter(tag => !formSelectedTags.some((selected: PortfolioTag) => selected.id === tag.id))
                                                         .map((tag) => (
                                                             <SelectItem 
                                                                 key={tag.id} 
