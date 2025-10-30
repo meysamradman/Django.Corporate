@@ -9,6 +9,8 @@ import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Media } from "@/types/shared/media";
 import { useState } from "react";
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/components/elements/Sonner';
 
 interface ProfileHeaderProps {
     user: UserWithProfile;
@@ -24,30 +26,52 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileHeaderProps) {
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
+    const queryClient = useQueryClient();
+
+    // Use formData.profileImage first (updated immediately), then fallback to user profile
+    const currentProfileImage = formData.profileImage || user?.profile?.profile_picture;
 
     const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
+        console.log("📸 handleProfileImageSelect called:", selectedMedia);
+        
         if (onProfileImageChange) {
-            if (Array.isArray(selectedMedia)) {
-                onProfileImageChange(selectedMedia[0] || null);
-            } else {
-                onProfileImageChange(selectedMedia);
-            }
+            const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
+            console.log("🎯 Selected image:", selectedImage);
             
-            // Automatically save profile picture
+            onProfileImageChange(selectedImage);
+            
+            // خودکار ذخیره عکس پروفایل
             try {
                 const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
+                console.log("💾 Saving profile picture with ID:", profilePictureId);
                 
                 // Import adminApi dynamically
                 const { adminApi } = await import('@/api/admins/route');
+                
                 await adminApi.updateUserByType(user.id, {
-                    profile_picture: profilePictureId,
+                    profile: {
+                        profile_picture: profilePictureId,
+                    }
                 }, 'user');
                 
-                // Show success message
-                const { toast } = await import('@/components/elements/Sonner');
+                console.log("✅ Profile picture saved successfully");
+                
+                // Invalidate user profile cache to refresh the page
+                await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+                await queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
+                await queryClient.refetchQueries({ queryKey: ['user-profile'] });
+                
+                // Invalidate the specific user query by ID (from the edit page)
+                const userIdMatch = window.location.pathname.match(/\/users\/(\d+)\//);
+                if (userIdMatch) {
+                    const userId = userIdMatch[1];
+                    await queryClient.invalidateQueries({ queryKey: ['user', userId] });
+                    await queryClient.refetchQueries({ queryKey: ['user', userId] });
+                }
+                
                 toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
             } catch (error) {
-                const { toast } = await import('@/components/elements/Sonner');
+                console.error("❌ Error saving profile picture:", error);
                 toast.error("خطا در ذخیره عکس پروفایل");
             }
         }
@@ -76,10 +100,10 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
             <CardContent className="relative px-6 pt-0 pb-6">
                 <div className="flex items-end gap-6 -mt-16">
                     <div className="relative shrink-0 group">
-                        {formData.profileImage ? (
+                        {currentProfileImage ? (
                             <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-card relative">
                                 <MediaImage
-                                    media={formData.profileImage}
+                                    media={currentProfileImage}
                                     alt="Profile picture"
                                     className="object-cover"
                                     fill

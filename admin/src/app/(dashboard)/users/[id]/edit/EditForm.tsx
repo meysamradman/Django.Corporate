@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "@/components/elements/Sonner";
 import { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
@@ -68,6 +68,47 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     const [selectedCityId, setSelectedCityId] = useState<number | null>(
         userData.profile?.city?.id || null
     );
+
+    // Initialize formData when userData is loaded
+    useEffect(() => {
+        if (userData) {
+            setFormData({
+                firstName: userData.profile?.first_name || "",
+                lastName: userData.profile?.last_name || "",
+                email: userData.email || "",
+                mobile: userData.mobile || "",
+                phone: userData.profile?.phone || "",
+                nationalId: userData.profile?.national_id || "",
+                address: userData.profile?.address || "",
+                province: userData.profile?.province?.name || "",
+                city: userData.profile?.city?.name || "",
+                bio: userData.profile?.bio || "",
+                profileImage: userData.profile?.profile_picture || null,
+                birthDate: userData.profile?.birth_date || "",
+            });
+            setSelectedProvinceId(userData.profile?.province?.id || null);
+            setSelectedCityId(userData.profile?.city?.id || null);
+        }
+    }, [userData?.id]); // Only initialize once when userData first loads
+
+    // Sync formData with userData changes (especially after profile update)
+    useEffect(() => {
+        if (!userData) return;
+        
+        console.log("🔄 EditForm: syncing formData with userData", {
+            currentProfileImage: formData.profileImage?.id,
+            newProfileImage: userData.profile?.profile_picture?.id
+        });
+        
+        // Update profile image if it changed in userData
+        if (userData.profile?.profile_picture?.id !== formData.profileImage?.id) {
+            setFormData(prev => ({
+                ...prev,
+                profileImage: userData.profile?.profile_picture || null
+            }));
+            console.log("✅ Profile image synced from userData");
+        }
+    }, [userData?.profile?.profile_picture?.id]);
 
     const handleInputChange = (field: string, value: string | any) => {
         if (field === "cancel") {

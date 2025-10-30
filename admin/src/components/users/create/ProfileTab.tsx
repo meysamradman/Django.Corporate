@@ -116,6 +116,34 @@ export default function ProfileTab({
       setSelectedMedia(selectedMedia);
     }
     setShowMediaSelector(false);
+    
+    // Auto-save profile picture if in edit mode
+    if (editMode && selectedMedia) {
+      try {
+        const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
+        
+        // Import adminApi dynamically
+        const { adminApi } = await import('@/api/admins/route');
+        
+        // Get user ID from form data or context
+        const userId = form.getValues('id') || form.getValues('user_id');
+        if (userId) {
+          await adminApi.updateUserByType(userId, {
+            profile: {
+              profile_picture: profilePictureId,
+            }
+          }, 'user');
+          
+          // Show success message
+          const { toast } = await import('@/components/elements/Sonner');
+          toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
+        }
+      } catch (error) {
+        console.error("Error saving profile picture:", error);
+        const { toast } = await import('@/components/elements/Sonner');
+        toast.error("خطا در ذخیره عکس پروفایل");
+      }
+    }
   };
 
   const handleTabChange = (tab: "select" | "upload") => {

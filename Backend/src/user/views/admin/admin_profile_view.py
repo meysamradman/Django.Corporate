@@ -28,15 +28,7 @@ class AdminProfileView(APIView):
             
             # Check if user has admin access
             if not (user.is_staff or user.is_superuser):
-                return Response({
-                    "metaData": {
-                        "status": "error",
-                        "message": "Admin access required",
-                        "AppStatusCode": 403,
-                        "timestamp": "2025-10-14T21:49:06.041Z"
-                    },
-                    "data": {}
-                }, status=403)
+                return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authorized"), status_code=403)
             
             # Cache key based on user type
             cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
@@ -44,17 +36,8 @@ class AdminProfileView(APIView):
             # Try to get from cache
             cached_data = cache.get(cache_key)
             if cached_data:
-                # Remove csrf_token from response for security
                 cached_data.pop('csrf_token', None)
-                return Response({
-                    "metaData": {
-                        "status": "success",
-                        "message": AUTH_SUCCESS["auth_retrieved_successfully"],
-                        "AppStatusCode": 200,
-                        "timestamp": "2025-10-14T21:49:06.041Z"
-                    },
-                    "data": cached_data
-                })
+                return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=cached_data)
             
             # Fetch the User instance with related profile and permissions prefetched
             user = User.objects.select_related(
@@ -101,28 +84,12 @@ class AdminProfileView(APIView):
                 # Regular admin permissions might change
                 cache.set(cache_key, response_data, 300)   # 5 minutes
             
-            return Response({
-                "metaData": {
-                    "status": "success",
-                    "message": AUTH_SUCCESS["auth_retrieved_successfully"],
-                    "AppStatusCode": 200,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": response_data
-            })
+            return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=response_data)
         except User.DoesNotExist:
             raise Http404(AUTH_ERRORS["auth_user_not_found"])
         except Exception as e:
             # Log the error
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": str(e),
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(message=AUTH_ERRORS.get("error_occurred"), status_code=500)
     
     def _get_user_roles_with_permissions(self, user):
         """Get user's roles with their associated permissions."""
@@ -267,27 +234,11 @@ class AdminProfileView(APIView):
         
         # Security check 1: Authentication
         if not user.is_authenticated:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Authentication credentials were not provided.",
-                    "AppStatusCode": 401,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": {}
-            }, status=401)
+            return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authenticated"), status_code=401)
         
         # Security check 2: Admin access
         if not (user.is_staff and user.user_type == 'admin' and user.is_admin_active):
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Admin access required",
-                    "AppStatusCode": 403,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": {}
-            }, status=403)
+            return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authorized"), status_code=403)
         
         # Security check 3: Only allow profile updates, not user model fields
         allowed_profile_fields = {
@@ -306,15 +257,7 @@ class AdminProfileView(APIView):
         # Security check 4: Validate only allowed fields
         invalid_fields = set(profile_data.keys()) - allowed_profile_fields
         if invalid_fields:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": f"Invalid fields: {', '.join(invalid_fields)}. Only profile fields are allowed.",
-                    "AppStatusCode": 400,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": {}
-            }, status=400)
+            return APIResponse.error(message=AUTH_ERRORS.get("auth_validation_error"), status_code=400)
         
         try:
             # Import the specific profile serializer for admin
@@ -388,26 +331,9 @@ class AdminProfileView(APIView):
                         context={'request': request}
                     )
                     
-                    return Response({
-                        "metaData": {
-                            "status": "success",
-                            "message": "Profile updated successfully",
-                            "AppStatusCode": 200,
-                            "timestamp": "2025-10-14T21:49:06.041Z"
-                        },
-                        "data": response_serializer.data
-                    })
+                    return APIResponse.success(message=AUTH_SUCCESS.get("user_updated_successfully"), data=response_serializer.data)
                 else:
-                    return Response({
-                        "metaData": {
-                            "status": "error",
-                            "message": "Validation failed",
-                            "AppStatusCode": 400,
-                            "timestamp": "2025-10-14T21:49:06.041Z"
-                        },
-                        "data": {},
-                        "errors": serializer.errors
-                    }, status=400)
+                    return APIResponse.error(message=AUTH_ERRORS.get("auth_validation_error"), errors=serializer.errors, status_code=400)
             else:
                 # Profile was just created, return success
                 user.refresh_from_db()
@@ -428,35 +354,11 @@ class AdminProfileView(APIView):
                     context={'request': request}
                 )
                 
-                return Response({
-                    "metaData": {
-                        "status": "success",
-                        "message": "Profile created successfully",
-                        "AppStatusCode": 200,
-                        "timestamp": "2025-10-14T21:49:06.041Z"
-                    },
-                    "data": response_serializer.data
-                })
+                return APIResponse.success(message=AUTH_SUCCESS.get("auth_created_successfully", "Profile created successfully"), data=response_serializer.data)
                 
         except Exception as e:
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Failed to update profile",
-                    "AppStatusCode": 500,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": {}
-            }, status=500)
+            return APIResponse.error(message=AUTH_ERRORS.get("error_occurred"), status_code=500)
         
         def delete(self, request, *args, **kwargs):
             """Delete current admin profile"""
-            return Response({
-                "metaData": {
-                    "status": "error",
-                    "message": "Method not allowed",
-                    "AppStatusCode": 405,
-                    "timestamp": "2025-10-14T21:49:06.041Z"
-                },
-                "data": {}
-            }, status=405)
+            return APIResponse.error(message=AUTH_ERRORS.get("method_not_allowed", "Method not allowed"), status_code=405)

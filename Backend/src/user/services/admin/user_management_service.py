@@ -116,7 +116,8 @@ class UserManagementService:
                         continue
                     user_fields_to_update[field] = value
 
-            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone']
+            # include profile_picture so nested profile.profile_picture is handled
+            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone', 'profile_picture']
             for field in profile_model_fields:
                 if field in validated_data:
                     profile_fields_to_update[field] = validated_data.pop(field)
@@ -203,7 +204,9 @@ class UserManagementService:
                 
                 if profile_fields_to_update:
                     UserProfileService.update_user_profile(user, profile_fields_to_update)
-           
+            
+            # Reload fresh user with related profile and profile picture to avoid stale relations
+            user = User.objects.select_related('user_profile').prefetch_related('user_profile__profile_picture').get(id=user_id)
             return user
             
         except User.DoesNotExist:
