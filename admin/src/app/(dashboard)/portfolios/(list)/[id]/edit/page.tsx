@@ -12,6 +12,7 @@ import {
 import { Media } from "@/types/shared/media";
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { portfolioApi } from "@/api/portfolios/route";
 import { generateSlug } from '@/core/utils/slugUtils';
 
@@ -19,6 +20,7 @@ import { generateSlug } from '@/core/utils/slugUtils';
 interface PortfolioUpdateData extends Partial<Portfolio> {
   categories_ids?: number[];
   tags_ids?: number[];
+  options_ids?: number[];
 }
 
 // Add this interface for managing multiple media selections
@@ -65,6 +67,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
   // Category and tag state for edit page
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<PortfolioOption[]>([]);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
 
   useEffect(() => {
@@ -102,6 +105,11 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Set tags if available
       if (portfolioData.tags) {
         setSelectedTags(portfolioData.tags);
+      }
+      
+      // Set options if available
+      if (portfolioData.options) {
+        setSelectedOptions(portfolioData.options);
       }
       
       // Set media data if available
@@ -187,6 +195,20 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
+  const handleOptionToggle = (option: PortfolioOption) => {
+    setSelectedOptions(prev => {
+      if (prev.some(o => o.id === option.id)) {
+        return prev.filter(o => o.id !== option.id);
+      } else {
+        return [...prev, option];
+      }
+    });
+  };
+
+  const handleOptionRemove = (optionId: number) => {
+    setSelectedOptions(prev => prev.filter(option => option.id !== optionId));
+  };
+
   const handleFeaturedImageChange = (media: Media | null) => {
     setPortfolioMedia(prev => ({
       ...prev,
@@ -210,6 +232,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategory ? [parseInt(selectedCategory)] : [];
       const tagIds = selectedTags.map(tag => tag.id);
+      const optionIds = selectedOptions.map(option => option.id);
       
       // Prepare update data with extended interface
       const updateData: PortfolioUpdateData = {
@@ -219,6 +242,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         description: formData.description,
         categories_ids: categoryIds, // Use the correct field name expected by the backend
         tags_ids: tagIds, // Use the correct field name expected by the backend
+        options_ids: optionIds, // Use the correct field name expected by the backend
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
         og_title: formData.og_title || undefined,
@@ -256,6 +280,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategory ? [parseInt(selectedCategory)] : [];
       const tagIds = selectedTags.map(tag => tag.id);
+      const optionIds = selectedOptions.map(option => option.id);
       
       // Prepare update data with extended interface
       const updateData: PortfolioUpdateData = {
@@ -265,6 +290,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         description: formData.description,
         categories_ids: categoryIds, // Use the correct field name expected by the backend
         tags_ids: tagIds, // Use the correct field name expected by the backend
+        options_ids: optionIds, // Use the correct field name expected by the backend
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
         og_title: formData.og_title || undefined,
@@ -390,9 +416,12 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               editMode={editMode}
               selectedCategory={selectedCategory}
               selectedTags={selectedTags}
+              selectedOptions={selectedOptions}
               onCategoryChange={handleCategoryChange}
               onTagToggle={handleTagToggle}
               onTagRemove={handleTagRemove}
+              onOptionToggle={handleOptionToggle}
+              onOptionRemove={handleOptionRemove}
             />
           )}
           {activeTab === "media" && (

@@ -4,7 +4,7 @@ from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.serializers.admin.category_serializer import PortfolioCategorySimpleAdminSerializer
 from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
-from src.portfolio.serializers.admin.option_serializer import PortfolioOptionAdminSerializer
+from src.portfolio.serializers.admin.option_serializer import PortfolioOptionSimpleAdminSerializer
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
 
@@ -117,7 +117,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
     tags = PortfolioTagAdminSerializer(many=True, read_only=True)
-    options = PortfolioOptionAdminSerializer(many=True, read_only=True, source="portfolio_options")
+    options = PortfolioOptionSimpleAdminSerializer(many=True, read_only=True, source="portfolio_options")
     media = serializers.SerializerMethodField()
     
     # SEO computed fields
@@ -257,6 +257,11 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
         write_only=True, 
         required=False
     )
+    options_ids = serializers.ListField(
+        child=serializers.IntegerField(), 
+        write_only=True, 
+        required=False
+    )
     # Media files - we'll handle this in the view, not in the serializer
     # This is just to document that media files can be sent
     media_files = serializers.ListField(
@@ -274,7 +279,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta',
             # Relations
-            'categories_ids', 'tags_ids',
+            'categories_ids', 'tags_ids', 'options_ids',
             # Media
             'media_files'
         ]
@@ -282,6 +287,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         categories_ids = validated_data.pop('categories_ids', [])
         tags_ids = validated_data.pop('tags_ids', [])
+        options_ids = validated_data.pop('options_ids', [])
         # Remove media_files from validated_data as we handle it in the view
         media_files = validated_data.pop('media_files', [])
         
@@ -300,6 +306,8 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             portfolio.categories.set(categories_ids)
         if tags_ids:
             portfolio.tags.set(tags_ids)
+        if options_ids:
+            portfolio.options.set(options_ids)
             
         return portfolio
 
@@ -316,6 +324,11 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         write_only=True, 
         required=False
     )
+    options_ids = serializers.ListField(
+        child=serializers.IntegerField(), 
+        write_only=True, 
+        required=False
+    )
     
     class Meta:
         model = Portfolio
@@ -326,12 +339,13 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             # Relations
-            'categories_ids', 'tags_ids'
+            'categories_ids', 'tags_ids', 'options_ids'
         ]
     
     def update(self, instance, validated_data):
         categories_ids = validated_data.pop('categories_ids', None)
         tags_ids = validated_data.pop('tags_ids', None)
+        options_ids = validated_data.pop('options_ids', None)
         
         # Auto-generate SEO fields if not provided
         if not validated_data.get('meta_title') and validated_data.get('title'):
@@ -351,6 +365,8 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             instance.categories.set(categories_ids)
         if tags_ids is not None:
             instance.tags.set(tags_ids)
+        if options_ids is not None:
+            instance.options.set(options_ids)
             
         return instance
 

@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/elements/Button";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { Plus, FolderOpen, Tag, X } from "lucide-react";
+import { Plus, FolderOpen, Tag, X, Settings } from "lucide-react";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { formatSlug } from '@/core/utils/slugUtils';
 
@@ -30,9 +31,12 @@ interface BaseInfoTabManualProps {
     editMode: boolean;
     selectedCategory: string;
     selectedTags: PortfolioTag[];
+    selectedOptions: PortfolioOption[];
     onCategoryChange: (value: string) => void;
     onTagToggle: (tag: PortfolioTag) => void;
     onTagRemove: (tagId: number) => void;
+    onOptionToggle: (option: PortfolioOption) => void;
+    onOptionRemove: (optionId: number) => void;
 }
 
 // Union type for both approaches
@@ -41,8 +45,10 @@ type BaseInfoTabProps = BaseInfoTabFormProps | BaseInfoTabManualProps;
 export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [categories, setCategories] = useState<PortfolioCategory[]>([]);
     const [tags, setTags] = useState<PortfolioTag[]>([]);
+    const [options, setOptions] = useState<PortfolioOption[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [loadingTags, setLoadingTags] = useState(true);
+    const [loadingOptions, setLoadingOptions] = useState(true);
     
     // Check which approach is being used
     const isFormApproach = 'form' in props;
@@ -50,19 +56,20 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     // Get form state based on approach
     const { register, formState: { errors }, watch, setValue } = isFormApproach 
         ? props.form 
-        : { register: null, formState: { errors: {} }, watch: null, setValue: null };
+        : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
     
     // For manual approach, use props directly
-    const {
-        formData,
-        handleInputChange,
-        editMode,
-        selectedCategory,
-        selectedTags,
-        onCategoryChange,
-        onTagToggle,
-        onTagRemove
-    } = isFormApproach ? {} as any : props;
+    const formData = isFormApproach ? null : (props as any).formData;
+    const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
+    const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
+    const selectedCategory = isFormApproach ? undefined : (props as any).selectedCategory;
+    const selectedTags = isFormApproach ? [] : (props as any).selectedTags || [];
+    const selectedOptions = isFormApproach ? [] : (props as any).selectedOptions || [];
+    const onCategoryChange = isFormApproach ? null : (props as any).onCategoryChange;
+    const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
+    const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
+    const onOptionToggle = isFormApproach ? null : (props as any).onOptionToggle;
+    const onOptionRemove = isFormApproach ? null : (props as any).onOptionRemove;
     
     // Watch values for form approach
     const nameValue = isFormApproach ? watch?.("name") : formData?.name;
@@ -71,6 +78,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
     const formSelectedCategory = isFormApproach ? watch?.("selectedCategory") : selectedCategory;
     const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : selectedTags || [];
+    const formSelectedOptions = isFormApproach ? watch?.("selectedOptions") || [] : selectedOptions || [];
 
     useEffect(() => {
         // Fetch categories
@@ -97,8 +105,21 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
             }
         };
 
+        // Fetch options
+        const fetchOptions = async () => {
+            try {
+                const response = await portfolioApi.getOptions({ page: 1, size: 100 });
+                setOptions(response.data || []);
+            } catch (error) {
+                console.error("Error fetching options:", error);
+            } finally {
+                setLoadingOptions(false);
+            }
+        };
+
         fetchCategories();
         fetchTags();
+        fetchOptions();
     }, []);
 
     // Auto-generate slug from name (form approach)
@@ -133,6 +154,28 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
             setValue?.("selectedTags", currentTags.filter((tag: PortfolioTag) => tag.id !== tagId));
         } else {
             onTagRemove?.(tagId);
+        }
+    };
+
+    const handleOptionToggleFn = (option: PortfolioOption) => {
+        if (isFormApproach) {
+            const currentOptions = watch?.("selectedOptions") || [];
+            if (currentOptions.some((o: PortfolioOption) => o.id === option.id)) {
+                setValue?.("selectedOptions", currentOptions.filter((o: PortfolioOption) => o.id !== option.id));
+            } else {
+                setValue?.("selectedOptions", [...currentOptions, option]);
+            }
+        } else {
+            onOptionToggle?.(option);
+        }
+    };
+
+    const handleOptionRemoveFn = (optionId: number) => {
+        if (isFormApproach) {
+            const currentOptions = watch?.("selectedOptions") || [];
+            setValue?.("selectedOptions", currentOptions.filter((option: PortfolioOption) => option.id !== optionId));
+        } else {
+            onOptionRemove?.(optionId);
         }
     };
 
@@ -405,6 +448,76 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             disabled={!editMode}
                                         >
                                             <Plus className="w-3 h-3 text-green-600" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </FormField>
+
+                            <FormField
+                                label="گزینه‌ها (اختیاری)"
+                                error={errors.selectedOptions?.message}
+                            >
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Settings className="w-4 h-4 text-purple-500" />
+                                </div>
+                                <div className="space-y-2">
+                                    {/* Display selected options */}
+                                    {formSelectedOptions.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {formSelectedOptions.map((option: PortfolioOption) => (
+                                                <span 
+                                                    key={option.id} 
+                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800"
+                                                >
+                                                    {option.name}
+                                                    <button 
+                                                        type="button" 
+                                                        className="ml-1 text-purple-800 hover:text-purple-900"
+                                                        onClick={() => handleOptionRemoveFn(option.id)}
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Option selection dropdown */}
+                                    <div className="flex gap-4 w-full">
+                                        <div className="flex-1">
+                                            <Select 
+                                                disabled={!editMode || loadingOptions}
+                                                onValueChange={(value) => {
+                                                    const option = options.find(o => String(o.id) === value);
+                                                    if (option) handleOptionToggleFn(option);
+                                                }}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "گزینه‌ها را انتخاب کنید (اختیاری)"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {options
+                                                        .filter(option => !formSelectedOptions.some((selected: PortfolioOption) => selected.id === option.id))
+                                                        .map((option) => (
+                                                            <SelectItem 
+                                                                key={option.id} 
+                                                                value={String(option.id)}
+                                                            >
+                                                                {option.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="p-0 bg-purple-50 hover:bg-purple-100 border-purple-200 flex-shrink-0"
+                                            style={{ height: '34px', width: '34px' }}
+                                            disabled={!editMode}
+                                        >
+                                            <Plus className="w-3 h-3 text-purple-600" />
                                         </Button>
                                     </div>
                                 </div>

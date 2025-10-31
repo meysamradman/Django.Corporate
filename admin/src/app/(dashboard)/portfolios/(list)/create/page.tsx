@@ -71,6 +71,7 @@ export default function CreatePortfolioPage() {
         robots_meta: data.robots_meta || undefined,
         categories_ids: data.selectedCategory ? [parseInt(data.selectedCategory)] : [],
         tags_ids: data.selectedTags.map(tag => tag.id),
+        options_ids: data.selectedOptions.map(option => option.id),
       };
       
       const portfolio = await portfolioApi.createPortfolio(portfolioData);

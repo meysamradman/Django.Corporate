@@ -49,6 +49,11 @@ export const portfolioFormSchema = z.object({
     .array(z.any())
     .default([]),
   
+  // ❌ اختیاری: گزینه‌ها
+  selectedOptions: z
+    .array(z.any())
+    .default([]),
+  
   // ✅ ضروری: تصویر شاخص
   featuredImage: z
     .any()
@@ -109,6 +114,7 @@ export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   description: "",
   selectedCategory: "",
   selectedTags: [],
+  selectedOptions: [],
   featuredImage: null,
   meta_title: "",
   meta_description: "",
