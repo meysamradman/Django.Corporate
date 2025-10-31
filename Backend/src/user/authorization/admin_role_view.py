@@ -23,7 +23,7 @@ from .admin_permission import (
     require_admin_roles,
     AdminPermissionCache
 )
-from .role_permissions import RolePermissionManager
+from .role_permissions import RolePermissionManager, BASE_ADMIN_PERMISSIONS
 from .create_admin_roles import create_default_admin_roles, get_role_summary
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
 import logging
@@ -621,45 +621,10 @@ class AdminRoleView(viewsets.ViewSet):
     def base_permissions(self, request):
         """Get base permissions that all admins have - for frontend display"""
         try:
-            # Base permissions that all admins automatically have
-            base_permissions = [
-                {
-                    'id': 'base_dashboard_read',
-                    'resource': 'dashboard',
-                    'action': 'مشاهده',
-                    'display_name': 'مشاهده Dashboard',
-                    'description': 'دسترسی به صفحه اصلی پنل ادمین',
-                    'is_base': True
-                },
-                {
-                    'id': 'base_media_read',
-                    'resource': 'media',
-                    'action': 'مشاهده',
-                    'display_name': 'مشاهده Media',
-                    'description': 'مشاهده لیست فایل‌ها و رسانه‌ها',
-                    'is_base': True
-                },
-                {
-                    'id': 'base_profile_read',
-                    'resource': 'profile',
-                    'action': 'مشاهده',
-                    'display_name': 'مشاهده پروفایل شخصی',
-                    'description': 'مشاهده اطلاعات پروفایل خود',
-                    'is_base': True
-                },
-                {
-                    'id': 'base_profile_update',
-                    'resource': 'profile',
-                    'action': 'ویرایش',
-                    'display_name': 'ویرایش پروفایل شخصی',
-                    'description': 'ویرایش اطلاعات پروفایل خود',
-                    'is_base': True
-                },
-            ]
-            
+            # Use centralized BASE_ADMIN_PERMISSIONS constant
             return APIResponse.success(
                 message="Base permissions retrieved successfully",
-                data=base_permissions,
+                data=BASE_ADMIN_PERMISSIONS,
                 status_code=200
             )
             

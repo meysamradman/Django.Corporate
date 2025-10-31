@@ -6,6 +6,51 @@ Compatible with Django 5.2.6 and Permission_System.mdc
 
 from typing import Dict, List, Any
 
+# Base permissions that ALL admins have (regardless of their roles)
+BASE_ADMIN_PERMISSIONS = [
+    {
+        'id': 'base_dashboard_read',
+        'resource': 'dashboard',
+        'action': 'read',
+        'display_name': 'مشاهده Dashboard',
+        'description': 'دسترسی به صفحه اصلی پنل ادمین',
+        'is_base': True
+    },
+    {
+        'id': 'base_media_read',
+        'resource': 'media',
+        'action': 'read',
+        'display_name': 'مشاهده Media',
+        'description': 'مشاهده لیست فایل‌ها و رسانه‌ها',
+        'is_base': True
+    },
+    {
+        'id': 'base_profile_read',
+        'resource': 'profile',
+        'action': 'read',
+        'display_name': 'مشاهده پروفایل شخصی',
+        'description': 'مشاهده اطلاعات پروفایل خود',
+        'is_base': True
+    },
+    {
+        'id': 'base_profile_update',
+        'resource': 'profile',
+        'action': 'update',
+        'display_name': 'ویرایش پروفایل شخصی',
+        'description': 'ویرایش اطلاعات پروفایل خود',
+        'is_base': True
+    }
+]
+
+# Simplified version without descriptions (for list views)
+BASE_ADMIN_PERMISSIONS_SIMPLE = [
+    {
+        'id': perm['id'],
+        'display_name': perm['display_name']
+    }
+    for perm in BASE_ADMIN_PERMISSIONS
+]
+
 # Role definitions with their default permissions
 ADMIN_ROLE_PERMISSIONS = {
     'super_admin': {

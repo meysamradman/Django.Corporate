@@ -7,6 +7,7 @@ from src.media.models import ImageMedia
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
 from django.db.models import Q
+from src.user.authorization.role_permissions import BASE_ADMIN_PERMISSIONS, BASE_ADMIN_PERMISSIONS_SIMPLE
 
 
 class AdminListSerializer(serializers.ModelSerializer):
@@ -79,7 +80,8 @@ class AdminListSerializer(serializers.ModelSerializer):
             return {
                 'access_level': 'super_admin',
                 'roles': ['super_admin'],
-                'permissions_count': 'unlimited'
+                'permissions_count': 'unlimited',
+                'base_permissions': []
             }
         
         assigned_roles = []
@@ -96,7 +98,8 @@ class AdminListSerializer(serializers.ModelSerializer):
             'access_level': 'admin',
             'roles': assigned_roles,
             'permissions_count': len(assigned_roles) * 10 if assigned_roles else 0,
-            'has_permissions': len(assigned_roles) > 0
+            'has_permissions': len(assigned_roles) > 0,
+            'base_permissions': BASE_ADMIN_PERMISSIONS_SIMPLE
         }
 
 
@@ -164,6 +167,7 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                 'roles': ['super_admin'],
                 'modules': ['all'],
                 'actions': ['all'],
+                'base_permissions': [],
                 'permission_summary': {
                     'total_permissions': 'unlimited',
                     'access_type': 'full_system_access',
@@ -204,6 +208,7 @@ class AdminDetailSerializer(serializers.ModelSerializer):
             'roles': assigned_roles,
             'modules': list(modules),
             'actions': list(actions),
+            'base_permissions': BASE_ADMIN_PERMISSIONS,
             'permission_summary': {
                 'total_permissions': len(permissions_list),
                 'accessible_modules': len(modules),

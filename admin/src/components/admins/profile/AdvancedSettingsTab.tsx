@@ -8,7 +8,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Edit2, Loader2, AlertTriangle, Users, Shield } from "lucide-react";
+import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
 import { toast } from "sonner";
 import { roleApi } from "@/api/roles/route";
 import { adminApi } from "@/api/admins/route";
@@ -27,11 +27,21 @@ interface RoleAssignment {
     assigned: boolean;
 }
 
+interface BasePermission {
+    id: string;
+    resource: string;
+    action: string;
+    display_name: string;
+    description: string;
+    is_base: boolean;
+}
+
 export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     const { user } = useAuth();
     const [adminRoles, setAdminRoles] = useState<Role[]>([]);
     const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
     const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
+    const [basePermissions, setBasePermissions] = useState<BasePermission[]>([]);
     const [editMode, setEditMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -111,6 +121,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             });
             
             setRoleAssignments(initialAssignments);
+
+            // Load base permissions that all admins have
+            try {
+                const basePermsResponse = await roleApi.getBasePermissions();
+                if (basePermsResponse.data && Array.isArray(basePermsResponse.data)) {
+                    setBasePermissions(basePermsResponse.data);
+                }
+            } catch (permError) {
+                console.error('Error loading base permissions:', permError);
+            }
             
         } catch (error) {
             setError(getPermissionTranslation('خطا در بارگذاری اطلاعات دسترسی‌ها', 'description'));
@@ -316,6 +336,32 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                     >
                                         {getPermissionTranslation(role.name, 'role')}
                                     </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Base Permissions Display - دسترسی‌های پایه */}
+                    {basePermissions.length > 0 && (
+                        <div className="rounded-lg border p-4 bg-green-50/50">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Shield className="w-4 h-4 text-green-600" />
+                                <Label className="text-base text-green-700">دسترسی‌های پایه</Label>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-3">
+                                این دسترسی‌ها به صورت خودکار برای همه ادمین‌ها فعال است:
+                            </p>
+                            <div className="space-y-2">
+                                {basePermissions.map((perm) => (
+                                    <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-white border border-green-100">
+                                        <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <div className="text-sm font-medium text-foreground">{perm.display_name}</div>
+                                            {perm.description && (
+                                                <div className="text-xs text-muted-foreground">{perm.description}</div>
+                                            )}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
