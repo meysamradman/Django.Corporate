@@ -64,7 +64,7 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
         };
 
         return (
-          <Link href={`/portfolios/${portfolio.id}/edit`} className="flex items-center gap-3 hover:underline">
+          <Link href={`/portfolios/${portfolio.id}/view`} className="flex items-center gap-3 hover:underline">
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={portfolio.title} />

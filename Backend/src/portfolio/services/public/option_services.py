@@ -17,22 +17,20 @@ class PortfolioOptionPublicService:
         
         # Apply filters
         if filters:
-            if filters.get('key'):
-                queryset = queryset.filter(key__icontains=filters['key'])
-            if filters.get('value'):
-                queryset = queryset.filter(value__icontains=filters['value'])
+            if filters.get('name'):
+                queryset = queryset.filter(name__icontains=filters['name'])
             if filters.get('min_portfolio_count'):
                 queryset = queryset.filter(portfolio_count__gte=filters['min_portfolio_count'])
         
         # Apply search
         if search:
             queryset = queryset.filter(
-                Q(key__icontains=search) |
-                Q(value__icontains=search) |
+                Q(name__icontains=search) |
+                Q(slug__icontains=search) |
                 Q(description__icontains=search)
             )
         
-        return queryset.order_by('-portfolio_count', 'key')
+        return queryset.order_by('-portfolio_count', 'name')
     
     @staticmethod
     def get_option_by_slug(slug):
@@ -45,14 +43,14 @@ class PortfolioOptionPublicService:
         ).first()
     
     @staticmethod
-    def get_options_by_key(key, limit=10):
-        """Get options by key for filtering"""
+    def get_options_by_name(name, limit=10):
+        """Get options by name for filtering"""
         return PortfolioOption.objects.filter(
-            key=key,
+            name=name,
             is_active=True
         ).annotate(
-            portfolio_count=Count('portfolios', filter=Q(portfolios__is_active=True, portfolios__is_public=True))
+            portfolio_count=Count('portfolio_options', filter=Q(portfolio_options__is_active=True, portfolio_options__is_public=True))
         ).filter(
             portfolio_count__gt=0
-        ).order_by('-portfolio_count', 'value')[:limit]
+        ).order_by('-portfolio_count', 'name')[:limit]
 

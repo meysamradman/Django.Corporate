@@ -25,15 +25,15 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     permission_classes = [ContentManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioOptionAdminFilter
-    search_fields = ['key', 'value', 'description']
-    ordering_fields = ['created_at', 'updated_at', 'key', 'value']
+    search_fields = ['name', 'slug', 'description']
+    ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination  # Add DRF pagination
     
     def get_queryset(self):
         """Optimized queryset based on action"""
         if self.action == 'list':
-            return PortfolioOption.objects.with_portfolio_counts().order_by('-portfolio_count', 'key', 'value')
+            return PortfolioOption.objects.with_portfolio_counts().order_by('-portfolio_count', 'name')
         elif self.action in ['retrieve', 'update', 'partial_update']:
             return PortfolioOption.objects.with_portfolio_counts()
         else:
@@ -43,7 +43,7 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         """List options with custom pagination (service-level style)"""
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
-            'key': request.query_params.get('key'),
+            'name': request.query_params.get('name'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
         search = request.query_params.get('search')

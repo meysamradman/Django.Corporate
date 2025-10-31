@@ -12,7 +12,7 @@ from src.portfolio.models.category import PortfolioCategory
 
 # 1. اینلاین برای PortfolioOption
 class PortfolioOptionInline(admin.TabularInline):
-    model = PortfolioOption
+    model = Portfolio.options.through  # Many-to-Many ارتباط بین Portfolio و PortfolioOption
     extra = 1
     verbose_name = _("Portfolio Option")
     verbose_name_plural = _("Portfolio Options")
@@ -153,9 +153,9 @@ class PortfolioAdmin(admin.ModelAdmin):
 
 # 4. مدیریت مدل PortfolioOption
 class PortfolioOptionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'public_id', 'name', 'portfolio', 'slug')
+    list_display = ('id', 'public_id', 'name', 'slug')
     search_fields = ('name', 'slug', 'description', 'public_id')
-    list_filter = ('portfolio',)
+    list_filter = ('name',)
     readonly_fields = ('id', 'public_id', 'created_at', 'updated_at')
     
     fieldsets = (
@@ -163,7 +163,7 @@ class PortfolioOptionAdmin(admin.ModelAdmin):
             'fields': ('id', 'public_id')
         }),
         (_('Basic Information'), {
-            'fields': ('name', 'slug', 'portfolio', 'description')
+            'fields': ('name', 'slug', 'description')
         }),
         (_('Settings'), {
             'fields': ('is_public', 'is_active')

@@ -78,24 +78,23 @@ class PortfolioOptionAdminService:
         """Update option with validation and cache clearing"""
         option = get_object_or_404(PortfolioOption, id=option_id)
         
-        # Check for duplicate key-value pairs (excluding current option)
-        key = validated_data.get('key')
-        value = validated_data.get('value')
+        # Check for duplicate names (excluding current option)
+        name = validated_data.get('name')
         
-        if key and value:
+        if name:
             existing = PortfolioOption.objects.filter(
-                key=key, value=value
+                name=name
             ).exclude(id=option_id).first()
             
             if existing:
                 return {
                     'success': False,
-                    'error': f'Option with key "{key}" and value "{value}" already exists.',
+                    'error': f'Option with name "{name}" already exists.',
                     'existing_option': existing
                 }
         
-        for key, value in validated_data.items():
-            setattr(option, key, value)
+        for field, value in validated_data.items():
+            setattr(option, field, value)
         
         option.save()
         

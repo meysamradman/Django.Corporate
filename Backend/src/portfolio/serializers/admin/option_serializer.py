@@ -52,7 +52,7 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
             {
                 'id': option.id,
                 'public_id': option.public_id,
-                'value': option.value,
+                'name': option.name,
                 'portfolio_count': option.portfolio_options.count()
             }
             for option in related

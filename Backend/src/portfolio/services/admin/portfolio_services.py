@@ -100,7 +100,7 @@ class PortfolioAdminService:
             return Portfolio.objects.select_related('og_image').prefetch_related(
                 'categories',
                 'tags',
-                'portfolio_options',
+                'options',
                 'images',
                 'videos',
                 'audios',

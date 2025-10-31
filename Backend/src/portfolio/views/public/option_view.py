@@ -17,9 +17,9 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PortfolioOptionPublicSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = PortfolioOptionPublicFilter
-    search_fields = ['key', 'value', 'description']
-    ordering_fields = ['key', 'value', 'portfolio_count']
-    ordering = ['-portfolio_count', 'key', 'value']
+    search_fields = ['name', 'slug', 'description']
+    ordering_fields = ['name', 'slug', 'portfolio_count']
+    ordering = ['-portfolio_count', 'name']
     lookup_field = 'slug'
     pagination_class = StandardLimitPagination
 
@@ -32,8 +32,7 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         
         filters = {
-            'key': request.query_params.get('key'),
-            'value': request.query_params.get('value'),
+            'name': request.query_params.get('name'),
             'min_portfolio_count': request.query_params.get('min_portfolio_count'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
@@ -66,16 +65,16 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
     @action(detail=False, methods=['get'])
-    def by_key(self, request):
-        """Get options by key"""
-        key = request.query_params.get('key')
-        if not key:
+    def by_name(self, request):
+        """Get options by name"""
+        name = request.query_params.get('name')
+        if not name:
             return Response(
-                {"detail": "Key parameter is required"}, 
+                {"detail": "Name parameter is required"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         limit = int(request.query_params.get('limit', 10))
-        options = PortfolioOptionPublicService.get_options_by_key(key=key, limit=limit)
+        options = PortfolioOptionPublicService.get_options_by_name(name=name, limit=limit)
         serializer = PortfolioOptionPublicSerializer(options, many=True)
         return Response(serializer.data)

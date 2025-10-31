@@ -5,16 +5,10 @@ from src.portfolio.models.option import PortfolioOption
 class PortfolioOptionPublicFilter(filters.FilterSet):
     """Public option filters for website"""
     
-    key = filters.CharFilter(
-        field_name='key',
+    name = filters.CharFilter(
+        field_name='name',
         lookup_expr='icontains',
-        help_text='Filter by option key'
-    )
-    
-    value = filters.CharFilter(
-        field_name='value',
-        lookup_expr='icontains',
-        help_text='Filter by option value'
+        help_text='Filter by option name'
     )
     
     min_portfolio_count = filters.NumberFilter(
@@ -25,4 +19,4 @@ class PortfolioOptionPublicFilter(filters.FilterSet):
     
     class Meta:
         model = PortfolioOption
-        fields = ['key', 'value', 'min_portfolio_count']
+        fields = ['name', 'min_portfolio_count']

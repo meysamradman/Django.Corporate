@@ -32,10 +32,10 @@ class AdminPermissionView(viewsets.ViewSet):
     def get_permissions(self):
         """Dynamic permission assignment based on action"""
         permission_map = {
-            'check_permission': [require_admin_roles('super_admin', 'user_manager')()],
-            'user_permissions': [require_admin_roles('super_admin', 'user_manager')()],
-            'available_modules': [require_admin_roles('super_admin', 'user_manager')()],
-            'available_actions': [require_admin_roles('super_admin', 'user_manager')()],
+            'check_permission': [require_admin_roles('super_admin', 'user_manager')],
+            'user_permissions': [require_admin_roles('super_admin', 'user_manager')],
+            'available_modules': [require_admin_roles('super_admin', 'user_manager')],
+            'available_actions': [require_admin_roles('super_admin', 'user_manager')],
             'permission_matrix': [SuperAdminOnly()],
             'clear_cache': [SuperAdminOnly()],
             'system_permissions': [SuperAdminOnly()],

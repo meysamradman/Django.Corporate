@@ -15,7 +15,7 @@ class PortfolioPublicService:
         ).prefetch_related(
             'categories',
             'tags',
-            'portfolio_options',
+            'options',
             Prefetch(
                 'images',
                 queryset=PortfolioImage.objects.filter(
@@ -57,7 +57,7 @@ class PortfolioPublicService:
         ).prefetch_related(
             'categories',
             'tags',
-            'portfolio_options',
+            'options',
             'images__image',
             'videos__video',
             'audios__audio',
@@ -76,7 +76,7 @@ class PortfolioPublicService:
         ).prefetch_related(
             'categories',
             'tags',
-            'portfolio_options',
+            'options',
             'images__image',
             'videos__video',
             'audios__audio',
