@@ -16,7 +16,8 @@ import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory"
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
-import { formatSlug } from '@/core/utils/slugUtils';
+import { formatSlug, generateSlug } from '@/core/utils/slugUtils';
+import { QuickCreateDialog } from "./QuickCreateDialog";
 
 // Props interface for react-hook-form approach (create page)
 interface BaseInfoTabFormProps {
@@ -49,6 +50,9 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [loadingTags, setLoadingTags] = useState(true);
     const [loadingOptions, setLoadingOptions] = useState(true);
+    const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+    const [showTagDialog, setShowTagDialog] = useState(false);
+    const [showOptionDialog, setShowOptionDialog] = useState(false);
     
     // Check which approach is being used
     const isFormApproach = 'form' in props;
@@ -124,16 +128,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
     // Auto-generate slug from name (form approach)
     useEffect(() => {
-        if (isFormApproach && nameValue && !watch?.("slug")) {
-            const slug = nameValue
-                .toLowerCase()
-                .replace(/\s+/g, '-')
-                .replace(/[^\u0600-\u06FFa-z0-9-]/g, '')
-                .replace(/--+/g, '-')
-                .replace(/^-+|-+$/g, '');
+        if (isFormApproach && nameValue) {
+            const slug = generateSlug(nameValue);
             setValue?.("slug", slug);
         }
-    }, [nameValue, watch, setValue, isFormApproach]);
+    }, [nameValue, setValue, isFormApproach]);
 
     const handleTagToggleFn = (tag: PortfolioTag) => {
         if (isFormApproach) {
@@ -246,9 +245,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             error={errors.name?.message}
                                             placeholder="نام نمونه‌کار"
                                             disabled={!editMode}
-                                            {...register!("name", {
-                                                onChange: handleNameChange
-                                            })}
+                                            {...register!("name")}
                                         />
                                     ) : (
                                         <FormFieldInput
@@ -271,9 +268,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             error={errors.slug?.message}
                                             placeholder="نمونه-کار-من یا my-portfolio-item"
                                             disabled={!editMode}
-                                            {...register!("slug", {
-                                                onChange: handleSlugChange
-                                            })}
+                                            {...register!("slug")}
                                         />
                                     ) : (
                                         <FormFieldInput
@@ -377,6 +372,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         className="p-0 bg-blue-50 hover:bg-blue-100 border-blue-200 flex-shrink-0"
                                         style={{ height: '34px', width: '34px' }}
                                         disabled={!editMode}
+                                        onClick={() => setShowCategoryDialog(true)}
                                     >
                                         <Plus className="w-3 h-3 text-blue-600" />
                                     </Button>
@@ -446,6 +442,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             className="p-0 bg-green-50 hover:bg-green-100 border-green-200 flex-shrink-0"
                                             style={{ height: '34px', width: '34px' }}
                                             disabled={!editMode}
+                                            onClick={() => setShowTagDialog(true)}
                                         >
                                             <Plus className="w-3 h-3 text-green-600" />
                                         </Button>
@@ -516,6 +513,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             className="p-0 bg-purple-50 hover:bg-purple-100 border-purple-200 flex-shrink-0"
                                             style={{ height: '34px', width: '34px' }}
                                             disabled={!editMode}
+                                            onClick={() => setShowOptionDialog(true)}
                                         >
                                             <Plus className="w-3 h-3 text-purple-600" />
                                         </Button>
@@ -526,6 +524,76 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                     </Card>
                 </div>
             </div>
+
+            {/* Quick Create Dialogs */}
+            <QuickCreateDialog
+                open={showCategoryDialog}
+                onOpenChange={setShowCategoryDialog}
+                type="category"
+                onSubmit={async (data) => {
+                    const categoryData: any = { name: data.name, slug: data.slug, is_public: true, is_active: true };
+                    if (data.image_id) {
+                        categoryData.image_id = data.image_id;
+                    }
+                    return await portfolioApi.createCategory(categoryData);
+                }}
+                onSuccess={(createdCategory) => {
+                    if (isFormApproach) {
+                        setValue?.("selectedCategory", String(createdCategory.id));
+                    } else {
+                        onCategoryChange?.(String(createdCategory.id));
+                    }
+                }}
+                refetchList={() => {
+                    portfolioApi.getCategories({ page: 1, size: 100 }).then(response => {
+                        setCategories(response.data || []);
+                    });
+                }}
+            />
+
+            <QuickCreateDialog
+                open={showTagDialog}
+                onOpenChange={setShowTagDialog}
+                type="tag"
+                onSubmit={async (data) => {
+                    return await portfolioApi.createTag({ name: data.name, slug: data.slug, is_public: true, is_active: true });
+                }}
+                onSuccess={(createdTag) => {
+                    if (isFormApproach) {
+                        const currentTags = watch?.("selectedTags") || [];
+                        setValue?.("selectedTags", [...currentTags, createdTag]);
+                    } else {
+                        onTagToggle?.(createdTag);
+                    }
+                }}
+                refetchList={() => {
+                    portfolioApi.getTags({ page: 1, size: 100 }).then(response => {
+                        setTags(response.data || []);
+                    });
+                }}
+            />
+
+            <QuickCreateDialog
+                open={showOptionDialog}
+                onOpenChange={setShowOptionDialog}
+                type="option"
+                onSubmit={async (data) => {
+                    return await portfolioApi.createOption({ name: data.name, slug: data.slug, is_public: true, is_active: true });
+                }}
+                onSuccess={(createdOption) => {
+                    if (isFormApproach) {
+                        const currentOptions = watch?.("selectedOptions") || [];
+                        setValue?.("selectedOptions", [...currentOptions, createdOption]);
+                    } else {
+                        onOptionToggle?.(createdOption);
+                    }
+                }}
+                refetchList={() => {
+                    portfolioApi.getOptions({ page: 1, size: 100 }).then(response => {
+                        setOptions(response.data || []);
+                    });
+                }}
+            />
         </TabsContent>
     );
 }

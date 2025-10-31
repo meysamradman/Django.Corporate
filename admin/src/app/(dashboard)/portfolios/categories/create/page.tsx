@@ -12,7 +12,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { MediaSelector } from "@/components/media/selectors/MediaSelector";
+import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
 import { Media } from "@/types/shared/media";
 import { generateSlug } from '@/core/utils/slugUtils';
 import { toast } from "@/components/elements/Sonner";
@@ -118,11 +118,11 @@ export default function CreateCategoryPage() {
             <CardTitle>اطلاعات دسته‌بندی</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <MediaSelector
+            <ImageSmallSelector
               selectedMedia={selectedMedia}
               onMediaSelect={setSelectedMedia}
               label="تصویر دسته‌بندی"
-              size="md"
+              name={formData.name}
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -7,7 +7,7 @@ from .managers import PortfolioOptionQuerySet
 
 class PortfolioOption(BaseModel, SEOMixin):
     # Core fields
-    name = models.CharField(max_length=100, unique=True, db_index=True)
+    name = models.CharField(max_length=100, db_index=True)
     slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     description = models.TextField(null=True, blank=True)
     is_public = models.BooleanField(default=True, db_index=True)
