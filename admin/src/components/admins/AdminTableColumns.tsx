@@ -100,11 +100,10 @@ export const useAdminColumns = (
       header: () => "موبایل",
       cell: ({ row }) => {
          const mobile = row.original.mobile;
-         const admin = row.original;
          return (
-           <Link href={`/admins/${admin.id}/edit`} className="table-cell-muted table-cell-medium hover:underline" dir="ltr">
+           <span className="table-cell-muted table-cell-medium" dir="ltr">
              {mobile || "-"}
-           </Link>
+           </span>
          );
       },
       enableSorting: false,
