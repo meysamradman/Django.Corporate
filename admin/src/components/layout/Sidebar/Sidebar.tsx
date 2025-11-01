@@ -22,6 +22,7 @@ import {usePathname, useRouter} from "next/navigation";
 import {toast} from "@/components/elements/Sonner";
 import {msg} from "@/core/messages/message";
 import { useAdminStore } from "@/components/layout/Sidebar/stores/sidebarStore";
+import { getUserRoleDisplayText } from "@/core/config/roles";
 
 
 interface SidebarProps {
@@ -187,7 +188,14 @@ export function Sidebar({
                                 className="w-56"
                             >
                                 <DropdownMenuLabel>
-                                    {user?.full_name || user?.profile?.full_name || user?.email || user?.mobile || "کاربر"}
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">
+                                            {user?.full_name || user?.profile?.full_name || user?.email || user?.mobile || "کاربر"}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground mt-1">
+                                            {getUserRoleDisplayText(user)}
+                                        </span>
+                                    </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator/>
 

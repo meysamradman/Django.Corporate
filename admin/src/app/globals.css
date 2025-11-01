@@ -128,22 +128,59 @@
   --blue-50: oklch(97% .014 254.604);
   --blue-100: oklch(93.2% .032 255.585);
   --blue-300: oklch(48.8% .243 264.376);
+  --blue-400: oklch(61.8% .214 264.376);
+  --blue-600: oklch(42.1% .198 264.376);
 
   --violet-50: oklch(97.8% .015 295.87);
   --violet-100: oklch(93.8% .038 297.15);
   --violet-300: oklch(49.2% .242 293.89);
+  --violet-400: oklch(62.5% .231 293.89);
+  --violet-600: oklch(43.5% .211 293.89);
+  --violet-950: oklch(15% .042 293.89);
 
   --yellow-50: oklch(98.7% .026 102.212);
   --yellow-100: oklch(97.3% .071 103.193);
   --yellow-300: oklch(55.4% .135 66.442);
+  --yellow-400: oklch(65.8% .144 66.442);
+  --yellow-600: oklch(48.2% .128 66.442);
 
   --red-50: oklch(97.1% .013 17.38);
   --red-100: oklch(93.6% .032 17.717);
   --red-300: oklch(50.5% .213 27.518);
+  --red-400: oklch(61.2% .199 27.518);
+  --red-600: oklch(44.8% .185 27.518);
 
   --green-50: oklch(98.2% .018 155.826);
   --green-100: oklch(92.5% .084 155.995);
   --green-300: oklch(52.7% .154 150.069);
+  --green-400: oklch(63.5% .142 150.069);
+  --green-600: oklch(46.2% .130 150.069);
+  --green-950: oklch(15% .032 150.069);
+
+  --purple-50: oklch(97.5% .016 285.5);
+  --purple-100: oklch(94% .042 285.5);
+  --purple-400: oklch(65% .205 285.5);
+  --purple-600: oklch(48% .185 285.5);
+  --purple-950: oklch(15% .045 285.5);
+
+  --orange-50: oklch(98% .025 55.5);
+  --orange-100: oklch(95% .055 55.5);
+  --orange-400: oklch(68% .165 55.5);
+  --orange-600: oklch(52% .145 55.5);
+  --orange-950: oklch(15% .035 55.5);
+
+  --gray-50: oklch(98% 0 0);
+  --gray-100: oklch(96% 0 0);
+  --gray-300: oklch(75% 0 0);
+  --gray-400: oklch(65% 0 0);
+  --gray-600: oklch(45% 0 0);
+  --gray-950: oklch(15% 0 0);
+
+  --amber-50: oklch(98.5% .028 85.5);
+  --amber-100: oklch(96.5% .062 85.5);
+  --amber-400: oklch(70% .152 85.5);
+  --amber-600: oklch(55% .138 85.5);
+  --amber-950: oklch(15% .038 85.5);
 }
 
 .dark {
@@ -193,7 +230,7 @@
   --table-row-hover: #4b5563;
   --table-row-selected: #1e40af;
 
-  /* Reusable Color Palette */
+  /* Reusable Color Palette Dark Mode */
   --sky-100: rgba(14, 165, 233, 0.1);
   --sky-300: rgba(14, 165, 233, 0.3);
   --sky-500: #38bdf8;
@@ -209,6 +246,30 @@
   --emerald-100: rgba(16, 185, 129, 0.1);
   --emerald-300: rgba(16, 185, 129, 0.3);
   --emerald-500: #34d399;
+
+  --violet-950: rgba(109, 40, 217, 0.2);
+  --violet-400: oklch(68.5% .201 293.89);
+
+  --green-950: rgba(5, 150, 105, 0.2);
+  --green-400: oklch(70.5% .132 150.069);
+
+  --purple-950: rgba(147, 51, 234, 0.2);
+  --purple-400: oklch(70% .195 285.5);
+
+  --orange-950: rgba(249, 115, 22, 0.2);
+  --orange-400: oklch(72% .155 55.5);
+
+  --gray-950: rgba(55, 65, 81, 0.2);
+  --gray-50: oklch(20% 0 0);
+  --gray-100: oklch(25% 0 0);
+  --gray-300: oklch(78% 0 0);
+  --gray-400: oklch(68% 0 0);
+
+  --amber-950: rgba(245, 158, 11, 0.2);
+  --amber-400: oklch(73% .142 85.5);
+
+  --blue-950: rgba(37, 99, 235, 0.2);
+  --blue-400: oklch(65% .194 264.376);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -291,22 +352,60 @@ html body[data-scroll-locked] {
   --color-blue-50: var(--blue-50);
   --color-blue-100: var(--blue-100);
   --color-blue-300: var(--blue-300);
+  --color-blue-400: var(--blue-400);
+  --color-blue-600: var(--blue-600);
 
-  --violet-50: var(--violet-50);
-  --violet-100: var(--violet-100);
-  --violet-300: var(--violet-300);
+  --color-violet-50: var(--violet-50);
+  --color-violet-100: var(--violet-100);
+  --color-violet-300: var(--violet-300);
+  --color-violet-400: var(--violet-400);
+  --color-violet-600: var(--violet-600);
+  --color-violet-950: var(--violet-950);
 
   --color-yellow-50: var(--yellow-50);
   --color-yellow-100: var(--yellow-100);
   --color-yellow-300: var(--yellow-300);
+  --color-yellow-400: var(--yellow-400);
+  --color-yellow-600: var(--yellow-600);
 
   --color-red-50: var(--red-50);
   --color-red-100: var(--red-100);
   --color-red-300: var(--red-300);
+  --color-red-400: var(--red-400);
+  --color-red-600: var(--red-600);
 
   --color-green-50: var(--green-50);
   --color-green-100: var(--green-100);
   --color-green-300: var(--green-300);
+  --color-green-400: var(--green-400);
+  --color-green-600: var(--green-600);
+  --color-green-950: var(--green-950);
+
+  --color-purple-50: var(--purple-50);
+  --color-purple-100: var(--purple-100);
+  --color-purple-400: var(--purple-400);
+  --color-purple-600: var(--purple-600);
+  --color-purple-950: var(--purple-950);
+
+  --color-orange-50: var(--orange-50);
+  --color-orange-100: var(--orange-100);
+  --color-orange-400: var(--orange-400);
+  --color-orange-600: var(--orange-600);
+  --color-orange-950: var(--orange-950);
+
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-600: var(--gray-600);
+  --color-gray-950: var(--gray-950);
+
+  --color-amber-50: var(--amber-50);
+  --color-amber-100: var(--amber-100);
+  --color-amber-400: var(--amber-400);
+  --color-amber-600: var(--amber-600);
+  --color-amber-950: var(--amber-950);
+
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

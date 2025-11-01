@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.core.cache import cache
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
 from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_register_password
@@ -233,6 +234,10 @@ class AdminManagementService:
                 
                 if profile_fields_to_update:
                     AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
+            
+            # Clear cache for this admin's profile (used in AdminProfileView GET)
+            cache_key = f"admin_profile_{admin.id}_{'super' if admin.is_superuser else 'regular'}"
+            cache.delete(cache_key)
            
             return admin
             

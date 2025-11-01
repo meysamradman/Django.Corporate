@@ -39,13 +39,13 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
           return (
             <div
               key={item.id}
-              className="relative aspect-square border rounded-lg overflow-hidden group"
+              className="relative aspect-square border rounded-lg overflow-hidden group cursor-pointer hover:border-primary transition-all shadow-sm hover:shadow-md"
             >
               {fullUrl ? (
                 <MediaImage
                   media={{ file_url: fullUrl } as any}
                   alt={media?.title || `${type} ${item.id}`}
-                  className="object-cover"
+                  className="object-cover transition-transform group-hover:scale-110"
                   fill
                 />
               ) : (
@@ -56,8 +56,8 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
                   {type === "document" && <FileText className="w-8 h-8 text-muted-foreground" />}
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <p className="text-white text-sm text-center px-2">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-3">
+                <p className="text-white text-xs text-center font-medium line-clamp-2">
                   {media?.title || `رسانه ${item.id}`}
                 </p>
               </div>
@@ -91,43 +91,71 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
   });
 
   return (
-    <TabsContent value="media" className="mt-6 space-y-6">
+    <TabsContent value="media" className="mt-0 space-y-6">
       <div className="grid grid-cols-1 gap-6">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="w-5 h-5" />
-              تصاویر ({images.length})
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Image className="w-5 h-5 stroke-blue-600" />
+                </div>
+                <span>تصاویر</span>
+              </div>
+              <span className="text-sm font-normal text-muted-foreground">
+                {images.length} مورد
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>{renderMediaGrid(images, "image")}</CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="w-5 h-5" />
-              ویدیوها ({videos.length})
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Video className="w-5 h-5 stroke-purple-600" />
+                </div>
+                <span>ویدیوها</span>
+              </div>
+              <span className="text-sm font-normal text-muted-foreground">
+                {videos.length} مورد
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>{renderMediaGrid(videos, "video")}</CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Music className="w-5 h-5" />
-              فایل‌های صوتی ({audios.length})
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <Music className="w-5 h-5 stroke-orange-600" />
+                </div>
+                <span>فایل‌های صوتی</span>
+              </div>
+              <span className="text-sm font-normal text-muted-foreground">
+                {audios.length} مورد
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>{renderMediaGrid(audios, "audio")}</CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              اسناد ({documents.length})
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <FileText className="w-5 h-5 stroke-gray-600" />
+                </div>
+                <span>اسناد</span>
+              </div>
+              <span className="text-sm font-normal text-muted-foreground">
+                {documents.length} مورد
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>{renderMediaGrid(documents, "document")}</CardContent>

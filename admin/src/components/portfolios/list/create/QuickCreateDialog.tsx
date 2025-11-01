@@ -110,7 +110,7 @@ export function QuickCreateDialog({
                             <ImageSmallSelector
                                 selectedMedia={selectedMedia}
                                 onMediaSelect={setSelectedMedia}
-                                label="تصویر دسته‌بندی"
+                                label=""
                                 name={name}
                                 disabled={createMutation.isPending}
                             />

@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { Button } from "@/components/elements/Button";
 import { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
-import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
+import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { mediaService } from "@/components/media/services";
+import NextImage from "next/image";
+import { UploadCloud, X, AlertCircle } from "lucide-react";
 
 // Props interface for react-hook-form approach (create page)
 interface SEOTabFormProps {
@@ -26,7 +30,7 @@ interface SEOTabManualProps {
 type SEOTabProps = SEOTabFormProps | SEOTabManualProps;
 
 export default function SEOTab(props: SEOTabProps) {
-    const [seoGraphicImage, setSeoGraphicImage] = useState<Media | null>(null);
+    const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
     
     // Check which approach is being used
     const isFormApproach = 'form' in props;
@@ -108,11 +112,23 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
     
-    const handleOgImageSelect = (media: Media | null) => {
+    const handleOgImageSelect = (media: Media | Media[] | null) => {
+        const selected = Array.isArray(media) ? media[0] || null : media;
+        
         if (isFormApproach) {
-            setValue?.("og_image", media);
+            setValue?.("og_image", selected, { shouldValidate: true });
         } else {
-            handleInputChange?.("og_image", media);
+            handleInputChange?.("og_image", selected);
+        }
+        
+        setIsMediaModalOpen(false);
+    };
+
+    const handleRemoveOgImage = () => {
+        if (isFormApproach) {
+            setValue?.("og_image", null, { shouldValidate: true });
+        } else {
+            handleInputChange?.("og_image", null);
         }
     };
 
@@ -294,21 +310,78 @@ export default function SEOTab(props: SEOTabProps) {
                 </div>
 
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <Card className="lg:sticky lg:top-6">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm">تصویر گرافیکی</CardTitle>
+                    <Card className={`lg:sticky lg:top-6 ${(formState.errors as any)?.og_image ? 'border-red-500' : ''}`}>
+                        <CardHeader>
+                            <CardTitle>تصویر Open Graph</CardTitle>
+                            <CardDescription>
+                                این تصویر در هنگام اشتراک‌گذاری در شبکه‌های اجتماعی نمایش داده می‌شود.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ImageSmallSelector
-                                selectedMedia={seoGraphicImage}
-                                onMediaSelect={setSeoGraphicImage}
-                                disabled={!editMode}
-                                label=""
-                            />
+                            {ogImageValue ? (
+                                <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
+                                    <NextImage
+                                        src={mediaService.getMediaUrlFromObject(ogImageValue)}
+                                        alt={ogImageValue.alt_text || "تصویر Open Graph"}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => setIsMediaModalOpen(true)}
+                                            className="mx-1"
+                                            disabled={!editMode}
+                                        >
+                                            تغییر تصویر
+                                        </Button>
+
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={handleRemoveOgImage}
+                                            className="mx-1"
+                                            disabled={!editMode}
+                                        >
+                                            <X className="w-4 h-4" />
+                                            حذف
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    onClick={() => editMode && setIsMediaModalOpen(true)}
+                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                                    <p className="mt-4 text-lg font-semibold">انتخاب تصویر Open Graph</p>
+                                    <p className="mt-1 text-sm text-muted-foreground text-center">
+                                        برای انتخاب از کتابخانه کلیک کنید
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {/* نمایش خطا */}
+                            {(formState.errors as any)?.og_image?.message && (
+                                <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 mt-3">
+                                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <span>{String((formState.errors as any).og_image.message)}</span>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
             </div>
+            
+            <MediaLibraryModal
+                isOpen={isMediaModalOpen}
+                onClose={() => setIsMediaModalOpen(false)}
+                onSelect={handleOgImageSelect}
+                selectMultiple={false}
+                initialFileType="image"
+            />
         </TabsContent>
     );
 }

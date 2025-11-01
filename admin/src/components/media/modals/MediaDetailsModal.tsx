@@ -20,7 +20,7 @@ import { mediaService } from '@/components/media/services';
 import { mediaApi } from '@/api/media/route';
 import { toast } from 'sonner';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
-import { TruncatedText } from '@/components/shared/TruncatedText';
+import { TruncatedText } from '@/components/elements/TruncatedText';
 
 interface MediaDetailsModalProps {
   media: Media | null;

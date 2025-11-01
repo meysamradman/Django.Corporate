@@ -10,7 +10,7 @@ import {
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { ExternalLink, FileJson } from "lucide-react";
+import { ExternalLink, Search } from "lucide-react";
 
 interface SEOInfoTabProps {
   portfolio: Portfolio;
@@ -22,11 +22,16 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
     : "";
 
   return (
-    <TabsContent value="seo" className="mt-6">
+    <TabsContent value="seo" className="mt-0">
       <div className="space-y-6">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle>اطلاعات SEO</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Search className="w-5 h-5 stroke-green-600" />
+              </div>
+              اطلاعات SEO
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -131,40 +136,6 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
             </div>
           </CardContent>
         </Card>
-
-        {(portfolio.structured_data || portfolio.hreflang_data) && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileJson className="w-5 h-5" />
-                داده‌های ساختاریافته
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {portfolio.structured_data && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Structured Data (Schema.org)
-                  </label>
-                  <pre className="text-xs bg-muted p-4 rounded-lg overflow-x-auto">
-                    {JSON.stringify(portfolio.structured_data, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {portfolio.hreflang_data && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Hreflang Data
-                  </label>
-                  <pre className="text-xs bg-muted p-4 rounded-lg overflow-x-auto">
-                    {JSON.stringify(portfolio.hreflang_data, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
     </TabsContent>
   );

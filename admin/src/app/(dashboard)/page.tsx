@@ -1,7 +1,6 @@
 "use client";
 
 import { Statistics } from "@/components/dashboard/Statistics";
-import { RolesSection } from "@/components/dashboard/RolesSection";
 
 export default function DashboardPage() {
   return (
@@ -12,7 +11,6 @@ export default function DashboardPage() {
         </h1>
       </div>
       <Statistics />
-      <RolesSection />
     </div>
   );
 } 

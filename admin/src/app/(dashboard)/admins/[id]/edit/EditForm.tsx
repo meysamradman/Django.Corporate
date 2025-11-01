@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from "@/components/elements/Sonner";
 import { AdminWithProfile } from "@/types/auth/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
 import dynamic from "next/dynamic";
 import { getErrorMessage, getUIMessage, getValidationMessage } from "@/core/messages/message";
+import { useAuth } from "@/core/auth/AuthContext";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -56,6 +57,8 @@ interface EditAdminFormProps {
 export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     const [activeTab, setActiveTab] = useState("account");
+    const queryClient = useQueryClient();
+    const { user, refreshUser } = useAuth();
     
     // Fetch admin data with React Query for automatic updates
     const { data: adminData, isLoading } = useQuery({
@@ -108,24 +111,29 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         }
     }, [adminData?.id]); // Only initialize once when adminData first loads
 
-    // Sync formData with adminData changes (especially after profile update)
+    // Sync formData with adminData changes after successful update (only when not in edit mode)
     useEffect(() => {
-        if (!adminData) return;
+        if (!adminData || editMode) return; // Don't sync if in edit mode to prevent overwriting user's changes
         
-        console.log("🔄 EditForm: syncing formData with adminData", {
-            currentProfileImage: formData.profileImage?.id,
-            newProfileImage: adminData.profile?.profile_picture?.id
-        });
-        
-        // Update profile image if it changed in adminData
-        if (adminData.profile?.profile_picture?.id !== formData.profileImage?.id) {
-            setFormData(prev => ({
-                ...prev,
-                profileImage: adminData.profile?.profile_picture || null
-            }));
-            console.log("✅ Profile image synced from adminData");
-        }
-    }, [adminData?.profile?.profile_picture?.id]);
+        // Sync all form fields with adminData after refetch
+        setFormData(prev => ({
+            ...prev,
+            firstName: adminData.profile?.first_name || "",
+            lastName: adminData.profile?.last_name || "",
+            email: adminData.email || "",
+            mobile: adminData.mobile || "",
+            phone: adminData.profile?.phone || "",
+            nationalId: adminData.profile?.national_id || "",
+            address: adminData.profile?.address || "",
+            province: adminData.profile?.province?.name || "",
+            city: adminData.profile?.city?.name || "",
+            bio: adminData.profile?.bio || "",
+            profileImage: adminData.profile?.profile_picture || null,
+            birthDate: adminData.profile?.birth_date || "",
+        }));
+        setSelectedProvinceId(adminData.profile?.province?.id || null);
+        setSelectedCityId(adminData.profile?.city?.id || null);
+    }, [adminData, editMode]); // Sync when adminData changes and not in edit mode
 
     const handleInputChange = (field: string, value: string | any) => {
         if (field === "cancel") {
@@ -207,8 +215,24 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             const result = await adminApi.updateUserByType(adminData.id, profileData, 'admin');
             console.log('Admin update result:', result);
             
-            toast.success(getUIMessage('adminProfileUpdated'));
+            // Close edit mode first to allow formData sync
             setEditMode(false);
+            
+            // Invalidate React Query cache for this admin
+            await queryClient.invalidateQueries({ queryKey: ['admin', adminId] });
+            await queryClient.refetchQueries({ queryKey: ['admin', adminId] });
+            
+            // Invalidate general admin profile queries
+            await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
+            await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
+            
+            // If user is editing their own profile, refresh AuthContext to update sidebar
+            if (user?.id && Number(adminId) === user.id) {
+                await refreshUser();
+                console.log('✅ AuthContext refreshed - sidebar name should update now');
+            }
+            
+            toast.success(getUIMessage('adminProfileUpdated'));
         } catch (error: any) {
             console.error('Admin update error:', error);
             console.error('Admin error details:', {

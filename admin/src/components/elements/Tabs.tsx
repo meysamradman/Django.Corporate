@@ -47,7 +47,7 @@ function TabsTrigger({
         // Default state (inactive)
         "text-gray-600 font-normal",
         // Active state
-        "data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:pb-2",
+        "data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:mb-[-2px]",
         // Hover state
         "hover:text-gray-800",
         className
