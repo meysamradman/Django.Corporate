@@ -87,6 +87,11 @@ export const portfolioFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   
+  og_image: z
+    .any()
+    .nullable()
+    .optional(),
+  
   canonical_url: z
     .string()
     .url({ message: msg.validation("urlInvalid") })
@@ -120,6 +125,7 @@ export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   meta_description: "",
   og_title: "",
   og_description: "",
+  og_image: null,
   canonical_url: "",
   robots_meta: "",
 };

@@ -277,7 +277,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             'status', 'is_featured', 'is_public',
             # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
-            'canonical_url', 'robots_meta',
+            'og_image', 'canonical_url', 'robots_meta',
             # Relations
             'categories_ids', 'tags_ids', 'options_ids',
             # Media

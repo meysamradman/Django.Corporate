@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
-import { MediaSelector } from "@/components/media/selectors/MediaSelector";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
+import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
 
 // Props interface for react-hook-form approach (create page)
 interface SEOTabFormProps {
@@ -25,6 +26,8 @@ interface SEOTabManualProps {
 type SEOTabProps = SEOTabFormProps | SEOTabManualProps;
 
 export default function SEOTab(props: SEOTabProps) {
+    const [seoGraphicImage, setSeoGraphicImage] = useState<Media | null>(null);
+    
     // Check which approach is being used
     const isFormApproach = 'form' in props;
     
@@ -48,6 +51,7 @@ export default function SEOTab(props: SEOTabProps) {
     const ogDescriptionValue = isFormApproach ? watch?.("og_description") : formData?.og_description;
     const canonicalUrlValue = isFormApproach ? watch?.("canonical_url") : formData?.canonical_url;
     const robotsMetaValue = isFormApproach ? watch?.("robots_meta") : formData?.robots_meta;
+    const ogImageValue = isFormApproach ? watch?.("og_image") : formData?.og_image;
 
     // Handle input changes for manual approach
     const handleMetaTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,178 +107,207 @@ export default function SEOTab(props: SEOTabProps) {
             handleInputChange?.("robots_meta", value);
         }
     };
+    
+    const handleOgImageSelect = (media: Media | null) => {
+        if (isFormApproach) {
+            setValue?.("og_image", media);
+        } else {
+            handleInputChange?.("og_image", media);
+        }
+    };
 
     return (
         <TabsContent value="seo" className="mt-6">
-            <div className="space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>اطلاعات SEO</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {isFormApproach ? (
-                                <FormFieldInput
-                                    label="عنوان متا (Meta Title)"
-                                    id="meta_title"
-                                    error={(formState.errors as any)?.meta_title?.message}
-                                    placeholder="عنوان صفحه برای موتورهای جستجو"
-                                    maxLength={70}
-                                    disabled={!editMode}
-                                    description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                    {...(register as any)?.("meta_title", {
-                                        onChange: handleMetaTitleChange
-                                    })}
-                                />
-                            ) : (
-                                <FormFieldInput
-                                    label="عنوان متا (Meta Title)"
-                                    id="meta_title"
-                                    error={(formState.errors as any)?.meta_title?.message}
-                                    placeholder="عنوان صفحه برای موتورهای جستجو"
-                                    maxLength={70}
-                                    disabled={!editMode}
-                                    description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                    value={metaTitleValue || ""}
-                                    onChange={handleMetaTitleChange}
-                                />
-                            )}
-                            
-                            {isFormApproach ? (
-                                <FormFieldTextarea
-                                    label="توضیحات متا (Meta Description)"
-                                    id="meta_description"
-                                    error={(formState.errors as any)?.meta_description?.message}
-                                    placeholder="توضیحات صفحه برای موتورهای جستجو"
-                                    rows={3}
-                                    maxLength={160}
-                                    disabled={!editMode}
-                                    description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                    {...(register as any)?.("meta_description", {
-                                        onChange: handleMetaDescriptionChange
-                                    })}
-                                />
-                            ) : (
-                                <FormFieldTextarea
-                                    label="توضیحات متا (Meta Description)"
-                                    id="meta_description"
-                                    error={(formState.errors as any)?.meta_description?.message}
-                                    placeholder="توضیحات صفحه برای موتورهای جستجو"
-                                    rows={3}
-                                    maxLength={160}
-                                    disabled={!editMode}
-                                    description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                    value={metaDescriptionValue || ""}
-                                    onChange={handleMetaDescriptionChange}
-                                />
-                            )}
-                        </div>
+            <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-1 min-w-0">
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>اطلاعات SEO</CardTitle>
+                                <CardDescription>تنظیمات بهینه‌سازی برای موتورهای جستجو</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="عنوان متا (Meta Title)"
+                                            id="meta_title"
+                                            error={(formState.errors as any)?.meta_title?.message}
+                                            placeholder="عنوان صفحه برای موتورهای جستجو"
+                                            maxLength={70}
+                                            disabled={!editMode}
+                                            description="حداکثر 70 کاراکتر توصیه می‌شود"
+                                            {...(register as any)?.("meta_title", {
+                                                onChange: handleMetaTitleChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="عنوان متا (Meta Title)"
+                                            id="meta_title"
+                                            error={(formState.errors as any)?.meta_title?.message}
+                                            placeholder="عنوان صفحه برای موتورهای جستجو"
+                                            maxLength={70}
+                                            disabled={!editMode}
+                                            description="حداکثر 70 کاراکتر توصیه می‌شود"
+                                            value={metaTitleValue || ""}
+                                            onChange={handleMetaTitleChange}
+                                        />
+                                    )}
+                                    
+                                    {isFormApproach ? (
+                                        <FormFieldTextarea
+                                            label="توضیحات متا (Meta Description)"
+                                            id="meta_description"
+                                            error={(formState.errors as any)?.meta_description?.message}
+                                            placeholder="توضیحات صفحه برای موتورهای جستجو"
+                                            rows={3}
+                                            maxLength={160}
+                                            disabled={!editMode}
+                                            description="بین 120 تا 160 کاراکتر توصیه می‌شود"
+                                            {...(register as any)?.("meta_description", {
+                                                onChange: handleMetaDescriptionChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldTextarea
+                                            label="توضیحات متا (Meta Description)"
+                                            id="meta_description"
+                                            error={(formState.errors as any)?.meta_description?.message}
+                                            placeholder="توضیحات صفحه برای موتورهای جستجو"
+                                            rows={3}
+                                            maxLength={160}
+                                            disabled={!editMode}
+                                            description="بین 120 تا 160 کاراکتر توصیه می‌شود"
+                                            value={metaDescriptionValue || ""}
+                                            onChange={handleMetaDescriptionChange}
+                                        />
+                                    )}
+                                </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {isFormApproach ? (
-                                <FormFieldInput
-                                    label="عنوان Open Graph"
-                                    id="og_title"
-                                    error={(formState.errors as any)?.og_title?.message}
-                                    placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                    maxLength={70}
-                                    disabled={!editMode}
-                                    {...(register as any)?.("og_title", {
-                                        onChange: handleOgTitleChange
-                                    })}
-                                />
-                            ) : (
-                                <FormFieldInput
-                                    label="عنوان Open Graph"
-                                    id="og_title"
-                                    error={(formState.errors as any)?.og_title?.message}
-                                    placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                    maxLength={70}
-                                    disabled={!editMode}
-                                    value={ogTitleValue || ""}
-                                    onChange={handleOgTitleChange}
-                                />
-                            )}
-                            
-                            {isFormApproach ? (
-                                <FormFieldTextarea
-                                    label="توضیحات Open Graph"
-                                    id="og_description"
-                                    error={(formState.errors as any)?.og_description?.message}
-                                    placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                    rows={3}
-                                    maxLength={160}
-                                    disabled={!editMode}
-                                    {...(register as any)?.("og_description", {
-                                        onChange: handleOgDescriptionChange
-                                    })}
-                                />
-                            ) : (
-                                <FormFieldTextarea
-                                    label="توضیحات Open Graph"
-                                    id="og_description"
-                                    error={(formState.errors as any)?.og_description?.message}
-                                    placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                    rows={3}
-                                    maxLength={160}
-                                    disabled={!editMode}
-                                    value={ogDescriptionValue || ""}
-                                    onChange={handleOgDescriptionChange}
-                                />
-                            )}
-                        </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="عنوان Open Graph"
+                                            id="og_title"
+                                            error={(formState.errors as any)?.og_title?.message}
+                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            maxLength={70}
+                                            disabled={!editMode}
+                                            {...(register as any)?.("og_title", {
+                                                onChange: handleOgTitleChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="عنوان Open Graph"
+                                            id="og_title"
+                                            error={(formState.errors as any)?.og_title?.message}
+                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            maxLength={70}
+                                            disabled={!editMode}
+                                            value={ogTitleValue || ""}
+                                            onChange={handleOgTitleChange}
+                                        />
+                                    )}
+                                    
+                                    {isFormApproach ? (
+                                        <FormFieldTextarea
+                                            label="توضیحات Open Graph"
+                                            id="og_description"
+                                            error={(formState.errors as any)?.og_description?.message}
+                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            rows={3}
+                                            maxLength={160}
+                                            disabled={!editMode}
+                                            {...(register as any)?.("og_description", {
+                                                onChange: handleOgDescriptionChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldTextarea
+                                            label="توضیحات Open Graph"
+                                            id="og_description"
+                                            error={(formState.errors as any)?.og_description?.message}
+                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            rows={3}
+                                            maxLength={160}
+                                            disabled={!editMode}
+                                            value={ogDescriptionValue || ""}
+                                            onChange={handleOgDescriptionChange}
+                                        />
+                                    )}
+                                </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {isFormApproach ? (
-                                <FormFieldInput
-                                    label="آدرس کانونیکال (Canonical URL)"
-                                    id="canonical_url"
-                                    error={(formState.errors as any)?.canonical_url?.message}
-                                    placeholder="https://example.com/portfolio/item"
-                                    type="url"
-                                    disabled={!editMode}
-                                    {...(register as any)?.("canonical_url", {
-                                        onChange: handleCanonicalUrlChange
-                                    })}
-                                />
-                            ) : (
-                                <FormFieldInput
-                                    label="آدرس کانونیکال (Canonical URL)"
-                                    id="canonical_url"
-                                    error={(formState.errors as any)?.canonical_url?.message}
-                                    placeholder="https://example.com/portfolio/item"
-                                    type="url"
-                                    disabled={!editMode}
-                                    value={canonicalUrlValue || ""}
-                                    onChange={handleCanonicalUrlChange}
-                                />
-                            )}
-                            
-                            {isFormApproach ? (
-                                <FormFieldInput
-                                    label="دستورالعمل ربات‌های جستجو (Robots Meta)"
-                                    id="robots_meta"
-                                    error={(formState.errors as any)?.robots_meta?.message}
-                                    placeholder="index,follow"
-                                    disabled={!editMode}
-                                    {...(register as any)?.("robots_meta", {
-                                        onChange: handleRobotsMetaChange
-                                    })}
-                                />
-                            ) : (
-                                <FormFieldInput
-                                    label="دستورالعمل ربات‌های جستجو (Robots Meta)"
-                                    id="robots_meta"
-                                    error={(formState.errors as any)?.robots_meta?.message}
-                                    placeholder="index,follow"
-                                    disabled={!editMode}
-                                    value={robotsMetaValue || ""}
-                                    onChange={handleRobotsMetaChange}
-                                />
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="آدرس کانونیکال (Canonical URL)"
+                                            id="canonical_url"
+                                            error={(formState.errors as any)?.canonical_url?.message}
+                                            placeholder="https://example.com/portfolio/item"
+                                            type="url"
+                                            disabled={!editMode}
+                                            {...(register as any)?.("canonical_url", {
+                                                onChange: handleCanonicalUrlChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="آدرس کانونیکال (Canonical URL)"
+                                            id="canonical_url"
+                                            error={(formState.errors as any)?.canonical_url?.message}
+                                            placeholder="https://example.com/portfolio/item"
+                                            type="url"
+                                            disabled={!editMode}
+                                            value={canonicalUrlValue || ""}
+                                            onChange={handleCanonicalUrlChange}
+                                        />
+                                    )}
+                                    
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="دستورالعمل ربات‌های جستجو (Robots Meta)"
+                                            id="robots_meta"
+                                            error={(formState.errors as any)?.robots_meta?.message}
+                                            placeholder="index,follow"
+                                            disabled={!editMode}
+                                            {...(register as any)?.("robots_meta", {
+                                                onChange: handleRobotsMetaChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="دستورالعمل ربات‌های جستجو (Robots Meta)"
+                                            id="robots_meta"
+                                            error={(formState.errors as any)?.robots_meta?.message}
+                                            placeholder="index,follow"
+                                            disabled={!editMode}
+                                            value={robotsMetaValue || ""}
+                                            onChange={handleRobotsMetaChange}
+                                        />
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+
+                <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+                    <Card className="lg:sticky lg:top-6">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">تصویر گرافیکی</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ImageSmallSelector
+                                selectedMedia={seoGraphicImage}
+                                onMediaSelect={setSeoGraphicImage}
+                                disabled={!editMode}
+                                label=""
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </TabsContent>
     );

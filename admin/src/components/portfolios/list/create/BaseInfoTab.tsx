@@ -8,9 +8,10 @@ import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Button } from "@/components/elements/Button";
+import { Label } from "@/components/elements/Label";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { Plus, FolderOpen, Tag, X, Settings } from "lucide-react";
+import { Plus, FolderOpen, Tag, X, Settings, AlertCircle } from "lucide-react";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
@@ -332,13 +333,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <CardTitle className="text-sm">تنظیمات</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-8">
-                            <FormField
-                                label="دسته‌بندی"
-                                required
-                                error={errors.selectedCategory?.message}
-                            >
-                                <div className="flex items-center gap-2 mb-2">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
                                     <FolderOpen className="w-4 h-4 text-blue-500" />
+                                    <Label className="text-sm font-medium">
+                                        دسته‌بندی
+                                        <span className="text-red-500 mr-1">*</span>
+                                    </Label>
                                 </div>
                                 <div className="flex gap-4 w-full">
                                     <div className="flex-1">
@@ -377,14 +378,20 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         <Plus className="w-3 h-3 text-blue-600" />
                                     </Button>
                                 </div>
-                            </FormField>
+                                {errors.selectedCategory?.message && (
+                                    <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+                                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                        <span>{errors.selectedCategory?.message}</span>
+                                    </div>
+                                )}
+                            </div>
 
-                            <FormField
-                                label="تگ‌ها (اختیاری)"
-                                error={errors.selectedTags?.message}
-                            >
-                                <div className="flex items-center gap-2 mb-2">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
                                     <Tag className="w-4 h-4 text-green-500" />
+                                    <Label className="text-sm font-medium">
+                                        تگ‌ها
+                                    </Label>
                                 </div>
                                 <div className="space-y-2">
                                     {/* Display selected tags */}
@@ -419,7 +426,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                 }}
                                             >
                                                 <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید (اختیاری)"} />
+                                                    <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {tags
@@ -448,14 +455,20 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </Button>
                                     </div>
                                 </div>
-                            </FormField>
+                                {errors.selectedTags?.message && (
+                                    <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+                                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                        <span>{errors.selectedTags?.message}</span>
+                                    </div>
+                                )}
+                            </div>
 
-                            <FormField
-                                label="گزینه‌ها (اختیاری)"
-                                error={errors.selectedOptions?.message}
-                            >
-                                <div className="flex items-center gap-2 mb-2">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
                                     <Settings className="w-4 h-4 text-purple-500" />
+                                    <Label className="text-sm font-medium">
+                                        گزینه‌ها
+                                    </Label>
                                 </div>
                                 <div className="space-y-2">
                                     {/* Display selected options */}
@@ -490,7 +503,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                 }}
                                             >
                                                 <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "گزینه‌ها را انتخاب کنید (اختیاری)"} />
+                                                    <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "گزینه‌ها را انتخاب کنید"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {options
@@ -519,7 +532,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </Button>
                                     </div>
                                 </div>
-                            </FormField>
+                                {errors.selectedOptions?.message && (
+                                    <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+                                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                        <span>{errors.selectedOptions?.message}</span>
+                                    </div>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

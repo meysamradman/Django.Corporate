@@ -67,6 +67,7 @@ export default function CreatePortfolioPage() {
         meta_description: data.meta_description || undefined,
         og_title: data.og_title || undefined,
         og_description: data.og_description || undefined,
+        og_image: data.og_image?.id || undefined,
         canonical_url: data.canonical_url || undefined,
         robots_meta: data.robots_meta || undefined,
         categories_ids: data.selectedCategory ? [parseInt(data.selectedCategory)] : [],

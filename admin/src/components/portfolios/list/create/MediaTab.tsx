@@ -114,10 +114,10 @@ export default function MediaTab(props: MediaTabProps) {
 
     return (
         <TabsContent value="media" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="flex flex-col lg:flex-row gap-6">
 
                 {/* Left Column: Galleries */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="flex-1 min-w-0 space-y-6">
                     {/* Image Gallery Card */}
                     <Card>
                         <CardContent className="p-6">
@@ -175,8 +175,8 @@ export default function MediaTab(props: MediaTabProps) {
                 </div>
 
                 {/* Right Column: Featured Image */}
-                <div className="lg:col-span-1 space-y-6">
-                    <Card className={`sticky top-24 ${(formState.errors as any)?.featuredImage ? 'border-red-500' : ''}`}>
+                <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+                    <Card className={`lg:sticky lg:top-6 ${(formState.errors as any)?.featuredImage ? 'border-red-500' : ''}`}>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 تصویر شاخص
