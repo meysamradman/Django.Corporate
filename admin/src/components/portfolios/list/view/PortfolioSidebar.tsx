@@ -77,51 +77,51 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
           <div className="pb-6 pt-2 border-b -mx-6 px-6">
             <div className="grid grid-cols-3 gap-3">
               <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                portfolio.status === "published" ? "bg-green-50 dark:bg-green-950/20" : "bg-yellow-50 dark:bg-yellow-950/20"
+                portfolio.status === "published" ? "bg-green-50" : "bg-yellow-50"
               }`}>
                 <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  portfolio.status === "published" ? "bg-green-100 dark:bg-green-900/30" : "bg-yellow-100 dark:bg-yellow-900/30"
+                  portfolio.status === "published" ? "bg-green-100" : "bg-yellow-100"
                 }`}>
                   {portfolio.status === "published" ? (
-                    <CheckCircle2 className="w-4 h-4 stroke-green-600 dark:stroke-green-400" />
+                    <CheckCircle2 className="w-4 h-4 stroke-green-600" />
                   ) : (
-                    <XCircle className="w-4 h-4 stroke-yellow-600 dark:stroke-yellow-400" />
+                    <XCircle className="w-4 h-4 stroke-yellow-600" />
                   )}
                 </div>
                 <span className={`text-sm font-medium ${
-                  portfolio.status === "published" ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"
+                  portfolio.status === "published" ? "text-green-600" : "text-yellow-600"
                 }`}>
                   {portfolio.status === "published" ? "منتشر شده" : "پیش‌نویس"}
                 </span>
               </div>
               <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                isActive ? "bg-blue-50 dark:bg-blue-950/20" : "bg-red-50 dark:bg-red-950/20"
+                isActive ? "bg-blue-50" : "bg-red-50"
               }`}>
                 <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  isActive ? "bg-blue-100 dark:bg-blue-900/30" : "bg-red-100 dark:bg-red-900/30"
+                  isActive ? "bg-blue-100" : "bg-red-100"
                 }`}>
                   <Zap className={`w-4 h-4 ${
-                    isActive ? "stroke-blue-600 dark:stroke-blue-400" : "stroke-red-600 dark:stroke-red-400"
+                    isActive ? "stroke-blue-600" : "stroke-red-600"
                   }`} />
                 </div>
                 <span className={`text-sm font-medium ${
-                  isActive ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"
+                  isActive ? "text-blue-600" : "text-red-600"
                 }`}>
                   {isActive ? "فعال" : "غیرفعال"}
                 </span>
               </div>
               <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                portfolio.is_featured ? "bg-orange-50 dark:bg-orange-950/20" : "bg-gray-50 dark:bg-gray-950/20"
+                portfolio.is_featured ? "bg-orange-50" : "bg-gray-50"
               }`}>
                 <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  portfolio.is_featured ? "bg-orange-100 dark:bg-orange-900/30" : "bg-gray-100 dark:bg-gray-900/30"
+                  portfolio.is_featured ? "bg-orange-100" : "bg-gray-100"
                 }`}>
                   <Star className={`w-4 h-4 ${
-                    portfolio.is_featured ? "stroke-orange-600 fill-orange-600 dark:stroke-orange-400 dark:fill-orange-400" : "stroke-gray-400 dark:stroke-gray-500"
+                    portfolio.is_featured ? "stroke-orange-600 fill-orange-600" : "stroke-gray-400"
                   }`} />
                 </div>
                 <span className={`text-sm font-medium ${
-                  portfolio.is_featured ? "text-orange-600 dark:text-orange-400" : "text-gray-600 dark:text-gray-400"
+                  portfolio.is_featured ? "text-orange-600" : "text-gray-600"
                 }`}>
                   {portfolio.is_featured ? "ویژه" : "عادی"}
                 </span>

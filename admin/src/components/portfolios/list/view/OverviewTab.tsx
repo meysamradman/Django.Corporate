@@ -52,8 +52,8 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-teal-100 dark:bg-teal-900/30 rounded-xl shadow-sm">
-                  <FolderOpen className="w-5 h-5 stroke-teal-600 dark:stroke-teal-400" />
+                <div className="p-2.5 bg-teal-100 rounded-xl shadow-sm">
+                  <FolderOpen className="w-5 h-5 stroke-teal-600" />
                 </div>
                 <CardTitle>دسته‌بندی‌ها</CardTitle>
               </div>
@@ -92,8 +92,8 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-fuchsia-100 dark:bg-fuchsia-900/30 rounded-xl shadow-sm">
-                  <Tag className="w-5 h-5 stroke-fuchsia-600 dark:stroke-fuchsia-400" />
+                <div className="p-2.5 bg-fuchsia-100 rounded-xl shadow-sm">
+                  <Tag className="w-5 h-5 stroke-fuchsia-600" />
                 </div>
                 <CardTitle>تگ‌ها</CardTitle>
               </div>
@@ -131,8 +131,8 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl shadow-sm">
-                  <ImageIcon className="w-5 h-5 stroke-indigo-600 dark:stroke-indigo-400" />
+                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                  <ImageIcon className="w-5 h-5 stroke-indigo-600" />
                 </div>
                 <CardTitle>مدیا</CardTitle>
               </div>
@@ -170,8 +170,8 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl shadow-sm">
-                  <FileCode className="w-5 h-5 stroke-amber-600 dark:stroke-amber-400" />
+                <div className="p-2.5 bg-amber-100 rounded-xl shadow-sm">
+                  <FileCode className="w-5 h-5 stroke-amber-600" />
                 </div>
                 <CardTitle>گزینه‌ها</CardTitle>
               </div>
@@ -208,8 +208,8 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
       <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-cyan-500">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl shadow-sm">
-              <FileText className="w-5 h-5 stroke-cyan-600 dark:stroke-cyan-400" />
+            <div className="p-2.5 bg-cyan-100 rounded-xl shadow-sm">
+              <FileText className="w-5 h-5 stroke-cyan-600" />
             </div>
             <div>توضیحات</div>
           </CardTitle>

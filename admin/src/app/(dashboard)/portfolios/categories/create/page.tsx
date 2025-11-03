@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
+import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import { toast } from "@/components/elements/Sonner";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
-import { UploadCloud, X, AlertCircle } from "lucide-react";
+import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home } from "lucide-react";
 
 export default function CreateCategoryPage() {
   const router = useRouter();
@@ -43,18 +43,71 @@ export default function CreateCategoryPage() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Get selected category display info
+  const getSelectedCategoryDisplay = () => {
+    if (!formData.parent_id) {
+      return {
+        name: "بدون والد (دسته‌بندی مادر)",
+        icon: Home,
+        level: 0,
+        badge: "پیش‌فرض"
+      };
+    }
+    const selected = categories?.data?.find(cat => cat.id === formData.parent_id);
+    if (!selected) return null;
+    
+    return {
+      name: selected.name,
+      icon: (selected.level || 1) === 1 ? FolderOpen : Folder,
+      level: selected.level || 1,
+      badge: null
+    };
+  };
+
   // Function to render category with indentation based on level
   const renderCategoryOption = (category: PortfolioCategory) => {
-    // Calculate indentation based on category level
     const level = category.level || 1;
-    const indentation = " ".repeat(level - 1); // Using em space for better alignment
-    
-    // Add indicator for root categories
-    const prefix = level === 1 ? "📂 " : "├─ ";
+    const indentPx = (level - 1) * 24;
+    const Icon = level === 1 ? FolderOpen : Folder;
+    const isSelected = formData.parent_id === category.id;
     
     return (
-      <SelectItem key={category.id} value={category.id.toString()}>
-        {indentation}{prefix}{category.name}
+      <SelectItem 
+        key={category.id} 
+        value={category.id.toString()}
+        className="relative"
+      >
+        <div 
+          className="flex items-center gap-3 w-full justify-end" 
+          style={{ paddingRight: `${indentPx}px` }}
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0 justify-end text-right">
+            {level > 1 && (
+              <div className="flex items-center gap-1 shrink-0">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: level - 1 }).map((_, idx) => (
+                    <div key={idx} className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                  ))}
+                </div>
+              </div>
+            )}
+            <span className={`flex-1 truncate text-right ${isSelected ? 'font-medium text-foreground' : 'text-foreground'}`}>
+              {category.name}
+            </span>
+          </div>
+          {level > 1 && (
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-border" />
+          )}
+          <Icon 
+            className={`w-4 h-4 shrink-0 transition-colors ${
+              isSelected 
+                ? 'text-primary' 
+                : level === 1 
+                  ? 'text-primary/70' 
+                  : 'text-muted-foreground'
+            }`} 
+          />
+        </div>
       </SelectItem>
     );
   };
@@ -123,21 +176,30 @@ export default function CreateCategoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
+        <h1>ایجاد دسته‌بندی جدید</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           {/* Left Column: Form Fields */}
-          <div className="flex-1 min-w-0">
-            <Card>
+          <div className="lg:col-span-4 space-y-6">
+            <div className="space-y-6">
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
               <CardHeader>
-                <CardTitle>اطلاعات دسته‌بندی</CardTitle>
+                <CardTitle className="flex items-center gap-3">
+                  <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                    <FolderTree className="w-5 h-5 stroke-primary" />
+                  </div>
+                  اطلاعات دسته‌بندی
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">نام *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    label="نام"
+                    htmlFor="name"
+                    required
+                  >
                     <Input
                       id="name"
                       value={formData.name}
@@ -145,9 +207,12 @@ export default function CreateCategoryPage() {
                       placeholder="نام دسته‌بندی"
                       required
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">اسلاگ *</Label>
+                  </FormField>
+                  <FormField
+                    label="اسلاگ"
+                    htmlFor="slug"
+                    required
+                  >
                     <Input
                       id="slug"
                       value={formData.slug}
@@ -155,30 +220,93 @@ export default function CreateCategoryPage() {
                       placeholder="نام-دسته‌بندی"
                       required
                     />
-                  </div>
+                  </FormField>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="parent_id">دسته‌بندی والد</Label>
+                <FormField
+                  label="دسته‌بندی والد"
+                  htmlFor="parent_id"
+                  description="دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند."
+                >
                   <Select
                     value={formData.parent_id?.toString() || "null"}
                     onValueChange={handleParentChange}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" />
+                    <SelectTrigger className="w-full h-auto min-h-[2.5rem] py-2 !justify-start">
+                      <div className="flex items-center gap-3 w-full flex-1 min-w-0">
+                        {(() => {
+                          const display = getSelectedCategoryDisplay();
+                          if (!display) {
+                            return (
+                              <>
+                                <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" className="flex-1 text-right w-full" />
+                                <div className="p-1.5 rounded-md bg-muted/50 shrink-0">
+                                  <Home className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                              </>
+                            );
+                          }
+                          const Icon = display.icon;
+                          return (
+                            <>
+                              <SelectValue className="flex-1 text-right w-full">
+                                <span className="font-medium truncate text-right block">{display.name}</span>
+                              </SelectValue>
+                              {display.badge && (
+                                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium shrink-0">
+                                  {display.badge}
+                                </span>
+                              )}
+                              <div className={`p-1.5 rounded-md shrink-0 ${
+                                display.level === 0 
+                                  ? 'bg-primary/10' 
+                                  : 'bg-muted/50'
+                              }`}>
+                                <Icon className={`w-4 h-4 ${
+                                  display.level === 0 
+                                    ? 'text-primary' 
+                                    : 'text-foreground'
+                                }`} />
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="null">بدون والد (دسته‌بندی مادر)</SelectItem>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectItem 
+                        value="null"
+                        className="font-medium"
+                      >
+                        <div className="flex items-center gap-3 w-full justify-end">
+                          <div className="flex items-center gap-2 flex-1 justify-end text-right">
+                            <span>بدون والد (دسته‌بندی مادر)</span>
+                            <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                              پیش‌فرض
+                            </span>
+                          </div>
+                          <div className="p-1.5 rounded-md bg-primary/10 shrink-0">
+                            <Home className="w-4 h-4 text-primary" />
+                          </div>
+                        </div>
+                      </SelectItem>
+                      {categories?.data && categories.data.length > 0 && (
+                        <>
+                          <div className="h-px bg-border/50 my-2 mx-2" />
+                          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">
+                            دسته‌بندی‌های موجود
+                          </div>
+                        </>
+                      )}
                       {categories?.data?.map((category) => renderCategoryOption(category))}
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-muted-foreground">
-                    دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند.
-                  </p>
-                </div>
+                </FormField>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">توضیحات</Label>
+                <FormField
+                  label="توضیحات"
+                  htmlFor="description"
+                >
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -186,24 +314,28 @@ export default function CreateCategoryPage() {
                     placeholder="توضیحات دسته‌بندی"
                     rows={4}
                   />
-                </div>
+                </FormField>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <Switch
                     id="is_active"
                     checked={formData.is_active}
                     onCheckedChange={(checked) => handleInputChange("is_active", checked)}
                   />
-                  <Label htmlFor="is_active">فعال</Label>
+                  <label htmlFor="is_active" className="text-sm font-medium cursor-pointer">
+                    فعال
+                  </label>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <Switch
                     id="is_public"
                     checked={formData.is_public}
                     onCheckedChange={(checked) => handleInputChange("is_public", checked)}
                   />
-                  <Label htmlFor="is_public">عمومی</Label>
+                  <label htmlFor="is_public" className="text-sm font-medium cursor-pointer">
+                    عمومی
+                  </label>
                 </div>
 
                 <div className="flex justify-end space-x-2">
@@ -223,13 +355,20 @@ export default function CreateCategoryPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
 
           {/* Right Column: Featured Image */}
-          <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-            <Card className="lg:sticky lg:top-6">
+          <div className="lg:col-span-2">
+            <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
               <CardHeader>
-                <CardTitle>تصویر شاخص</CardTitle>
+                <CardTitle className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
+                    <ImageIcon className="w-5 h-5 stroke-blue-600" />
+                  </div>
+                  تصویر شاخص
+                </CardTitle>
                 <CardDescription>
                   این تصویر به عنوان تصویر اصلی دسته‌بندی استفاده می‌شود.
                 </CardDescription>
@@ -281,6 +420,7 @@ export default function CreateCategoryPage() {
                 )}
               </CardContent>
             </Card>
+            </div>
           </div>
         </div>
       </form>

@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from "@/components/elements/Sonner";
 import { AdminWithProfile } from "@/types/auth/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, AlertCircle, Share2, Settings2 } from "lucide-react";
+import { User, KeyRound, Share2, Settings2 } from "lucide-react";
 import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
@@ -319,8 +319,8 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         حساب کاربری
                     </TabsTrigger>
                     <TabsTrigger value="security">
-                        <AlertCircle className="w-4 h-4 me-2" />
-                        امنیت
+                        <KeyRound className="w-4 h-4 me-2" />
+                        گذرواژه
                     </TabsTrigger>
                     <TabsTrigger value="social">
                         <Share2 className="w-4 h-4 me-2" />

@@ -1,14 +1,14 @@
 "use client";
 
-import { Card, CardContent } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
+import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Button } from "@/components/elements/Button";
 import { Media } from "@/types/shared/media";
-import { User, Camera } from "lucide-react";
+import { User, Camera, UserCircle, MapPin, FileText } from "lucide-react";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { AdminFormValues } from "@/core/validations/adminSchema";
@@ -169,188 +169,201 @@ export default function ProfileTab({
   };
 
   return (
-    <div className="mt-6">
+    <div>
       <div className="flex flex-col lg:flex-row gap-6">
         {/* محتوای اصلی سمت چپ */}
         <div className="flex-1 space-y-6">
-          {/* اطلاعات شخصی */}
-          <Card>
-            <CardContent className="pt-6">
-              <div>
-                <h3 className="text-lg font-medium mb-4">اطلاعات شخصی</h3>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_first_name">نام</Label>
-                    <Input
-                      id="profile_first_name"
-                      placeholder="نام"
-                      disabled={!editMode}
-                      className={errors.profile_first_name ? "border-destructive" : ""}
-                      {...register("profile_first_name")}
-                    />
-                    {errors.profile_first_name && (
-                      <p className="text-xs text-destructive">{errors.profile_first_name.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_last_name">نام خانوادگی</Label>
-                    <Input
-                      id="profile_last_name"
-                      placeholder="نام خانوادگی"
-                      disabled={!editMode}
-                      className={errors.profile_last_name ? "border-destructive" : ""}
-                      {...register("profile_last_name")}
-                    />
-                    {errors.profile_last_name && (
-                      <p className="text-xs text-destructive">{errors.profile_last_name.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_birth_date">تاریخ تولد</Label>
-                    <PersianDatePicker
-                      value={birthDateValue || ""}
-                      onChange={handleBirthDateChange}
-                      placeholder="تاریخ تولد را انتخاب کنید"
-                      disabled={!editMode}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_national_id">کد ملی</Label>
-                    <Input
-                      id="profile_national_id"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="کد ملی 10 رقمی"
-                      maxLength={10}
-                      disabled={!editMode}
-                      className={errors.profile_national_id ? "border-destructive" : ""}
-                      {...register("profile_national_id")}
-                      onKeyDown={preventNonNumeric}
-                      onPaste={preventNonNumericPaste}
-                    />
-                    {errors.profile_national_id && (
-                      <p className="text-xs text-destructive">{errors.profile_national_id.message}</p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_phone">تلفن</Label>
-                    <Input
-                      id="profile_phone"
-                      type="text"
-                      inputMode="tel"
-                      placeholder="تلفن ثابت"
-                      disabled={!editMode}
-                      className={errors.profile_phone ? "border-destructive" : ""}
-                      {...register("profile_phone")}
-                      onKeyDown={preventNonNumeric}
-                      onPaste={preventNonNumericPaste}
-                    />
-                    {errors.profile_phone && (
-                      <p className="text-xs text-destructive">{errors.profile_phone.message}</p>
-                    )}
-                  </div>
+          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
+                  <UserCircle className="w-5 h-5 stroke-blue-600" />
                 </div>
+                اطلاعات شخصی
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  label="نام"
+                  htmlFor="profile_first_name"
+                  error={errors.profile_first_name?.message}
+                >
+                  <Input
+                    id="profile_first_name"
+                    placeholder="نام"
+                    disabled={!editMode}
+                    {...register("profile_first_name")}
+                  />
+                </FormField>
+
+                <FormField
+                  label="نام خانوادگی"
+                  htmlFor="profile_last_name"
+                  error={errors.profile_last_name?.message}
+                >
+                  <Input
+                    id="profile_last_name"
+                    placeholder="نام خانوادگی"
+                    disabled={!editMode}
+                    {...register("profile_last_name")}
+                  />
+                </FormField>
+
+                <FormField
+                  label="تاریخ تولد"
+                  htmlFor="profile_birth_date"
+                >
+                  <PersianDatePicker
+                    value={birthDateValue || ""}
+                    onChange={handleBirthDateChange}
+                    placeholder="تاریخ تولد را انتخاب کنید"
+                    disabled={!editMode}
+                  />
+                </FormField>
+
+                <FormField
+                  label="کد ملی"
+                  htmlFor="profile_national_id"
+                  error={errors.profile_national_id?.message}
+                >
+                  <Input
+                    id="profile_national_id"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="کد ملی 10 رقمی"
+                    maxLength={10}
+                    disabled={!editMode}
+                    {...register("profile_national_id")}
+                    onKeyDown={preventNonNumeric}
+                    onPaste={preventNonNumericPaste}
+                  />
+                </FormField>
+                
+                <FormField
+                  label="تلفن"
+                  htmlFor="profile_phone"
+                  error={errors.profile_phone?.message}
+                >
+                  <Input
+                    id="profile_phone"
+                    type="text"
+                    inputMode="tel"
+                    placeholder="تلفن ثابت"
+                    disabled={!editMode}
+                    {...register("profile_phone")}
+                    onKeyDown={preventNonNumeric}
+                    onPaste={preventNonNumericPaste}
+                  />
+                </FormField>
               </div>
             </CardContent>
           </Card>
           
-          {/* استان و شهر */}
-          <Card>
-            <CardContent className="pt-6">
-              <div>
-                <h3 className="text-lg font-medium mb-4">موقعیت جغرافیایی</h3>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_province_id">استان</Label>
-                    <Select
-                      value={provinceValue?.toString() || ""}
-                      onValueChange={handleProvinceChange}
-                      disabled={!editMode || loadingProvinces}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "استان خود را انتخاب کنید"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {provinces.map((province) => (
-                          <SelectItem key={province.id} value={province.id.toString()}>
-                            {province.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="profile_city_id">شهر</Label>
-                    <Select
-                      value={watch("profile_city_id")?.toString() || ""}
-                      onValueChange={handleCityChange}
-                      disabled={!editMode || loadingCities || !provinceValue}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={
-                          !provinceValue 
-                            ? "ابتدا استان را انتخاب کنید" 
-                            : loadingCities 
-                              ? "در حال بارگذاری..." 
-                              : cities.length === 0
-                                ? "شهری برای این استان یافت نشد"
-                                : "شهر خود را انتخاب کنید"
-                        } />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map((city) => (
-                          <SelectItem key={city.id} value={city.id.toString()}>
-                            {city.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="profile_address">آدرس</Label>
-                    <Textarea
-                      id="profile_address"
-                      placeholder="آدرس کامل محل سکونت یا محل کار"
-                      rows={3}
-                      disabled={!editMode}
-                      className={errors.profile_address ? "border-destructive" : ""}
-                      {...register("profile_address")}
-                    />
-                    {errors.profile_address && (
-                      <p className="text-xs text-destructive">{errors.profile_address.message}</p>
-                    )}
-                  </div>
+          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
+                  <MapPin className="w-5 h-5 stroke-green-600" />
                 </div>
+                موقعیت جغرافیایی
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  label="استان"
+                  htmlFor="profile_province_id"
+                >
+                  <Select
+                    value={provinceValue?.toString() || ""}
+                    onValueChange={handleProvinceChange}
+                    disabled={!editMode || loadingProvinces}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "استان خود را انتخاب کنید"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {provinces.map((province) => (
+                        <SelectItem key={province.id} value={province.id.toString()}>
+                          {province.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField
+                  label="شهر"
+                  htmlFor="profile_city_id"
+                >
+                  <Select
+                    value={watch("profile_city_id")?.toString() || ""}
+                    onValueChange={handleCityChange}
+                    disabled={!editMode || loadingCities || !provinceValue}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={
+                        !provinceValue 
+                          ? "ابتدا استان را انتخاب کنید" 
+                          : loadingCities 
+                            ? "در حال بارگذاری..." 
+                            : cities.length === 0
+                              ? "شهری برای این استان یافت نشد"
+                              : "شهر خود را انتخاب کنید"
+                      } />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city.id} value={city.id.toString()}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+                
+                <FormField
+                  label="آدرس"
+                  htmlFor="profile_address"
+                  error={errors.profile_address?.message}
+                  className="md:col-span-2"
+                >
+                  <Textarea
+                    id="profile_address"
+                    placeholder="آدرس کامل محل سکونت یا محل کار"
+                    rows={3}
+                    disabled={!editMode}
+                    {...register("profile_address")}
+                  />
+                </FormField>
               </div>
             </CardContent>
           </Card>
 
-          {/* بیوگرافی */}
-          <Card>
-            <CardContent className="pt-6">
-              <div>
-                <h3 className="text-lg font-medium mb-4">بیوگرافی</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="profile_bio">بیوگرافی</Label>
-                  <Textarea
-                    id="profile_bio"
-                    placeholder="توضیحات کوتاه درباره ادمین"
-                    rows={4}
-                    disabled={!editMode}
-                    className={errors.profile_bio ? "border-destructive" : ""}
-                    {...register("profile_bio")}
-                  />
-                  {errors.profile_bio && (
-                    <p className="text-xs text-destructive">{errors.profile_bio.message}</p>
-                  )}
+          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
+                  <FileText className="w-5 h-5 stroke-purple-600" />
                 </div>
-              </div>
+                بیوگرافی
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                label="بیوگرافی"
+                htmlFor="profile_bio"
+                error={errors.profile_bio?.message}
+              >
+                <Textarea
+                  id="profile_bio"
+                  placeholder="توضیحات کوتاه درباره ادمین"
+                  rows={4}
+                  disabled={!editMode}
+                  {...register("profile_bio")}
+                />
+              </FormField>
             </CardContent>
           </Card>
 
@@ -373,7 +386,7 @@ export default function ProfileTab({
                       />
                     </div>
                   ) : (
-                    <div className="w-64 h-64 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-card">
+                    <div className="w-64 h-64 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground text-4xl font-bold border-4 border-card">
                       <User className="w-32 h-32" strokeWidth={1.5} />
                     </div>
                   )}

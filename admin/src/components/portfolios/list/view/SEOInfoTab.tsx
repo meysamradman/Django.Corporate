@@ -42,8 +42,8 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
         <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded-xl shadow-sm">
-                <Search className="w-5 h-5 stroke-green-600 dark:stroke-green-400" />
+              <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
+                <Search className="w-5 h-5 stroke-green-600" />
               </div>
               برچسب‌های Meta
             </CardTitle>
@@ -133,8 +133,8 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
         <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-xl shadow-sm">
-                <Globe className="w-5 h-5 stroke-blue-600 dark:stroke-blue-400" />
+              <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
+                <Globe className="w-5 h-5 stroke-blue-600" />
               </div>
               پیش‌نمایش Open Graph
             </CardTitle>

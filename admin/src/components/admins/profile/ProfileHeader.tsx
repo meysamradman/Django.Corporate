@@ -3,15 +3,17 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
-import { CheckCircle2, XCircle, Smartphone, CalendarDays, Camera } from "lucide-react";
+import { CheckCircle2, XCircle, Smartphone, Camera, Clock, Shield } from "lucide-react";
 import { AdminWithProfile } from "@/types/auth/admin";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Media } from "@/types/shared/media";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from '@/components/elements/Sonner';
+import { adminApi } from '@/api/admins/route';
+import { Role } from '@/types/auth/permission';
 
 interface ProfileHeaderProps {
     admin: AdminWithProfile;
@@ -27,8 +29,33 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ admin, formData, onProfileImageChange }: ProfileHeaderProps) {
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
+    const [adminRoles, setAdminRoles] = useState<Role[]>([]);
     const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
+
+    // Load admin roles
+    useEffect(() => {
+        if (admin?.id) {
+            loadAdminRoles();
+        }
+    }, [admin?.id]);
+
+    const loadAdminRoles = async () => {
+        try {
+            const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
+            const adminRolesData = Array.isArray(adminRolesResponse) 
+                ? adminRolesResponse.map((assignment: any) => {
+                    if (assignment.role && typeof assignment.role === 'object') {
+                        return assignment.role;
+                    }
+                    return assignment;
+                })
+                : [];
+            setAdminRoles(adminRolesData);
+        } catch (error) {
+            console.error("Error loading admin roles:", error);
+        }
+    };
 
     // Use formData.profileImage first (updated immediately), then fallback to admin profile
     const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
@@ -130,8 +157,10 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                                 />
                             </div>
                         ) : (
-                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-card">
-                                {(formData.firstName?.[0] || admin.full_name?.[0] || "U")}{(formData.lastName?.[0] || admin.full_name?.split(" ")?.[1]?.[0] || "")}
+                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground border-4 border-card">
+                                <span>
+                                    {(formData.firstName?.[0] || admin.full_name?.[0] || "U")}{(formData.lastName?.[0] || admin.full_name?.split(" ")?.[1]?.[0] || "")}
+                                </span>
                             </div>
                         )}
                         
@@ -146,29 +175,65 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                         </Button>
                     </div>
                     <div className="flex-1 pt-16 pb-2">
-                        <h2 className="text-2xl font-bold">
+                        <h2>
                             {formData.firstName && formData.lastName
                                 ? `${formData.firstName} ${formData.lastName}`
                                 : admin.full_name || "نام کاربری"
                             }
                         </h2>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mt-3">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground mt-3">
                             <div className="flex items-center gap-2">
-                                {admin.is_active ? (
-                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                                ) : (
-                                    <XCircle className="w-5 h-5 text-red-500" />
-                                )}
-                                <span>{admin.is_active ? "فعال" : "غیرفعال"}</span>
+                                <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${
+                                    admin.is_active ? "bg-green-100" : "bg-yellow-100"
+                                }`}>
+                                    {admin.is_active ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    ) : (
+                                        <XCircle className="w-5 h-5 text-yellow-600" />
+                                    )}
+                                </div>
+                                <span className={admin.is_active ? "text-green-600" : "text-yellow-600"}>
+                                    {admin.is_active ? "فعال" : "غیرفعال"}
+                                </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Smartphone className="w-5 h-5" />
-                                <span>{formData.mobile || admin.mobile || "موبایل وارد نشده"}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CalendarDays className="w-5 h-5" />
-                                <span>عضویت از {admin.created_at ? new Date(admin.created_at).toLocaleDateString('fa-IR') : "نامشخص"}</span>
-                            </div>
+                            {admin.created_at && (
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 p-2">
+                                        <Clock className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <span>
+                                        ایجاد شده در{" "}
+                                        {new Date(admin.created_at).toLocaleDateString("fa-IR")}
+                                    </span>
+                                </div>
+                            )}
+                            {(formData.mobile || admin.mobile) && (
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple-100 p-2">
+                                        <Smartphone className="w-5 h-5 text-purple-600" />
+                                    </div>
+                                    <span>{formData.mobile || admin.mobile}</span>
+                                </div>
+                            )}
+                            {adminRoles && adminRoles.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 p-2">
+                                        <Shield className="w-5 h-5 text-orange-600" />
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {adminRoles.slice(0, 2).map((role: any) => (
+                                            <span key={role.id || role.public_id} className="inline-flex items-center rounded-md bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                                                {role.display_name || role.name}
+                                            </span>
+                                        ))}
+                                        {adminRoles.length > 2 && (
+                                            <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                                                +{adminRoles.length - 2}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -309,9 +309,7 @@ export default function MediaPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">
-            کتابخانه رسانه
-          </h1>
+          <h1>کتابخانه رسانه</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -336,13 +334,13 @@ export default function MediaPage() {
       {/* Main Content */}
 
       {error && (
-           <div className="text-center text-red-600 bg-red-100 border border-red-400 p-4 rounded">
+           <div className="text-center text-destructive bg-destructive/10 border border-destructive/20 p-4 rounded">
                <p>{error}</p>
            </div>
       )}
 
         <Card className="gap-0 shadow-sm border-0">
-          <CardHeader className="border-b ">
+          <CardHeader className="border-b border-border">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
@@ -500,7 +498,7 @@ export default function MediaPage() {
                         "absolute bottom-0 left-0 right-0 p-3 text-xs z-0 transition-all duration-300 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none",
                         selectedItems[item.id] ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                       )}>
-                        <p className="font-semibold truncate drop-shadow-lg text-white" style={{ color: '#ffffff' }} title={displayName}>{displayName}</p>
+                        <p className="truncate drop-shadow-lg text-white" title={displayName}>{displayName}</p>
                       </div>
                     </Card>
                   );
@@ -510,7 +508,7 @@ export default function MediaPage() {
           </CardContent>
 
           {!isLoading && mediaItems.length > 0 && (
-            <CardFooter className="border-t">
+            <CardFooter className="border-t border-border">
               <PaginationControls
                 currentPage={filters.page || 1}
                 totalPages={Math.ceil(totalCount / (filters.size ?? DEFAULT_MEDIA_PAGE_SIZE))}

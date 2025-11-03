@@ -284,97 +284,102 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     };
 
     return (
-        <TabsContent value="advanced_settings" className="mt-6 space-y-6">
-            <h1 className="page-title">
-                {getPermissionTranslation('پروفایل ادمین', 'resource')}
-            </h1>
-
+        <TabsContent value="advanced_settings">
+            <div className="space-y-6">
             {/* Admin Settings Card */}
-            <Card>
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
                 <CardHeader>
-                    <CardTitle>تنظیمات پیشرفته</CardTitle>
+                    <CardTitle className="flex items-center gap-3">
+                        <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
+                            <Shield className="w-5 h-5 stroke-purple-600" />
+                        </div>
+                        تنظیمات پیشرفته
+                    </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <Label htmlFor="account-status" className="text-base">{getPermissionTranslation('وضعیت حساب', 'resource')}</Label>
-                            <p className="text-sm text-muted-foreground">
-                                {getPermissionTranslation('حساب کاربری این ادمین را فعال یا غیرفعال کنید.', 'description')}
-                            </p>
-                        </div>
-                        <Switch
-                            id="account-status"
-                            checked={adminStatusData.is_active}
-                            onCheckedChange={(checked) => handleStatusChange('is_active', checked)}
-                            disabled={!canManagePermissions}
-                        />
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <Label htmlFor="super-admin-access" className="text-base">{getPermissionTranslation('دسترسی سوپر ادمین', 'resource')}</Label>
-                            <p className="text-sm text-muted-foreground">
-                                {getPermissionTranslation('این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.', 'description')}
-                            </p>
-                        </div>
-                        <Switch
-                            id="super-admin-access"
-                            checked={adminStatusData.is_superuser}
-                            onCheckedChange={(checked) => handleStatusChange('is_superuser', checked)}
-                            disabled={!canManagePermissions || !user?.is_superuser}
-                        />
-                    </div>
-
-                    {/* Admin Roles Display */}
-                    {adminRoles.length > 0 && (
-                        <div className="rounded-lg border p-4">
-                            <Label className="text-base">{getPermissionTranslation('نقش‌های فعلی', 'resource')}</Label>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                                {adminRoles.map((role) => (
-                                    <span
-                                        key={role.id}
-                                        className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
-                                    >
-                                        {getPermissionTranslation(role.name, 'role')}
-                                    </span>
-                                ))}
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="account-status">{getPermissionTranslation('وضعیت حساب', 'resource')}</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    {getPermissionTranslation('حساب کاربری این ادمین را فعال یا غیرفعال کنید.', 'description')}
+                                </p>
                             </div>
+                            <Switch
+                                id="account-status"
+                                checked={adminStatusData.is_active}
+                                onCheckedChange={(checked) => handleStatusChange('is_active', checked)}
+                                disabled={!canManagePermissions}
+                            />
                         </div>
-                    )}
-
-                    {/* Base Permissions Display - دسترسی‌های پایه */}
-                    {basePermissions.length > 0 && (
-                        <div className="rounded-lg border p-4 bg-green-50/50">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Shield className="w-4 h-4 text-green-600" />
-                                <Label className="text-base text-green-700">دسترسی‌های پایه</Label>
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="super-admin-access">{getPermissionTranslation('دسترسی سوپر ادمین', 'resource')}</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    {getPermissionTranslation('این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.', 'description')}
+                                </p>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-3">
-                                این دسترسی‌ها به صورت خودکار برای همه ادمین‌ها فعال است:
-                            </p>
-                            <div className="space-y-2">
-                                {basePermissions.map((perm) => (
-                                    <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-white border border-green-100">
-                                        <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <div className="text-sm font-medium text-foreground">{perm.display_name}</div>
-                                            {perm.description && (
-                                                <div className="text-xs text-muted-foreground">{perm.description}</div>
-                                            )}
+                            <Switch
+                                id="super-admin-access"
+                                checked={adminStatusData.is_superuser}
+                                onCheckedChange={(checked) => handleStatusChange('is_superuser', checked)}
+                                disabled={!canManagePermissions || !user?.is_superuser}
+                            />
+                        </div>
+
+                        {/* Admin Roles Display */}
+                        {adminRoles.length > 0 && (
+                            <div className="rounded-lg border p-4">
+                                <Label>{getPermissionTranslation('نقش‌های فعلی', 'resource')}</Label>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {adminRoles.map((role) => (
+                                        <span
+                                            key={role.id}
+                                            className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary ring-1 ring-inset ring-primary/20"
+                                        >
+                                            {getPermissionTranslation(role.name, 'role')}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Base Permissions Display - دسترسی‌های پایه */}
+                        {basePermissions.length > 0 && (
+                            <div className="rounded-lg border p-4 bg-green-50/50">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Shield className="w-4 h-4 text-green-600" />
+                                    <Label className="text-green-700">دسترسی‌های پایه</Label>
+                                </div>
+                                <p className="text-muted-foreground mb-3">
+                                    این دسترسی‌ها به صورت خودکار برای همه ادمین‌ها فعال است:
+                                </p>
+                                <div className="space-y-2">
+                                    {basePermissions.map((perm) => (
+                                        <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-100">
+                                            <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <div className="flex-1">
+                                                <div className="text-foreground">{perm.display_name}</div>
+                                                {perm.description && (
+                                                    <div className="text-muted-foreground">{perm.description}</div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </CardContent>
             </Card>
 
             {/* Role Assignment Card - Simplified role assignment without detailed permissions */}
-            <Card>
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>اختصاص نقش‌ها</CardTitle>
-                    </div>
+                    <CardTitle className="flex items-center gap-3">
+                        <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                            <Users className="w-5 h-5 stroke-indigo-600" />
+                        </div>
+                        اختصاص نقش‌ها
+                    </CardTitle>
                     <div className="flex gap-2">
                         {canManagePermissions ? (
                             <>
@@ -399,22 +404,22 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                 )}
                             </>
                         ) : (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2 text-muted-foreground">
                                 <AlertTriangle className="w-4 h-4" />
                                 {getPermissionTranslation('فقط مشاهده (عدم دسترسی ویرایش)', 'description')}
                             </div>
                         )}
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
                     {/* Super Admin Info */}
                     {admin.is_superuser && (
                         <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                             <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                <h4 className="font-semibold text-sm text-green-700">{getPermissionTranslation('سوپر ادمین - دسترسی کامل', 'description')}</h4>
+                                <div className="h-2 w-2 rounded-full bg-green-600"></div>
+                                <h4 className="text-green-700">{getPermissionTranslation('سوپر ادمین - دسترسی کامل', 'description')}</h4>
                             </div>
-                            <p className="text-xs text-green-600 mt-1">
+                            <p className="text-green-600 mt-1">
                                 {getPermissionTranslation('این کاربر به عنوان سوپر ادمین به صورت خودکار تمام ماژول‌ها و عملیات را در اختیار دارد.', 'description')}
                             </p>
                         </div>
@@ -427,7 +432,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             ))}
                         </div>
                     ) : error ? (
-                        <div className="flex items-center justify-center py-8 text-red-600">
+                        <div className="flex items-center justify-center py-8 text-destructive">
                             <AlertTriangle className="w-5 h-5 me-2" />
                             {error}
                         </div>
@@ -444,16 +449,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                                     onCheckedChange={(checked) => handleRoleAssignmentChange(role.id, !!checked)}
                                                     disabled={!editMode || !canManagePermissions || admin.is_superuser}
                                                 />
-                                                <Label htmlFor={`role-${role.id}`} className="font-medium">
+                                                <Label htmlFor={`role-${role.id}`}>
                                                     {getPermissionTranslation(role.name, 'role')}
                                                 </Label>
                                                 {role.is_system_role && (
-                                                    <Badge variant="outline" className="text-xs">
+                                                    <Badge variant="outline">
                                                         {getPermissionTranslation('سیستمی', 'description')}
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
+                                            <div className="text-muted-foreground">
                                                 {getPermissionTranslation(role.name, 'roleDescription') || role.description}
                                             </div>
                                         </div>
@@ -463,7 +468,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             
                             {editMode && !admin.is_superuser && (
                                 <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                                    <div className="text-sm font-medium">
+                                    <div>
                                         {getPermissionTranslation('نقش‌های انتخاب شده:', 'resource')} {
                                             roleAssignments.filter(a => a.assigned).length
                                         }
@@ -478,6 +483,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     )}
                 </CardContent>
             </Card>
+            </div>
         </TabsContent>
     );
 }

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "@/components/elements/Sonner";
 import { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, AlertCircle, Shield } from "lucide-react";
+import { User, KeyRound } from "lucide-react";
 import { ProfileHeader } from "@/components/users/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
@@ -247,8 +247,8 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                         حساب کاربری
                     </TabsTrigger>
                     <TabsTrigger value="security">
-                        <Shield className="w-4 h-4 me-2" />
-                        امنیت
+                        <KeyRound className="w-4 h-4 me-2" />
+                        گذرواژه
                     </TabsTrigger>
                 </TabsList>
 

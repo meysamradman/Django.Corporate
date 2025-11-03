@@ -255,7 +255,7 @@ export default function CreatePortfolioPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
+        <TabsList>
           <TabsTrigger value="account">
             <FileText className="h-4 w-4 me-2" />
             اطلاعات پایه

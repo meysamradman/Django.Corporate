@@ -97,8 +97,8 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl shadow-sm">
-                  <Image className="w-5 h-5 stroke-indigo-600 dark:stroke-indigo-400" />
+                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                  <Image className="w-5 h-5 stroke-indigo-600" />
                 </div>
                 <span>تصاویر</span>
               </div>
@@ -114,8 +114,8 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-xl shadow-sm">
-                  <Video className="w-5 h-5 stroke-purple-600 dark:stroke-purple-400" />
+                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
+                  <Video className="w-5 h-5 stroke-purple-600" />
                 </div>
                 <span>ویدیوها</span>
               </div>
@@ -131,8 +131,8 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-rose-100 dark:bg-rose-900/30 rounded-xl shadow-sm">
-                  <Music className="w-5 h-5 stroke-rose-600 dark:stroke-rose-400" />
+                <div className="p-2.5 bg-rose-100 rounded-xl shadow-sm">
+                  <Music className="w-5 h-5 stroke-rose-600" />
                 </div>
                 <span>فایل‌های صوتی</span>
               </div>
@@ -148,8 +148,8 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gray-100 dark:bg-gray-900/30 rounded-xl shadow-sm">
-                  <FileText className="w-5 h-5 stroke-gray-600 dark:stroke-gray-400" />
+                <div className="p-2.5 bg-gray-100 rounded-xl shadow-sm">
+                  <FileText className="w-5 h-5 stroke-gray-600" />
                 </div>
                 <span>اسناد</span>
               </div>

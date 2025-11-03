@@ -164,10 +164,7 @@ export default function CreateUserPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">ایجاد کاربر جدید</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            ایجاد حساب کاربری جدید برای وب‌سایت
-                        </p>
+                        <h1>ایجاد کاربر جدید</h1>
                     </div>
                     <div className="flex gap-2">
                         <Button onClick={handleSubmit} disabled={createUserMutation.isPending}>
@@ -202,7 +199,7 @@ export default function CreateUserPage() {
                     </TabsList>
 
                     <Suspense fallback={
-                        <div className="mt-6">
+                        <div>
                             <Skeleton className="w-full h-64" />
                             <Skeleton className="w-full h-64 mt-4" />
                         </div>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
-import { CheckCircle2, XCircle, Smartphone, CalendarDays, Camera } from "lucide-react";
+import { CheckCircle2, XCircle, Smartphone, Camera, Clock } from "lucide-react";
 import { UserWithProfile } from "@/types/auth/user";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
@@ -111,7 +111,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                                 />
                             </div>
                         ) : (
-                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-card">
+                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground text-4xl font-bold border-4 border-card">
                                 {(formData.firstName?.[0] || user.full_name?.[0] || "U")}{(formData.lastName?.[0] || user.full_name?.split(" ")?.[1]?.[0] || "")}
                             </div>
                         )}
@@ -127,29 +127,46 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                         </Button>
                     </div>
                     <div className="flex-1 pt-16 pb-2">
-                        <h2 className="text-2xl font-bold">
+                        <h2>
                             {formData.firstName && formData.lastName
                                 ? `${formData.firstName} ${formData.lastName}`
                                 : user.full_name || "نام کاربری"
                             }
                         </h2>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mt-3">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground mt-3">
                             <div className="flex items-center gap-2">
-                                {user.is_active ? (
-                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                                ) : (
-                                    <XCircle className="w-5 h-5 text-red-500" />
-                                )}
-                                <span>{user.is_active ? "فعال" : "غیرفعال"}</span>
+                                <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${
+                                    user.is_active ? "bg-green-100" : "bg-yellow-100"
+                                }`}>
+                                    {user.is_active ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    ) : (
+                                        <XCircle className="w-5 h-5 text-yellow-600" />
+                                    )}
+                                </div>
+                                <span className={user.is_active ? "text-green-600" : "text-yellow-600"}>
+                                    {user.is_active ? "فعال" : "غیرفعال"}
+                                </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Smartphone className="w-5 h-5" />
-                                <span>{formData.mobile || user.mobile || "موبایل وارد نشده"}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CalendarDays className="w-5 h-5" />
-                                <span>عضویت از {user.created_at ? new Date(user.created_at).toLocaleDateString('fa-IR') : "نامشخص"}</span>
-                            </div>
+                            {user.created_at && (
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 p-2">
+                                        <Clock className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <span>
+                                        ایجاد شده در{" "}
+                                        {new Date(user.created_at).toLocaleDateString("fa-IR")}
+                                    </span>
+                                </div>
+                            )}
+                            {(formData.mobile || user.mobile) && (
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple-100 p-2">
+                                        <Smartphone className="w-5 h-5 text-purple-600" />
+                                    </div>
+                                    <span>{formData.mobile || user.mobile}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

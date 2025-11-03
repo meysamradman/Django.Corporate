@@ -6,7 +6,7 @@ import { useCreateRole, usePermissions } from "@/components/auth/hooks/useRoles"
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield, AlertCircle } from "lucide-react";
+import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield, AlertCircle, ShieldCheck, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
@@ -189,20 +189,25 @@ export default function CreateRolePage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="page-title">ایجاد نقش جدید</h1>
+        <h1>ایجاد نقش جدید</h1>
       </div>
 
       {/* Form */}
       <div className="space-y-6">
         {/* Permissions */}
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
           <CardHeader>
-            <CardTitle>دسترسی‌ها</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                <ShieldCheck className="w-5 h-5 stroke-indigo-600" />
+              </div>
+              دسترسی‌ها
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
               دسترسی‌های مورد نیاز برای این نقش را انتخاب کنید
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {permissionsLoading ? (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
@@ -210,7 +215,7 @@ export default function CreateRolePage() {
                 ))}
               </div>
             ) : permissionsError ? (
-              <div className="text-center text-red-500 py-8">
+              <div className="text-center text-destructive py-8">
                 <p>خطا در بارگیری دسترسی‌ها</p>
                 <p className="text-sm mt-2">{String(permissionsError)}</p>
               </div>
@@ -325,7 +330,7 @@ export default function CreateRolePage() {
                 
                 {/* نمایش خطا برای دسترسی‌ها */}
                 {errors.permission_ids?.message && (
-                  <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 mt-4 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                  <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10 rounded-lg">
                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <span>{String(errors.permission_ids.message)}</span>
                   </div>
@@ -340,12 +345,17 @@ export default function CreateRolePage() {
         </Card>
 
         {/* Basic Info */}
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
           <CardHeader>
-            <CardTitle>اطلاعات پایه</CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                <User className="w-5 h-5 stroke-primary" />
+              </div>
+              اطلاعات پایه
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <FormFieldInput
                 label="نام"
                 id="name"
@@ -365,7 +375,7 @@ export default function CreateRolePage() {
                 {...register("description")}
               />
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 justify-end">
                 <Button
                   type="submit"
                   disabled={createRoleMutation.isPending}

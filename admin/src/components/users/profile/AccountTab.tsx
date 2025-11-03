@@ -1,10 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
-import { Label } from "@/components/elements/Label";
-import { Separator } from "@/components/elements/Separator";
 import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
@@ -151,109 +149,150 @@ export function AccountTab({
     };
     
     return (
-        <TabsContent value="account" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <TabsContent value="account">
+            <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
                 {/* Left Column: Details */}
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-gradient-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-gradient-to-b before:from-blue-500 before:via-blue-400 before:to-blue-300">
                         <CardHeader>
-                            <CardTitle>درباره</CardTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
+                                    <User className="w-5 h-5 stroke-blue-600" />
+                                </div>
+                                درباره
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-4 text-sm font-medium">
-                                <div className="flex items-center gap-4">
-                                    <User className="w-4 h-4 text-muted-foreground" />
-                                    <span>نام کامل:</span>
-                                    <span className="text-muted-foreground">
-                                        {formData.firstName && formData.lastName
-                                            ? `${formData.firstName} ${formData.lastName}`
-                                            : user.full_name || "نام وارد نشده"
-                                        }
-                                    </span>
+                        <CardContent className="pt-4 pb-4">
+                            <div className="space-y-5">
+                                <div>
+                                    <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                                        <div className="flex items-center justify-between gap-3 pb-3">
+                                            <div className="flex items-center gap-2">
+                                                <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>نام کامل:</label>
+                                            </div>
+                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                                <span className="text-foreground">
+                                                    {formData.firstName && formData.lastName
+                                                        ? `${formData.firstName} ${formData.lastName}`
+                                                        : user.full_name || "نام وارد نشده"
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                {user.is_active ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                                ) : (
+                                                    <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+                                                )}
+                                                <label>وضعیت:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">
+                                                {user.is_active ? "فعال" : "غیرفعال"}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>تاریخ تولد:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">
+                                                {formData.birthDate || "وارد نشده"}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>کشور:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">ایران</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>استان:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">{formData.province || "وارد نشده"}</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>شهر:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">{formData.city || "وارد نشده"}</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 pt-3">
+                                            <div className="flex items-center gap-2">
+                                                <Fingerprint className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>کد ملی:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">{formData.nationalId || "وارد نشده"}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <Smartphone className="w-4 h-4 text-muted-foreground" />
-                                    <span>موبایل:</span>
-                                    <span className="text-muted-foreground" dir="ltr">{formData.mobile || "وارد نشده"}</span>
+                                <div className="relative my-6">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-border/50"></div>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <div className="bg-card px-3 py-1 rounded-full border border-border/50 shadow-sm">
+                                            <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    {user.is_active ? (
-                                        <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                        <XCircle className="w-4 h-4 text-red-500" />
-                                    )}
-                                    <span>وضعیت:</span>
-                                    <span className="text-muted-foreground">{user.is_active ? "فعال" : "غیرفعال"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                                    <span>تاریخ تولد:</span>
-                                    <span className="text-muted-foreground">{formData.birthDate || "وارد نشده"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                                    <span>کشور:</span>
-                                    <span className="text-muted-foreground">ایران</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                                    <span>استان:</span>
-                                    <span className="text-muted-foreground">{formData.province || "وارد نشده"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                                    <span>شهر:</span>
-                                    <span className="text-muted-foreground">{formData.city || "وارد نشده"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <Fingerprint className="w-4 h-4 text-muted-foreground" />
-                                    <span>کد ملی:</span>
-                                    <span className="text-muted-foreground">{formData.nationalId || "وارد نشده"}</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* اطلاعات تماس */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>اطلاعات تماس</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-4 text-sm font-medium">
-                                <div className="flex items-center gap-4">
-                                    <Mail className="w-4 h-4 text-muted-foreground" />
-                                    <span>ایمیل:</span>
-                                    <span className="text-muted-foreground text-xs break-all">{formData.email || "وارد نشده"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <Smartphone className="w-4 h-4 text-muted-foreground" />
-                                    <span>موبایل:</span>
-                                    <span className="text-muted-foreground" dir="ltr">{formData.mobile || "وارد نشده"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <span>تلفن:</span>
-                                    <span className="text-muted-foreground">{formData.phone || "وارد نشده"}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                                    <span>آدرس:</span>
-                                    <span className="text-muted-foreground">{formData.address || "وارد نشده"}</span>
+                                <div className="mt-2">
+                                    <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                                        <div className="flex items-center justify-between gap-3 pb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>ایمیل:</label>
+                                            </div>
+                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                                <span className="text-foreground break-all">{formData.email || user.email || "وارد نشده"}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Smartphone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>موبایل:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">{formData.mobile || user.mobile || "وارد نشده"}</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>تلفن:</label>
+                                            </div>
+                                            <p className="text-foreground text-left">{formData.phone || "وارد نشده"}</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 pt-3">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                <label>آدرس:</label>
+                                            </div>
+                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                                <span className="text-foreground">{formData.address || "وارد نشده"}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* ستون راست: فرم */}
-                <div className="lg:col-span-3 space-y-6">
-                    {/* اطلاعات کامل */}
-                    <Card>
+                {/* Right Column: Edit Form */}
+                <div className="lg:col-span-4 space-y-6">
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
                         <CardHeader className="flex flex-row items-center justify-between">
-                            <div>
-                                <CardTitle>اطلاعات کاربری</CardTitle>
-                            </div>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                                    <User className="w-5 h-5 stroke-primary" />
+                                </div>
+                                اطلاعات کاربری
+                            </CardTitle>
                             {!editMode && (
                                 <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
                                     <Edit2 className="w-4 h-4 me-2" />
@@ -261,7 +300,7 @@ export function AccountTab({
                                 </Button>
                             )}
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                     label="نام"
@@ -289,14 +328,19 @@ export function AccountTab({
                                         placeholder="نام خانوادگی"
                                     />
                                 </FormField>
-                                <div className="space-y-2">
-                                    <Label htmlFor="birthDate">تاریخ تولد</Label>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <FormField
+                                    label="تاریخ تولد"
+                                    htmlFor="birthDate"
+                                >
                                     <PersianDatePicker
                                         value={formData.birthDate}
                                         onChange={handleBirthDateChange}
                                         disabled={!editMode}
                                     />
-                                </div>
+                                </FormField>
                                 <FormField
                                     label="کد ملی"
                                     error={fieldErrors.nationalId}
@@ -313,9 +357,23 @@ export function AccountTab({
                                         onPaste={preventNonNumericPaste}
                                     />
                                 </FormField>
+                                <FormField
+                                    label="تلفن"
+                                    htmlFor="phone"
+                                >
+                                    <Input
+                                        id="phone"
+                                        value={formData.phone}
+                                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                                        disabled={!editMode}
+                                        placeholder="تلفن ثابت"
+                                        type="text"
+                                        inputMode="tel"
+                                        onKeyDown={preventNonNumeric}
+                                        onPaste={preventNonNumericPaste}
+                                    />
+                                </FormField>
                             </div>
-
-                            <Separator />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
@@ -348,25 +406,13 @@ export function AccountTab({
                                         placeholder="example@domain.com"
                                     />
                                 </FormField>
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">تلفن</Label>
-                                    <Input
-                                        id="phone"
-                                        value={formData.phone}
-                                        onChange={(e) => handleInputChange("phone", e.target.value)}
-                                        disabled={!editMode}
-                                        placeholder="تلفن ثابت"
-                                        type="text"
-                                        inputMode="tel"
-                                        onKeyDown={preventNonNumeric}
-                                        onPaste={preventNonNumericPaste}
-                                    />
-                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="province">استان</Label>
+                                <FormField
+                                    label="استان"
+                                    htmlFor="province"
+                                >
                                     <Select
                                         value={formData.province}
                                         onValueChange={handleProvinceChange}
@@ -383,9 +429,11 @@ export function AccountTab({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="city">شهر</Label>
+                                </FormField>
+                                <FormField
+                                    label="شهر"
+                                    htmlFor="city"
+                                >
                                     <Select
                                         value={formData.city}
                                         onValueChange={handleCityChange}
@@ -410,9 +458,11 @@ export function AccountTab({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="address">آدرس</Label>
+                                </FormField>
+                                <FormField
+                                    label="آدرس"
+                                    htmlFor="address"
+                                >
                                     <Input
                                         id="address"
                                         value={formData.address}
@@ -421,11 +471,13 @@ export function AccountTab({
                                         placeholder="آدرس خود را وارد کنید"
                                         className="w-full"
                                     />
-                                </div>
+                                </FormField>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="bio">بیوگرافی</Label>
+                            <FormField
+                                label="بیوگرافی"
+                                htmlFor="bio"
+                            >
                                 <Textarea
                                     id="bio"
                                     value={formData.bio}
@@ -434,7 +486,7 @@ export function AccountTab({
                                     placeholder="درباره خود بنویسید"
                                     rows={3}
                                 />
-                            </div>
+                            </FormField>
 
                             {editMode && (
                                 <div className="flex gap-2 pt-4">

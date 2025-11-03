@@ -114,7 +114,7 @@ export default function PortfolioViewPage() {
 
         <div className="lg:col-span-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-6">
+            <TabsList>
               <TabsTrigger value="overview">
                 <FileText className="h-4 w-4" />
                 مرور کلی

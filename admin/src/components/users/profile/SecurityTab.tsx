@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
-import { Label } from "@/components/elements/Label";
 import { TabsContent } from "@/components/elements/Tabs";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { FormField } from "@/components/forms/FormField";
+import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export function SecurityTab() {
@@ -33,21 +33,25 @@ export function SecurityTab() {
     ) : 0;
 
     return (
-        <TabsContent value="security" className="mt-6 space-y-6">
-            {/* Change Password */}
-            <Card>
+        <TabsContent value="security">
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-red-500">
                 <CardHeader>
-                    <CardTitle>امنیت</CardTitle>
+                    <CardTitle className="flex items-center gap-3">
+                        <div className="p-2.5 bg-red-100 rounded-xl shadow-sm">
+                            <Lock className="w-5 h-5 stroke-red-600" />
+                        </div>
+                        گذرواژه
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                     {newPassword && passwordStrength < 100 && (
-                        <Alert variant="default" className="bg-orange-50 border-orange-200">
-                            <AlertCircle className="h-4 w-4 text-orange-600" />
-                            <AlertDescription className="text-orange-800">
-                                <div className="font-semibold mb-1">
+                        <Alert variant="default" className="bg-amber-50 border-amber-200">
+                            <AlertCircle className="h-4 w-4 text-amber-600" />
+                            <AlertDescription className="text-amber-800">
+                                <div className="mb-1">
                                     مطمئن شوید که این الزامات رعایت شده است:
                                 </div>
-                                <div className="text-sm">
+                                <div>
                                     حداقل 8 کاراکتر، شامل حروف بزرگ و کاراکتر خاص
                                 </div>
                             </AlertDescription>
@@ -55,21 +59,23 @@ export function SecurityTab() {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="new-password">رمز عبور جدید</Label>
+                        <FormField
+                            label="رمز عبور جدید"
+                            htmlFor="newPassword"
+                        >
                             <div className="relative">
                                 <Input
-                                    id="new-password"
+                                    id="newPassword"
                                     type={showNewPassword ? "text" : "password"}
+                                    placeholder="············"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="رمز عبور جدید را وارد کنید"
                                 />
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                     onClick={() => setShowNewPassword(!showNewPassword)}
                                 >
                                     {showNewPassword ? (
@@ -79,23 +85,43 @@ export function SecurityTab() {
                                     )}
                                 </Button>
                             </div>
-                        </div>
+                            {newPassword && (
+                                <div className="space-y-1">
+                                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all ${passwordStrength < 40
+                                                    ? "bg-destructive"
+                                                    : passwordStrength < 70
+                                                        ? "bg-amber-600"
+                                                        : "bg-green-600"
+                                                }`}
+                                            style={{ width: `${passwordStrength}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        قدرت رمز: {passwordStrength < 40 ? "ضعیف" : passwordStrength < 70 ? "متوسط" : "قوی"}
+                                    </p>
+                                </div>
+                            )}
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-password">تکرار رمز عبور</Label>
+                        <FormField
+                            label="تکرار رمز عبور"
+                            htmlFor="confirmPassword"
+                        >
                             <div className="relative">
                                 <Input
-                                    id="confirm-password"
+                                    id="confirmPassword"
                                     type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="············"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="رمز عبور را مجدداً وارد کنید"
                                 />
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 >
                                     {showConfirmPassword ? (
@@ -105,33 +131,14 @@ export function SecurityTab() {
                                     )}
                                 </Button>
                             </div>
-                        </div>
+                        </FormField>
                     </div>
 
-                    {newPassword && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span>قدرت رمز عبور:</span>
-                                <span>{passwordStrength}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className={`h-2 rounded-full transition-all duration-300 ${
-                                        passwordStrength >= 80 ? 'bg-green-500' :
-                                        passwordStrength >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                                    }`}
-                                    style={{ width: `${passwordStrength}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <Button onClick={handleChangePassword} disabled={!newPassword || !confirmPassword}>
+                    <Button onClick={handleChangePassword}>
                         تغییر رمز عبور
                     </Button>
                 </CardContent>
             </Card>
-
         </TabsContent>
     );
 }

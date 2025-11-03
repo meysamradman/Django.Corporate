@@ -13,7 +13,7 @@ function Tabs({
     <TabsPrimitive.Root
       dir="rtl"
       data-slot="tabs"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex flex-col", className)}
       {...props}
     />
   )
@@ -27,7 +27,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "flex w-full items-center justify-start gap-8 border-b border-gray-200 pb-0",
+        "flex w-full items-center justify-start gap-8 border-b border-gray-200 pb-0 mb-6",
         className
       )}
       {...props}

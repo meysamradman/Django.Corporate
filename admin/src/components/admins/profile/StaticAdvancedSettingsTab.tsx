@@ -135,7 +135,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
     };
 
     return (
-        <TabsContent value="advanced_settings" className="mt-6 space-y-6">
+        <TabsContent value="advanced_settings">
             <h1 className="page-title">
                 پروفایل ادمین (استاتیک)
             </h1>
@@ -145,7 +145,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                 <CardHeader>
                     <CardTitle>تنظیمات پیشرفته</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label htmlFor="account-status" className="text-base">وضعیت حساب</Label>
@@ -181,7 +181,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                                 {adminRoles.map((role) => (
                                     <span
                                         key={role.id}
-                                        className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
+                                        className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20"
                                     >
                                         {role.name}
                                     </span>
@@ -202,7 +202,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                             </p>
                             <div className="space-y-2">
                                 {basePermissions.map((perm) => (
-                                    <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-white border border-green-100">
+                                    <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-100">
                                         <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                                         <div className="flex-1">
                                             <div className="text-sm font-medium text-foreground">{perm.display_name}</div>

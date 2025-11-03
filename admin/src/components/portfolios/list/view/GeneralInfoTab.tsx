@@ -30,8 +30,8 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
           <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-xl shadow-sm">
-                  <FileText className="w-5 h-5 stroke-purple-600 dark:stroke-purple-400" />
+                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
+                  <FileText className="w-5 h-5 stroke-purple-600" />
                 </div>
                 <div>اطلاعات پایه</div>
               </CardTitle>
@@ -85,8 +85,8 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
           <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl shadow-sm">
-                  <FolderOpen className="w-5 h-5 stroke-indigo-600 dark:stroke-indigo-400" />
+                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                  <FolderOpen className="w-5 h-5 stroke-indigo-600" />
                 </div>
                 <div>تنظیمات</div>
               </CardTitle>

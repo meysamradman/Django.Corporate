@@ -978,9 +978,9 @@ html body[data-scroll-locked] {
 
 /* Sonner Toast Colors - استفاده از @theme inline colors */
 .success-toast {
-  background-color: #22c55e !important; /* سبز روشن‌تر */
+  background-color: var(--color-green-500) !important;
   color: white !important;
-  border-color: #16a34a !important;
+  border-color: var(--color-green-600) !important;
 }
 
 /* اطمینان از سفید بودن نوشته در success toast */
@@ -997,53 +997,27 @@ html body[data-scroll-locked] {
 }
 
 .error-toast {
-  background-color: var(--color-destructive) !important; /* از @theme inline */
-  color: white !important; /* همیشه سفید برای contrast بهتر */
+  background-color: var(--color-destructive) !important;
+  color: white !important;
   border-color: var(--color-destructive) !important;
 }
 
 .warning-toast {
-  background-color: #f59e0b !important; /* نارنجی - ثابت */
+  background-color: var(--color-amber-500) !important;
   color: white !important;
-  border-color: #d97706 !important;
+  border-color: var(--color-amber-600) !important;
 }
 
 .info-toast {
-  background-color: var(--color-primary) !important; /* از @theme inline */
-  color: white !important; /* همیشه سفید برای contrast بهتر */
+  background-color: var(--color-primary) !important;
+  color: white !important;
   border-color: var(--color-primary) !important;
 }
 
 .loading-toast {
-  background-color: var(--color-muted-foreground) !important; /* از @theme inline */
+  background-color: var(--color-muted-foreground) !important;
   color: white !important;
   border-color: var(--color-muted-foreground) !important;
-}
-
-/* Dark mode support برای success و warning */
-.dark .success-toast {
-  background-color: #16a34a !important; /* سبز روشن‌تر در dark mode */
-  color: white !important;
-  border-color: #15803d !important;
-}
-
-/* اطمینان از سفید بودن نوشته در dark mode success toast */
-.dark .success-toast * {
-  color: white !important;
-}
-
-.dark .success-toast [data-title] {
-  color: white !important;
-}
-
-.dark .success-toast [data-description] {
-  color: white !important;
-}
-
-.dark .warning-toast {
-  background-color: #d97706 !important; /* نارنجی تیره‌تر در dark mode */
-  color: white !important;
-  border-color: #b45309 !important;
 }
 
 @layer base {

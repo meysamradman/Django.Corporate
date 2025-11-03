@@ -19,10 +19,10 @@ export const Statistics: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-red-500 mb-4">خطا در بارگذاری آمار</p>
+          <p className="text-destructive mb-4">خطا در بارگذاری آمار</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
           >
             تلاش مجدد
           </button>

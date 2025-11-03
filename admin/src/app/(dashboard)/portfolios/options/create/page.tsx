@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
+import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { toast } from "@/components/elements/Sonner";
@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug } from '@/core/utils/slugUtils';
+import { Settings } from "lucide-react";
 
 export default function CreateOptionPage() {
   const router = useRouter();
@@ -66,18 +67,26 @@ export default function CreateOptionPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="page-title">ایجاد گزینه جدید</h1>
+        <h1>ایجاد گزینه جدید</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
           <CardHeader>
-            <CardTitle>اطلاعات گزینه</CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                <Settings className="w-5 h-5 stroke-primary" />
+              </div>
+              اطلاعات گزینه
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">نام *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="نام"
+                htmlFor="name"
+                required
+              >
                 <Input
                   id="name"
                   value={formData.name}
@@ -85,9 +94,12 @@ export default function CreateOptionPage() {
                   placeholder="نام گزینه"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">اسلاگ *</Label>
+              </FormField>
+              <FormField
+                label="اسلاگ"
+                htmlFor="slug"
+                required
+              >
                 <Input
                   id="slug"
                   value={formData.slug}
@@ -95,11 +107,13 @@ export default function CreateOptionPage() {
                   placeholder="نام-گزینه"
                   required
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">توضیحات</Label>
+            <FormField
+              label="توضیحات"
+              htmlFor="description"
+            >
               <Textarea
                 id="description"
                 value={formData.description}
@@ -107,24 +121,28 @@ export default function CreateOptionPage() {
                 placeholder="توضیحات گزینه"
                 rows={4}
               />
-            </div>
+            </FormField>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Switch
                 id="is_active"
                 checked={formData.is_active}
                 onCheckedChange={(checked) => handleInputChange("is_active", checked)}
               />
-              <Label htmlFor="is_active">فعال</Label>
+              <label htmlFor="is_active" className="text-sm font-medium cursor-pointer">
+                فعال
+              </label>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Switch
                 id="is_public"
                 checked={formData.is_public}
                 onCheckedChange={(checked) => handleInputChange("is_public", checked)}
               />
-              <Label htmlFor="is_public">عمومی</Label>
+              <label htmlFor="is_public" className="text-sm font-medium cursor-pointer">
+                عمومی
+              </label>
             </div>
 
             <div className="flex justify-end space-x-2">

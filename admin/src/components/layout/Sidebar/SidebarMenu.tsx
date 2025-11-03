@@ -1,7 +1,7 @@
 import {
     Home,
-    FileText,
-    LayoutList,
+    BookOpen,
+    Layers,
     ShieldUser,
     Users,
     Settings,
@@ -45,7 +45,7 @@ export const useMenuData = () => {
                 items: [
                     {
                         title: "بلاگ",
-                        icon: FileText,
+                        icon: BookOpen,
                         items: [
                             { title: "لیست بلاگ‌ها", url: "/blogs" },
                             { title: "ایجاد بلاگ", url: "/blogs/create" },
@@ -56,7 +56,7 @@ export const useMenuData = () => {
                     },
                     {
                         title: "نمونه کار",
-                        icon: LayoutList,
+                        icon: Layers,
                         items: [
                             { title: "لیست نمونه کارها", url: "/portfolios" },
                             { title: "ایجاد نمونه کار", url: "/portfolios/create" },
@@ -74,17 +74,7 @@ export const useMenuData = () => {
                     {
                         title: "رسانه‌ها",
                         icon: Images,
-                        items: [
-                            { title: "مدیریت رسانه‌ها", url: "/media" },
-                        ],
-                    },
-                    {
-                        title: "هوش مصنوعی",
-                        icon: Sparkles,
-                        items: [
-                            { title: "چت با AI", url: "/ai-chat" },
-                            { title: "تولید محتوا با AI", url: "/ai-content" },
-                        ],
+                        url: "/media",
                     },
                 ]
             },
@@ -118,6 +108,19 @@ export const useMenuData = () => {
                         items: [
                             { title: "لیست نقش‌ها", url: "/roles" },
                             { title: "ایجاد نقش", url: "/roles/create" },
+                        ],
+                    },
+                ]
+            },
+            {
+                title: "هوش مصنوعی",
+                items: [
+                    {
+                        title: "هوش مصنوعی",
+                        icon: Sparkles,
+                        items: [
+                            { title: "چت با AI", url: "/ai-chat" },
+                            { title: "تولید محتوا با AI", url: "/ai-content" },
                         ],
                     },
                 ]
