@@ -30,7 +30,7 @@ import {
 import { DataTableSelectFilter } from "./DataTableSelectFilter"
 import { DataTableHierarchicalFilter, CategoryItem } from "./DataTableHierarchicalFilter"
 import { DataTableDateFilter } from "./DataTableDateFilter"
-import { Trash, Search } from "lucide-react"
+import { Trash, Search, Download } from "lucide-react"
 import { TableLoadingCompact } from "@/components/elements/TableLoading"
 import { PaginationControls } from "@/components/shared/Pagination"
 
@@ -58,6 +58,11 @@ export interface DeleteConfig {
   buttonText?: string;
 }
 
+export interface ExportConfig<TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
+  onExport: (filters: TClientFilters, search: string) => Promise<void>;
+  buttonText?: string;
+}
+
 interface DataTableProps<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -77,6 +82,7 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   searchConfig?: SearchConfig; 
   filterConfig?: FilterConfig[];
   deleteConfig?: DeleteConfig;
+  exportConfig?: ExportConfig<TClientFilters>;
   pageSizeOptions?: number[];
   searchValue?: string;
 }
@@ -95,6 +101,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   searchConfig: providedSearchConfig,
   filterConfig = [],
   deleteConfig,
+  exportConfig,
   pageSizeOptions = [10, 20, 30, 50],
   searchValue,
 }: DataTableProps<TData, TValue, TClientFilters>) {
@@ -141,21 +148,38 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
     }
   };
 
+  const handleExportClick = async () => {
+    if (exportConfig) {
+      await exportConfig.onExport(clientFilters, searchValue || "");
+    }
+  };
+
   return (
-    <Card className="gap-0 shadow-sm border-0">
+    <Card className="gap-0 shadow-sm border border-border hover:shadow-lg transition-all duration-300">
       <CardHeader className="border-b">
          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
            <div className="flex items-center gap-2 flex-wrap">
-             <div className="relative">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+             <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
+               <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                <Input
                  placeholder="جستجو..."
                  value={searchValue ?? ""}
                  onChange={(event) => {
                    onFilterChange("search", event.target.value);
                  }}
+                 className="pr-8 h-8 text-sm"
                />
              </div>
+             {exportConfig && (
+               <Button
+                 variant="outline"
+                 onClick={handleExportClick}
+                 className="gap-2"
+               >
+                 <Download className="h-4 w-4" />
+                 {exportConfig.buttonText || "خروجی اکسل"}
+               </Button>
+             )}
              {selectedRowCount > 0 && deleteConfig && (
                <Button
                  variant="destructive"
@@ -230,8 +254,9 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                           key={header.id} 
                           colSpan={header.colSpan}
                           style={{ 
-                            width: header.column.columnDef.size === 60 ? '60px' : undefined,
-                            minWidth: header.column.columnDef.size === 60 ? '60px' : (header.column.columnDef.minSize || header.getSize()),
+                            width: header.column.columnDef.size === 60 ? '60px' : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : undefined),
+                            minWidth: header.column.columnDef.size === 60 ? '60px' : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : (header.column.columnDef.minSize || header.getSize())),
+                            maxWidth: header.column.columnDef.maxSize === 60 ? '60px' : undefined,
                             ...(header.column.id === 'select' && {
                               paddingLeft: '0.5rem',
                               paddingRight: '0.5rem'
@@ -262,8 +287,9 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                         <TableCell 
                           key={cell.id}
                           style={{ 
-                            width: cell.column.columnDef.size === 60 ? '60px' : undefined,
-                            minWidth: cell.column.columnDef.size === 60 ? '60px' : (cell.column.columnDef.minSize || cell.column.getSize()),
+                            width: cell.column.columnDef.size === 60 ? '60px' : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : undefined),
+                            minWidth: cell.column.columnDef.size === 60 ? '60px' : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : (cell.column.columnDef.minSize || cell.column.getSize())),
+                            maxWidth: cell.column.columnDef.maxSize === 60 ? '60px' : undefined,
                             ...(cell.column.id === 'select' && {
                               paddingLeft: '0.5rem',
                               paddingRight: '0.5rem'

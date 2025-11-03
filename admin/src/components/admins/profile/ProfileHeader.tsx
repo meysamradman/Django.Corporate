@@ -113,6 +113,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                     alt="Cover image"
                     fill
                     className="object-cover"
+                    priority
                 />
             </div>
             <CardContent className="relative px-6 pt-0 pb-6">

@@ -48,22 +48,22 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
   return (
     <TabsContent value="overview" className="mt-0 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-teal-500">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-violet-100 rounded-lg">
-                  <FolderOpen className="w-5 h-5 stroke-violet-600" />
+                <div className="p-2.5 bg-teal-100 dark:bg-teal-900/30 rounded-xl shadow-sm">
+                  <FolderOpen className="w-5 h-5 stroke-teal-600 dark:stroke-teal-400" />
                 </div>
-                <CardTitle className="text-base">دسته‌بندی‌ها</CardTitle>
+                <CardTitle>دسته‌بندی‌ها</CardTitle>
               </div>
-              <Badge variant="violet" className="text-sm">
+              <Badge variant="teal">
                 {categoriesCount} مورد
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4">
               دسته‌بندی‌های مرتبط با این نمونه کار
             </p>
             {portfolio.categories && portfolio.categories.length > 0 ? (
@@ -81,29 +81,29 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic">
+              <p className="text-muted-foreground">
                 دسته‌بندی‌ای انتخاب نشده است
               </p>
             )}
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-fuchsia-500">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Tag className="w-5 h-5 stroke-green-600" />
+                <div className="p-2.5 bg-fuchsia-100 dark:bg-fuchsia-900/30 rounded-xl shadow-sm">
+                  <Tag className="w-5 h-5 stroke-fuchsia-600 dark:stroke-fuchsia-400" />
                 </div>
-                <CardTitle className="text-base">تگ‌ها</CardTitle>
+                <CardTitle>تگ‌ها</CardTitle>
               </div>
-              <Badge variant="green" className="text-sm">
+              <Badge variant="fuchsia">
                 {tagsCount} مورد
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4">
               برچسب‌های مرتبط با این نمونه کار
             </p>
             {portfolio.tags && portfolio.tags.length > 0 ? (
@@ -120,68 +120,68 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic">
+              <p className="text-muted-foreground">
                 تگی انتخاب نشده است
               </p>
             )}
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <ImageIcon className="w-5 h-5 stroke-blue-600" />
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl shadow-sm">
+                  <ImageIcon className="w-5 h-5 stroke-indigo-600 dark:stroke-indigo-400" />
                 </div>
-                <CardTitle className="text-base">رسانه‌ها</CardTitle>
+                <CardTitle>مدیا</CardTitle>
               </div>
-              <Badge variant="blue" className="text-sm">
+              <Badge variant="indigo">
                 {portfolio.media_count || 0} مورد
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4">
               تعداد کل رسانه‌های آپلود شده
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                <ImageIcon className="w-4 h-4 stroke-blue-600" />
-                <span className="text-sm font-medium">{imagesCount} تصویر</span>
+              <div className="flex items-center gap-2 p-2 bg-cyan-50 rounded">
+                <ImageIcon className="w-4 h-4 stroke-cyan-600" />
+                <span>{imagesCount} تصویر</span>
               </div>
               <div className="flex items-center gap-2 p-2 bg-purple-50 rounded">
                 <Video className="w-4 h-4 stroke-purple-600" />
-                <span className="text-sm font-medium">{videosCount} ویدیو</span>
+                <span>{videosCount} ویدیو</span>
               </div>
-              <div className="flex items-center gap-2 p-2 bg-orange-50 rounded">
-                <Music className="w-4 h-4 stroke-orange-600" />
-                <span className="text-sm font-medium">{audiosCount} صدا</span>
+              <div className="flex items-center gap-2 p-2 bg-rose-50 rounded">
+                <Music className="w-4 h-4 stroke-rose-600" />
+                <span>{audiosCount} صدا</span>
               </div>
               <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
                 <FileText className="w-4 h-4 stroke-gray-600" />
-                <span className="text-sm font-medium">{documentsCount} سند</span>
+                <span>{documentsCount} سند</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-amber-500">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <FileCode className="w-5 h-5 stroke-amber-600" />
+                <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl shadow-sm">
+                  <FileCode className="w-5 h-5 stroke-amber-600 dark:stroke-amber-400" />
                 </div>
-                <CardTitle className="text-base">گزینه‌ها</CardTitle>
+                <CardTitle>گزینه‌ها</CardTitle>
               </div>
-              <Badge variant="yellow" className="text-sm">
+              <Badge variant="amber">
                 {optionsCount} مورد
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4">
               گزینه‌های اضافی مرتبط با نمونه کار
             </p>
             {portfolio.options && portfolio.options.length > 0 ? (
@@ -197,7 +197,7 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic">
+              <p className="text-muted-foreground">
                 گزینه‌ای انتخاب نشده است
               </p>
             )}
@@ -205,18 +205,23 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
         </Card>
       </div>
 
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-cyan-500">
         <CardHeader>
-          <CardTitle>توضیحات</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl shadow-sm">
+              <FileText className="w-5 h-5 stroke-cyan-600 dark:stroke-cyan-400" />
+            </div>
+            <div>توضیحات</div>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-3 block">
+            <label className="text-muted-foreground mb-3 block">
               توضیحات کوتاه
             </label>
-            <div className="text-base text-foreground leading-relaxed p-4 bg-muted/50 rounded-lg" style={{ textAlign: 'justify' }}>
+            <div className="text-foreground leading-relaxed p-4 bg-muted/50 rounded-lg" style={{ textAlign: 'justify' }}>
               {portfolio.short_description || (
-                <span className="text-muted-foreground italic">
+                <span className="text-muted-foreground">
                   توضیحی وارد نشده است
                 </span>
               )}
@@ -224,7 +229,7 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-3 block">
+            <label className="text-muted-foreground mb-3 block">
               توضیحات کامل
             </label>
             <div className="p-4 bg-muted/50 rounded-lg" style={{ textAlign: 'justify' }}>
@@ -235,7 +240,7 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
                   maxHeight="200px"
                 />
               ) : (
-                <span className="text-muted-foreground italic">
+                <span className="text-muted-foreground">
                   توضیحی وارد نشده است
                 </span>
               )}

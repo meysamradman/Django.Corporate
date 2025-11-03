@@ -22,32 +22,36 @@ export function TruncatedText({
 }: TruncatedTextProps) {
   const isTruncated = text.length > maxLength;
   
-  // اگر کوتاه بود، مستقیم نمایش بده
-  if (!isTruncated) {
-    return <span className={className}>{text}</span>;
-  }
-
-  // اگر Tooltip نمی‌خوایم، فقط truncate با CSS
+  // همیشه truncate CSS را اعمال می‌کنیم تا در inspect هم کار کند
   if (!showTooltip) {
     return (
-      <span className={cn("truncate block", className)} title={text}>
+      <span className={cn("truncate block min-w-0 w-full", className)} title={isTruncated ? text : undefined}>
         {text}
       </span>
     );
   }
 
-  // با Tooltip برای نمایش کامل
+  // با Tooltip - فقط اگر متن طولانی‌تر از maxLength باشد
+  if (isTruncated) {
+    return (
+      <CustomTooltip>
+        <CustomTooltipTrigger asChild>
+          <span className={cn("truncate cursor-help block min-w-0 w-full", className)}>
+            {text}
+          </span>
+        </CustomTooltipTrigger>
+        <CustomTooltipContent side="top" className="max-w-xs break-words">
+          <p className="text-xs">{text}</p>
+        </CustomTooltipContent>
+      </CustomTooltip>
+    );
+  }
+
+  // اگر کوتاه بود، فقط truncate CSS (بدون tooltip)
   return (
-    <CustomTooltip>
-      <CustomTooltipTrigger asChild>
-        <span className={cn("truncate cursor-help inline-block", className)}>
-          {text}
-        </span>
-      </CustomTooltipTrigger>
-      <CustomTooltipContent side="top" className="max-w-xs break-words">
-        <p className="text-xs">{text}</p>
-      </CustomTooltipContent>
-    </CustomTooltip>
+    <span className={cn("truncate block min-w-0 w-full", className)}>
+      {text}
+    </span>
   );
 }
 

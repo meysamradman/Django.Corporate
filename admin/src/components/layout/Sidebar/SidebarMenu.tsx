@@ -7,6 +7,8 @@ import {
     Settings,
     Shield,
     Images,
+    Sparkles,
+    MessageSquare,
     type LucideIcon
 } from "lucide-react"
 import { useMemo } from "react"
@@ -72,7 +74,17 @@ export const useMenuData = () => {
                     {
                         title: "رسانه‌ها",
                         icon: Images,
-                        url: "/media",
+                        items: [
+                            { title: "مدیریت رسانه‌ها", url: "/media" },
+                        ],
+                    },
+                    {
+                        title: "هوش مصنوعی",
+                        icon: Sparkles,
+                        items: [
+                            { title: "چت با AI", url: "/ai-chat" },
+                            { title: "تولید محتوا با AI", url: "/ai-content" },
+                        ],
                     },
                 ]
             },
@@ -114,9 +126,12 @@ export const useMenuData = () => {
                 title: "تنظیمات",
                 items: [
                     {
-                        title: "تنظیمات سیستم",
+                        title: "تنظیمات پنل",
                         icon: Settings,
-                        url: "/settings",
+                        items: [
+                            { title: "تنظیمات سیستم", url: "/settings" },
+                            { title: "تنظیمات مدل‌های AI", url: "/settings/ai" },
+                        ],
                     },
                 ]
             },

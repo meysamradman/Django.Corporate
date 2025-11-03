@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
@@ -11,7 +11,7 @@ import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { Plus, FolderOpen, Tag, X, Settings, AlertCircle } from "lucide-react";
+import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText } from "lucide-react";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
@@ -227,16 +227,21 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     };
 
     return (
-        <TabsContent value="account" className="mt-6">
+        <TabsContent value="account" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 min-w-0">
                     <div className="space-y-6">
-                        <Card>
+                        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
                             <CardHeader>
-                                <CardTitle>اطلاعات پایه</CardTitle>
-                                <CardDescription>اطلاعات اصلی نمونه‌کار</CardDescription>
+                                <CardTitle className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
+                                        <FileText className="w-5 h-5 stroke-purple-600" />
+                                    </div>
+                                    <div>اطلاعات پایه</div>
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-6">
+                            <CardContent>
+                                <div className="space-y-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {isFormApproach ? (
                                         <FormFieldInput
@@ -322,23 +327,32 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         placeholder="توضیحات کامل نمونه‌کار را وارد کنید... (اختیاری)"
                                     />
                                 </FormField>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
                 </div>
 
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <Card className="lg:sticky lg:top-6">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm">تنظیمات</CardTitle>
+                    <Card className="lg:sticky lg:top-20 hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                                    <Settings className="w-5 h-5 stroke-indigo-600" />
+                                </div>
+                                <div>تنظیمات</div>
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-8">
+                        <CardContent>
+                            <div className="space-y-8">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <FolderOpen className="w-4 h-4 text-blue-500" />
-                                    <Label className="text-sm font-medium">
+                                    <div className="p-1.5 bg-teal-100 rounded-lg">
+                                        <FolderOpen className="w-4 h-4 stroke-teal-600" />
+                                    </div>
+                                    <Label>
                                         دسته‌بندی
-                                        <span className="text-red-500 mr-1">*</span>
+                                        <span className="text-destructive">*</span>
                                     </Label>
                                 </div>
                                 <div className="flex gap-4 w-full">
@@ -370,17 +384,16 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        className="p-0 bg-blue-50 hover:bg-blue-100 border-blue-200 flex-shrink-0"
-                                        style={{ height: '34px', width: '34px' }}
+                                        className="bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-600"
                                         disabled={!editMode}
                                         onClick={() => setShowCategoryDialog(true)}
                                     >
-                                        <Plus className="w-3 h-3 text-blue-600" />
+                                        <Plus />
                                     </Button>
                                 </div>
                                 {errors.selectedCategory?.message && (
-                                    <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
-                                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <div className="flex items-start gap-2 text-destructive">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <span>{errors.selectedCategory?.message}</span>
                                     </div>
                                 )}
@@ -388,8 +401,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <Tag className="w-4 h-4 text-green-500" />
-                                    <Label className="text-sm font-medium">
+                                    <div className="p-1.5 bg-fuchsia-100 rounded-lg">
+                                        <Tag className="w-4 h-4 stroke-fuchsia-600" />
+                                    </div>
+                                    <Label>
                                         تگ‌ها
                                     </Label>
                                 </div>
@@ -400,12 +415,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {formSelectedTags.map((tag: PortfolioTag) => (
                                                 <span 
                                                     key={tag.id} 
-                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-fuchsia-100 text-fuchsia-800"
                                                 >
                                                     {tag.name}
                                                     <button 
                                                         type="button" 
-                                                        className="ml-1 text-green-800 hover:text-green-900"
+                                                        className="text-fuchsia-800 hover:text-fuchsia-900"
                                                         onClick={() => handleTagRemoveFn(tag.id)}
                                                     >
                                                         <X className="w-3 h-3" />
@@ -446,18 +461,17 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            className="p-0 bg-green-50 hover:bg-green-100 border-green-200 flex-shrink-0"
-                                            style={{ height: '34px', width: '34px' }}
+                                            className="bg-fuchsia-50 hover:bg-fuchsia-100 border-fuchsia-200 text-fuchsia-600"
                                             disabled={!editMode}
                                             onClick={() => setShowTagDialog(true)}
                                         >
-                                            <Plus className="w-3 h-3 text-green-600" />
+                                            <Plus />
                                         </Button>
                                     </div>
                                 </div>
                                 {errors.selectedTags?.message && (
-                                    <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
-                                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <div className="flex items-start gap-2 text-destructive">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <span>{errors.selectedTags?.message}</span>
                                     </div>
                                 )}
@@ -465,8 +479,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <Settings className="w-4 h-4 text-purple-500" />
-                                    <Label className="text-sm font-medium">
+                                    <div className="p-1.5 bg-amber-100 rounded-lg">
+                                        <Settings className="w-4 h-4 stroke-amber-600" />
+                                    </div>
+                                    <Label>
                                         گزینه‌ها
                                     </Label>
                                 </div>
@@ -477,12 +493,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {formSelectedOptions.map((option: PortfolioOption) => (
                                                 <span 
                                                     key={option.id} 
-                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800"
                                                 >
                                                     {option.name}
                                                     <button 
                                                         type="button" 
-                                                        className="ml-1 text-purple-800 hover:text-purple-900"
+                                                        className="text-amber-800 hover:text-amber-900"
                                                         onClick={() => handleOptionRemoveFn(option.id)}
                                                     >
                                                         <X className="w-3 h-3" />
@@ -523,21 +539,21 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            className="p-0 bg-purple-50 hover:bg-purple-100 border-purple-200 flex-shrink-0"
-                                            style={{ height: '34px', width: '34px' }}
+                                            className="bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-600"
                                             disabled={!editMode}
                                             onClick={() => setShowOptionDialog(true)}
                                         >
-                                            <Plus className="w-3 h-3 text-purple-600" />
+                                            <Plus />
                                         </Button>
                                     </div>
                                 </div>
                                 {errors.selectedOptions?.message && (
-                                    <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
-                                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <div className="flex items-start gap-2 text-destructive">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <span>{errors.selectedOptions?.message}</span>
                                     </div>
                                 )}
+                            </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -550,7 +566,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 onOpenChange={setShowCategoryDialog}
                 type="category"
                 onSubmit={async (data) => {
-                    const categoryData: any = { name: data.name, slug: data.slug, is_public: true, is_active: true };
+                    const categoryData: any = { 
+                        name: data.name, 
+                        slug: data.slug, 
+                        is_public: data.is_public ?? true, 
+                        is_active: data.is_active ?? true 
+                    };
                     if (data.image_id) {
                         categoryData.image_id = data.image_id;
                     }
@@ -575,7 +596,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 onOpenChange={setShowTagDialog}
                 type="tag"
                 onSubmit={async (data) => {
-                    return await portfolioApi.createTag({ name: data.name, slug: data.slug, is_public: true, is_active: true });
+                    return await portfolioApi.createTag({ 
+                        name: data.name, 
+                        slug: data.slug, 
+                        is_public: data.is_public ?? true, 
+                        is_active: data.is_active ?? true 
+                    });
                 }}
                 onSuccess={(createdTag) => {
                     if (isFormApproach) {
@@ -597,7 +623,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 onOpenChange={setShowOptionDialog}
                 type="option"
                 onSubmit={async (data) => {
-                    return await portfolioApi.createOption({ name: data.name, slug: data.slug, is_public: true, is_active: true });
+                    return await portfolioApi.createOption({ 
+                        name: data.name, 
+                        slug: data.slug, 
+                        is_public: data.is_public ?? true, 
+                        is_active: data.is_active ?? true 
+                    });
                 }}
                 onSuccess={(createdOption) => {
                     if (isFormApproach) {

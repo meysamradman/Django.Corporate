@@ -35,6 +35,7 @@ LOCAL_APPS = [
     # 'src.blog.apps.BlogConfig',
     'src.portfolio.apps.PortfolioConfig',
     'src.media.apps.MediaConfig',
+    'src.ai.apps.AiConfig',
     'src.statistics.apps.StatisticsConfig',
     'src.panel.apps.PanelConfig',
 ]

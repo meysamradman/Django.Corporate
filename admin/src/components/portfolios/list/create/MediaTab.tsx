@@ -8,12 +8,11 @@ import {
   Card, 
   CardContent, 
   CardHeader, 
-  CardTitle, 
-  CardDescription 
+  CardTitle
 } from "@/components/elements/Card";
 import { PortfolioMediaGallery } from "@/components/portfolios/list/PortfolioMediaGallery";
 import { Media } from "@/types/shared/media";
-import { Image as ImageIcon, UploadCloud, X, AlertCircle } from "lucide-react";
+import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { mediaService } from "@/components/media/services";
@@ -113,62 +112,98 @@ export default function MediaTab(props: MediaTabProps) {
     };
 
     return (
-        <TabsContent value="media" className="mt-6">
+        <TabsContent value="media" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
 
                 {/* Left Column: Galleries */}
                 <div className="flex-1 min-w-0 space-y-6">
                     {/* Image Gallery Card */}
-                    <Card>
-                        <CardContent className="p-6">
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                                    <ImageIcon className="w-5 h-5 stroke-indigo-600" />
+                                </div>
+                                <div>گالری تصاویر</div>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
                             <PortfolioMediaGallery
                                 mediaItems={portfolioMedia?.imageGallery || []}
                                 onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, imageGallery: media })}
                                 mediaType="image"
-                                title="گالری تصاویر"
+                                title=""
                                 isGallery={true}
+                                disabled={!editMode}
                             />
                         </CardContent>
                     </Card>
 
                     {/* Video Card */}
-                    <Card>
-                        <CardContent className="p-6">
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
+                                    <Video className="w-5 h-5 stroke-purple-600" />
+                                </div>
+                                <div>ویدیو</div>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
                             <PortfolioMediaGallery
                                 mediaItems={portfolioMedia?.videoGallery || []}
                                 onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, videoGallery: media })}
                                 mediaType="video"
-                                title="ویدیو"
+                                title=""
                                 isGallery={false}
                                 maxSelection={1}
+                                disabled={!editMode}
                             />
                         </CardContent>
                     </Card>
 
                     {/* Audio Card */}
-                    <Card>
-                        <CardContent className="p-6">
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-rose-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-rose-100 rounded-xl shadow-sm">
+                                    <Music className="w-5 h-5 stroke-rose-600" />
+                                </div>
+                                <div>فایل صوتی</div>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
                             <PortfolioMediaGallery
                                 mediaItems={portfolioMedia?.audioGallery || []}
                                 onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, audioGallery: media })}
                                 mediaType="audio"
-                                title="فایل صوتی"
+                                title=""
                                 isGallery={false}
                                 maxSelection={1}
+                                disabled={!editMode}
                             />
                         </CardContent>
                     </Card>
 
                     {/* PDF Card */}
-                     <Card>
-                        <CardContent className="p-6">
+                     <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-gray-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-gray-100 rounded-xl shadow-sm">
+                                    <FileText className="w-5 h-5 stroke-gray-600" />
+                                </div>
+                                <div>مستندات (PDF)</div>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
                             <PortfolioMediaGallery
                                 mediaItems={portfolioMedia?.pdfDocuments || []}
                                 onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, pdfDocuments: media })}
                                 mediaType="pdf"
-                                title="مستندات (PDF)"
+                                title=""
                                 isGallery={false}
                                 maxSelection={1}
+                                disabled={!editMode}
                             />
                         </CardContent>
                     </Card>
@@ -176,15 +211,17 @@ export default function MediaTab(props: MediaTabProps) {
 
                 {/* Right Column: Featured Image */}
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <Card className={`lg:sticky lg:top-6 ${(formState.errors as any)?.featuredImage ? 'border-red-500' : ''}`}>
+                    <Card className={`lg:sticky lg:top-20 hover:shadow-lg transition-all duration-300 border-b-4 ${(formState.errors as any)?.featuredImage ? 'border-b-destructive' : 'border-b-blue-500'}`}>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                تصویر شاخص
-                                <span className="text-red-500">*</span>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-50 rounded-xl shadow-sm">
+                                    <ImageIcon className="w-5 h-5 stroke-blue-600" />
+                                </div>
+                                <div>
+                                    تصویر شاخص
+                                    <span className="text-destructive">*</span>
+                                </div>
                             </CardTitle>
-                            <CardDescription>
-                                این تصویر به عنوان کاور اصلی نمونه‌کار استفاده می‌شود.
-                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {currentFeaturedImage ? (
@@ -222,11 +259,11 @@ export default function MediaTab(props: MediaTabProps) {
                             ) : (
                                 <div
                                     onClick={() => editMode && setIsMediaModalOpen(true)}
-                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500 transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <UploadCloud className="w-12 h-12 text-muted-foreground" />
-                                    <p className="mt-4 text-lg font-semibold">انتخاب تصویر شاخص</p>
-                                    <p className="mt-1 text-sm text-muted-foreground text-center">
+                                    <p className="font-semibold">انتخاب تصویر شاخص</p>
+                                    <p className="text-muted-foreground text-center">
                                         برای انتخاب از کتابخانه کلیک کنید
                                     </p>
                                 </div>
@@ -234,8 +271,8 @@ export default function MediaTab(props: MediaTabProps) {
                             
                             {/* نمایش خطا */}
                             {(formState.errors as any)?.featuredImage?.message && (
-                                <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 mt-3">
-                                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                <div className="flex items-start gap-2 text-destructive">
+                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                     <span>{String((formState.errors as any).featuredImage.message)}</span>
                                 </div>
                             )}

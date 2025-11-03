@@ -5,5 +5,5 @@ Media Admin - تنظیمات Django Admin برای رسانه
 from .media import ImageMediaAdmin
 
 __all__ = [
-    'ImageMediaAdmin'
+    'ImageMediaAdmin',
 ]

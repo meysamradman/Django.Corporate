@@ -225,6 +225,49 @@ export const portfolioApi = {
     return response.data;
   },
 
+  // Export single portfolio to PDF
+  exportPortfolioPdf: async (portfolioId: number): Promise<void> => {
+    const url = `/admin/portfolio/${portfolioId}/export-pdf/`;
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `portfolio_${portfolioId}_${timestamp}.pdf`;
+    
+    await fetchApi.downloadFile(url, filename);
+  },
+
+  // Export portfolios to Excel
+  exportPortfolios: async (filters?: PortfolioListParams): Promise<void> => {
+    let url = '/admin/portfolio/export/';
+    if (filters) {
+      const queryParams = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (key === 'is_featured' || key === 'is_public' || key === 'is_active') {
+            if (typeof value === 'boolean') {
+              queryParams.append(key, value.toString());
+            } else if (typeof value === 'string') {
+              queryParams.append(key, value);
+            }
+          } else if (key === 'categories__in') {
+            queryParams.append(key, value as string);
+          } else if (key !== 'page' && key !== 'size') {
+            queryParams.append(key, String(value));
+          }
+        }
+      });
+      
+      const queryString = queryParams.toString();
+      if (queryString) {
+        url += '?' + queryString;
+      }
+    }
+    
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `portfolios_${timestamp}.xlsx`;
+    
+    await fetchApi.downloadFile(url, filename);
+  },
+
   // Delete portfolio
   deletePortfolio: async (id: number): Promise<void> => {
     await fetchApi.delete('/admin/portfolio/' + id + '/');

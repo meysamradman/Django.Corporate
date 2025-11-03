@@ -57,8 +57,9 @@ async function baseFetch<T>(
     body?: BodyInit | Record<string, unknown> | null,
     options?: RequestOptions
 ): Promise<ApiResponse<T>> {
-
-
+    // Create AbortController for timeout (default: 200 seconds for long operations like AI image generation)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 200000); // 200 seconds
     
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -93,6 +94,7 @@ async function baseFetch<T>(
         method,
         headers,
         credentials: 'include',
+        signal: controller.signal,
     };
 
     if (body) {
@@ -121,6 +123,7 @@ async function baseFetch<T>(
         }
         
         const response = await fetch(fullUrl, fetchOptions);
+        clearTimeout(timeoutId); // Clear timeout if request succeeds
         
         let data: ApiResponse<T> | null = null;
         let errorText = '';
@@ -241,8 +244,20 @@ async function baseFetch<T>(
         return data as ApiResponse<T>;
 
     } catch (error) {
+        clearTimeout(timeoutId); // Always clear timeout
         if (error instanceof ApiError) {
             throw error;
+        } else if (error instanceof Error && error.name === 'AbortError') {
+            // Timeout occurred
+            throw new ApiError({
+                response: {
+                    AppStatusCode: 504,
+                    _data: null,
+                    ok: false,
+                    message: 'زمان درخواست به پایان رسید. لطفاً دوباره تلاش کنید.',
+                    errors: null
+                }
+            });
         } else {
             throw new ApiError({
                 response: {
@@ -255,6 +270,82 @@ async function baseFetch<T>(
             });
         }
     }
+}
+
+async function downloadFile(
+    url: string,
+    filename: string,
+    method: string = 'GET',
+    body?: BodyInit | Record<string, unknown> | null,
+    options?: RequestOptions
+): Promise<void> {
+    const headers: Record<string, string> = {
+        ...options?.headers,
+    };
+
+    const csrfToken = csrfTokenStore.getToken();
+    if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken;
+    }
+
+    const storedToken = csrfTokenStore.getStoredToken();
+    if (storedToken) {
+        headers['X-CSRFToken'] = storedToken;
+    } else {
+        const cookieToken = getCsrfToken();
+        if (cookieToken && !storedToken) {
+            csrfTokenStore.setToken(cookieToken);
+        }
+    }
+
+    if (isServer && options?.cookieHeader) {
+        headers['Cookie'] = options.cookieHeader;
+    }
+
+    const fetchOptions: RequestInit = {
+        method,
+        headers,
+        credentials: 'include',
+    };
+
+    if (body) {
+        if (body instanceof FormData) {
+            delete headers['Content-Type'];
+            fetchOptions.body = body;
+        } else {
+            headers['Content-Type'] = 'application/json';
+            fetchOptions.body = JSON.stringify(body);
+        }
+    }
+
+    let fullUrl = url;
+    if (!url.startsWith(env.API_BASE_URL)) {
+        fullUrl = `${env.API_BASE_URL}${url}`;
+    }
+
+    const response = await fetch(fullUrl, fetchOptions);
+
+    if (!response.ok) {
+        throw new ApiError({
+            response: {
+                AppStatusCode: response.status,
+                _data: null,
+                ok: false,
+                message: `Download failed: ${response.status}`,
+                errors: null
+            }
+        });
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
 }
 
 export const fetchApi = {
@@ -272,5 +363,8 @@ export const fetchApi = {
     },
     delete: async <T>(url: string, options?: Omit<RequestOptions, 'headers'>): Promise<ApiResponse<T>> => {
         return baseFetch<T>(url, 'DELETE', undefined, options);
+    },
+    downloadFile: async (url: string, filename: string, method: string = 'GET', body?: BodyInit | Record<string, unknown> | null, options?: RequestOptions): Promise<void> => {
+        return downloadFile(url, filename, method, body, options);
     }
 };

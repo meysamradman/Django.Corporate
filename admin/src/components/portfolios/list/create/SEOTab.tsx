@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
@@ -11,7 +11,7 @@ import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
-import { UploadCloud, X, AlertCircle } from "lucide-react";
+import { UploadCloud, X, AlertCircle, Search, Image as ImageIcon, Globe } from "lucide-react";
 
 // Props interface for react-hook-form approach (create page)
 interface SEOTabFormProps {
@@ -41,11 +41,13 @@ export default function SEOTab(props: SEOTabProps) {
     const watch = isFormApproach ? props.form.watch : null;
     const setValue = isFormApproach ? props.form.setValue : null;
     
+    // Get editMode from props (both approaches have it)
+    const editMode = isFormApproach ? props.editMode : props.editMode;
+    
     // For manual approach, use props directly
     const {
         formData,
-        handleInputChange,
-        editMode
+        handleInputChange
     } = isFormApproach ? {} as any : props;
     
     // Watch values for form approach
@@ -133,126 +135,82 @@ export default function SEOTab(props: SEOTabProps) {
     };
 
     return (
-        <TabsContent value="seo" className="mt-6">
+        <TabsContent value="seo" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 min-w-0">
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>اطلاعات SEO</CardTitle>
-                                <CardDescription>تنظیمات بهینه‌سازی برای موتورهای جستجو</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {isFormApproach ? (
-                                        <FormFieldInput
-                                            label="عنوان متا (Meta Title)"
-                                            id="meta_title"
-                                            error={(formState.errors as any)?.meta_title?.message}
-                                            placeholder="عنوان صفحه برای موتورهای جستجو"
-                                            maxLength={70}
-                                            disabled={!editMode}
-                                            description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                            {...(register as any)?.("meta_title", {
-                                                onChange: handleMetaTitleChange
-                                            })}
-                                        />
-                                    ) : (
-                                        <FormFieldInput
-                                            label="عنوان متا (Meta Title)"
-                                            id="meta_title"
-                                            error={(formState.errors as any)?.meta_title?.message}
-                                            placeholder="عنوان صفحه برای موتورهای جستجو"
-                                            maxLength={70}
-                                            disabled={!editMode}
-                                            description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                            value={metaTitleValue || ""}
-                                            onChange={handleMetaTitleChange}
-                                        />
-                                    )}
-                                    
-                                    {isFormApproach ? (
-                                        <FormFieldTextarea
-                                            label="توضیحات متا (Meta Description)"
-                                            id="meta_description"
-                                            error={(formState.errors as any)?.meta_description?.message}
-                                            placeholder="توضیحات صفحه برای موتورهای جستجو"
-                                            rows={3}
-                                            maxLength={160}
-                                            disabled={!editMode}
-                                            description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                            {...(register as any)?.("meta_description", {
-                                                onChange: handleMetaDescriptionChange
-                                            })}
-                                        />
-                                    ) : (
-                                        <FormFieldTextarea
-                                            label="توضیحات متا (Meta Description)"
-                                            id="meta_description"
-                                            error={(formState.errors as any)?.meta_description?.message}
-                                            placeholder="توضیحات صفحه برای موتورهای جستجو"
-                                            rows={3}
-                                            maxLength={160}
-                                            disabled={!editMode}
-                                            description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                            value={metaDescriptionValue || ""}
-                                            onChange={handleMetaDescriptionChange}
-                                        />
-                                    )}
+                {/* Left Column: Meta Tags & Open Graph Fields */}
+                <div className="flex-1 min-w-0 space-y-6">
+                    {/* Meta Tags Section */}
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
+                                    <Search className="w-5 h-5 stroke-green-600" />
                                 </div>
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {isFormApproach ? (
-                                        <FormFieldInput
-                                            label="عنوان Open Graph"
-                                            id="og_title"
-                                            error={(formState.errors as any)?.og_title?.message}
-                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            maxLength={70}
-                                            disabled={!editMode}
-                                            {...(register as any)?.("og_title", {
-                                                onChange: handleOgTitleChange
-                                            })}
-                                        />
-                                    ) : (
-                                        <FormFieldInput
-                                            label="عنوان Open Graph"
-                                            id="og_title"
-                                            error={(formState.errors as any)?.og_title?.message}
-                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            maxLength={70}
-                                            disabled={!editMode}
-                                            value={ogTitleValue || ""}
-                                            onChange={handleOgTitleChange}
-                                        />
-                                    )}
+                                برچسب‌های Meta
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-6">
+                                <div className="flex flex-col lg:flex-row gap-6">
+                                    <div className="lg:w-[35%] lg:max-w-[320px]">
+                                        {isFormApproach ? (
+                                            <FormFieldInput
+                                                label="عنوان متا (Meta Title)"
+                                                id="meta_title"
+                                                error={(formState.errors as any)?.meta_title?.message}
+                                                placeholder="عنوان صفحه برای موتورهای جستجو"
+                                                maxLength={70}
+                                                disabled={!editMode}
+                                                description="حداکثر 70 کاراکتر توصیه می‌شود"
+                                                {...(register as any)?.("meta_title", {
+                                                    onChange: handleMetaTitleChange
+                                                })}
+                                            />
+                                        ) : (
+                                            <FormFieldInput
+                                                label="عنوان متا (Meta Title)"
+                                                id="meta_title"
+                                                error={(formState.errors as any)?.meta_title?.message}
+                                                placeholder="عنوان صفحه برای موتورهای جستجو"
+                                                maxLength={70}
+                                                disabled={!editMode}
+                                                description="حداکثر 70 کاراکتر توصیه می‌شود"
+                                                value={metaTitleValue || ""}
+                                                onChange={handleMetaTitleChange}
+                                            />
+                                        )}
+                                    </div>
                                     
-                                    {isFormApproach ? (
-                                        <FormFieldTextarea
-                                            label="توضیحات Open Graph"
-                                            id="og_description"
-                                            error={(formState.errors as any)?.og_description?.message}
-                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            rows={3}
-                                            maxLength={160}
-                                            disabled={!editMode}
-                                            {...(register as any)?.("og_description", {
-                                                onChange: handleOgDescriptionChange
-                                            })}
-                                        />
-                                    ) : (
-                                        <FormFieldTextarea
-                                            label="توضیحات Open Graph"
-                                            id="og_description"
-                                            error={(formState.errors as any)?.og_description?.message}
-                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            rows={3}
-                                            maxLength={160}
-                                            disabled={!editMode}
-                                            value={ogDescriptionValue || ""}
-                                            onChange={handleOgDescriptionChange}
-                                        />
-                                    )}
+                                    <div className="lg:flex-1 lg:min-w-0">
+                                        {isFormApproach ? (
+                                            <FormFieldTextarea
+                                                label="توضیحات متا (Meta Description)"
+                                                id="meta_description"
+                                                error={(formState.errors as any)?.meta_description?.message}
+                                                placeholder="توضیحات صفحه برای موتورهای جستجو"
+                                                rows={5}
+                                                maxLength={160}
+                                                disabled={!editMode}
+                                                description="بین 120 تا 160 کاراکتر توصیه می‌شود"
+                                                {...(register as any)?.("meta_description", {
+                                                    onChange: handleMetaDescriptionChange
+                                                })}
+                                            />
+                                        ) : (
+                                            <FormFieldTextarea
+                                                label="توضیحات متا (Meta Description)"
+                                                id="meta_description"
+                                                error={(formState.errors as any)?.meta_description?.message}
+                                                placeholder="توضیحات صفحه برای موتورهای جستجو"
+                                                rows={5}
+                                                maxLength={160}
+                                                disabled={!editMode}
+                                                description="بین 120 تا 160 کاراکتر توصیه می‌شود"
+                                                value={metaDescriptionValue || ""}
+                                                onChange={handleMetaDescriptionChange}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -304,18 +262,92 @@ export default function SEOTab(props: SEOTabProps) {
                                         />
                                     )}
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Open Graph Preview Section */}
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
+                                    <Globe className="w-5 h-5 stroke-blue-600" />
+                                </div>
+                                پیش‌نمایش Open Graph
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col lg:flex-row gap-6">
+                                <div className="lg:w-[35%] lg:max-w-[320px]">
+                                    {isFormApproach ? (
+                                        <FormFieldInput
+                                            label="عنوان Open Graph"
+                                            id="og_title"
+                                            error={(formState.errors as any)?.og_title?.message}
+                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            maxLength={70}
+                                            disabled={!editMode}
+                                            {...(register as any)?.("og_title", {
+                                                onChange: handleOgTitleChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldInput
+                                            label="عنوان Open Graph"
+                                            id="og_title"
+                                            error={(formState.errors as any)?.og_title?.message}
+                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            maxLength={70}
+                                            disabled={!editMode}
+                                            value={ogTitleValue || ""}
+                                            onChange={handleOgTitleChange}
+                                        />
+                                    )}
+                                </div>
+                                
+                                <div className="lg:flex-1 lg:min-w-0">
+                                    {isFormApproach ? (
+                                        <FormFieldTextarea
+                                            label="توضیحات Open Graph"
+                                            id="og_description"
+                                            error={(formState.errors as any)?.og_description?.message}
+                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            rows={5}
+                                            maxLength={160}
+                                            disabled={!editMode}
+                                            {...(register as any)?.("og_description", {
+                                                onChange: handleOgDescriptionChange
+                                            })}
+                                        />
+                                    ) : (
+                                        <FormFieldTextarea
+                                            label="توضیحات Open Graph"
+                                            id="og_description"
+                                            error={(formState.errors as any)?.og_description?.message}
+                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
+                                            rows={5}
+                                            maxLength={160}
+                                            disabled={!editMode}
+                                            value={ogDescriptionValue || ""}
+                                            onChange={handleOgDescriptionChange}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
+                {/* Right Column: OG Image Sidebar */}
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <Card className={`lg:sticky lg:top-6 ${(formState.errors as any)?.og_image ? 'border-red-500' : ''}`}>
+                    <Card className={`lg:sticky lg:top-20 hover:shadow-lg transition-all duration-300 border-b-4 ${(formState.errors as any)?.og_image ? 'border-b-destructive' : 'border-b-blue-500'}`}>
                         <CardHeader>
-                            <CardTitle>تصویر Open Graph</CardTitle>
-                            <CardDescription>
-                                این تصویر در هنگام اشتراک‌گذاری در شبکه‌های اجتماعی نمایش داده می‌شود.
-                            </CardDescription>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
+                                    <ImageIcon className="w-5 h-5 stroke-blue-600" />
+                                </div>
+                                تصویر Open Graph
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             {ogImageValue ? (
@@ -353,11 +385,11 @@ export default function SEOTab(props: SEOTabProps) {
                             ) : (
                                 <div
                                     onClick={() => editMode && setIsMediaModalOpen(true)}
-                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500 transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <UploadCloud className="w-12 h-12 text-muted-foreground" />
-                                    <p className="mt-4 text-lg font-semibold">انتخاب تصویر Open Graph</p>
-                                    <p className="mt-1 text-sm text-muted-foreground text-center">
+                                    <p className="font-semibold">انتخاب تصویر Open Graph</p>
+                                    <p className="text-muted-foreground text-center">
                                         برای انتخاب از کتابخانه کلیک کنید
                                     </p>
                                 </div>
@@ -365,8 +397,8 @@ export default function SEOTab(props: SEOTabProps) {
                             
                             {/* نمایش خطا */}
                             {(formState.errors as any)?.og_image?.message && (
-                                <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 mt-3">
-                                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                <div className="flex items-start gap-2 text-destructive">
+                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                     <span>{String((formState.errors as any).og_image.message)}</span>
                                 </div>
                             )}

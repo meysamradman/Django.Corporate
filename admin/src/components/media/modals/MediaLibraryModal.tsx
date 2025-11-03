@@ -69,6 +69,11 @@ export function MediaLibraryModal({
   onTabChange,
   onUploadComplete,
 }: MediaLibraryModalProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState<"select" | "upload">(activeTab || "select");
+  
+  // Use internal state if onTabChange is not provided
+  const currentActiveTab = onTabChange ? activeTab : internalActiveTab;
+  const handleTabChange = onTabChange || setInternalActiveTab;
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [filters, setFilters] = useState(() => ({
@@ -218,15 +223,15 @@ export function MediaLibraryModal({
 
     if (result.successCount === result.totalCount && result.successCount > 0) {
       setTimeout(() => {
-        onUploadComplete?.();
-        onTabChange?.("select");
-        setUploadProgress(0);
-        clearFiles();
-        // Refresh media list after upload with a longer delay to ensure backend processing
-        setTimeout(() => {
-          fetchMedia(filters);
-        }, 1000);
-      }, 1500);
+                    onUploadComplete?.();
+                    handleTabChange("select");
+                    setUploadProgress(0);
+                    clearFiles();
+                    // Refresh media list after upload with a longer delay to ensure backend processing
+                    setTimeout(() => {
+                      fetchMedia(filters);
+                    }, 1000);
+                  }, 1500);
     }
   };
 
@@ -304,18 +309,18 @@ export function MediaLibraryModal({
             <div className="border-b border-border">
               <div className="flex space-x-1 px-4 py-2">
                 <Button
-                  variant={activeTab === "select" ? "default" : "ghost"}
+                  variant={currentActiveTab === "select" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => onTabChange?.("select")}
+                  onClick={() => handleTabChange("select")}
                   className="flex gap-2"
                 >
                   <FolderOpen className="h-4 w-4" />
                   انتخاب از کتابخانه
                 </Button>
                 <Button
-                  variant={activeTab === "upload" ? "default" : "ghost"}
+                  variant={currentActiveTab === "upload" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => onTabChange?.("upload")}
+                  onClick={() => handleTabChange("upload")}
                   className="flex gap-2"
                 >
                   <Upload className="h-4 w-4" />
@@ -326,7 +331,7 @@ export function MediaLibraryModal({
           )}
 
           {/* Content based on active tab */}
-          {activeTab === "upload" ? (
+          {currentActiveTab === "upload" ? (
             <div className="flex-grow flex flex-col">
               {/* Upload Content */}
               <div className="space-y-6 py-4 flex-grow">
@@ -374,7 +379,7 @@ export function MediaLibraryModal({
                 <div className="bg-muted/50 border-t border-border px-6 py-4">
                   <div className="flex gap-3 justify-between">
                     <div className="flex gap-3">
-                      <Button variant="outline" onClick={() => onTabChange?.("select")} disabled={isUploading}>
+                      <Button variant="outline" onClick={() => handleTabChange("select")} disabled={isUploading}>
                         انصراف
                       </Button>
                     </div>

@@ -331,7 +331,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="page-title">ویرایش نمونه‌کار</h1>
+          <h1>ویرایش نمونه‌کار</h1>
         </div>
         <div className="text-center py-8">
           <p className="text-destructive">نمونه‌کار مورد نظر یافت نشد.</p>
@@ -344,13 +344,12 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">ویرایش نمونه‌کار</h1>
-          <p className="text-muted-foreground">مدیریت اطلاعات نمونه‌کار</p>
+          <h1>ویرایش نمونه‌کار</h1>
         </div>
         <div className="flex gap-2">
           {!editMode && (
             <Button onClick={() => setEditMode(true)}>
-              <Edit2 className="w-4 h-4 me-2" />
+              <Edit2 />
               ویرایش
             </Button>
           )}
@@ -359,12 +358,12 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               <Button onClick={handleSaveDraft} variant="outline" disabled={isSaving}>
                 {isSaving ? (
                   <>
-                    <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                    <Loader2 className="animate-spin" />
                     در حال ذخیره...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 me-2" />
+                    <Save />
                     ذخیره پیش‌نویس
                   </>
                 )}
@@ -372,12 +371,12 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? (
                   <>
-                    <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                    <Loader2 className="animate-spin" />
                     در حال ذخیره...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 me-2" />
+                    <Save />
                     ذخیره
                   </>
                 )}
@@ -388,17 +387,17 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
+        <TabsList className="mb-6">
           <TabsTrigger value="account">
-            <FileText className="h-4 w-4" />
+            <FileText className="h-4 w-4 me-2" />
             اطلاعات پایه
           </TabsTrigger>
           <TabsTrigger value="media">
-            <Image className="h-4 w-4" />
+            <Image className="h-4 w-4 me-2" />
             مدیا
           </TabsTrigger>
           <TabsTrigger value="seo">
-            <Search className="h-4 w-4" />
+            <Search className="h-4 w-4 me-2" />
             سئو
           </TabsTrigger>
         </TabsList>

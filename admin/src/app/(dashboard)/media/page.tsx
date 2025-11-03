@@ -46,6 +46,12 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/elements/Dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -54,6 +60,8 @@ import {
 } from "@/components/elements/Select"
 import { MediaUploadModal } from '@/components/media/modals/MediaUploadModal';
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
+import { AIImageGenerator } from '@/components/media/ai/AIImageGenerator';
+import { Sparkles } from 'lucide-react';
 
 const actualDefaultFilters: MediaFilter = {
     search: "",
@@ -260,6 +268,8 @@ export default function MediaPage() {
   const handleUploadClick = () => {
     setIsUploadModalOpen(true);
   };
+  
+  const [isAIGenerateModalOpen, setIsAIGenerateModalOpen] = useState(false);
 
   const handleUploadComplete = () => {
     // Refresh media list after upload
@@ -303,13 +313,27 @@ export default function MediaPage() {
             کتابخانه رسانه
           </h1>
         </div>
-        <div className="flex items-center">
-          <Button size="sm" onClick={handleUploadClick}>
+        <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setIsAIGenerateModalOpen(true)}
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            تولید با AI
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={handleUploadClick}
+          >
             <Upload className="mr-2 h-4 w-4" />
             آپلود رسانه
           </Button>
         </div>
       </div>
+
+      {/* Main Content */}
 
       {error && (
            <div className="text-center text-red-600 bg-red-100 border border-red-400 p-4 rounded">
@@ -428,10 +452,10 @@ export default function MediaPage() {
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
                           />
-                        ) : item.media_type === 'image' && (item.file_url || item.url) ? (
+                        ) : item.media_type === 'image' && item.file_url ? (
                           <MediaImage
                             media={item}
-                            src={item.file_url || item.url || ''}
+                            src={item.file_url || ''}
                             alt={item.alt_text || item.title || 'تصویر رسانه'}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -530,7 +554,30 @@ export default function MediaPage() {
         onClose={() => setIsUploadModalOpen(false)}
         onUploadComplete={handleUploadComplete}
       />
-      
+
+      {/* AI Generate Modal */}
+      <Dialog open={isAIGenerateModalOpen} onOpenChange={setIsAIGenerateModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>تولید تصویر با AI</DialogTitle>
+          </DialogHeader>
+          <AIImageGenerator
+            onImageGenerated={(media) => {
+              fetchMedia(filters);
+              setIsAIGenerateModalOpen(false);
+            }}
+            onSelectGenerated={(media) => {
+              handleMediaClick(media);
+              setIsAIGenerateModalOpen(false);
+            }}
+            onNavigateToSettings={() => {
+              setIsAIGenerateModalOpen(false);
+              router.push('/settings/ai');
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
       <MediaDetailsModal
         media={detailMedia}
         isOpen={isDetailModalOpen}

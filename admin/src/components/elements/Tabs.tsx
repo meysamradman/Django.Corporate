@@ -43,7 +43,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap px-0 py-3 text-sm transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        "inline-flex items-center gap-1.5 whitespace-nowrap px-0 py-3 text-base transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
         // Default state (inactive)
         "text-gray-600 font-normal",
         // Active state

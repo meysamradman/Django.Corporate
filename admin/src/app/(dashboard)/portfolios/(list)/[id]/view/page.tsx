@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
-import { FileText, Image, Search, Edit2 } from "lucide-react";
+import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
+import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioSidebar } from "@/components/portfolios/list/view/PortfolioSidebar";
@@ -46,11 +47,11 @@ export default function PortfolioViewPage() {
             <Skeleton className="h-4 w-64" />
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
             <Skeleton className="h-96 w-full rounded-xl" />
           </div>
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-4 space-y-6">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-64 w-full rounded-xl" />
           </div>
@@ -66,7 +67,7 @@ export default function PortfolioViewPage() {
         <div className="rounded-lg border p-6">
           <div className="text-center py-8">
             <p className="text-red-500 mb-4">خطا در بارگذاری اطلاعات نمونه‌کار</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground">
               لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
             </p>
           </div>
@@ -79,25 +80,39 @@ export default function PortfolioViewPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">اطلاعات نمونه کار</h1>
-          <p className="text-muted-foreground mt-1">
-            مشاهده و مدیریت اطلاعات نمونه کار
-          </p>
+          <h1>اطلاعات نمونه کار</h1>
         </div>
-        <Button
-          onClick={() => router.push(`/portfolios/${portfolioId}/edit`)}
-        >
-          <Edit2 className="w-4 h-4 me-2" />
-          ویرایش نمونه کار
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await portfolioApi.exportPortfolioPdf(Number(portfolioId));
+                toast.success("فایل PDF با موفقیت دانلود شد");
+              } catch (error) {
+                toast.error("خطا در دانلود فایل PDF");
+                console.error("PDF export error:", error);
+              }
+            }}
+          >
+            <FileDown className="h-4 w-4" />
+            خروجی PDF
+          </Button>
+          <Button
+            onClick={() => router.push(`/portfolios/${portfolioId}/edit`)}
+          >
+            <Edit2 />
+            ویرایش نمونه کار
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">
           <PortfolioSidebar portfolio={portfolioData} />
         </div>
 
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="overview">
@@ -106,7 +121,7 @@ export default function PortfolioViewPage() {
               </TabsTrigger>
               <TabsTrigger value="media">
                 <Image className="h-4 w-4" />
-                رسانه‌ها
+                مدیا
               </TabsTrigger>
               <TabsTrigger value="seo">
                 <Search className="h-4 w-4" />
@@ -123,4 +138,3 @@ export default function PortfolioViewPage() {
     </div>
   );
 }
-

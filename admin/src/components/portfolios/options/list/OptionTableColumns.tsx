@@ -79,7 +79,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_active ? (
-            <Badge variant="green">فعال</Badge>
+            <Badge variant="blue">فعال</Badge>
           ) : (
             <Badge variant="red">غیرفعال</Badge>
           )}
@@ -95,9 +95,9 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_public ? (
-            <Badge variant="green">عمومی</Badge>
+            <Badge variant="sky">عمومی</Badge>
           ) : (
-            <Badge variant="outline">خصوصی</Badge>
+            <Badge variant="slate">خصوصی</Badge>
           )}
         </div>
       ),

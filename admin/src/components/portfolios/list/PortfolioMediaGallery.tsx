@@ -23,6 +23,7 @@ interface PortfolioMediaGalleryProps {
   title: string;
   maxSelection?: number;
   isGallery?: boolean; // New prop to distinguish between single item with cover vs gallery
+  disabled?: boolean;
 }
 
 export function PortfolioMediaGallery({
@@ -32,6 +33,7 @@ export function PortfolioMediaGallery({
   title,
   maxSelection,
   isGallery = false, // By default, it's not a gallery (single item with cover)
+  disabled = false,
 }: PortfolioMediaGalleryProps) {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
@@ -87,14 +89,16 @@ export function PortfolioMediaGallery({
             {getIconForMediaType()}
             {title}
           </h3>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleRemoveMedia(0)}
-          >
-            <X className="w-4 h-4 me-2" />
-            حذف
-          </Button>
+          {!disabled && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleRemoveMedia(0)}
+            >
+              <X />
+              حذف
+            </Button>
+          )}
         </div>
         
         <div className="space-y-4">
@@ -191,9 +195,9 @@ export function PortfolioMediaGallery({
           variant="outline" 
           size="sm"
           onClick={() => setShowMediaLibrary(true)}
-          disabled={maxSelection ? mediaItems.length >= maxSelection : false}
+          disabled={disabled || (maxSelection ? mediaItems.length >= maxSelection : false)}
         >
-          <Plus className="w-4 h-4 me-2" />
+          <Plus />
           افزودن
         </Button>
       </div>
@@ -219,13 +223,15 @@ export function PortfolioMediaGallery({
                     {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : ''}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveMedia(index)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                {!disabled && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveMedia(index)}
+                  >
+                    <X />
+                  </Button>
+                )}
               </div>
             ) : mediaType === "pdf" ? (
               // PDF items as list
@@ -239,13 +245,15 @@ export function PortfolioMediaGallery({
                     {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : ''}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveMedia(index)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                {!disabled && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveMedia(index)}
+                  >
+                    <X />
+                  </Button>
+                )}
               </div>
             ) : (
               // Image/Video items as grid
@@ -260,14 +268,16 @@ export function PortfolioMediaGallery({
                     <Play className="w-8 h-8 text-white" />
                   </div>
                 )}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handleRemoveMedia(index)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                {!disabled && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveMedia(index)}
+                  >
+                    <X />
+                  </Button>
+                )}
               </div>
             )
           ))}
@@ -285,6 +295,7 @@ export function PortfolioMediaGallery({
             variant="outline" 
             className="mt-4"
             onClick={() => setShowMediaLibrary(true)}
+            disabled={disabled}
           >
             انتخاب {mediaType === "audio" ? "فایل صوتی" : mediaType === "video" ? "ویدئو" : mediaType === "pdf" ? "فایل PDF" : "تصویر"}
           </Button>

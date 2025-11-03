@@ -4,6 +4,7 @@ import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/elements/Badge";
+import { Switch } from "@/components/elements/Switch";
 import Link from "next/link";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions, type DataTableRowAction } from "@/components/tables/DataTableRowActions";
@@ -18,7 +19,10 @@ export interface PortfolioAction {
   isDestructive?: boolean;
 }
 
-export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = []) => {
+export const usePortfolioColumns = (
+  actions: DataTableRowAction<Portfolio>[] = [],
+  onToggleActive?: (portfolio: Portfolio) => void
+) => {
   const router = useRouter();
   
   const baseColumns: ColumnDef<Portfolio>[] = [
@@ -64,7 +68,7 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
         };
 
         return (
-          <Link href={`/portfolios/${portfolio.id}/view`} className="flex items-center gap-3 hover:underline">
+          <Link href={`/portfolios/${portfolio.id}/view`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={portfolio.title} />
@@ -91,13 +95,11 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
         const status = row.original.status;
         return (
           <div className="table-badge-container">
-            <span className={`px-2 py-0.5 rounded-sm text-xs ${
-              status === "published" 
-                ? "bg-green-100 text-green-300" 
-                : "bg-yellow-100 text-yellow-300"
-            }`}>
-              {status === "published" ? "منتشر شده" : "پیش‌نویس"}
-            </span>
+            {status === "published" ? (
+              <Badge variant="green">منتشر شده</Badge>
+            ) : (
+              <Badge variant="yellow">پیش‌نویس</Badge>
+            )}
           </div>
         );
       },
@@ -111,9 +113,9 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_featured ? (
-            <Badge variant="green">ویژه</Badge>
+            <Badge variant="orange">ویژه</Badge>
           ) : (
-            <Badge variant="outline">عادی</Badge>
+            <Badge variant="gray">عادی</Badge>
           )}
         </div>
       ),
@@ -127,38 +129,10 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_public ? (
-            <Badge variant="green">عمومی</Badge>
+            <Badge variant="sky">عمومی</Badge>
           ) : (
-            <Badge variant="outline">خصوصی</Badge>
+            <Badge variant="slate">خصوصی</Badge>
           )}
-        </div>
-      ),
-      enableSorting: true,
-      enableHiding: true,
-      minSize: 150,
-    },
-    {
-      accessorKey: "is_active", // اضافه کردن ستون فعال بودن
-      header: () => <div className="table-header-text">فعال</div>,
-      cell: ({ row }) => (
-        <div className="table-badge-container">
-          {row.original.is_active ? (
-            <Badge variant="green">فعال</Badge>
-          ) : (
-            <Badge variant="outline">غیرفعال</Badge>
-          )}
-        </div>
-      ),
-      enableSorting: true,
-      enableHiding: true,
-      minSize: 150,
-    },
-    {
-      accessorKey: "created_at",
-      header: () => <div className="table-header-text">تاریخ ایجاد</div>,
-      cell: ({ row }) => (
-        <div className="table-date-cell">
-          {formatDate(row.original.created_at)}
         </div>
       ),
       enableSorting: true,
@@ -206,6 +180,51 @@ export const usePortfolioColumns = (actions: DataTableRowAction<Portfolio>[] = [
       enableSorting: false,
       enableHiding: true,
       minSize: 150,
+    },
+    {
+      accessorKey: "created_at",
+      header: () => <div className="table-header-text">تاریخ ایجاد</div>,
+      cell: ({ row }) => (
+        <div className="table-date-cell">
+          {formatDate(row.original.created_at)}
+        </div>
+      ),
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 150,
+    },
+    {
+      accessorKey: "is_active",
+      header: () => <div className="table-header-text">فعال</div>,
+      cell: ({ row }) => {
+        const portfolio = row.original;
+        const isActive = portfolio.is_active;
+        
+        if (onToggleActive) {
+          return (
+            <div onClick={(e) => e.stopPropagation()}>
+              <Switch
+                checked={isActive}
+                onCheckedChange={() => onToggleActive(portfolio)}
+              />
+            </div>
+          );
+        }
+        
+        return (
+          <div className="table-badge-container">
+            {isActive ? (
+              <Badge variant="blue">فعال</Badge>
+            ) : (
+              <Badge variant="red">غیرفعال</Badge>
+            )}
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 80,
+      size: 80,
     },
     {
       id: "actions",

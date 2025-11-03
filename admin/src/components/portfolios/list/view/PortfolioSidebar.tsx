@@ -56,8 +56,8 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
   return (
     <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
       <Card className="overflow-hidden">
-        <CardContent className="pt-0 px-6 pb-0">
-          <div className="pb-4">
+        <CardContent className="pt-0 pb-0">
+          <div className="pb-2">
             <div className="relative w-full aspect-video rounded-xl overflow-hidden border shadow-md">
               {mainImageUrl ? (
                 <MediaImage
@@ -74,54 +74,54 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
             </div>
           </div>
 
-          <div className="pb-4 border-b -mx-6 px-6">
+          <div className="pb-6 pt-2 border-b -mx-6 px-6">
             <div className="grid grid-cols-3 gap-3">
-              <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${
-                portfolio.status === "published" ? "bg-green-50" : "bg-yellow-50"
+              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                portfolio.status === "published" ? "bg-green-50 dark:bg-green-950/20" : "bg-yellow-50 dark:bg-yellow-950/20"
               }`}>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
-                  portfolio.status === "published" ? "bg-green-100" : "bg-yellow-100"
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                  portfolio.status === "published" ? "bg-green-100 dark:bg-green-900/30" : "bg-yellow-100 dark:bg-yellow-900/30"
                 }`}>
                   {portfolio.status === "published" ? (
-                    <CheckCircle2 className="w-5 h-5 stroke-green-600" />
+                    <CheckCircle2 className="w-4 h-4 stroke-green-600 dark:stroke-green-400" />
                   ) : (
-                    <XCircle className="w-5 h-5 stroke-yellow-600" />
+                    <XCircle className="w-4 h-4 stroke-yellow-600 dark:stroke-yellow-400" />
                   )}
                 </div>
-                <span className={`text-xs font-semibold ${
-                  portfolio.status === "published" ? "text-green-600" : "text-yellow-600"
+                <span className={`text-sm font-medium ${
+                  portfolio.status === "published" ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"
                 }`}>
                   {portfolio.status === "published" ? "منتشر شده" : "پیش‌نویس"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${
-                isActive ? "bg-blue-50" : "bg-red-50"
+              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                isActive ? "bg-blue-50 dark:bg-blue-950/20" : "bg-red-50 dark:bg-red-950/20"
               }`}>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
-                  isActive ? "bg-blue-100" : "bg-red-100"
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                  isActive ? "bg-blue-100 dark:bg-blue-900/30" : "bg-red-100 dark:bg-red-900/30"
                 }`}>
-                  <Zap className={`w-5 h-5 ${
-                    isActive ? "stroke-blue-600" : "stroke-red-600"
+                  <Zap className={`w-4 h-4 ${
+                    isActive ? "stroke-blue-600 dark:stroke-blue-400" : "stroke-red-600 dark:stroke-red-400"
                   }`} />
                 </div>
-                <span className={`text-xs font-semibold ${
-                  isActive ? "text-blue-600" : "text-red-600"
+                <span className={`text-sm font-medium ${
+                  isActive ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"
                 }`}>
                   {isActive ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${
-                portfolio.is_featured ? "bg-orange-50" : "bg-gray-50"
+              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                portfolio.is_featured ? "bg-orange-50 dark:bg-orange-950/20" : "bg-gray-50 dark:bg-gray-950/20"
               }`}>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
-                  portfolio.is_featured ? "bg-orange-100" : "bg-gray-100"
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                  portfolio.is_featured ? "bg-orange-100 dark:bg-orange-900/30" : "bg-gray-100 dark:bg-gray-900/30"
                 }`}>
-                  <Star className={`w-5 h-5 ${
-                    portfolio.is_featured ? "stroke-orange-600 fill-orange-600" : "stroke-gray-400"
+                  <Star className={`w-4 h-4 ${
+                    portfolio.is_featured ? "stroke-orange-600 fill-orange-600 dark:stroke-orange-400 dark:fill-orange-400" : "stroke-gray-400 dark:stroke-gray-500"
                   }`} />
                 </div>
-                <span className={`text-xs font-semibold ${
-                  portfolio.is_featured ? "text-orange-600" : "text-gray-600"
+                <span className={`text-sm font-medium ${
+                  portfolio.is_featured ? "text-orange-600 dark:text-orange-400" : "text-gray-600 dark:text-gray-400"
                 }`}>
                   {portfolio.is_featured ? "ویژه" : "عادی"}
                 </span>
@@ -132,18 +132,18 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
           <div className="pt-4 pb-4">
             <div className="space-y-5">
             <div>
-              <h4 className="text-base font-semibold mb-4 text-foreground">اطلاعات پایه</h4>
+              <h4 className="mb-4 text-foreground">اطلاعات پایه</h4>
               <div className="space-y-0 [&>div:not(:last-child)]:border-b">
                 <div className="flex items-center justify-between gap-3 pb-3">
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground font-medium">عنوان:</span>
+                    <label>عنوان:</label>
                   </div>
-                  <div className="flex-1 ms-2 text-left min-w-0">
+                  <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
                     <TruncatedText
                       text={portfolio.title}
                       maxLength={40}
-                      className="text-sm font-semibold text-foreground"
+                      className="text-foreground"
                     />
                   </div>
                 </div>
@@ -151,9 +151,9 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
                 <div className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-2">
                     <Hash className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground font-medium">شناسه:</span>
+                    <label>شناسه:</label>
                   </div>
-                  <p className="text-sm font-semibold text-foreground text-left">
+                  <p className="text-foreground text-left">
                     #{portfolio.id}
                   </p>
                 </div>
@@ -161,13 +161,13 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
                 <div className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-2">
                     <LinkIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground font-medium">اسلاگ:</span>
+                    <label>اسلاگ:</label>
                   </div>
-                  <div className="flex-1 ms-2 text-left min-w-0">
+                  <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
                     <TruncatedText
                       text={portfolio.slug || "-"}
                       maxLength={35}
-                      className="text-sm font-mono text-foreground"
+                      className="font-mono text-foreground"
                     />
                   </div>
                 </div>
@@ -176,9 +176,9 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
                   <div className="flex items-center justify-between gap-3 pt-3">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm text-muted-foreground font-medium">تاریخ ایجاد:</span>
+                      <label>تاریخ ایجاد:</label>
                     </div>
-                    <p className="text-sm text-foreground font-medium text-left">
+                    <p className="text-foreground text-left">
                       {formatDate(portfolio.created_at)}
                     </p>
                   </div>

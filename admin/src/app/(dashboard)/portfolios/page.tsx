@@ -165,6 +165,29 @@ export default function PortfolioPage() {
     },
   });
 
+  // Toggle active status mutation
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
+      return portfolioApi.partialUpdatePortfolio(id, { is_active });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      toast.success(`نمونه‌کار با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
+    },
+    onError: (error) => {
+      toast.error("خطا در تغییر وضعیت");
+      console.error("Toggle active status error:", error);
+    },
+  });
+
+  // Handle toggle active status
+  const handleToggleActive = (portfolio: Portfolio) => {
+    toggleActiveMutation.mutate({
+      id: portfolio.id,
+      is_active: !portfolio.is_active,
+    });
+  };
+
   // تابع حذف نمونه‌کار
   const handleDeletePortfolio = (portfolioId: number | string) => {
     setDeleteConfirm({
@@ -212,7 +235,28 @@ export default function PortfolioPage() {
     },
   ];
   
-  const columns = usePortfolioColumns(rowActions) as ColumnDef<Portfolio>[];
+  const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
+
+  const handleExport = async (filters: PortfolioFilters, search: string) => {
+    try {
+      const exportParams = {
+        search: search || undefined,
+        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+        order_desc: sorting.length > 0 ? sorting[0].desc : true,
+        status: filters.status as string | undefined,
+        is_featured: filters.is_featured as boolean | undefined,
+        is_public: filters.is_public as boolean | undefined,
+        is_active: filters.is_active as boolean | undefined,
+        categories__in: filters.categories ? filters.categories.toString() : undefined,
+      };
+      
+      await portfolioApi.exportPortfolios(exportParams);
+      toast.success("فایل اکسل با موفقیت دانلود شد");
+    } catch (error) {
+      toast.error("خطا در دانلود فایل اکسل");
+      console.error("Export error:", error);
+    }
+  };
 
   const handleFilterChange = (filterId: string | number, value: unknown) => {
     const filterKey = filterId as string;
@@ -426,6 +470,9 @@ export default function PortfolioPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+        }}
+        exportConfig={{
+          onExport: handleExport,
         }}
         filterConfig={portfolioFilterConfig}
       />

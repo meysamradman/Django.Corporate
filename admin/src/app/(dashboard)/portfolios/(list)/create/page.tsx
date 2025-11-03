@@ -212,12 +212,12 @@ export default function CreatePortfolioPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">ایجاد نمونه‌کار جدید</h1>
+          <h1>ایجاد نمونه‌کار جدید</h1>
         </div>
         <div className="flex gap-2">
           {!editMode && (
             <Button onClick={() => setEditMode(true)}>
-              <Edit2 className="w-4 h-4 me-2" />
+              <Edit2 />
               ویرایش
             </Button>
           )}
@@ -226,12 +226,12 @@ export default function CreatePortfolioPage() {
               <Button onClick={handleSaveDraft} variant="outline" disabled={createPortfolioMutation.isPending}>
                 {createPortfolioMutation.isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                    <Loader2 className="animate-spin" />
                     در حال ذخیره...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 me-2" />
+                    <Save />
                     ذخیره پیش‌نویس
                   </>
                 )}
@@ -239,12 +239,12 @@ export default function CreatePortfolioPage() {
               <Button onClick={handleSave} disabled={createPortfolioMutation.isPending}>
                 {createPortfolioMutation.isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                    <Loader2 className="animate-spin" />
                     در حال ذخیره...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 me-2" />
+                    <Save />
                     ذخیره
                   </>
                 )}
@@ -255,17 +255,17 @@ export default function CreatePortfolioPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
+        <TabsList className="mb-6">
           <TabsTrigger value="account">
-            <FileText className="w-4 h-4 me-2" />
+            <FileText className="h-4 w-4 me-2" />
             اطلاعات پایه
           </TabsTrigger>
           <TabsTrigger value="media">
-            <Image className="w-4 h-4 me-2" />
+            <Image className="h-4 w-4 me-2" />
             مدیا
           </TabsTrigger>
           <TabsTrigger value="seo">
-            <Search className="w-4 h-4 me-2" />
+            <Search className="h-4 w-4 me-2" />
             سئو
           </TabsTrigger>
         </TabsList>

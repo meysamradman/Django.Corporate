@@ -566,5 +566,6 @@ export const mediaApi = {
                 data: { deleted_count: 0 }
             };
         }
-    }
+    },
+
 };

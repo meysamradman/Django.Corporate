@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
+from django.core.cache import cache
+from django.utils import timezone
 
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.category import PortfolioCategory
@@ -15,11 +17,13 @@ from src.portfolio.serializers.admin import (
     PortfolioAdminUpdateSerializer,
     PortfolioMediaSerializer
 )
-from src.portfolio.services.admin import PortfolioAdminMediaService
-from src.portfolio.services.admin.portfolio_services import (
+from src.portfolio.services.admin import (
+    PortfolioAdminMediaService,
     PortfolioAdminService,
     PortfolioAdminStatusService,
-    PortfolioAdminSEOService
+    PortfolioAdminSEOService,
+    PortfolioExcelExportService,
+    PortfolioPDFExportService,
 )
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.pagination import StandardLimitPagination
@@ -409,4 +413,106 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        """Export portfolios to Excel with all filters applied
+        
+        Security:
+        - Uses ContentManagerAccess permission class (inherited from ViewSet)
+        - Only authenticated admin users with content manager or super admin roles can access
+        - All filters are applied server-side, preventing unauthorized data access
+        - File is streamed directly without exposing data in response body
+        - Rate limiting: maximum 5 exports per hour per user
+        """
+        # Rate limiting - حداکثر 5 export در ساعت
+        cache_key = f"portfolio_export_limit_{request.user.id}"
+        export_count = cache.get(cache_key, 0)
+        
+        if export_count >= 5:
+            return Response(
+                {"detail": "حداکثر تعداد export در ساعت (5 بار) استفاده شده است. لطفاً بعداً دوباره تلاش کنید."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        
+        try:
+            # Get filtered queryset (without pagination) with optimized prefetch
+            queryset = self.filter_queryset(
+                self.get_queryset().prefetch_related(
+                    'categories',
+                    'tags',
+                    'options'
+                )
+            )
+            
+            # Limit export size - جلوگیری از export های خیلی بزرگ
+            queryset_count = queryset.count()
+            if queryset_count > 10000:
+                return Response(
+                    {"detail": f"تعداد ردیف‌ها ({queryset_count}) بیش از حد مجاز (10,000) است. لطفاً فیلترهای بیشتری اعمال کنید."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Increment rate limit counter
+            cache.set(cache_key, export_count + 1, 3600)  # 1 hour timeout
+            
+            # Use export service
+            return PortfolioExcelExportService.export_portfolios(queryset)
+        except ImportError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"خطا در export: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['get'], url_path='export-pdf')
+    def export_pdf(self, request, pk=None):
+        """Export single portfolio to PDF
+        
+        Security:
+        - Uses ContentManagerAccess permission class (inherited from ViewSet)
+        - Only authenticated admin users with content manager or super admin roles can access
+        - File is streamed directly without exposing data in response body
+        """
+        try:
+            portfolio = Portfolio.objects.prefetch_related(
+                'categories',
+                'tags',
+                'options',
+                'images__image',
+                'videos__video',
+                'videos__video__cover_image',
+                'audios__audio',
+                'audios__audio__cover_image',
+                'documents__document',
+                'documents__document__cover_image',
+                'og_image'
+            ).select_related('og_image').get(pk=pk)
+            
+            # Use export service
+            return PortfolioPDFExportService.export_portfolio_pdf(portfolio)
+        except Portfolio.DoesNotExist:
+            return Response(
+                {"detail": "Portfolio not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except ImportError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            import traceback
+            error_message = str(e)
+            error_traceback = traceback.format_exc()
+            print(f"PDF Export Error: {error_message}")
+            print(f"Traceback: {error_traceback}")
+            return Response(
+                {"detail": f"PDF export failed: {error_message}", "traceback": error_traceback},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

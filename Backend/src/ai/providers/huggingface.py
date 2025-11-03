@@ -1,0 +1,408 @@
+from typing import Optional, Dict, Any
+from io import BytesIO
+import httpx
+import base64
+import os
+import json
+import re
+from .base import BaseProvider
+from src.ai.messages.messages import AI_ERRORS
+
+
+class HuggingFaceProvider(BaseProvider):
+    """Provider for Hugging Face API (free) - supports both image and content generation"""
+    
+    BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://api-inference.huggingface.co/models')
+    
+    # For text generation, we need to use the text-generation task endpoint
+    TEXT_GENERATION_TASK = 'text-generation'
+    
+    def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(api_key, config)
+        # Default models
+        self.image_model = config.get('image_model', 'stabilityai/stable-diffusion-xl-base-1.0') if config else 'stabilityai/stable-diffusion-xl-base-1.0'
+        self.content_model = config.get('content_model', 'gpt2') if config else 'gpt2'
+        # HuggingFace needs longer timeout (up to 3 minutes for first load or HD quality)
+        self.client = httpx.AsyncClient(
+            timeout=httpx.Timeout(180.0, connect=10.0, read=180.0),
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
+        )
+    
+    def get_timeout(self) -> httpx.Timeout:
+        """Get timeout for HuggingFace requests - longer timeout for model loading"""
+        return httpx.Timeout(180.0, connect=10.0, read=180.0)
+    
+    def get_provider_name(self) -> str:
+        return 'huggingface'
+    
+    async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
+        """
+        Generate image with Hugging Face Stable Diffusion (free)
+        """
+        url = f"{self.BASE_URL}/{self.image_model}"
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        size = kwargs.get('size', '1024x1024')
+        quality = kwargs.get('quality', 'standard')
+        
+        width, height = 1024, 1024
+        if 'x' in size:
+            try:
+                w, h = map(int, size.split('x'))
+                width = max(512, min(1024, (w // 64) * 64))
+                height = max(512, min(1024, (h // 64) * 64))
+            except:
+                pass
+        
+        if quality == 'hd':
+            num_inference_steps = kwargs.get('num_inference_steps', 75)
+            guidance_scale = kwargs.get('guidance_scale', 8.0)
+        else:
+            num_inference_steps = kwargs.get('num_inference_steps', 50)
+            guidance_scale = kwargs.get('guidance_scale', 7.5)
+        
+        enhanced_prompt = prompt
+        if 'high quality' not in enhanced_prompt.lower() and 'detailed' not in enhanced_prompt.lower():
+            if quality == 'hd':
+                enhanced_prompt = f"{enhanced_prompt}, ultra high quality, highly detailed, professional photography, 4k, masterpiece"
+            else:
+                enhanced_prompt = f"{enhanced_prompt}, high quality, detailed, professional photography"
+        
+        payload = {
+            "inputs": enhanced_prompt,
+            "parameters": {
+                "width": width,
+                "height": height,
+                "num_inference_steps": num_inference_steps,
+                "guidance_scale": guidance_scale,
+                "negative_prompt": kwargs.get('negative_prompt', 'blurry, low quality, distorted, deformed, ugly, bad anatomy, worst quality'),
+            }
+        }
+        
+        try:
+            response = await self.client.post(
+                url,
+                json=payload,
+                headers=headers
+            )
+            
+            response.raise_for_status()
+            
+            if response.headers.get('content-type', '').startswith('image/'):
+                return BytesIO(response.content)
+            
+            try:
+                result = response.json()
+                if isinstance(result, dict) and 'image' in result:
+                    image_b64 = result['image']
+                    if image_b64.startswith('data:image'):
+                        image_b64 = image_b64.split(',')[1]
+                    return BytesIO(base64.b64decode(image_b64))
+            except:
+                pass
+            
+            return BytesIO(response.content)
+            
+        except httpx.ReadTimeout:
+            raise Exception(
+                "زمان تولید تصویر به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
+                "لطفاً:\n"
+                "1. چند لحظه صبر کنید\n"
+                "2. دوباره تلاش کنید\n"
+                "3. از کیفیت 'standard' به جای 'hd' استفاده کنید"
+            )
+        except httpx.TimeoutException:
+            raise Exception(
+                "اتصال به Hugging Face قطع شد. لطفاً دوباره تلاش کنید."
+            )
+        except httpx.HTTPStatusError as e:
+            try:
+                error_data = e.response.json()
+                error_detail = error_data.get('error', '')
+                
+                if 'loading' in str(error_detail).lower() or e.response.status_code == 503:
+                    error_msg = AI_ERRORS["huggingface_model_loading"]
+                else:
+                    error_msg = AI_ERRORS["image_generation_http_error"].format(
+                        status_code=e.response.status_code,
+                        detail=error_detail if error_detail else str(e)
+                    )
+            except:
+                error_msg = AI_ERRORS["image_generation_http_error"].format(
+                    status_code=e.response.status_code,
+                    detail=str(e)
+                )
+            raise Exception(error_msg)
+        except Exception as e:
+            error_str = str(e)
+            if 'ReadTimeout' in error_str or 'timeout' in error_str.lower():
+                raise Exception(
+                    "زمان تولید تصویر به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
+                    "لطفاً:\n"
+                    "1. چند لحظه صبر کنید\n"
+                    "2. دوباره تلاش کنید\n"
+                    "3. از کیفیت 'standard' به جای 'hd' استفاده کنید"
+                )
+            raise Exception(AI_ERRORS["image_generation_failed"].format(error=error_str))
+    
+    # Content generation methods
+    async def generate_content(self, prompt: str, **kwargs) -> str:
+        """Generate content using Hugging Face text generation models"""
+        # Use task-specific endpoint: https://api-inference.huggingface.co/models/{model_id} or with task
+        url = f"{self.BASE_URL}/{self.content_model}"
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        word_count = kwargs.get('word_count', 500)
+        tone = kwargs.get('tone', 'professional')
+        
+        # Build prompt for instruction-based models
+        full_prompt = f"""Write a professional SEO-optimized content in Persian (Farsi) language.
+
+Topic: {prompt}
+
+Requirements:
+- Word count: approximately {word_count} words
+- Style: {tone}
+- Content should be SEO optimized
+- Natural keyword usage
+- Logical and readable structure
+
+Write the content as plain text without special formatting."""
+        
+        payload = {
+            "inputs": full_prompt,
+            "parameters": {
+                "max_new_tokens": word_count * 2,  # Approximate token count
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "return_full_text": False,
+                "do_sample": True,
+            }
+        }
+        
+        try:
+            response = await self.client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Handle different response formats
+            if isinstance(data, list) and len(data) > 0:
+                generated_text = data[0].get('generated_text', '')
+                if generated_text:
+                    # Remove the original prompt if it's included
+                    if full_prompt in generated_text:
+                        generated_text = generated_text.replace(full_prompt, '').strip()
+                    return generated_text.strip()
+            elif isinstance(data, dict):
+                if 'generated_text' in data:
+                    generated_text = data['generated_text']
+                    if full_prompt in generated_text:
+                        generated_text = generated_text.replace(full_prompt, '').strip()
+                    return generated_text.strip()
+            
+            raise Exception("هیچ محتوایی تولید نشد")
+            
+        except httpx.ReadTimeout:
+            raise Exception(
+                "زمان تولید محتوا به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
+                "لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+            )
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+            error_msg = ""
+            error_text = ""
+            
+            try:
+                error_data = e.response.json()
+                error_msg = error_data.get('error', '')
+                if not error_msg:
+                    error_msg = error_data.get('message', '')
+            except (json.JSONDecodeError, ValueError, AttributeError):
+                try:
+                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
+                except:
+                    error_text = ""
+            
+            if status_code == 404:
+                raise Exception(
+                    f"خطای Hugging Face API: مدل '{self.content_model}' یافت نشد.\n\n"
+                    f"لطفاً:\n"
+                    f"1. نام مدل را بررسی کنید\n"
+                    f"2. مدل باید در Hugging Face Hub موجود باشد\n"
+                    f"3. می‌توانید مدل را در تنظیمات AI تغییر دهید\n\n"
+                    f"مدل‌های پیشنهادی:\n"
+                    f"- google/flan-t5-large\n"
+                    f"- gpt2\n"
+                    f"- distilgpt2\n\n"
+                    f"جزئیات خطا: {error_msg or error_text or '404 Not Found'}"
+                )
+            elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
+                raise Exception(
+                    "مدل در حال لود شدن است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+                )
+            else:
+                error_detail = error_msg or error_text or f"HTTP {status_code}"
+                raise Exception(f"خطای Hugging Face API: {error_detail}")
+        except Exception as e:
+            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+    
+    async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
+        """Generate SEO-optimized structured content using Hugging Face"""
+        word_count = kwargs.get('word_count', 500)
+        tone = kwargs.get('tone', 'professional')
+        keywords = kwargs.get('keywords', [])
+        
+        keywords_str = ', '.join(keywords) if keywords else ''
+        
+        # Build comprehensive prompt for SEO content
+        seo_prompt = f"""Write a complete SEO-optimized article in Persian (Farsi) in JSON format.
+
+Topic: {topic}
+Keywords: {keywords_str if keywords_str else 'none specified'}
+Word count: approximately {word_count} words
+Tone: {tone}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no extra text):
+{{
+  "title": "SEO-optimized title (50-60 characters)",
+  "meta_description": "Meta description (150-160 characters)",
+  "slug": "url-friendly-slug",
+  "h1": "Main heading",
+  "h2_list": ["Heading 2 - 1", "Heading 2 - 2", "Heading 2 - 3"],
+  "h3_list": ["Heading 3 - 1.1", "Heading 3 - 1.2", "Heading 3 - 2.1"],
+  "content": "Full content with HTML <h2> and <h3> tags matching h2_list and h3_list. Content should be around {word_count} words and include the keywords naturally.",
+  "keywords": ["keyword1", "keyword2", "keyword3"]
+}}
+
+Important:
+- The content field MUST include <h2> and <h3> tags that match the headings in h2_list and h3_list
+- All text must be in Persian (Farsi)
+- Ensure the h2_list and h3_list headings appear in the content field as HTML tags
+- Content should be SEO-optimized and natural
+
+Return ONLY the JSON object, nothing else."""
+        
+        url = f"{self.BASE_URL}/{self.content_model}"
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        payload = {
+            "inputs": seo_prompt,
+            "parameters": {
+                "max_new_tokens": word_count * 3,  # More tokens for structured output
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "return_full_text": False,
+                "do_sample": True,
+            }
+        }
+        
+        try:
+            response = await self.client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Extract generated text
+            generated_text = ""
+            if isinstance(data, list) and len(data) > 0:
+                generated_text = data[0].get('generated_text', '')
+            elif isinstance(data, dict):
+                generated_text = data.get('generated_text', '')
+            
+            if not generated_text:
+                raise Exception("هیچ محتوایی تولید نشد")
+            
+            # Remove prompt if included
+            if seo_prompt in generated_text:
+                generated_text = generated_text.replace(seo_prompt, '').strip()
+            
+            # Clean and extract JSON
+            generated_text = generated_text.strip()
+            if generated_text.startswith('```'):
+                generated_text = re.sub(r'^```json\s*', '', generated_text)
+                generated_text = re.sub(r'^```\s*', '', generated_text)
+                generated_text = re.sub(r'\s*```$', '', generated_text)
+            
+            # Try to parse JSON
+            try:
+                seo_data = json.loads(generated_text)
+                return seo_data
+            except json.JSONDecodeError:
+                # Try to extract JSON from text
+                json_match = re.search(r'\{.*\}', generated_text, re.DOTALL)
+                if json_match:
+                    seo_data = json.loads(json_match.group())
+                    return seo_data
+                raise Exception("خطا در تجزیه پاسخ JSON")
+            
+        except httpx.ReadTimeout:
+            raise Exception(
+                "زمان تولید محتوا به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
+                "لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+            )
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+            error_msg = ""
+            error_text = ""
+            
+            try:
+                error_data = e.response.json()
+                error_msg = error_data.get('error', '')
+                if not error_msg:
+                    error_msg = error_data.get('message', '')
+            except (json.JSONDecodeError, ValueError, AttributeError):
+                try:
+                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
+                except:
+                    error_text = ""
+            
+            if status_code == 404:
+                raise Exception(
+                    f"خطای Hugging Face API: مدل '{self.content_model}' یافت نشد.\n\n"
+                    f"لطفاً:\n"
+                    f"1. نام مدل را بررسی کنید\n"
+                    f"2. مدل باید در Hugging Face Hub موجود باشد\n"
+                    f"3. می‌توانید مدل را در تنظیمات AI تغییر دهید\n\n"
+                    f"مدل‌های پیشنهادی:\n"
+                    f"- google/flan-t5-large\n"
+                    f"- gpt2\n"
+                    f"- distilgpt2\n\n"
+                    f"جزئیات خطا: {error_msg or error_text or '404 Not Found'}"
+                )
+            elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
+                raise Exception(
+                    "مدل در حال لود شدن است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+                )
+            else:
+                error_detail = error_msg or error_text or f"HTTP {status_code}"
+                raise Exception(f"خطای Hugging Face API: {error_detail}")
+        except Exception as e:
+            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+    
+    def validate_api_key(self) -> bool:
+        """Validate API key"""
+        try:
+            url = f"{self.BASE_URL}/stabilityai/stable-diffusion-xl-base-1.0"
+            headers = {"Authorization": f"Bearer {self.api_key}"}
+            
+            with httpx.Client(timeout=5.0) as client:
+                response = client.head(url, headers=headers)
+                if response.status_code not in [401, 403]:
+                    return True
+                return False
+        except:
+            return True
+
