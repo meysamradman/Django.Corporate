@@ -5,7 +5,6 @@ from io import BytesIO
 
 
 class BaseProvider(ABC):
-    """Base class for all AI providers (both image and content generation)"""
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         self.api_key = api_key
