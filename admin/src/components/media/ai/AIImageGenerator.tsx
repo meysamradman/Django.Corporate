@@ -378,21 +378,23 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
-                            {generatedMedia ? (
-                                <MediaImage
-                                    media={generatedMedia}
-                                    alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
-                                    className="object-cover"
-                                    fill
-                                />
-                            ) : generatedImageUrl ? (
-                                <img
-                                    src={generatedImageUrl}
-                                    alt={prompt || 'تصویر تولید شده'}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : null}
+                        <div className="relative w-full h-96 rounded-lg overflow-auto border bg-muted/20">
+                            <div className="w-full min-h-full flex items-center justify-center">
+                                {generatedMedia ? (
+                                    <MediaImage
+                                        media={generatedMedia}
+                                        alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
+                                        className="w-full h-auto max-h-full object-cover"
+                                        unoptimized
+                                    />
+                                ) : generatedImageUrl ? (
+                                    <img
+                                        src={generatedImageUrl}
+                                        alt={prompt || 'تصویر تولید شده'}
+                                        className="w-full h-auto max-h-full object-cover"
+                                    />
+                                ) : null}
+                            </div>
                         </div>
                         <div className="flex gap-2">
                             {generatedMedia ? (

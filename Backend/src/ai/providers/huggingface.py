@@ -12,7 +12,7 @@ from src.ai.messages.messages import AI_ERRORS
 class HuggingFaceProvider(BaseProvider):
     """Provider for Hugging Face API (free) - supports both image and content generation"""
     
-    BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://api-inference.huggingface.co/models')
+    BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://router.huggingface.co/hf-inference')
     
     # For text generation, we need to use the text-generation task endpoint
     TEXT_GENERATION_TASK = 'text-generation'
@@ -39,7 +39,7 @@ class HuggingFaceProvider(BaseProvider):
         """
         Generate image with Hugging Face Stable Diffusion (free)
         """
-        url = f"{self.BASE_URL}/{self.image_model}"
+        url = f"{self.BASE_URL}/models/{self.image_model}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -152,8 +152,8 @@ class HuggingFaceProvider(BaseProvider):
     # Content generation methods
     async def generate_content(self, prompt: str, **kwargs) -> str:
         """Generate content using Hugging Face text generation models"""
-        # Use task-specific endpoint: https://api-inference.huggingface.co/models/{model_id} or with task
-        url = f"{self.BASE_URL}/{self.content_model}"
+        # Use new endpoint: https://router.huggingface.co/hf-inference/models/{model_id}
+        url = f"{self.BASE_URL}/models/{self.content_model}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -291,7 +291,7 @@ Important:
 
 Return ONLY the JSON object, nothing else."""
         
-        url = f"{self.BASE_URL}/{self.content_model}"
+        url = f"{self.BASE_URL}/models/{self.content_model}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -395,7 +395,7 @@ Return ONLY the JSON object, nothing else."""
     def validate_api_key(self) -> bool:
         """Validate API key"""
         try:
-            url = f"{self.BASE_URL}/stabilityai/stable-diffusion-xl-base-1.0"
+            url = f"{self.BASE_URL}/models/stabilityai/stable-diffusion-xl-base-1.0"
             headers = {"Authorization": f"Bearer {self.api_key}"}
             
             with httpx.Client(timeout=5.0) as client:
