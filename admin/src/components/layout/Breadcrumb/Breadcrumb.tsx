@@ -45,6 +45,9 @@ export function Breadcrumb() {
                 'details': 'جزئیات',
                 'list': 'لیست',
                 'settings': 'تنظیمات',
+                'ai-content': 'تولید محتوا با AI',
+                'ai-chat': 'چت AI',
+                'ai-image': 'تولید تصویر با AI',
             };
             
             return segmentMap[normalizedSegment] || 

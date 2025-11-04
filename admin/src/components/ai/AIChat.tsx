@@ -22,10 +22,29 @@ interface ChatMessage {
     timestamp?: number;
 }
 
+const getProviderDisplayName = (provider: AvailableProvider): string => {
+    const providerMap: Record<string, string> = {
+        'gemini': 'مدل Google Gemini',
+        'openai': 'مدل OpenAI GPT',
+        'deepseek': 'مدل DeepSeek',
+        'huggingface': 'مدل Hugging Face',
+    };
+    
+    if (provider.provider_display) {
+        const name = provider.provider_display.toLowerCase();
+        if (name.includes('gemini')) return 'مدل Google Gemini';
+        if (name.includes('openai') || name.includes('gpt')) return 'مدل OpenAI GPT';
+        if (name.includes('deepseek')) return 'مدل DeepSeek';
+        if (name.includes('hugging')) return 'مدل Hugging Face';
+    }
+    
+    return providerMap[provider.provider_name.toLowerCase()] || `مدل ${provider.provider_name}`;
+};
+
 export function AIChat() {
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
-    const [selectedProvider, setSelectedProvider] = useState<string>('deepseek');
+    const [selectedProvider, setSelectedProvider] = useState<string>('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [sending, setSending] = useState(false);
@@ -55,12 +74,6 @@ export function AIChat() {
                     : (response.data as any)?.data || [];
                 
                 setAvailableProviders(providersData);
-                
-                if (providersData.length > 0 && !selectedProvider) {
-                    setSelectedProvider(providersData[0].provider_name);
-                } else if (providersData.length === 0) {
-                    setSelectedProvider('');
-                }
             }
         } catch (error: any) {
             // فقط Toast از metaData.message اگر موجود بود
@@ -158,11 +171,13 @@ export function AIChat() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
-            <Card className="flex flex-col flex-1 flex-shrink-0 overflow-hidden">
-                <CardHeader className="flex-shrink-0 border-b">
+            <Card className="flex flex-col flex-1 flex-shrink-0 overflow-hidden hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
+                <CardHeader className="flex-shrink-0 border-b pb-3">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <MessageSquare className="h-5 w-5 text-primary" />
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                                <MessageSquare className="w-5 h-5 stroke-primary" />
+                            </div>
                             <CardTitle>چت با AI</CardTitle>
                         </div>
                         <div className="flex items-center gap-2">
@@ -170,7 +185,7 @@ export function AIChat() {
                                 <Skeleton className="h-10 w-32" />
                             ) : (
                                 <Select
-                                    value={selectedProvider}
+                                    value={selectedProvider || undefined}
                                     onValueChange={setSelectedProvider}
                                 >
                                     <SelectTrigger className="w-40">
@@ -187,7 +202,7 @@ export function AIChat() {
                                                     key={provider.id}
                                                     value={provider.provider_name}
                                                 >
-                                                    {provider.provider_display || provider.provider_name}
+                                                    {getProviderDisplayName(provider)}
                                                 </SelectItem>
                                             ))
                                         )}
@@ -219,10 +234,12 @@ export function AIChat() {
                                     سوالات خود را از AI بپرسید. پیام‌ها ذخیره نمی‌شوند.
                                 </p>
                                 {availableProviders.length === 0 && (
-                                    <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                                         <div className="flex items-start gap-2">
-                                            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
-                                            <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-yellow-100 mt-0.5">
+                                                <AlertCircle className="h-4 w-4 stroke-yellow-600" />
+                                            </div>
+                                            <div className="text-sm text-yellow-800">
                                                 <p className="font-medium mb-1">هیچ Provider فعالی یافت نشد</p>
                                                 <p>
                                                     برای استفاده از چت با AI، ابتدا باید یک Provider (Gemini، OpenAI یا DeepSeek) را در{' '}
@@ -243,7 +260,7 @@ export function AIChat() {
                                 >
                                     {msg.role === 'assistant' && (
                                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <Sparkles className="h-4 w-4 text-primary" />
+                                            <Sparkles className="h-4 w-4 stroke-primary" />
                                         </div>
                                     )}
                                     <div
@@ -270,7 +287,7 @@ export function AIChat() {
                         {sending && (
                             <div className="flex gap-3 justify-start">
                                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 text-primary" />
+                                    <Sparkles className="h-4 w-4 stroke-primary" />
                                 </div>
                                 <div className="bg-muted rounded-lg px-4 py-2">
                                     <div className="flex items-center gap-2">

@@ -15,13 +15,32 @@ import {
     SelectValue,
 } from "@/components/elements/Select";
 import { aiApi, AvailableProvider, AIContentGenerationResponse } from '@/api/ai/route';
-import { Loader2, Sparkles, FileText, Settings, AlertCircle, Copy, Check } from 'lucide-react';
+import { Loader2, Sparkles, FileText, Settings, AlertCircle, Copy, Check, Brain, Type, Hash, MessageSquare } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
 
 interface AIContentGeneratorProps {
     onNavigateToSettings?: () => void;
 }
+
+const getProviderDisplayName = (provider: AvailableProvider): string => {
+    const providerMap: Record<string, string> = {
+        'gemini': 'مدل Google Gemini',
+        'openai': 'مدل OpenAI GPT',
+        'deepseek': 'مدل DeepSeek',
+        'huggingface': 'مدل Hugging Face',
+    };
+    
+    if (provider.provider_display) {
+        const name = provider.provider_display.toLowerCase();
+        if (name.includes('gemini')) return 'مدل Google Gemini';
+        if (name.includes('openai') || name.includes('gpt')) return 'مدل OpenAI GPT';
+        if (name.includes('deepseek')) return 'مدل DeepSeek';
+        if (name.includes('hugging')) return 'مدل Hugging Face';
+    }
+    
+    return providerMap[provider.provider_name.toLowerCase()] || `مدل ${provider.provider_name}`;
+};
 
 export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorProps) {
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
@@ -51,10 +70,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                     : (response.data as any)?.data || [];
                 
                 setAvailableProviders(providersData);
-                
-                if (providersData.length > 0 && !selectedProvider) {
-                    setSelectedProvider(providersData[0].provider_name);
-                }
             }
         } catch (error: any) {
             // فقط Toast از metaData.message اگر موجود بود
@@ -142,10 +157,12 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
     if (availableProviders.length === 0) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <AlertCircle className="h-5 w-5 text-yellow-500" />
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-yellow-500">
+                <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-3">
+                        <div className="p-2.5 bg-yellow-100 rounded-xl shadow-sm">
+                            <AlertCircle className="w-5 h-5 stroke-yellow-600" />
+                        </div>
                         هیچ Provider فعالی یافت نشد
                     </CardTitle>
                     <CardDescription>
@@ -173,28 +190,30 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     return (
         <div className="space-y-6">
             {/* Input Form */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5" />
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
+                <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                            <Sparkles className="w-5 h-5 stroke-primary" />
+                        </div>
                         تولید محتوای SEO با AI
                     </CardTitle>
-                    <CardDescription>
-                        محتوای بهینه شده برای SEO با متا تگ‌ها، عناوین و کلمات کلیدی
-                    </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                     {/* Provider Selection */}
                     <div className="space-y-2">
-                        <Label htmlFor="provider">مدل AI</Label>
-                        <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                            <SelectTrigger id="provider">
-                                <SelectValue placeholder="انتخاب مدل AI" />
+                        <Label htmlFor="provider" className="flex items-center gap-2">
+                            <Brain className="w-4 h-4 text-muted-foreground" />
+                            مدل AI
+                        </Label>
+                        <Select value={selectedProvider || undefined} onValueChange={setSelectedProvider}>
+                            <SelectTrigger id="provider" className="h-11">
+                                <SelectValue placeholder="انتخاب مدل" />
                             </SelectTrigger>
                             <SelectContent>
                                 {availableProviders.map((provider) => (
                                     <SelectItem key={provider.id} value={provider.provider_name}>
-                                        {provider.provider_display || provider.provider_name}
+                                        {getProviderDisplayName(provider)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -203,20 +222,27 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
                     {/* Topic Input */}
                     <div className="space-y-2">
-                        <Label htmlFor="topic">موضوع محتوا *</Label>
+                        <Label htmlFor="topic" className="flex items-center gap-2">
+                            <Type className="w-4 h-4 text-muted-foreground" />
+                            موضوع محتوا <span className="text-destructive">*</span>
+                        </Label>
                         <Textarea
                             id="topic"
                             placeholder="مثال: راهنمای کامل طراحی وب سایت"
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
-                            rows={3}
+                            rows={4}
+                            className="resize-none"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Word Count */}
                         <div className="space-y-2">
-                            <Label htmlFor="wordCount">تعداد کلمات</Label>
+                            <Label htmlFor="wordCount" className="flex items-center gap-2">
+                                <Hash className="w-4 h-4 text-muted-foreground" />
+                                تعداد کلمات
+                            </Label>
                             <Input
                                 id="wordCount"
                                 type="number"
@@ -224,14 +250,21 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                                 max={2000}
                                 value={wordCount}
                                 onChange={(e) => setWordCount(Number(e.target.value))}
+                                className="h-11"
                             />
+                            <p className="text-xs text-muted-foreground">
+                                بین 100 تا 2000 کلمه
+                            </p>
                         </div>
 
                         {/* Tone */}
                         <div className="space-y-2">
-                            <Label htmlFor="tone">سبک محتوا</Label>
+                            <Label htmlFor="tone" className="flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                                سبک محتوا
+                            </Label>
                             <Select value={tone} onValueChange={setTone}>
-                                <SelectTrigger id="tone">
+                                <SelectTrigger id="tone" className="h-11">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -246,17 +279,24 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
                     {/* Keywords */}
                     <div className="space-y-2">
-                        <Label htmlFor="keywords">کلمات کلیدی (جدا شده با کاما)</Label>
+                        <Label htmlFor="keywords" className="flex items-center gap-2">
+                            <Hash className="w-4 h-4 text-muted-foreground" />
+                            کلمات کلیدی (اختیاری)
+                        </Label>
                         <Input
                             id="keywords"
                             placeholder="مثال: طراحی وب, UI/UX, React"
                             value={keywords}
                             onChange={(e) => setKeywords(e.target.value)}
+                            className="h-11"
                         />
+                        <p className="text-xs text-muted-foreground">
+                            کلمات کلیدی را با کاما جدا کنید
+                        </p>
                     </div>
 
                     {/* Save to Cache */}
-                    <div className="flex items-center space-x-2 space-x-reverse">
+                    <div className="flex items-center space-x-2 space-x-reverse p-3 bg-muted/50 rounded-lg border">
                         <Checkbox
                             id="saveToCache"
                             checked={saveToCache}
@@ -264,7 +304,7 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                         />
                         <Label
                             htmlFor="saveToCache"
-                            className="text-sm font-normal cursor-pointer"
+                            className="text-sm font-normal cursor-pointer flex-1"
                         >
                             ذخیره محتوا در cache (برای استفاده مجدد)
                         </Label>
@@ -274,18 +314,18 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                     <Button
                         onClick={handleGenerate}
                         disabled={generating || !topic.trim()}
-                        className="w-full"
+                        className="w-full h-12 text-base font-semibold"
                         size="lg"
                     >
                         {generating ? (
                             <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                در حال تولید...
+                                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                در حال تولید محتوا...
                             </>
                         ) : (
                             <>
-                                <Sparkles className="h-4 w-4 mr-2" />
-                                تولید محتوا
+                                <Sparkles className="h-5 w-5 mr-2" />
+                                تولید محتوای SEO
                             </>
                         )}
                     </Button>
@@ -296,30 +336,33 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
             {generatedContent && (
                 <div className="space-y-4">
                     {/* SEO Meta Tags */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileText className="h-5 w-5" />
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-cyan-500">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2.5 bg-cyan-100 rounded-xl shadow-sm">
+                                    <FileText className="w-5 h-5 stroke-cyan-600" />
+                                </div>
                                 اطلاعات SEO
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-5">
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label>عنوان متا (Meta Title)</Label>
+                                    <Label className="text-sm font-semibold">عنوان متا (Meta Title)</Label>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => copyToClipboard(generatedContent.meta_title, 'meta_title')}
+                                        className="h-8"
                                     >
                                         {copiedField === 'meta_title' ? (
-                                            <Check className="h-4 w-4" />
+                                            <Check className="h-4 w-4 text-green-600" />
                                         ) : (
                                             <Copy className="h-4 w-4" />
                                         )}
                                     </Button>
                                 </div>
-                                <Input value={generatedContent.meta_title} readOnly />
+                                <Input value={generatedContent.meta_title} readOnly className="h-11 font-medium" />
                                 <p className="text-xs text-muted-foreground">
                                     {generatedContent.meta_title.length} کاراکتر
                                 </p>
@@ -327,20 +370,21 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label>توضیحات متا (Meta Description)</Label>
+                                    <Label className="text-sm font-semibold">توضیحات متا (Meta Description)</Label>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => copyToClipboard(generatedContent.meta_description, 'meta_description')}
+                                        className="h-8"
                                     >
                                         {copiedField === 'meta_description' ? (
-                                            <Check className="h-4 w-4" />
+                                            <Check className="h-4 w-4 text-green-600" />
                                         ) : (
                                             <Copy className="h-4 w-4" />
                                         )}
                                     </Button>
                                 </div>
-                                <Textarea value={generatedContent.meta_description} readOnly rows={2} />
+                                <Textarea value={generatedContent.meta_description} readOnly rows={3} className="resize-none" />
                                 <p className="text-xs text-muted-foreground">
                                     {generatedContent.meta_description.length} کاراکتر
                                 </p>
@@ -348,29 +392,30 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label>Slug</Label>
+                                    <Label className="text-sm font-semibold">Slug</Label>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => copyToClipboard(generatedContent.slug, 'slug')}
+                                        className="h-8"
                                     >
                                         {copiedField === 'slug' ? (
-                                            <Check className="h-4 w-4" />
+                                            <Check className="h-4 w-4 text-green-600" />
                                         ) : (
                                             <Copy className="h-4 w-4" />
                                         )}
                                     </Button>
                                 </div>
-                                <Input value={generatedContent.slug} readOnly />
+                                <Input value={generatedContent.slug} readOnly className="h-11 font-mono text-sm" />
                             </div>
 
                             <div className="space-y-2">
-                                <Label>کلمات کلیدی</Label>
-                                <div className="flex flex-wrap gap-2">
+                                <Label className="text-sm font-semibold">کلمات کلیدی</Label>
+                                <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg border">
                                     {generatedContent.keywords.map((keyword, index) => (
                                         <span
                                             key={index}
-                                            className="px-2 py-1 bg-secondary rounded-md text-sm"
+                                            className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm font-medium border border-primary/20"
                                         >
                                             {keyword}
                                         </span>
@@ -381,33 +426,44 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                     </Card>
 
                     {/* Content */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{generatedContent.h1}</CardTitle>
+                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
+                        <CardHeader className="pb-3 border-b">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                                    <FileText className="w-5 h-5 stroke-indigo-600" />
+                                </div>
+                                <CardTitle>{generatedContent.h1}</CardTitle>
+                            </div>
                             <CardDescription>
                                 {generatedContent.word_count} کلمه | 
                                 زمان تولید: {generatedContent.generation_time_ms}ms |
                                 {generatedContent.cached && ' (از cache)'}
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-5">
                             {generatedContent.h2_list.length > 0 && (
-                                <div className="space-y-2">
-                                    <Label>عناوین H2:</Label>
-                                    <ul className="list-disc list-inside space-y-1">
+                                <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
+                                    <Label className="text-sm font-semibold">عناوین H2:</Label>
+                                    <ul className="space-y-2">
                                         {generatedContent.h2_list.map((h2, index) => (
-                                            <li key={index} className="text-sm">{h2}</li>
+                                            <li key={index} className="flex items-start gap-2 text-sm">
+                                                <span className="text-primary font-bold mt-0.5">{index + 1}.</span>
+                                                <span className="flex-1">{h2}</span>
+                                            </li>
                                         ))}
                                     </ul>
                                 </div>
                             )}
 
                             {generatedContent.h3_list.length > 0 && (
-                                <div className="space-y-2">
-                                    <Label>عناوین H3:</Label>
-                                    <ul className="list-disc list-inside space-y-1">
+                                <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
+                                    <Label className="text-sm font-semibold">عناوین H3:</Label>
+                                    <ul className="space-y-2">
                                         {generatedContent.h3_list.map((h3, index) => (
-                                            <li key={index} className="text-sm">{h3}</li>
+                                            <li key={index} className="flex items-start gap-2 text-sm">
+                                                <span className="text-primary font-bold mt-0.5">{index + 1}.</span>
+                                                <span className="flex-1">{h3}</span>
+                                            </li>
                                         ))}
                                     </ul>
                                 </div>
@@ -415,22 +471,31 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label>محتوای اصلی</Label>
+                                    <Label className="text-sm font-semibold">محتوای اصلی</Label>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => copyToClipboard(generatedContent.content, 'content')}
+                                        className="h-8"
                                     >
                                         {copiedField === 'content' ? (
-                                            <Check className="h-4 w-4 mr-2" />
+                                            <>
+                                                <Check className="h-4 w-4 mr-2 text-green-600" />
+                                                کپی شد
+                                            </>
                                         ) : (
-                                            <Copy className="h-4 w-4 mr-2" />
+                                            <>
+                                                <Copy className="h-4 w-4 mr-2" />
+                                                کپی محتوا
+                                            </>
                                         )}
-                                        کپی محتوا
                                     </Button>
                                 </div>
-                                <div className="p-4 bg-muted rounded-md prose prose-sm max-w-none">
-                                    <div dangerouslySetInnerHTML={{ __html: generatedContent.content.replace(/\n/g, '<br />') }} />
+                                <div className="p-5 bg-muted/30 rounded-lg border prose prose-sm max-w-none">
+                                    <div 
+                                        className="text-sm leading-relaxed"
+                                        dangerouslySetInnerHTML={{ __html: generatedContent.content.replace(/\n/g, '<br />') }} 
+                                    />
                                 </div>
                             </div>
                         </CardContent>

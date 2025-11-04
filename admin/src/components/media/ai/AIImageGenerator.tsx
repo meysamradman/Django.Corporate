@@ -16,7 +16,7 @@ import {
 import { aiApi } from '@/api/ai/route';
 import { mediaApi } from '@/api/media/route';
 import { Media } from '@/types/shared/media';
-import { Loader2, Sparkles, Wand2, Image as ImageIcon, Settings, AlertCircle, Save } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Image as ImageIcon, Settings, AlertCircle, Save, Brain } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { MediaImage } from '@/components/media/base/MediaImage';
@@ -27,6 +27,26 @@ interface AvailableProvider {
     provider_display: string;
     can_generate: boolean;
 }
+
+const getProviderDisplayName = (provider: AvailableProvider): string => {
+    const providerMap: Record<string, string> = {
+        'gemini': 'مدل Google Gemini',
+        'openai': 'مدل OpenAI DALL-E',
+        'deepseek': 'مدل DeepSeek',
+        'huggingface': 'مدل Hugging Face',
+        'dall-e': 'مدل OpenAI DALL-E',
+    };
+    
+    if (provider.provider_display) {
+        const name = provider.provider_display.toLowerCase();
+        if (name.includes('gemini')) return 'مدل Google Gemini';
+        if (name.includes('openai') || name.includes('dall-e') || name.includes('dalle')) return 'مدل OpenAI DALL-E';
+        if (name.includes('deepseek')) return 'مدل DeepSeek';
+        if (name.includes('hugging')) return 'مدل Hugging Face';
+    }
+    
+    return providerMap[provider.provider_name.toLowerCase()] || `مدل ${provider.provider_name}`;
+};
 
 interface AIImageGeneratorProps {
     onImageGenerated?: (media: Media) => void;
@@ -78,15 +98,9 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                     
                 setAvailableProviders(providers);
                 
-                // اگر provider انتخاب شده دیگر در لیست نیست، آن را تغییر بده
+                // اگر provider انتخاب شده دیگر در لیست نیست، آن را پاک کن
                 if (selectedProvider && !providers.some(p => p.provider_name === selectedProvider)) {
-                    if (providers.length > 0) {
-                        setSelectedProvider(providers[0].provider_name);
-                    } else {
-                        setSelectedProvider('');
-                    }
-                } else if (providers.length > 0 && !selectedProvider) {
-                    setSelectedProvider(providers[0].provider_name);
+                    setSelectedProvider('');
                 }
             }
         } catch (error) {
@@ -265,27 +279,29 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
 
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Wand2 className="h-5 w-5" />
+            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
+                <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
+                            <Wand2 className="w-5 h-5 stroke-primary" />
+                        </div>
                         تولید تصویر با AI
                     </CardTitle>
-                    <CardDescription>
-                        با استفاده از هوش مصنوعی تصویر تولید کنید
-                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="provider">مدل AI</Label>
-                        <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                            <SelectTrigger id="provider">
-                                <SelectValue placeholder="مدل AI را انتخاب کنید" />
+                        <Label htmlFor="provider" className="flex items-center gap-2">
+                            <Brain className="w-4 h-4 text-muted-foreground" />
+                            مدل AI
+                        </Label>
+                        <Select value={selectedProvider || undefined} onValueChange={setSelectedProvider}>
+                            <SelectTrigger id="provider" className="h-11">
+                                <SelectValue placeholder="انتخاب مدل" />
                             </SelectTrigger>
                             <SelectContent>
                                 {availableProviders.map((provider) => (
                                     <SelectItem key={provider.id} value={provider.provider_name}>
-                                        {provider.provider_display}
+                                        {getProviderDisplayName(provider)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -347,10 +363,12 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
             </Card>
 
             {(generatedMedia || generatedImageUrl) && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <ImageIcon className="h-5 w-5" />
+                <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
+                    <CardHeader className="pb-3 border-b">
+                        <CardTitle className="flex items-center gap-3">
+                            <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
+                                <ImageIcon className="w-5 h-5 stroke-indigo-600" />
+                            </div>
                             تصویر تولید شده
                             {!saveToDb && generatedImageUrl && (
                                 <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">

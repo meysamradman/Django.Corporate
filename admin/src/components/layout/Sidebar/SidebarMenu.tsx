@@ -121,6 +121,7 @@ export const useMenuData = () => {
                         items: [
                             { title: "چت با AI", url: "/ai-chat" },
                             { title: "تولید محتوا با AI", url: "/ai-content" },
+                            { title: "تولید تصویر با AI", url: "/ai-image" },
                         ],
                     },
                 ]
