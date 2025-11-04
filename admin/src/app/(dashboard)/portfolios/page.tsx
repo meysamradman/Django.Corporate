@@ -280,73 +280,107 @@ export default function PortfolioPage() {
   };
 
   const handlePrint = () => {
-    // Find the table element
-    const tableCard = document.querySelector('[data-table="portfolio-table"]');
-    if (!tableCard) {
-      window.print();
-      return;
-    }
-    
-    // Clone the table structure
-    const clonedCard = tableCard.cloneNode(true) as HTMLElement;
-    
-    // Remove buttons and non-printable elements
-    const buttons = clonedCard.querySelectorAll('button, .no-print');
-    buttons.forEach(btn => btn.remove());
-    
-    // Remove search and filters
-    const searchInputs = clonedCard.querySelectorAll('input[type="text"], input[type="search"]');
-    searchInputs.forEach(input => input.remove());
-    
-    // Create print window
+    // Create print window with table design similar to PDF
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      window.print();
+      toast.error("لطفاً popup blocker را غیرفعال کنید");
       return;
     }
-    
-    printWindow.document.write(`
+
+    // Format date to Persian
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      const year = date.getFullYear() - 621;
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    // Format status
+    const getStatusText = (status: string) => {
+      if (status === 'published') return 'منتشر شده';
+      if (status === 'draft') return 'پیش‌نویس';
+      if (status === 'archived') return 'بایگانی شده';
+      return status;
+    };
+
+    // Build table rows
+    const tableRows = data.map((portfolio) => {
+      const categories = portfolio.categories?.map(c => c.name).join(', ') || '-';
+      const tags = portfolio.tags?.map(t => t.name).join(', ') || '-';
+      const options = portfolio.options?.map(o => o.name + (o.description ? ` (${o.description})` : '')).join(', ') || '-';
+      const statusText = getStatusText(portfolio.status);
+      const createdDate = portfolio.created_at ? formatDate(portfolio.created_at) : '-';
+      
+      return `
+        <tr>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${options}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${tags}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${categories}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_active ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_public ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_featured ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.id}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.title || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // Create HTML content
+    const htmlContent = `
       <!DOCTYPE html>
       <html dir="rtl">
         <head>
           <meta charset="utf-8">
           <title>پرینت لیست نمونه‌کارها</title>
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
             body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              padding: 20px;
               direction: rtl;
               background: white;
-            }
-            h1 {
-              text-align: center;
-              margin-bottom: 20px;
-              color: #1f2937;
+              padding: 20px;
             }
             table {
               width: 100%;
               border-collapse: collapse;
               margin-top: 20px;
-              font-size: 12px;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              text-align: right;
+              font-size: 10px;
             }
             th {
-              background-color: #f3f4f6;
+              background-color: #f8fafc;
+              color: #0f172a;
               font-weight: bold;
-              color: #111827;
+              padding: 8px;
+              text-align: right;
+              border-bottom: 1px solid #e2e8f0;
+              font-size: 11px;
+            }
+            td {
+              padding: 8px;
+              color: #0f172a;
+              border-bottom: 0.5px solid #e2e8f0;
+              word-wrap: break-word;
             }
             tr:nth-child(even) {
-              background-color: #f9fafb;
+              background-color: #f8fafc;
+            }
+            tr:nth-child(odd) {
+              background-color: white;
             }
             @media print {
               @page {
-                margin: 1cm;
                 size: A4 landscape;
+                margin: 1cm;
               }
               body {
                 padding: 0;
@@ -355,8 +389,25 @@ export default function PortfolioPage() {
           </style>
         </head>
         <body>
-          <h1>لیست نمونه‌کارها</h1>
-          ${clonedCard.innerHTML}
+          <table>
+            <thead>
+              <tr>
+                <th>وضعیت</th>
+                <th>تاریخ ایجاد</th>
+                <th>گزینه‌ها</th>
+                <th>تگ‌ها</th>
+                <th>دسته‌بندی‌ها</th>
+                <th>فعال</th>
+                <th>عمومی</th>
+                <th>ویژه</th>
+                <th>ID</th>
+                <th>عنوان</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
           <script>
             window.onload = function() {
               window.print();
@@ -367,7 +418,9 @@ export default function PortfolioPage() {
           </script>
         </body>
       </html>
-    `);
+    `;
+
+    printWindow.document.write(htmlContent);
     printWindow.document.close();
   };
 
@@ -588,11 +641,13 @@ export default function PortfolioPage() {
           {
             onExport: handleExportExcel,
             buttonText: "خروجی اکسل",
+            value: "excel",
             variant: "outline",
           },
           {
             onExport: handleExportPDF,
             buttonText: "خروجی PDF",
+            value: "pdf",
             variant: "outline",
           },
         ]}
