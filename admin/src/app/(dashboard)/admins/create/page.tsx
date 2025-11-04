@@ -189,7 +189,7 @@ export default function CreateAdminPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1>ایجاد ادمین جدید</h1>
+                        <h1 className="page-title">ایجاد ادمین جدید</h1>
                     </div>
                     <div className="flex gap-2">
                         <Button onClick={handleSubmit} disabled={createAdminMutation.isPending}>

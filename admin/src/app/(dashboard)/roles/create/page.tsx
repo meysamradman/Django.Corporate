@@ -189,7 +189,7 @@ export default function CreateRolePage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1>ایجاد نقش جدید</h1>
+        <h1 className="page-title">ایجاد نقش جدید</h1>
       </div>
 
       {/* Form */}

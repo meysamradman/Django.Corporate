@@ -30,6 +30,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
 import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import { env } from '@/core/config/environment';
 
 // تابع تبدیل دسته‌بندی‌ها به فرمت سلسله مراتبی
 const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
@@ -237,9 +238,9 @@ export default function PortfolioPage() {
   
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
-  const handleExportExcel = async (filters: PortfolioFilters, search: string) => {
+  const handleExportExcel = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
     try {
-      const exportParams = {
+      const exportParams: any = {
         search: search || undefined,
         order_by: sorting.length > 0 ? sorting[0].id : "created_at",
         order_desc: sorting.length > 0 ? sorting[0].desc : true,
@@ -249,18 +250,26 @@ export default function PortfolioPage() {
         is_active: filters.is_active as boolean | undefined,
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
+      
+      if (exportAll) {
+        exportParams.export_all = true;
+      } else {
+        exportParams.page = pagination.pageIndex + 1;
+        exportParams.size = pagination.pageSize;
+      }
       
       await portfolioApi.exportPortfolios(exportParams, 'excel');
-      toast.success("فایل اکسل با موفقیت دانلود شد");
-    } catch (error) {
-      toast.error("خطا در دانلود فایل اکسل");
-      console.error("Export error:", error);
+      toast.success(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
+    } catch (error: any) {
+      // نمایش پیام خطا از backend
+      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
+      toast.error(errorMessage);
     }
   };
 
-  const handleExportPDF = async (filters: PortfolioFilters, search: string) => {
+  const handleExportPDF = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
     try {
-      const exportParams = {
+      const exportParams: any = {
         search: search || undefined,
         order_by: sorting.length > 0 ? sorting[0].id : "created_at",
         order_desc: sorting.length > 0 ? sorting[0].desc : true,
@@ -271,20 +280,59 @@ export default function PortfolioPage() {
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
       
+      if (exportAll) {
+        exportParams.export_all = true;
+      } else {
+        exportParams.page = pagination.pageIndex + 1;
+        exportParams.size = pagination.pageSize;
+      }
+      
       await portfolioApi.exportPortfolios(exportParams, 'pdf');
-      toast.success("فایل PDF با موفقیت دانلود شد");
-    } catch (error) {
-      toast.error("خطا در دانلود فایل PDF");
-      console.error("Export error:", error);
+      toast.success(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
+    } catch (error: any) {
+      // نمایش پیام خطا از backend
+      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
+      toast.error(errorMessage);
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async (printAll: boolean = false) => {
     // Create print window with table design similar to PDF
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error("لطفاً popup blocker را غیرفعال کنید");
       return;
+    }
+
+    // اگر printAll باشد، همه داده‌ها را از API بگیر
+    let printData = data;
+    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS; // از env خوانده می‌شود (فقط برای دریافت داده)
+    if (printAll) {
+      try {
+        const allParams = {
+          search: searchValue || undefined,
+          page: 1,
+          size: MAX_PRINT_ITEMS, // حداکثر آیتم‌ها (از env)
+          order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+          order_desc: sorting.length > 0 ? sorting[0].desc : true,
+          status: clientFilters.status as string | undefined,
+          is_featured: clientFilters.is_featured as boolean | undefined,
+          is_public: clientFilters.is_public as boolean | undefined,
+          is_active: clientFilters.is_active as boolean | undefined,
+          categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
+        };
+        const response = await portfolioApi.getPortfolioList(allParams);
+        printData = response.data;
+        const totalCount = response.pagination?.count || 0;
+        if (totalCount > MAX_PRINT_ITEMS) {
+          toast.warning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
+        }
+      } catch (error: any) {
+        const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
+        toast.error(errorMessage);
+        printWindow.close();
+        return;
+      }
     }
 
     // Format date to Persian
@@ -308,7 +356,7 @@ export default function PortfolioPage() {
     };
 
     // Build table rows
-    const tableRows = data.map((portfolio) => {
+    const tableRows = printData.map((portfolio) => {
       const categories = portfolio.categories?.map(c => c.name).join(', ') || '-';
       const tags = portfolio.tags?.map(t => t.name).join(', ') || '-';
       const options = portfolio.options?.map(o => o.name + (o.description ? ` (${o.description})` : '')).join(', ') || '-';
@@ -337,7 +385,7 @@ export default function PortfolioPage() {
       <html dir="rtl">
         <head>
           <meta charset="utf-8">
-          <title>پرینت لیست نمونه‌کارها</title>
+          <title>پرینت لیست نمونه‌کارها ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
           <style>
             * {
               margin: 0;
@@ -639,19 +687,39 @@ export default function PortfolioPage() {
         }}
         exportConfigs={[
           {
-            onExport: handleExportExcel,
-            buttonText: "خروجی اکسل",
+            onExport: (filters, search) => handleExportExcel(filters, search, false),
+            buttonText: "خروجی اکسل (صفحه فعلی)",
             value: "excel",
             variant: "outline",
           },
           {
-            onExport: handleExportPDF,
-            buttonText: "خروجی PDF",
+            onExport: (filters, search) => handleExportExcel(filters, search, true),
+            buttonText: "خروجی اکسل (همه)",
+            value: "excel_all",
+            variant: "outline",
+          },
+          {
+            onExport: (filters, search) => handleExportPDF(filters, search, false),
+            buttonText: "خروجی PDF (صفحه فعلی)",
             value: "pdf",
             variant: "outline",
           },
+          {
+            onExport: (filters, search) => handleExportPDF(filters, search, true),
+            buttonText: "خروجی PDF (همه)",
+            value: "pdf_all",
+            variant: "outline",
+          },
+          {
+            onExport: async () => {
+              await handlePrint(true);
+            },
+            buttonText: "پرینت (همه)",
+            value: "print_all",
+            variant: "outline",
+          },
         ]}
-        onPrint={handlePrint}
+        onPrint={() => handlePrint(false)}
         filterConfig={portfolioFilterConfig}
       />
 

@@ -24,7 +24,7 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
 class PortfolioPDFExportService:
@@ -47,9 +47,7 @@ class PortfolioPDFExportService:
         """Register Persian font - فقط IRANSansXV یا فونت سیستم"""
         persian_font_name = 'Helvetica'
         
-        # فقط IRANSansXV را چک کن
         try:
-            from django.conf import settings
             base_dir = getattr(settings, 'BASE_DIR', None)
             
             if base_dir:
@@ -59,24 +57,14 @@ class PortfolioPDFExportService:
                 elif hasattr(base_dir, 'path'):
                     base_dir = str(base_dir.path)
                 
-                # فقط IRANSansXVF.ttf را چک کن
                 font_path = os.path.join(base_dir, 'static', 'fonts', 'IRANSansXVF.ttf')
-                print(f"Checking font at: {font_path}")
-                
                 if os.path.exists(font_path):
                     try:
                         pdfmetrics.registerFont(TTFont('IRANSansXV', font_path))
-                        print(f"Successfully registered IRANSansXV font from: {font_path}")
                         return 'IRANSansXV'
-                    except Exception as e:
-                        print(f"Failed to register IRANSansXV font: {e}")
-                        import traceback
-                        print(traceback.format_exc())
+                    except Exception:
                         pass
-                else:
-                    print(f"Font file not found at: {font_path}")
-        except Exception as e:
-            print(f"Error checking IRANSansXV font: {e}")
+        except Exception:
             pass
         
         # Fallback to system font - فقط Tahoma در Windows
@@ -88,11 +76,9 @@ class PortfolioPDFExportService:
                     try:
                         pdfmetrics.registerFont(TTFont('PersianFont', tahoma_path))
                         return 'PersianFont'
-                    except Exception as e:
-                        print(f"Failed to register Tahoma font: {e}")
+                    except Exception:
                         pass
-        except Exception as e:
-            print(f"Error checking Tahoma font: {e}")
+        except Exception:
             pass
         
         # اگر هیچ فونتی پیدا نشد، Helvetica پیش‌فرض استفاده می‌شود
@@ -482,7 +468,7 @@ class PortfolioPDFExportService:
             ImportError: If reportlab package is not installed
         """
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("PDF export requires reportlab package. Please install it.")
+            raise ImportError(PORTFOLIO_ERRORS["portfolio_export_failed"])
         
         try:
             # Create PDF buffer
@@ -490,7 +476,6 @@ class PortfolioPDFExportService:
             
             # Register Persian font
             persian_font_name = PortfolioPDFExportService._register_persian_font()
-            print(f"Using font: {persian_font_name}")
             
             # Process Persian text function
             process_persian_text = PortfolioPDFExportService._process_persian_text
@@ -685,10 +670,8 @@ class PortfolioPDFExportService:
             
             return response
         except Exception as e:
-            import traceback
-            error_message = str(e)
-            error_traceback = traceback.format_exc()
-            print(f"PDF Export Error: {error_message}")
-            print(f"Traceback: {error_traceback}")
-            raise Exception(f"PDF export failed: {error_message}")
+            if settings.DEBUG:
+                import traceback
+                print(f"PDF export error: {e}\n{traceback.format_exc()}")
+            raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
     

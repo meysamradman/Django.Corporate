@@ -309,7 +309,7 @@ export default function MediaPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>کتابخانه رسانه</h1>
+          <h1 className="page-title">کتابخانه رسانه</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button 

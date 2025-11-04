@@ -296,6 +296,13 @@ MEDIA_FILE_SIZE_LIMITS = {
     'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),         # Default: 10MB
 }
 
+# Portfolio Export Settings (from env, with defaults)
+PORTFOLIO_EXPORT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_MAX_ITEMS', default=500)  # Max items when exporting all (Excel/PDF)
+PORTFOLIO_EXPORT_PRINT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', default=2000)  # Max items for print
+PORTFOLIO_EXPORT_PAGE_SIZE = env.int('PORTFOLIO_EXPORT_PAGE_SIZE', default=50)  # Default page size for page export
+PORTFOLIO_EXPORT_RATE_LIMIT = env.int('PORTFOLIO_EXPORT_RATE_LIMIT', default=10)
+PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW = env.int('PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW', default=3600)
+
 MEDIA_ALLOWED_EXTENSIONS = {
     'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,webp,png,svg,gif').split(','),
     'video': os.getenv('MEDIA_VIDEO_EXTENSIONS', 'mp4,webm,mov').split(','),

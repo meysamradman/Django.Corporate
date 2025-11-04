@@ -331,7 +331,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     return (
       <div className="space-y-6">
         <div>
-          <h1>ویرایش نمونه‌کار</h1>
+          <h1 className="page-title">ویرایش نمونه‌کار</h1>
         </div>
         <div className="text-center py-8">
           <p className="text-destructive">نمونه‌کار مورد نظر یافت نشد.</p>
@@ -344,7 +344,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1>ویرایش نمونه‌کار</h1>
+          <h1 className="page-title">ویرایش نمونه‌کار</h1>
         </div>
         <div className="flex gap-2">
           {!editMode && (

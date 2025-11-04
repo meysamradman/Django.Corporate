@@ -67,7 +67,7 @@ export default function CreateOptionPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1>ایجاد گزینه جدید</h1>
+        <h1 className="page-title">ایجاد گزینه جدید</h1>
       </div>
 
       <form onSubmit={handleSubmit}>

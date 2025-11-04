@@ -5,14 +5,13 @@ Portfolio Excel Export Service
 from io import BytesIO
 from datetime import datetime
 from django.http import HttpResponse
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 try:
     import xlsxwriter
     XLSXWRITER_AVAILABLE = True
 except ImportError:
     XLSXWRITER_AVAILABLE = False
-
-from src.portfolio.models.portfolio import Portfolio
 
 
 class PortfolioExcelExportService:
@@ -21,7 +20,7 @@ class PortfolioExcelExportService:
     @staticmethod
     def export_portfolios(queryset):
         if not XLSXWRITER_AVAILABLE:
-            raise ImportError("Excel export requires xlsxwriter package. Please install it: pip install xlsxwriter")
+            raise ImportError(PORTFOLIO_ERRORS["portfolio_export_failed"])
         
         output = BytesIO()
         workbook = xlsxwriter.Workbook(output, {

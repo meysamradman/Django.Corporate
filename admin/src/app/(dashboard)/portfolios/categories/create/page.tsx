@@ -176,7 +176,7 @@ export default function CreateCategoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1>ایجاد دسته‌بندی جدید</h1>
+        <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
       </div>
 
       <form onSubmit={handleSubmit}>

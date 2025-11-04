@@ -19,6 +19,8 @@ const getSecureInt = (envVar: string, varName: string): number => {
       'NEXT_PUBLIC_UPLOAD_CHUNK_SIZE': 1048576,           // 1MB
       'NEXT_PUBLIC_UPLOAD_TIMEOUT': 300000,               // 5 minutes
       'NEXT_PUBLIC_MAX_PARALLEL_UPLOADS': 3,              // 3 parallel uploads
+      'NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS': 2000,  // Max items for print
+      'NEXT_PUBLIC_PORTFOLIO_EXPORT_MAX_ITEMS': 500,  // Max items for Excel/PDF export
     };
     
     const fallback = fallbackValues[envVar];
@@ -127,6 +129,9 @@ export const env = {
   get UPLOAD_TIMEOUT(): number { return getSecureInt('NEXT_PUBLIC_UPLOAD_TIMEOUT', 'UPLOAD_TIMEOUT'); },
   get MAX_PARALLEL_UPLOADS(): number { return getSecureInt('NEXT_PUBLIC_MAX_PARALLEL_UPLOADS', 'MAX_PARALLEL_UPLOADS'); },
   get SHOW_UPLOAD_PROGRESS(): boolean { return process.env.NEXT_PUBLIC_SHOW_UPLOAD_PROGRESS === 'true'; },
+  
+  // Portfolio Export Settings (only for print - export limits are handled by backend)
+  get PORTFOLIO_EXPORT_PRINT_MAX_ITEMS(): number { return getSecureInt('NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', 'PORTFOLIO_EXPORT_PRINT_MAX_ITEMS'); },
 
   // Security helpers
   isSecure: IS_PRODUCTION,

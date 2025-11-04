@@ -23,14 +23,14 @@ try:
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
 class PortfolioPDFListExportService:
@@ -49,7 +49,6 @@ class PortfolioPDFListExportService:
         persian_font_name = 'Helvetica'
         
         try:
-            from django.conf import settings
             base_dir = getattr(settings, 'BASE_DIR', None)
             
             if base_dir:
@@ -59,18 +58,13 @@ class PortfolioPDFListExportService:
                     base_dir = str(base_dir.path)
                 
                 font_path = os.path.join(base_dir, 'static', 'fonts', 'IRANSansXVF.ttf')
-                print(f"[PDF LIST EXPORT] Checking font at: {font_path}")
-                
                 if os.path.exists(font_path):
                     try:
                         pdfmetrics.registerFont(TTFont('IRANSansXV', font_path))
-                        print(f"[PDF LIST EXPORT] Successfully registered IRANSansXV font")
                         return 'IRANSansXV'
-                    except Exception as e:
-                        print(f"[PDF LIST EXPORT] Failed to register IRANSansXV font: {e}")
+                    except Exception:
                         pass
-        except Exception as e:
-            print(f"[PDF LIST EXPORT] Error checking IRANSansXV font: {e}")
+        except Exception:
             pass
         
         try:
@@ -81,11 +75,9 @@ class PortfolioPDFListExportService:
                     try:
                         pdfmetrics.registerFont(TTFont('PersianFont', tahoma_path))
                         return 'PersianFont'
-                    except Exception as e:
-                        print(f"[PDF LIST EXPORT] Failed to register Tahoma font: {e}")
+                    except Exception:
                         pass
-        except Exception as e:
-            print(f"[PDF LIST EXPORT] Error checking Tahoma font: {e}")
+        except Exception:
             pass
         
         return persian_font_name
@@ -146,13 +138,11 @@ class PortfolioPDFListExportService:
         Returns:
             HttpResponse with PDF file containing portfolio list table
         """
-        print(f"[PDF LIST EXPORT DEBUG] Starting PDF list export for {queryset.count()} portfolios")
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("PDF export requires reportlab package. Please install it.")
+            raise ImportError(PORTFOLIO_ERRORS["portfolio_export_failed"])
         
         try:
             buffer = BytesIO()
-            print("[PDF LIST EXPORT DEBUG] Created BytesIO buffer")
             
             persian_font_name = PortfolioPDFListExportService._register_persian_font()
             process_persian_text = PortfolioPDFListExportService._process_persian_text
@@ -179,9 +169,6 @@ class PortfolioPDFListExportService:
             
             # No header - skip title and date
             
-            # Create table data (same columns as Excel export)
-            print(f"[PDF LIST EXPORT DEBUG] Processing {queryset.count()} portfolios for table")
-            
             # Helper function to convert date to Persian
             def convert_to_persian_date(dt):
                 """Convert datetime to Persian date format"""
@@ -198,8 +185,7 @@ class PortfolioPDFListExportService:
                         month = dt.month
                         day = dt.day
                         return f"{year:04d}/{month:02d}/{day:02d} {dt.hour:02d}:{dt.minute:02d}:{dt.second:02d}"
-                except Exception as e:
-                    print(f"[PDF LIST EXPORT] Error converting date: {e}")
+                except Exception:
                     return dt.strftime("%Y-%m-%d %H:%M:%S")
             
             # Table headers - RTL order: حذف تاریخ بروزرسانی
@@ -223,8 +209,6 @@ class PortfolioPDFListExportService:
             table_data = [escaped_headers]
             
             for portfolio in queryset:
-                print(f"[PDF LIST EXPORT DEBUG] Processing portfolio: {portfolio.title}")
-                
                 # Get list items
                 categories = [cat.name for cat in portfolio.categories.all()]
                 tags = [tag.name for tag in portfolio.tags.all()]
@@ -406,10 +390,8 @@ class PortfolioPDFListExportService:
             elements.append(table)
             
             # Build PDF
-            print("[PDF LIST EXPORT DEBUG] Building PDF document...")
             doc.build(elements, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
             buffer.seek(0)
-            print(f"[PDF LIST EXPORT DEBUG] PDF built successfully, size: {len(buffer.getvalue())} bytes")
             
             response = HttpResponse(
                 buffer.getvalue(),
@@ -418,14 +400,10 @@ class PortfolioPDFListExportService:
             timestamp = datetime.now().strftime("%Y%m%d")
             response['Content-Disposition'] = f'attachment; filename="portfolios_list_{timestamp}.pdf"'
             
-            print("[PDF LIST EXPORT DEBUG] PDF response created successfully")
-            
             return response
         except Exception as e:
-            import traceback
-            error_message = str(e)
-            error_traceback = traceback.format_exc()
-            print(f"[PDF LIST EXPORT ERROR] {error_message}")
-            print(f"Traceback: {error_traceback}")
-            raise Exception(f"PDF list export failed: {error_message}")
+            if settings.DEBUG:
+                import traceback
+                print(f"PDF list export error: {e}\n{traceback.format_exc()}")
+            raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
 

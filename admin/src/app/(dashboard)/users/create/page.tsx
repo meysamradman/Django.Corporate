@@ -164,7 +164,7 @@ export default function CreateUserPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1>ایجاد کاربر جدید</h1>
+                        <h1 className="page-title">ایجاد کاربر جدید</h1>
                     </div>
                     <div className="flex gap-2">
                         <Button onClick={handleSubmit} disabled={createUserMutation.isPending}>

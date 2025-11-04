@@ -80,7 +80,7 @@ export default function PortfolioViewPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1>اطلاعات نمونه کار</h1>
+          <h1 className="page-title">اطلاعات نمونه کار</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button

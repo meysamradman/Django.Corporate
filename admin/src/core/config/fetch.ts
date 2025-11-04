@@ -15,6 +15,7 @@ type RequestOptions = {
     tags?: string[];
     headers?: Record<string, string>;
     cookieHeader?: string;
+    useFetchForErrorHandling?: boolean; // Force use fetch instead of iframe for error handling
 };
 
 function getCsrfToken(): string | null {
@@ -51,6 +52,26 @@ function getAdminSessionId(): string | null {
   return null;
 }
 
+function getCsrfHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const csrfToken = csrfTokenStore.getToken();
+  if (csrfToken) {
+    headers['X-CSRFToken'] = csrfToken;
+  } else {
+    const storedToken = csrfTokenStore.getStoredToken();
+    if (storedToken) {
+      headers['X-CSRFToken'] = storedToken;
+    } else {
+      const cookieToken = getCsrfToken();
+      if (cookieToken) {
+        csrfTokenStore.setToken(cookieToken);
+        headers['X-CSRFToken'] = cookieToken;
+      }
+    }
+  }
+  return headers;
+}
+
 async function baseFetch<T>(
     url: string,
     method: string = 'GET',
@@ -63,28 +84,9 @@ async function baseFetch<T>(
     
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        ...getCsrfHeaders(),
         ...options?.headers,
     };
-
-    // Add CSRF token
-    const csrfToken = csrfTokenStore.getToken();
-    if (csrfToken) {
-        headers['X-CSRFToken'] = csrfToken;
-    }
-
-    // Session authentication is handled by credentials: 'include'
-    // No need to manually set sessionid in headers
-
-    // Add stored CSRF token if available
-    const storedToken = csrfTokenStore.getStoredToken();
-    if (storedToken) {
-        headers['X-CSRFToken'] = storedToken;
-    } else {
-        const cookieToken = getCsrfToken();
-        if (cookieToken && !storedToken) {
-            csrfTokenStore.setToken(cookieToken);
-        }
-    }
 
     if (isServer && options?.cookieHeader) {
         headers['Cookie'] = options.cookieHeader;
@@ -279,24 +281,38 @@ async function downloadFile(
     body?: BodyInit | Record<string, unknown> | null,
     options?: RequestOptions
 ): Promise<void> {
+    // For GET requests without body, use iframe for simple downloads (fast)
+    // But if error handling is needed, use fetch to get proper error messages from backend
+    if (method === 'GET' && !body && !options?.useFetchForErrorHandling) {
+        let fullUrl = url;
+        if (!url.startsWith(env.API_BASE_URL)) {
+            fullUrl = `${env.API_BASE_URL}${url}`;
+        }
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        iframe.src = fullUrl;
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            try {
+                document.body.removeChild(iframe);
+            } catch (e) {
+                // Iframe might already be removed
+            }
+        }, 5000);
+        
+        return;
+    }
+
+    // For POST requests or requests with body, use fetch + blob
     const headers: Record<string, string> = {
+        ...getCsrfHeaders(),
         ...options?.headers,
     };
-
-    const csrfToken = csrfTokenStore.getToken();
-    if (csrfToken) {
-        headers['X-CSRFToken'] = csrfToken;
-    }
-
-    const storedToken = csrfTokenStore.getStoredToken();
-    if (storedToken) {
-        headers['X-CSRFToken'] = storedToken;
-    } else {
-        const cookieToken = getCsrfToken();
-        if (cookieToken && !storedToken) {
-            csrfTokenStore.setToken(cookieToken);
-        }
-    }
 
     if (isServer && options?.cookieHeader) {
         headers['Cookie'] = options.cookieHeader;
@@ -326,12 +342,35 @@ async function downloadFile(
     const response = await fetch(fullUrl, fetchOptions);
 
     if (!response.ok) {
+        // Try to parse error message from backend
+        let errorMessage = `Download failed: ${response.status}`;
+        try {
+            const contentType = response.headers.get('content-type');
+            if (contentType?.includes('application/json')) {
+                const errorData = await response.json();
+                errorMessage = errorData?.metaData?.message || errorData?.message || errorMessage;
+            } else {
+                const errorText = await response.text();
+                if (errorText) {
+                    // Try to parse JSON from text
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson?.metaData?.message || errorJson?.message || errorMessage;
+                    } catch {
+                        errorMessage = errorText.substring(0, 200) || errorMessage;
+                    }
+                }
+            }
+        } catch (parseError) {
+            // Keep default error message
+        }
+        
         throw new ApiError({
             response: {
                 AppStatusCode: response.status,
                 _data: null,
                 ok: false,
-                message: `Download failed: ${response.status}`,
+                message: errorMessage,
                 errors: null
             }
         });

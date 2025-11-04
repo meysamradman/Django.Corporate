@@ -236,12 +236,10 @@ export const portfolioApi = {
 
   // Export portfolios to Excel or PDF
   exportPortfolios: async (filters?: PortfolioListParams, format: 'excel' | 'pdf' = 'excel'): Promise<void> => {
-    // Corrected URL - removed extra /api prefix
     let url = '/admin/portfolio/export/';
     if (filters || format) {
       const queryParams = new URLSearchParams();
       
-      // Add format parameter
       queryParams.append('format', format);
       
       if (filters) {
@@ -255,7 +253,9 @@ export const portfolioApi = {
               }
             } else if (key === 'categories__in') {
               queryParams.append(key, value as string);
-            } else if (key !== 'page' && key !== 'size') {
+            } else if (key === 'page' || key === 'size' || key === 'export_all') {
+              queryParams.append(key, String(value));
+            } else {
               queryParams.append(key, String(value));
             }
           }
@@ -273,7 +273,13 @@ export const portfolioApi = {
       ? `portfolios_${timestamp}.pdf`
       : `portfolios_${timestamp}.xlsx`;
     
-    await fetchApi.downloadFile(url, filename);
+    // اگر export_all=true باشد، از fetch استفاده کن تا error message را بگیریم
+    // در غیر این صورت از iframe برای سرعت بیشتر
+    const useFetchForErrorHandling = filters?.export_all === true;
+    
+    await fetchApi.downloadFile(url, filename, 'GET', null, { 
+      useFetchForErrorHandling 
+    } as any);
   },
 
   // Delete portfolio
