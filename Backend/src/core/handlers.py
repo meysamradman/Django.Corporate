@@ -48,6 +48,18 @@ def custom_exception_handler(exc, context):
             error_message = "You are not authorized to perform this action"
     
     elif status_code == status.HTTP_404_NOT_FOUND:
+        # Debug: Log 404 errors for export endpoints
+        if context and 'request' in context:
+            request = context['request']
+            if '/export' in request.path:
+                print("=" * 80)
+                print(f"DEBUG: 404 Error for export endpoint!")
+                print(f"  Path: {request.path}")
+                print(f"  Method: {request.method}")
+                print(f"  View: {context.get('view', 'N/A')}")
+                print(f"  View Class: {context.get('view').__class__.__name__ if context.get('view') else 'N/A'}")
+                print(f"  URL Name: {context.get('view').url_name if hasattr(context.get('view', None), 'url_name') else 'N/A'}")
+                print("=" * 80)
         not_found = AUTH_ERRORS.get("not_found")
         if not_found:
             error_message = str(not_found)

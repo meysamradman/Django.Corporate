@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from src.core.responses.response import APIResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
@@ -49,6 +50,20 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return Portfolio.objects.for_admin_listing()
         elif self.action in ['retrieve', 'update', 'partial_update']:
             return Portfolio.objects.for_detail()
+        elif self.action == 'export':
+            # For export, we need all relations for Excel and PDF
+            return Portfolio.objects.prefetch_related(
+                'categories',
+                'tags',
+                'options',
+                'images__image',
+                'videos__video',
+                'videos__video__cover_image',
+                'audios__audio',
+                'audios__audio__cover_image',
+                'documents__document',
+                'documents__document__cover_image',
+            ).select_related('og_image')
         else:
             return Portfolio.objects.all()
 
@@ -413,61 +428,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    @action(detail=False, methods=['get'])
-    def export(self, request):
-        """Export portfolios to Excel with all filters applied
-        
-        Security:
-        - Uses ContentManagerAccess permission class (inherited from ViewSet)
-        - Only authenticated admin users with content manager or super admin roles can access
-        - All filters are applied server-side, preventing unauthorized data access
-        - File is streamed directly without exposing data in response body
-        - Rate limiting: maximum 5 exports per hour per user
-        """
-        # Rate limiting - حداکثر 5 export در ساعت
-        cache_key = f"portfolio_export_limit_{request.user.id}"
-        export_count = cache.get(cache_key, 0)
-        
-        if export_count >= 5:
-            return Response(
-                {"detail": "حداکثر تعداد export در ساعت (5 بار) استفاده شده است. لطفاً بعداً دوباره تلاش کنید."},
-                status=status.HTTP_429_TOO_MANY_REQUESTS
-            )
-        
-        try:
-            # Get filtered queryset (without pagination) with optimized prefetch
-            queryset = self.filter_queryset(
-                self.get_queryset().prefetch_related(
-                    'categories',
-                    'tags',
-                    'options'
-                )
-            )
-            
-            # Limit export size - جلوگیری از export های خیلی بزرگ
-            queryset_count = queryset.count()
-            if queryset_count > 10000:
-                return Response(
-                    {"detail": f"تعداد ردیف‌ها ({queryset_count}) بیش از حد مجاز (10,000) است. لطفاً فیلترهای بیشتری اعمال کنید."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            # Increment rate limit counter
-            cache.set(cache_key, export_count + 1, 3600)  # 1 hour timeout
-            
-            # Use export service
-            return PortfolioExcelExportService.export_portfolios(queryset)
-        except ImportError as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
-        except Exception as e:
-            return Response(
-                {"detail": f"خطا در export: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=True, methods=['get'], url_path='export-pdf')

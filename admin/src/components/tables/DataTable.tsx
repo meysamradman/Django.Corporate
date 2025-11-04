@@ -30,7 +30,7 @@ import {
 import { DataTableSelectFilter } from "./DataTableSelectFilter"
 import { DataTableHierarchicalFilter, CategoryItem } from "./DataTableHierarchicalFilter"
 import { DataTableDateFilter } from "./DataTableDateFilter"
-import { Trash, Search, Download } from "lucide-react"
+import { Trash, Search, Download, Printer } from "lucide-react"
 import { TableLoadingCompact } from "@/components/elements/TableLoading"
 import { PaginationControls } from "@/components/shared/Pagination"
 
@@ -61,6 +61,7 @@ export interface DeleteConfig {
 export interface ExportConfig<TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
   onExport: (filters: TClientFilters, search: string) => Promise<void>;
   buttonText?: string;
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'destructive' | 'link';
 }
 
 interface DataTableProps<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
@@ -83,6 +84,8 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   filterConfig?: FilterConfig[];
   deleteConfig?: DeleteConfig;
   exportConfig?: ExportConfig<TClientFilters>;
+  exportConfigs?: ExportConfig<TClientFilters>[];
+  onPrint?: () => void;
   pageSizeOptions?: number[];
   searchValue?: string;
 }
@@ -102,6 +105,8 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   filterConfig = [],
   deleteConfig,
   exportConfig,
+  exportConfigs,
+  onPrint,
   pageSizeOptions = [10, 20, 30, 50],
   searchValue,
 }: DataTableProps<TData, TValue, TClientFilters>) {
@@ -148,14 +153,18 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
     }
   };
 
-  const handleExportClick = async () => {
-    if (exportConfig) {
-      await exportConfig.onExport(clientFilters, searchValue || "");
-    }
+  const handleExportClick = async (config: ExportConfig<TClientFilters>) => {
+    await config.onExport(clientFilters, searchValue || "");
   };
 
+  // Determine which export configs to use
+  const activeExportConfigs = exportConfigs || (exportConfig ? [exportConfig] : []);
+
   return (
-    <Card className="gap-0 shadow-sm border border-border hover:shadow-lg transition-all duration-300">
+    <Card 
+      className="gap-0 shadow-sm border border-border hover:shadow-lg transition-all duration-300"
+      data-table="portfolio-table"
+    >
       <CardHeader className="border-b">
          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
            <div className="flex items-center gap-2 flex-wrap">
@@ -170,14 +179,25 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                  className="pr-8 h-8 text-sm"
                />
              </div>
-             {exportConfig && (
+             {activeExportConfigs.map((config, index) => (
                <Button
-                 variant="outline"
-                 onClick={handleExportClick}
+                 key={index}
+                 variant={config.variant || "outline"}
+                 onClick={() => handleExportClick(config)}
                  className="gap-2"
                >
                  <Download className="h-4 w-4" />
-                 {exportConfig.buttonText || "خروجی اکسل"}
+                 {config.buttonText || "خروجی"}
+               </Button>
+             ))}
+             {onPrint && (
+               <Button
+                 variant="outline"
+                 onClick={onPrint}
+                 className="gap-2"
+               >
+                 <Printer className="h-4 w-4" />
+                 پرینت
                </Button>
              )}
              {selectedRowCount > 0 && deleteConfig && (

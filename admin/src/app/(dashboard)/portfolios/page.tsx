@@ -237,7 +237,7 @@ export default function PortfolioPage() {
   
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
-  const handleExport = async (filters: PortfolioFilters, search: string) => {
+  const handleExportExcel = async (filters: PortfolioFilters, search: string) => {
     try {
       const exportParams = {
         search: search || undefined,
@@ -250,12 +250,125 @@ export default function PortfolioPage() {
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
       
-      await portfolioApi.exportPortfolios(exportParams);
+      await portfolioApi.exportPortfolios(exportParams, 'excel');
       toast.success("فایل اکسل با موفقیت دانلود شد");
     } catch (error) {
       toast.error("خطا در دانلود فایل اکسل");
       console.error("Export error:", error);
     }
+  };
+
+  const handleExportPDF = async (filters: PortfolioFilters, search: string) => {
+    try {
+      const exportParams = {
+        search: search || undefined,
+        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+        order_desc: sorting.length > 0 ? sorting[0].desc : true,
+        status: filters.status as string | undefined,
+        is_featured: filters.is_featured as boolean | undefined,
+        is_public: filters.is_public as boolean | undefined,
+        is_active: filters.is_active as boolean | undefined,
+        categories__in: filters.categories ? filters.categories.toString() : undefined,
+      };
+      
+      await portfolioApi.exportPortfolios(exportParams, 'pdf');
+      toast.success("فایل PDF با موفقیت دانلود شد");
+    } catch (error) {
+      toast.error("خطا در دانلود فایل PDF");
+      console.error("Export error:", error);
+    }
+  };
+
+  const handlePrint = () => {
+    // Find the table element
+    const tableCard = document.querySelector('[data-table="portfolio-table"]');
+    if (!tableCard) {
+      window.print();
+      return;
+    }
+    
+    // Clone the table structure
+    const clonedCard = tableCard.cloneNode(true) as HTMLElement;
+    
+    // Remove buttons and non-printable elements
+    const buttons = clonedCard.querySelectorAll('button, .no-print');
+    buttons.forEach(btn => btn.remove());
+    
+    // Remove search and filters
+    const searchInputs = clonedCard.querySelectorAll('input[type="text"], input[type="search"]');
+    searchInputs.forEach(input => input.remove());
+    
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl">
+        <head>
+          <meta charset="utf-8">
+          <title>پرینت لیست نمونه‌کارها</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              padding: 20px;
+              direction: rtl;
+              background: white;
+            }
+            h1 {
+              text-align: center;
+              margin-bottom: 20px;
+              color: #1f2937;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+              font-size: 12px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: right;
+            }
+            th {
+              background-color: #f3f4f6;
+              font-weight: bold;
+              color: #111827;
+            }
+            tr:nth-child(even) {
+              background-color: #f9fafb;
+            }
+            @media print {
+              @page {
+                margin: 1cm;
+                size: A4 landscape;
+              }
+              body {
+                padding: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>لیست نمونه‌کارها</h1>
+          ${clonedCard.innerHTML}
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() {
+                window.close();
+              }, 100);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const handleFilterChange = (filterId: string | number, value: unknown) => {
@@ -471,9 +584,19 @@ export default function PortfolioPage() {
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
         }}
-        exportConfig={{
-          onExport: handleExport,
-        }}
+        exportConfigs={[
+          {
+            onExport: handleExportExcel,
+            buttonText: "خروجی اکسل",
+            variant: "outline",
+          },
+          {
+            onExport: handleExportPDF,
+            buttonText: "خروجی PDF",
+            variant: "outline",
+          },
+        ]}
+        onPrint={handlePrint}
         filterConfig={portfolioFilterConfig}
       />
 

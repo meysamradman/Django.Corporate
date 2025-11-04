@@ -20,6 +20,7 @@ class AdminRolePermission(permissions.BasePermission):
         """Main permission check with multiple optimization layers"""
         # Quick checks first (fastest)
         if not request.user or not request.user.is_authenticated:
+            print(f"[PERMISSION DEBUG] AdminRolePermission: User not authenticated - user={request.user}, is_authenticated={getattr(request.user, 'is_authenticated', False)}")
             logger.debug("AdminRolePermission: User not authenticated")
             return False
         
@@ -34,7 +35,14 @@ class AdminRolePermission(permissions.BasePermission):
         
         # Super Admin bypass (fastest path for super admins)
         if request.user.is_admin_full:
+            print(f"[PERMISSION DEBUG] AdminRolePermission: Allowing is_admin_full user {request.user.id}")
             logger.debug(f"AdminRolePermission: Allowing is_admin_full user {request.user.id}")
+            return True
+        
+        # Also check is_superuser as fallback
+        if getattr(request.user, 'is_superuser', False):
+            print(f"[PERMISSION DEBUG] AdminRolePermission: Allowing superuser {request.user.id}")
+            logger.debug(f"AdminRolePermission: Allowing superuser {request.user.id}")
             return True
         
         # Role-based permission check with caching
@@ -170,6 +178,7 @@ class RequireAdminRole(AdminRolePermission):
     
     def _calculate_admin_permission(self, user, method: str, view) -> bool:
         """Override to check specific roles"""
+        print(f"[PERMISSION DEBUG] RequireAdminRole._calculate_admin_permission: user={user}, required_roles={self.required_roles}")
         if not self.required_roles:
             return super()._calculate_admin_permission(user, method, view)
         
@@ -182,10 +191,13 @@ class RequireAdminRole(AdminRolePermission):
                 is_active=True
             ).values_list('role__name', flat=True))
             
+            print(f"[PERMISSION DEBUG] RequireAdminRole: user_role_names={user_role_names}, required={self.required_roles}")
+            
             # Check if user has any of the required roles
             has_required_role = any(role in user_role_names for role in self.required_roles)
             
             if not has_required_role:
+                print(f"[PERMISSION DEBUG] RequireAdminRole: User does not have required roles")
                 return False
             
             # If user has required role, check action permissions

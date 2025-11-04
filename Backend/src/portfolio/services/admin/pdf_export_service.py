@@ -226,7 +226,7 @@ class PortfolioPDFExportService:
             return None
     
     @staticmethod
-    def _add_basic_info_table(elements, portfolio, persian_font_name, process_persian_text, escape):
+    def _add_basic_info_table(elements, portfolio, persian_font_name, process_persian_text, escape, heading_style=None, normal_style=None):
         """Add basic information table to PDF with improved styling"""
         # تمام متن‌های فارسی تایپ شده دستی
         info_data = [
@@ -690,5 +690,5 @@ class PortfolioPDFExportService:
             error_traceback = traceback.format_exc()
             print(f"PDF Export Error: {error_message}")
             print(f"Traceback: {error_traceback}")
-            # Re-raise to let view handle it
             raise Exception(f"PDF export failed: {error_message}")
+    

@@ -13,8 +13,18 @@ router.register(r'admin/portfolio-tag', views.PortfolioTagAdminViewSet, basename
 router.register(r'portfolio-tag', views.PortfolioTagPublicViewSet, basename='public-portfolio-tag')
 # PortfolioMediaViewSet is removed as PortfolioMedia model no longer exists
 
+# Note: Export endpoint is defined in config/urls.py before this include to take precedence
 urlpatterns = [
     path('', include(router.urls)),
-    # Add explicit path for bulk-delete
-    
-]
+]# Debug: Print URL patterns
+import sys
+if 'runserver' in sys.argv or 'test' in sys.argv:
+    print("=" * 50)
+    print("Portfolio URL Patterns:")
+    for pattern in urlpatterns:
+        print(f"  {pattern.pattern}")
+    print("Router URLs:")
+    for url in router.urls:
+        print(f"  {url.pattern}")
+    print("=" * 50)
+

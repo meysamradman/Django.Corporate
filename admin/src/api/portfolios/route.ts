@@ -234,27 +234,33 @@ export const portfolioApi = {
     await fetchApi.downloadFile(url, filename);
   },
 
-  // Export portfolios to Excel
-  exportPortfolios: async (filters?: PortfolioListParams): Promise<void> => {
+  // Export portfolios to Excel or PDF
+  exportPortfolios: async (filters?: PortfolioListParams, format: 'excel' | 'pdf' = 'excel'): Promise<void> => {
+    // Corrected URL - removed extra /api prefix
     let url = '/admin/portfolio/export/';
-    if (filters) {
+    if (filters || format) {
       const queryParams = new URLSearchParams();
       
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (key === 'is_featured' || key === 'is_public' || key === 'is_active') {
-            if (typeof value === 'boolean') {
-              queryParams.append(key, value.toString());
-            } else if (typeof value === 'string') {
-              queryParams.append(key, value);
+      // Add format parameter
+      queryParams.append('format', format);
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            if (key === 'is_featured' || key === 'is_public' || key === 'is_active') {
+              if (typeof value === 'boolean') {
+                queryParams.append(key, value.toString());
+              } else if (typeof value === 'string') {
+                queryParams.append(key, value);
+              }
+            } else if (key === 'categories__in') {
+              queryParams.append(key, value as string);
+            } else if (key !== 'page' && key !== 'size') {
+              queryParams.append(key, String(value));
             }
-          } else if (key === 'categories__in') {
-            queryParams.append(key, value as string);
-          } else if (key !== 'page' && key !== 'size') {
-            queryParams.append(key, String(value));
           }
-        }
-      });
+        });
+      }
       
       const queryString = queryParams.toString();
       if (queryString) {
@@ -263,7 +269,9 @@ export const portfolioApi = {
     }
     
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `portfolios_${timestamp}.xlsx`;
+    const filename = format === 'pdf' 
+      ? `portfolios_${timestamp}.pdf`
+      : `portfolios_${timestamp}.xlsx`;
     
     await fetchApi.downloadFile(url, filename);
   },

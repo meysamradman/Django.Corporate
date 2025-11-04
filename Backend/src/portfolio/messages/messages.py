@@ -4,6 +4,7 @@ PORTFOLIO_SUCCESS = {
     "portfolio_updated": "Portfolio updated successfully.",
     "portfolio_deleted": "Portfolio deleted successfully.",
     "portfolio_retrieved": "Portfolio retrieved successfully.",
+    "portfolio_export_success": "Portfolio exported successfully.",
 }
 PORTFOLIO_ERRORS = {
     "portfolio_not_found": "Portfolio not found.",
@@ -12,6 +13,9 @@ PORTFOLIO_ERRORS = {
     "portfolio_update_failed": "Failed to update portfolio.",
     "portfolio_delete_failed": "Failed to delete portfolio.",
     "portfolio_search_failed": "Please enter at least 3 characters to search.",
+    "portfolio_export_failed": "Failed to export portfolios.",
+    "portfolio_export_limit_exceeded": "Maximum export limit exceeded. Please try again later.",
+    "portfolio_export_too_large": "Export size too large. Please apply more filters.",
 }
 CATEGORY_SUCCESS = {
     "category_list_success": "Category list retrieved successfully.",

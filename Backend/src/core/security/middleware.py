@@ -20,6 +20,14 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
         """Log suspicious requests"""
+        # Log export requests for debugging
+        if '/export' in request.path:
+            ip = self.get_client_ip(request)
+            print(f"[SECURITY MIDDLEWARE] Export request: {request.method} {request.path} from IP: {ip}")
+            print(f"[SECURITY MIDDLEWARE] Query String: {request.GET.urlencode()}")
+            print(f"[SECURITY MIDDLEWARE] Full URL: {request.build_absolute_uri()}")
+            logger.info(f"Export request: {request.method} {request.path} from IP: {ip}")
+            
         # Log admin login attempts
         if request.path.endswith('/admin/login/') and request.method == 'POST':
             ip = self.get_client_ip(request)
@@ -32,6 +40,15 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
     
     def process_response(self, request, response):
         """Log security-related responses"""
+        # Log export requests responses
+        if '/export' in request.path:
+            ip = self.get_client_ip(request)
+            print(f"[SECURITY MIDDLEWARE] Export response: {request.method} {request.path} -> {response.status_code}")
+            logger.info(f"Export response: {request.method} {request.path} -> {response.status_code}")
+            if response.status_code == 404:
+                print(f"[SECURITY MIDDLEWARE] 404 Error for export request! Path: {request.path}")
+                logger.warning(f"404 Error for export request: {request.path}")
+        
         # Log failed admin login attempts
         if (request.path.endswith('/admin/login/') and 
             request.method == 'POST' and 

@@ -24,7 +24,11 @@ class PortfolioExcelExportService:
             raise ImportError("Excel export requires xlsxwriter package. Please install it: pip install xlsxwriter")
         
         output = BytesIO()
-        workbook = xlsxwriter.Workbook(output, {'in_memory': True, 'default_date_format': 'yyyy-mm-dd hh:mm:ss'})
+        workbook = xlsxwriter.Workbook(output, {
+            'in_memory': True, 
+            'default_date_format': 'yyyy-mm-dd hh:mm:ss',
+            'remove_timezone': True  # Remove timezone from datetime objects for Excel compatibility
+        })
         worksheet = workbook.add_worksheet('Portfolios')
         
         # Headers - تایپ شده دستی
@@ -124,4 +128,5 @@ class PortfolioExcelExportService:
         timestamp = datetime.now().strftime("%Y%m%d")
         response['Content-Disposition'] = f'attachment; filename="portfolios_{timestamp}.xlsx"'
         
+        # CORS headers will be added by view's _add_cors_headers method
         return response

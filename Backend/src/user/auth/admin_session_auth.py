@@ -20,33 +20,42 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
         """
         Authenticate admin user using session with Redis caching
         """
+        print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication.authenticate() called for path: {request.path}")
         # Get session ID from cookie - only use sessionid (Django's default)
         session_key = request.COOKIES.get('sessionid')
         if not session_key:
+            print("[AUTH DEBUG] CSRFExemptSessionAuthentication: No sessionid cookie found")
             logger.debug("CSRFExemptSessionAuthentication: No sessionid cookie found")
             return None
         
+        print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: Found session key: {session_key}")
         logger.debug(f"CSRFExemptSessionAuthentication: Found session key: {session_key}")
         
         # Check if session exists in Django's session store
         if not request.session.exists(session_key):
+            print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: Session {session_key} does not exist in Django session store")
             logger.debug(f"CSRFExemptSessionAuthentication: Session {session_key} does not exist in Django session store")
             return None
         
+        print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: Session {session_key} exists in Django session store")
         logger.debug(f"CSRFExemptSessionAuthentication: Session {session_key} exists in Django session store")
         
         # Try to get user from Django's session first
         try:
             user_id = request.session.get('_auth_user_id')
+            print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: user_id from session: {user_id}")
             if user_id:
                 user = User.objects.get(id=user_id)
+                print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: User {user_id} found in Django session")
                 logger.debug(f"CSRFExemptSessionAuthentication: User {user_id} found in Django session")
                 
                 # Verify user is admin and active
                 if not self._is_valid_admin_user(user):
+                    print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: User {user.id} is not valid admin")
                     logger.debug(f"CSRFExemptSessionAuthentication: User {user.id} is not valid admin")
                     return None
                 
+                print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: User {user.id} authenticated successfully")
                 logger.debug(f"CSRFExemptSessionAuthentication: User {user.id} authenticated successfully")
                 
                 # Update last activity
@@ -54,21 +63,26 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
                 
                 return (user, None)
         except User.DoesNotExist:
+            print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: User {user_id} not found in DB")
             logger.debug(f"CSRFExemptSessionAuthentication: User {user_id} not found in DB")
         except Exception as e:
+            print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: Error getting user from session: {e}")
             logger.error(f"CSRFExemptSessionAuthentication: Error getting user from session: {e}")
         
         # Fallback to cache method
         user = self._get_user_from_session(session_key)
         if not user:
+            print("[AUTH DEBUG] CSRFExemptSessionAuthentication: No user found in session (fallback)")
             logger.debug("CSRFExemptSessionAuthentication: No user found in session")
             return None
         
         # Verify user is admin and active
         if not self._is_valid_admin_user(user):
+            print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: User {user.id} is not valid admin (fallback)")
             logger.debug(f"CSRFExemptSessionAuthentication: User {user.id} is not valid admin")
             return None
         
+        print(f"[AUTH DEBUG] CSRFExemptSessionAuthentication: User {user.id} authenticated successfully (fallback)")
         logger.debug(f"CSRFExemptSessionAuthentication: User {user.id} authenticated successfully")
         
         # Update last activity
