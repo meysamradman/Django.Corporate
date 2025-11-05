@@ -21,6 +21,8 @@ const getSecureInt = (envVar: string, varName: string): number => {
       'NEXT_PUBLIC_MAX_PARALLEL_UPLOADS': 3,              // 3 parallel uploads
       'NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS': 2000,  // Max items for print
       'NEXT_PUBLIC_PORTFOLIO_EXPORT_MAX_ITEMS': 500,  // Max items for Excel/PDF export
+      'NEXT_PUBLIC_PORTFOLIO_MEDIA_UPLOAD_MAX': 50,    // Max media files per upload
+      'NEXT_PUBLIC_PORTFOLIO_MEDIA_LIST_LIMIT': 5,     // Max media items in list view
     };
     
     const fallback = fallbackValues[envVar];
@@ -108,6 +110,14 @@ export const env = {
   },
   
   get APP_VERSION(): string { return process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'; },
+  
+  // Portfolio Media Limits
+  get PORTFOLIO_MEDIA_UPLOAD_MAX(): number { 
+    return parseInt(process.env.NEXT_PUBLIC_PORTFOLIO_MEDIA_UPLOAD_MAX || '50', 10); 
+  },
+  get PORTFOLIO_MEDIA_LIST_LIMIT(): number { 
+    return parseInt(process.env.NEXT_PUBLIC_PORTFOLIO_MEDIA_LIST_LIMIT || '5', 10); 
+  },
   get APP_NAME(): string { return process.env.NEXT_PUBLIC_APP_NAME || 'Admin Panel'; },
 
   // Feature Flags (can be read directly)

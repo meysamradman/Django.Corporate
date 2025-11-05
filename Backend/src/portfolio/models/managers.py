@@ -23,19 +23,25 @@ class PortfolioQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         """Optimized for admin listing pages with SEO status and all media types"""
-        from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
+        from src.portfolio.models.media import PortfolioImage
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags',
             Prefetch(
                 'images',
-                queryset=PortfolioImage.objects.select_related('image'),
+                queryset=PortfolioImage.objects.select_related('image').order_by('is_main', 'order', 'created_at'),
                 to_attr='all_images'
             ),
-            'images',
-            'videos',
-            'audios',
-            'documents'
+            Prefetch(
+                'images',
+                queryset=PortfolioImage.objects.select_related('image').filter(is_main=True),
+                to_attr='main_images'
+            ),
+            'videos__video',
+            'videos__video__cover_image',
+            'audios__audio',
+            'audios__audio__cover_image',
+            'documents__document'
         ).annotate(
             total_media_count=Count('images', distinct=True) + 
                              Count('videos', distinct=True) +
@@ -49,7 +55,7 @@ class PortfolioQuerySet(models.QuerySet):
         """Optimized for public listing pages"""
         from src.portfolio.models.media import PortfolioImage
         return self.published().select_related('og_image').prefetch_related(
-            'categories__image',  # Include category images
+            'categories__image',
             Prefetch(
                 'images',
                 queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),
@@ -59,14 +65,23 @@ class PortfolioQuerySet(models.QuerySet):
     
     def for_detail(self):
         """Optimized for detail pages with all relations"""
+        from src.portfolio.models.media import PortfolioImage
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags', 
             'options',
-            'images',
-            'videos',
-            'audios',
-            'documents'
+            Prefetch(
+                'images',
+                queryset=PortfolioImage.objects.select_related('image').order_by('is_main', 'order', 'created_at'),
+                to_attr='all_images'
+            ),
+            'images__image',
+            'videos__video',
+            'videos__video__cover_image',
+            'audios__audio',
+            'audios__audio__cover_image',
+            'documents__document',
+            'documents__document__cover_image'
         )
     
     def with_seo_status(self):

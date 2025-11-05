@@ -18,6 +18,7 @@ import { portfolioFormSchema, portfolioFormDefaults, PortfolioFormValues } from 
 import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 import { msg } from "@/core/messages/message";
+import { env } from "@/core/config/environment";
 
 // Add this interface for managing multiple media selections
 interface PortfolioMedia {
@@ -54,36 +55,13 @@ export default function CreatePortfolioPage() {
 
   const createPortfolioMutation = useMutation({
     mutationFn: async (data: PortfolioFormValues & { status: "draft" | "published" }) => {
-      // First create the portfolio with categories and tags
-      const portfolioData = {
-        title: data.name,
-        slug: data.slug,
-        short_description: data.short_description || "",
-        description: data.description || "",
-        status: data.status as "draft" | "published",
-        is_featured: false,
-        is_public: true,
-        meta_title: data.meta_title || undefined,
-        meta_description: data.meta_description || undefined,
-        og_title: data.og_title || undefined,
-        og_description: data.og_description || undefined,
-        og_image: data.og_image?.id || undefined,
-        canonical_url: data.canonical_url || undefined,
-        robots_meta: data.robots_meta || undefined,
-        categories_ids: data.selectedCategory ? [parseInt(data.selectedCategory)] : [],
-        tags_ids: data.selectedTags.map(tag => tag.id),
-        options_ids: data.selectedOptions.map(option => option.id),
-      };
-      
-      const portfolio = await portfolioApi.createPortfolio(portfolioData);
-      
-      // Prepare media data for upload
+      // Prepare media data first
       const allMediaFiles: File[] = [];
       const allMediaIds: number[] = [];
       
       // Collect media files and IDs
       // Featured Image از form state
-      if (data.featuredImage) {
+      if (data.featuredImage?.id) {
         allMediaIds.push(data.featuredImage.id);
       }
       
@@ -128,13 +106,48 @@ export default function CreatePortfolioPage() {
         }
       });
       
-      // Upload media if we have any files or existing media IDs
-      if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
-        try {
-          await portfolioApi.addMediaToPortfolio(portfolio.id, allMediaFiles, allMediaIds);
-        } catch (error) {
-          console.warn("Media upload failed, but portfolio created:", error);
-        }
+      // Validate upload limit from environment
+      const uploadMax = env.PORTFOLIO_MEDIA_UPLOAD_MAX;
+      const totalMedia = allMediaFiles.length + allMediaIds.length;
+      if (totalMedia > uploadMax) {
+        throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
+      }
+      
+      // Create portfolio with media_ids in single request (if we have media IDs)
+      // If we have files, we need to send them separately after creation
+      const portfolioData: any = {
+        title: data.name,
+        slug: data.slug,
+        short_description: data.short_description || "",
+        description: data.description || "",
+        status: data.status as "draft" | "published",
+        is_featured: false,
+        is_public: true,
+        meta_title: data.meta_title || undefined,
+        meta_description: data.meta_description || undefined,
+        og_title: data.og_title || undefined,
+        og_description: data.og_description || undefined,
+        og_image: data.og_image?.id || undefined,
+        canonical_url: data.canonical_url || undefined,
+        robots_meta: data.robots_meta || undefined,
+        categories_ids: data.selectedCategory ? [parseInt(data.selectedCategory)] : [],
+        tags_ids: data.selectedTags.map(tag => tag.id),
+        options_ids: data.selectedOptions.map(option => option.id),
+      };
+      
+      // Always include media_ids in portfolio data if we have any
+      if (allMediaIds.length > 0) {
+        portfolioData.media_ids = allMediaIds;
+      }
+      
+      // Create portfolio - if we have files, use FormData, otherwise use JSON
+      let portfolio: Portfolio;
+      if (allMediaFiles.length > 0) {
+        // If we have files, use FormData and send everything together
+        portfolio = await portfolioApi.createPortfolioWithMedia(portfolioData, allMediaFiles);
+      } else {
+        // No files, just send JSON with media_ids
+        portfolio = await portfolioApi.createPortfolio(portfolioData);
       }
       
       return portfolio;

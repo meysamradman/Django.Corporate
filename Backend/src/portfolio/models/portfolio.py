@@ -154,12 +154,31 @@ class Portfolio(BaseModel, SEOMixin):
         return None, None
     
     def get_main_image_details(self):
-        """Get main image details for API responses"""
+        """Get main image details for API responses - optimized with prefetch support"""
+        # Try to use prefetched data first (from for_admin_listing or for_detail queryset)
+        if hasattr(self, 'all_images'):
+            all_images = self.all_images
+            # Find main image from prefetched data (O(n) but cached)
+            for img in all_images:
+                if img.is_main and img.image:
+                    main_image = img.image
+                    file_url = main_image.file.url if main_image.file else None
+                    return {
+                        'id': main_image.id,
+                        'url': file_url,
+                        'file_url': file_url,
+                        'title': main_image.title,
+                        'alt_text': main_image.alt_text
+                    }
+        
+        # Fallback to model method (uses cache)
         main_image = self.get_main_image()
         if main_image:
+            file_url = main_image.file.url if main_image.file else None
             return {
                 'id': main_image.id,
-                'url': main_image.file.url if hasattr(main_image, 'file') and main_image.file else None,
+                'url': file_url,
+                'file_url': file_url,
                 'title': main_image.title,
                 'alt_text': main_image.alt_text
             }

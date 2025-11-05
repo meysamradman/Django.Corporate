@@ -183,13 +183,29 @@ export const portfolioApi = {
   createPortfolioWithMedia: async (data: Partial<Portfolio>, mediaFiles: File[]): Promise<Portfolio> => {
     const formData = new FormData();
     
-    // Append portfolio data as JSON string
-    formData.append('data', JSON.stringify(data));
+    // Append all portfolio fields individually
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && key !== 'media_ids') {
+        if (Array.isArray(value)) {
+          // For arrays like categories_ids, tags_ids, etc.
+          formData.append(key, JSON.stringify(value));
+        } else if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
     
     // Append media files
-    mediaFiles.forEach((file, index) => {
+    mediaFiles.forEach((file) => {
       formData.append('media_files', file);
     });
+    
+    // Append media_ids as comma-separated string (backend expects this format for form-data)
+    if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
+      formData.append('media_ids', data.media_ids.join(','));
+    }
     
     const response = await fetchApi.post<Portfolio>('/admin/portfolio/', formData);
     return response.data;

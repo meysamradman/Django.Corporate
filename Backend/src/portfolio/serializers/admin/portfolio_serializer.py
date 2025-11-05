@@ -1,11 +1,16 @@
 from rest_framework import serializers
 from django.core.cache import cache
+from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.serializers.admin.category_serializer import PortfolioCategorySimpleAdminSerializer
 from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
 from src.portfolio.serializers.admin.option_serializer import PortfolioOptionSimpleAdminSerializer
 from src.media.serializers.media_serializer import MediaAdminSerializer
+
+# Cache settings values for performance (module-level cache)
+_MEDIA_LIST_LIMIT = settings.PORTFOLIO_MEDIA_LIST_LIMIT
+_MEDIA_DETAIL_LIMIT = settings.PORTFOLIO_MEDIA_DETAIL_LIMIT
 
 
 class PortfolioMediaAdminSerializer(serializers.Serializer):
@@ -20,45 +25,34 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         """Convert instance to appropriate serializer based on media type"""
-        # Determine media type based on instance class
+        # Serialize media detail once
         if isinstance(instance, PortfolioImage):
-            return {
-                'id': instance.id,
-                'public_id': instance.public_id,
-                'media_detail': MediaAdminSerializer(instance.image, context=self.context).data,
-                'is_main_image': instance.is_main,
-                'order': instance.order,
-                'created_at': instance.created_at,
-                'updated_at': instance.updated_at,
-            }
+            media_detail = MediaAdminSerializer(instance.image, context=self.context).data
         elif isinstance(instance, PortfolioVideo):
-            return {
-                'id': instance.id,
-                'public_id': instance.public_id,
-                'media_detail': MediaAdminSerializer(instance.video, context=self.context).data,
-                'order': instance.order,
-                'created_at': instance.created_at,
-                'updated_at': instance.updated_at,
-            }
+            media_detail = MediaAdminSerializer(instance.video, context=self.context).data
         elif isinstance(instance, PortfolioAudio):
-            return {
-                'id': instance.id,
-                'public_id': instance.public_id,
-                'media_detail': MediaAdminSerializer(instance.audio, context=self.context).data,
-                'order': instance.order,
-                'created_at': instance.created_at,
-                'updated_at': instance.updated_at,
-            }
+            media_detail = MediaAdminSerializer(instance.audio, context=self.context).data
         elif isinstance(instance, PortfolioDocument):
-            return {
-                'id': instance.id,
-                'public_id': instance.public_id,
-                'media_detail': MediaAdminSerializer(instance.document, context=self.context).data,
-                'order': instance.order,
-                'created_at': instance.created_at,
-                'updated_at': instance.updated_at,
-            }
-        return super().to_representation(instance)
+            media_detail = MediaAdminSerializer(instance.document, context=self.context).data
+        else:
+            return super().to_representation(instance)
+        
+        # Return with both media_detail and media (alias for frontend compatibility)
+        result = {
+            'id': instance.id,
+            'public_id': instance.public_id,
+            'media_detail': media_detail,
+            'media': media_detail,  # Alias for frontend compatibility
+            'order': instance.order,
+            'created_at': instance.created_at,
+            'updated_at': instance.updated_at,
+        }
+        
+        # Add is_main_image only for PortfolioImage
+        if isinstance(instance, PortfolioImage):
+            result['is_main_image'] = instance.is_main
+        
+        return result
 
 
 class PortfolioAdminListSerializer(serializers.ModelSerializer):
@@ -89,10 +83,42 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_media(self, obj):
-        """Get media count for list view - lightweight"""
-        # For list view, we only need count, not detailed media
-        # The actual media details are loaded in detail view only
-        return []
+        """Get media for list view - optimized with limit from settings"""
+        media_limit = _MEDIA_LIST_LIMIT
+        
+        # Use queryset slicing for better performance (limit at DB level)
+        images = list(obj.images.select_related('image').all()[:media_limit])
+        videos = list(obj.videos.select_related('video', 'video__cover_image').all()[:media_limit])
+        audios = list(obj.audios.select_related('audio', 'audio__cover_image').all()[:media_limit])
+        documents = list(obj.documents.select_related('document', 'document__cover_image').all()[:media_limit])
+        
+        # Prefetch cover_image URLs efficiently (optimized single pass)
+        for item in videos:
+            if item.video and item.video.cover_image and item.video.cover_image.file:
+                try:
+                    _ = item.video.cover_image.file.url
+                except:
+                    pass
+        for item in audios:
+            if item.audio and item.audio.cover_image and item.audio.cover_image.file:
+                try:
+                    _ = item.audio.cover_image.file.url
+                except:
+                    pass
+        for item in documents:
+            if item.document and item.document.cover_image and item.document.cover_image.file:
+                try:
+                    _ = item.document.cover_image.file.url
+                except:
+                    pass
+        
+        # Combine and sort (optimized single pass)
+        all_media = images + videos + audios + documents
+        all_media.sort(key=lambda x: (x.order, x.created_at))
+        
+        # Serialize with cached serializer instance
+        serializer = PortfolioMediaAdminSerializer(context=self.context)
+        return [serializer.to_representation(media) for media in all_media]
 
     def get_main_image(self, obj):
         """Get main image details using model method with caching"""
@@ -119,6 +145,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     tags = PortfolioTagAdminSerializer(many=True, read_only=True)
     options = PortfolioOptionSimpleAdminSerializer(many=True, read_only=True, source="portfolio_options")
     media = serializers.SerializerMethodField()
+    portfolio_media = serializers.SerializerMethodField()  # Alias for frontend compatibility
     
     # SEO computed fields
     seo_data = serializers.SerializerMethodField()
@@ -131,7 +158,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
             'id', 'public_id', 'status', 'title', 'slug',
             'short_description', 'description',
             'is_featured', 'is_public',
-            'main_image', 'categories', 'tags', 'options', 'media',
+            'main_image', 'categories', 'tags', 'options', 'media', 'portfolio_media',
             # SEO fields from SEOMixin
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
@@ -147,24 +174,57 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     
     def get_media(self, obj):
         """Get all media for the portfolio with optimized queries"""
-        # Use prefetch_related to reduce database queries
-        images = obj.images.select_related('image').all()
-        videos = obj.videos.select_related('video').all()
-        audios = obj.audios.select_related('audio').all()
-        documents = obj.documents.select_related('document').all()
+        media_limit = _MEDIA_DETAIL_LIMIT
         
-        # Combine all media with type information
-        all_media = list(images) + list(videos) + list(audios) + list(documents)
+        # Build querysets with select_related for optimal performance
+        images_qs = obj.images.select_related('image').all()
+        videos_qs = obj.videos.select_related('video', 'video__cover_image').all()
+        audios_qs = obj.audios.select_related('audio', 'audio__cover_image').all()
+        documents_qs = obj.documents.select_related('document', 'document__cover_image').all()
         
-        # Sort by order field, then by creation date
-        all_media.sort(key=lambda x: (getattr(x, 'order', 0), x.created_at))
+        # Apply limit at DB level if set (0 = unlimited)
+        if media_limit > 0:
+            images = list(images_qs[:media_limit])
+            videos = list(videos_qs[:media_limit])
+            audios = list(audios_qs[:media_limit])
+            documents = list(documents_qs[:media_limit])
+        else:
+            images = list(images_qs)
+            videos = list(videos_qs)
+            audios = list(audios_qs)
+            documents = list(documents_qs)
         
-        # Serialize all media
-        media_list = []
-        for media in all_media:
-            media_list.append(PortfolioMediaAdminSerializer(media, context=self.context).data)
-            
-        return media_list
+        # Prefetch cover_image URLs efficiently (optimized direct access)
+        for item in videos:
+            if item.video and item.video.cover_image and item.video.cover_image.file:
+                try:
+                    _ = item.video.cover_image.file.url
+                except:
+                    pass
+        for item in audios:
+            if item.audio and item.audio.cover_image and item.audio.cover_image.file:
+                try:
+                    _ = item.audio.cover_image.file.url
+                except:
+                    pass
+        for item in documents:
+            if item.document and item.document.cover_image and item.document.cover_image.file:
+                try:
+                    _ = item.document.cover_image.file.url
+                except:
+                    pass
+        
+        # Combine and sort (single pass)
+        all_media = images + videos + audios + documents
+        all_media.sort(key=lambda x: (x.order, x.created_at))
+        
+        # Serialize with cached serializer
+        serializer = PortfolioMediaAdminSerializer(context=self.context)
+        return [serializer.to_representation(media) for media in all_media]
+    
+    def get_portfolio_media(self, obj):
+        """Alias for media field - frontend compatibility"""
+        return self.get_media(obj)
     
     def get_seo_data(self, obj):
         """Get comprehensive SEO data using SEOMixin methods with caching"""

@@ -1,12 +1,15 @@
+import json
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, ValidationError
 from src.core.responses.response import APIResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.utils import timezone
+from django.conf import settings
 
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.category import PortfolioCategory
@@ -48,7 +51,8 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         """Optimized queryset based on action"""
         if self.action == 'list':
             return Portfolio.objects.for_admin_listing()
-        elif self.action in ['retrieve', 'update', 'partial_update']:
+        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            # For retrieve, don't apply filters - just get the portfolio
             return Portfolio.objects.for_detail()
         elif self.action == 'export':
             # For export, we need all relations for Excel and PDF
@@ -66,6 +70,17 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             ).select_related('og_image')
         else:
             return Portfolio.objects.all()
+    
+    def retrieve(self, request, *args, **kwargs):
+        """Override retrieve to ensure proper serializer and queryset - bypass filters"""
+        queryset = Portfolio.objects.for_detail()
+        pk = kwargs.get('pk')
+        try:
+            instance = queryset.get(pk=pk)
+        except Portfolio.DoesNotExist:
+            raise NotFound("Portfolio not found")
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         """Optimized list with better performance"""
@@ -100,26 +115,84 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         else:
             return PortfolioAdminDetailSerializer
     
+    def _extract_media_ids(self, request):
+        """Extract and parse media_ids from request (JSON or form-data)"""
+        media_ids = []
+        
+        # Try request.data first (JSON raw)
+        media_ids_value = request.data.get('media_ids')
+        
+        # Fallback to request.POST (form-data)
+        if not media_ids_value:
+            media_ids_value = request.POST.get('media_ids')
+        
+        if not media_ids_value:
+            return []
+        
+        # Handle different formats
+        if isinstance(media_ids_value, list):
+            media_ids = [
+                int(id) for id in media_ids_value 
+                if isinstance(id, (int, str)) and str(id).isdigit()
+            ]
+        elif isinstance(media_ids_value, int):
+            media_ids = [media_ids_value]
+        elif isinstance(media_ids_value, str):
+            # Try JSON array first
+            if media_ids_value.strip().startswith('['):
+                try:
+                    parsed = json.loads(media_ids_value)
+                    if isinstance(parsed, list):
+                        media_ids = [int(id) for id in parsed if isinstance(id, (int, str)) and str(id).isdigit()]
+                except json.JSONDecodeError:
+                    pass
+            
+            # If not JSON array, try comma-separated string
+            if not media_ids:
+                media_ids = [
+                    int(id.strip()) for id in media_ids_value.split(',') 
+                    if id.strip().isdigit()
+                ]
+        
+        return media_ids
+    
     def create(self, request, *args, **kwargs):
         """Create portfolio with SEO auto-generation and media handling"""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # Check if there are media files in the request
+        media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
-        if media_files:
-            # Create portfolio with media using service
-            portfolio = PortfolioAdminService.create_portfolio_with_media(
-                serializer.validated_data,
-                media_files,
+        # Validate upload limit - use settings directly for performance
+        upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
+        total_media = len(media_ids) + len(media_files)
+        if total_media > upload_max:
+            raise ValidationError({
+                'non_field_errors': [
+                    f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
+                ]
+            })
+        
+        # Validate and create portfolio
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        portfolio = serializer.save()
+        
+        # Add media immediately after creation
+        if media_files or media_ids:
+            from src.portfolio.services.admin import PortfolioAdminMediaService
+            PortfolioAdminMediaService.add_media_bulk(
+                portfolio_id=portfolio.id,
+                media_files=media_files,
+                media_ids=media_ids,
                 created_by=request.user
             )
-        else:
-            # Create portfolio using serializer's create method to handle categories_ids and tags_ids properly
-            portfolio = serializer.save()
+            # Refresh portfolio to get updated media relationships
+            portfolio.refresh_from_db()
+            # Clear cache to ensure fresh data
+            cache.delete(f"portfolio_main_image_{portfolio.id}")
         
-        # Return detailed response
+        # Return detailed response with refreshed data
+        # Use for_detail queryset to get all relations properly
+        portfolio = Portfolio.objects.for_detail().get(id=portfolio.id)
         detail_serializer = PortfolioAdminDetailSerializer(portfolio)
         return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
     
@@ -251,23 +324,32 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
         """Add media files to portfolio with optimized performance"""
-        
-        # Validate input data
-        serializer = PortfolioMediaSerializer(data=request.data)
+        media_files = request.FILES.getlist('media_files')
+        serializer = PortfolioMediaSerializer(data=request.data.copy())
         serializer.is_valid(raise_exception=True)
         
-        # Extract validated data
-        media_files = request.FILES.getlist('media_files')
         media_ids = serializer.validated_data.get('media_ids', [])
+        if not media_ids and not media_files:
+            raise ValidationError({
+                'non_field_errors': ['At least one of media_ids or media_files must be provided.']
+            })
         
-        # Use optimized service to add media
+        # Validate upload limit - use settings directly for performance
+        upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
+        total_media = len(media_ids) + len(media_files)
+        if total_media > upload_max:
+            raise ValidationError({
+                'non_field_errors': [
+                    f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
+                ]
+            })
+        
         result = PortfolioAdminMediaService.add_media_bulk(
             portfolio_id=pk,
             media_files=media_files,
             media_ids=media_ids,
             created_by=request.user
         )
-        
         return Response(result)
 
     @action(detail=True, methods=['post'])

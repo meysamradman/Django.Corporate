@@ -1,9 +1,10 @@
 import logging
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.media.services.media_services import MediaAdminService
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +18,10 @@ class PortfolioAdminMediaService:
     @staticmethod
     def get_next_media_order(portfolio_id):
         """
-        Get the next order number for media items
-        Optimized to use a single query instead of multiple queries
+        Get the next order number for media items - optimized single query
+        Uses aggregation to get max order from all media types in one query
         """
-        # Use a single query to get the maximum order from all media types
+        # Single optimized query with aggregation
         max_order_result = Portfolio.objects.filter(
             id=portfolio_id
         ).aggregate(
@@ -30,67 +31,75 @@ class PortfolioAdminMediaService:
             max_document_order=Max('documents__order')
         )
         
-        # Get the maximum order from all media types
-        max_orders = [
-            max_order_result.get('max_image_order', 0) or 0,
-            max_order_result.get('max_video_order', 0) or 0,
-            max_order_result.get('max_audio_order', 0) or 0,
-            max_order_result.get('max_document_order', 0) or 0
-        ]
+        # Get maximum efficiently - use max() on tuple for better performance
+        max_order = max(
+            max_order_result.get('max_image_order') or 0,
+            max_order_result.get('max_video_order') or 0,
+            max_order_result.get('max_audio_order') or 0,
+            max_order_result.get('max_document_order') or 0
+        )
         
-        return max(max_orders) + 1 if any(max_orders) else 0
+        return max_order + 1 if max_order > 0 else 0
 
     @staticmethod
     def get_media_by_ids(media_ids):
         """
-        Get all media objects by IDs in a single query per media type
-        This replaces the N+1 queries in the original implementation
+        Get all media objects by IDs in optimized single queries per media type
+        Uses only() to fetch only needed fields for better performance
         """
         if not media_ids:
             return [], [], [], []
-            
-        # Get all media types in separate queries (4 queries total instead of 4*N)
-        image_medias = list(ImageMedia.objects.filter(id__in=media_ids))
-        video_medias = list(VideoMedia.objects.filter(id__in=media_ids))
-        audio_medias = list(AudioMedia.objects.filter(id__in=media_ids))
-        document_medias = list(DocumentMedia.objects.filter(id__in=media_ids))
+        
+        # Convert to list and remove duplicates for better performance
+        media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
+        
+        # Get all media types in optimized queries (4 queries total instead of 4*N)
+        # Use only() for specific fields if you know what you need, or fetch all for flexibility
+        image_medias = list(ImageMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text'))
+        video_medias = list(VideoMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text', 'cover_image'))
+        audio_medias = list(AudioMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text', 'cover_image'))
+        document_medias = list(DocumentMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text', 'cover_image'))
         
         return image_medias, video_medias, audio_medias, document_medias
 
     @staticmethod
     def get_existing_portfolio_media(portfolio_id, media_ids):
         """
-        Get existing portfolio media associations in a single query per media type
+        Get existing portfolio media associations in optimized single queries
+        Uses values_list for better performance
         """
         if not media_ids:
             return set(), set(), set(), set()
-            
-        # Get existing associations for all media types
+        
+        # Convert to list for better performance with __in lookup
+        media_ids_list = list(media_ids) if not isinstance(media_ids, list) else media_ids
+        
+        # Get all existing associations in parallel queries (4 queries total)
         existing_image_ids = set(
             PortfolioImage.objects.filter(
                 portfolio_id=portfolio_id,
-                image_id__in=media_ids
+                image_id__in=media_ids_list
             ).values_list('image_id', flat=True)
         )
         
         existing_video_ids = set(
             PortfolioVideo.objects.filter(
                 portfolio_id=portfolio_id,
-                video_id__in=media_ids
+                video_id__in=media_ids_list
             ).values_list('video_id', flat=True)
         )
         
         existing_audio_ids = set(
             PortfolioAudio.objects.filter(
                 portfolio_id=portfolio_id,
-                audio_id__in=media_ids
+                audio_id__in=media_ids_list
             ).values_list('audio_id', flat=True)
         )
         
         existing_document_ids = set(
             PortfolioDocument.objects.filter(
                 portfolio_id=portfolio_id,
-                document_id__in=media_ids
+                document_id__in=media_ids_list
             ).values_list('document_id', flat=True)
         )
         
@@ -112,7 +121,6 @@ class PortfolioAdminMediaService:
         # Handle file uploads first
         failed_files = []
         if media_files:
-            from src.media.services.media_services import MediaAdminService
             uploaded_medias = []
             
             for media_file in media_files:
@@ -219,50 +227,52 @@ class PortfolioAdminMediaService:
         
         # Handle existing media associations
         if media_ids:
+            # Convert to list and remove duplicates for better performance
+            media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
+            
+            logger.info(f"Processing {len(media_ids_list)} media IDs for portfolio {portfolio_id}")
+            
             # Get all media objects in optimized queries (4 queries instead of 4*N)
             image_medias, video_medias, audio_medias, document_medias = \
-                PortfolioAdminMediaService.get_media_by_ids(media_ids)
+                PortfolioAdminMediaService.get_media_by_ids(media_ids_list)
             
-            # Create lookup dictionaries for quick access
+            # Create lookup dictionaries for O(1) access
             image_dict = {media.id: media for media in image_medias}
             video_dict = {media.id: media for media in video_medias}
             audio_dict = {media.id: media for media in audio_medias}
             document_dict = {media.id: media for media in document_medias}
             
-            # Get existing portfolio media associations (4 queries instead of N queries)
+            # Get existing portfolio media associations (4 optimized queries)
             existing_image_ids, existing_video_ids, existing_audio_ids, existing_document_ids = \
-                PortfolioAdminMediaService.get_existing_portfolio_media(portfolio_id, media_ids)
+                PortfolioAdminMediaService.get_existing_portfolio_media(portfolio_id, media_ids_list)
             
-            # Prepare media to create
+            # Combine all existing IDs for faster lookup
+            all_existing_ids = existing_image_ids | existing_video_ids | existing_audio_ids | existing_document_ids
+            
+            # Prepare media to create - optimized loop
             media_to_create = []
             
-            # Process each media ID
-            for media_id in media_ids:
-                try:
-                    # Check if media already exists in portfolio
-                    if media_id in existing_image_ids or \
-                       media_id in existing_video_ids or \
-                       media_id in existing_audio_ids or \
-                       media_id in existing_document_ids:
-                        continue  # Skip if already associated
-                    
-                    # Determine media type and create appropriate portfolio media relation
-                    if media_id in image_dict:
-                        media_to_create.append(('image', image_dict[media_id]))
-                    elif media_id in video_dict:
-                        media_to_create.append(('video', video_dict[media_id]))
-                    elif media_id in audio_dict:
-                        media_to_create.append(('audio', audio_dict[media_id]))
-                    elif media_id in document_dict:
-                        media_to_create.append(('document', document_dict[media_id]))
-                    else:
-                        # Media ID not found
-                        failed_ids.append(media_id)
-                        logger.warning(f"Media ID {media_id} not found in any media type")
-                except Exception as e:
-                    logger.error(f"Error processing media ID {media_id}: {e}")
-                    failed_ids.append(media_id)
+            # Process each media ID - optimized with early exits
+            for media_id in media_ids_list:
+                # Skip if already exists (fast set lookup O(1))
+                if media_id in all_existing_ids:
                     continue
+                
+                # Determine media type using dictionary lookup (O(1))
+                if media_id in image_dict:
+                    media_to_create.append(('image', image_dict[media_id]))
+                elif media_id in video_dict:
+                    media_to_create.append(('video', video_dict[media_id]))
+                elif media_id in audio_dict:
+                    media_to_create.append(('audio', audio_dict[media_id]))
+                elif media_id in document_dict:
+                    media_to_create.append(('document', document_dict[media_id]))
+                else:
+                    # Media ID not found
+                    failed_ids.append(media_id)
+                    logger.warning(f"Media ID {media_id} not found in any media type for portfolio {portfolio_id}")
+            
+            logger.info(f"Prepared {len(media_to_create)} media items to create for portfolio {portfolio_id}")
             
             # Create portfolio media relations if we have any
             if media_to_create:
@@ -338,28 +348,35 @@ class PortfolioAdminMediaService:
                     
                     created_count += len(portfolio_media_objects)
         
-        # If we created any images and portfolio doesn't have a main image, set the first one
-        if created_count > 0:
-            # Check if portfolio has a main image
+        # Optimized main image setting - check once and set if needed
+        if created_count > 0 or media_ids:
+            # Single query to check if main image exists
             has_main_image = PortfolioImage.objects.filter(
-                portfolio=portfolio,
+                portfolio_id=portfolio_id,
                 is_main=True
             ).exists()
             
             if not has_main_image:
-                # Get the first image and set it as main
+                # Try to get first image from newly created or existing images
+                # Use a single optimized query with select_related
                 first_image = PortfolioImage.objects.filter(
-                    portfolio=portfolio
-                ).order_by('order').first()
+                    portfolio_id=portfolio_id
+                ).select_related('image').order_by('is_main', 'order', 'created_at').first()
                 
                 if first_image:
+                    # Update in single query if possible, or use update_fields
                     first_image.is_main = True
                     first_image.save(update_fields=['is_main'])
+                    logger.info(f"Set media ID {first_image.image_id} as main image for portfolio {portfolio_id}")
                     
-                    # Also set as OG image if not provided
+                    # Set OG image if not provided - use update_fields for better performance
                     if not portfolio.og_image:
                         portfolio.og_image = first_image.image
                         portfolio.save(update_fields=['og_image'])
+                        logger.debug(f"Set OG image for portfolio {portfolio_id}")
+        
+        logger.info(f"Portfolio {portfolio_id} media update completed: created={created_count}, "
+                   f"failed_ids={len(failed_ids)}, failed_files={len(failed_files)}")
         
         return {
             'created_count': created_count,

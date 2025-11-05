@@ -72,8 +72,11 @@ class VideoMediaSerializer(BaseMediaSerializer):
         fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration', 'media_type']
 
     def get_cover_image_url(self, obj):
-        if obj.cover_image:
-            return obj.cover_image.file.url
+        # Check if cover_image exists and is loaded
+        if hasattr(obj, 'cover_image') and obj.cover_image:
+            # Make sure cover_image.file exists
+            if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
+                return obj.cover_image.file.url
         return None
     
     def get_media_type(self, obj):
@@ -91,8 +94,11 @@ class AudioMediaSerializer(BaseMediaSerializer):
         fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration', 'media_type']
 
     def get_cover_image_url(self, obj):
-        if obj.cover_image:
-            return obj.cover_image.file.url
+        # Check if cover_image exists and is loaded
+        if hasattr(obj, 'cover_image') and obj.cover_image:
+            # Make sure cover_image.file exists
+            if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
+                return obj.cover_image.file.url
         return None
     
     def get_media_type(self, obj):
@@ -110,11 +116,17 @@ class DocumentMediaSerializer(BaseMediaSerializer):
         fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'media_type']
 
     def get_cover_image_url(self, obj):
-        if obj.cover_image:
-            return obj.cover_image.file.url
+        # Check if cover_image exists and is loaded
+        if hasattr(obj, 'cover_image') and obj.cover_image:
+            # Make sure cover_image.file exists
+            if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
+                return obj.cover_image.file.url
         return None
     
     def get_media_type(self, obj):
+        # Return 'pdf' for PDF documents for frontend compatibility
+        if obj.mime_type == 'application/pdf':
+            return 'pdf'
         return 'document'
 
 
@@ -144,6 +156,9 @@ class MediaAdminSerializer(serializers.Serializer):
         elif isinstance(obj, AudioMedia):
             return 'audio'
         elif isinstance(obj, DocumentMedia):
+            # Return 'pdf' for PDF documents for frontend compatibility
+            if hasattr(obj, 'mime_type') and obj.mime_type == 'application/pdf':
+                return 'pdf'
             return 'document'
         return 'file'  # fallback
     
@@ -153,8 +168,11 @@ class MediaAdminSerializer(serializers.Serializer):
         return None
 
     def get_cover_image_url(self, obj):
+        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            return obj.cover_image.file.url
+            # Make sure cover_image.file exists
+            if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
+                return obj.cover_image.file.url
         return None
 
     def to_representation(self, instance):
@@ -201,8 +219,11 @@ class MediaPublicSerializer(serializers.Serializer):
         return None
 
     def get_cover_image_url(self, obj):
+        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            return obj.cover_image.file.url
+            # Make sure cover_image.file exists
+            if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
+                return obj.cover_image.file.url
         return None
 
     def to_representation(self, instance):

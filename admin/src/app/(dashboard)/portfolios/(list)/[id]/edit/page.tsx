@@ -119,26 +119,27 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         // Parse media data from portfolio
         // Type guard to check if media item is an image with is_main_image property
         const featuredImage = mediaData.find(m => 
-          'is_main_image' in m && m.is_main_image
+          m.media && 'is_main_image' in m && m.is_main_image
         )?.media || null;
         
         const imageGallery = mediaData
           .filter(m => 
+            m.media && 
             m.media.media_type === 'image' && 
             !('is_main_image' in m && m.is_main_image)
           )
           .map(m => m.media);
         
         const videoGallery = mediaData
-          .filter(m => m.media.media_type === 'video')
+          .filter(m => m.media && m.media.media_type === 'video')
           .map(m => m.media);
         
         const audioGallery = mediaData
-          .filter(m => m.media.media_type === 'audio')
+          .filter(m => m.media && m.media.media_type === 'audio')
           .map(m => m.media);
         
         const pdfDocuments = mediaData
-          .filter(m => m.media.media_type === 'pdf')
+          .filter(m => m.media && (m.media.media_type === 'pdf' || m.media.media_type === 'document'))
           .map(m => m.media);
         
         setPortfolioMedia({

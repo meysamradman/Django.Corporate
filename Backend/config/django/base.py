@@ -303,6 +303,14 @@ PORTFOLIO_EXPORT_PAGE_SIZE = env.int('PORTFOLIO_EXPORT_PAGE_SIZE', default=50)  
 PORTFOLIO_EXPORT_RATE_LIMIT = env.int('PORTFOLIO_EXPORT_RATE_LIMIT', default=10)
 PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW = env.int('PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW', default=3600)
 
+# Portfolio Media Settings
+# Limit for media items in list view (for performance)
+PORTFOLIO_MEDIA_LIST_LIMIT = env.int('PORTFOLIO_MEDIA_LIST_LIMIT', default=5)  # Max media items per type in list view
+# Limit for media items in detail view (set to 0 or None for unlimited)
+PORTFOLIO_MEDIA_DETAIL_LIMIT = env.int('PORTFOLIO_MEDIA_DETAIL_LIMIT', default=0)  # 0 = unlimited in detail view
+# Max media items that can be uploaded at once
+PORTFOLIO_MEDIA_UPLOAD_MAX = env.int('PORTFOLIO_MEDIA_UPLOAD_MAX', default=50)  # Max media files per upload
+
 MEDIA_ALLOWED_EXTENSIONS = {
     'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,webp,png,svg,gif').split(','),
     'video': os.getenv('MEDIA_VIDEO_EXTENSIONS', 'mp4,webm,mov').split(','),
