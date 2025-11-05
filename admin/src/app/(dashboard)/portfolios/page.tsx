@@ -28,6 +28,7 @@ import {
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
+import { exportPortfolios } from "@/api/portfolios/export";
 import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { env } from '@/core/config/environment';
@@ -238,6 +239,7 @@ export default function PortfolioPage() {
   
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
+  // Export handlers
   const handleExportExcel = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
     try {
       const exportParams: any = {
@@ -258,10 +260,9 @@ export default function PortfolioPage() {
         exportParams.size = pagination.pageSize;
       }
       
-      await portfolioApi.exportPortfolios(exportParams, 'excel');
+      await exportPortfolios(exportParams, 'excel');
       toast.success(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
-      // نمایش پیام خطا از backend
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
       toast.error(errorMessage);
     }
@@ -287,10 +288,9 @@ export default function PortfolioPage() {
         exportParams.size = pagination.pageSize;
       }
       
-      await portfolioApi.exportPortfolios(exportParams, 'pdf');
+      await exportPortfolios(exportParams, 'pdf');
       toast.success(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
-      // نمایش پیام خطا از backend
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
       toast.error(errorMessage);
     }

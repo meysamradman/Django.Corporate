@@ -37,15 +37,7 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         help_text="کلمات کلیدی برای SEO (اختیاری)"
     )
     
-    use_cache = serializers.BooleanField(
-        default=True,
-        help_text="استفاده از محتوای cache شده در صورت وجود"
-    )
-    
-    save_to_cache = serializers.BooleanField(
-        default=False,
-        help_text="ذخیره محتوای تولید شده در cache (پیش‌فرض: false - فقط generate می‌کند)"
-    )
+
     
     def validate_topic(self, value):
         """Validate topic"""
@@ -63,20 +55,14 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
 class AIContentGenerationResponseSerializer(serializers.Serializer):
     """Serializer for content generation response"""
     
-    id = serializers.IntegerField()
     title = serializers.CharField()
     meta_title = serializers.CharField()
     meta_description = serializers.CharField()
     slug = serializers.SlugField()
     h1 = serializers.CharField()
-    h2_list = serializers.ListField(child=serializers.CharField())
-    h3_list = serializers.ListField(child=serializers.CharField())
-    content = serializers.CharField()
+    content = serializers.CharField(help_text="HTML content with <p>, <h2>, <h3> tags")
     keywords = serializers.ListField(child=serializers.CharField())
     word_count = serializers.IntegerField()
     provider_name = serializers.CharField()
     generation_time_ms = serializers.IntegerField()
-    cached = serializers.BooleanField()
-    saved = serializers.BooleanField(required=False, help_text="آیا محتوا در دیتابیس ذخیره شده است")
-    created_at = serializers.DateTimeField(required=False, allow_null=True)
 

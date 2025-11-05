@@ -8,9 +8,10 @@ import { Label } from '@/components/elements/Label';
 import { Switch } from '@/components/elements/Switch';
 import { Badge } from '@/components/elements/Badge';
 import { aiApi } from '@/api/ai/route';
-import { Loader2, CheckCircle2, XCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Sparkles, Eye, EyeOff, ArrowRight, Settings as SettingsIcon } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
+import { msg } from '@/core/messages/message';
 
 interface AIProvider {
     id: number;
@@ -22,6 +23,28 @@ interface AIProvider {
     usage_count: number;
     last_used_at: string | null;
 }
+
+const getProviderIcon = (provider: AIProvider) => {
+    const name = provider.provider_name.toLowerCase();
+    if (name.includes('gemini')) return '🔵';
+    if (name.includes('openai') || name.includes('dall-e') || name.includes('dalle')) return '🤖';
+    if (name.includes('deepseek')) return '🔷';
+    if (name.includes('hugging')) return '🤗';
+    return '✨';
+};
+
+const getProviderDescription = (provider: AIProvider): string => {
+    const descMap: Record<string, string> = {
+        'gemini': 'مدل هوش مصنوعی Google برای تولید تصاویر با کیفیت بالا',
+        'openai': 'مدل پیشرفته OpenAI برای تولید تصاویر واقع‌گرایانه',
+        'deepseek': 'مدل DeepSeek برای تولید تصاویر با الگوریتم‌های پیشرفته',
+        'huggingface': 'مدل Hugging Face برای تولید تصاویر متنوع و خلاقانه',
+        'dall-e': 'مدل پیشرفته OpenAI برای تولید تصاویر واقع‌گرایانه',
+    };
+    
+    const key = provider.provider_name.toLowerCase();
+    return descMap[key] || 'مدل هوش مصنوعی برای تولید تصاویر';
+};
 
 export function AIProviderSettings() {
     const [providers, setProviders] = useState<AIProvider[]>([]);
@@ -59,8 +82,7 @@ export function AIProviderSettings() {
                 setProviders(providersData);
             }
         } catch (error) {
-            console.error('Error fetching providers:', error);
-            toast.error('خطا در دریافت لیست Provider ها');
+            // Toast already shown by aiApi
         } finally {
             setLoading(false);
         }
@@ -74,7 +96,7 @@ export function AIProviderSettings() {
     const handleSaveProvider = async (providerId: number | null, providerName: string) => {
         const apiKey = providerId !== null ? apiKeys[providerId] : '';
         if (!apiKey || !apiKey.trim()) {
-            toast.error('لطفاً API key را وارد کنید');
+            toast.error(msg.ai('enterApiKey'));
             return;
         }
 
@@ -91,13 +113,13 @@ export function AIProviderSettings() {
             });
 
             if (response.metaData.status === 'success') {
-                // پیام از metaData
-                const msg = response.metaData.message || 'عملیات با موفقیت انجام شد';
+                // پیام از metaData (از سرور می‌آید)
+                const responseMsg = response.metaData.message || msg.ai('operationSuccess');
                 const savedProvider = response.data;
                 if (savedProvider?.is_active) {
-                    toast.success(msg);
+                    toast.success(responseMsg);
                 } else {
-                    toast.warning(msg);
+                    toast.warning(responseMsg);
                 }
                 setEditingProvider(null);
                 setApiKeys(prev => {
@@ -110,11 +132,7 @@ export function AIProviderSettings() {
                 fetchProviders();
             }
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.metaData?.message
-                || error?.response?.data?.detail
-                || error?.response?.data?.errors?.api_key?.[0]
-                || 'خطا در ذخیره API key';
-            toast.error(errorMessage);
+            // Toast already shown by aiApi
         } finally {
             if (providerId !== null) {
                 setSaving(prev => ({ ...prev, [providerId]: false }));
@@ -131,8 +149,7 @@ export function AIProviderSettings() {
                 fetchProviders();
             }
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.metaData?.message || error?.response?.data?.detail || 'خطا در تغییر وضعیت Provider';
-            toast.error(errorMessage);
+            // Toast already shown by aiApi
         }
     };
 
@@ -151,140 +168,160 @@ export function AIProviderSettings() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-lg font-semibold">تنظیمات مدل‌های AI</h3>
-                    <p className="text-sm text-muted-foreground">
-                        API key مدل‌های مختلف را وارد کنید تا بتوانید تصویر تولید کنید
-                    </p>
-                </div>
-            </div>
-
-            <div className="grid gap-4">
-                {providers.map((provider) => (
-                    <Card key={provider.id}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Sparkles className="h-5 w-5 text-primary" />
-                                    <div>
-                                        <CardTitle className="text-base">{provider.provider_display}</CardTitle>
-                                        <CardDescription>
-                                            {provider.has_api_key 
-                                                ? `استفاده شده: ${provider.usage_count} بار`
-                                                : 'API key وارد نشده است'}
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {providers.map((provider) => {
+                    const isActive = provider.has_api_key && provider.is_active;
+                    const isEditing = editingProvider === provider.id;
+                    
+                    return (
+                        <Card 
+                            key={provider.id}
+                            className={`
+                                relative transition-all duration-300 hover:shadow-lg
+                                ${isActive ? 'border-primary/50 border-2' : 'border-border'}
+                            `}
+                        >
+                            <ArrowRight className={`
+                                absolute top-3 left-3 w-4 h-4 transition-opacity
+                                ${isActive ? 'opacity-100 text-primary' : 'opacity-30'}
+                            `} />
+                            
+                            <CardHeader className="pb-3">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className={`
+                                        text-2xl flex-shrink-0
+                                        ${isActive ? 'scale-110' : ''}
+                                        transition-transform
+                                    `}>
+                                        {getProviderIcon(provider)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <CardTitle className="text-base mb-1">
+                                            {provider.provider_display}
+                                        </CardTitle>
+                                        <CardDescription className="text-xs line-clamp-2">
+                                            {getProviderDescription(provider)}
                                         </CardDescription>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    {(provider.has_api_key && provider.is_active) && (
-                                        <Badge variant="default" className="bg-green-500">
-                                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                                            آماده استفاده
-                                        </Badge>
-                                    )}
-                                    {provider.has_api_key && !provider.is_active && (
-                                        <Badge variant="gray">غیرفعال</Badge>
-                                    )}
-                                    {!provider.has_api_key && (
-                                        <Badge variant="outline">API key وارد نشده</Badge>
+                                
+                                <div className="flex items-center justify-between pt-3 border-t">
+                                    <div className="flex items-center gap-2">
+                                        {isActive && (
+                                            <Badge variant="default" className="bg-green-500 text-xs">
+                                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                                فعال
+                                            </Badge>
+                                        )}
+                                        {provider.has_api_key && !provider.is_active && (
+                                            <Badge variant="gray" className="text-xs">
+                                                غیرفعال
+                                            </Badge>
+                                        )}
+                                        {!provider.has_api_key && (
+                                            <Badge variant="outline" className="text-xs">
+                                                بدون API Key
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    {isActive && (
+                                        <div className="w-2 h-2 bg-primary rounded-full"></div>
                                     )}
                                 </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {editingProvider === provider.id ? (
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor={`api-key-${provider.id}`}>API Key</Label>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {isEditing ? (
+                                    <div className="space-y-3">
+                                        <div className="space-y-2">
+                                            <Label htmlFor={`api-key-${provider.id}`} className="text-sm">API Key</Label>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    id={`api-key-${provider.id}`}
+                                                    type={showApiKeys[provider.id] ? 'text' : 'password'}
+                                                    placeholder="API key را وارد کنید"
+                                                    value={apiKeys[provider.id] || ''}
+                                                    onChange={(e) => setApiKeys(prev => ({
+                                                        ...prev,
+                                                        [provider.id]: e.target.value
+                                                    }))}
+                                                    className="flex-1 text-sm h-9"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => toggleShowApiKey(provider.id)}
+                                                    className="h-9 px-2"
+                                                >
+                                                    {showApiKeys[provider.id] ? (
+                                                        <EyeOff className="h-4 w-4" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
                                         <div className="flex gap-2">
-                                            <Input
-                                                id={`api-key-${provider.id}`}
-                                                type={showApiKeys[provider.id] ? 'text' : 'password'}
-                                                placeholder="API key را وارد کنید"
-                                                value={apiKeys[provider.id] || ''}
-                                                onChange={(e) => setApiKeys(prev => ({
-                                                    ...prev,
-                                                    [provider.id]: e.target.value
-                                                }))}
-                                                className="flex-1"
-                                            />
                                             <Button
-                                                type="button"
-                                                variant="outline"
+                                                onClick={() => handleSaveProvider(provider.id, provider.provider_name)}
+                                                disabled={saving[provider.id] || !apiKeys[provider.id]?.trim()}
+                                                className="flex-1 text-sm h-9"
                                                 size="sm"
-                                                onClick={() => toggleShowApiKey(provider.id)}
                                             >
-                                                {showApiKeys[provider.id] ? (
-                                                    <EyeOff className="h-4 w-4" />
-                                                ) : (
-                                                    <Eye className="h-4 w-4" />
-                                                )}
+                                                {saving[provider.id] && <Loader2 className="h-3 w-3 mr-2 animate-spin" />}
+                                                ذخیره
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setEditingProvider(null);
+                                                    setApiKeys(prev => {
+                                                        const newKeys = { ...prev };
+                                                        delete newKeys[provider.id];
+                                                        return newKeys;
+                                                    });
+                                                }}
+                                                disabled={saving[provider.id]}
+                                                className="text-sm h-9"
+                                                size="sm"
+                                            >
+                                                لغو
                                             </Button>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            onClick={() => handleSaveProvider(provider.id, provider.provider_name)}
-                                            disabled={saving[provider.id] || !apiKeys[provider.id]?.trim()}
-                                            className="flex-1"
-                                        >
-                                            {saving[provider.id] && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                            ذخیره و فعال کردن
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => {
-                                                setEditingProvider(null);
-                                                setApiKeys(prev => {
-                                                    const newKeys = { ...prev };
-                                                    delete newKeys[provider.id];
-                                                    return newKeys;
-                                                });
-                                            }}
-                                            disabled={saving[provider.id]}
-                                        >
-                                            انصراف
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {provider.has_api_key && !provider.is_active && (
-                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
-                                            <div className="flex items-center gap-2 text-yellow-800">
-                                                <XCircle className="h-4 w-4" />
-                                                <span>API key ذخیره شده است اما فعال نیست. می‌توانید آن را به صورت دستی فعال کنید.</span>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {provider.has_api_key && (
+                                            <div className="flex items-center justify-between py-2">
+                                                <Label className="text-sm">وضعیت:</Label>
+                                                <Switch
+                                                    checked={provider.is_active}
+                                                    onCheckedChange={() => handleToggleProvider(provider.id, provider.is_active)}
+                                                    disabled={!provider.has_api_key}
+                                                />
                                             </div>
-                                        </div>
-                                    )}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            {provider.has_api_key && (
-                                                <div className="flex items-center gap-2">
-                                                    <Switch
-                                                        checked={provider.is_active}
-                                                        onCheckedChange={() => handleToggleProvider(provider.id, provider.is_active)}
-                                                    />
-                                                    <Label>
-                                                        {provider.is_active ? 'فعال' : 'غیرفعال'}
-                                                    </Label>
-                                                </div>
-                                            )}
-                                        </div>
+                                        )}
+                                        {provider.has_api_key && (
+                                            <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2">
+                                                <div>تعداد استفاده: <strong>{provider.usage_count}</strong> بار</div>
+                                            </div>
+                                        )}
                                         <Button
                                             variant={provider.has_api_key ? "outline" : "default"}
                                             onClick={() => handleEditProvider(provider)}
+                                            className="w-full text-sm h-9"
+                                            size="sm"
                                         >
+                                            <SettingsIcon className="h-3 w-3 ml-2" />
                                             {provider.has_api_key ? 'تغییر API Key' : 'وارد کردن API Key'}
                                         </Button>
                                     </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                ))}
+                                )}
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </div>
         </div>
     );

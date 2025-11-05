@@ -1,2 +1,2 @@
-export { AIImageGenerator } from './AIImageGenerator';
+export { AIImageGenerator } from '@/components/ai/image';
 

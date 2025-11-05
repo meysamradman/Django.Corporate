@@ -119,9 +119,9 @@ export const useMenuData = () => {
                         title: "هوش مصنوعی",
                         icon: Sparkles,
                         items: [
-                            { title: "چت با AI", url: "/ai-chat" },
-                            { title: "تولید محتوا با AI", url: "/ai-content" },
-                            { title: "تولید تصویر با AI", url: "/ai-image" },
+                            { title: "چت با AI", url: "/ai/chat" },
+                            { title: "تولید محتوا با AI", url: "/ai/content" },
+                            { title: "تولید تصویر با AI", url: "/ai/image" },
                         ],
                     },
                 ]

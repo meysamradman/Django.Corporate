@@ -60,7 +60,7 @@ import {
 } from "@/components/elements/Select"
 import { MediaUploadModal } from '@/components/media/modals/MediaUploadModal';
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
-import { AIImageGenerator } from '@/components/media/ai/AIImageGenerator';
+import { AIImageGenerator } from '@/components/ai/image';
 import { Sparkles } from 'lucide-react';
 
 const actualDefaultFilters: MediaFilter = {
@@ -560,6 +560,7 @@ export default function MediaPage() {
             <DialogTitle>تولید تصویر با AI</DialogTitle>
           </DialogHeader>
           <AIImageGenerator
+            compact={true}
             onImageGenerated={(media) => {
               fetchMedia(filters);
               setIsAIGenerateModalOpen(false);

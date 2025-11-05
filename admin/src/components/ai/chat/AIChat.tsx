@@ -15,31 +15,14 @@ import { aiApi, AvailableProvider } from '@/api/ai/route';
 import { Loader2, MessageSquare, Send, Trash2, Sparkles, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
+import { msg } from '@/core/messages/message';
+import { getProviderDisplayName } from '../shared/utils';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
     timestamp?: number;
 }
-
-const getProviderDisplayName = (provider: AvailableProvider): string => {
-    const providerMap: Record<string, string> = {
-        'gemini': 'مدل Google Gemini',
-        'openai': 'مدل OpenAI GPT',
-        'deepseek': 'مدل DeepSeek',
-        'huggingface': 'مدل Hugging Face',
-    };
-    
-    if (provider.provider_display) {
-        const name = provider.provider_display.toLowerCase();
-        if (name.includes('gemini')) return 'مدل Google Gemini';
-        if (name.includes('openai') || name.includes('gpt')) return 'مدل OpenAI GPT';
-        if (name.includes('deepseek')) return 'مدل DeepSeek';
-        if (name.includes('hugging')) return 'مدل Hugging Face';
-    }
-    
-    return providerMap[provider.provider_name.toLowerCase()] || `مدل ${provider.provider_name}`;
-};
 
 export function AIChat() {
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
@@ -76,9 +59,7 @@ export function AIChat() {
                 setAvailableProviders(providersData);
             }
         } catch (error: any) {
-            // فقط Toast از metaData.message اگر موجود بود
-            const msg = error?.response?.data?.metaData?.message || 'خطا در دریافت لیست Provider های فعال';
-            toast.error(msg);
+            // Toast already shown by aiApi
         } finally {
             setLoadingProviders(false);
         }
@@ -86,12 +67,12 @@ export function AIChat() {
 
     const handleSend = async () => {
         if (!selectedProvider) {
-            toast.error('لطفاً یک مدل AI انتخاب کنید. ابتدا باید در تنظیمات پنل > تنظیمات مدل‌های AI، یک Provider را فعال کنید.');
+            toast.error(msg.ai('selectModelWithInstructions'));
             return;
         }
 
         if (!message.trim()) {
-            toast.error('لطفاً پیام خود را وارد کنید');
+            toast.error(msg.ai('enterMessage'));
             return;
         }
 
@@ -101,12 +82,10 @@ export function AIChat() {
             timestamp: Date.now(),
         };
 
-        // Add user message immediately
         setMessages(prev => [...prev, userMessage]);
         const currentMessage = message.trim();
         setMessage('');
         
-        // Focus back to textarea
         setTimeout(() => {
             textareaRef.current?.focus();
         }, 100);
@@ -114,7 +93,6 @@ export function AIChat() {
         try {
             setSending(true);
 
-            // Prepare conversation history (last 20 messages)
             const conversationHistory = messages
                 .slice(-20)
                 .map(msg => ({
@@ -139,10 +117,6 @@ export function AIChat() {
                 throw new Error(response.metaData.message || 'خطا در دریافت پاسخ');
             }
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.metaData?.message || error?.message || 'خطا در ارسال پیام';
-            toast.error(errorMessage);
-            
-            // Remove user message on error
             setMessages(prev => prev.filter((msg, idx) => 
                 !(msg.role === 'user' && msg.content === currentMessage && idx === prev.length - 1)
             ));
@@ -154,9 +128,9 @@ export function AIChat() {
     const handleClearChat = () => {
         if (messages.length === 0) return;
         
-        if (confirm('آیا مطمئن هستید که می‌خواهید تمام پیام‌ها را پاک کنید؟')) {
+        if (confirm(msg.aiUI('confirmClearChat'))) {
             setMessages([]);
-            toast.success('چت پاک شد');
+            toast.success(msg.ai('chatCleared'));
         }
     };
 
@@ -189,12 +163,12 @@ export function AIChat() {
                                     onValueChange={setSelectedProvider}
                                 >
                                     <SelectTrigger className="w-40">
-                                        <SelectValue placeholder="انتخاب مدل" />
+                                        <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableProviders.length === 0 ? (
                                             <div className="p-2 text-sm text-muted-foreground text-center">
-                                                هیچ Provider فعالی یافت نشد
+                                                {msg.aiUI('noActiveProviders')}
                                             </div>
                                         ) : (
                                             availableProviders.map((provider) => (
@@ -214,7 +188,7 @@ export function AIChat() {
                                     variant="outline"
                                     size="icon"
                                     onClick={handleClearChat}
-                                    title="پاک کردن چت"
+                                    title={msg.aiUI('clearChat')}
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -224,14 +198,13 @@ export function AIChat() {
                 </CardHeader>
 
                 <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
-                    {/* Messages Area */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         {messages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                                 <Sparkles className="h-12 w-12 mb-4 opacity-50" />
-                                <p className="text-lg font-medium mb-2">شروع مکالمه</p>
+                                <p className="text-lg font-medium mb-2">{msg.aiUI('startConversation')}</p>
                                 <p className="text-sm">
-                                    سوالات خود را از AI بپرسید. پیام‌ها ذخیره نمی‌شوند.
+                                    {msg.aiUI('chatDescription')}
                                 </p>
                                 {availableProviders.length === 0 && (
                                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -240,10 +213,9 @@ export function AIChat() {
                                                 <AlertCircle className="h-4 w-4 stroke-yellow-600" />
                                             </div>
                                             <div className="text-sm text-yellow-800">
-                                                <p className="font-medium mb-1">هیچ Provider فعالی یافت نشد</p>
+                                                <p className="font-medium mb-1">{msg.aiUI('noActiveProviders')}</p>
                                                 <p>
-                                                    برای استفاده از چت با AI، ابتدا باید یک Provider (Gemini، OpenAI یا DeepSeek) را در{' '}
-                                                    <strong>تنظیمات پنل &gt; تنظیمات مدل‌های AI</strong> فعال کنید.
+                                                    {msg.aiUI('chatInstructionsFull')}
                                                 </p>
                                             </div>
                                         </div>
@@ -292,7 +264,7 @@ export function AIChat() {
                                 <div className="bg-muted rounded-lg px-4 py-2">
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span className="text-sm text-muted-foreground">در حال پاسخ...</span>
+                                        <span className="text-sm text-muted-foreground">{msg.aiUI('responding')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -300,7 +272,6 @@ export function AIChat() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
                     <div className="flex-shrink-0 border-t p-4">
                         <div className="flex gap-2">
                             <Textarea
@@ -308,7 +279,7 @@ export function AIChat() {
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط جدید)"
+                                placeholder={msg.aiUI('messagePlaceholder')}
                                 className="min-h-[60px] max-h-[200px] resize-none"
                                 disabled={sending || !selectedProvider}
                             />
@@ -327,7 +298,7 @@ export function AIChat() {
                         </div>
                         {availableProviders.length === 0 && (
                             <p className="text-xs text-muted-foreground mt-2 text-center">
-                                برای استفاده از چت، لطفاً یک Provider را در تنظیمات پنل فعال کنید.
+                                {msg.aiUI('chatInstructions')}
                             </p>
                         )}
                     </div>

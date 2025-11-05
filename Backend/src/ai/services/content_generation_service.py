@@ -1,15 +1,13 @@
 import asyncio
 import time
 from typing import Dict, Any, Optional
-from django.core.cache import cache
 from django.utils.text import slugify
 from src.ai.models.image_generation import AIImageGeneration
-from src.ai.models.content_generation import AIContentGeneration
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider
 
 
 class AIContentGenerationService:
-    """Service for AI content generation with caching and optimization"""
+    """Service for AI content generation - generates content without caching"""
     
     PROVIDER_MAP = {
         'gemini': GeminiProvider,
@@ -42,17 +40,15 @@ class AIContentGenerationService:
     @classmethod
     def generate_content(cls, topic: str, provider_name: str = 'gemini', **kwargs) -> Dict[str, Any]:
         """
-        Generate SEO-optimized content
+        Generate SEO-optimized content (without caching)
         
         Args:
             topic: Content topic/subject
-            provider_name: AI provider ('gemini' or 'openai')
+            provider_name: AI provider ('gemini', 'openai', or 'deepseek')
             **kwargs: Additional settings:
                 - word_count: Target word count (default: 500)
                 - tone: Content tone (default: 'professional')
                 - keywords: List of keywords (optional)
-                - use_cache: Use cached content if available (default: True)
-                - save_to_cache: Save generated content to cache (default: False - for performance, but user can choose)
         
         Returns:
             Dict with SEO-optimized content structure
@@ -60,20 +56,6 @@ class AIContentGenerationService:
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
-        use_cache = kwargs.get('use_cache', True)
-        save_to_cache = kwargs.get('save_to_cache', False)  # Default: don't cache (user can choose to save later)
-        
-        # Check cache first
-        settings = {
-            'word_count': word_count,
-            'tone': tone,
-            'keywords': sorted(keywords) if keywords else []
-        }
-        
-        if use_cache:
-            cached = AIContentGeneration.get_cached_content(topic, provider_name, settings)
-            if cached:
-                return cls._format_response(cached)
         
         # Generate new content
         start_time = time.time()
@@ -110,56 +92,12 @@ class AIContentGenerationService:
                 seo_data['slug'] = slugify(seo_data.get('title', topic))
             if 'h1' not in seo_data:
                 seo_data['h1'] = seo_data.get('title', topic)
-            if 'h2_list' not in seo_data:
-                seo_data['h2_list'] = []
-            if 'h3_list' not in seo_data:
-                seo_data['h3_list'] = []
             if 'keywords' not in seo_data:
                 seo_data['keywords'] = keywords if keywords else []
             if 'word_count' not in seo_data:
                 # Approximate word count
                 content_text = seo_data.get('content', '')
                 seo_data['word_count'] = len(content_text.split())
-            
-            # Only cache if user wants to save
-            cached_obj = None
-            if save_to_cache:
-                cached_obj = AIContentGeneration.cache_content(
-                    prompt=topic,
-                    provider_name=provider_name,
-                    title=seo_data['title'],
-                    meta_title=seo_data['meta_title'],
-                    meta_description=seo_data['meta_description'],
-                    slug=seo_data['slug'],
-                    h1=seo_data.get('h1'),
-                    h2_list=seo_data.get('h2_list', []),
-                    h3_list=seo_data.get('h3_list', []),
-                    content=seo_data['content'],
-                    keywords=seo_data.get('keywords', []),
-                    word_count=seo_data.get('word_count', 0),
-                    settings=settings,
-                    generation_time_ms=generation_time_ms
-                )
-            else:
-                # Create temporary object for response formatting (not saved to DB)
-                from src.ai.models.content_generation import AIContentGeneration
-                cached_obj = AIContentGeneration(
-                    title=seo_data['title'],
-                    meta_title=seo_data['meta_title'],
-                    meta_description=seo_data['meta_description'],
-                    slug=seo_data['slug'],
-                    h1=seo_data.get('h1'),
-                    h2_list=seo_data.get('h2_list', []),
-                    h3_list=seo_data.get('h3_list', []),
-                    content=seo_data['content'],
-                    keywords=seo_data.get('keywords', []),
-                    word_count=seo_data.get('word_count', 0),
-                    provider_name=provider_name,
-                    generation_time_ms=generation_time_ms,
-                    cache_key='',  # Not saved, so no cache key needed
-                    prompt=topic,
-                    settings=settings,
-                )
             
             # Increment provider usage
             provider_model = AIImageGeneration.objects.get(provider_name=provider_name)
@@ -173,34 +111,24 @@ class AIContentGenerationService:
             finally:
                 loop.close()
             
-            return cls._format_response(cached_obj, generation_time_ms)
+            # Format and return response
+            return {
+                'title': seo_data['title'],
+                'meta_title': seo_data['meta_title'],
+                'meta_description': seo_data['meta_description'],
+                'slug': seo_data['slug'],
+                'h1': seo_data.get('h1', seo_data['title']),
+                'content': seo_data['content'],  # HTML content with <p>, <h2>, <h3> tags
+                'keywords': seo_data.get('keywords', []),
+                'word_count': seo_data.get('word_count', 0),
+                'provider_name': provider_name,
+                'generation_time_ms': generation_time_ms,
+            }
             
         except ValueError as e:
             raise e
         except Exception as e:
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
-    
-    @classmethod
-    def _format_response(cls, content_obj: AIContentGeneration, generation_time_ms: Optional[int] = None) -> Dict[str, Any]:
-        """Format response from content object"""
-        return {
-            'id': content_obj.id if content_obj.pk else None,  # None if not saved to DB
-            'title': content_obj.title,
-            'meta_title': content_obj.meta_title,
-            'meta_description': content_obj.meta_description,
-            'slug': content_obj.slug,
-            'h1': content_obj.h1 or content_obj.title,
-            'h2_list': content_obj.h2_list or [],
-            'h3_list': content_obj.h3_list or [],
-            'content': content_obj.content,
-            'keywords': content_obj.keywords or [],
-            'word_count': content_obj.word_count,
-            'provider_name': content_obj.provider_name,
-            'generation_time_ms': generation_time_ms or content_obj.generation_time_ms,
-            'cached': content_obj.usage_count > 0 if hasattr(content_obj, 'usage_count') else False,
-            'saved': content_obj.pk is not None,  # Whether it's saved to database
-            'created_at': content_obj.created_at.isoformat() if hasattr(content_obj, 'created_at') and content_obj.created_at else None,
-        }
     
     @classmethod
     def get_available_providers(cls) -> list:

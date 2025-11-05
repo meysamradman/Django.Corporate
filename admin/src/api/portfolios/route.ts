@@ -225,61 +225,16 @@ export const portfolioApi = {
     return response.data;
   },
 
-  // Export single portfolio to PDF
+  // Export functions moved to separate file for better organization
+  // Import from '@/api/portfolios/export' if needed
   exportPortfolioPdf: async (portfolioId: number): Promise<void> => {
-    const url = `/admin/portfolio/${portfolioId}/export-pdf/`;
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `portfolio_${portfolioId}_${timestamp}.pdf`;
-    
-    await fetchApi.downloadFile(url, filename);
+    const { exportPortfolioPdf } = await import('./export');
+    return exportPortfolioPdf(portfolioId);
   },
 
-  // Export portfolios to Excel or PDF
   exportPortfolios: async (filters?: PortfolioListParams, format: 'excel' | 'pdf' = 'excel'): Promise<void> => {
-    let url = '/admin/portfolio/export/';
-    if (filters || format) {
-      const queryParams = new URLSearchParams();
-      
-      queryParams.append('format', format);
-      
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            if (key === 'is_featured' || key === 'is_public' || key === 'is_active') {
-              if (typeof value === 'boolean') {
-                queryParams.append(key, value.toString());
-              } else if (typeof value === 'string') {
-                queryParams.append(key, value);
-              }
-            } else if (key === 'categories__in') {
-              queryParams.append(key, value as string);
-            } else if (key === 'page' || key === 'size' || key === 'export_all') {
-              queryParams.append(key, String(value));
-            } else {
-              queryParams.append(key, String(value));
-            }
-          }
-        });
-      }
-      
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-    
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = format === 'pdf' 
-      ? `portfolios_${timestamp}.pdf`
-      : `portfolios_${timestamp}.xlsx`;
-    
-    // اگر export_all=true باشد، از fetch استفاده کن تا error message را بگیریم
-    // در غیر این صورت از iframe برای سرعت بیشتر
-    const useFetchForErrorHandling = filters?.export_all === true;
-    
-    await fetchApi.downloadFile(url, filename, 'GET', null, { 
-      useFetchForErrorHandling 
-    } as any);
+    const { exportPortfolios } = await import('./export');
+    return exportPortfolios(filters, format);
   },
 
   // Delete portfolio

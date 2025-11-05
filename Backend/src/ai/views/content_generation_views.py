@@ -57,14 +57,12 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 word_count=validated_data.get('word_count', 500),
                 tone=validated_data.get('tone', 'professional'),
                 keywords=validated_data.get('keywords', []),
-                use_cache=validated_data.get('use_cache', True),
-                save_to_cache=validated_data.get('save_to_cache', False),
             )
             
             # Format response
             response_serializer = AIContentGenerationResponseSerializer(content_data)
             
-            message = AI_SUCCESS["content_generated_cached"] if content_data.get('cached') else AI_SUCCESS["content_generated"]
+            message = AI_SUCCESS["content_generated"]
             
             return APIResponse.success(
                 message=message,
