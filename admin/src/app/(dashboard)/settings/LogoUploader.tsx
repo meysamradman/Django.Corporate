@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
-import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
+import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Media } from "@/types/shared/media";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, X, Camera } from "lucide-react";
 
 interface LogoUploaderProps {
     label: string;
@@ -66,55 +66,50 @@ export default function LogoUploader({
     };
 
     return (
-        <div className={`space-y-2 ${className}`}>
+        <div className={`space-y-4 ${className}`}>
             {showLabel && (
                 <Label>{label}</Label>
             )}
             
-            <div className="flex items-center gap-4">
-                <div className={`relative ${sizeClasses[size]} border rounded-lg overflow-hidden`}>
-                    {selectedMedia ? (
-                        <MediaThumbnail
-                            media={selectedMedia}
-                            alt={label}
-                            className="object-cover"
-                            fill
-                            sizes={`${size === "sm" ? "80px" : size === "md" ? "128px" : "160px"}`}
-                            showIcon={true}
-                        />
-                    ) : (
-                        <div className={`w-full h-full bg-muted flex items-center justify-center rounded-lg`}>
-                            <span className={`font-medium ${size === "sm" ? "text-sm" : size === "md" ? "text-lg" : "text-xl"}`}>
-                                IMG
-                            </span>
-                        </div>
-                    )}
-                </div>
-                
-                <div className="space-y-2">
-                    <Button 
-                        type="button" 
-                        variant="outline" 
-                        size={buttonSize[size]}
-                        onClick={() => setShowMediaSelector(true)}
-                        className="flex gap-2"
-                    >
-                        <ImagePlus className={iconSize[size]} />
-                        مدیریت تصویر
-                    </Button>
+            <div className="flex flex-col items-center space-y-4">
+                <div className="relative shrink-0 group">
+                    <div className={`relative ${sizeClasses[size]} border-4 border-card rounded-xl overflow-hidden`}>
+                        {selectedMedia ? (
+                            <MediaImage
+                                media={selectedMedia}
+                                alt={label}
+                                className="object-cover"
+                                fill
+                                sizes={`${size === "sm" ? "80px" : size === "md" ? "128px" : "160px"}`}
+                            />
+                        ) : (
+                            <div className={`w-full h-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground ${size === "sm" ? "text-2xl" : size === "md" ? "text-4xl" : "text-5xl"} font-bold`}>
+                                <ImagePlus className={size === "sm" ? "w-8 h-8" : size === "md" ? "w-16 h-16" : "w-20 h-20"} strokeWidth={1.5} />
+                            </div>
+                        )}
+                    </div>
                     
                     {selectedMedia && (
-                        <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size={buttonSize[size]}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="absolute -top-1 -left-1 h-7 w-7 p-0 rounded-full bg-background border-2 border-border hover:bg-destructive hover:text-destructive-foreground transition-colors"
                             onClick={handleRemoveImage}
-                            className="text-destructive hover:text-destructive"
+                            type="button"
                         >
-                            <X className={iconSize[size]} />
-                            حذف تصویر
+                            <X className="h-3 w-3" />
                         </Button>
                     )}
+                    
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-background border-2 border-border hover:bg-muted transition-colors"
+                        onClick={() => setShowMediaSelector(true)}
+                        type="button"
+                    >
+                        <Camera className="h-3 w-3" />
+                    </Button>
                 </div>
             </div>
 
