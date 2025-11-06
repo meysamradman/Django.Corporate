@@ -61,7 +61,7 @@ export function ProviderSelector({
                         <SelectItem key={provider.id} value={provider.provider_name}>
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">{getProviderIcon(provider)}</span>
-                                <span>{getProviderDisplayName(provider)}</span>
+                                <span>مدل {getProviderDisplayName(provider)}</span>
                             </div>
                         </SelectItem>
                     ))}

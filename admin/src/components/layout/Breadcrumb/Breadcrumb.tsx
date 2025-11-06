@@ -48,6 +48,7 @@ export function Breadcrumb() {
                 'ai-content': 'تولید محتوا با AI',
                 'ai-chat': 'چت AI',
                 'ai-image': 'تولید تصویر با AI',
+                'chat': 'چت',
             };
             
             return segmentMap[normalizedSegment] || 
