@@ -12,24 +12,21 @@ import {
 import { Media } from "@/types/shared/media";
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { portfolioApi } from "@/api/portfolios/route";
 import { generateSlug } from '@/core/utils/slugUtils';
+import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/core/utils/portfolioMediaUtils";
 
 // Extend Portfolio interface to include category and tag IDs for API calls
 interface PortfolioUpdateData extends Partial<Portfolio> {
   categories_ids?: number[];
   tags_ids?: number[];
   options_ids?: number[];
-}
-
-// Add this interface for managing multiple media selections
-interface PortfolioMedia {
-  featuredImage: Media | null;
-  imageGallery: Media[];
-  videoGallery: Media[];
-  audioGallery: Media[];
-  pdfDocuments: Media[];
+  media_ids?: number[];
+  main_image_id?: number | null;
+  media_covers?: { [mediaId: number]: number | null };
 }
 
 const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
@@ -65,7 +62,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
   });
   
   // Category and tag state for edit page
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<PortfolioCategory[]>([]);
   const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<PortfolioOption[]>([]);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
@@ -97,9 +94,9 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         robots_meta: portfolioData.robots_meta || "",
       });
       
-      // Set category if available
-      if (portfolioData.categories && portfolioData.categories.length > 0) {
-        setSelectedCategory(String(portfolioData.categories[0].id));
+      // Set categories if available
+      if (portfolioData.categories) {
+        setSelectedCategories(portfolioData.categories);
       }
       
       // Set tags if available
@@ -114,41 +111,8 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       
       // Set media data if available
       if (portfolioData.portfolio_media) {
-        const mediaData = portfolioData.portfolio_media;
-        
-        // Parse media data from portfolio
-        // Type guard to check if media item is an image with is_main_image property
-        const featuredImage = mediaData.find(m => 
-          m.media && 'is_main_image' in m && m.is_main_image
-        )?.media || null;
-        
-        const imageGallery = mediaData
-          .filter(m => 
-            m.media && 
-            m.media.media_type === 'image' && 
-            !('is_main_image' in m && m.is_main_image)
-          )
-          .map(m => m.media);
-        
-        const videoGallery = mediaData
-          .filter(m => m.media && m.media.media_type === 'video')
-          .map(m => m.media);
-        
-        const audioGallery = mediaData
-          .filter(m => m.media && m.media.media_type === 'audio')
-          .map(m => m.media);
-        
-        const pdfDocuments = mediaData
-          .filter(m => m.media && (m.media.media_type === 'pdf' || m.media.media_type === 'document'))
-          .map(m => m.media);
-        
-        setPortfolioMedia({
-          featuredImage,
-          imageGallery,
-          videoGallery,
-          audioGallery,
-          pdfDocuments
-        });
+        const parsedMedia = parsePortfolioMedia(portfolioData.portfolio_media);
+        setPortfolioMedia(parsedMedia);
       }
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
@@ -177,8 +141,18 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
+  const handleCategoryToggle = (category: PortfolioCategory) => {
+    setSelectedCategories(prev => {
+      if (prev.some(c => c.id === category.id)) {
+        return prev.filter(c => c.id !== category.id);
+      } else {
+        return [...prev, category];
+      }
+    });
+  };
+
+  const handleCategoryRemove = (categoryId: number) => {
+    setSelectedCategories(prev => prev.filter(category => category.id !== categoryId));
   };
 
   const handleTagToggle = (tag: PortfolioTag) => {
@@ -231,9 +205,14 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       }
       
       // Prepare category and tag IDs for the backend
-      const categoryIds = selectedCategory ? [parseInt(selectedCategory)] : [];
+      const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
       const optionIds = selectedOptions.map(option => option.id);
+      
+      // Collect all media IDs and covers using utility functions
+      const allMediaIds = collectMediaIds(portfolioMedia);
+      const mainImageId = portfolioMedia.featuredImage?.id || null;
+      const mediaCovers = collectMediaCovers(portfolioMedia);
       
       // Prepare update data with extended interface
       const updateData: PortfolioUpdateData = {
@@ -241,9 +220,12 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         slug: formattedSlug,
         short_description: formData.short_description,
         description: formData.description,
-        categories_ids: categoryIds, // Use the correct field name expected by the backend
-        tags_ids: tagIds, // Use the correct field name expected by the backend
-        options_ids: optionIds, // Use the correct field name expected by the backend
+        categories_ids: categoryIds,
+        tags_ids: tagIds,
+        options_ids: optionIds,
+        media_ids: allMediaIds,
+        main_image_id: mainImageId,
+        media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
         og_title: formData.og_title || undefined,
@@ -253,7 +235,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         robots_meta: formData.robots_meta || undefined,
       };
       
-      // Update portfolio
+      // Update portfolio (includes media sync with cover images)
       const updatedPortfolio = await portfolioApi.updatePortfolio(portfolio.id, updateData);
       
       // Redirect to portfolio list after saving
@@ -279,9 +261,14 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       }
       
       // Prepare category and tag IDs for the backend
-      const categoryIds = selectedCategory ? [parseInt(selectedCategory)] : [];
+      const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
       const optionIds = selectedOptions.map(option => option.id);
+      
+      // Collect all media IDs and covers using utility functions
+      const allMediaIds = collectMediaIds(portfolioMedia);
+      const mainImageId = portfolioMedia.featuredImage?.id || null;
+      const mediaCovers = collectMediaCovers(portfolioMedia);
       
       // Prepare update data with extended interface
       const updateData: PortfolioUpdateData = {
@@ -289,9 +276,12 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         slug: formattedSlug,
         short_description: formData.short_description,
         description: formData.description,
-        categories_ids: categoryIds, // Use the correct field name expected by the backend
-        tags_ids: tagIds, // Use the correct field name expected by the backend
-        options_ids: optionIds, // Use the correct field name expected by the backend
+        categories_ids: categoryIds,
+        tags_ids: tagIds,
+        options_ids: optionIds,
+        media_ids: allMediaIds,
+        main_image_id: mainImageId,
+        media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
         meta_title: formData.meta_title || undefined,
         meta_description: formData.meta_description || undefined,
         og_title: formData.og_title || undefined,
@@ -301,7 +291,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         robots_meta: formData.robots_meta || undefined,
       };
       
-      // Update portfolio as draft
+      // Update portfolio as draft (includes media sync with cover images)
       const updatedPortfolio = await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
       
       // Redirect to portfolio list after saving draft
@@ -414,10 +404,11 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
-              selectedCategory={selectedCategory}
+              selectedCategories={selectedCategories}
               selectedTags={selectedTags}
               selectedOptions={selectedOptions}
-              onCategoryChange={handleCategoryChange}
+              onCategoryToggle={handleCategoryToggle}
+              onCategoryRemove={handleCategoryRemove}
               onTagToggle={handleTagToggle}
               onTagRemove={handleTagRemove}
               onOptionToggle={handleOptionToggle}

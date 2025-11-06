@@ -1,8 +1,8 @@
+import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.serializers.admin.option_serializer import (
@@ -16,6 +16,8 @@ from src.portfolio.services.admin.option_services import PortfolioOptionAdminSer
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.authorization.admin_permission import ContentManagerAccess
+from src.core.responses.response import APIResponse
+from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 
 
 class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
@@ -57,7 +59,11 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         serializer = PortfolioOptionAdminListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_list_success"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     @staticmethod
     def _parse_bool(value):
@@ -83,20 +89,30 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Create option using service
-        result = PortfolioOptionAdminService.create_option(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        if result['success']:
+        try:
+            # Create option using service
+            option = PortfolioOptionAdminService.create_option(
+                serializer.validated_data,
+                created_by=request.user
+            )
+            
             # Return detailed response
-            detail_serializer = PortfolioOptionAdminDetailSerializer(result['option'])
-            return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+            detail_serializer = PortfolioOptionAdminDetailSerializer(option)
+            return APIResponse.success(
+                message=OPTION_SUCCESS["option_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "already exists" in error_msg.lower():
+                name = error_msg.split("'")[1] if "'" in error_msg else ""
+                message = OPTION_ERRORS["option_name_exists"].format(name=name)
+            else:
+                message = OPTION_ERRORS["option_create_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     def retrieve(self, request, *args, **kwargs):
@@ -104,13 +120,17 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         option = PortfolioOptionAdminService.get_option_by_id(kwargs.get('pk'))
         
         if not option:
-            return Response(
-                {"detail": "گزینه یافت نشد."},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=OPTION_ERRORS["option_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
         
         serializer = self.get_serializer(option)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_retrieved"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     def update(self, request, *args, **kwargs):
         """Update option with validation"""
@@ -118,41 +138,66 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         option = PortfolioOptionAdminService.get_option_by_id(kwargs.get('pk'))
         
         if not option:
-            return Response(
-                {"detail": "گزینه یافت نشد."},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=OPTION_ERRORS["option_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
         
         serializer = self.get_serializer(option, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        # Update option using service
-        result = PortfolioOptionAdminService.update_option_by_id(
-            option.id, 
-            serializer.validated_data
-        )
-        
-        if result['success']:
+        try:
+            # Update option using service
+            updated_option = PortfolioOptionAdminService.update_option_by_id(
+                option.id, 
+                serializer.validated_data
+            )
+            
             # Return detailed response
-            detail_serializer = PortfolioOptionAdminDetailSerializer(result['option'])
-            return Response(detail_serializer.data)
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+            detail_serializer = PortfolioOptionAdminDetailSerializer(updated_option)
+            return APIResponse.success(
+                message=OPTION_SUCCESS["option_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "already exists" in error_msg.lower():
+                name = error_msg.split("'")[1] if "'" in error_msg else ""
+                message = OPTION_ERRORS["option_name_exists"].format(name=name)
+            else:
+                message = OPTION_ERRORS["option_update_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     def destroy(self, request, *args, **kwargs):
         """Delete option with safety checks"""
         option_id = kwargs.get('pk')
-        result = PortfolioOptionAdminService.delete_option_by_id(option_id)
         
-        if result['success']:
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            PortfolioOptionAdminService.delete_option_by_id(option_id)
+            return APIResponse.success(
+                message=OPTION_SUCCESS["option_deleted"],
+                status_code=status.HTTP_200_OK
+            )
+        except PortfolioOption.DoesNotExist:
+            return APIResponse.error(
+                message=OPTION_ERRORS["option_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "portfolios" in error_msg:
+                count_match = re.search(r'\d+', error_msg)
+                count = count_match.group() if count_match else "0"
+                message = OPTION_ERRORS["option_has_portfolios"].format(count=count)
+            else:
+                message = OPTION_ERRORS["option_delete_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -161,7 +206,11 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         limit = int(request.GET.get('limit', 10))
         options = PortfolioOptionAdminService.get_popular_options(limit)
         
-        return Response(options)
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_list_success"],
+            data=options,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'])
     def by_key(self, request):
@@ -169,42 +218,65 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         key = request.GET.get('key')
         
         if not key:
-            return Response(
-                {"detail": "کلید مورد نیاز است."},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=OPTION_ERRORS["option_key_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         options = PortfolioOptionAdminService.get_options_by_key(key)
         serializer = PortfolioOptionAdminListSerializer(options, many=True)
         
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_list_success"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'])
     def keys(self, request):
         """Get all unique option keys"""
         keys = PortfolioOptionAdminService.get_unique_keys()
         
-        return Response(list(keys))
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_list_success"],
+            data=list(keys),
+            status_code=status.HTTP_200_OK
+        )
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         """Bulk delete multiple options"""
-        option_ids = request.data.get('option_ids', [])
+        option_ids = request.data.get('ids', [])
         
         if not option_ids:
-            return Response(
-                {"detail": "شناسه گزینه‌ها مورد نیاز است."},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=OPTION_ERRORS["option_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        result = PortfolioOptionAdminService.bulk_delete_options(option_ids)
+        # Convert to list if it's a single value
+        if not isinstance(option_ids, list):
+            option_ids = [option_ids]
         
-        if result['success']:
-            return Response({'deleted_count': result['deleted_count']})
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            deleted_count = PortfolioOptionAdminService.bulk_delete_options(option_ids)
+            return APIResponse.success(
+                message=OPTION_SUCCESS["option_bulk_deleted"],
+                data={'deleted_count': deleted_count},
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "not found" in error_msg.lower():
+                message = OPTION_ERRORS["options_not_found"]
+            elif "in use" in error_msg.lower():
+                names = error_msg.split(":")[-1].strip() if ":" in error_msg else ""
+                message = OPTION_ERRORS["options_in_use"].format(names=names)
+            else:
+                message = OPTION_ERRORS["option_delete_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -237,7 +309,11 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         # Sort by total usage
         grouped_data.sort(key=lambda x: sum(opt['portfolio_count'] for opt in x['options']), reverse=True)
         
-        return Response(grouped_data)
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_list_success"],
+            data=grouped_data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
@@ -257,4 +333,8 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
             'popular_options': PortfolioOptionAdminService.get_popular_options(5)
         }
         
-        return Response(stats)
+        return APIResponse.success(
+            message=OPTION_SUCCESS["option_statistics_retrieved"],
+            data=stats,
+            status_code=status.HTTP_200_OK
+        )

@@ -1,8 +1,8 @@
+import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.serializers.admin.category_serializer import (
@@ -16,6 +16,8 @@ from src.portfolio.services.admin.category_services import PortfolioCategoryAdmi
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.authorization.admin_permission import ContentManagerAccess
+from src.core.responses.response import APIResponse
+from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 
 class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
@@ -57,7 +59,11 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         tree_mode = request.GET.get('tree', '').lower() == 'true'
         if tree_mode:
             tree_data = PortfolioCategoryAdminService.get_tree_data()
-            return Response({'data': tree_data})
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_list_success"],
+                data={'data': tree_data},
+                status_code=status.HTTP_200_OK
+            )
 
         # Use the Django Filter backend properly
         queryset = self.filter_queryset(PortfolioCategoryAdminService.get_tree_queryset())
@@ -69,7 +75,11 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         serializer = PortfolioCategoryAdminListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_list_success"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     @staticmethod
     def _parse_bool(value):
@@ -92,20 +102,28 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         
         # Return detailed response
         detail_serializer = PortfolioCategoryAdminDetailSerializer(category)
-        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_created"],
+            data=detail_serializer.data,
+            status_code=status.HTTP_201_CREATED
+        )
     
     def retrieve(self, request, *args, **kwargs):
         """Get category detail with tree information"""
         category = PortfolioCategoryAdminService.get_category_by_id(kwargs.get('pk'))
         
         if not category:
-            return Response(
-                {"detail": "دسته‌بندی یافت نشد."},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
 
         serializer = self.get_serializer(category)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_retrieved"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
 
     def update(self, request, *args, **kwargs):
         """Update category with tree operations"""
@@ -124,24 +142,47 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
             
             # Return detailed response
             detail_serializer = PortfolioCategoryAdminDetailSerializer(updated_category)
-            return Response(detail_serializer.data)
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
+            )
         except Exception as e:
-            return Response(
-                {"detail": f"خطا در به‌روزرسانی: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_update_failed"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
 
     def destroy(self, request, *args, **kwargs):
         """Delete category with safety checks"""
         category_id = kwargs.get('pk')
-        result = PortfolioCategoryAdminService.delete_category_by_id(category_id)
         
-        if result['success']:
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            PortfolioCategoryAdminService.delete_category_by_id(category_id)
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_deleted"],
+                status_code=status.HTTP_200_OK
+            )
+        except PortfolioCategory.DoesNotExist:
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "portfolios" in error_msg:
+                count_match = re.search(r'\d+', error_msg)
+                count = count_match.group() if count_match else "0"
+                message = CATEGORY_ERRORS["category_has_portfolios"].format(count=count)
+            elif "children" in error_msg:
+                count_match = re.search(r'\d+', error_msg)
+                count = count_match.group() if count_match else "0"
+                message = CATEGORY_ERRORS["category_has_children"].format(count=count)
+            else:
+                message = CATEGORY_ERRORS["category_delete_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -149,14 +190,22 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         """Get complete category tree"""
         tree_data = PortfolioCategoryAdminService.get_tree_data()
         
-        return Response(tree_data)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_list_success"],
+            data=tree_data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'])
     def roots(self, request):
         """Get root categories only"""
         root_categories = PortfolioCategoryAdminService.get_root_categories()
         
-        return Response(root_categories)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_list_success"],
+            data=root_categories,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):
@@ -164,15 +213,19 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         category = PortfolioCategoryAdminService.get_category_by_id(pk)
         
         if not category:
-            return Response(
-                {"detail": "دسته‌بندی یافت نشد."},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
         
         children = category.get_children().filter(is_active=True)
         serializer = PortfolioCategoryAdminListSerializer(children, many=True)
         
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_list_success"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['get'])
     def breadcrumbs(self, request, pk=None):
@@ -180,14 +233,18 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         category = PortfolioCategoryAdminService.get_category_by_id(pk)
         
         if not category:
-            return Response(
-                {"detail": "دسته‌بندی یافت نشد."},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
         
         breadcrumbs = PortfolioCategoryAdminService.get_breadcrumbs(category)
         
-        return Response(breadcrumbs)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_retrieved"],
+            data=breadcrumbs,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
@@ -196,19 +253,33 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         position = request.data.get('position', 'last-child')
         
         if not target_id:
-            return Response(
-                {"detail": "شناسه دسته‌بندی مقصد مورد نیاز است."},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        result = PortfolioCategoryAdminService.move_category(pk, target_id, position)
-        
-        if result['success']:
-            return Response({"detail": "دسته‌بندی با موفقیت منتقل شد."})
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            PortfolioCategoryAdminService.move_category(pk, target_id, position)
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_moved"],
+                status_code=status.HTTP_200_OK
+            )
+        except PortfolioCategory.DoesNotExist:
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "descendant" in error_msg.lower():
+                message = CATEGORY_ERRORS["category_move_to_descendant"]
+            elif "itself" in error_msg.lower():
+                message = CATEGORY_ERRORS["category_move_to_self"]
+            else:
+                message = CATEGORY_ERRORS["category_move_failed"].format(error=error_msg)
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -217,27 +288,43 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         limit = int(request.GET.get('limit', 10))
         popular_categories = PortfolioCategoryAdminService.get_popular_categories(limit)
         
-        return Response(popular_categories)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_list_success"],
+            data=popular_categories,
+            status_code=status.HTTP_200_OK
+        )
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         """Bulk delete multiple categories"""
-        category_ids = request.data.get('category_ids', [])
+        category_ids = request.data.get('ids', [])
         
         if not category_ids:
-            return Response(
-                {"detail": "شناسه دسته‌بندی‌ها مورد نیاز است."},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        result = PortfolioCategoryAdminService.bulk_delete_categories(category_ids)
+        # Convert to list if it's a single value
+        if not isinstance(category_ids, list):
+            category_ids = [category_ids]
         
-        if result['success']:
-            return Response({'deleted_count': result['deleted_count']})
-        else:
-            return Response(
-                {"detail": result['error']},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            deleted_count = PortfolioCategoryAdminService.bulk_delete_categories(category_ids)
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_bulk_deleted"],
+                data={'deleted_count': deleted_count},
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "not found" in error_msg.lower():
+                message = CATEGORY_ERRORS["categories_not_found"]
+            else:
+                message = CATEGORY_ERRORS["category_delete_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -245,4 +332,8 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
         """Get category statistics for admin dashboard"""
         stats = PortfolioCategoryAdminService.get_category_statistics()
         
-        return Response(stats)
+        return APIResponse.success(
+            message=CATEGORY_SUCCESS["category_statistics_retrieved"],
+            data=stats,
+            status_code=status.HTTP_200_OK
+        )

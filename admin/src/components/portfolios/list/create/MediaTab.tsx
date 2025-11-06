@@ -17,14 +17,7 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
-
-interface PortfolioMedia {
-    featuredImage: Media | null;
-    imageGallery: Media[];
-    videoGallery: Media[];
-    audioGallery: Media[];
-    pdfDocuments: Media[];
-}
+import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 
 // Props interface for react-hook-form approach (create page)
 interface MediaTabFormProps {

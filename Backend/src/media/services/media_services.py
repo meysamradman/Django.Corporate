@@ -39,8 +39,8 @@ class MediaAdminService:
         try:
             media = model.objects.get(id=media_id)
             
-            # Handle cover_image for videos and audio
-            if (media_type == 'video' or media_type == 'audio') and 'cover_image' in data:
+            # Handle cover_image for videos, audio, and documents (PDF)
+            if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and 'cover_image' in data:
                 cover_image_value = data['cover_image']
                 # If it's an integer ID, try to get the media object
                 if isinstance(cover_image_value, int):

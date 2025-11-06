@@ -75,6 +75,16 @@ class PortfolioVideo(BaseModel):
         related_name="portfolio_links",
         db_index=True
     )
+    cover_image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        related_name="portfolio_video_covers",
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Cover Image",
+        help_text="کاور خاص برای این ویدیو در این نمونه‌کار. اگر تنظیم نشود، از کاور ویدیو استفاده می‌شود."
+    )
     order = models.PositiveIntegerField(default=0, db_index=True)
     autoplay = models.BooleanField(default=False)
     mute = models.BooleanField(default=True)
@@ -87,6 +97,10 @@ class PortfolioVideo(BaseModel):
         verbose_name_plural = "Portfolio Videos"
         indexes = [models.Index(fields=["portfolio", "order"])]
 
+    def get_cover_image(self):
+        """Get cover image: portfolio-specific or fallback to media default"""
+        return self.cover_image if self.cover_image else (self.video.cover_image if self.video else None)
+    
     def __str__(self):
         return f"{self.portfolio.title} - Video {self.video.title or self.video.file.name}"
 
@@ -106,6 +120,16 @@ class PortfolioAudio(BaseModel):
         related_name="portfolio_links",
         db_index=True
     )
+    cover_image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        related_name="portfolio_audio_covers",
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Cover Image",
+        help_text="کاور خاص برای این فایل صوتی در این نمونه‌کار. اگر تنظیم نشود، از کاور فایل صوتی استفاده می‌شود."
+    )
     order = models.PositiveIntegerField(default=0, db_index=True)
     autoplay = models.BooleanField(default=False)
     loop = models.BooleanField(default=False)
@@ -117,6 +141,10 @@ class PortfolioAudio(BaseModel):
         verbose_name_plural = "Portfolio Audios"
         indexes = [models.Index(fields=["portfolio", "order"])]
 
+    def get_cover_image(self):
+        """Get cover image: portfolio-specific or fallback to media default"""
+        return self.cover_image if self.cover_image else (self.audio.cover_image if self.audio else None)
+    
     def __str__(self):
         return f"{self.portfolio.title} - Audio {self.audio.title or self.audio.file.name}"
 
@@ -136,6 +164,16 @@ class PortfolioDocument(BaseModel):
         related_name="portfolio_links",
         db_index=True
     )
+    cover_image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        related_name="portfolio_document_covers",
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Cover Image",
+        help_text="کاور خاص برای این سند در این نمونه‌کار. اگر تنظیم نشود، از کاور سند استفاده می‌شود."
+    )
     order = models.PositiveIntegerField(default=0, db_index=True)
     title = models.CharField(max_length=255, blank=True, null=True)
 
@@ -146,5 +184,9 @@ class PortfolioDocument(BaseModel):
         verbose_name_plural = "Portfolio Documents"
         indexes = [models.Index(fields=["portfolio", "order"])]
 
+    def get_cover_image(self):
+        """Get cover image: portfolio-specific or fallback to media default"""
+        return self.cover_image if self.cover_image else (self.document.cover_image if self.document else None)
+    
     def __str__(self):
         return f"{self.portfolio.title} - Document {self.document.title or self.document.file.name}"

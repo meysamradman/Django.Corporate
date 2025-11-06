@@ -2,11 +2,11 @@ import json
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound, ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError
 from src.core.responses.response import APIResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
-from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.utils import timezone
 from django.conf import settings
@@ -33,6 +33,7 @@ from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.authorization.admin_permission import ContentManagerAccess
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
+from src.portfolio.utils.cache import PortfolioCacheManager
 
 
 class PortfolioAdminViewSet(viewsets.ModelViewSet):
@@ -78,9 +79,16 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         try:
             instance = queryset.get(pk=pk)
         except Portfolio.DoesNotExist:
-            raise NotFound("Portfolio not found")
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
         serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_retrieved"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
 
     def list(self, request, *args, **kwargs):
         """Optimized list with better performance"""
@@ -94,7 +102,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_list_success"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     @staticmethod
     def _parse_bool(value):
@@ -165,7 +177,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
         total_media = len(media_ids) + len(media_files)
         if total_media > upload_max:
-            raise ValidationError({
+            raise DRFValidationError({
                 'non_field_errors': [
                     f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
                 ]
@@ -188,29 +200,42 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             # Refresh portfolio to get updated media relationships
             portfolio.refresh_from_db()
             # Clear cache to ensure fresh data
-            cache.delete(f"portfolio_main_image_{portfolio.id}")
+            PortfolioCacheManager.invalidate_portfolio(portfolio.id)
         
         # Return detailed response with refreshed data
         # Use for_detail queryset to get all relations properly
         portfolio = Portfolio.objects.for_detail().get(id=portfolio.id)
         detail_serializer = PortfolioAdminDetailSerializer(portfolio)
-        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_created"],
+            data=detail_serializer.data,
+            status_code=status.HTTP_201_CREATED
+        )
     
     def update(self, request, *args, **kwargs):
-        """Update portfolio with SEO handling"""
+        """Update portfolio with SEO handling and media sync"""
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        # Update the instance directly
-        for attr, value in serializer.validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+        # Use serializer.save() which will call the serializer's update method
+        # This ensures categories, tags, options, and media are properly handled
+        updated_instance = serializer.save()
         
-        # Return detailed response
-        detail_serializer = PortfolioAdminDetailSerializer(instance)
-        return Response(detail_serializer.data)
+        # Clear cache to ensure fresh data
+        PortfolioCacheManager.invalidate_portfolio(updated_instance.id)
+        
+        # Reload from database with all relations prefetched for proper serialization
+        updated_instance = Portfolio.objects.for_detail().get(pk=updated_instance.pk)
+        
+        # Return detailed response with fresh data
+        detail_serializer = PortfolioAdminDetailSerializer(updated_instance)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_updated"],
+            data=detail_serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     def destroy(self, request, *args, **kwargs):
         """Delete portfolio with media cleanup"""
@@ -220,11 +245,14 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         success = PortfolioAdminService.delete_portfolio(instance.id)
         
         if success:
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["portfolio_deleted"],
+                status_code=status.HTTP_200_OK
+            )
         else:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_delete_failed"]},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_delete_failed"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'])
@@ -233,35 +261,86 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         new_status = request.data.get('status')
         
         if not new_status:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_invalid_status"]},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_invalid_status"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        portfolio = PortfolioAdminStatusService.change_status(pk, new_status)
-        
-        if portfolio:
-            serializer = PortfolioAdminDetailSerializer(portfolio)
-            return Response(serializer.data)
-        else:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_not_found"]},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            portfolio = PortfolioAdminStatusService.change_status(pk, new_status)
+            
+            if portfolio:
+                serializer = PortfolioAdminDetailSerializer(portfolio)
+                return APIResponse.success(
+                    message=PORTFOLIO_SUCCESS["portfolio_status_changed"],
+                    data=serializer.data,
+                    status_code=status.HTTP_200_OK
+                )
+            else:
+                return APIResponse.error(
+                    message=PORTFOLIO_ERRORS["portfolio_invalid_status"],
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+        except Portfolio.DoesNotExist:
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
     
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
         """Publish portfolio with SEO validation"""
-        result = PortfolioAdminStatusService.publish_portfolio(pk)
+        try:
+            result = PortfolioAdminStatusService.publish_portfolio(pk)
+            
+            serializer = PortfolioAdminDetailSerializer(result['portfolio'])
+            
+            response_data = {
+                'portfolio': serializer.data,
+                'seo_warnings': result['seo_warnings']
+            }
+            
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["portfolio_published"],
+                data=response_data,
+                status_code=status.HTTP_200_OK
+            )
+        except Portfolio.DoesNotExist:
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+    
+    @action(detail=False, methods=['post'], url_path='bulk-delete')
+    def bulk_delete(self, request):
+        """Bulk delete multiple portfolios"""
+        portfolio_ids = request.data.get('ids', [])
         
-        serializer = PortfolioAdminDetailSerializer(result['portfolio'])
+        if not portfolio_ids:
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         
-        response_data = {
-            'portfolio': serializer.data,
-            'seo_warnings': result['seo_warnings']
-        }
-        
-        return Response(response_data)
+        try:
+            deleted_count = PortfolioAdminService.bulk_delete_portfolios(portfolio_ids)
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["portfolio_bulk_deleted"],
+                data={'deleted_count': deleted_count},
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            error_msg = str(e)
+            if "not found" in error_msg.lower():
+                message = PORTFOLIO_ERRORS["portfolio_not_found"]
+            elif "required" in error_msg.lower():
+                message = PORTFOLIO_ERRORS["portfolio_ids_required"]
+            else:
+                message = PORTFOLIO_ERRORS["portfolio_delete_failed"]
+            return APIResponse.error(
+                message=message,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     @action(detail=False, methods=['post'])
     def bulk_update_status(self, request):
@@ -270,19 +349,23 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         new_status = request.data.get('status')
         
         if not portfolio_ids or not new_status:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_invalid_status"]},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_invalid_status"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         success = PortfolioAdminService.bulk_update_status(portfolio_ids, new_status)
         
         if success:
-            return Response({"detail": f"Updated {len(portfolio_ids)} portfolios to {new_status}."})
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["portfolio_bulk_status_updated"],
+                data={'updated_count': len(portfolio_ids), 'new_status': new_status},
+                status_code=status.HTTP_200_OK
+            )
         else:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_invalid_status"]},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_invalid_status"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['post'])
@@ -291,9 +374,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         portfolio_ids = request.data.get('portfolio_ids', [])
         
         if not portfolio_ids:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_not_found"]},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         updated_count = 0
@@ -304,7 +387,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             except Exception:
                 continue
         
-        return Response({"detail": f"Generated SEO for {updated_count} portfolios."})
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_bulk_seo_generated"],
+            data={'generated_count': updated_count, 'total_count': len(portfolio_ids)},
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['post'])
     def generate_seo(self, request, pk=None):
@@ -312,14 +399,22 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         portfolio = PortfolioAdminSEOService.auto_generate_seo(pk)
         
         serializer = PortfolioAdminDetailSerializer(portfolio)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_seo_generated"],
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['get'])
     def validate_seo(self, request, pk=None):
         """Validate SEO data and get suggestions"""
         validation_result = PortfolioAdminSEOService.validate_seo_data(pk)
         
-        return Response(validation_result)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_seo_validated"],
+            data=validation_result,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
@@ -330,7 +425,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         
         media_ids = serializer.validated_data.get('media_ids', [])
         if not media_ids and not media_files:
-            raise ValidationError({
+            raise DRFValidationError({
                 'non_field_errors': ['At least one of media_ids or media_files must be provided.']
             })
         
@@ -338,7 +433,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
         total_media = len(media_ids) + len(media_files)
         if total_media > upload_max:
-            raise ValidationError({
+            raise DRFValidationError({
                 'non_field_errors': [
                     f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
                 ]
@@ -350,7 +445,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             media_ids=media_ids,
             created_by=request.user
         )
-        return Response(result)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_media_added"],
+            data=result,
+            status_code=status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
@@ -358,9 +457,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         media_id = request.data.get('media_id')
         
         if not media_id:
-            return Response(
-                {"detail": PORTFOLIO_ERRORS["portfolio_not_found"]},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["media_id_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
@@ -379,11 +478,14 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 # For now, let's just call the service method
                 portfolio_media = PortfolioAdminService.set_main_image(pk, media_id)
             
-            return Response({"detail": PORTFOLIO_SUCCESS["portfolio_updated"]})
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["portfolio_main_image_set"],
+                status_code=status.HTTP_200_OK
+            )
         except Exception as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=False, methods=['get'])
@@ -391,7 +493,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         """Get comprehensive SEO report"""
         report = PortfolioAdminService.get_seo_report()
         
-        return Response(report)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_seo_report_retrieved"],
+            data=report,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['get'])
     def statistics(self, request, *args, **kwargs):
@@ -412,7 +518,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         
         stats['recent_portfolios'] = recent_serializer.data
         
-        return Response(stats)
+        return APIResponse.success(
+            message=PORTFOLIO_SUCCESS["portfolio_statistics_retrieved"],
+            data=stats,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=True, methods=['post'])
     def add_category(self, request, pk=None):
@@ -421,24 +531,27 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         category_id = request.data.get('category_id')
         
         if not category_id:
-            return Response(
-                {"detail": "category_id is required"},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["category_id_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             category = PortfolioCategory.objects.get(id=category_id)
             portfolio.categories.add(category)
-            return Response({"detail": "Category added successfully"})
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["category_added"],
+                status_code=status.HTTP_200_OK
+            )
         except PortfolioCategory.DoesNotExist:
-            return Response(
-                {"detail": "Category not found"},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'])
@@ -448,24 +561,27 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         category_id = request.data.get('category_id')
         
         if not category_id:
-            return Response(
-                {"detail": "category_id is required"},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["category_id_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             category = PortfolioCategory.objects.get(id=category_id)
             portfolio.categories.remove(category)
-            return Response({"detail": "Category removed successfully"})
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["category_removed"],
+                status_code=status.HTTP_200_OK
+            )
         except PortfolioCategory.DoesNotExist:
-            return Response(
-                {"detail": "Category not found"},
-                status=status.HTTP_404_NOT_FOUND
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'])
@@ -475,19 +591,23 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         tag_ids = request.data.get('tag_ids', [])
         
         if not tag_ids:
-            return Response(
-                {"detail": "tag_ids is required"},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["tag_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             tags = PortfolioTag.objects.filter(id__in=tag_ids)
             portfolio.tags.add(*tags)
-            return Response({"detail": f"Added {tags.count()} tags successfully"})
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["tags_added"],
+                data={'added_count': tags.count()},
+                status_code=status.HTTP_200_OK
+            )
         except Exception as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'])
@@ -497,19 +617,23 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         tag_ids = request.data.get('tag_ids', [])
         
         if not tag_ids:
-            return Response(
-                {"detail": "tag_ids is required"},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["tag_ids_required"],
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             tags = PortfolioTag.objects.filter(id__in=tag_ids)
             portfolio.tags.remove(*tags)
-            return Response({"detail": f"Removed {tags.count()} tags successfully"})
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["tags_removed"],
+                data={'removed_count': tags.count()},
+                status_code=status.HTTP_200_OK
+            )
         except Exception as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['get'], url_path='export-pdf')

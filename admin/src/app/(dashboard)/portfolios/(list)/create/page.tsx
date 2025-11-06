@@ -11,7 +11,6 @@ import {
   FileText, Edit2, Image, 
   Loader2, Save, Search
 } from "lucide-react";
-import { Media } from "@/types/shared/media";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { portfolioFormSchema, portfolioFormDefaults, PortfolioFormValues } from "@/core/validations/portfolioSchema";
@@ -19,15 +18,9 @@ import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 import { msg } from "@/core/messages/message";
 import { env } from "@/core/config/environment";
-
-// Add this interface for managing multiple media selections
-interface PortfolioMedia {
-  featuredImage: Media | null;
-  imageGallery: Media[];
-  videoGallery: Media[];
-  audioGallery: Media[];
-  pdfDocuments: Media[];
-}
+import { Portfolio } from "@/types/portfolio/portfolio";
+import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+import { collectMediaFilesAndIds } from "@/core/utils/portfolioMediaUtils";
 
 const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
@@ -55,56 +48,11 @@ export default function CreatePortfolioPage() {
 
   const createPortfolioMutation = useMutation({
     mutationFn: async (data: PortfolioFormValues & { status: "draft" | "published" }) => {
-      // Prepare media data first
-      const allMediaFiles: File[] = [];
-      const allMediaIds: number[] = [];
-      
-      // Collect media files and IDs
-      // Featured Image از form state
-      if (data.featuredImage?.id) {
-        allMediaIds.push(data.featuredImage.id);
-      }
-      
-      // سایر media ها از portfolioMedia
-      if (portfolioMedia.featuredImage && portfolioMedia.featuredImage.id !== data.featuredImage?.id) {
-        if ((portfolioMedia.featuredImage as any).file instanceof File) {
-          allMediaFiles.push((portfolioMedia.featuredImage as any).file);
-        } else if (portfolioMedia.featuredImage.id) {
-          allMediaIds.push(portfolioMedia.featuredImage.id);
-        }
-      }
-      
-      portfolioMedia.imageGallery.forEach(media => {
-        if ((media as any).file instanceof File) {
-          allMediaFiles.push((media as any).file);
-        } else if (media.id) {
-          allMediaIds.push(media.id);
-        }
-      });
-      
-      portfolioMedia.videoGallery.forEach(media => {
-        if ((media as any).file instanceof File) {
-          allMediaFiles.push((media as any).file);
-        } else if (media.id) {
-          allMediaIds.push(media.id);
-        }
-      });
-      
-      portfolioMedia.audioGallery.forEach(media => {
-        if ((media as any).file instanceof File) {
-          allMediaFiles.push((media as any).file);
-        } else if (media.id) {
-          allMediaIds.push(media.id);
-        }
-      });
-      
-      portfolioMedia.pdfDocuments.forEach(media => {
-        if ((media as any).file instanceof File) {
-          allMediaFiles.push((media as any).file);
-        } else if (media.id) {
-          allMediaIds.push(media.id);
-        }
-      });
+      // Collect media files and IDs using utility function
+      const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
+        portfolioMedia,
+        data.featuredImage
+      );
       
       // Validate upload limit from environment
       const uploadMax = env.PORTFOLIO_MEDIA_UPLOAD_MAX;
@@ -130,7 +78,7 @@ export default function CreatePortfolioPage() {
         og_image: data.og_image?.id || undefined,
         canonical_url: data.canonical_url || undefined,
         robots_meta: data.robots_meta || undefined,
-        categories_ids: data.selectedCategory ? [parseInt(data.selectedCategory)] : [],
+        categories_ids: data.selectedCategories ? data.selectedCategories.map((cat: any) => typeof cat === 'number' ? cat : cat.id) : [],
         tags_ids: data.selectedTags.map(tag => tag.id),
         options_ids: data.selectedOptions.map(option => option.id),
       };
@@ -176,7 +124,7 @@ export default function CreatePortfolioPage() {
           // Map کردن field names از Django به React Hook Form
           const fieldMap: Record<string, any> = {
             'title': 'name',
-            'categories_ids': 'selectedCategory',
+            'categories_ids': 'selectedCategories',
             'tags_ids': 'selectedTags',
           };
           

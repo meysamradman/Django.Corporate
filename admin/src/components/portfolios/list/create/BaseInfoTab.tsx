@@ -31,10 +31,11 @@ interface BaseInfoTabManualProps {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
     editMode: boolean;
-    selectedCategory: string;
+    selectedCategories: PortfolioCategory[];
     selectedTags: PortfolioTag[];
     selectedOptions: PortfolioOption[];
-    onCategoryChange: (value: string) => void;
+    onCategoryToggle: (category: PortfolioCategory) => void;
+    onCategoryRemove: (categoryId: number) => void;
     onTagToggle: (tag: PortfolioTag) => void;
     onTagRemove: (tagId: number) => void;
     onOptionToggle: (option: PortfolioOption) => void;
@@ -67,10 +68,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const formData = isFormApproach ? null : (props as any).formData;
     const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
     const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
-    const selectedCategory = isFormApproach ? undefined : (props as any).selectedCategory;
+    const selectedCategories = isFormApproach ? [] : (props as any).selectedCategories || [];
     const selectedTags = isFormApproach ? [] : (props as any).selectedTags || [];
     const selectedOptions = isFormApproach ? [] : (props as any).selectedOptions || [];
-    const onCategoryChange = isFormApproach ? null : (props as any).onCategoryChange;
+    const onCategoryToggle = isFormApproach ? null : (props as any).onCategoryToggle;
+    const onCategoryRemove = isFormApproach ? null : (props as any).onCategoryRemove;
     const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
     const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
     const onOptionToggle = isFormApproach ? null : (props as any).onOptionToggle;
@@ -81,7 +83,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const slugValue = isFormApproach ? watch?.("slug") : formData?.slug;
     const shortDescriptionValue = isFormApproach ? watch?.("short_description") : formData?.short_description;
     const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
-    const formSelectedCategory = isFormApproach ? watch?.("selectedCategory") : selectedCategory;
+    const formSelectedCategories = isFormApproach ? (watch?.("selectedCategories" as any) || []) : selectedCategories || [];
     const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : selectedTags || [];
     const formSelectedOptions = isFormApproach ? watch?.("selectedOptions") || [] : selectedOptions || [];
 
@@ -351,50 +353,91 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         <FolderOpen className="w-4 h-4 stroke-teal-600" />
                                     </div>
                                     <Label>
-                                        دسته‌بندی
+                                        دسته‌بندی‌ها
                                         <span className="text-destructive">*</span>
                                     </Label>
                                 </div>
-                                <div className="flex gap-4 w-full">
-                                    <div className="flex-1">
-                                        <Select 
-                                            disabled={!editMode || loadingCategories}
-                                            value={formSelectedCategory || ""}
-                                            onValueChange={(value) => {
-                                                if (isFormApproach) {
-                                                    setValue?.("selectedCategory", value);
-                                                } else {
-                                                    onCategoryChange?.(value);
-                                                }
-                                            }}
+                                <div className="space-y-2">
+                                    {/* Display selected categories */}
+                                    {formSelectedCategories.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {formSelectedCategories.map((category: PortfolioCategory) => (
+                                                <span 
+                                                    key={category.id} 
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-teal-100 text-teal-800"
+                                                >
+                                                    {category.name}
+                                                    <button 
+                                                        type="button" 
+                                                        className="text-teal-800 hover:text-teal-900"
+                                                        onClick={() => {
+                                                            if (isFormApproach) {
+                                                                const currentCategories = watch?.("selectedCategories" as any) || [];
+                                                                setValue?.("selectedCategories" as any, currentCategories.filter((c: PortfolioCategory) => c.id !== category.id));
+                                                            } else {
+                                                                onCategoryRemove?.(category.id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Category selection dropdown */}
+                                    <div className="flex gap-4 w-full">
+                                        <div className="flex-1">
+                                            <Select 
+                                                disabled={!editMode || loadingCategories}
+                                                onValueChange={(value) => {
+                                                    const category = categories.find(c => String(c.id) === value);
+                                                    if (category) {
+                                                        if (isFormApproach) {
+                                                            const currentCategories = watch?.("selectedCategories" as any) || [];
+                                                            if (!currentCategories.some((c: PortfolioCategory) => c.id === category.id)) {
+                                                                setValue?.("selectedCategories" as any, [...currentCategories, category]);
+                                                            }
+                                                        } else {
+                                                            onCategoryToggle?.(category);
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "دسته‌بندی‌ها را انتخاب کنید"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {categories
+                                                        .filter(category => !formSelectedCategories.some((selected: PortfolioCategory) => selected.id === category.id))
+                                                        .map((category) => (
+                                                            <SelectItem 
+                                                                key={category.id} 
+                                                                value={String(category.id)}
+                                                            >
+                                                                {category.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-600"
+                                            disabled={!editMode}
+                                            onClick={() => setShowCategoryDialog(true)}
                                         >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "دسته‌بندی را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {categories.map((category) => (
-                                                    <SelectItem key={category.id} value={String(category.id)}>
-                                                        {category.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                            <Plus />
+                                        </Button>
                                     </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-600"
-                                        disabled={!editMode}
-                                        onClick={() => setShowCategoryDialog(true)}
-                                    >
-                                        <Plus />
-                                    </Button>
                                 </div>
-                                {errors.selectedCategory?.message && (
+                                {errors.selectedCategories?.message && (
                                     <div className="flex items-start gap-2 text-destructive">
                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                        <span>{errors.selectedCategory?.message}</span>
+                                        <span>{errors.selectedCategories?.message}</span>
                                     </div>
                                 )}
                             </div>
@@ -579,9 +622,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 }}
                 onSuccess={(createdCategory) => {
                     if (isFormApproach) {
-                        setValue?.("selectedCategory", String(createdCategory.id));
+                        const currentCategories = watch?.("selectedCategories" as any) || [];
+                        setValue?.("selectedCategories" as any, [...currentCategories, createdCategory]);
                     } else {
-                        onCategoryChange?.(String(createdCategory.id));
+                        onCategoryToggle?.(createdCategory);
                     }
                 }}
                 refetchList={() => {

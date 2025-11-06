@@ -39,9 +39,9 @@ export const portfolioFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   
-  // ✅ ضروری: دسته‌بندی
-  selectedCategory: z
-    .string()
+  // ✅ ضروری: دسته‌بندی‌ها
+  selectedCategories: z
+    .array(z.any())
     .min(1, { message: msg.validation("portfolioCategoryRequired") }),
   
   // ❌ اختیاری: تگ‌ها
@@ -117,7 +117,7 @@ export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   slug: "",
   short_description: "",
   description: "",
-  selectedCategory: "",
+  selectedCategories: [],
   selectedTags: [],
   selectedOptions: [],
   featuredImage: null,

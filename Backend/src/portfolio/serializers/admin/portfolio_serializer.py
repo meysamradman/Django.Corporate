@@ -1,3 +1,4 @@
+import logging
 from rest_framework import serializers
 from django.core.cache import cache
 from django.conf import settings
@@ -6,7 +7,11 @@ from src.portfolio.models.media import PortfolioImage, PortfolioVideo, Portfolio
 from src.portfolio.serializers.admin.category_serializer import PortfolioCategorySimpleAdminSerializer
 from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
 from src.portfolio.serializers.admin.option_serializer import PortfolioOptionSimpleAdminSerializer
-from src.media.serializers.media_serializer import MediaAdminSerializer
+from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
+from src.portfolio.utils.cache import PortfolioCacheKeys
+from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
+
+logger = logging.getLogger(__name__)
 
 # Cache settings values for performance (module-level cache)
 _MEDIA_LIST_LIMIT = settings.PORTFOLIO_MEDIA_LIST_LIMIT
@@ -30,10 +35,13 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
             media_detail = MediaAdminSerializer(instance.image, context=self.context).data
         elif isinstance(instance, PortfolioVideo):
             media_detail = MediaAdminSerializer(instance.video, context=self.context).data
+            self._apply_portfolio_cover_image(instance, media_detail)
         elif isinstance(instance, PortfolioAudio):
             media_detail = MediaAdminSerializer(instance.audio, context=self.context).data
+            self._apply_portfolio_cover_image(instance, media_detail)
         elif isinstance(instance, PortfolioDocument):
             media_detail = MediaAdminSerializer(instance.document, context=self.context).data
+            self._apply_portfolio_cover_image(instance, media_detail)
         else:
             return super().to_representation(instance)
         
@@ -53,6 +61,20 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
             result['is_main_image'] = instance.is_main
         
         return result
+    
+    def _apply_portfolio_cover_image(self, instance, media_detail):
+        """
+        Apply portfolio-specific cover image to media_detail
+        Priority: portfolio.cover_image > media.cover_image (fallback)
+        """
+        if instance.cover_image is not None:
+            media_detail['cover_image'] = MediaCoverSerializer(instance.cover_image, context=self.context).data
+            media_detail['cover_image_url'] = instance.cover_image.file.url if instance.cover_image.file else None
+        else:
+            portfolio_cover = instance.get_cover_image()
+            if portfolio_cover:
+                media_detail['cover_image'] = MediaCoverSerializer(portfolio_cover, context=self.context).data
+                media_detail['cover_image_url'] = portfolio_cover.file.url if portfolio_cover.file else None
 
 
 class PortfolioAdminListSerializer(serializers.ModelSerializer):
@@ -94,21 +116,30 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         
         # Prefetch cover_image URLs efficiently (optimized single pass)
         for item in videos:
-            if item.video and item.video.cover_image and item.video.cover_image.file:
-                try:
-                    _ = item.video.cover_image.file.url
-                except:
-                    pass
+            if item.video and hasattr(item.video, 'cover_image') and item.video.cover_image:
+                if hasattr(item.video.cover_image, 'file') and item.video.cover_image.file:
+                    try:
+                        _ = item.video.cover_image.file.url
+                    except:
+                        pass
         for item in audios:
-            if item.audio and item.audio.cover_image and item.audio.cover_image.file:
-                try:
-                    _ = item.audio.cover_image.file.url
-                except:
-                    pass
+            if item.audio and hasattr(item.audio, 'cover_image') and item.audio.cover_image:
+                if hasattr(item.audio.cover_image, 'file') and item.audio.cover_image.file:
+                    try:
+                        _ = item.audio.cover_image.file.url
+                    except:
+                        pass
         for item in documents:
-            if item.document and item.document.cover_image and item.document.cover_image.file:
+            if item.document and hasattr(item.document, 'cover_image') and item.document.cover_image:
+                if hasattr(item.document.cover_image, 'file') and item.document.cover_image.file:
+                    try:
+                        _ = item.document.cover_image.file.url
+                    except:
+                        pass
+            # Also ensure document file URL is loaded
+            if item.document and hasattr(item.document, 'file') and item.document.file:
                 try:
-                    _ = item.document.cover_image.file.url
+                    _ = item.document.file.url
                 except:
                     pass
         
@@ -157,7 +188,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'status', 'title', 'slug',
             'short_description', 'description',
-            'is_featured', 'is_public',
+            'is_featured', 'is_public', 'is_active',
             'main_image', 'categories', 'tags', 'options', 'media', 'portfolio_media',
             # SEO fields from SEOMixin
             'meta_title', 'meta_description', 'og_title', 'og_description',
@@ -177,50 +208,58 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         media_limit = _MEDIA_DETAIL_LIMIT
         
         # Build querysets with select_related for optimal performance
+        # Always fetch directly to ensure we get all documents
+        # The prefetch in for_detail() should handle this, but we fetch directly to be sure
+        documents_qs = obj.documents.select_related('document', 'document__cover_image', 'cover_image').all()
         images_qs = obj.images.select_related('image').all()
-        videos_qs = obj.videos.select_related('video', 'video__cover_image').all()
-        audios_qs = obj.audios.select_related('audio', 'audio__cover_image').all()
-        documents_qs = obj.documents.select_related('document', 'document__cover_image').all()
+        videos_qs = obj.videos.select_related('video', 'video__cover_image', 'cover_image').all()
+        audios_qs = obj.audios.select_related('audio', 'audio__cover_image', 'cover_image').all()
         
         # Apply limit at DB level if set (0 = unlimited)
         if media_limit > 0:
-            images = list(images_qs[:media_limit])
-            videos = list(videos_qs[:media_limit])
-            audios = list(audios_qs[:media_limit])
-            documents = list(documents_qs[:media_limit])
+            images = list(images_qs[:media_limit]) if not isinstance(images_qs, list) else images_qs[:media_limit]
+            videos = list(videos_qs[:media_limit]) if not isinstance(videos_qs, list) else videos_qs[:media_limit]
+            audios = list(audios_qs[:media_limit]) if not isinstance(audios_qs, list) else audios_qs[:media_limit]
+            documents = list(documents_qs[:media_limit]) if not isinstance(documents_qs, list) else documents_qs[:media_limit]
         else:
-            images = list(images_qs)
-            videos = list(videos_qs)
-            audios = list(audios_qs)
-            documents = list(documents_qs)
+            images = list(images_qs) if not isinstance(images_qs, list) else images_qs
+            videos = list(videos_qs) if not isinstance(videos_qs, list) else videos_qs
+            audios = list(audios_qs) if not isinstance(audios_qs, list) else audios_qs
+            documents = list(documents_qs) if not isinstance(documents_qs, list) else documents_qs
         
-        # Prefetch cover_image URLs efficiently (optimized direct access)
-        for item in videos:
-            if item.video and item.video.cover_image and item.video.cover_image.file:
-                try:
-                    _ = item.video.cover_image.file.url
-                except:
-                    pass
-        for item in audios:
-            if item.audio and item.audio.cover_image and item.audio.cover_image.file:
-                try:
-                    _ = item.audio.cover_image.file.url
-                except:
-                    pass
-        for item in documents:
-            if item.document and item.document.cover_image and item.document.cover_image.file:
-                try:
-                    _ = item.document.cover_image.file.url
-                except:
-                    pass
+        # Prefetch cover_image URLs efficiently
+        self._prefetch_cover_image_urls(videos, 'video')
+        self._prefetch_cover_image_urls(audios, 'audio')
+        self._prefetch_cover_image_urls(documents, 'document')
         
-        # Combine and sort (single pass)
+        # Combine and sort
         all_media = images + videos + audios + documents
         all_media.sort(key=lambda x: (x.order, x.created_at))
         
-        # Serialize with cached serializer
+        # Serialize
         serializer = PortfolioMediaAdminSerializer(context=self.context)
         return [serializer.to_representation(media) for media in all_media]
+    
+    def _prefetch_cover_image_urls(self, items, media_type):
+        """
+        Prefetch cover_image URLs to avoid N+1 queries
+        """
+        for item in items:
+            media_obj = getattr(item, media_type, None)
+            if media_obj and hasattr(media_obj, 'cover_image') and media_obj.cover_image:
+                if hasattr(media_obj.cover_image, 'file') and media_obj.cover_image.file:
+                    try:
+                        _ = media_obj.cover_image.file.url
+                    except Exception:
+                        pass
+            
+            # For documents, also prefetch file URL
+            if media_type == 'document' and hasattr(item, 'document') and item.document:
+                if hasattr(item.document, 'file') and item.document.file:
+                    try:
+                        _ = item.document.file.url
+                    except Exception:
+                        pass
     
     def get_portfolio_media(self, obj):
         """Alias for media field - frontend compatibility"""
@@ -229,7 +268,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     def get_seo_data(self, obj):
         """Get comprehensive SEO data using SEOMixin methods with caching"""
         # Try to get from cache first
-        cache_key = f"portfolio_seo_data_{obj.pk}"
+        cache_key = PortfolioCacheKeys.seo_data(obj.pk)
         cached_data = cache.get(cache_key)
         if cached_data:
             return cached_data
@@ -250,7 +289,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     def get_seo_preview(self, obj):
         """SEO preview for admin panel (Google + Facebook) with caching"""
         # Try to get from cache first
-        cache_key = f"portfolio_seo_preview_{obj.pk}"
+        cache_key = PortfolioCacheKeys.seo_preview(obj.pk)
         cached_preview = cache.get(cache_key)
         if cached_preview:
             return cached_preview
@@ -276,7 +315,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     def get_seo_completeness(self, obj):
         """Calculate SEO completeness percentage with caching"""
         # Try to get from cache first
-        cache_key = f"portfolio_seo_completeness_{obj.pk}"
+        cache_key = PortfolioCacheKeys.seo_completeness(obj.pk)
         cached_completeness = cache.get(cache_key)
         if cached_completeness:
             return cached_completeness
@@ -373,7 +412,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
 
 
 class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating portfolios with SEO handling"""
+    """Serializer for updating portfolios with SEO handling and media sync"""
     categories_ids = serializers.ListField(
         child=serializers.IntegerField(), 
         write_only=True, 
@@ -389,23 +428,45 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         write_only=True, 
         required=False
     )
+    media_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+        help_text="List of media IDs to sync with portfolio (removes deleted, adds new)"
+    )
+    main_image_id = serializers.IntegerField(
+        write_only=True,
+        required=False,
+        allow_null=True,
+        help_text="ID of media to set as main image"
+    )
+    media_covers = serializers.DictField(
+        child=serializers.IntegerField(allow_null=True),
+        write_only=True,
+        required=False,
+        help_text="Mapping of media_id to cover_image_id for portfolio-specific covers. Format: {media_id: cover_image_id}"
+    )
     
     class Meta:
         model = Portfolio
         fields = [
             'title', 'slug', 'short_description', 'description',
-            'status', 'is_featured', 'is_public',
+            'status', 'is_featured', 'is_public', 'is_active',
             # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             # Relations
-            'categories_ids', 'tags_ids', 'options_ids'
+            'categories_ids', 'tags_ids', 'options_ids', 'media_ids', 'main_image_id', 'media_covers'
         ]
     
     def update(self, instance, validated_data):
         categories_ids = validated_data.pop('categories_ids', None)
         tags_ids = validated_data.pop('tags_ids', None)
         options_ids = validated_data.pop('options_ids', None)
+        media_ids = validated_data.pop('media_ids', None)
+        main_image_id = validated_data.pop('main_image_id', None)
+        media_covers = validated_data.pop('media_covers', None)
         
         # Auto-generate SEO fields if not provided
         if not validated_data.get('meta_title') and validated_data.get('title'):
@@ -427,6 +488,15 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             instance.tags.set(tags_ids)
         if options_ids is not None:
             instance.options.set(options_ids)
+        
+        # Sync media (remove deleted, add new, update main image and covers)
+        if media_ids is not None:
+            PortfolioAdminMediaService.sync_media(
+                portfolio_id=instance.id,
+                media_ids=media_ids,
+                main_image_id=main_image_id,
+                media_covers=media_covers
+            )
             
         return instance
 

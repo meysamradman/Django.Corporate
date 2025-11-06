@@ -351,5 +351,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'src.portfolio.serializers.admin.portfolio_serializer': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }

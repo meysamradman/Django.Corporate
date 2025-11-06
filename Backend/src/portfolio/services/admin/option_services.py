@@ -1,7 +1,8 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from src.portfolio.models.option import PortfolioOption
+from src.portfolio.utils.cache import OptionCacheKeys, OptionCacheManager
 
 
 class PortfolioOptionAdminService:
@@ -31,7 +32,7 @@ class PortfolioOptionAdminService:
     @staticmethod
     def get_option_by_id(option_id):
         """Get option by ID with caching"""
-        cache_key = f"portfolio_option_{option_id}"
+        cache_key = OptionCacheKeys.option(option_id)
         option = cache.get(cache_key)
         
         if option is None:
@@ -39,7 +40,7 @@ class PortfolioOptionAdminService:
                 option = PortfolioOption.objects.annotate(
                     portfolio_count=Count('portfolio_options')
                 ).get(id=option_id)
-                cache.set(cache_key, option, 3600)  # 1 hour cache
+                cache.set(cache_key, option, 3600)
             except PortfolioOption.DoesNotExist:
                 return None
         
@@ -57,26 +58,21 @@ class PortfolioOptionAdminService:
             ).first()
             
             if existing:
-                return {
-                    'success': False,
-                    'error': f'Option with name "{name}" already exists.',
-                    'existing_option': existing
-                }
+                raise ValidationError(f"Option with name '{name}' already exists")
         
         option = PortfolioOption.objects.create(**validated_data)
         
-        # Clear related caches
-        cache.delete('popular_options')
+        OptionCacheManager.invalidate_all()
         
-        return {
-            'success': True,
-            'option': option
-        }
+        return option
 
     @staticmethod
     def update_option_by_id(option_id, validated_data):
         """Update option with validation and cache clearing"""
-        option = get_object_or_404(PortfolioOption, id=option_id)
+        try:
+            option = PortfolioOption.objects.get(id=option_id)
+        except PortfolioOption.DoesNotExist:
+            raise PortfolioOption.DoesNotExist("Option not found")
         
         # Check for duplicate names (excluding current option)
         name = validated_data.get('name')
@@ -87,46 +83,33 @@ class PortfolioOptionAdminService:
             ).exclude(id=option_id).first()
             
             if existing:
-                return {
-                    'success': False,
-                    'error': f'Option with name "{name}" already exists.',
-                    'existing_option': existing
-                }
+                raise ValidationError(f"Option with name '{name}' already exists")
         
         for field, value in validated_data.items():
             setattr(option, field, value)
         
         option.save()
         
-        # Clear caches
-        cache.delete(f'portfolio_option_{option_id}')
-        cache.delete('popular_options')
+        OptionCacheManager.invalidate_option(option_id)
         
-        return {
-            'success': True,
-            'option': option
-        }
+        return option
 
     @staticmethod
     def delete_option_by_id(option_id):
         """Delete option with safety checks"""
-        option = get_object_or_404(PortfolioOption, id=option_id)
+        try:
+            option = PortfolioOption.objects.get(id=option_id)
+        except PortfolioOption.DoesNotExist:
+            raise PortfolioOption.DoesNotExist("Option not found")
         
         # Check if option is used
         portfolio_count = option.portfolio_options.count()
         if portfolio_count > 0:
-            return {
-                'success': False,
-                'error': f'Cannot delete option. It is used by {portfolio_count} portfolios.'
-            }
+            raise ValidationError(f"Option is used by {portfolio_count} portfolios")
         
         option.delete()
         
-        # Clear caches
-        cache.delete(f'portfolio_option_{option_id}')
-        cache.delete('popular_options')
-        
-        return {'success': True}
+        OptionCacheManager.invalidate_option(option_id)
     
     @staticmethod
     def bulk_delete_options(option_ids):
@@ -139,23 +122,14 @@ class PortfolioOptionAdminService:
         
         if used_options:
             used_names = [f'{name}' for _, name in used_options]
-            return {
-                'success': False,
-                'error': f'Cannot delete options that are in use: {", ".join(used_names)}'
-            }
+            raise ValidationError(f"Cannot delete options that are in use: {', '.join(used_names)}")
         
         # Delete unused options
         deleted_count = PortfolioOption.objects.filter(id__in=option_ids).delete()[0]
         
-        # Clear caches
-        for option_id in option_ids:
-            cache.delete(f'portfolio_option_{option_id}')
-        cache.delete('popular_options')
+        OptionCacheManager.invalidate_options(option_ids)
         
-        return {
-            'success': True,
-            'deleted_count': deleted_count
-        }
+        return deleted_count
     
     @staticmethod
     def get_options_by_key(key):
@@ -167,7 +141,7 @@ class PortfolioOptionAdminService:
     @staticmethod
     def get_popular_options(limit=10):
         """Get most used options with caching"""
-        cache_key = 'popular_options'
+        cache_key = OptionCacheKeys.popular()
         options = cache.get(cache_key)
         
         if options is None:
@@ -178,7 +152,7 @@ class PortfolioOptionAdminService:
             ).order_by('-usage_count')[:limit].values(
                 'id', 'name', 'usage_count'
             ))
-            cache.set(cache_key, options, 3600)  # 1 hour cache
+            cache.set(cache_key, options, 3600)
         
         return options
     

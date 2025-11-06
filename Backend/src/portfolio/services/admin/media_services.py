@@ -1,8 +1,10 @@
 import logging
+from django.db import transaction
 from django.db.models import Max, Q
-from django.shortcuts import get_object_or_404
+from django.core.cache import cache
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
+from src.portfolio.utils.cache import PortfolioCacheManager
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.media.services.media_services import MediaAdminService
 
@@ -54,11 +56,12 @@ class PortfolioAdminMediaService:
         media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
         
         # Get all media types in optimized queries (4 queries total instead of 4*N)
-        # Use only() for specific fields if you know what you need, or fetch all for flexibility
-        image_medias = list(ImageMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text'))
-        video_medias = list(VideoMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text', 'cover_image'))
-        audio_medias = list(AudioMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text', 'cover_image'))
-        document_medias = list(DocumentMedia.objects.filter(id__in=media_ids_list).only('id', 'file', 'title', 'alt_text', 'cover_image'))
+        # Fetch all fields for complete serialization (media_type, mime_type, file_size, etc.)
+        # Note: ImageMedia doesn't have cover_image field, only VideoMedia, AudioMedia, and DocumentMedia have it
+        image_medias = list(ImageMedia.objects.filter(id__in=media_ids_list))
+        video_medias = list(VideoMedia.objects.filter(id__in=media_ids_list).select_related('cover_image'))
+        audio_medias = list(AudioMedia.objects.filter(id__in=media_ids_list).select_related('cover_image'))
+        document_medias = list(DocumentMedia.objects.filter(id__in=media_ids_list).select_related('cover_image'))
         
         return image_medias, video_medias, audio_medias, document_medias
 
@@ -111,7 +114,10 @@ class PortfolioAdminMediaService:
         Add media to portfolio in bulk with optimized queries
         This replaces the original add_media_to_portfolio method
         """
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
         media_files = media_files or []
         media_ids = media_ids or []
         
@@ -383,3 +389,232 @@ class PortfolioAdminMediaService:
             'failed_ids': failed_ids,
             'failed_files': failed_files
         }
+    
+    @staticmethod
+    def sync_media(portfolio_id, media_ids, main_image_id=None, media_covers=None):
+        """
+        Sync portfolio media - remove deleted, add new, update main image and covers
+        Optimized with bulk operations and minimal queries
+        media_covers: dict mapping media_id to cover_image_id {media_id: cover_image_id}
+        """
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
+        
+        # Handle empty list - if media_ids is explicitly [] (empty array), sync should still run
+        # If media_ids is None, don't sync (meaning no change)
+        if media_ids is None:
+            return {
+                'removed_count': 0,
+                'added_count': 0,
+                'total_count': 0
+            }
+        
+        # Convert to set for efficient operations
+        media_ids = media_ids if isinstance(media_ids, (list, tuple)) else []
+        media_ids_set = set(media_ids)
+        
+        # Get all current media IDs from database in optimized queries
+        current_image_ids = set(
+            PortfolioImage.objects.filter(portfolio_id=portfolio_id).values_list('image_id', flat=True)
+        )
+        current_video_ids = set(
+            PortfolioVideo.objects.filter(portfolio_id=portfolio_id).values_list('video_id', flat=True)
+        )
+        current_audio_ids = set(
+            PortfolioAudio.objects.filter(portfolio_id=portfolio_id).values_list('audio_id', flat=True)
+        )
+        current_document_ids = set(
+            PortfolioDocument.objects.filter(portfolio_id=portfolio_id).values_list('document_id', flat=True)
+        )
+        
+        # Combine all current media IDs
+        all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
+        
+        # Find media to remove (in DB but not in new list)
+        media_to_remove = all_current_ids - media_ids_set
+        
+        # Find media to add (in new list but not in DB)
+        media_to_add = media_ids_set - all_current_ids
+        
+        with transaction.atomic():
+            # Check if current main image is being removed
+            current_main_image_id = None
+            if current_image_ids:
+                main_image_obj = PortfolioImage.objects.filter(
+                    portfolio_id=portfolio_id,
+                    is_main=True
+                ).first()
+                if main_image_obj:
+                    current_main_image_id = main_image_obj.image_id
+            
+            # Remove deleted media in optimized bulk operations
+            if media_to_remove:
+                # Remove images
+                image_ids_to_remove = media_to_remove & current_image_ids
+                if image_ids_to_remove:
+                    # If main image is being removed, we'll set a new one later
+                    if current_main_image_id and current_main_image_id in image_ids_to_remove:
+                        PortfolioImage.objects.filter(
+                            portfolio_id=portfolio_id,
+                            is_main=True
+                        ).update(is_main=False)
+                        current_main_image_id = None
+                    
+                    PortfolioImage.objects.filter(
+                        portfolio_id=portfolio_id,
+                        image_id__in=image_ids_to_remove
+                    ).delete()
+                
+                # Remove videos
+                video_ids_to_remove = media_to_remove & current_video_ids
+                if video_ids_to_remove:
+                    PortfolioVideo.objects.filter(
+                        portfolio_id=portfolio_id,
+                        video_id__in=video_ids_to_remove
+                    ).delete()
+                
+                # Remove audios
+                audio_ids_to_remove = media_to_remove & current_audio_ids
+                if audio_ids_to_remove:
+                    PortfolioAudio.objects.filter(
+                        portfolio_id=portfolio_id,
+                        audio_id__in=audio_ids_to_remove
+                    ).delete()
+                
+                # Remove documents
+                document_ids_to_remove = media_to_remove & current_document_ids
+                if document_ids_to_remove:
+                    PortfolioDocument.objects.filter(
+                        portfolio_id=portfolio_id,
+                        document_id__in=document_ids_to_remove
+                    ).delete()
+                
+                logger.info(f"Removed {len(media_to_remove)} media items from portfolio {portfolio_id}")
+            
+            # Update main image first if specified (before adding new media)
+            if main_image_id is not None:
+                # Remove current main image flag
+                PortfolioImage.objects.filter(
+                    portfolio_id=portfolio_id,
+                    is_main=True
+                ).update(is_main=False)
+                
+                # Check if main_image_id is an existing image
+                portfolio_image = PortfolioImage.objects.filter(
+                    portfolio_id=portfolio_id,
+                    image_id=main_image_id
+                ).first()
+                
+                if portfolio_image:
+                    portfolio_image.is_main = True
+                    portfolio_image.save(update_fields=['is_main'])
+                    
+                    # Update OG image if not set
+                    portfolio.refresh_from_db()
+                    if not portfolio.og_image:
+                        portfolio.og_image = portfolio_image.image
+                        portfolio.save(update_fields=['og_image'])
+            
+            # Add new media
+            if media_to_add:
+                PortfolioAdminMediaService.add_media_bulk(
+                    portfolio_id=portfolio_id,
+                    media_ids=list(media_to_add)
+                )
+                
+                # If main_image_id was in media_to_add, set it now
+                if main_image_id is not None and main_image_id in media_to_add:
+                    portfolio_image = PortfolioImage.objects.filter(
+                        portfolio_id=portfolio_id,
+                        image_id=main_image_id
+                    ).first()
+                    
+                    if portfolio_image:
+                        PortfolioImage.objects.filter(
+                            portfolio_id=portfolio_id,
+                            is_main=True
+                        ).exclude(image_id=main_image_id).update(is_main=False)
+                        
+                        portfolio_image.is_main = True
+                        portfolio_image.save(update_fields=['is_main'])
+                        
+                        portfolio.refresh_from_db()
+                        if not portfolio.og_image:
+                            portfolio.og_image = portfolio_image.image
+                            portfolio.save(update_fields=['og_image'])
+            
+            # Update cover images for portfolio media (portfolio-specific covers)
+            if media_covers:
+                PortfolioAdminMediaService._update_portfolio_media_covers(
+                    portfolio_id=portfolio_id,
+                    media_covers=media_covers,
+                    all_current_ids=all_current_ids,
+                    current_video_ids=current_video_ids,
+                    current_audio_ids=current_audio_ids,
+                    current_document_ids=current_document_ids
+                )
+            
+            # Clear cache
+            PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+        
+        return {
+            'removed_count': len(media_to_remove),
+            'added_count': len(media_to_add),
+            'total_count': len(media_ids_set)
+        }
+    
+    @staticmethod
+    def _update_portfolio_media_covers(portfolio_id, media_covers, all_current_ids, 
+                                       current_video_ids, current_audio_ids, current_document_ids):
+        """
+        Update cover images for portfolio media (portfolio-specific covers)
+        Optimized helper method to avoid code duplication
+        """
+        for media_id_str, cover_image_id in media_covers.items():
+            # Convert key to int (DictField may serialize keys as strings)
+            try:
+                media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid media_id in media_covers: {media_id_str}")
+                continue
+            
+            # Check if media_id exists in current portfolio media
+            if media_id not in all_current_ids:
+                continue
+            
+            # Determine media type and update cover
+            if media_id in current_video_ids:
+                PortfolioAdminMediaService._update_media_cover(
+                    PortfolioVideo, 'video', portfolio_id, media_id, cover_image_id, video_id=media_id
+                )
+            elif media_id in current_audio_ids:
+                PortfolioAdminMediaService._update_media_cover(
+                    PortfolioAudio, 'audio', portfolio_id, media_id, cover_image_id, audio_id=media_id
+                )
+            elif media_id in current_document_ids:
+                PortfolioAdminMediaService._update_media_cover(
+                    PortfolioDocument, 'document', portfolio_id, media_id, cover_image_id, document_id=media_id
+                )
+    
+    @staticmethod
+    def _update_media_cover(model_class, media_type, portfolio_id, media_id, cover_image_id, **filter_kwargs):
+        """
+        Helper method to update cover image for a portfolio media item
+        """
+        try:
+            portfolio_media = model_class.objects.filter(
+                portfolio_id=portfolio_id,
+                **filter_kwargs
+            ).first()
+            
+            if portfolio_media:
+                if cover_image_id:
+                    cover_image = ImageMedia.objects.filter(id=cover_image_id).first()
+                    portfolio_media.cover_image = cover_image if cover_image else None
+                else:
+                    portfolio_media.cover_image = None
+                portfolio_media.save(update_fields=['cover_image'])
+        except Exception as e:
+            logger.error(f"Error updating cover for {media_type} {media_id} in portfolio {portfolio_id}: {e}")

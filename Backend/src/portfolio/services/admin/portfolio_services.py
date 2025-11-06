@@ -1,9 +1,10 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch, Count, Q
 from django.core.paginator import Paginator
 from django.core.cache import cache
+from django.db import transaction
 from django.utils import timezone
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.utils.cache import PortfolioCacheManager
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
@@ -162,7 +163,10 @@ class PortfolioAdminService:
     @staticmethod
     def set_main_image(portfolio_id, media_id):
         """Set main image for portfolio"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
         
         # Remove current main image
         PortfolioImage.objects.filter(
@@ -171,11 +175,13 @@ class PortfolioAdminService:
         ).update(is_main=False)
         
         # Set new main image
-        portfolio_image = get_object_or_404(
-            PortfolioImage,
-            portfolio=portfolio,
-            image_id=media_id
-        )
+        try:
+            portfolio_image = PortfolioImage.objects.get(
+                portfolio=portfolio,
+                image_id=media_id
+            )
+        except PortfolioImage.DoesNotExist:
+            raise PortfolioImage.DoesNotExist("Portfolio image not found")
         portfolio_image.is_main = True
         portfolio_image.save()
         
@@ -221,8 +227,9 @@ class PortfolioAdminService:
     @staticmethod
     def get_seo_report():
         """Get comprehensive SEO report with caching"""
+        from src.portfolio.utils.cache import PortfolioCacheKeys
         # Try to get from cache first
-        cache_key = "portfolio_seo_report"
+        cache_key = PortfolioCacheKeys.seo_report()
         cached_report = cache.get(cache_key)
         if cached_report:
             return cached_report
@@ -280,7 +287,10 @@ class PortfolioAdminService:
     @staticmethod
     def delete_portfolio(portfolio_id):
         """Delete portfolio and handle media cleanup"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
         
         # Get associated media files for potential cleanup
         portfolio_medias = PortfolioImage.objects.filter(portfolio=portfolio)
@@ -293,6 +303,28 @@ class PortfolioAdminService:
         # This should be handled separately if needed
         
         return True
+    
+    @staticmethod
+    def bulk_delete_portfolios(portfolio_ids):
+        """Bulk delete multiple portfolios with optimized query"""
+        from django.core.exceptions import ValidationError
+        
+        if not portfolio_ids:
+            raise ValidationError("Portfolio IDs required")
+        
+        portfolios = Portfolio.objects.filter(id__in=portfolio_ids)
+        
+        if not portfolios.exists():
+            raise ValidationError("Selected portfolios not found")
+        
+        with transaction.atomic():
+            deleted_count = portfolios.count()
+            portfolios.delete()
+            
+            # Clear cache if needed
+            PortfolioCacheManager.invalidate_portfolios(portfolio_ids)
+        
+        return deleted_count
 
 
 class PortfolioAdminStatusService:
@@ -301,7 +333,10 @@ class PortfolioAdminStatusService:
     @staticmethod
     def change_status(portfolio_id, new_status):
         """Change portfolio status with validation"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
 
         if new_status not in dict(Portfolio.STATUS_CHOICES):
             return None
@@ -313,7 +348,10 @@ class PortfolioAdminStatusService:
     @staticmethod
     def publish_portfolio(portfolio_id):
         """Publish portfolio with SEO validation"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
         
         # Check if SEO is complete for publishing
         seo_warnings = []
@@ -339,7 +377,10 @@ class PortfolioAdminSEOService:
     @staticmethod
     def auto_generate_seo(portfolio_id):
         """Auto-generate SEO data for portfolio"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
         
         updates = {}
         
@@ -380,7 +421,10 @@ class PortfolioAdminSEOService:
     @staticmethod
     def validate_seo_data(portfolio_id):
         """Validate SEO data and return suggestions"""
-        portfolio = get_object_or_404(Portfolio, id=portfolio_id)
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
         
         suggestions = []
         

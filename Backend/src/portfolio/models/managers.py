@@ -65,7 +65,7 @@ class PortfolioQuerySet(models.QuerySet):
     
     def for_detail(self):
         """Optimized for detail pages with all relations"""
-        from src.portfolio.models.media import PortfolioImage
+        from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags', 
@@ -76,10 +76,22 @@ class PortfolioQuerySet(models.QuerySet):
                 to_attr='all_images'
             ),
             'images__image',
+            Prefetch(
+                'videos',
+                queryset=PortfolioVideo.objects.select_related('video', 'video__cover_image', 'cover_image').order_by('order', 'created_at')
+            ),
             'videos__video',
             'videos__video__cover_image',
+            Prefetch(
+                'audios',
+                queryset=PortfolioAudio.objects.select_related('audio', 'audio__cover_image', 'cover_image').order_by('order', 'created_at')
+            ),
             'audios__audio',
             'audios__audio__cover_image',
+            Prefetch(
+                'documents',
+                queryset=PortfolioDocument.objects.select_related('document', 'document__cover_image', 'cover_image').order_by('order', 'created_at')
+            ),
             'documents__document',
             'documents__document__cover_image'
         )

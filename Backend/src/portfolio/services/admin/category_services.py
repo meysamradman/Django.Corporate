@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 
 from src.portfolio.models.category import PortfolioCategory
+from src.portfolio.utils.cache import CategoryCacheKeys, CategoryCacheManager
 
 
 class PortfolioCategoryAdminService:
@@ -27,7 +28,7 @@ class PortfolioCategoryAdminService:
     @staticmethod
     def get_root_categories():
         """Get root categories with portfolio counts"""
-        cache_key = 'portfolio_root_categories'
+        cache_key = CategoryCacheKeys.root_categories()
         root_categories = cache.get(cache_key)
         
         if root_categories is None:
@@ -38,14 +39,14 @@ class PortfolioCategoryAdminService:
                     'id', 'public_id', 'name', 'slug', 'portfolio_count'
                 )
             )
-            cache.set(cache_key, root_categories, 300)  # 5 minutes
+            cache.set(cache_key, root_categories, 300)
         
         return root_categories
 
     @staticmethod
     def get_tree_data():
         """Get complete tree structure for admin interface"""
-        cache_key = 'portfolio_category_tree_admin'
+        cache_key = CategoryCacheKeys.tree_admin()
         tree_data = cache.get(cache_key)
         
         if tree_data is None:
@@ -70,7 +71,7 @@ class PortfolioCategoryAdminService:
             ).filter(is_active=True)
             
             tree_data = build_tree(root_nodes)
-            cache.set(cache_key, tree_data, 900)  # 15 minutes
+            cache.set(cache_key, tree_data, 900)
         
         return tree_data
 
@@ -102,8 +103,7 @@ class PortfolioCategoryAdminService:
                 except ImageMedia.DoesNotExist:
                     pass  # Invalid media ID, skip
             
-            # Clear cache
-            PortfolioCategoryAdminService._clear_category_cache()
+            CategoryCacheManager.invalidate_all()
             
             return category
 
@@ -113,7 +113,7 @@ class PortfolioCategoryAdminService:
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
-            raise ValidationError("دسته‌بندی یافت نشد.")
+            raise PortfolioCategory.DoesNotExist("Category not found")
         
         with transaction.atomic():
             # Handle parent change (move in tree)
@@ -153,8 +153,7 @@ class PortfolioCategoryAdminService:
             
         category.save()
         
-        # Clear cache
-        PortfolioCategoryAdminService._clear_category_cache()
+        CategoryCacheManager.invalidate_all()
         
         return category
 
@@ -164,29 +163,21 @@ class PortfolioCategoryAdminService:
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
-            return {'success': False, 'error': 'دسته‌بندی یافت نشد.'}
+            raise PortfolioCategory.DoesNotExist("Category not found")
         
         # Check if category has portfolios
         portfolio_count = category.portfolio_categories.count()
         if portfolio_count > 0:
-            return {
-                'success': False, 
-                'error': f'این دسته‌بندی دارای {portfolio_count} نمونه کار است و قابل حذف نیست.'
-            }
+            raise ValidationError(f"Category has {portfolio_count} portfolios")
         
         # Check if category has children
         children_count = category.get_children_count()
         if children_count > 0:
-            return {
-                'success': False,
-                'error': f'این دسته‌بندی دارای {children_count} زیردسته است و قابل حذف نیست.'
-            }
+            raise ValidationError(f"Category has {children_count} children")
         
         with transaction.atomic():
             category.delete()
-            PortfolioCategoryAdminService._clear_category_cache()
-        
-        return {'success': True}
+            CategoryCacheManager.invalidate_all()
     
     @staticmethod
     def move_category(category_id, target_id, position='last-child'):
@@ -195,35 +186,24 @@ class PortfolioCategoryAdminService:
         target = PortfolioCategoryAdminService.get_category_by_id(target_id)
         
         if not category or not target:
-            return {'success': False, 'error': 'دسته‌بندی یافت نشد.'}
+            raise PortfolioCategory.DoesNotExist("Category not found")
         
         # Prevent moving to descendant
         if target.is_descendant_of(category):
-            return {
-                'success': False,
-                'error': 'نمی‌توانید دسته‌بندی را به فرزند خودش منتقل کنید.'
-            }
+            raise ValidationError("Cannot move category to its own descendant")
         
         # Prevent moving to self
         if category.id == target.id:
-            return {
-                'success': False,
-                'error': 'نمی‌توانید دسته‌بندی را به خودش منتقل کنید.'
-            }
+            raise ValidationError("Cannot move category to itself")
         
-        try:
-            with transaction.atomic():
-                category.move(target, pos=position)
-                PortfolioCategoryAdminService._clear_category_cache()
-            
-            return {'success': True}
-        except Exception as e:
-            return {'success': False, 'error': f'خطا در انتقال: {str(e)}'}
+        with transaction.atomic():
+            category.move(target, pos=position)
+            CategoryCacheManager.invalidate_all()
     
     @staticmethod
     def get_popular_categories(limit=10):
         """Get most popular categories by portfolio count"""
-        cache_key = f'popular_categories_{limit}'
+        cache_key = CategoryCacheKeys.popular(limit)
         popular = cache.get(cache_key)
         
         if popular is None:
@@ -236,7 +216,7 @@ class PortfolioCategoryAdminService:
                     'id', 'public_id', 'name', 'slug', 'portfolio_count'
                 )
             )
-            cache.set(cache_key, popular, 600)  # 10 minutes
+            cache.set(cache_key, popular, 600)
         
         return popular
     
@@ -263,50 +243,64 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def bulk_delete_categories(category_ids):
-        """Bulk delete multiple categories with safety checks"""
+        """Bulk delete multiple categories with cascade delete for children - removes relationships first"""
+        from src.portfolio.models.portfolio import Portfolio
+        
         categories = PortfolioCategory.objects.filter(id__in=category_ids)
         
-        # Check for portfolios
-        categories_with_portfolios = categories.annotate(
-            portfolio_count=Count('portfolio_categories')
-        ).filter(portfolio_count__gt=0)
-        
-        if categories_with_portfolios.exists():
-            portfolio_counts = {
-                cat.name: cat.portfolio_count 
-                for cat in categories_with_portfolios
-            }
-            return {
-                'success': False,
-                'error': f'دسته‌بندی‌های زیر دارای نمونه کار هستند: {portfolio_counts}'
-            }
-        
-        # Check for children
-        categories_with_children = []
-        for category in categories:
-            if category.get_children_count() > 0:
-                categories_with_children.append(category.name)
-        
-        if categories_with_children:
-            return {
-                'success': False,
-                'error': f'دسته‌بندی‌های زیر دارای زیردسته هستند: {categories_with_children}'
-            }
+        if not categories.exists():
+            raise ValidationError("Selected categories not found")
         
         with transaction.atomic():
-            deleted_count = categories.count()
-            categories.delete()
-            PortfolioCategoryAdminService._clear_category_cache()
+            # Collect all categories to delete (including children)
+            all_category_ids = set()
+            category_list = list(categories)
+            
+            # Filter out categories that are descendants of other selected categories
+            # to avoid trying to delete them twice
+            top_level_categories = []
+            for category in category_list:
+                # Check if this category is a descendant of any other selected category
+                is_descendant = False
+                for other_category in category_list:
+                    if other_category.id != category.id:
+                        # Check if category is a descendant of other_category
+                        if category.is_descendant_of(other_category):
+                            is_descendant = True
+                            break
+                
+                if not is_descendant:
+                    top_level_categories.append(category)
+                    all_category_ids.add(category.id)
+                    # Get all descendants
+                    descendants = category.get_descendants()
+                    all_category_ids.update(descendant.id for descendant in descendants)
+            
+            # Get all categories (including children) to clear relationships
+            all_categories = PortfolioCategory.objects.filter(id__in=all_category_ids)
+            
+            # Remove relationships from portfolios for all categories (including children)
+            for category in all_categories:
+                category.portfolio_categories.clear()
+            
+            # Delete parent categories - treebeard's delete() automatically handles cascade
+            # We delete parents first, and treebeard will handle children automatically
+            deleted_count = 0
+            for category in top_level_categories:
+                # Count descendants before deletion
+                descendants_count = category.get_descendants().count()
+                # treebeard's delete() automatically deletes all descendants
+                category.delete()
+                deleted_count += 1 + descendants_count
+            
+            CategoryCacheManager.invalidate_all()
         
-        return {
-            'success': True,
-            'deleted_count': deleted_count
-        }
+        return deleted_count
     
     @staticmethod
     def get_category_statistics():
         """Get category statistics for admin dashboard"""
-        cache_key = 'category_statistics'
+        cache_key = CategoryCacheKeys.statistics()
         stats = cache.get(cache_key)
         
         if stats is None:
@@ -331,20 +325,6 @@ class PortfolioCategoryAdminService:
                 'root_categories': root_categories,
                 'max_depth': max_depth
             }
-            cache.set(cache_key, stats, 300)  # 5 minutes
+            cache.set(cache_key, stats, 300)
         
         return stats
-    
-    @staticmethod
-    def _clear_category_cache():
-        """Clear category-related cache"""
-        cache_keys = [
-            'portfolio_root_categories',
-            'portfolio_category_tree_admin',
-            'category_statistics'
-        ]
-        cache.delete_many(cache_keys)
-        
-        # Clear popular categories cache
-        for limit in [5, 10, 15, 20]:
-            cache.delete(f'popular_categories_{limit}')

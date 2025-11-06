@@ -1,7 +1,8 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from src.portfolio.models.tag import PortfolioTag
+from src.portfolio.utils.cache import TagCacheKeys, TagCacheManager
 
 
 class PortfolioTagAdminService:
@@ -29,7 +30,7 @@ class PortfolioTagAdminService:
     @staticmethod
     def get_tag_by_id(tag_id):
         """Get tag by ID with caching"""
-        cache_key = f"portfolio_tag_{tag_id}"
+        cache_key = TagCacheKeys.tag(tag_id)
         tag = cache.get(cache_key)
         
         if tag is None:
@@ -37,7 +38,7 @@ class PortfolioTagAdminService:
                 tag = PortfolioTag.objects.annotate(
                     portfolio_count=Count('portfolio_tags')
                 ).get(id=tag_id)
-                cache.set(cache_key, tag, 3600)  # 1 hour cache
+                cache.set(cache_key, tag, 3600)
             except PortfolioTag.DoesNotExist:
                 return None
         
@@ -53,96 +54,91 @@ class PortfolioTagAdminService:
         
         tag = PortfolioTag.objects.create(**validated_data)
         
-        # Clear related caches
-        cache.delete('popular_tags')
+        TagCacheManager.invalidate_all()
         
         return tag
 
     @staticmethod
     def update_tag_by_id(tag_id, validated_data):
         """Update tag and clear caches"""
-        tag = get_object_or_404(PortfolioTag, id=tag_id)
+        try:
+            tag = PortfolioTag.objects.get(id=tag_id)
+        except PortfolioTag.DoesNotExist:
+            raise PortfolioTag.DoesNotExist("Tag not found")
         
         for key, value in validated_data.items():
             setattr(tag, key, value)
         
         tag.save()
         
-        # Clear caches
-        cache.delete(f'portfolio_tag_{tag_id}')
-        cache.delete('popular_tags')
+        TagCacheManager.invalidate_tag(tag_id)
         
         return tag
 
     @staticmethod
     def delete_tag_by_id(tag_id):
         """Delete tag with safety checks"""
-        tag = get_object_or_404(PortfolioTag, id=tag_id)
+        try:
+            tag = PortfolioTag.objects.get(id=tag_id)
+        except PortfolioTag.DoesNotExist:
+            raise PortfolioTag.DoesNotExist("Tag not found")
         
         # Check if tag is used
         portfolio_count = tag.portfolio_tags.count()
         if portfolio_count > 0:
-            return {
-                'success': False,
-                'error': f'Cannot delete tag. It is used by {portfolio_count} portfolios.'
-            }
+            raise ValidationError(f"Tag is used by {portfolio_count} portfolios")
         
         tag.delete()
         
-        # Clear caches
-        cache.delete(f'portfolio_tag_{tag_id}')
-        cache.delete('popular_tags')
-        
-        return {'success': True}
+        TagCacheManager.invalidate_tag(tag_id)
     
     @staticmethod
     def bulk_delete_tags(tag_ids):
-        """Bulk delete multiple tags"""
-        # Check usage for all tags
-        used_tags = PortfolioTag.objects.filter(
-            id__in=tag_ids,
-            portfolio_tags__isnull=False
-        ).distinct().values_list('id', 'name')
+        """Bulk delete multiple tags - removes relationships first, then deletes tags"""
+        from django.db import transaction
+        from src.portfolio.models.portfolio import Portfolio
         
-        if used_tags:
-            used_names = [name for _, name in used_tags]
-            return {
-                'success': False,
-                'error': f'Cannot delete tags that are in use: {", ".join(used_names)}'
-            }
+        tags = PortfolioTag.objects.filter(id__in=tag_ids)
         
-        # Delete unused tags
-        deleted_count = PortfolioTag.objects.filter(id__in=tag_ids).delete()[0]
+        if not tags.exists():
+            raise ValidationError("Selected tags not found")
         
-        # Clear caches
-        for tag_id in tag_ids:
-            cache.delete(f'portfolio_tag_{tag_id}')
-        cache.delete('popular_tags')
+        with transaction.atomic():
+            # Remove relationships from portfolios (ManyToMany will be cleared automatically)
+            tag_list = list(tags)
+            for tag in tag_list:
+                # Remove tag from all portfolios
+                tag.portfolio_tags.clear()
+            
+            deleted_count = tags.count()
+            tags.delete()
+            
+            TagCacheManager.invalidate_tags(tag_ids)
         
-        return {
-            'success': True,
-            'deleted_count': deleted_count
-        }
+        return deleted_count
     
     @staticmethod
     def get_popular_tags(limit=10):
         """Get most popular tags with caching"""
-        cache_key = 'popular_tags'
+        cache_key = TagCacheKeys.popular()
         tags = cache.get(cache_key)
         
         if tags is None:
             tags = list(PortfolioTag.objects.popular(limit).values(
                 'id', 'name', 'slug', 'usage_count'
             ))
-            cache.set(cache_key, tags, 3600)  # 1 hour cache
+            cache.set(cache_key, tags, 3600)
         
         return tags
     
     @staticmethod
     def merge_tags(source_tag_id, target_tag_id):
         """Merge one tag into another"""
-        source_tag = get_object_or_404(PortfolioTag, id=source_tag_id)
-        target_tag = get_object_or_404(PortfolioTag, id=target_tag_id)
+        try:
+            source_tag = PortfolioTag.objects.get(id=source_tag_id)
+            target_tag = PortfolioTag.objects.get(id=target_tag_id)
+        except PortfolioTag.DoesNotExist:
+            raise PortfolioTag.DoesNotExist("Tag not found")
         
         # Move all portfolios from source to target
         portfolios = source_tag.portfolio_tags.all()
@@ -156,10 +152,7 @@ class PortfolioTagAdminService:
         # Delete source tag
         source_tag.delete()
         
-        # Clear caches
-        cache.delete(f'portfolio_tag_{source_tag_id}')
-        cache.delete(f'portfolio_tag_{target_tag_id}')
-        cache.delete('popular_tags')
+        TagCacheManager.invalidate_tags([source_tag_id, target_tag_id])
         
         return target_tag
 

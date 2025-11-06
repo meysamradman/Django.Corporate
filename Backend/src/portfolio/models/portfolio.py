@@ -246,10 +246,5 @@ class Portfolio(BaseModel, SEOMixin):
         super().save(*args, **kwargs)
         
         # Clear related caches using standardized keys
-        from src.portfolio.utils.cache import PortfolioCacheKeys
-        cache.delete(PortfolioCacheKeys.main_image(self.pk))
-        cache.delete(PortfolioCacheKeys.structured_data(self.pk))
-        cache.delete(f"portfolio_schema_{self.pk}")  # Clear schema cache on save
-        cache.delete(f"portfolio_seo_preview_{self.pk}")  # Clear SEO preview cache
-        cache.delete(f"portfolio_seo_data_{self.pk}")  # Clear SEO data cache
-        cache.delete(f"portfolio_seo_completeness_{self.pk}")  # Clear SEO completeness cache
+        from src.portfolio.utils.cache import PortfolioCacheManager
+        PortfolioCacheManager.invalidate_portfolio(self.pk)

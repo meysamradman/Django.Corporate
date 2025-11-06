@@ -12,14 +12,19 @@ import Strike from '@tiptap/extension-strike';
 import Code from '@tiptap/extension-code';
 import CodeBlock from '@tiptap/extension-code-block';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import Image from '@tiptap/extension-image';
 import { Button } from '@/components/elements/Button';
 import { 
   Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, 
   Quote, Undo, Redo, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6,
   Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Strikethrough, Code as CodeIcon, Code2, Minus,
-  Highlighter, Type
+  Highlighter, Type, Image as ImageIcon
 } from 'lucide-react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { mediaApi } from '@/api/media/route';
+import { toast } from '@/components/elements/Sonner';
+import { mediaService } from '@/components/media/services';
 
 interface TipTapEditorProps {
   content: string;
@@ -34,42 +39,131 @@ export function TipTapEditor({
   placeholder,
   className 
 }: TipTapEditorProps) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextStyle,
-      Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      Strike,
-      Code,
-      CodeBlock,
-      HorizontalRule,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-600 underline cursor-pointer',
-        },
-      }),
-      Underline,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-    ],
-    content,
-    immediatelyRender: false, // برای CSR و جلوگیری از hydration mismatch
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-3',
-        dir: 'rtl',
-        'data-placeholder': placeholder || 'توضیحات را وارد کنید...',
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Memoize extensions array to prevent recreation on every render
+  const extensions = useMemo(() => [
+    StarterKit,
+    TextStyle,
+    Color,
+    Highlight.configure({
+      multicolor: true,
+    }),
+    Strike,
+    Code,
+    CodeBlock,
+    HorizontalRule,
+    Image.configure({
+      inline: true,
+      allowBase64: false,
+      HTMLAttributes: {
+        class: 'max-w-full h-auto rounded-md',
       },
+    }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-blue-600 underline cursor-pointer',
+      },
+    }),
+    Underline,
+    TextAlign.configure({
+      types: ['heading', 'paragraph', 'image'],
+    }),
+  ], []);
+
+  // Memoize placeholder to prevent unnecessary re-renders
+  const placeholderText = useMemo(() => placeholder || 'توضیحات را وارد کنید...', [placeholder]);
+
+  // Memoize editor props to prevent recreation
+  const editorProps = useMemo(() => ({
+    attributes: {
+      class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-3 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md [&_img]:my-4',
+      dir: 'rtl' as const,
+      'data-placeholder': placeholderText,
     },
+  }), [placeholderText]);
+
+  // Memoize onUpdate handler
+  const handleUpdate = useCallback(({ editor }: { editor: any }) => {
+    onChange(editor.getHTML());
+  }, [onChange]);
+
+  const editor = useEditor({
+    extensions,
+    content,
+    immediatelyRender: false,
+    onUpdate: handleUpdate,
+    editorProps,
   });
+
+  // Sync content when it changes externally (only if different to prevent infinite loops)
+  useEffect(() => {
+    if (editor) {
+      const currentContent = editor.getHTML();
+      if (content !== currentContent) {
+        editor.commands.setContent(content, { emitUpdate: false });
+      }
+    }
+  }, [content, editor]);
+
+  // Optimized image upload handler with useCallback
+  const handleImageUpload = useCallback(async (file: File) => {
+    if (!editor) return;
+    
+    // Validate file type early
+    if (!file.type.startsWith('image/')) {
+      toast.error('فقط فایل‌های تصویری مجاز هستند');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('حجم فایل نباید از 5 مگابایت بیشتر باشد');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name.substring(0, 100));
+      formData.append('alt_text', file.name.substring(0, 200));
+
+      const response = await mediaApi.uploadMedia(formData);
+      
+      if (response.metaData.status === 'success' && response.data) {
+        const imageUrl = mediaService.getMediaUrlFromObject(response.data);
+        
+        if (imageUrl) {
+          editor.chain().focus().setImage({ src: imageUrl, alt: response.data.alt_text || '' }).run();
+          toast.success('عکس با موفقیت اضافه شد');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast.error('خطا در آپلود عکس: ' + (error.message || 'خطای نامشخص'));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }, [editor]);
+
+  const handleImageButtonClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [handleImageUpload]);
 
   if (!editor) {
     return (
@@ -289,6 +383,29 @@ export function TipTapEditor({
           <LinkIcon className={`h-4 w-4 ${editor.isActive('link') ? 'text-red-500' : ''}`} />
         </Button>
 
+        <Button
+          type="button"
+          variant={editor.isActive('image') ? 'default' : 'ghost'}
+          size="sm"
+          onClick={handleImageButtonClick}
+          disabled={isUploadingImage}
+          aria-label="افزودن عکس"
+        >
+          {isUploadingImage ? (
+            <div className="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <ImageIcon className="h-4 w-4" />
+          )}
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
         {/* Text Colors */}
@@ -447,7 +564,7 @@ export function TipTapEditor({
       <div className="border rounded-md min-h-[200px] bg-white">
         <EditorContent 
           editor={editor} 
-          className="[&_.ProseMirror[data-placeholder]:empty::before]:content-[attr(data-placeholder)] [&_.ProseMirror[data-placeholder]:empty::before]:float-right [&_.ProseMirror[data-placeholder]:empty::before]:text-gray-400 [&_.ProseMirror[data-placeholder]:empty::before]:pointer-events-none [&_.ProseMirror[data-placeholder]:empty::before]:h-0"
+          className="[&_.ProseMirror[data-placeholder]:empty::before]:content-[attr(data-placeholder)] [&_.ProseMirror[data-placeholder]:empty::before]:float-right [&_.ProseMirror[data-placeholder]:empty::before]:text-gray-400 [&_.ProseMirror[data-placeholder]:empty::before]:pointer-events-none [&_.ProseMirror[data-placeholder]:empty::before]:h-0 [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto [&_.ProseMirror_img]:rounded-md [&_.ProseMirror_img]:my-4 [&_.ProseMirror_img]:block [&_.ProseMirror_img]:mx-auto"
         />
       </div>
     </div>
