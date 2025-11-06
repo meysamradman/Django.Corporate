@@ -177,10 +177,7 @@ export function AIProviderSettings() {
                     return (
                         <Card 
                             key={provider.id}
-                            className={`
-                                relative transition-all duration-300 hover:shadow-lg
-                                ${isActive ? 'border-primary/50 border-2' : 'border-border'}
-                            `}
+                            className="relative transition-all duration-300 hover:shadow-lg"
                         >
                             <ArrowRight className={`
                                 absolute top-3 left-3 w-4 h-4 transition-opacity
@@ -235,7 +232,7 @@ export function AIProviderSettings() {
                                     <div className="space-y-3">
                                         <div className="space-y-2">
                                             <Label htmlFor={`api-key-${provider.id}`} className="text-sm">API Key</Label>
-                                            <div className="flex gap-2">
+                                            <div className="relative">
                                                 <Input
                                                     id={`api-key-${provider.id}`}
                                                     type={showApiKeys[provider.id] ? 'text' : 'password'}
@@ -245,21 +242,19 @@ export function AIProviderSettings() {
                                                         ...prev,
                                                         [provider.id]: e.target.value
                                                     }))}
-                                                    className="flex-1 text-sm h-9"
+                                                    className="pl-10 text-sm h-9"
                                                 />
-                                                <Button
+                                                <button
                                                     type="button"
-                                                    variant="outline"
-                                                    size="sm"
                                                     onClick={() => toggleShowApiKey(provider.id)}
-                                                    className="h-9 px-2"
+                                                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                                 >
                                                     {showApiKeys[provider.id] ? (
                                                         <EyeOff className="h-4 w-4" />
                                                     ) : (
                                                         <Eye className="h-4 w-4" />
                                                     )}
-                                                </Button>
+                                                </button>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
