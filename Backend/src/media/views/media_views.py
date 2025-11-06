@@ -36,8 +36,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         return ImageMedia.objects.none()
 
     def list(self, request, *args, **kwargs):
-        from datetime import datetime
-        
         search_term = request.query_params.get('search') or request.query_params.get('title')
         file_type = request.query_params.get('file_type')
         date_from = request.query_params.get('date_from')
