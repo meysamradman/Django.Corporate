@@ -62,6 +62,7 @@ import { MediaUploadModal } from '@/components/media/modals/MediaUploadModal';
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
 import { AIImageGenerator } from '@/components/ai/image';
 import { Sparkles } from 'lucide-react';
+import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 
 const actualDefaultFilters: MediaFilter = {
     search: "",
@@ -390,20 +391,18 @@ export default function MediaPage() {
                 </Select>
 
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="date"
+                  <PersianDatePicker
                     value={filters.date_from || ''}
-                    onChange={(e) => handleDateFromChange(e.target.value)}
-                    className="h-8 w-36"
+                    onChange={(date) => handleDateFromChange(date)}
                     placeholder="از تاریخ"
+                    className="h-8 w-36"
                   />
                   <span className="text-xs text-muted-foreground">تا</span>
-                  <Input
-                    type="date"
+                  <PersianDatePicker
                     value={filters.date_to || ''}
-                    onChange={(e) => handleDateToChange(e.target.value)}
-                    className="h-8 w-36"
+                    onChange={(date) => handleDateToChange(date)}
                     placeholder="تا تاریخ"
+                    className="h-8 w-36"
                   />
                 </div>
               </div>

@@ -1,5 +1,6 @@
-from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from django.core.exceptions import ValidationError
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+
 
 class MediaAdminService:
 
@@ -15,12 +16,12 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise Exception(f"Unsupported media type: {media_type}")
+            raise ValidationError(f"Unsupported media type: {media_type}")
             
         try:
             return model.objects.get(id=media_id)
         except model.DoesNotExist:
-            raise Exception("Media not found")
+            raise model.DoesNotExist("Media not found")
 
     @staticmethod
     def update_media_by_id_and_type(media_id, media_type, data):
@@ -34,7 +35,7 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise Exception(f"Unsupported media type: {media_type}")
+            raise ValidationError(f"Unsupported media type: {media_type}")
             
         try:
             media = model.objects.get(id=media_id)
@@ -68,7 +69,7 @@ class MediaAdminService:
             media.save()
             return media
         except model.DoesNotExist:
-            raise Exception("Media not found")
+            raise model.DoesNotExist("Media not found")
 
     @staticmethod
     def delete_media_by_id_and_type(media_id, media_type):
@@ -82,14 +83,14 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise Exception(f"Unsupported media type: {media_type}")
+            raise ValidationError(f"Unsupported media type: {media_type}")
             
         try:
             media = model.objects.get(id=media_id)
             media.delete()
             return True
         except model.DoesNotExist:
-            raise Exception("Media not found")
+            raise model.DoesNotExist("Media not found")
 
     @staticmethod
     def create_media(media_type, data):
@@ -103,31 +104,28 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise Exception(f"Unsupported media type: {media_type}")
+            raise ValidationError(f"Unsupported media type: {media_type}")
             
-        try:
-            # Handle cover_image for videos and audio
-            cover_image = None
-            if (media_type == 'video' or media_type == 'audio') and 'cover_image' in data:
-                cover_image_value = data.pop('cover_image', None)
-                if isinstance(cover_image_value, int):
-                    try:
-                        cover_image = ImageMedia.objects.get(id=cover_image_value)
-                    except ImageMedia.DoesNotExist:
-                        pass  # cover_image will remain None
+        # Handle cover_image for videos and audio
+        cover_image = None
+        if (media_type == 'video' or media_type == 'audio') and 'cover_image' in data:
+            cover_image_value = data.pop('cover_image', None)
+            if isinstance(cover_image_value, int):
+                try:
+                    cover_image = ImageMedia.objects.get(id=cover_image_value)
+                except ImageMedia.DoesNotExist:
+                    pass
+        
+        # Create the media object
+        media = model(**data)
+        
+        # Set cover image for videos and audio
+        if (media_type == 'video' or media_type == 'audio') and cover_image:
+            media.cover_image = cover_image
             
-            # Create the media object
-            media = model(**data)
-            
-            # Set cover image for videos and audio
-            if (media_type == 'video' or media_type == 'audio') and cover_image:
-                media.cover_image = cover_image
-                
-            media.full_clean()
-            media.save()
-            return media
-        except ValidationError as e:
-            raise Exception(f"Validation error: {str(e)}")
+        media.full_clean()
+        media.save()
+        return media
 
 
 class MediaPublicService:

@@ -22,7 +22,7 @@ class MediaCoverSerializer(serializers.ModelSerializer):
 class BaseMediaSerializer(serializers.ModelSerializer):
     """Base serializer for all media types"""
     file_url = serializers.SerializerMethodField()
-    media_type = serializers.SerializerMethodField()  # Add media_type field
+    media_type = serializers.SerializerMethodField()
     
     class Meta:
         fields = [
@@ -46,7 +46,7 @@ class BaseMediaSerializer(serializers.ModelSerializer):
             return 'audio'
         elif isinstance(obj, DocumentMedia):
             return 'document'
-        return 'file'  # fallback
+        return 'file'
 
 
 class ImageMediaSerializer(BaseMediaSerializer):
@@ -145,7 +145,7 @@ class MediaAdminSerializer(serializers.Serializer):
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
     duration = serializers.IntegerField(required=False, allow_null=True)
-    media_type = serializers.SerializerMethodField()  # Add media_type field
+    media_type = serializers.SerializerMethodField()
     
     def get_media_type(self, obj):
         """Get media type based on instance class"""
@@ -168,16 +168,13 @@ class MediaAdminSerializer(serializers.Serializer):
         return None
 
     def get_cover_image_url(self, obj):
-        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            # Make sure cover_image.file exists
             if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
                 return obj.cover_image.file.url
         return None
 
     def to_representation(self, instance):
         """Convert instance to appropriate serializer based on media type"""
-        # Determine media type based on instance class
         if isinstance(instance, ImageMedia):
             return ImageMediaSerializer(instance, context=self.context).data
         elif isinstance(instance, VideoMedia):
@@ -199,7 +196,7 @@ class MediaPublicSerializer(serializers.Serializer):
     alt_text = serializers.CharField(required=False, allow_blank=True)
     created_at = serializers.DateTimeField(read_only=True)
     duration = serializers.IntegerField(required=False, allow_null=True)
-    media_type = serializers.SerializerMethodField()  # Add media_type field
+    media_type = serializers.SerializerMethodField()
     
     def get_media_type(self, obj):
         """Get media type based on instance class"""
@@ -219,16 +216,13 @@ class MediaPublicSerializer(serializers.Serializer):
         return None
 
     def get_cover_image_url(self, obj):
-        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            # Make sure cover_image.file exists
             if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
                 return obj.cover_image.file.url
         return None
 
     def to_representation(self, instance):
         """Convert instance to appropriate serializer based on media type"""
-        # Determine media type based on instance class
         if isinstance(instance, ImageMedia):
             return ImageMediaSerializer(instance, context=self.context).data
         elif isinstance(instance, VideoMedia):
