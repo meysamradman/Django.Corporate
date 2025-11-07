@@ -32,7 +32,7 @@ export function BaseInfoTab({
     onFeaturedImageChange,
 }: BaseInfoTabProps) {
     return (
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6">
             <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ export function BaseInfoTab({
                 </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-orange-500">
+            <Card className="hover:shadow-lg transition-all	duration-300 border-b-4 border-b-orange-500">
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-orange-100 rounded-xl shadow-sm">

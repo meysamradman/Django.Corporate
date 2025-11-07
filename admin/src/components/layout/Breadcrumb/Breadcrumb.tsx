@@ -49,7 +49,10 @@ export function Breadcrumb() {
                 'ai-chat': 'چت AI',
                 'ai-image': 'تولید تصویر با AI',
                 'chat': 'چت',
-                'email': 'ایمیل'
+                'email': 'ایمیل',
+                'terms': 'قوانین',
+                'page': 'صفحه',
+                'about': 'درباره'
             };
             
             return segmentMap[normalizedSegment] || 
