@@ -11,6 +11,16 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/elements/Dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/elements/AlertDialog";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
 import { settingsApi, SocialMedia } from "@/api/settings/general/route";
 import { toast } from "@/components/elements/Sonner";
@@ -23,6 +33,8 @@ export function SocialMediaSection() {
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingSocialMedia, setEditingSocialMedia] = useState<SocialMedia | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [socialMediaToDelete, setSocialMediaToDelete] = useState<number | null>(null);
     
     const [name, setName] = useState("");
     const [url, setUrl] = useState("");
@@ -133,15 +145,20 @@ export function SocialMediaSection() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("آیا از حذف این شبکه اجتماعی اطمینان دارید؟")) {
-            return;
-        }
+    const handleDeleteClick = (id: number) => {
+        setSocialMediaToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!socialMediaToDelete) return;
 
         try {
-            await settingsApi.deleteSocialMedia(id);
+            await settingsApi.deleteSocialMedia(socialMediaToDelete);
             toast.success("شبکه اجتماعی با موفقیت حذف شد");
             await fetchSocialMedias();
+            setDeleteDialogOpen(false);
+            setSocialMediaToDelete(null);
         } catch (error) {
             console.error("Error deleting social media:", error);
             toast.error("خطا در حذف شبکه اجتماعی");
@@ -168,7 +185,7 @@ export function SocialMediaSection() {
                             <CardTitle>شبکه‌های اجتماعی</CardTitle>
                         </div>
                         <Button onClick={() => handleOpenDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus />
                             افزودن شبکه اجتماعی
                         </Button>
                     </div>
@@ -183,16 +200,16 @@ export function SocialMediaSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                        <TableHead className="w-12">
+                                        <TableHead className="w-12 text-right">
                                             <div className="flex items-center justify-center">
                                                 <Share2 className="h-4 w-4 text-orange-600" />
                                             </div>
                                         </TableHead>
-                                        <TableHead>نام</TableHead>
-                                        <TableHead>لینک</TableHead>
-                                        <TableHead className="w-24">آیکون</TableHead>
-                                        <TableHead className="w-24">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-center">عملیات</TableHead>
+                                        <TableHead className="text-right">نام</TableHead>
+                                        <TableHead className="text-right">لینک</TableHead>
+                                        <TableHead className="w-24 text-right">آیکون</TableHead>
+                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                        <TableHead className="w-32 text-right">عملیات</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -213,10 +230,10 @@ export function SocialMediaSection() {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="font-medium">{socialMedia.name}</span>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <a
                                                     href={socialMedia.url}
                                                     target="_blank"
@@ -226,7 +243,7 @@ export function SocialMediaSection() {
                                                     {socialMedia.url}
                                                 </a>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md ${
                                                     socialMedia.icon_data 
                                                         ? 'bg-green-100 text-green-700' 
@@ -235,28 +252,28 @@ export function SocialMediaSection() {
                                                     {socialMedia.icon_data ? 'دارد' : 'ندارد'}
                                                 </span>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
                                                     {socialMedia.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(socialMedia)}
                                                     >
-                                                        <Edit className="h-4 w-4" />
+                                                        <Edit />
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                                        onClick={() => handleDelete(socialMedia.id)}
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        onClick={() => handleDeleteClick(socialMedia.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -325,7 +342,7 @@ export function SocialMediaSection() {
                             <Button onClick={handleSave} disabled={saving}>
                                 {saving ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="animate-spin" />
                                         در حال ذخیره...
                                     </>
                                 ) : (
@@ -336,6 +353,21 @@ export function SocialMediaSection() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>حذف شبکه اجتماعی</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            آیا از حذف این شبکه اجتماعی اطمینان دارید؟ این عمل غیرقابل بازگشت است.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>انصراف</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

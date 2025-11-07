@@ -486,7 +486,7 @@ export default function EmailPage() {
   return (
     <div className="flex h-[calc(100vh-4rem-4rem)] bg-card overflow-hidden rounded-lg border border-border shadow-[rgb(0_0_0/2%)_0px_6px_24px_0px,rgb(0_0_0/2%)_0px_0px_0px_1px]">
       {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 h-full overflow-hidden bg-muted/30">
+      <div className="w-64 flex-shrink-0 h-full overflow-hidden bg-card">
         <EmailSidebar
           selectedMailbox={selectedMailbox}
           onMailboxChange={handleMailboxChange}

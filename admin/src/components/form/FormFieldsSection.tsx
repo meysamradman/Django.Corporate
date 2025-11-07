@@ -13,6 +13,16 @@ import {
     DialogTitle,
 } from "@/components/elements/Dialog";
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/elements/AlertDialog";
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -31,6 +41,8 @@ export function FormFieldsSection() {
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingField, setEditingField] = useState<ContactFormField | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
     
     const [fieldKey, setFieldKey] = useState("");
     const [fieldType, setFieldType] = useState<ContactFormField['field_type']>('text');
@@ -197,15 +209,20 @@ export function FormFieldsSection() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("آیا از حذف این فیلد اطمینان دارید؟")) {
-            return;
-        }
+    const handleDeleteClick = (id: number) => {
+        setFieldToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!fieldToDelete) return;
 
         try {
-            await formApi.deleteField(id);
+            await formApi.deleteField(fieldToDelete);
             toast.success("فیلد با موفقیت حذف شد");
             await fetchFields();
+            setDeleteDialogOpen(false);
+            setFieldToDelete(null);
         } catch (error) {
             console.error("Error deleting field:", error);
             toast.error("خطا در حذف فیلد");
@@ -248,7 +265,7 @@ export function FormFieldsSection() {
                             <CardTitle>فیلدهای فرم تماس</CardTitle>
                         </div>
                         <Button onClick={() => handleOpenDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus />
                             افزودن فیلد
                         </Button>
                     </div>
@@ -263,13 +280,13 @@ export function FormFieldsSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                        <TableHead className="w-12"></TableHead>
-                                        <TableHead>کلید فیلد</TableHead>
-                                        <TableHead>برچسب</TableHead>
-                                        <TableHead>نوع</TableHead>
-                                        <TableHead>پلتفرم</TableHead>
-                                        <TableHead className="w-24">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-center">عملیات</TableHead>
+                                        <TableHead className="w-12 text-right"></TableHead>
+                                        <TableHead className="text-right">کلید فیلد</TableHead>
+                                        <TableHead className="text-right">برچسب</TableHead>
+                                        <TableHead className="text-right">نوع</TableHead>
+                                        <TableHead className="text-right">پلتفرم</TableHead>
+                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                        <TableHead className="w-32 text-right">عملیات</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -282,56 +299,58 @@ export function FormFieldsSection() {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="font-medium font-mono text-sm">{field.field_key}</span>
                                             </TableCell>
-                                            <TableCell>
-                                                <span className="font-medium">{field.label}</span>
-                                                {field.required && (
-                                                    <Badge variant="red" className="mr-2 text-xs">الزامی</Badge>
-                                                )}
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">{field.label}</span>
+                                                    {field.required && (
+                                                        <Badge variant="red" className="text-xs">الزامی</Badge>
+                                                    )}
+                                                </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <Badge variant="outline">{getFieldTypeLabel(field.field_type)}</Badge>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <div className="flex gap-1">
                                                     {field.platforms.includes('website') && (
-                                                        <Badge variant="blue" className="text-xs">
-                                                            <Globe className="h-3 w-3 mr-1" />
+                                                        <Badge variant="blue" className="text-xs flex items-center gap-1">
+                                                            <Globe className="h-3 w-3" />
                                                             وب
                                                         </Badge>
                                                     )}
                                                     {field.platforms.includes('mobile_app') && (
-                                                        <Badge variant="green" className="text-xs">
-                                                            <Smartphone className="h-3 w-3 mr-1" />
+                                                        <Badge variant="green" className="text-xs flex items-center gap-1">
+                                                            <Smartphone className="h-3 w-3" />
                                                             اپ
                                                         </Badge>
                                                     )}
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
                                                     {field.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(field)}
                                                     >
-                                                        <Edit className="h-4 w-4" />
+                                                        <Edit />
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                                        onClick={() => handleDelete(field.id)}
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        onClick={() => handleDeleteClick(field.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -483,7 +502,7 @@ export function FormFieldsSection() {
                                         size="sm"
                                         onClick={handleAddOption}
                                     >
-                                        <Plus className="h-4 w-4 mr-1" />
+                                        <Plus />
                                         افزودن گزینه
                                     </Button>
                                 </div>
@@ -508,7 +527,7 @@ export function FormFieldsSection() {
                                                 size="sm"
                                                 onClick={() => handleRemoveOption(index)}
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 />
                                             </Button>
                                         </div>
                                     ))}
@@ -528,7 +547,7 @@ export function FormFieldsSection() {
                             <Button onClick={handleSave} disabled={saving}>
                                 {saving ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="animate-spin" />
                                         در حال ذخیره...
                                     </>
                                 ) : (
@@ -539,6 +558,21 @@ export function FormFieldsSection() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>حذف فیلد فرم</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            آیا از حذف این فیلد اطمینان دارید؟ این عمل غیرقابل بازگشت است.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>انصراف</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

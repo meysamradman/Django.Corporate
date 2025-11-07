@@ -11,6 +11,16 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/elements/Dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/elements/AlertDialog";
 import { settingsApi, ContactMobile } from "@/api/settings/general/route";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Smartphone, Loader2 } from "lucide-react";
@@ -21,6 +31,8 @@ export function ContactMobilesSection() {
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingMobile, setEditingMobile] = useState<ContactMobile | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [mobileToDelete, setMobileToDelete] = useState<number | null>(null);
     
     const [mobileNumber, setMobileNumber] = useState("");
     const [label, setLabel] = useState("");
@@ -102,15 +114,20 @@ export function ContactMobilesSection() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("آیا از حذف این شماره موبایل اطمینان دارید؟")) {
-            return;
-        }
+    const handleDeleteClick = (id: number) => {
+        setMobileToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!mobileToDelete) return;
 
         try {
-            await settingsApi.deleteContactMobile(id);
+            await settingsApi.deleteContactMobile(mobileToDelete);
             toast.success("شماره موبایل با موفقیت حذف شد");
             await fetchMobiles();
+            setDeleteDialogOpen(false);
+            setMobileToDelete(null);
         } catch (error) {
             console.error("Error deleting mobile:", error);
             toast.error("خطا در حذف شماره موبایل");
@@ -137,7 +154,7 @@ export function ContactMobilesSection() {
                             <CardTitle>شماره‌های موبایل</CardTitle>
                         </div>
                         <Button onClick={() => handleOpenDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus />
                             افزودن شماره موبایل
                         </Button>
                     </div>
@@ -152,15 +169,15 @@ export function ContactMobilesSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                        <TableHead className="w-12">
+                                        <TableHead className="w-12 text-right">
                                             <div className="flex items-center justify-center">
                                                 <Smartphone className="h-4 w-4 text-cyan-600" />
                                             </div>
                                         </TableHead>
-                                        <TableHead>شماره موبایل</TableHead>
-                                        <TableHead>برچسب</TableHead>
-                                        <TableHead className="w-24">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-center">عملیات</TableHead>
+                                        <TableHead className="text-right">شماره موبایل</TableHead>
+                                        <TableHead className="text-right">برچسب</TableHead>
+                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                        <TableHead className="w-32 text-right">عملیات</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -173,34 +190,34 @@ export function ContactMobilesSection() {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="font-medium">{mobile.mobile_number}</span>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="text-muted-foreground">{mobile.label || "-"}</span>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
                                                     {mobile.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(mobile)}
                                                     >
-                                                        <Edit className="h-4 w-4" />
+                                                        <Edit />
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                                        onClick={() => handleDelete(mobile.id)}
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        onClick={() => handleDeleteClick(mobile.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -259,7 +276,7 @@ export function ContactMobilesSection() {
                             <Button onClick={handleSave} disabled={saving}>
                                 {saving ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="animate-spin" />
                                         در حال ذخیره...
                                     </>
                                 ) : (
@@ -270,6 +287,21 @@ export function ContactMobilesSection() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>حذف شماره موبایل</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            آیا از حذف این شماره موبایل اطمینان دارید؟ این عمل غیرقابل بازگشت است.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>انصراف</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

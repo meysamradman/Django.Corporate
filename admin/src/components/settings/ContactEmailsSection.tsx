@@ -11,6 +11,16 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/elements/Dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/elements/AlertDialog";
 import { settingsApi, ContactEmail } from "@/api/settings/general/route";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
@@ -21,6 +31,8 @@ export function ContactEmailsSection() {
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingEmail, setEditingEmail] = useState<ContactEmail | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [emailToDelete, setEmailToDelete] = useState<number | null>(null);
     
     const [email, setEmail] = useState("");
     const [label, setLabel] = useState("");
@@ -102,15 +114,20 @@ export function ContactEmailsSection() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("آیا از حذف این ایمیل اطمینان دارید؟")) {
-            return;
-        }
+    const handleDeleteClick = (id: number) => {
+        setEmailToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!emailToDelete) return;
 
         try {
-            await settingsApi.deleteContactEmail(id);
+            await settingsApi.deleteContactEmail(emailToDelete);
             toast.success("ایمیل با موفقیت حذف شد");
             await fetchEmails();
+            setDeleteDialogOpen(false);
+            setEmailToDelete(null);
         } catch (error) {
             console.error("Error deleting email:", error);
             toast.error("خطا در حذف ایمیل");
@@ -137,7 +154,7 @@ export function ContactEmailsSection() {
                             <CardTitle>ایمیل‌های تماس</CardTitle>
                         </div>
                         <Button onClick={() => handleOpenDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus />
                             افزودن ایمیل
                         </Button>
                     </div>
@@ -152,15 +169,15 @@ export function ContactEmailsSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                        <TableHead className="w-12">
+                                        <TableHead className="w-12 text-right">
                                             <div className="flex items-center justify-center">
                                                 <Mail className="h-4 w-4 text-pink-600" />
                                             </div>
                                         </TableHead>
-                                        <TableHead>ایمیل</TableHead>
-                                        <TableHead>برچسب</TableHead>
-                                        <TableHead className="w-24">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-center">عملیات</TableHead>
+                                        <TableHead className="text-right">ایمیل</TableHead>
+                                        <TableHead className="text-right">برچسب</TableHead>
+                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                        <TableHead className="w-32 text-right">عملیات</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -173,34 +190,34 @@ export function ContactEmailsSection() {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="font-medium">{contactEmail.email}</span>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="text-muted-foreground">{contactEmail.label || "-"}</span>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
                                                     {contactEmail.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(contactEmail)}
                                                     >
-                                                        <Edit className="h-4 w-4" />
+                                                        <Edit />
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                                        onClick={() => handleDelete(contactEmail.id)}
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        onClick={() => handleDeleteClick(contactEmail.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -260,7 +277,7 @@ export function ContactEmailsSection() {
                             <Button onClick={handleSave} disabled={saving}>
                                 {saving ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="animate-spin" />
                                         در حال ذخیره...
                                     </>
                                 ) : (
@@ -271,6 +288,21 @@ export function ContactEmailsSection() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>حذف ایمیل</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            آیا از حذف این ایمیل اطمینان دارید؟ این عمل غیرقابل بازگشت است.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>انصراف</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
