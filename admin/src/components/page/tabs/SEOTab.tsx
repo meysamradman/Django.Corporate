@@ -6,13 +6,8 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import LogoUploader from "@/app/(dashboard)/settings/panel/LogoUploader";
-import {
-    CustomTooltip,
-    CustomTooltipTrigger,
-    CustomTooltipContent,
-} from "@/components/elements/Tooltip";
 import { Media } from "@/types/shared/media";
-import { Search, Image as ImageIcon, HelpCircle } from "lucide-react";
+import { Search, Image as ImageIcon } from "lucide-react";
 
 interface SEOTabProps {
     metaTitle: string;
@@ -61,17 +56,7 @@ export function SEOTab({
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="meta_title">Meta Title (حداکثر 70 کاراکتر)</Label>
-                                <CustomTooltip>
-                                    <CustomTooltipTrigger asChild>
-                                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                    </CustomTooltipTrigger>
-                                    <CustomTooltipContent className="max-w-xs">
-                                        <p>عنوان صفحه برای موتورهای جستجو. این عنوان در نتایج جستجو نمایش داده می‌شود و باید حداکثر 70 کاراکتر باشد.</p>
-                                    </CustomTooltipContent>
-                                </CustomTooltip>
-                            </div>
+                            <Label htmlFor="meta_title">Meta Title (حداکثر 70 کاراکتر)</Label>
                             <Input
                                 id="meta_title"
                                 value={metaTitle}
@@ -85,17 +70,7 @@ export function SEOTab({
                         </div>
 
                         <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="canonical_url">Canonical URL</Label>
-                                <CustomTooltip>
-                                    <CustomTooltipTrigger asChild>
-                                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                    </CustomTooltipTrigger>
-                                    <CustomTooltipContent className="max-w-xs">
-                                        <p>آدرس URL اصلی صفحه که به موتورهای جستجو می‌گوید این صفحه اصلی است و از محتوای تکراری جلوگیری می‌کند.</p>
-                                    </CustomTooltipContent>
-                                </CustomTooltip>
-                            </div>
+                            <Label htmlFor="canonical_url">Canonical URL</Label>
                             <Input
                                 id="canonical_url"
                                 value={canonicalUrl}
@@ -107,17 +82,7 @@ export function SEOTab({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="meta_description">Meta Description (حداکثر 300 کاراکتر)</Label>
-                            <CustomTooltip>
-                                <CustomTooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </CustomTooltipTrigger>
-                                <CustomTooltipContent className="max-w-xs">
-                                    <p>توضیحات کوتاه صفحه که در نتایج جستجو زیر عنوان نمایش داده می‌شود. باید جذاب و حداکثر 300 کاراکتر باشد.</p>
-                                </CustomTooltipContent>
-                            </CustomTooltip>
-                        </div>
+                        <Label htmlFor="meta_description">Meta Description (حداکثر 300 کاراکتر)</Label>
                         <Textarea
                             id="meta_description"
                             value={metaDescription}
@@ -132,17 +97,7 @@ export function SEOTab({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="robots_meta">Robots Meta</Label>
-                            <CustomTooltip>
-                                <CustomTooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </CustomTooltipTrigger>
-                                <CustomTooltipContent className="max-w-xs">
-                                    <p>دستورالعمل‌های ربات‌های موتورهای جستجو. مثال: index,follow (ایندکس و دنبال کردن لینک‌ها) یا noindex,nofollow</p>
-                                </CustomTooltipContent>
-                            </CustomTooltip>
-                        </div>
+                        <Label htmlFor="robots_meta">Robots Meta</Label>
                         <Input
                             id="robots_meta"
                             value={robotsMeta}
@@ -165,17 +120,7 @@ export function SEOTab({
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="og_title">OG Title</Label>
-                                <CustomTooltip>
-                                    <CustomTooltipTrigger asChild>
-                                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                    </CustomTooltipTrigger>
-                                    <CustomTooltipContent className="max-w-xs">
-                                        <p>عنوان صفحه برای اشتراک‌گذاری در شبکه‌های اجتماعی مانند فیسبوک، توییتر و غیره. اگر خالی باشد از Meta Title استفاده می‌شود.</p>
-                                    </CustomTooltipContent>
-                                </CustomTooltip>
-                            </div>
+                            <Label htmlFor="og_title">OG Title</Label>
                             <Input
                                 id="og_title"
                                 value={ogTitle}
@@ -186,17 +131,7 @@ export function SEOTab({
                         </div>
 
                         <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="og_description">OG Description</Label>
-                                <CustomTooltip>
-                                    <CustomTooltipTrigger asChild>
-                                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                    </CustomTooltipTrigger>
-                                    <CustomTooltipContent className="max-w-xs">
-                                        <p>توضیحات صفحه برای اشتراک‌گذاری در شبکه‌های اجتماعی. اگر خالی باشد از Meta Description استفاده می‌شود.</p>
-                                    </CustomTooltipContent>
-                                </CustomTooltip>
-                            </div>
+                            <Label htmlFor="og_description">OG Description</Label>
                             <Textarea
                                 id="og_description"
                                 value={ogDescription}
@@ -209,17 +144,7 @@ export function SEOTab({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label>OG Image</Label>
-                            <CustomTooltip>
-                                <CustomTooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </CustomTooltipTrigger>
-                                <CustomTooltipContent className="max-w-xs">
-                                    <p>تصویری که هنگام اشتراک‌گذاری این صفحه در شبکه‌های اجتماعی نمایش داده می‌شود. اندازه پیشنهادی: 1200x630 پیکسل.</p>
-                                </CustomTooltipContent>
-                            </CustomTooltip>
-                        </div>
+                        <Label>OG Image</Label>
                         <LogoUploader
                             label="تصویر Open Graph"
                             selectedMedia={ogImage}

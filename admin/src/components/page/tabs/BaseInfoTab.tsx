@@ -7,13 +7,8 @@ import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import LogoUploader from "@/app/(dashboard)/settings/panel/LogoUploader";
-import {
-    CustomTooltip,
-    CustomTooltipTrigger,
-    CustomTooltipContent,
-} from "@/components/elements/Tooltip";
 import { Media } from "@/types/shared/media";
-import { FileText, Image as ImageIcon, HelpCircle } from "lucide-react";
+import { FileText, Image as ImageIcon } from "lucide-react";
 
 interface BaseInfoTabProps {
     title: string;
@@ -49,17 +44,7 @@ export function BaseInfoTab({
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="title">عنوان صفحه</Label>
-                            <CustomTooltip>
-                                <CustomTooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </CustomTooltipTrigger>
-                                <CustomTooltipContent>
-                                    <p>عنوان صفحه که در بالای صفحه نمایش داده می‌شود</p>
-                                </CustomTooltipContent>
-                            </CustomTooltip>
-                        </div>
+                        <Label htmlFor="title">عنوان صفحه</Label>
                         <Input
                             id="title"
                             value={title}
@@ -69,17 +54,7 @@ export function BaseInfoTab({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="short_description">توضیح کوتاه</Label>
-                            <CustomTooltip>
-                                <CustomTooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </CustomTooltipTrigger>
-                                <CustomTooltipContent>
-                                    <p>خلاصه کوتاه از محتوای صفحه که در پیش‌نمایش‌ها و کارت‌ها نمایش داده می‌شود</p>
-                                </CustomTooltipContent>
-                            </CustomTooltip>
-                        </div>
+                        <Label htmlFor="short_description">توضیح کوتاه</Label>
                         <Textarea
                             id="short_description"
                             value={shortDescription}
@@ -90,17 +65,7 @@ export function BaseInfoTab({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="content">محتوای صفحه</Label>
-                            <CustomTooltip>
-                                <CustomTooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </CustomTooltipTrigger>
-                                <CustomTooltipContent className="max-w-xs">
-                                    <p>متن اصلی صفحه که می‌تواند شامل متن، عکس، لینک و فرمت‌های مختلف باشد. از ویرایشگر برای افزودن محتوا استفاده کنید.</p>
-                                </CustomTooltipContent>
-                            </CustomTooltip>
-                        </div>
+                        <Label htmlFor="content">محتوای صفحه</Label>
                         <TipTapEditor
                             content={content}
                             onChange={onContentChange}
@@ -120,19 +85,7 @@ export function BaseInfoTab({
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center gap-2 mb-4">
-                        <p className="text-muted-foreground text-sm">
-                            تصویر اصلی صفحه که در بالای صفحه نمایش داده می‌شود
-                        </p>
-                        <CustomTooltip>
-                            <CustomTooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                            </CustomTooltipTrigger>
-                            <CustomTooltipContent className="max-w-xs">
-                                <p>تصویر شاخص صفحه که در بالای محتوا نمایش داده می‌شود. این تصویر می‌تواند برای جذابیت بصری صفحه استفاده شود.</p>
-                            </CustomTooltipContent>
-                        </CustomTooltip>
-                    </div>
+                    <div className="mb-4" />
                     <LogoUploader
                         label="تصویر شاخص"
                         selectedMedia={featuredImage}
