@@ -1,0 +1,14 @@
+from .messages import (
+    ABOUT_PAGE_SUCCESS,
+    ABOUT_PAGE_ERRORS,
+    TERMS_PAGE_SUCCESS,
+    TERMS_PAGE_ERRORS,
+)
+
+__all__ = [
+    'ABOUT_PAGE_SUCCESS',
+    'ABOUT_PAGE_ERRORS',
+    'TERMS_PAGE_SUCCESS',
+    'TERMS_PAGE_ERRORS',
+]
+

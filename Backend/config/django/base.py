@@ -40,6 +40,7 @@ LOCAL_APPS = [
     'src.statistics.apps.StatisticsConfig',
     'src.panel.apps.PanelConfig',
     'src.settings.apps.SettingsConfig',
+    'src.page.apps.PageConfig',
 ]
 INSTALLED_APPS = [
      'django.contrib.admin',
