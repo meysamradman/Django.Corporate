@@ -41,6 +41,7 @@ LOCAL_APPS = [
     'src.panel.apps.PanelConfig',
     'src.settings.apps.SettingsConfig',
     'src.page.apps.PageConfig',
+    'src.form.apps.FormConfig',
 ]
 INSTALLED_APPS = [
      'django.contrib.admin',

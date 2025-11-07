@@ -149,6 +149,11 @@ export const useMenuData = () => {
                             { title: "تنظیمات مدل‌های AI", url: "/settings/ai" },
                             { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
                             { title: "تنظیمات سیستم", url: "/settings/general" },
+                            { title: "تنظیمات فرم", isTitle: true },
+                            { title: "فرم", url: "/settings/form" },
+                            { title: "صفحات", isTitle: true },
+                            { title: "درباره ما", url: "/settings/page/about" },
+                            { title: "قوانین و مقررات", url: "/settings/page/terms" },
                         ],
                     },
                 ]

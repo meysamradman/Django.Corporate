@@ -1,0 +1,213 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/elements/Button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { pageApi, TermsPage } from "@/api/page/route";
+import { toast } from "@/components/elements/Sonner";
+import { Media } from "@/types/shared/media";
+import { Save, Loader2, FileText, Search } from "lucide-react";
+import { BaseInfoTab } from "./tabs/BaseInfoTab";
+import { SEOTab } from "./tabs/SEOTab";
+import { Skeleton } from "@/components/elements/Skeleton";
+
+export function TermsPageForm() {
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState("base");
+    const [page, setPage] = useState<TermsPage | null>(null);
+    
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [shortDescription, setShortDescription] = useState("");
+    
+    const [metaTitle, setMetaTitle] = useState("");
+    const [metaDescription, setMetaDescription] = useState("");
+    const [ogTitle, setOgTitle] = useState("");
+    const [ogDescription, setOgDescription] = useState("");
+    const [canonicalUrl, setCanonicalUrl] = useState("");
+    const [robotsMeta, setRobotsMeta] = useState("index,follow");
+    
+    const [featuredImage, setFeaturedImage] = useState<Media | null>(null);
+    const [ogImage, setOgImage] = useState<Media | null>(null);
+
+    useEffect(() => {
+        fetchPage();
+    }, []);
+
+    const fetchPage = async () => {
+        try {
+            setLoading(true);
+            const data = await pageApi.getTermsPage();
+            setPage(data);
+            
+            setTitle(data.title || "");
+            setContent(data.content || "");
+            setShortDescription(data.short_description || "");
+            
+            setMetaTitle(data.meta_title || "");
+            setMetaDescription(data.meta_description || "");
+            setOgTitle(data.og_title || "");
+            setOgDescription(data.og_description || "");
+            setCanonicalUrl(data.canonical_url || "");
+            setRobotsMeta(data.robots_meta || "index,follow");
+            
+            if (data.featured_image_data) {
+                setFeaturedImage(convertImageMediaToMedia(data.featured_image_data));
+            }
+            if (data.og_image_data) {
+                setOgImage(convertImageMediaToMedia(data.og_image_data));
+            }
+        } catch (error: any) {
+            console.error("Error fetching Terms Page:", error);
+            const errorMessage = error?.message || error?.response?.message || "خطا در دریافت صفحه قوانین و مقررات";
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const convertImageMediaToMedia = (imageMedia: any): Media => {
+        return {
+            id: imageMedia.id,
+            public_id: imageMedia.public_id,
+            title: imageMedia.title || "",
+            file_url: imageMedia.file_url,
+            file_size: imageMedia.file_size,
+            mime_type: imageMedia.mime_type,
+            alt_text: imageMedia.alt_text || "",
+            is_active: imageMedia.is_active,
+            created_at: imageMedia.created_at,
+            updated_at: imageMedia.updated_at,
+            created_by: null,
+            updated_by: null,
+            media_type: imageMedia.media_type || "image",
+            cover_image: null,
+        };
+    };
+
+    const handleSave = async () => {
+        if (!title.trim()) {
+            toast.error("عنوان صفحه الزامی است");
+            return;
+        }
+
+        try {
+            setSaving(true);
+            
+            const updateData: any = {
+                title,
+                content,
+                short_description: shortDescription || null,
+                meta_title: metaTitle || null,
+                meta_description: metaDescription || null,
+                og_title: ogTitle || null,
+                og_description: ogDescription || null,
+                canonical_url: canonicalUrl || null,
+                robots_meta: robotsMeta || null,
+            };
+
+            if (featuredImage) {
+                updateData.featured_image = featuredImage.id;
+            } else if (page?.featured_image && !featuredImage) {
+                updateData.featured_image = null;
+            }
+
+            if (ogImage) {
+                updateData.og_image = ogImage.id;
+            } else if (page?.og_image && !ogImage) {
+                updateData.og_image = null;
+            }
+
+            await pageApi.updateTermsPage(updateData);
+            toast.success("صفحه قوانین و مقررات با موفقیت به‌روزرسانی شد");
+            await fetchPage();
+        } catch (error: any) {
+            console.error("Error updating Terms Page:", error);
+            const errorMessage = error?.response?.data?.message || error?.message || "خطا در به‌روزرسانی صفحه قوانین و مقررات";
+            toast.error(errorMessage);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <Skeleton className="h-96 w-full" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="page-title">تنظیمات صفحه قوانین و مقررات</h1>
+                </div>
+                <Button onClick={handleSave} disabled={saving}>
+                    {saving ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            در حال ذخیره...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="mr-2 h-4 w-4" />
+                            ذخیره تغییرات
+                        </>
+                    )}
+                </Button>
+            </div>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList>
+                    <TabsTrigger value="base">
+                        <FileText className="h-4 w-4 me-2" />
+                        اطلاعات پایه
+                    </TabsTrigger>
+                    <TabsTrigger value="seo">
+                        <Search className="h-4 w-4 me-2" />
+                        سئو
+                    </TabsTrigger>
+                </TabsList>
+
+                {activeTab === "base" && (
+                    <BaseInfoTab
+                        title={title}
+                        content={content}
+                        shortDescription={shortDescription}
+                        featuredImage={featuredImage}
+                        onTitleChange={setTitle}
+                        onContentChange={setContent}
+                        onShortDescriptionChange={setShortDescription}
+                        onFeaturedImageChange={setFeaturedImage}
+                    />
+                )}
+
+                {activeTab === "seo" && (
+                    <SEOTab
+                        metaTitle={metaTitle}
+                        metaDescription={metaDescription}
+                        ogTitle={ogTitle}
+                        ogDescription={ogDescription}
+                        canonicalUrl={canonicalUrl}
+                        robotsMeta={robotsMeta}
+                        ogImage={ogImage}
+                        onMetaTitleChange={setMetaTitle}
+                        onMetaDescriptionChange={setMetaDescription}
+                        onOgTitleChange={setOgTitle}
+                        onOgDescriptionChange={setOgDescription}
+                        onCanonicalUrlChange={setCanonicalUrl}
+                        onRobotsMetaChange={setRobotsMeta}
+                        onOgImageChange={setOgImage}
+                    />
+                )}
+            </Tabs>
+        </div>
+    );
+}

@@ -116,8 +116,6 @@ class TermsPageUpdateSerializer(serializers.ModelSerializer):
     
     def validate_content(self, value):
         """اعتبارسنجی محتوا"""
-        if value and len(value.strip()) < 10:
-            raise serializers.ValidationError("محتوای صفحه باید حداقل 10 کاراکتر باشد")
         return value.strip() if value else value
     
     def validate_meta_title(self, value):

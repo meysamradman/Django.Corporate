@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/email/', include('src.email.urls')),
     path('api/settings/', include('src.settings.urls')),
     path('api/', include('src.page.urls')),
+    path('api/', include('src.form.urls')),
     path('api/', include('src.statistics.urls')),
     path('api/', include('src.panel.urls')),
     # path('api/', include('src.blog.urls')),

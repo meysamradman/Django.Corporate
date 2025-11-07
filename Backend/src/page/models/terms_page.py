@@ -21,9 +21,10 @@ class TermsPage(BaseModel, SEOMixin):
     )
     
     content = models.TextField(
+        blank=True,
+        null=True,
         verbose_name="محتوای صفحه",
-        help_text="متن اصلی صفحه قوانین و مقررات (پشتیبانی از HTML)",
-        validators=[MinLengthValidator(10, message="محتوای صفحه باید حداقل 10 کاراکتر باشد")]
+        help_text="متن اصلی صفحه قوانین و مقررات (پشتیبانی از HTML)"
     )
     
     short_description = models.TextField(
