@@ -38,7 +38,6 @@ export default function LogoUploader({
     };
 
     const handleUploadComplete = () => {
-        // بعد از آپلود، مودال انتخاب را باز کن
         setShowMediaSelector(true);
         setActiveTab("select");
     };
@@ -113,7 +112,6 @@ export default function LogoUploader({
                 </div>
             </div>
 
-            {/* Media Library Modal with Tabs */}
             <MediaLibraryModal
                 isOpen={showMediaSelector}
                 onClose={() => setShowMediaSelector(false)}
@@ -128,3 +126,4 @@ export default function LogoUploader({
         </div>
     );
 }
+

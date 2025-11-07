@@ -241,7 +241,10 @@ export function Sidebar({
                                     <div className="space-y-1">
                                         {(
                                             [
-                                                {title: selectedItem.title, isTitle: true},
+                                                ...(selectedItem.title.trim() && 
+                                                    !(selectedItem.items && selectedItem.items.length > 0 && selectedItem.items[0]?.isTitle) 
+                                                    ? [{title: selectedItem.title, isTitle: true}] 
+                                                    : []),
                                                 ...(selectedItem.items || []),
                                             ] as MenuItem[]
                                         ).map((subItem, index) => (

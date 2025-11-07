@@ -22,10 +22,8 @@ import {
     Save
 } from 'lucide-react';
 
-// Define Zod schema for form validation
 const formSchema = z.object({
     panel_title: z.string().min(1, "عنوان پنل الزامی است.").max(100),
-    // Files are handled separately
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -37,7 +35,6 @@ export default function PanelSettingsForm() {
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
     const [selectedFavicon, setSelectedFavicon] = useState<Media | null>(null);
     
-    // Track file deletions
     const [logoDeleted, setLogoDeleted] = useState<boolean>(false);
     const [faviconDeleted, setFaviconDeleted] = useState<boolean>(false);
 
@@ -51,27 +48,24 @@ export default function PanelSettingsForm() {
     useEffect(() => {
         if (panelSettings) {
             form.reset({ panel_title: panelSettings.panel_title || "" });
-            // Set initial media
             setSelectedLogo(panelSettings.logo_detail || panelSettings.logo || null);
             setSelectedFavicon(panelSettings.favicon_detail || panelSettings.favicon || null);
-            // Reset deletion states when new data comes from server
             setLogoDeleted(false);
             setFaviconDeleted(false);
         }
     }, [panelSettings, form]);
 
-    // Custom handlers for media operations
     const handleLogoSelect = (media: Media | null) => {
         setSelectedLogo(media);
         if (media) {
-            setLogoDeleted(false); // Reset deletion if new media selected
+            setLogoDeleted(false);
         }
     };
 
     const handleFaviconSelect = (media: Media | null) => {
         setSelectedFavicon(media);
         if (media) {
-            setFaviconDeleted(false); // Reset deletion if new media selected
+            setFaviconDeleted(false);
         }
     };
 
@@ -79,12 +73,10 @@ export default function PanelSettingsForm() {
         try {
             const formData = new FormData();
             
-            // Add title if changed
             if (data.panel_title !== panelSettings?.panel_title) {
                 formData.append('panel_title', data.panel_title);
             }
 
-            // Handle logo
             if (selectedLogo?.id) {
                 formData.append('logo', selectedLogo.id.toString());
             }
@@ -92,7 +84,6 @@ export default function PanelSettingsForm() {
                 formData.append('remove_logo', 'true');
             }
 
-            // Handle favicon
             if (selectedFavicon?.id) {
                 formData.append('favicon', selectedFavicon.id.toString());
             }
@@ -101,7 +92,6 @@ export default function PanelSettingsForm() {
             }
 
             let hasChanges = false;
-            // Check if FormData has entries
             for (const _ of formData.entries()) {
                 hasChanges = true;
                 break;
@@ -114,7 +104,6 @@ export default function PanelSettingsForm() {
 
             await updateSettings(formData);
 
-            // Reset states after successful submission
             setLogoDeleted(false);
             setFaviconDeleted(false);
 
@@ -123,10 +112,8 @@ export default function PanelSettingsForm() {
         }
     };
 
-    // Watch form values for changes
     const watchedTitle = form.watch('panel_title');
     
-    // Check if there are changes to enable submit button
     const hasChanges = watchedTitle !== (panelSettings?.panel_title || "") ||
                       selectedLogo !== (panelSettings?.logo_detail || panelSettings?.logo || null) || 
                       selectedFavicon !== (panelSettings?.favicon_detail || panelSettings?.favicon || null) || 
@@ -243,3 +230,4 @@ export default function PanelSettingsForm() {
         </Form>
     );
 }
+

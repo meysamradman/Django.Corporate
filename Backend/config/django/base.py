@@ -39,6 +39,7 @@ LOCAL_APPS = [
     'src.email.apps.EmailConfig',
     'src.statistics.apps.StatisticsConfig',
     'src.panel.apps.PanelConfig',
+    'src.settings.apps.SettingsConfig',
 ]
 INSTALLED_APPS = [
      'django.contrib.admin',

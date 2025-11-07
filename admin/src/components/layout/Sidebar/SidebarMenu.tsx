@@ -141,11 +141,14 @@ export const useMenuData = () => {
                 title: "تنظیمات",
                 items: [
                     {
-                        title: "تنظیمات پنل",
+                        title: "تنظیمات",
                         icon: Settings,
                         items: [
-                            { title: "تنظیمات سیستم", url: "/settings" },
+                            { title: "تنظیمات پنل ادمین", isTitle: true },
+                            { title: "تنظیمات پنل", url: "/settings/panel" },
                             { title: "تنظیمات مدل‌های AI", url: "/settings/ai" },
+                            { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
+                            { title: "تنظیمات سیستم", url: "/settings/general" },
                         ],
                     },
                 ]
