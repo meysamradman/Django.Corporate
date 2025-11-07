@@ -36,6 +36,7 @@ LOCAL_APPS = [
     'src.portfolio.apps.PortfolioConfig',
     'src.media.apps.MediaConfig',
     'src.ai.apps.AiConfig',
+    'src.email.apps.EmailConfig',
     'src.statistics.apps.StatisticsConfig',
     'src.panel.apps.PanelConfig',
 ]
@@ -53,6 +54,8 @@ INSTALLED_APPS = [
      'rest_framework_simplejwt.token_blacklist',
      'drf_spectacular',
      'django_redis',  # Redis cache support
+     'django_mailbox',  # برای دریافت ایمیل از IMAP
+     'post_office',  # برای ارسال پیشرفته ایمیل
      # 'debug_toolbar',
      *LOCAL_APPS,
 ]
@@ -316,6 +319,29 @@ MEDIA_ALLOWED_EXTENSIONS = {
     'video': os.getenv('MEDIA_VIDEO_EXTENSIONS', 'mp4,webm,mov').split(','),
     'pdf': os.getenv('MEDIA_PDF_EXTENSIONS', 'pdf').split(','),
     'audio': os.getenv('MEDIA_AUDIO_EXTENSIONS', 'mp3,ogg').split(','),
+}
+
+# Email Settings (برای ارسال ایمیل) - از .env خوانده می‌شود
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+
+# تنظیمات django-mailbox (برای دریافت ایمیل از IMAP)
+DJANGO_MAILBOX_STORE_ORIGINAL_MESSAGE = True
+DJANGO_MAILBOX_ATTACHMENT_UPLOAD_TO = 'mailbox_attachments/%Y/%m/%d/'
+
+# تنظیمات post_office (برای ارسال پیشرفته ایمیل)
+POST_OFFICE = {
+    'BACKENDS': {
+        'default': 'django.core.mail.backends.smtp.EmailBackend',
+    },
+    'DEFAULT_PRIORITY': 'now',
+    'LOG_LEVEL': 1,  # 0 = nothing, 1 = only errors, 2 = everything
 }
 
 # تنظیمات لاگینگ برای دیدن خطاها

@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/', include('src.user.urls')),
     path('api/', include('src.media.urls')),
     path('api/', include('src.ai.urls')),
+    path('api/email/', include('src.email.urls')),
     path('api/', include('src.statistics.urls')),
     path('api/', include('src.panel.urls')),
     # path('api/', include('src.blog.urls')),

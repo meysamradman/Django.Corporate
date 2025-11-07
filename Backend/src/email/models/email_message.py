@@ -1,0 +1,193 @@
+from django.db import models
+from django.utils import timezone
+from django.core.validators import EmailValidator
+from src.core.models.base import BaseModel
+
+
+class EmailMessage(BaseModel):
+    """
+    پیام‌های تماس از وب‌سایت، اپلیکیشن یا ایمیل مستقیم
+    """
+    
+    STATUS_CHOICES = [
+        ('new', 'جدید'),
+        ('read', 'خوانده شده'),
+        ('replied', 'پاسخ داده شده'),
+        ('archived', 'آرشیو شده'),
+        ('draft', 'پیش‌نویس'),
+    ]
+    
+    SOURCE_CHOICES = [
+        ('website', 'وب‌سایت'),
+        ('mobile_app', 'اپلیکیشن موبایل'),
+        ('email', 'ایمیل مستقیم'),
+        ('api', 'API'),
+    ]
+    
+    # اطلاعات فرستنده
+    name = models.CharField(
+        max_length=200,
+        verbose_name="نام",
+        db_index=True,
+        help_text="نام فرستنده پیام"
+    )
+    email = models.EmailField(
+        verbose_name="ایمیل",
+        db_index=True,
+        validators=[EmailValidator()],
+        help_text="آدرس ایمیل فرستنده"
+    )
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name="تلفن",
+        help_text="شماره تلفن فرستنده (اختیاری)"
+    )
+    
+    # محتوای پیام
+    subject = models.CharField(
+        max_length=300,
+        verbose_name="موضوع",
+        db_index=True,
+        help_text="موضوع پیام"
+    )
+    message = models.TextField(
+        verbose_name="پیام",
+        help_text="متن پیام"
+    )
+    
+    # وضعیت
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new',
+        db_index=True,
+        verbose_name="وضعیت",
+        help_text="وضعیت فعلی پیام"
+    )
+    
+    # منبع
+    source = models.CharField(
+        max_length=50,
+        choices=SOURCE_CHOICES,
+        default='website',
+        db_index=True,
+        verbose_name="منبع",
+        help_text="منبع ارسال پیام"
+    )
+    
+    # متادیتا
+    ip_address = models.GenericIPAddressField(
+        blank=True,
+        null=True,
+        verbose_name="آدرس IP",
+        help_text="آدرس IP فرستنده"
+    )
+    user_agent = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="User Agent",
+        help_text="اطلاعات مرورگر یا اپلیکیشن فرستنده"
+    )
+    
+    # پاسخ
+    reply_message = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="پاسخ ادمین",
+        help_text="پاسخ ادمین به این پیام"
+    )
+    replied_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        db_index=True,
+        verbose_name="تاریخ پاسخ",
+        help_text="زمانی که پاسخ ارسال شد"
+    )
+    replied_by = models.ForeignKey(
+        'user.User',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='replied_email_messages',
+        verbose_name="پاسخ داده شده توسط",
+        help_text="ادمینی که پاسخ را ارسال کرده"
+    )
+    
+    # برای پیش‌نویس‌ها
+    created_by = models.ForeignKey(
+        'user.User',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='created_email_messages',
+        verbose_name="ایجاد شده توسط",
+        help_text="ادمینی که این ایمیل/پیش‌نویس را ایجاد کرده"
+    )
+    
+    # تاریخ خواندن
+    read_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        db_index=True,
+        verbose_name="تاریخ خواندن",
+        help_text="زمانی که پیام خوانده شد"
+    )
+    
+    class Meta:
+        db_table = 'email_messages'
+        ordering = ['-created_at']
+        verbose_name = "پیام ایمیل"
+        verbose_name_plural = "پیام‌های ایمیل"
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['source', 'created_at']),
+            models.Index(fields=['status', 'source']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.subject[:50]}"
+    
+    def mark_as_read(self):
+        """علامت‌گذاری به عنوان خوانده شده"""
+        if self.status == 'new':
+            self.status = 'read'
+            self.read_at = timezone.now()
+            self.save(update_fields=['status', 'read_at'])
+    
+    def mark_as_replied(self, admin_user):
+        """علامت‌گذاری به عنوان پاسخ داده شده"""
+        self.status = 'replied'
+        self.replied_at = timezone.now()
+        self.replied_by = admin_user
+        self.save(update_fields=['status', 'replied_at', 'replied_by'])
+    
+    @property
+    def has_attachments(self):
+        """بررسی وجود ضمیمه"""
+        return self.attachments.exists()
+    
+    @property
+    def is_new(self):
+        """بررسی جدید بودن پیام"""
+        return self.status == 'new'
+    
+    @property
+    def is_replied(self):
+        """بررسی پاسخ داده شده بودن"""
+        return self.status == 'replied' and self.reply_message
+    
+    @property
+    def is_draft(self):
+        """بررسی پیش‌نویس بودن"""
+        return self.status == 'draft'
+    
+    def save_as_draft(self, admin_user):
+        """ذخیره به عنوان پیش‌نویس"""
+        self.status = 'draft'
+        if not self.created_by:
+            self.created_by = admin_user
+        self.save(update_fields=['status', 'created_by'])
+

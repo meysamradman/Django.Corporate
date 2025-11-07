@@ -9,6 +9,7 @@ import {
     Images,
     Sparkles,
     MessageSquare,
+    Mail,
     type LucideIcon
 } from "lucide-react"
 import { useMemo } from "react"
@@ -123,6 +124,16 @@ export const useMenuData = () => {
                             { title: "تولید محتوا با AI", url: "/ai/content" },
                             { title: "تولید تصویر با AI", url: "/ai/image" },
                         ],
+                    },
+                ]
+            },
+            {
+                title: "ارتباطات",
+                items: [
+                    {
+                        title: "ایمیل",
+                        icon: Mail,
+                        url: "/email",
                     },
                 ]
             },

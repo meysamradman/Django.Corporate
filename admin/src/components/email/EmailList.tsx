@@ -1,0 +1,55 @@
+"use client";
+
+import React from "react";
+import { EmailItem } from "./EmailItem";
+import { EmailMessage } from "@/api/email/route";
+import { cn } from "@/core/utils/cn";
+
+interface EmailListProps {
+  emails: EmailMessage[];
+  selectedEmails: Set<number>;
+  onSelectEmail: (emailId: number) => void;
+  onEmailClick?: (email: EmailMessage) => void;
+  loading?: boolean;
+}
+
+export function EmailList({
+  emails,
+  selectedEmails,
+  onSelectEmail,
+  onEmailClick,
+  loading = false,
+}: EmailListProps) {
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center text-muted-foreground">در حال بارگذاری...</div>
+      </div>
+    );
+  }
+
+  if (emails.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center text-muted-foreground">ایمیل‌ای یافت نشد</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="divide-y divide-border">
+        {emails.map((email) => (
+          <EmailItem
+            key={email.id}
+            email={email}
+            isSelected={selectedEmails.has(email.id)}
+            onSelect={onSelectEmail}
+            onClick={onEmailClick}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
