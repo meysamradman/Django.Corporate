@@ -38,10 +38,6 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             const data = await settingsApi.getGeneralSettings();
             setSettings(data);
             
-            setSiteName(data.site_name || "");
-            setCopyrightText(data.copyright_text || "");
-            setCopyrightLink(data.copyright_link || "");
-            
             if (data.logo_image_data) {
                 setLogoImage(convertImageMediaToMedia(data.logo_image_data));
             }
@@ -121,7 +117,7 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
     useImperativeHandle(ref, () => ({
         handleSave: () => {
             if (!siteName.trim()) {
-                toast.error("نام سیستم الزامی است");
+                toast.error("عنوان الزامی است");
                 return;
             }
             handleSave();
@@ -135,6 +131,48 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             </div>
         );
     }
+
+    const imageCards = [
+        {
+            key: "logo",
+            title: "لوگو",
+            subtitle: logoImage?.title || "تصویری انتخاب نشده است",
+            description: "لوگوی اصلی وب‌سایت که در بالای صفحات نمایش داده می‌شود",
+            accent: "from-emerald-500/25 via-emerald-400/15 to-transparent",
+            iconWrapper: "bg-emerald-100",
+            iconColor: "stroke-emerald-600",
+            statusColor: "bg-emerald-500",
+            borderClass: "border-b-emerald-500",
+            selectedMedia: logoImage,
+            onSelect: setLogoImage,
+        },
+        {
+            key: "favicon",
+            title: "فاویکون",
+            subtitle: faviconImage?.title || "فاویکونی انتخاب نشده است",
+            description: "آیکون کوچک که در تب مرورگر نمایش داده می‌شود",
+            accent: "from-violet-500/25 via-violet-400/15 to-transparent",
+            iconWrapper: "bg-violet-100",
+            iconColor: "stroke-violet-600",
+            statusColor: "bg-violet-500",
+            borderClass: "border-b-violet-500",
+            selectedMedia: faviconImage,
+            onSelect: setFaviconImage,
+        },
+        {
+            key: "enamad",
+            title: "اینماد",
+            subtitle: enamadImage?.title || "تصویر اینماد انتخاب نشده است",
+            description: "تصویر نماد اعتماد الکترونیکی (اینماد)",
+            accent: "from-amber-500/25 via-amber-400/15 to-transparent",
+            iconWrapper: "bg-amber-100",
+            iconColor: "stroke-amber-600",
+            statusColor: "bg-amber-500",
+            borderClass: "border-b-amber-500",
+            selectedMedia: enamadImage,
+            onSelect: setEnamadImage,
+        },
+    ];
 
     return (
         <div className="space-y-6">
@@ -150,12 +188,12 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="site_name">نام سیستم</Label>
+                            <Label htmlFor="site_name">عنوان</Label>
                             <Input
                                 id="site_name"
                                 value={siteName}
                                 onChange={(e) => setSiteName(e.target.value)}
-                                placeholder="نام سیستم یا برند"
+                                placeholder="عنوان سایت یا برند"
                             />
                         </div>
 
@@ -184,74 +222,36 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
-                                <ImageIcon className="w-5 h-5 stroke-green-600" />
+                {imageCards.map((card) => (
+                    <Card
+                        key={card.key}
+                        className={`relative overflow-hidden text-center transition-transform duration-300 hover:-translate-y-1 border-b-4 ${card.borderClass}`}
+                    >
+                        <CardContent className="flex flex-col items-center gap-5 py-8">
+                            <LogoUploader
+                                label={card.title}
+                                selectedMedia={card.selectedMedia}
+                                onMediaSelect={card.onSelect}
+                                size="md"
+                                showLabel={false}
+                                className="w-full"
+                                statusColor={card.statusColor}
+                                accentGradient={card.accent}
+                            />
+                            <div className="space-y-2">
+                                <div className="text-base font-semibold text-foreground">
+                                    {card.title}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    {card.subtitle}
+                                </p>
                             </div>
-                            <CardTitle>لوگو</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground mb-4 text-sm">
-                            لوگوی اصلی وب‌سایت که در بالای صفحات نمایش داده می‌شود
-                        </p>
-                        <LogoUploader
-                            label="لوگو"
-                            selectedMedia={logoImage}
-                            onMediaSelect={setLogoImage}
-                            size="md"
-                            showLabel={false}
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
-                                <ImageIcon className="w-5 h-5 stroke-purple-600" />
-                            </div>
-                            <CardTitle>فاویکون</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground mb-4 text-sm">
-                            آیکون کوچک که در تب مرورگر نمایش داده می‌شود
-                        </p>
-                        <LogoUploader
-                            label="فاویکون"
-                            selectedMedia={faviconImage}
-                            onMediaSelect={setFaviconImage}
-                            size="md"
-                            showLabel={false}
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-orange-500">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-orange-100 rounded-xl shadow-sm">
-                                <ImageIcon className="w-5 h-5 stroke-orange-600" />
-                            </div>
-                            <CardTitle>اینماد</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground mb-4 text-sm">
-                            تصویر نماد اعتماد الکترونیکی (اینماد)
-                        </p>
-                        <LogoUploader
-                            label="اینماد"
-                            selectedMedia={enamadImage}
-                            onMediaSelect={setEnamadImage}
-                            size="md"
-                            showLabel={false}
-                        />
-                    </CardContent>
-                </Card>
+                            <p className="text-xs leading-relaxed text-muted-foreground/80">
+                                {card.description}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
         </div>
     );
