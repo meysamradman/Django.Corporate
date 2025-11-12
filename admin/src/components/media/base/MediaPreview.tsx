@@ -1,3 +1,10 @@
+/**
+ * رنگ‌های استاندارد نوع مدیا:
+ * - تصویر: blue (پیش‌فرض)
+ * - ویدیو: red
+ * - صدا: blue
+ * - سند/PDF: orange
+ */
 "use client";
 
 import React, { useState } from 'react';
@@ -27,14 +34,14 @@ export function MediaPreview({
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
       case 'video':
-        return 'bg-red-500/10';
+        return 'bg-red/10';
       case 'audio':
-        return 'bg-blue-500/10';
+        return 'bg-blue/10';
       case 'document':
       case 'pdf':
-        return 'bg-orange-500/10';
+        return 'bg-orange/10';
       default:
-        return 'bg-gray-500/10';
+        return 'bg-gray/10';
     }
   };
 
@@ -43,14 +50,14 @@ export function MediaPreview({
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
       case 'video':
-        return 'text-red-500';
+        return 'text-red-1';
       case 'audio':
-        return 'text-blue-500';
+        return 'text-blue-1';
       case 'document':
       case 'pdf':
-        return 'text-orange-500';
+        return 'text-orange-1';
       default:
-        return 'text-gray-500';
+        return 'text-gray-1';
     }
   };
 
@@ -78,11 +85,11 @@ export function MediaPreview({
       {/* Play Icon Overlay for Video/Audio */}
       {((media.media_type || '') === 'video' || (media.media_type || '') === 'audio') && showPlayIcon && (
         <div className={cn(
-          "absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300",
+          "absolute inset-0 flex items-center justify-center bg-static-b/20 transition-opacity duration-300",
           isHovered ? "opacity-100" : "opacity-0"
         )}>
           <div className={cn(
-            "flex items-center justify-center w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg transition-all duration-300",
+            "flex items-center justify-center w-12 h-12 rounded-full bg-static-w/90 backdrop-blur-sm shadow-lg transition-all duration-300",
             isHovered ? "scale-110" : "scale-100"
           )}>
             <Play className={cn("h-6 w-6 ml-1", getPlayIconColor())} />
@@ -97,11 +104,11 @@ export function MediaPreview({
         isHovered ? "opacity-100" : "opacity-0"
       )}>
         <div className="absolute bottom-2 left-2 right-2">
-          <p className="text-white text-sm font-medium truncate">
+          <p className="text-static-w text-sm font-medium truncate">
             {media.title || media.file_name || 'بدون نام'}
           </p>
           {media.alt_text && (
-            <p className="text-white/80 text-xs truncate">
+            <p className="text-static-w/80 text-xs truncate">
               {media.alt_text}
             </p>
           )}

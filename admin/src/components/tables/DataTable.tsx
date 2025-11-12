@@ -63,7 +63,7 @@ export interface ExportConfig<TClientFilters extends Record<string, unknown> = R
   onExport: (filters: TClientFilters, search: string) => Promise<void>;
   buttonText?: string;
   value?: string;
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'destructive' | 'link';
+  variant?: 'default' | 'outline' | 'destructive' | 'link';
 }
 
 interface DataTableProps<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
@@ -184,7 +184,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
            <div className="flex items-center gap-2 flex-wrap">
              <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
-               <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+               <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
                <Input
                  placeholder="جستجو..."
                  value={searchValue ?? ""}
@@ -371,7 +371,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                       {isLoading ? (
                         <TableLoadingCompact />
                       ) : (
-                        <div className="py-8 text-muted-foreground">
+                        <div className="py-8 text-font-s">
                           داده‌ای یافت نشد
                         </div>
                       )}
@@ -386,12 +386,32 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
         <PaginationControls
           currentPage={table.getState().pagination.pageIndex + 1}
           totalPages={pageCount} // Use the pageCount prop from API instead of table.getPageCount()
-          onPageChange={(page: number) => table.setPageIndex(page - 1)}
+          onPageChange={(page: number) => {
+            const newPageIndex = page - 1;
+            const newPagination = {
+              pageIndex: newPageIndex,
+              pageSize: table.getState().pagination.pageSize,
+            };
+            // Update table state
+            table.setPageIndex(newPageIndex);
+            // Call onPaginationChange to sync with parent state and URL
+            if (onPaginationChange) {
+              onPaginationChange(newPagination);
+            }
+          }}
           pageSize={table.getState().pagination.pageSize}
           onPageSizeChange={(size: number) => {
+            const newPagination = {
+              pageIndex: 0,
+              pageSize: size,
+            };
+            // Update table state
             table.setPageSize(size);
-            // Reset to first page when page size changes
             table.setPageIndex(0);
+            // Call onPaginationChange to sync with parent state and URL
+            if (onPaginationChange) {
+              onPaginationChange(newPagination);
+            }
           }}
           pageSizeOptions={[10, 20, 30, 40, 50]}
           showPageSize={true}

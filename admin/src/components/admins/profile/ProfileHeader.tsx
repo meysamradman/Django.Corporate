@@ -157,7 +157,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                                 />
                             </div>
                         ) : (
-                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground border-4 border-card">
+                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-static-w border-4 border-card">
                                 <span>
                                     {(formData.firstName?.[0] || admin.full_name?.[0] || "U")}{(formData.lastName?.[0] || admin.full_name?.split(" ")?.[1]?.[0] || "")}
                                 </span>
@@ -168,7 +168,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                         <Button
                             variant="outline"
                             size="sm"
-                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-background border-2 border-border hover:bg-muted transition-colors"
+                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 border-border hover:bg-bg transition-colors"
                             onClick={() => setShowMediaSelector(true)}
                         >
                             <Camera className="h-3 w-3" />
@@ -181,25 +181,25 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                                 : admin.full_name || "نام کاربری"
                             }
                         </h2>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground mt-3">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-font-s mt-3">
                             <div className="flex items-center gap-2">
                                 <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${
-                                    admin.is_active ? "bg-green-100" : "bg-yellow-100"
+                                    admin.is_active ? "bg-green" : "bg-yellow"
                                 }`}>
                                     {admin.is_active ? (
-                                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                        <CheckCircle2 className="w-5 h-5 text-green-1" />
                                     ) : (
-                                        <XCircle className="w-5 h-5 text-yellow-600" />
+                                        <XCircle className="w-5 h-5 text-yellow-1" />
                                     )}
                                 </div>
-                                <span className={admin.is_active ? "text-green-600" : "text-yellow-600"}>
+                                <span className={admin.is_active ? "text-green-1" : "text-yellow-1"}>
                                     {admin.is_active ? "فعال" : "غیرفعال"}
                                 </span>
                             </div>
                             {admin.created_at && (
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 p-2">
-                                        <Clock className="w-5 h-5 text-blue-600" />
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue p-2">
+                                        <Clock className="w-5 h-5 text-blue-1" />
                                     </div>
                                     <span>
                                         ایجاد شده در{" "}
@@ -209,25 +209,25 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                             )}
                             {(formData.mobile || admin.mobile) && (
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple-100 p-2">
-                                        <Smartphone className="w-5 h-5 text-purple-600" />
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple p-2">
+                                        <Smartphone className="w-5 h-5 text-purple-1" />
                                     </div>
                                     <span>{formData.mobile || admin.mobile}</span>
                                 </div>
                             )}
                             {adminRoles && adminRoles.length > 0 && (
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 p-2">
-                                        <Shield className="w-5 h-5 text-orange-600" />
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-orange p-2">
+                                        <Shield className="w-5 h-5 text-orange-1" />
                                     </div>
                                     <div className="flex flex-wrap gap-1.5">
                                         {adminRoles.slice(0, 2).map((role: any) => (
-                                            <span key={role.id || role.public_id} className="inline-flex items-center rounded-md bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                                            <span key={role.id || role.public_id} className="inline-flex items-center rounded-md bg-orange px-2 py-0.5 text-xs font-medium text-orange-2 ring-1 ring-inset ring-orange-1/20">
                                                 {role.display_name || role.name}
                                             </span>
                                         ))}
                                         {adminRoles.length > 2 && (
-                                            <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                                            <span className="inline-flex items-center rounded-md bg-orange px-2 py-0.5 text-xs font-medium text-orange-2 ring-1 ring-inset ring-orange-1/20">
                                                 +{adminRoles.length - 2}
                                             </span>
                                         )}

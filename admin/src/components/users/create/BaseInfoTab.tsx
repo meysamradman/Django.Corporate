@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { UseFormReturn } from "react-hook-form";
@@ -46,16 +47,14 @@ export default function BaseInfoTab({
   const { register, formState: { errors } } = form;
   return (
     <div className="space-y-6">
-      <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
-              <User className="w-5 h-5 stroke-primary" />
-            </div>
-            اطلاعات احراز هویت
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <CardWithIcon
+        icon={User}
+        title="اطلاعات احراز هویت"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="hover:shadow-lg transition-all duration-300"
+      >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               label="شماره موبایل"
@@ -120,8 +119,7 @@ export default function BaseInfoTab({
               />
             </FormField>
           </div>
-        </CardContent>
-      </Card>
+      </CardWithIcon>
     </div>
   );
 }

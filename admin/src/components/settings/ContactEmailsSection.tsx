@@ -5,6 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
     Dialog,
     DialogContent,
@@ -137,41 +138,40 @@ export function ContactEmailsSection() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
             </div>
         );
     }
 
     return (
         <>
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-pink-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-pink-100 rounded-xl shadow-sm">
-                                <Mail className="w-5 h-5 stroke-pink-600" />
-                            </div>
-                            <CardTitle>ایمیل‌های تماس</CardTitle>
-                        </div>
+            <CardWithIcon
+                icon={Mail}
+                title="ایمیل‌های تماس"
+                iconBgColor="bg-pink"
+                iconColor="stroke-pink-2"
+                borderColor="border-b-pink-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+                titleExtra={
                         <Button onClick={() => handleOpenDialog()}>
                             <Plus />
                             افزودن ایمیل
                         </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
+                }
+            >
                     {emails.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
+                        <div className="text-center py-12 text-font-s">
                             ایمیلی ثبت نشده است
                         </div>
                     ) : (
                         <div className="rounded-lg border border-border overflow-hidden">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                    <TableRow className="bg-bg/50 hover:bg-bg/50">
                                         <TableHead className="w-12 text-right">
                                             <div className="flex items-center justify-center">
-                                                <Mail className="h-4 w-4 text-pink-600" />
+                                                <Mail className="h-4 w-4 text-pink-1" />
                                             </div>
                                         </TableHead>
                                         <TableHead className="text-right">ایمیل</TableHead>
@@ -182,11 +182,11 @@ export function ContactEmailsSection() {
                                 </TableHeader>
                                 <TableBody>
                                     {emails.map((contactEmail) => (
-                                        <TableRow key={contactEmail.id} className="hover:bg-accent/50 transition-colors">
+                                        <TableRow key={contactEmail.id} className="hover:bg-bg/50 transition-colors">
                                             <TableCell>
                                                 <div className="flex items-center justify-center">
-                                                    <div className="p-1.5 bg-pink-100 rounded-lg">
-                                                        <Mail className="h-4 w-4 text-pink-600" />
+                                                    <div className="p-1.5 bg-pink rounded-lg">
+                                                        <Mail className="h-4 w-4 text-pink-1" />
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -194,27 +194,27 @@ export function ContactEmailsSection() {
                                                 <span className="font-medium">{contactEmail.email}</span>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="text-muted-foreground">{contactEmail.label || "-"}</span>
+                                                <span className="text-font-s">{contactEmail.label || "-"}</span>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
+                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
                                                     {contactEmail.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(contactEmail)}
                                                     >
                                                         <Edit />
                                                     </Button>
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
                                                         onClick={() => handleDeleteClick(contactEmail.id)}
                                                     >
                                                         <Trash2 />
@@ -227,8 +227,7 @@ export function ContactEmailsSection() {
                             </Table>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent>

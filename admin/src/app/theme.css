@@ -1,0 +1,262 @@
+html {
+    scrollbar-gutter: stable both-edges;
+    overflow-y: scroll;
+  }
+  
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+
+.success-toast {
+    background-color: var(--color-green-500) !important;
+    color: white !important;
+    border-color: var(--color-green-600) !important;
+  }
+  
+  /* اطمینان از سفید بودن نوشته در success toast */
+  .success-toast * {
+    color: white !important;
+  }
+  
+  .success-toast [data-title] {
+    color: white !important;
+  }
+  
+  .success-toast [data-description] {
+    color: white !important;
+  }
+  
+  .error-toast {
+    background-color: var(--color-destructive) !important;
+    color: white !important;
+    border-color: var(--color-destructive) !important;
+  }
+  
+  .warning-toast {
+    background-color: var(--color-amber-500) !important;
+    color: white !important;
+    border-color: var(--color-amber-600) !important;
+  }
+  
+  .info-toast {
+    background-color: var(--color-primary) !important;
+    color: white !important;
+    border-color: var(--color-primary) !important;
+  }
+  
+  .loading-toast {
+    background-color: var(--font-s) !important;
+    color: white !important;
+    border-color: var(--font-s) !important;
+  }
+  
+  @layer base {
+    * {
+      @apply border-br;
+    }
+    html {
+      direction: rtl;
+      overflow-y: scroll;
+      scrollbar-gutter: stable;
+    }
+    body {
+      background-color: var(--bg);
+      font-feature-settings: "rlig" 1, "calt" 1;
+      font-optical-sizing: auto;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      direction: rtl;
+    }
+    h1 {
+      @apply text-2xl font-bold tracking-tight;
+      color: var(--font-p);
+    }
+    h2 {
+      @apply text-xl font-bold tracking-tight;
+      color: var(--font-p);
+    }
+    h3 {
+      @apply text-lg font-bold tracking-tight;
+      color: var(--font-p);
+    }
+    h4 {
+      @apply text-base font-semibold;
+      color: var(--font-s);
+    }
+    h5 {
+      @apply text-sm font-semibold;
+      color: var(--font-s);
+    }
+    h6 {
+      @apply text-xs font-semibold;
+      color: var(--font-s);
+    }
+    p {
+      @apply text-[16px] leading-relaxed;
+      color: var(--font-s);
+    }
+    a {
+        @apply text-[15px] leading-relaxed;
+        color: var(--font-s);
+    }
+    label {
+      @apply text-sm font-medium;
+      color: var(--font-p);
+    }
+    ul, ol {
+      @apply text-sm leading-relaxed;
+      color: var(--font-s);
+    }
+    blockquote {
+      @apply border-l-4 border-br pl-4 text-sm italic;
+      color: var(--font-s);
+    }
+    table {
+      @apply text-sm;
+    }
+    th {
+      @apply font-semibold;
+      color: var(--font-p);
+    }
+    td {
+      color: var(--font-s);
+    }
+  
+  }
+  
+  @layer components {
+
+    .page-title {
+      @apply text-lg font-bold tracking-tight;
+      color: var(--font-p);
+    }
+    .table-header {
+      background-color: var(--bg);
+    }
+    .table-row:hover {
+      background-color: var(--sdb-hv) !important;
+    }
+    .table-row[data-state="selected"] {
+      background-color: var(--sdb-hv);
+    }
+    .table-header-text {
+      @apply font-semibold;
+      color: var(--font-p);
+      font-size: var(--table-header-size);
+    }
+    .table-cell-text {
+      color: var(--font-s);
+      font-size: var(--table-cell-size);
+    }
+    .table-avatar {
+      @apply h-9 w-9 !rounded-md;
+    }
+    .table-avatar img,
+    .table-avatar [data-slot="avatar-image"] {
+      @apply !rounded-md;
+    }
+    .table-avatar [data-slot="avatar-fallback"],
+    .table-avatar-fallback,
+    .table-cell-avatar-fallback {
+      @apply text-xs font-medium !rounded-md;
+    }
+    .table-badge-container {
+      @apply flex w-[100px] items-center;
+    }
+    .table-cell-extra-wide {
+      @apply max-w-[250px] truncate;
+    }
+    .table-cell-xxl {
+      @apply max-w-[300px] truncate;
+    }
+    .table-date-cell {
+      @apply w-[100px];
+      color: var(--font-s);
+      font-size: var(--table-cell-size);
+    }
+    .table-category-avatar {
+      @apply h-10 w-10 rounded-md;
+    }
+    .table-category-avatar-fallback {
+      @apply rounded-md text-xs font-medium;
+    }
+    .table-cell-primary {
+      color: var(--font-p);
+      font-size: var(--table-cell-size);
+    }
+    .table-cell-secondary {
+      color: var(--font-s);
+      font-size: var(--table-cell-size);
+    }
+    .table-cell-wide {
+      @apply max-w-[200px] truncate;
+    }
+    .table-cell-muted {
+      color: var(--font-s);
+      font-size: var(--table-cell-size);
+    }
+  }
+  @layer utilities {
+    .transition-smooth {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+  @media (max-width: 768px) {
+    .admin-sidebar {
+      @apply fixed z-50;
+      inset-block: 0;
+      right: 0;
+      width: 20rem;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .admin-sidebar.open {
+      transform: translateX(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms;
+      animation-iteration-count: 1;
+      transition-duration: 0.01ms;
+    }
+  }
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  /* ✅ استایل سفارشی اسکرول بار (سمت چپ در RTL) */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+    border-right: 1px solid var(--br);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--font-s) 30%, transparent);
+    border-radius: 6px;
+    border: 2px solid var(--bg);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--font-s) 50%, transparent);
+  }
+  
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--font-s) 30%, transparent) var(--bg);
+  }
+  
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }
+  

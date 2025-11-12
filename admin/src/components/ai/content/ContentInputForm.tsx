@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
+import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
 import { Textarea } from '@/components/elements/Textarea';
@@ -31,19 +32,18 @@ export function ContentInputForm({
     onGenerate,
 }: ContentInputFormProps) {
     return (
-        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
-            <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
-                        <Sparkles className="w-5 h-5 stroke-primary" />
-                    </div>
-                    تولید محتوای SEO با AI
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <CardWithIcon
+            icon={Sparkles}
+            title="تولید محتوای SEO با AI"
+            iconBgColor="bg-primary/10"
+            iconColor="stroke-primary"
+            borderColor="border-b-primary"
+            className="hover:shadow-lg transition-all duration-300"
+            headerClassName="pb-3"
+        >
                 <div className="space-y-3">
                     <Label className="flex items-center gap-2 text-base font-medium">
-                        <Brain className="w-4 h-4 text-muted-foreground" />
+                        <Brain className="w-4 h-4 text-font-s" />
                         {msg.aiUI('selectModel')}
                     </Label>
                     <ProviderSelector
@@ -57,7 +57,7 @@ export function ContentInputForm({
 
                 <div className="space-y-2">
                     <Label htmlFor="topic" className="flex items-center gap-2">
-                        <Type className="w-4 h-4 text-muted-foreground" />
+                        <Type className="w-4 h-4 text-font-s" />
                         {msg.aiUI('contentTopic')} <span className="text-destructive">*</span>
                     </Label>
                     <Textarea
@@ -88,8 +88,7 @@ export function ContentInputForm({
                         </>
                     )}
                 </Button>
-            </CardContent>
-        </Card>
+        </CardWithIcon>
     );
 }
 

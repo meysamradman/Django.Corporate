@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
@@ -33,16 +34,15 @@ export function BaseInfoTab({
 }: BaseInfoTabProps) {
     return (
         <div className="space-y-6">
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                            <FileText className="w-5 h-5 stroke-blue-600" />
-                        </div>
-                        <CardTitle>اطلاعات پایه</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <CardWithIcon
+                icon={FileText}
+                title="اطلاعات پایه"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+            >
                     <div className="space-y-2">
                         <Label htmlFor="title">عنوان صفحه</Label>
                         <Input
@@ -72,19 +72,17 @@ export function BaseInfoTab({
                             placeholder="محتوای صفحه را وارد کنید... می‌توانید از عکس، لینک و فرمت‌های مختلف استفاده کنید"
                         />
                     </div>
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
-            <Card className="hover:shadow-lg transition-all	duration-300 border-b-4 border-b-orange-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-orange-100 rounded-xl shadow-sm">
-                            <ImageIcon className="w-5 h-5 stroke-orange-600" />
-                        </div>
-                        <CardTitle>تصویر شاخص</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent>
+            <CardWithIcon
+                icon={ImageIcon}
+                title="تصویر شاخص"
+                iconBgColor="bg-orange"
+                iconColor="stroke-orange-2"
+                borderColor="border-b-orange-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+            >
                     <div className="mb-4" />
                     <LogoUploader
                         label="تصویر شاخص"
@@ -93,8 +91,7 @@ export function BaseInfoTab({
                         size="md"
                         showLabel={false}
                     />
-                </CardContent>
-            </Card>
+            </CardWithIcon>
         </div>
     );
 }

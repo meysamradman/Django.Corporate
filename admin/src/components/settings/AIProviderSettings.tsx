@@ -206,7 +206,7 @@ export function AIProviderSettings() {
                                 <div className="flex items-center justify-between pt-3 border-t">
                                     <div className="flex items-center gap-2">
                                         {isActive && (
-                                            <Badge variant="default" className="bg-green-500 text-xs">
+                                            <Badge variant="green" className="text-xs">
                                                 <CheckCircle2 className="h-3 w-3 mr-1" />
                                                 فعال
                                             </Badge>
@@ -247,7 +247,7 @@ export function AIProviderSettings() {
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleShowApiKey(provider.id)}
-                                                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-font-s hover:text-font-p transition-colors"
                                                 >
                                                     {showApiKeys[provider.id] ? (
                                                         <EyeOff className="h-4 w-4" />
@@ -298,7 +298,7 @@ export function AIProviderSettings() {
                                             </div>
                                         )}
                                         {provider.has_api_key && (
-                                            <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2">
+                                            <div className="text-xs text-font-s bg-bg/50 rounded p-2">
                                                 <div>تعداد استفاده: <strong>{provider.usage_count}</strong> بار</div>
                                             </div>
                                         )}

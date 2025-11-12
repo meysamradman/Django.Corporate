@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
@@ -30,16 +31,14 @@ export default function PermissionsTab({
 
   return (
     <div className="space-y-6">
-      <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
-              <ShieldCheck className="w-5 h-5 stroke-indigo-600" />
-            </div>
-            نقش و سطح دسترسی
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <CardWithIcon
+        icon={ShieldCheck}
+        title="نقش و سطح دسترسی"
+        iconBgColor="bg-blue"
+        iconColor="stroke-blue-2"
+        borderColor="border-b-blue-1"
+        className="hover:shadow-lg transition-all duration-300"
+      >
           <FormField
             label="نقش کاربری"
             htmlFor="role"
@@ -79,31 +78,28 @@ export default function PermissionsTab({
               </SelectContent>
             </Select>
           </FormField>
-        </CardContent>
-      </Card>
+      </CardWithIcon>
 
-      <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-amber-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-100 rounded-xl shadow-sm">
-              <ShieldAlert className="w-5 h-5 stroke-amber-600" />
-            </div>
-            دسترسی‌های ویژه
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between rounded-lg border p-4 bg-amber-50">
+      <CardWithIcon
+        icon={ShieldAlert}
+        title="دسترسی‌های ویژه"
+        iconBgColor="bg-yellow"
+        iconColor="stroke-yellow-2"
+        borderColor="border-b-yellow-1"
+        className="hover:shadow-lg transition-all duration-300"
+      >
+          <div className="flex items-center justify-between rounded-lg border p-4 bg-amber">
             <div className="space-y-0.5 flex-1">
               <label htmlFor="is_superuser" className="text-base cursor-pointer flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-600" />
-                <span className="font-semibold text-amber-900">
+                <ShieldAlert className="w-4 h-4 text-amber-1" />
+                <span className="font-semibold text-amber-2">
                   سوپر ادمین
                 </span>
               </label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-font-s">
                 دسترسی کامل و نامحدود به تمام بخش‌های پنل (بدون توجه به نقش)
               </p>
-              <p className="text-xs text-amber-600 font-medium mt-1">
+              <p className="text-xs text-amber-1 font-medium mt-1">
                 ⚠️ توجه: این دسترسی تمام محدودیت‌ها را نادیده می‌گیرد
               </p>
             </div>
@@ -114,8 +110,7 @@ export default function PermissionsTab({
               disabled={!editMode}
             />
           </div>
-        </CardContent>
-      </Card>
+      </CardWithIcon>
     </div>
   );
 }

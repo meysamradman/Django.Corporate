@@ -213,7 +213,7 @@ export function MediaPlayer({
             max={duration || 0}
             value={currentTime}
             onChange={(e) => handleSeek(parseFloat(e.target.value))}
-            className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
+            className="w-full h-1 bg-static-w/30 rounded-lg appearance-none cursor-pointer slider"
             style={{
               background: `linear-gradient(to right, #fff 0%, #fff ${(currentTime / duration) * 100}%, rgba(255,255,255,0.3) ${(currentTime / duration) * 100}%, rgba(255,255,255,0.3) 100%)`
             }}
@@ -224,35 +224,35 @@ export function MediaPlayer({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={togglePlayPause}
-              className="text-white hover:bg-white/20"
+              className="text-static-w hover:bg-static-w/20"
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
             
-            <span className="text-white text-sm">
+            <span className="text-static-w text-sm">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={toggleMute}
-              className="text-white hover:bg-white/20"
+              className="text-static-w hover:bg-static-w/20"
             >
               {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </Button>
 
             {media.media_type === 'video' && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={toggleFullscreen}
-                className="text-white hover:bg-white/20"
+                className="text-static-w hover:bg-static-w/20"
               >
                 <Maximize className="h-4 w-4" />
               </Button>
@@ -265,11 +265,11 @@ export function MediaPlayer({
 
   if (hasError) {
     return (
-      <div className={cn("flex items-center justify-center bg-muted rounded-lg", className)}>
-        <div className="text-center text-muted-foreground">
+      <div className={cn("flex items-center justify-center bg-bg rounded-lg", className)}>
+        <div className="text-center text-font-s">
           <p>خطا در بارگذاری رسانه</p>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => {
               setHasError(false);
@@ -291,11 +291,11 @@ export function MediaPlayer({
   return (
     <div
       ref={containerRef}
-      className={cn("relative bg-black rounded-lg overflow-hidden", className)}
+      className={cn("relative bg-static-b rounded-lg overflow-hidden", className)}
     >
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <div className="text-white">در حال بارگذاری...</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-static-b/50">
+          <div className="text-static-w">در حال بارگذاری...</div>
         </div>
       )}
       

@@ -33,9 +33,9 @@ export function DataTableColumnHeader<TData, TValue>({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="-ml-3 h-8 data-[state=open]:bg-accent"
+            className="-ml-3 h-8 data-[state=open]:bg-bg"
           >
             <span>{title}</span>
             {column.getCanSort() && (
@@ -55,11 +55,11 @@ export function DataTableColumnHeader<TData, TValue>({
           {column.getCanSort() && (
             <>
               <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-                <ArrowUp className="h-3.5 w-3.5 text-muted-foreground/70" />
+                <ArrowUp className="h-3.5 w-3.5 text-font-s/70" />
                 صعودی
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-                <ArrowDown className="h-3.5 w-3.5 text-muted-foreground/70" />
+                <ArrowDown className="h-3.5 w-3.5 text-font-s/70" />
                 نزولی
               </DropdownMenuItem>
             </>
@@ -67,7 +67,7 @@ export function DataTableColumnHeader<TData, TValue>({
           {column.getCanSort() && column.getCanHide() && <DropdownMenuSeparator />}
           {column.getCanHide() && (
             <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-              <EyeOff className="h-3.5 w-3.5 text-muted-foreground/70" />
+              <EyeOff className="h-3.5 w-3.5 text-font-s/70" />
               مخفی
             </DropdownMenuItem>
           )}

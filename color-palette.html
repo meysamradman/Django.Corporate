@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پالت رنگ حرفه‌ای برای وب - با Badge و کارت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .colors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .color-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .color-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .icon-container {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-container svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .card-content {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .card-description {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .colors-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .colors-grid-mini {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .color-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.7;
+        }
+
+        .color-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 10px;
+            background: #f7fafc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .color-value:hover {
+            background: #edf2f7;
+            transform: scale(1.02);
+        }
+
+        .color-preview-box {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            margin-top: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .color-preview-box:hover {
+            transform: scale(1.05);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d3748;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            font-size: 0.95rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .colors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 پالت رنگ حرفه‌ای برای وب</h1>
+        <p class="subtitle">کارت‌های کامل با Badge، آیکون و تمام رنگ‌های مرتبط</p>
+
+        <div class="colors-grid" id="colorsGrid"></div>
+    </div>
+
+    <div class="toast" id="toast">کد رنگ کپی شد!</div>
+
+    <script>
+        const colorPalettes = [
+            {
+                name: "emerald-glow",
+                title: "Emerald Glow",
+                description: "مناسب برای موفقیت، وضعیت‌های مالی مثبت و اعلان‌های تایید شده",
+                icon: "✓",
+                colors: {
+                    surface: "#ECFDF5",
+                    border: "#A7F3D0",
+                    text: "#065F46",
+                    mutedText: "#0F172A",
+                    accent: "#10B981",
+                    accentText: "#FFFFFF",
+                    iconBg: "#34D399",
+                    icon: "#FFFFFF",
+                    highlight: "#DCFCE7"
+                }
+            },
+            {
+                name: "ocean-drive",
+                title: "Ocean Drive",
+                description: "برای داده‌های تحلیلی، وضعیت پایدار و پیام‌های اطلاع‌رسانی",
+                icon: "🌊",
+                colors: {
+                    surface: "#EFF6FF",
+                    border: "#BFDBFE",
+                    text: "#1E3A8A",
+                    mutedText: "#1F2937",
+                    accent: "#3B82F6",
+                    accentText: "#FFFFFF",
+                    iconBg: "#2563EB",
+                    icon: "#FFFFFF",
+                    highlight: "#DBEAFE"
+                }
+            },
+            {
+                name: "royal-grape",
+                title: "Royal Grape",
+                description: "برای ویژگی‌های ویژه، بخش‌های VIP و کارت‌های معرفی تیم",
+                icon: "👑",
+                colors: {
+                    surface: "#F5F3FF",
+                    border: "#DDD6FE",
+                    text: "#4C1D95",
+                    mutedText: "#312E81",
+                    accent: "#8B5CF6",
+                    accentText: "#F8FAFC",
+                    iconBg: "#7C3AED",
+                    icon: "#F8FAFC",
+                    highlight: "#EDE9FE"
+                }
+            },
+            {
+                name: "sunset-amber",
+                title: "Sunset Amber",
+                description: "برای اعلان‌های مهم، هشدارهای ملایم و کارت‌های فعالیت",
+                icon: "⚠️",
+                colors: {
+                    surface: "#FFF7ED",
+                    border: "#FED7AA",
+                    text: "#9A3412",
+                    mutedText: "#B45309",
+                    accent: "#F97316",
+                    accentText: "#1F2937",
+                    iconBg: "#FB923C",
+                    icon: "#1F2937",
+                    highlight: "#FFEDD5"
+                }
+            },
+            {
+                name: "blush-rose",
+                title: "Blush Rose",
+                description: "برای کمپین‌های بازاریابی، اعلان‌های دوستانه و تگ‌های شخصی",
+                icon: "💖",
+                colors: {
+                    surface: "#FFF1F2",
+                    border: "#FECDD3",
+                    text: "#9D174D",
+                    mutedText: "#9F1239",
+                    accent: "#F43F5E",
+                    accentText: "#FFFFFF",
+                    iconBg: "#FB7185",
+                    icon: "#FFFFFF",
+                    highlight: "#FFE4E6"
+                }
+            },
+            {
+                name: "slate-mist",
+                title: "Slate Mist",
+                description: "برای وضعیت‌های خنثی، داده‌های آرشیوی و کارت‌های ثبات سیستم",
+                icon: "📊",
+                colors: {
+                    surface: "#F8FAFC",
+                    border: "#E2E8F0",
+                    text: "#0F172A",
+                    mutedText: "#475569",
+                    accent: "#94A3B8",
+                    accentText: "#0F172A",
+                    iconBg: "#CBD5F5",
+                    icon: "#0F172A",
+                    highlight: "#E2E8F0"
+                }
+            },
+            {
+                name: "midnight-sky",
+                title: "Midnight Sky",
+                description: "برای داشبوردهای تاریک، کارت‌های امنیتی و وضعیت بحرانی",
+                icon: "🌙",
+                colors: {
+                    surface: "#1E293B",
+                    border: "#334155",
+                    text: "#E2E8F0",
+                    mutedText: "#94A3B8",
+                    accent: "#0EA5E9",
+                    accentText: "#F8FAFC",
+                    iconBg: "#0284C7",
+                    icon: "#E0F2FE",
+                    highlight: "#0F172A"
+                }
+            },
+            {
+                name: "arctic-cyan",
+                title: "Arctic Cyan",
+                description: "برای ماژول‌های تکنیکال، دیتاهای API و کامپوننت‌های توسعه",
+                icon: "💻",
+                colors: {
+                    surface: "#ECFEFF",
+                    border: "#A5F3FC",
+                    text: "#0E7490",
+                    mutedText: "#155E75",
+                    accent: "#06B6D4",
+                    accentText: "#FFFFFF",
+                    iconBg: "#0891B2",
+                    icon: "#E0F2FE",
+                    highlight: "#CFFAFE"
+                }
+            },
+            {
+                name: "forest-mist",
+                title: "Forest Mist",
+                description: "برای ماژول‌های منابع انسانی، سلامت و کارت‌های وضعیت کارمندان",
+                icon: "🌲",
+                colors: {
+                    surface: "#F0FDF4",
+                    border: "#BBF7D0",
+                    text: "#14532D",
+                    mutedText: "#166534",
+                    accent: "#22C55E",
+                    accentText: "#0E1C10",
+                    iconBg: "#16A34A",
+                    icon: "#F8FAFC",
+                    highlight: "#DCFCE7"
+                }
+            },
+            {
+                name: "golden-hour",
+                title: "Golden Hour",
+                description: "برای هوش مصنوعی، کارت‌های امتیاز و صفحات معرفی محصول",
+                icon: "⭐",
+                colors: {
+                    surface: "#FEFCE8",
+                    border: "#FDE68A",
+                    text: "#854D0E",
+                    mutedText: "#92400E",
+                    accent: "#EAB308",
+                    accentText: "#1E1B4B",
+                    iconBg: "#D97706",
+                    icon: "#FEF3C7",
+                    highlight: "#FEF3C7"
+                }
+            },
+            {
+                name: "crimson-alert",
+                title: "Crimson Alert",
+                description: "برای هشدارهای بحرانی، اعلان‌های امنیتی و لاگ‌های خطا",
+                icon: "🚨",
+                colors: {
+                    surface: "#FEF2F2",
+                    border: "#FECACA",
+                    text: "#7F1D1D",
+                    mutedText: "#991B1B",
+                    accent: "#DC2626",
+                    accentText: "#FEF2F2",
+                    iconBg: "#F87171",
+                    icon: "#7F1D1D",
+                    highlight: "#FEE2E2"
+                }
+            },
+            {
+                name: "cyber-lime",
+                title: "Cyber Lime",
+                description: "برای بخش‌های فناوری، مانیتورینگ ریل‌تایم و وضعیت‌های زنده",
+                icon: "⚡",
+                colors: {
+                    surface: "#F7FEE7",
+                    border: "#D9F99D",
+                    text: "#3F6212",
+                    mutedText: "#4D7C0F",
+                    accent: "#84CC16",
+                    accentText: "#1A2E05",
+                    iconBg: "#65A30D",
+                    icon: "#F7FEE7",
+                    highlight: "#ECFCCB"
+                }
+            },
+            {
+                name: "azure-pulse",
+                title: "Azure Pulse",
+                description: "برای اپلیکیشن‌های SaaS، آنالیتیکس و نمودارهای لحظه‌ای",
+                icon: "📈",
+                colors: {
+                    surface: "#F0F9FF",
+                    border: "#BAE6FD",
+                    text: "#0C4A6E",
+                    mutedText: "#0E7490",
+                    accent: "#38BDF8",
+                    accentText: "#082F49",
+                    iconBg: "#0EA5E9",
+                    icon: "#F0F9FF",
+                    highlight: "#E0F2FE"
+                }
+            },
+            {
+                name: "velvet-noir",
+                title: "Velvet Noir",
+                description: "برای صفحات پروفایل، بخش‌های لوکس و محتوای پریمیوم",
+                icon: "💎",
+                colors: {
+                    surface: "#F8F5FF",
+                    border: "#E9D8FD",
+                    text: "#3B0764",
+                    mutedText: "#5B21B6",
+                    accent: "#A855F7",
+                    accentText: "#F8F5FF",
+                    iconBg: "#7C3AED",
+                    icon: "#F8F5FF",
+                    highlight: "#EEE8FF"
+                }
+            },
+            {
+                name: "ember-heat",
+                title: "Ember Heat",
+                description: "برای پروژه‌های خلاقانه، رویدادها و کمپین‌های تبلیغاتی",
+                icon: "🔥",
+                colors: {
+                    surface: "#FFF4ED",
+                    border: "#FED7AA",
+                    text: "#7C2D12",
+                    mutedText: "#C2410C",
+                    accent: "#FB5F1B",
+                    accentText: "#FEF3C7",
+                    iconBg: "#F97316",
+                    icon: "#FEF3C7",
+                    highlight: "#FFE7D5"
+                }
+            },
+            {
+                name: "neon-orchid",
+                title: "Neon Orchid",
+                description: "پالت پویا با بنفش نئونی برای بخش‌های خلاقانه و ماژول‌های AI",
+                icon: "✨",
+                colors: {
+                    surface: "#F8F5FF",
+                    border: "#E0C8FF",
+                    text: "#581C87",
+                    mutedText: "#6D28D9",
+                    accent: "#C084FC",
+                    accentText: "#2E1065",
+                    iconBg: "#A855F7",
+                    icon: "#F8F5FF",
+                    highlight: "#F3E8FF"
+                }
+            },
+            {
+                name: "aurora-mist",
+                title: "Aurora Mist",
+                description: "پالت آرام با سبز نعناعی و آبی یخی برای فرم‌ها و صفحات اطلاعاتی",
+                icon: "🌿",
+                colors: {
+                    surface: "#F3FFFB",
+                    border: "#C9F5E8",
+                    text: "#0F3D3E",
+                    mutedText: "#14746F",
+                    accent: "#2DD4BF",
+                    accentText: "#043938",
+                    iconBg: "#5EEAD4",
+                    icon: "#043938",
+                    highlight: "#E0FFF8"
+                }
+            },
+            {
+                name: "lunar-sky",
+                title: "Lunar Sky",
+                description: "پالت ترکیبی خاکستری قمری و آبی آسمانی برای محیط‌های حرفه‌ای",
+                icon: "🌌",
+                colors: {
+                    surface: "#F2F4F8",
+                    border: "#D0D5DD",
+                    text: "#1F2933",
+                    mutedText: "#3E4C59",
+                    accent: "#3B82F6",
+                    accentText: "#FFFFFF",
+                    iconBg: "#E2E8F0",
+                    icon: "#1F2933",
+                    highlight: "#EAF1FF"
+                }
+            },
+            {
+                name: "minimal-white",
+                title: "Minimal White",
+                description: "پالت مینیمال سفید و خاکستری با accent آبی برای طراحی‌های تمیز و مدرن",
+                icon: "⚪",
+                colors: {
+                    surface: "#FFFFFF",
+                    border: "#E5E7EB",
+                    text: "#111827",
+                    mutedText: "#6B7280",
+                    accent: "#2563EB",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F3F4F6",
+                    icon: "#2563EB",
+                    highlight: "#EFF6FF"
+                }
+            },
+            {
+                name: "minimal-black",
+                title: "Minimal Black",
+                description: "پالت مینیمال مشکی و سفید برای طراحی‌های لوکس و مدرن",
+                icon: "⚫",
+                colors: {
+                    surface: "#000000",
+                    border: "#374151",
+                    text: "#FFFFFF",
+                    mutedText: "#D1D5DB",
+                    accent: "#FFFFFF",
+                    accentText: "#000000",
+                    iconBg: "#1F2937",
+                    icon: "#FFFFFF",
+                    highlight: "#111827"
+                }
+            },
+            {
+                name: "golden-classic",
+                title: "Golden Classic",
+                description: "طلایی کلاسیک برای وب‌سایت‌های لوکس، جواهرات و برندهای پریمیوم",
+                icon: "👑",
+                colors: {
+                    surface: "#FFFBEB",
+                    border: "#FDE68A",
+                    text: "#78350F",
+                    mutedText: "#92400E",
+                    accent: "#F59E0B",
+                    accentText: "#1C1917",
+                    iconBg: "#FCD34D",
+                    icon: "#78350F",
+                    highlight: "#FEF3C7"
+                }
+            },
+            {
+                name: "golden-bronze",
+                title: "Golden Bronze",
+                description: "طلایی برنزی برای طراحی‌های کلاسیک و حرفه‌ای",
+                icon: "🏆",
+                colors: {
+                    surface: "#FFF7ED",
+                    border: "#FED7AA",
+                    text: "#7C2D12",
+                    mutedText: "#9A3412",
+                    accent: "#D97706",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F97316",
+                    icon: "#FFFFFF",
+                    highlight: "#FFEDD5"
+                }
+            },
+            {
+                name: "copper-rose",
+                title: "Copper Rose",
+                description: "طلایی مسی و رز برای طراحی‌های گرم و لوکس",
+                icon: "🌹",
+                colors: {
+                    surface: "#FFF1F2",
+                    border: "#FECDD3",
+                    text: "#7F1D1D",
+                    mutedText: "#991B1B",
+                    accent: "#DC2626",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F87171",
+                    icon: "#FFFFFF",
+                    highlight: "#FEE2E2"
+                }
+            },
+            {
+                name: "luxury-black-gold",
+                title: "Luxury Black Gold",
+                description: "مشکی و طلایی برای وب‌سایت‌های جواهرات، ساعت‌سازی و برندهای لوکس",
+                icon: "💍",
+                colors: {
+                    surface: "#0A0A0A",
+                    border: "#1F2937",
+                    text: "#FCD34D",
+                    mutedText: "#FDE68A",
+                    accent: "#F59E0B",
+                    accentText: "#0A0A0A",
+                    iconBg: "#1F2937",
+                    icon: "#FCD34D",
+                    highlight: "#111827"
+                }
+            },
+            {
+                name: "luxury-purple-gold",
+                title: "Luxury Purple Gold",
+                description: "بنفش تیره و طلایی برای برندهای پریمیوم و لوکس",
+                icon: "💎",
+                colors: {
+                    surface: "#1E1B4B",
+                    border: "#312E81",
+                    text: "#FCD34D",
+                    mutedText: "#FDE68A",
+                    accent: "#8B5CF6",
+                    accentText: "#FCD34D",
+                    iconBg: "#4C1D95",
+                    icon: "#FCD34D",
+                    highlight: "#312E81"
+                }
+            },
+            {
+                name: "silver-platinum",
+                title: "Silver Platinum",
+                description: "نقره‌ای و پلاتینی برای طراحی‌های مدرن و حرفه‌ای",
+                icon: "💠",
+                colors: {
+                    surface: "#F8FAFC",
+                    border: "#E2E8F0",
+                    text: "#0F172A",
+                    mutedText: "#475569",
+                    accent: "#94A3B8",
+                    accentText: "#0F172A",
+                    iconBg: "#CBD5E1",
+                    icon: "#0F172A",
+                    highlight: "#E2E8F0"
+                }
+            },
+            {
+                name: "artistic-vibrant",
+                title: "Artistic Vibrant",
+                description: "رنگ‌های زنده و خلاقانه برای وب‌سایت‌های هنری و نقاشی",
+                icon: "🎨",
+                colors: {
+                    surface: "#FEF3C7",
+                    border: "#FDE68A",
+                    text: "#78350F",
+                    mutedText: "#92400E",
+                    accent: "#EF4444",
+                    accentText: "#FFFFFF",
+                    iconBg: "#3B82F6",
+                    icon: "#FFFFFF",
+                    highlight: "#FEE2E2"
+                }
+            },
+            {
+                name: "artistic-pastel",
+                title: "Artistic Pastel",
+                description: "رنگ‌های پاستلی نرم برای طراحی‌های هنری و خلاقانه",
+                icon: "🖌️",
+                colors: {
+                    surface: "#FDF2F8",
+                    border: "#FBCFE8",
+                    text: "#831843",
+                    mutedText: "#9F1239",
+                    accent: "#EC4899",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F9A8D4",
+                    icon: "#FFFFFF",
+                    highlight: "#FCE7F3"
+                }
+            },
+            {
+                name: "artistic-ocean",
+                title: "Artistic Ocean",
+                description: "آبی و نارنجی برای طراحی‌های هنری و خلاقانه",
+                icon: "🌅",
+                colors: {
+                    surface: "#EFF6FF",
+                    border: "#BFDBFE",
+                    text: "#1E3A8A",
+                    mutedText: "#1E40AF",
+                    accent: "#F97316",
+                    accentText: "#FFFFFF",
+                    iconBg: "#3B82F6",
+                    icon: "#FFFFFF",
+                    highlight: "#DBEAFE"
+                }
+            },
+            {
+                name: "artistic-sunset",
+                title: "Artistic Sunset",
+                description: "قرمز و زرد برای طراحی‌های هنری و خلاقانه",
+                icon: "🌇",
+                colors: {
+                    surface: "#FEF2F2",
+                    border: "#FECACA",
+                    text: "#7F1D1D",
+                    mutedText: "#991B1B",
+                    accent: "#FACC15",
+                    accentText: "#78350F",
+                    iconBg: "#EF4444",
+                    icon: "#FFFFFF",
+                    highlight: "#FEE2E2"
+                }
+            },
+            {
+                name: "minimal-gray-green",
+                title: "Minimal Gray Green",
+                description: "خاکستری و سبز برای طراحی‌های مینیمال و طبیعت‌گرا",
+                icon: "🌱",
+                colors: {
+                    surface: "#F9FAFB",
+                    border: "#E5E7EB",
+                    text: "#111827",
+                    mutedText: "#6B7280",
+                    accent: "#10B981",
+                    accentText: "#FFFFFF",
+                    iconBg: "#D1FAE5",
+                    icon: "#065F46",
+                    highlight: "#ECFDF5"
+                }
+            },
+            {
+                name: "minimal-white-red",
+                title: "Minimal White Red",
+                description: "سفید و قرمز برای طراحی‌های مینیمال و جذاب",
+                icon: "❤️",
+                colors: {
+                    surface: "#FFFFFF",
+                    border: "#FEE2E2",
+                    text: "#111827",
+                    mutedText: "#6B7280",
+                    accent: "#EF4444",
+                    accentText: "#FFFFFF",
+                    iconBg: "#FEE2E2",
+                    icon: "#DC2626",
+                    highlight: "#FEF2F2"
+                }
+            },
+            {
+                name: "golden-bright",
+                title: "Golden Bright",
+                description: "طلایی روشن و درخشان برای طراحی‌های لوکس و پریمیوم",
+                icon: "✨",
+                colors: {
+                    surface: "#FFFBEB",
+                    border: "#FCD34D",
+                    text: "#78350F",
+                    mutedText: "#92400E",
+                    accent: "#FCD34D",
+                    accentText: "#78350F",
+                    iconBg: "#FDE68A",
+                    icon: "#78350F",
+                    highlight: "#FEF3C7"
+                }
+            },
+            {
+                name: "luxury-ruby",
+                title: "Luxury Ruby",
+                description: "یاقوتی قرمز برای برندهای لوکس و جواهرات",
+                icon: "🔴",
+                colors: {
+                    surface: "#450A0A",
+                    border: "#7F1D1D",
+                    text: "#FECACA",
+                    mutedText: "#FCA5A5",
+                    accent: "#DC2626",
+                    accentText: "#FFFFFF",
+                    iconBg: "#991B1B",
+                    icon: "#FECACA",
+                    highlight: "#7F1D1D"
+                }
+            },
+            {
+                name: "luxury-emerald",
+                title: "Luxury Emerald",
+                description: "زمرد سبز برای برندهای لوکس و پریمیوم",
+                icon: "💚",
+                colors: {
+                    surface: "#022C22",
+                    border: "#064E3B",
+                    text: "#A7F3D0",
+                    mutedText: "#D1FAE5",
+                    accent: "#10B981",
+                    accentText: "#022C22",
+                    iconBg: "#065F46",
+                    icon: "#A7F3D0",
+                    highlight: "#064E3B"
+                }
+            },
+            {
+                name: "luxury-sapphire",
+                title: "Luxury Sapphire",
+                description: "یاقوت کبود آبی برای برندهای لوکس و حرفه‌ای",
+                icon: "💙",
+                colors: {
+                    surface: "#0B1B34",
+                    border: "#1E3A8A",
+                    text: "#DBEAFE",
+                    mutedText: "#93C5FD",
+                    accent: "#3B82F6",
+                    accentText: "#0B1B34",
+                    iconBg: "#1E40AF",
+                    icon: "#DBEAFE",
+                    highlight: "#1E3A8A"
+                }
+            },
+            {
+                name: "artistic-rainbow",
+                title: "Artistic Rainbow",
+                description: "رنگین‌کمانی برای طراحی‌های هنری و خلاقانه",
+                icon: "🌈",
+                colors: {
+                    surface: "#F0F9FF",
+                    border: "#BAE6FD",
+                    text: "#0C4A6E",
+                    mutedText: "#0E7490",
+                    accent: "#EC4899",
+                    accentText: "#FFFFFF",
+                    iconBg: "#3B82F6",
+                    icon: "#FFFFFF",
+                    highlight: "#E0F2FE"
+                }
+            },
+            {
+                name: "minimal-beige",
+                title: "Minimal Beige",
+                description: "بژ و کرم برای طراحی‌های مینیمال و آرام",
+                icon: "🤍",
+                colors: {
+                    surface: "#FEFAF6",
+                    border: "#F5E6D3",
+                    text: "#292524",
+                    mutedText: "#78716C",
+                    accent: "#A78BFA",
+                    accentText: "#FFFFFF",
+                    iconBg: "#E7D5FF",
+                    icon: "#6B21A8",
+                    highlight: "#F5F3FF"
+                }
+            },
+            {
+                name: "golden-elegant",
+                title: "Golden Elegant",
+                description: "طلایی ظریف و شیک برای طراحی‌های لوکس و حرفه‌ای",
+                icon: "🌟",
+                colors: {
+                    surface: "#FFFBF0",
+                    border: "#FEF3C7",
+                    text: "#92400E",
+                    mutedText: "#B45309",
+                    accent: "#D97706",
+                    accentText: "#FFFFFF",
+                    iconBg: "#FCD34D",
+                    icon: "#78350F",
+                    highlight: "#FEF3C7"
+                }
+            },
+            {
+                name: "luxury-diamond",
+                title: "Luxury Diamond",
+                description: "الماس سفید و طلایی برای برندهای جواهرات",
+                icon: "💠",
+                colors: {
+                    surface: "#FAFAFA",
+                    border: "#E5E7EB",
+                    text: "#1F2937",
+                    mutedText: "#6B7280",
+                    accent: "#FCD34D",
+                    accentText: "#78350F",
+                    iconBg: "#FEF3C7",
+                    icon: "#92400E",
+                    highlight: "#FFFBEB"
+                }
+            },
+            {
+                name: "artistic-mint",
+                title: "Artistic Mint",
+                description: "نعناعی و صورتی برای طراحی‌های هنری و خلاقانه",
+                icon: "🌺",
+                colors: {
+                    surface: "#F0FDFA",
+                    border: "#99F6E4",
+                    text: "#134E4A",
+                    mutedText: "#0F766E",
+                    accent: "#EC4899",
+                    accentText: "#FFFFFF",
+                    iconBg: "#5EEAD4",
+                    icon: "#134E4A",
+                    highlight: "#CCFBF1"
+                }
+            },
+            {
+                name: "minimal-charcoal",
+                title: "Minimal Charcoal",
+                description: "زغالی و سفید برای طراحی‌های مینیمال و مدرن",
+                icon: "⬛",
+                colors: {
+                    surface: "#1F2937",
+                    border: "#374151",
+                    text: "#F9FAFB",
+                    mutedText: "#D1D5DB",
+                    accent: "#FFFFFF",
+                    accentText: "#1F2937",
+                    iconBg: "#374151",
+                    icon: "#FFFFFF",
+                    highlight: "#111827"
+                }
+            },
+            {
+                name: "golden-royal",
+                title: "Golden Royal",
+                description: "طلایی سلطنتی برای برندهای پریمیوم و لوکس",
+                icon: "👑",
+                colors: {
+                    surface: "#FFFBEB",
+                    border: "#FDE68A",
+                    text: "#78350F",
+                    mutedText: "#92400E",
+                    accent: "#F59E0B",
+                    accentText: "#1C1917",
+                    iconBg: "#FCD34D",
+                    icon: "#78350F",
+                    highlight: "#FEF3C7"
+                }
+            },
+            {
+                name: "luxury-pearl",
+                title: "Luxury Pearl",
+                description: "مروارید و طلایی برای برندهای لوکس و ظریف",
+                icon: "🫧",
+                colors: {
+                    surface: "#FEFCFB",
+                    border: "#F5E6D3",
+                    text: "#292524",
+                    mutedText: "#78716C",
+                    accent: "#FCD34D",
+                    accentText: "#78350F",
+                    iconBg: "#FEF3C7",
+                    icon: "#92400E",
+                    highlight: "#FFFBEB"
+                }
+            },
+            {
+                name: "artistic-coral",
+                title: "Artistic Coral",
+                description: "مرجانی و آبی برای طراحی‌های هنری و خلاقانه",
+                icon: "🪸",
+                colors: {
+                    surface: "#FFF7ED",
+                    border: "#FED7AA",
+                    text: "#7C2D12",
+                    mutedText: "#9A3412",
+                    accent: "#0EA5E9",
+                    accentText: "#FFFFFF",
+                    iconBg: "#FB923C",
+                    icon: "#7C2D12",
+                    highlight: "#FFEDD5"
+                }
+            },
+            {
+                name: "web-professional-blue",
+                title: "Web Professional Blue",
+                description: "آبی حرفه‌ای استاندارد وب برای طراحی‌های شرکتی و حرفه‌ای",
+                icon: "💼",
+                colors: {
+                    surface: "#F0F4F8",
+                    border: "#B8D4E3",
+                    text: "#1E3A5F",
+                    mutedText: "#2C5282",
+                    accent: "#2B6CB0",
+                    accentText: "#FFFFFF",
+                    iconBg: "#3182CE",
+                    icon: "#FFFFFF",
+                    highlight: "#EBF8FF"
+                }
+            },
+            {
+                name: "web-professional-green",
+                title: "Web Professional Green",
+                description: "سبز حرفه‌ای استاندارد وب برای موفقیت و تأیید",
+                icon: "✅",
+                colors: {
+                    surface: "#F0FDF4",
+                    border: "#BBF7D0",
+                    text: "#14532D",
+                    mutedText: "#166534",
+                    accent: "#16A34A",
+                    accentText: "#FFFFFF",
+                    iconBg: "#22C55E",
+                    icon: "#FFFFFF",
+                    highlight: "#DCFCE7"
+                }
+            },
+            {
+                name: "web-professional-red",
+                title: "Web Professional Red",
+                description: "قرمز حرفه‌ای استاندارد وب برای خطا و هشدار",
+                icon: "❌",
+                colors: {
+                    surface: "#FEF2F2",
+                    border: "#FECACA",
+                    text: "#7F1D1D",
+                    mutedText: "#991B1B",
+                    accent: "#DC2626",
+                    accentText: "#FFFFFF",
+                    iconBg: "#EF4444",
+                    icon: "#FFFFFF",
+                    highlight: "#FEE2E2"
+                }
+            },
+            {
+                name: "web-professional-orange",
+                title: "Web Professional Orange",
+                description: "نارنجی حرفه‌ای استاندارد وب برای هشدار و توجه",
+                icon: "⚠️",
+                colors: {
+                    surface: "#FFF7ED",
+                    border: "#FED7AA",
+                    text: "#9A3412",
+                    mutedText: "#C2410C",
+                    accent: "#EA580C",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F97316",
+                    icon: "#FFFFFF",
+                    highlight: "#FFEDD5"
+                }
+            },
+            {
+                name: "web-professional-purple",
+                title: "Web Professional Purple",
+                description: "بنفش حرفه‌ای استاندارد وب برای خلاقیت و لوکس",
+                icon: "💜",
+                colors: {
+                    surface: "#F5F3FF",
+                    border: "#DDD6FE",
+                    text: "#4C1D95",
+                    mutedText: "#5B21B6",
+                    accent: "#7C3AED",
+                    accentText: "#FFFFFF",
+                    iconBg: "#8B5CF6",
+                    icon: "#FFFFFF",
+                    highlight: "#EDE9FE"
+                }
+            },
+            {
+                name: "web-professional-teal",
+                title: "Web Professional Teal",
+                description: "فیروزه‌ای حرفه‌ای استاندارد وب برای اطلاعات و تازگی",
+                icon: "💎",
+                colors: {
+                    surface: "#F0FDFA",
+                    border: "#99F6E4",
+                    text: "#134E4A",
+                    mutedText: "#0F766E",
+                    accent: "#0D9488",
+                    accentText: "#FFFFFF",
+                    iconBg: "#14B8A6",
+                    icon: "#FFFFFF",
+                    highlight: "#CCFBF1"
+                }
+            },
+            {
+                name: "web-professional-indigo",
+                title: "Web Professional Indigo",
+                description: "نیلی حرفه‌ای استاندارد وب برای حرفه‌ای و اعتماد",
+                icon: "🔵",
+                colors: {
+                    surface: "#EEF2FF",
+                    border: "#C7D2FE",
+                    text: "#312E81",
+                    mutedText: "#4338CA",
+                    accent: "#4F46E5",
+                    accentText: "#FFFFFF",
+                    iconBg: "#6366F1",
+                    icon: "#FFFFFF",
+                    highlight: "#E0E7FF"
+                }
+            },
+            {
+                name: "web-professional-pink",
+                title: "Web Professional Pink",
+                description: "صورتی حرفه‌ای استاندارد وب برای جذابیت و دوستانه",
+                icon: "🌸",
+                colors: {
+                    surface: "#FDF2F8",
+                    border: "#FBCFE8",
+                    text: "#831843",
+                    mutedText: "#9F1239",
+                    accent: "#DB2777",
+                    accentText: "#FFFFFF",
+                    iconBg: "#EC4899",
+                    icon: "#FFFFFF",
+                    highlight: "#FCE7F3"
+                }
+            },
+            {
+                name: "web-professional-gray",
+                title: "Web Professional Gray",
+                description: "خاکستری حرفه‌ای استاندارد وب برای خنثی و حرفه‌ای",
+                icon: "⚪",
+                colors: {
+                    surface: "#F9FAFB",
+                    border: "#E5E7EB",
+                    text: "#111827",
+                    mutedText: "#6B7280",
+                    accent: "#6B7280",
+                    accentText: "#FFFFFF",
+                    iconBg: "#9CA3AF",
+                    icon: "#FFFFFF",
+                    highlight: "#F3F4F6"
+                }
+            },
+            {
+                name: "web-professional-cyan",
+                title: "Web Professional Cyan",
+                description: "فیروزه‌ای روشن حرفه‌ای استاندارد وب برای تازگی",
+                icon: "🌊",
+                colors: {
+                    surface: "#ECFEFF",
+                    border: "#A5F3FC",
+                    text: "#0E7490",
+                    mutedText: "#155E75",
+                    accent: "#0891B2",
+                    accentText: "#FFFFFF",
+                    iconBg: "#06B6D4",
+                    icon: "#FFFFFF",
+                    highlight: "#CFFAFE"
+                }
+            },
+            {
+                name: "web-professional-lime",
+                title: "Web Professional Lime",
+                description: "سبز لیمویی حرفه‌ای استاندارد وب برای انرژی و روشنی",
+                icon: "💚",
+                colors: {
+                    surface: "#F7FEE7",
+                    border: "#D9F99D",
+                    text: "#365314",
+                    mutedText: "#4D7C0F",
+                    accent: "#65A30D",
+                    accentText: "#1A2E05",
+                    iconBg: "#84CC16",
+                    icon: "#365314",
+                    highlight: "#ECFCCB"
+                }
+            },
+            {
+                name: "web-professional-amber",
+                title: "Web Professional Amber",
+                description: "کهربایی حرفه‌ای استاندارد وب برای گرما و انرژی",
+                icon: "🟡",
+                colors: {
+                    surface: "#FFFBEB",
+                    border: "#FDE68A",
+                    text: "#78350F",
+                    mutedText: "#92400E",
+                    accent: "#D97706",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F59E0B",
+                    icon: "#FFFFFF",
+                    highlight: "#FEF3C7"
+                }
+            },
+            {
+                name: "web-professional-rose",
+                title: "Web Professional Rose",
+                description: "گل رز حرفه‌ای استاندارد وب برای ظرافت و نرمی",
+                icon: "🌹",
+                colors: {
+                    surface: "#FFF1F2",
+                    border: "#FECDD3",
+                    text: "#9F1239",
+                    mutedText: "#BE123C",
+                    accent: "#E11D48",
+                    accentText: "#FFFFFF",
+                    iconBg: "#F43F5E",
+                    icon: "#FFFFFF",
+                    highlight: "#FFE4E6"
+                }
+            },
+            {
+                name: "web-professional-slate",
+                title: "Web Professional Slate",
+                description: "سنگ لوح حرفه‌ای استاندارد وب برای خنثی و حرفه‌ای",
+                icon: "⬜",
+                colors: {
+                    surface: "#F8FAFC",
+                    border: "#E2E8F0",
+                    text: "#0F172A",
+                    mutedText: "#475569",
+                    accent: "#475569",
+                    accentText: "#FFFFFF",
+                    iconBg: "#64748B",
+                    icon: "#FFFFFF",
+                    highlight: "#F1F5F9"
+                }
+            },
+            {
+                name: "web-professional-zinc",
+                title: "Web Professional Zinc",
+                description: "روی حرفه‌ای استاندارد وب برای خنثی روشن",
+                icon: "🔘",
+                colors: {
+                    surface: "#FAFAFA",
+                    border: "#E4E4E7",
+                    text: "#18181B",
+                    mutedText: "#52525B",
+                    accent: "#52525B",
+                    accentText: "#FFFFFF",
+                    iconBg: "#71717A",
+                    icon: "#FFFFFF",
+                    highlight: "#F4F4F5"
+                }
+            },
+            {
+                name: "web-professional-stone",
+                title: "Web Professional Stone",
+                description: "سنگ حرفه‌ای استاندارد وب برای طبیعی و آرام",
+                icon: "🪨",
+                colors: {
+                    surface: "#FAFAF9",
+                    border: "#E7E5E4",
+                    text: "#1C1917",
+                    mutedText: "#57534E",
+                    accent: "#57534E",
+                    accentText: "#FFFFFF",
+                    iconBg: "#78716C",
+                    icon: "#FFFFFF",
+                    highlight: "#F5F5F4"
+                }
+            },
+            {
+                name: "web-professional-neutral",
+                title: "Web Professional Neutral",
+                description: "خنثی حرفه‌ای استاندارد وب برای همه‌کاره",
+                icon: "⚫",
+                colors: {
+                    surface: "#FAFAFA",
+                    border: "#E5E5E5",
+                    text: "#171717",
+                    mutedText: "#525252",
+                    accent: "#525252",
+                    accentText: "#FFFFFF",
+                    iconBg: "#737373",
+                    icon: "#FFFFFF",
+                    highlight: "#F5F5F5"
+                }
+            },
+            {
+                name: "web-professional-sky",
+                title: "Web Professional Sky",
+                description: "آسمانی حرفه‌ای استاندارد وب برای روشنی و باز بودن",
+                icon: "☁️",
+                colors: {
+                    surface: "#F0F9FF",
+                    border: "#BAE6FD",
+                    text: "#0C4A6E",
+                    mutedText: "#075985",
+                    accent: "#0284C7",
+                    accentText: "#FFFFFF",
+                    iconBg: "#0EA5E9",
+                    icon: "#FFFFFF",
+                    highlight: "#E0F2FE"
+                }
+            },
+            {
+                name: "web-professional-violet",
+                title: "Web Professional Violet",
+                description: "بنفش روشن حرفه‌ای استاندارد وب برای خلاقیت",
+                icon: "🟣",
+                colors: {
+                    surface: "#F5F3FF",
+                    border: "#DDD6FE",
+                    text: "#4C1D95",
+                    mutedText: "#5B21B6",
+                    accent: "#7C3AED",
+                    accentText: "#FFFFFF",
+                    iconBg: "#8B5CF6",
+                    icon: "#FFFFFF",
+                    highlight: "#EDE9FE"
+                }
+            },
+            {
+                name: "web-professional-fuchsia",
+                title: "Web Professional Fuchsia",
+                description: "فوشیا حرفه‌ای استاندارد وب برای جذابیت و انرژی",
+                icon: "💗",
+                colors: {
+                    surface: "#FDF4FF",
+                    border: "#F5D0FE",
+                    text: "#701A75",
+                    mutedText: "#86198F",
+                    accent: "#C026D3",
+                    accentText: "#FFFFFF",
+                    iconBg: "#D946EF",
+                    icon: "#FFFFFF",
+                    highlight: "#FAE8FF"
+                }
+            },
+            {
+                name: "web-professional-emerald",
+                title: "Web Professional Emerald",
+                description: "زمرد حرفه‌ای استاندارد وب برای موفقیت و طبیعت",
+                icon: "💚",
+                colors: {
+                    surface: "#ECFDF5",
+                    border: "#A7F3D0",
+                    text: "#065F46",
+                    mutedText: "#047857",
+                    accent: "#059669",
+                    accentText: "#FFFFFF",
+                    iconBg: "#10B981",
+                    icon: "#FFFFFF",
+                    highlight: "#D1FAE5"
+                }
+            }
+        ];
+
+        function copyToClipboard(text, element) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast('کد رنگ کپی شد: ' + text);
+                if (element) {
+                    const originalBg = element.style.background;
+                    element.style.background = '#48bb78';
+                    element.style.color = 'white';
+                    setTimeout(() => {
+                        element.style.background = originalBg;
+                        element.style.color = '';
+                    }, 1000);
+                }
+            }).catch(function(err) {
+                showToast('خطا در کپی کردن');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function createColorCard(palette) {
+            const card = document.createElement('div');
+            card.className = 'color-card';
+            card.style.backgroundColor = palette.colors.surface;
+            card.style.borderColor = palette.colors.border;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div style="display: flex; align-items: flex-start; gap: 16px; flex: 1;">
+                        <div class="icon-container" style="background-color: ${palette.colors.iconBg}; color: ${palette.colors.icon};">
+                            <span style="font-size: 24px;">${palette.icon}</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-title" style="color: ${palette.colors.text};">
+                                ${palette.title}
+                            </div>
+                            <div class="card-description" style="color: ${palette.colors.mutedText};">
+                                ${palette.description}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="badge" style="background-color: ${palette.colors.highlight}; color: ${palette.colors.text};">
+                        ${palette.name}
+                    </div>
+                </div>
+                <div class="colors-info">
+                    <div class="colors-grid-mini">
+                        <div class="color-item">
+                            <span class="color-label">پس‌زمینه کارت</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.surface}', this)">${palette.colors.surface}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.surface};" onclick="copyToClipboard('${palette.colors.surface}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">حاشیه</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.border}', this)">${palette.colors.border}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.border};" onclick="copyToClipboard('${palette.colors.border}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">متن اصلی</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.text}', this)">${palette.colors.text}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.text};" onclick="copyToClipboard('${palette.colors.text}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">متن کم‌رنگ</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.mutedText}', this)">${palette.colors.mutedText}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.mutedText};" onclick="copyToClipboard('${palette.colors.mutedText}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">پس‌زمینه Badge</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.accent}', this)">${palette.colors.accent}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.accent};" onclick="copyToClipboard('${palette.colors.accent}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">رنگ متن Badge</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.accentText}', this)">${palette.colors.accentText}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.accentText};" onclick="copyToClipboard('${palette.colors.accentText}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">پس‌زمینه آیکون</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.iconBg}', this)">${palette.colors.iconBg}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.iconBg};" onclick="copyToClipboard('${palette.colors.iconBg}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">رنگ آیکون</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.icon}', this)">${palette.colors.icon}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.icon};" onclick="copyToClipboard('${palette.colors.icon}')"></div>
+                        </div>
+                        <div class="color-item">
+                            <span class="color-label">Highlight</span>
+                            <div class="color-value" onclick="copyToClipboard('${palette.colors.highlight}', this)">${palette.colors.highlight}</div>
+                            <div class="color-preview-box" style="background-color: ${palette.colors.highlight};" onclick="copyToClipboard('${palette.colors.highlight}')"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        const grid = document.getElementById('colorsGrid');
+        colorPalettes.forEach(palette => {
+            grid.appendChild(createColorCard(palette));
+        });
+    </script>
+</body>
+</html>

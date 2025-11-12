@@ -149,7 +149,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label htmlFor="account-status" className="text-base">وضعیت حساب</Label>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-font-s">
                                 حساب کاربری این ادمین را فعال یا غیرفعال کنید.
                             </p>
                         </div>
@@ -162,7 +162,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label htmlFor="super-admin-access" className="text-base">دسترسی سوپر ادمین</Label>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-font-s">
                                 این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.
                             </p>
                         </div>
@@ -192,22 +192,22 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
 
                     {/* Base Permissions Display */}
                     {basePermissions.length > 0 && (
-                        <div className="rounded-lg border p-4 bg-green-50/50">
+                        <div className="rounded-lg border p-4 bg-green/50">
                             <div className="flex items-center gap-2 mb-2">
-                                <Shield className="w-4 h-4 text-green-600" />
-                                <Label className="text-base text-green-700">دسترسی‌های پایه</Label>
+                                <Shield className="w-4 h-4 text-green-1" />
+                                <Label className="text-base text-green-2">دسترسی‌های پایه</Label>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-3">
+                            <p className="text-sm text-font-s mb-3">
                                 این دسترسی‌ها به صورت خودکار برای همه ادمین‌ها فعال است:
                             </p>
                             <div className="space-y-2">
                                 {basePermissions.map((perm) => (
-                                    <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-100">
-                                        <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                    <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-1">
+                                        <Check className="w-4 h-4 text-green-1 mt-0.5 flex-shrink-0" />
                                         <div className="flex-1">
                                             <div className="text-sm font-medium text-foreground">{perm.display_name}</div>
                                             {perm.description && (
-                                                <div className="text-xs text-muted-foreground">{perm.description}</div>
+                                                <div className="text-xs text-font-s">{perm.description}</div>
                                             )}
                                         </div>
                                     </div>
@@ -249,12 +249,12 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                 <CardContent>
                     {/* Super Admin Info */}
                     {admin.is_superuser && (
-                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="mb-4 p-4 bg-green border border-green-1 rounded-lg">
                             <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                <h4 className="font-semibold text-sm text-green-700">سوپر ادمین - دسترسی کامل</h4>
+                                <div className="h-2 w-2 rounded-full bg-green-1"></div>
+                                <h4 className="font-semibold text-sm text-green-2">سوپر ادمین - دسترسی کامل</h4>
                             </div>
-                            <p className="text-xs text-green-600 mt-1">
+                            <p className="text-xs text-green-1 mt-1">
                                 این کاربر به عنوان سوپر ادمین به صورت خودکار تمام ماژول‌ها و عملیات را در اختیار دارد.
                             </p>
                         </div>
@@ -265,7 +265,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                             <div className="rounded-md border">
                                 <div className="p-4 space-y-3">
                                     {availableRoles.map((role) => (
-                                        <div key={role.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50">
+                                        <div key={role.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-bg/50">
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
                                                     id={`role-${role.id}`}
@@ -282,7 +282,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
+                                            <div className="text-sm text-font-s">
                                                 {role.description}
                                             </div>
                                         </div>
@@ -291,7 +291,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                             </div>
                             
                             {editMode && !admin.is_superuser && (
-                                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                                <div className="mt-4 p-3 bg-bg/50 rounded-lg">
                                     <div className="text-sm font-medium">
                                         نقش‌های انتخاب شده: {roleAssignments.filter(a => a.assigned).length}
                                     </div>
@@ -299,7 +299,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                             )}
                         </div>
                     ) : (
-                        <div className="text-center text-muted-foreground py-8">
+                        <div className="text-center text-font-s py-8">
                             نقشی موجود نیست
                         </div>
                     )}

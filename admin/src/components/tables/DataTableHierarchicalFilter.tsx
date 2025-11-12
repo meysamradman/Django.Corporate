@@ -103,7 +103,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
             style={{ marginRight: `${depth * 16}px` }}
             className={cn(
               "flex items-center flex-1",
-              depth > 0 && "relative before:absolute before:right-[-8px] before:h-full before:w-[2px] before:bg-muted/50"
+              depth > 0 && "relative before:absolute before:right-[-8px] before:h-full before:w-[2px] before:bg-bg/50"
             )}
           >
             {item.children?.length ? (
@@ -113,7 +113,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
             )}
             <span className={cn(
               "ml-1",
-              item.children?.length ? "font-medium" : "text-muted-foreground"  
+              item.children?.length ? "font-medium" : "text-font-s"  
             )}>
               {item.label}
             </span>

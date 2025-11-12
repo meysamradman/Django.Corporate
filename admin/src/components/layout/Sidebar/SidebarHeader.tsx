@@ -24,14 +24,14 @@ export function SidebarHeader({
   const title = getTitle();
 
   return (
-    <div className="relative flex h-16 items-center justify-between px-4 border-b border-sdb-br">
+    <div className="relative flex h-16 items-center justify-between px-4 border-b border-br">
       {/* Section Title - positioned based on RTL */}
       <div className={cn(
         "flex-1",
         "text-right"
       )}>
         {title && (
-        <h1 className="text-lg font-semibold text-sidebar-foreground">
+        <h1 className="text-lg font-semibold text-font-p">
           {title}
         </h1>
         )}
@@ -47,7 +47,7 @@ export function SidebarHeader({
             onClick={onContentToggle}
             className={cn(
               "flex items-center justify-center w-6 h-6 rounded-full",
-              "bg-sidebar border border-sidebar-border shadow-xl",
+              "bg-sidebar border border-br shadow-xl",
               "hover:bg-sidebar-accent transition-colors",
               "focus:outline-none focus:ring-2 focus:ring-ring"
             )}

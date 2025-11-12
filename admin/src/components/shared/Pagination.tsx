@@ -88,7 +88,7 @@ export function PaginationControls({
       <div className={cn("flex w-full flex-col items-center justify-between gap-4 overflow-auto px-0 sm:flex-row sm:gap-8", className)} dir="rtl">
         {/* Info Section */}
         {showInfo && (
-          <div className="flex-1 whitespace-nowrap text-sm text-muted-foreground">
+          <div className="flex-1 whitespace-nowrap text-sm text-font-s">
             {infoText || `${selectedCount} از ${totalCount} انتخاب شده`}
           </div>
         )}
@@ -97,7 +97,7 @@ export function PaginationControls({
           {/* Page Size Selector */}
           {showPageSize && onPageSizeChange && pageSize && (
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-muted-foreground whitespace-nowrap">تعداد در صفحه</p>
+              <p className="text-sm font-medium text-font-s whitespace-nowrap">تعداد در صفحه</p>
               <Select
                 value={String(pageSize)}
                 onValueChange={(value) => onPageSizeChange(parseInt(value, 10))}
@@ -130,12 +130,12 @@ export function PaginationControls({
       {/* Left section - Page Size Selector */}
       {showPageSize && onPageSizeChange && pageSize && (
         <div className="flex items-center gap-2">
-          <p className="text-sm text-gray-600 whitespace-nowrap">تعداد در صفحه</p>
+          <p className="text-sm text-font-s whitespace-nowrap">تعداد در صفحه</p>
           <Select
             value={String(pageSize)}
             onValueChange={(value) => onPageSizeChange(parseInt(value, 10))}
           >
-            <SelectTrigger className="h-8 w-[70px] border border-gray-200 rounded-md">
+            <SelectTrigger className="h-8 w-[70px] border border-br rounded-md">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -153,7 +153,7 @@ export function PaginationControls({
       <div className="flex items-center gap-4">
         {/* Info */}
         {showInfo && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-font-s">
             {infoText || `${((validCurrentPage - 1) * (pageSize || 10)) + 1} - ${Math.min(validCurrentPage * (pageSize || 10), totalCount)} از ${totalCount}`}
           </div>
         )}
@@ -164,7 +164,7 @@ export function PaginationControls({
           <button
             onClick={() => onPageChange(validCurrentPage - 1)}
             disabled={validCurrentPage === 1}
-            className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="text-font-s hover:text-font-p disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             aria-label="صفحه قبل"
           >
             <ChevronRight className="h-4 w-4" />
@@ -174,7 +174,7 @@ export function PaginationControls({
           {showPageNumbers && paginationRange.map((pageNumber, index) => {
             if (pageNumber === '...') {
               return (
-                <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                <span key={`ellipsis-${index}`} className="px-2 text-font-s">
                   ...
                 </span>
               );
@@ -187,8 +187,8 @@ export function PaginationControls({
                 onClick={() => onPageChange(pageNumber as number)}
                 className={`px-2 py-1 text-sm rounded-md cursor-pointer ${
                   isActive 
-                    ? "bg-gray-100 text-gray-900" 
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-bg text-font-p" 
+                    : "text-font-s hover:text-font-p"
                 }`}
               >
                 {pageNumber}
@@ -200,7 +200,7 @@ export function PaginationControls({
           <button
             onClick={() => onPageChange(validCurrentPage + 1)}
             disabled={validCurrentPage === totalPages}
-            className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="text-font-s hover:text-font-p disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             aria-label="صفحه بعد"
           >
             <ChevronLeft className="h-4 w-4" />

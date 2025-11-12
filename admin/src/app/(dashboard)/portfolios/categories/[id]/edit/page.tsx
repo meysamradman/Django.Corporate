@@ -153,7 +153,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
           <h1 className="page-title">ویرایش دسته‌بندی</h1>
         </div>
         <div className="text-center py-8">
-          <p className="text-red-500 mb-4">خطا در بارگذاری داده‌ها</p>
+          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
             onClick={() => router.back()} 
             className="mt-4"
@@ -223,7 +223,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                     .map((category) => renderCategoryOption(category))}
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-font-s">
                 دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند.
               </p>
             </div>

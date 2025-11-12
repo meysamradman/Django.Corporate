@@ -98,7 +98,7 @@ export function DataTableFacetedFilter<TData, TValue>({
               <div className="hidden space-x-1 lg:flex">
                 {selectedValues.size > 2 ? (
                   <Badge
-                    variant="secondary"
+                    variant="outline"
                     className="rounded-sm px-1 font-normal"
                   >
                     {selectedValues.size} انتخاب شده
@@ -108,7 +108,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     .filter((option) => selectedValues.has(option.value))
                     .map((option) => (
                       <Badge
-                        variant="secondary"
+                        variant="outline"
                         key={String(option.value)}
                         className="rounded-sm px-1 font-normal"
                       >
@@ -152,12 +152,12 @@ export function DataTableFacetedFilter<TData, TValue>({
                       className={cn(
                         "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                         isSelected
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-primary text-static-w"
                           : "opacity-50"
                       )}
                     />
                     {option.icon && (
-                      <option.icon className="h-4 w-4 text-muted-foreground" />
+                      <option.icon className="h-4 w-4 text-font-s" />
                     )}
                     <span>{option.label}</span>
                   </CommandItem>

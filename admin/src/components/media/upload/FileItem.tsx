@@ -58,7 +58,7 @@ export function FileItem({
   const renderFilePreview = () => {
     if (fileCategory === 'image') {
       return (
-        <div className="relative w-full h-32 bg-muted rounded-md overflow-hidden">
+        <div className="relative w-full h-32 bg-bg rounded-md overflow-hidden">
           <img 
             src={URL.createObjectURL(file.file)} 
             alt={file.title || file.file.name}
@@ -69,7 +69,7 @@ export function FileItem({
     }
     
     return (
-      <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center">
+      <div className="w-full h-32 bg-bg rounded-md flex items-center justify-center">
         {getFileIcon(file.file)}
         <span className="ml-2 text-sm">{file.file.name}</span>
       </div>
@@ -90,7 +90,7 @@ export function FileItem({
           <p className="text-sm font-medium truncate" title={file.file.name}>
             {file.file.name}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-font-s">
             {formatBytes(file.file.size)} • {fileCategory}
           </p>
         </div>
@@ -98,7 +98,7 @@ export function FileItem({
         {file.status === 'pending' && (
           <Button 
             type="button" 
-            variant="ghost" 
+            variant="outline" 
             size="icon" 
             onClick={() => onRemove(file.id)}
             className="h-7 w-7"
@@ -108,10 +108,10 @@ export function FileItem({
           </Button>
         )}
         {file.status === 'uploading' && (
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <Loader2 className="h-5 w-5 animate-spin text-font-s" />
         )}
         {file.status === 'success' && (
-          <CheckCircle className="h-5 w-5 text-green-500" />
+          <CheckCircle className="h-5 w-5 text-green-1" />
         )}
         {file.status === 'error' && (
           <AlertCircle className="h-5 w-5 text-destructive" />
@@ -119,7 +119,7 @@ export function FileItem({
       </div>
 
       {file.status === 'uploading' && (
-        <div className="w-full bg-muted rounded-full h-1.5">
+        <div className="w-full bg-bg rounded-full h-1.5">
           <div 
             className="bg-primary h-1.5 rounded-full transition-all"
             style={{ width: `${file.progress}%` }}
@@ -183,7 +183,7 @@ export function FileItem({
                 <Label>تصویر کاور (برای {fileCategory === 'video' ? 'ویدیو' : 'فایل صوتی'})</Label>
                 
                 {file.coverFile ? (
-                  <div className="mt-2 relative w-full h-40 bg-muted rounded-md overflow-hidden">
+                  <div className="mt-2 relative w-full h-40 bg-bg rounded-md overflow-hidden">
                     <img 
                       src={URL.createObjectURL(file.coverFile)}
                       alt="Cover"
@@ -203,12 +203,12 @@ export function FileItem({
                 ) : (
                   <div 
                     onClick={handleCoverFileSelectClick}
-                    className="mt-2 border-2 border-dashed rounded-md h-40 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/50"
+                    className="mt-2 border-2 border-dashed rounded-md h-40 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-bg/50"
                     title="انتخاب تصویر کاور"
                   >
-                    <Plus className="h-6 w-6 mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">انتخاب تصویر کاور</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <Plus className="h-6 w-6 mb-2 text-font-s" />
+                    <p className="text-sm text-font-s">انتخاب تصویر کاور</p>
+                    <p className="text-xs text-font-s mt-1">
                       پیشنهاد: {fileCategory === 'video' ? 'اسکرین‌شات' : 'کاور آلبوم'}
                     </p>
                   </div>

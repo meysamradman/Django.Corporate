@@ -83,7 +83,7 @@ export function MediaSelector({
                             showIcon={true}
                         />
                     ) : (
-                        <div className={`w-full h-full bg-muted flex items-center justify-center rounded-lg`}>
+                        <div className={`w-full h-full bg-bg flex items-center justify-center rounded-lg`}>
                             <span className={`font-medium ${size === "sm" ? "text-sm" : size === "md" ? "text-lg" : "text-xl"}`}>
                                 IMG
                             </span>
@@ -106,7 +106,7 @@ export function MediaSelector({
                     {selectedMedia && (
                         <Button 
                             type="button" 
-                            variant="ghost" 
+                            variant="outline" 
                             size={buttonSize[size]}
                             onClick={handleRemoveImage}
                             className="text-destructive hover:text-destructive"

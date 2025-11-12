@@ -20,15 +20,15 @@ export function PortfolioInfoHeader({ portfolio }: PortfolioInfoHeaderProps) {
     if (portfolio.status === "published") {
       return (
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-green-500" />
-          <span className="text-green-500">منتشر شده</span>
+          <CheckCircle2 className="w-5 h-5 text-green-1" />
+          <span className="text-green-1">منتشر شده</span>
         </div>
       );
     }
     return (
       <div className="flex items-center gap-2">
-        <XCircle className="w-5 h-5 text-yellow-500" />
-        <span className="text-yellow-500">پیش‌نویس</span>
+        <XCircle className="w-5 h-5 text-yellow-1" />
+        <span className="text-yellow-1">پیش‌نویس</span>
       </div>
     );
   };
@@ -61,14 +61,14 @@ export function PortfolioInfoHeader({ portfolio }: PortfolioInfoHeaderProps) {
                 />
               </div>
             ) : (
-              <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-card">
+              <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-purple-1 to-purple-2 flex items-center justify-center text-static-w text-4xl font-bold border-4 border-card">
                 {portfolio.title?.[0]?.toUpperCase() || "P"}
               </div>
             )}
           </div>
           <div className="flex-1 pt-16 pb-2">
             <h2>{portfolio.title}</h2>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground mt-3">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-font-s mt-3">
               {getStatusBadge()}
               {portfolio.is_featured && (
                 <div className="flex items-center gap-2">

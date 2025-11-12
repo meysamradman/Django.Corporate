@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
@@ -49,21 +50,19 @@ export function SocialTab({
 }: SocialTabProps) {
     return (
         <TabsContent value="social">
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-pink-500">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <div className="p-2.5 bg-pink-100 rounded-xl shadow-sm">
-                            <Share2 className="w-5 h-5 stroke-pink-600" />
-                        </div>
-                        شبکه‌های اجتماعی
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+            <CardWithIcon
+                icon={Share2}
+                title="شبکه‌های اجتماعی"
+                iconBgColor="bg-pink"
+                iconColor="stroke-pink-2"
+                borderColor="border-b-pink-1"
+                className="hover:shadow-lg transition-all duration-300"
+            >
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="linkedin">لینکداین</Label>
                             <div className="relative flex items-center">
-                                <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
                                 <Input
                                     id="linkedin"
                                     value={formData.linkedin}
@@ -77,7 +76,7 @@ export function SocialTab({
                         <div className="space-y-2">
                             <Label htmlFor="twitter">توییتر (X)</Label>
                             <div className="relative flex items-center">
-                                <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
                                 <Input
                                     id="twitter"
                                     value={formData.twitter}
@@ -91,7 +90,7 @@ export function SocialTab({
                         <div className="space-y-2">
                             <Label htmlFor="instagram">اینستاگرام</Label>
                             <div className="relative flex items-center">
-                                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
                                 <Input
                                     id="instagram"
                                     value={formData.instagram}
@@ -105,7 +104,7 @@ export function SocialTab({
                         <div className="space-y-2">
                             <Label htmlFor="whatsapp">واتساپ</Label>
                             <div className="relative flex items-center">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
                                 <Input
                                     id="whatsapp"
                                     value={formData.whatsapp}
@@ -122,7 +121,7 @@ export function SocialTab({
                         <div className="space-y-2">
                             <Label htmlFor="telegram">تلگرام</Label>
                             <div className="relative flex items-center">
-                                <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
                                 <Input
                                     id="telegram"
                                     value={formData.telegram}
@@ -136,7 +135,7 @@ export function SocialTab({
                         <div className="space-y-2">
                             <Label htmlFor="youtube">یوتیوب</Label>
                             <div className="relative flex items-center">
-                                <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
                                 <Input
                                     id="youtube"
                                     value={formData.youtube}
@@ -156,8 +155,7 @@ export function SocialTab({
                             </div>
                         )}
                     </div>
-                </CardContent>
-            </Card>
+            </CardWithIcon>
         </TabsContent>
     );
 }

@@ -1,3 +1,9 @@
+/**
+ * رنگ‌های استاندارد فیلدهای فرم:
+ * - فعال: blue
+ * - غیرفعال: gray
+ * - الزامی: red
+ */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -6,6 +12,7 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
     Dialog,
     DialogContent,
@@ -248,38 +255,37 @@ export function FormFieldsSection() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
             </div>
         );
     }
 
     return (
         <>
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                                <FileText className="w-5 h-5 stroke-blue-600" />
-                            </div>
-                            <CardTitle>فیلدهای فرم تماس</CardTitle>
-                        </div>
-                        <Button onClick={() => handleOpenDialog()}>
-                            <Plus />
-                            افزودن فیلد
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
+            <CardWithIcon
+                icon={FileText}
+                title="فیلدهای فرم تماس"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+                titleExtra={
+                    <Button onClick={() => handleOpenDialog()}>
+                        <Plus />
+                        افزودن فیلد
+                    </Button>
+                }
+            >
                     {fields.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
+                        <div className="text-center py-12 text-font-s">
                             فیلدی ثبت نشده است
                         </div>
                     ) : (
                         <div className="rounded-lg border border-border overflow-hidden">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                    <TableRow className="bg-bg/50 hover:bg-bg/50">
                                         <TableHead className="w-12 text-right"></TableHead>
                                         <TableHead className="text-right">کلید فیلد</TableHead>
                                         <TableHead className="text-right">برچسب</TableHead>
@@ -291,11 +297,11 @@ export function FormFieldsSection() {
                                 </TableHeader>
                                 <TableBody>
                                     {fields.map((field) => (
-                                        <TableRow key={field.id} className="hover:bg-accent/50 transition-colors">
+                                        <TableRow key={field.id} className="hover:bg-bg/50 transition-colors">
                                             <TableCell>
                                                 <div className="flex items-center justify-center">
-                                                    <div className={`p-1.5 rounded-lg ${field.is_active ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                                                        <FileText className={`h-4 w-4 ${field.is_active ? 'text-blue-600' : 'text-gray-400'}`} />
+                                                    <div className={`p-1.5 rounded-lg ${field.is_active ? 'bg-blue' : 'bg-gray'}`}>
+                                                        <FileText className={`h-4 w-4 ${field.is_active ? 'text-blue-1' : 'text-gray-1'}`} />
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -330,24 +336,24 @@ export function FormFieldsSection() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
+                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
                                                     {field.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(field)}
                                                     >
                                                         <Edit />
                                                     </Button>
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
                                                         onClick={() => handleDeleteClick(field.id)}
                                                     >
                                                         <Trash2 />
@@ -360,8 +366,7 @@ export function FormFieldsSection() {
                             </Table>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -382,7 +387,7 @@ export function FormFieldsSection() {
                                     disabled={!!editingField}
                                     className="font-mono"
                                 />
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-font-s">
                                     فقط حروف انگلیسی، اعداد و underscore
                                 </p>
                             </div>
@@ -523,7 +528,7 @@ export function FormFieldsSection() {
                                             />
                                             <Button
                                                 type="button"
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={() => handleRemoveOption(index)}
                                             >
@@ -532,7 +537,7 @@ export function FormFieldsSection() {
                                         </div>
                                     ))}
                                     {options.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm text-font-s">
                                             حداقل یک گزینه اضافه کنید
                                         </p>
                                     )}

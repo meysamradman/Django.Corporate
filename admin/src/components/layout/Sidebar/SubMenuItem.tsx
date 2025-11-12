@@ -29,9 +29,9 @@ export function SubMenuItem({
   );
 
   const interactiveClasses = cn(
-    "hover:bg-sdb-hover hover:text-primary",
+    "hover:bg-sdb-hv hover:text-primary",
     isCurrentActive 
-      ? "bg-sdb-hover text-primary" 
+      ? "bg-sdb-hv text-primary" 
       : "text-sdb-menu-txt"
   );
 

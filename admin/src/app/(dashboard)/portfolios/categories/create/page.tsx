@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
@@ -86,7 +87,7 @@ export default function CreateCategoryPage() {
               <div className="flex items-center gap-1 shrink-0">
                 <div className="flex gap-0.5">
                   {Array.from({ length: level - 1 }).map((_, idx) => (
-                    <div key={idx} className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                    <div key={idx} className="w-1 h-1 rounded-full bg-font-s/30" />
                   ))}
                 </div>
               </div>
@@ -104,7 +105,7 @@ export default function CreateCategoryPage() {
                 ? 'text-primary' 
                 : level === 1 
                   ? 'text-primary/70' 
-                  : 'text-muted-foreground'
+                  : 'text-font-s'
             }`} 
           />
         </div>
@@ -184,16 +185,14 @@ export default function CreateCategoryPage() {
           {/* Left Column: Form Fields */}
           <div className="lg:col-span-4 space-y-6">
             <div className="space-y-6">
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
-                    <FolderTree className="w-5 h-5 stroke-primary" />
-                  </div>
-                  اطلاعات دسته‌بندی
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <CardWithIcon
+              icon={FolderTree}
+              title="اطلاعات دسته‌بندی"
+              iconBgColor="bg-primary/10"
+              iconColor="stroke-primary"
+              borderColor="border-b-primary"
+              className="hover:shadow-lg transition-all duration-300"
+            >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     label="نام"
@@ -240,8 +239,8 @@ export default function CreateCategoryPage() {
                             return (
                               <>
                                 <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" className="flex-1 text-right w-full" />
-                                <div className="p-1.5 rounded-md bg-muted/50 shrink-0">
-                                  <Home className="w-4 h-4 text-muted-foreground" />
+                                <div className="p-1.5 rounded-md bg-bg/50 shrink-0">
+                                  <Home className="w-4 h-4 text-font-s" />
                                 </div>
                               </>
                             );
@@ -260,7 +259,7 @@ export default function CreateCategoryPage() {
                               <div className={`p-1.5 rounded-md shrink-0 ${
                                 display.level === 0 
                                   ? 'bg-primary/10' 
-                                  : 'bg-muted/50'
+                                  : 'bg-bg/50'
                               }`}>
                                 <Icon className={`w-4 h-4 ${
                                   display.level === 0 
@@ -293,7 +292,7 @@ export default function CreateCategoryPage() {
                       {categories?.data && categories.data.length > 0 && (
                         <>
                           <div className="h-px bg-border/50 my-2 mx-2" />
-                          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">
+                          <div className="px-3 py-2 text-xs font-semibold text-font-s uppercase tracking-wide text-right">
                             دسته‌بندی‌های موجود
                           </div>
                         </>
@@ -361,19 +360,19 @@ export default function CreateCategoryPage() {
           {/* Right Column: Featured Image */}
           <div className="lg:col-span-2">
             <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                    <ImageIcon className="w-5 h-5 stroke-blue-600" />
-                  </div>
-                  تصویر شاخص
-                </CardTitle>
+            <CardWithIcon
+              icon={ImageIcon}
+              title="تصویر شاخص"
+              iconBgColor="bg-blue"
+              iconColor="stroke-blue-2"
+              borderColor="border-b-blue-1"
+              className="hover:shadow-lg transition-all duration-300"
+              titleExtra={
                 <CardDescription>
                   این تصویر به عنوان تصویر اصلی دسته‌بندی استفاده می‌شود.
                 </CardDescription>
-              </CardHeader>
-              <CardContent>
+              }
+            >
                 {selectedMedia ? (
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
                     <NextImage
@@ -383,9 +382,9 @@ export default function CreateCategoryPage() {
                       className="object-cover"
                       unoptimized
                     />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         onClick={() => setIsMediaModalOpen(true)}
                         className="mx-1"
@@ -411,15 +410,14 @@ export default function CreateCategoryPage() {
                     onClick={() => setIsMediaModalOpen(true)}
                     className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
                   >
-                    <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                    <UploadCloud className="w-12 h-12 text-font-s" />
                     <p className="mt-4 text-lg font-semibold">انتخاب تصویر شاخص</p>
-                    <p className="mt-1 text-sm text-muted-foreground text-center">
+                    <p className="mt-1 text-sm text-font-s text-center">
                       برای انتخاب از کتابخانه کلیک کنید
                     </p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </CardWithIcon>
             </div>
           </div>
         </div>

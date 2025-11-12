@@ -55,7 +55,7 @@ export function ReadMore({
       return (
         <div
           className={cn(
-            "prose prose-sm max-w-none prose-headings:font-semibold prose-p:leading-relaxed prose-a:text-primary text-base text-foreground",
+            "prose prose-sm max-w-none prose-headings:font-semibold prose-p:leading-relaxed prose-a:text-primary text-base text-font-p",
             className
           )}
           dangerouslySetInnerHTML={{ __html: content }}
@@ -63,7 +63,7 @@ export function ReadMore({
       );
     }
     return (
-      <div className={cn("text-base text-foreground leading-relaxed", className)}>
+      <div className={cn("text-base text-font-p leading-relaxed", className)}>
         {content}
       </div>
     );
@@ -71,7 +71,7 @@ export function ReadMore({
 
   if (!content || content.trim() === "") {
     return (
-      <div className={cn("text-muted-foreground italic", className)}>
+      <div className={cn("text-font-s", className)}>
         محتوایی وجود ندارد
       </div>
     );
@@ -98,12 +98,12 @@ export function ReadMore({
         </div>
         
         {!isOpen && (
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none transition-opacity duration-500" />
+          <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-bg via-bg/95 via-bg/85 via-bg/50 via-bg/20 to-transparent pointer-events-none transition-opacity duration-500" />
         )}
       </div>
 
       <Button
-        variant="ghost"
+        variant="link"
         onClick={() => setIsOpen(!isOpen)}
         className="text-primary hover:text-primary/80 font-medium px-0 transition-all duration-300 hover:gap-1"
         size="sm"

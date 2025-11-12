@@ -5,6 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
     Dialog,
     DialogContent,
@@ -137,38 +138,37 @@ export function ContactMobilesSection() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
             </div>
         );
     }
 
     return (
         <>
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-cyan-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-cyan-100 rounded-xl shadow-sm">
-                                <Smartphone className="w-5 h-5 stroke-cyan-600" />
-                            </div>
-                            <CardTitle>شماره‌های موبایل</CardTitle>
-                        </div>
+            <CardWithIcon
+                icon={Smartphone}
+                title="شماره‌های موبایل"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+                titleExtra={
                         <Button onClick={() => handleOpenDialog()}>
                             <Plus />
                             افزودن شماره موبایل
                         </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
+                }
+            >
                     {mobiles.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
+                        <div className="text-center py-12 text-font-s">
                             شماره موبایلی ثبت نشده است
                         </div>
                     ) : (
                         <div className="rounded-lg border border-border overflow-hidden">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                    <TableRow className="bg-bg/50 hover:bg-bg/50">
                                         <TableHead className="w-12 text-right">
                                             <div className="flex items-center justify-center">
                                                 <Smartphone className="h-4 w-4 text-cyan-600" />
@@ -182,7 +182,7 @@ export function ContactMobilesSection() {
                                 </TableHeader>
                                 <TableBody>
                                     {mobiles.map((mobile) => (
-                                        <TableRow key={mobile.id} className="hover:bg-accent/50 transition-colors">
+                                        <TableRow key={mobile.id} className="hover:bg-bg/50 transition-colors">
                                             <TableCell>
                                                 <div className="flex items-center justify-center">
                                                     <div className="p-1.5 bg-cyan-100 rounded-lg">
@@ -194,27 +194,27 @@ export function ContactMobilesSection() {
                                                 <span className="font-medium">{mobile.mobile_number}</span>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="text-muted-foreground">{mobile.label || "-"}</span>
+                                                <span className="text-font-s">{mobile.label || "-"}</span>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-muted rounded-md">
+                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
                                                     {mobile.order}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground [&_svg]:hover:stroke-primary-foreground"
+                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
                                                         onClick={() => handleOpenDialog(mobile)}
                                                     >
                                                         <Edit />
                                                     </Button>
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground [&_svg]:hover:!stroke-destructive-foreground"
+                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
                                                         onClick={() => handleDeleteClick(mobile.id)}
                                                     >
                                                         <Trash2 />
@@ -227,8 +227,7 @@ export function ContactMobilesSection() {
                             </Table>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent>

@@ -1,17 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import dynamic from "next/dynamic";
-import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, ComposeEmail, EmailDetailView, type ComposeEmailData } from "@/components/email";
+import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, EmailDetailView, type ComposeEmailData } from "@/components/email";
+import { ComposeEmailDialog } from "@/components/email/ComposeEmailDialog";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { emailApi, EmailMessage } from "@/api/email/route";
 import { MailboxType } from "@/components/email/types";
 import { toast } from "@/components/elements/Sonner";
-
-// Dynamic imports for better performance
-const ComposeEmailDialog = dynamic(() => import("@/components/email/ComposeEmail").then(mod => ({ default: mod.ComposeEmail })), {
-  ssr: false,
-});
 
 export default function EmailPage() {
   const [selectedMailbox, setSelectedMailbox] = useState<MailboxType>("inbox");

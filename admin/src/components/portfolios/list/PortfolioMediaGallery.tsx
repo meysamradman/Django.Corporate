@@ -104,14 +104,14 @@ export function PortfolioMediaGallery({
         <div className="space-y-4">
           {/* Main media item */}
           <div className="flex items-center gap-3 p-3 border rounded-lg">
-            <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              {mediaType === "video" && <Play className="w-5 h-5 text-blue-600" />}
-              {mediaType === "audio" && <Music className="w-5 h-5 text-blue-600" />}
-              {mediaType === "pdf" && <PDFIcon className="w-5 h-5 text-orange-600" />}
+            <div className="flex-shrink-0 w-10 h-10 bg-blue rounded-full flex items-center justify-center">
+              {mediaType === "video" && <Play className="w-5 h-5 text-blue-2" />}
+              {mediaType === "audio" && <Music className="w-5 h-5 text-blue-2" />}
+              {mediaType === "pdf" && <PDFIcon className="w-5 h-5 text-orange-2" />}
             </div>
             <div className="flex-grow min-w-0">
               <p className="font-medium truncate">{mediaItems[0].title || mediaItems[0].original_file_name}</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-font-s">
                 {mediaItems[0].file_size ? `${(mediaItems[0].file_size / 1024 / 1024).toFixed(2)} MB` : ''}
               </p>
             </div>
@@ -134,7 +134,7 @@ export function PortfolioMediaGallery({
                     fill
                   />
                 ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+                  <div className="w-full h-full bg-bg flex items-center justify-center rounded-lg">
                     <span className="font-medium text-sm">COVER</span>
                   </div>
                 )}
@@ -214,18 +214,18 @@ export function PortfolioMediaGallery({
             mediaType === "audio" ? (
               // Audio items as list
               <div key={`audio-item-${media.media_type}-${media.id}`} className="flex items-center gap-3 p-3 border rounded-lg">
-                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Music className="w-5 h-5 text-blue-600" />
+                <div className="flex-shrink-0 w-10 h-10 bg-blue rounded-full flex items-center justify-center">
+                  <Music className="w-5 h-5 text-blue-2" />
                 </div>
                 <div className="flex-grow min-w-0">
                   <p className="font-medium truncate">{media.title || media.original_file_name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-font-s">
                     {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : ''}
                   </p>
                 </div>
                 {!disabled && (
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => handleRemoveMedia(index)}
                   >
@@ -236,18 +236,18 @@ export function PortfolioMediaGallery({
             ) : mediaType === "pdf" ? (
               // PDF items as list
               <div key={`pdf-item-${media.media_type}-${media.id}`} className="flex items-center gap-3 p-3 border rounded-lg">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <PDFIcon className="w-5 h-5 text-orange-600" />
+                <div className="flex-shrink-0 w-10 h-10 bg-orange rounded-full flex items-center justify-center">
+                  <PDFIcon className="w-5 h-5 text-orange-2" />
                 </div>
                 <div className="flex-grow min-w-0">
                   <p className="font-medium truncate">{media.title || media.original_file_name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-font-s">
                     {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : ''}
                   </p>
                 </div>
                 {!disabled && (
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => handleRemoveMedia(index)}
                   >
@@ -264,8 +264,8 @@ export function PortfolioMediaGallery({
                   className={mediaType === "video" ? "aspect-video object-cover rounded-lg" : "aspect-square object-cover rounded-lg"}
                 />
                 {mediaType === "video" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
-                    <Play className="w-8 h-8 text-white" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-static-b/30 rounded-lg">
+                    <Play className="w-8 h-8 text-static-w" />
                   </div>
                 )}
                 {!disabled && (
@@ -284,11 +284,11 @@ export function PortfolioMediaGallery({
         </div>
       ) : (
         <div className="border-2 border-dashed rounded-lg p-8 text-center">
-          {mediaType === "image" && <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground" />}
-          {mediaType === "video" && <VideoIcon className="mx-auto h-12 w-12 text-muted-foreground" />}
-          {mediaType === "audio" && <Music className="mx-auto h-12 w-12 text-muted-foreground" />}
-          {mediaType === "pdf" && <PDFIcon className="mx-auto h-12 w-12 text-muted-foreground" />}
-          <p className="mt-2 text-sm text-muted-foreground">
+          {mediaType === "image" && <ImageIcon className="mx-auto h-12 w-12 text-font-s" />}
+          {mediaType === "video" && <VideoIcon className="mx-auto h-12 w-12 text-font-s" />}
+          {mediaType === "audio" && <Music className="mx-auto h-12 w-12 text-font-s" />}
+          {mediaType === "pdf" && <PDFIcon className="mx-auto h-12 w-12 text-font-s" />}
+          <p className="mt-2 text-sm text-font-s">
             هیچ {mediaType === "audio" ? "فایل صوتی" : mediaType === "video" ? "ویدئو" : mediaType === "pdf" ? "فایل PDF" : "تصویر"} انتخاب نشده است
           </p>
           <Button 

@@ -75,7 +75,7 @@ export function CoverImageManager({
     <div className="space-y-4">
       <div>
         <Label>کاور رسانه</Label>
-        <p className="text-sm text-muted-foreground mb-2">
+        <p className="text-sm text-font-s mb-2">
           برای رسانه‌های {mediaType === 'video' ? 'ویدیو' : mediaType === 'audio' ? 'صوتی' : 'سند'} یک تصویر کاور انتخاب کنید
         </p>
       </div>
@@ -98,8 +98,8 @@ export function CoverImageManager({
           </Button>
         </div>
       ) : (
-        <div className="flex items-center justify-center w-full h-40 rounded-lg border-2 border-dashed border-muted-foreground/25">
-          <ImageIcon className="h-12 w-12 text-muted-foreground" />
+        <div className="flex items-center justify-center w-full h-40 rounded-lg border-2 border-dashed border-font-s/25">
+          <ImageIcon className="h-12 w-12 text-font-s" />
         </div>
       )}
       
@@ -126,7 +126,7 @@ export function CoverImageManager({
         />
       </div>
       
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-font-s">
         تصاویر باید JPG, PNG, WebP باشند و حجم آن‌ها نباید بیشتر از 5 مگابایت باشد.
       </p>
     </div>

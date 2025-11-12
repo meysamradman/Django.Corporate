@@ -225,9 +225,9 @@ export function MediaDetailsModal({
             />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center w-full h-32 rounded-lg bg-muted">
-            <ImageOff className="h-8 w-8 text-muted-foreground mb-2" />
-            <span className="text-muted-foreground">
+          <div className="flex flex-col items-center justify-center w-full h-32 rounded-lg bg-bg">
+            <ImageOff className="h-8 w-8 text-font-s mb-2" />
+            <span className="text-font-s">
               {media.media_type === 'video' ? 'بدون کاور ویدیو' : 
                media.media_type === 'audio' ? 'بدون کاور صوتی' : 'بدون کاور'}
             </span>
@@ -261,17 +261,17 @@ export function MediaDetailsModal({
         </DialogDescription>
         
         {/* Header */}
-        <div className="bg-muted/50 border-b border-border px-6 py-4">
+        <div className="bg-bg/50 border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               {getFileTypeIcon()}
               {isEditing ? 'ویرایش رسانه' : (media.title || 'جزئیات رسانه')}
             </h3>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 cursor-pointer hover:bg-muted-foreground/10"
+              className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10"
               aria-label="بستن"
             >
               <X className="h-4 w-4" />
@@ -285,18 +285,18 @@ export function MediaDetailsModal({
           <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l border-border">
             <div className="space-y-4">
               {/* Media Preview */}
-              <div className="relative w-64 h-64 mx-auto lg:w-full lg:h-80 bg-muted rounded-lg overflow-hidden border border-border">
+              <div className="relative w-64 h-64 mx-auto lg:w-full lg:h-80 bg-bg rounded-lg overflow-hidden border border-border">
                 {renderMediaContent()}
               </div>
               
               {/* Action Buttons */}
               <div className="flex gap-2 justify-center">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={handleDownload}
                   disabled={isDownloading}
-                  className="h-8 w-8 p-0 cursor-pointer hover:bg-muted-foreground/10"
+                  className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10"
                   title="دانلود"
                 >
                   <Download className="h-4 w-4" />
@@ -331,7 +331,7 @@ export function MediaDetailsModal({
                       placeholder="متن جایگزین"
                       className="mt-1"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-font-s mt-1">
                       این متن در صورت عدم نمایش تصویر نمایش داده می‌شود.
                     </p>
                   </div>
@@ -342,10 +342,10 @@ export function MediaDetailsModal({
             ) : (
               <>
                 {/* Metadata Section */}
-                <div className="bg-muted/30 rounded-lg border border-border p-4">
+                <div className="bg-bg/30 rounded-lg border border-border p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="sm:col-span-2 flex gap-2">
-                      <span className="font-medium text-muted-foreground">نام فایل:</span>
+                      <span className="font-medium text-font-s">نام فایل:</span>
                       <TruncatedText 
                         text={media.title || media.original_file_name || media.file_name} 
                         maxLength={50}
@@ -353,24 +353,24 @@ export function MediaDetailsModal({
                       />
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">نوع فایل:</span>
+                      <span className="font-medium text-font-s">نوع فایل:</span>
                       <p className="mt-1">{media.media_type}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">حجم:</span>
+                      <span className="font-medium text-font-s">حجم:</span>
                       <p className="mt-1">{media.file_size ? mediaService.formatBytes(media.file_size) : 'نامشخص'}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">تاریخ:</span>
+                      <span className="font-medium text-font-s">تاریخ:</span>
                       <p className="mt-1">{new Date(media.created_at).toLocaleDateString('fa-IR')}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">شناسه:</span>
+                      <span className="font-medium text-font-s">شناسه:</span>
                       <p className="mt-1">{media.id}</p>
                     </div>
                     {media.mime_type && (
                       <div>
-                        <span className="font-medium text-muted-foreground">فرمت:</span>
+                        <span className="font-medium text-font-s">فرمت:</span>
                         <p className="mt-1">{media.mime_type.split('/')[1]?.toUpperCase()}</p>
                       </div>
                     )}
@@ -379,7 +379,7 @@ export function MediaDetailsModal({
 
                 {media.alt_text && (
                   <div>
-                    <span className="text-sm font-medium text-muted-foreground">متن جایگزین:</span>
+                    <span className="text-sm font-medium text-font-s">متن جایگزین:</span>
                     <p className="mt-1 text-sm">{media.alt_text}</p>
                   </div>
                 )}
@@ -391,7 +391,7 @@ export function MediaDetailsModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-muted/50 border-t border-border px-6 py-4">
+        <div className="bg-bg/50 border-t border-border px-6 py-4">
           <div className="flex gap-3 justify-between">
             {isEditing ? (
               <>

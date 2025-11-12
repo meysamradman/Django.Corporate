@@ -62,7 +62,7 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
         <div className="text-center py-8">
           <p className="text-destructive">{errorMessage}</p>
           {process.env.NODE_ENV === 'development' && error instanceof Error && (
-            <pre className="mt-2 text-sm text-red-500 text-left whitespace-pre-wrap bg-muted p-3 rounded">
+            <pre className="mt-2 text-sm text-red-1 text-left whitespace-pre-wrap bg-bg p-3 rounded">
               {JSON.stringify(error, null, 2)}
             </pre>
           )}

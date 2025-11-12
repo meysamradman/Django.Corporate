@@ -61,7 +61,7 @@ export function ImageInputForm({
             <CardContent className={compact ? "space-y-3 pt-4" : "space-y-4"}>
                 <div className="space-y-2">
                     <Label className={`flex items-center gap-2 ${compact ? 'text-sm' : 'text-base font-medium'}`}>
-                        {!compact && <Brain className="w-4 h-4 text-muted-foreground" />}
+                        {!compact && <Brain className="w-4 h-4 text-font-s" />}
                         <span>{compact ? 'مدل AI:' : 'انتخاب مدل AI'}</span>
                     </Label>
                     <ProviderSelector
@@ -76,7 +76,7 @@ export function ImageInputForm({
 
                 <div className="space-y-2">
                     <Label htmlFor="prompt" className={compact ? "text-sm" : ""}>
-                        توضیحات تصویر <span className="text-red-500">*</span>
+                        توضیحات تصویر <span className="text-red-1">*</span>
                     </Label>
                     <Textarea
                         id="prompt"
@@ -87,10 +87,10 @@ export function ImageInputForm({
                         className="resize-none text-sm"
                     />
                     {!compact && (
-                        <div className="flex items-start gap-2 text-xs text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-2">
-                            <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex items-start gap-2 text-xs text-font-s bg-blue border border-blue-1 rounded-lg p-2">
+                            <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
-                                <p className="font-medium text-blue-900 mb-1">💡 نکته برای کیفیت بهتر:</p>
+                                <p className="font-medium text-blue-2 mb-1">💡 نکته برای کیفیت بهتر:</p>
                                 <p>برای نتیجه بهتر، توضیحات را به <strong>انگلیسی</strong> بنویسید. مثال: "a beautiful cat, high quality, detailed"</p>
                                 <p className="mt-1 text-xs">سیستم به صورت خودکار کلمات کلیدی کیفیت را اضافه می‌کند.</p>
                             </div>
@@ -98,7 +98,7 @@ export function ImageInputForm({
                     )}
                 </div>
 
-                <div className={`flex items-center gap-1 ${compact ? 'p-2' : 'p-3'} bg-blue-50 border border-blue-200 rounded-lg`}>
+                <div className={`flex items-center gap-1 ${compact ? 'p-2' : 'p-3'} bg-blue border border-blue-1 rounded-lg`}>
                     <Checkbox
                         id="save-to-db"
                         checked={saveToDb}

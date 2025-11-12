@@ -65,7 +65,7 @@ export function ImageSmallSelector({
                         />
                     </div>
                 ) : (
-                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-card">
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-purple-1 to-purple-2 flex items-center justify-center text-static-w text-4xl font-bold border-4 border-card">
                         {name?.[0]?.toUpperCase() || "IMG"}
                     </div>
                 )}
@@ -75,7 +75,7 @@ export function ImageSmallSelector({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-background border-2 border-border hover:bg-muted transition-colors"
+                    className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 border-border hover:bg-bg transition-colors"
                     onClick={() => setShowMediaSelector(true)}
                     disabled={disabled}
                 >
@@ -92,7 +92,7 @@ export function ImageSmallSelector({
                         onClick={handleRemoveImage}
                         disabled={disabled}
                     >
-                        <X className="h-3 w-3 text-white" />
+                        <X className="h-3 w-3 text-static-w" />
                     </Button>
                 )}
             </div>

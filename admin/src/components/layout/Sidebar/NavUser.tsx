@@ -65,7 +65,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
   return (
     <div className={cn("flex items-center space-x-2 space-x-reverse", className)}>
       <Avatar className={cn(
-        "border-2 border-border",
+        "border-2 border-br",
         size === 'sm' && "h-8 w-8",
         size === 'md' && "h-10 w-10",
         size === 'lg' && "h-12 w-12"
@@ -76,7 +76,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
           className="object-cover"
         />
         <AvatarFallback className={cn(
-          "bg-primary text-primary-foreground font-medium",
+          "bg-primary text-static-w font-medium",
           size === 'sm' && "text-xs",
           size === 'md' && "text-sm",
           size === 'lg' && "text-base"
@@ -96,7 +96,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
             {displayName}
           </span>
           <span className={cn(
-            "text-muted-foreground truncate",
+            "text-font-s truncate",
             size === 'sm' && "text-xs",
             size === 'md' && "text-xs",
             size === 'lg' && "text-sm"

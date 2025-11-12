@@ -87,16 +87,16 @@ export function FileDropzone({ onFilesAdded, allowedTypes, disabled = false }: F
             : "cursor-pointer",
           isDragging && !disabled
             ? "border-primary bg-primary/5" 
-            : "border-border hover:border-primary/50 hover:bg-muted/50"
+            : "border-border hover:border-primary/50 hover:bg-bg/50"
         )}
       >
         <Upload className={cn(
           "h-10 w-10 mb-4",
-          disabled ? "text-muted-foreground/50" : "text-muted-foreground"
+          disabled ? "text-font-s/50" : "text-font-s"
         )} />
         <p className={cn(
           "text-center mb-1",
-          disabled ? "text-muted-foreground/50" : "text-muted-foreground"
+          disabled ? "text-font-s/50" : "text-font-s"
         )}>
           {isDragging && !disabled
             ? "فایل‌ها را اینجا رها کنید..." 

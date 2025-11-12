@@ -23,7 +23,7 @@ export function EmailList({
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center text-muted-foreground">در حال بارگذاری...</div>
+        <div className="text-center text-font-s">در حال بارگذاری...</div>
       </div>
     );
   }
@@ -31,7 +31,7 @@ export function EmailList({
   if (emails.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center text-muted-foreground">ایمیل‌ای یافت نشد</div>
+        <div className="text-center text-font-s">ایمیل‌ای یافت نشد</div>
       </div>
     );
   }

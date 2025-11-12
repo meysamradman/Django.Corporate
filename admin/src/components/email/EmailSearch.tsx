@@ -13,7 +13,7 @@ interface EmailSearchProps {
 export function EmailSearch({ value, onChange, placeholder = "جستجوی ایمیل..." }: EmailSearchProps) {
   return (
     <div className="relative w-64">
-      <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s" />
       <Input
         type="text"
         placeholder={placeholder}

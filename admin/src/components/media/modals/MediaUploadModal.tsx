@@ -106,7 +106,7 @@ export function MediaUploadModal({
         <DialogTitle className="sr-only">آپلود رسانه</DialogTitle>
         
         {/* Header */}
-        <div className="bg-muted/50 border-b border-border px-6 py-4">
+        <div className="bg-bg/50 border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <h3 className="text-lg font-semibold">آپلود رسانه</h3>
@@ -114,9 +114,9 @@ export function MediaUploadModal({
             <div className="flex items-center">
               <DialogClose asChild>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 cursor-pointer hover:bg-muted-foreground/10"
+                  className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -139,7 +139,7 @@ export function MediaUploadModal({
           {/* Progress Bar */}
           {isUploading && (
             <div className="px-6 space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
+              <div className="flex justify-between text-sm text-font-s">
                 <span>در حال آپلود...</span>
                 <span>{Math.round(uploadProgress)}%</span>
               </div>
@@ -166,7 +166,7 @@ export function MediaUploadModal({
         
         {/* Footer */}
         {files.length > 0 && (
-          <div className="bg-muted/50 border-t border-border px-6 py-4">
+          <div className="bg-bg/50 border-t border-border px-6 py-4">
             <div className="flex gap-3 justify-between">
               <div className="flex gap-3">
                 <Button variant="outline" onClick={handleClose} disabled={isUploading}>

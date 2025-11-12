@@ -1,3 +1,10 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - فعال: green
+ * - غیرفعال: red
+ * - سوپر ادمین: default (blue/primary)
+ * - ادمین عادی: outline
+ */
 "use client"
 
 import * as React from "react";
@@ -20,18 +27,22 @@ export const useAdminColumns = (
     {
       id: "select",
       header: ({ table }) => (
+        <div className="flex items-center justify-center">
         <Checkbox
           checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="انتخاب همه"
         />
+        </div>
       ),
       cell: ({ row }) => (
+        <div className="flex items-center justify-center">
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="انتخاب ردیف"
         />
+        </div>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -42,7 +53,7 @@ export const useAdminColumns = (
     {
       accessorKey: "profile.full_name",
       id: "profile.full_name",
-      header: () => "نام",
+      header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
         const admin = row.original;
         const profile = admin.profile;
@@ -52,20 +63,9 @@ export const useAdminColumns = (
                          admin.mobile || 
                          '';
         
-        // Debug: Log profile and profile picture data
-        console.log('Admin profile data:', {
-          adminId: admin.id,
-          profile: profile,
-          profilePicture: profile?.profile_picture,
-          profilePictureUrl: profile?.profile_picture?.file_url
-        });
-        
         const profilePictureUrl = profile?.profile_picture 
           ? mediaService.getMediaUrlFromObject(profile.profile_picture)
           : "";
-
-        // Debug: Log the final URL
-        console.log('Final profile picture URL:', profilePictureUrl);
 
         const getInitial = () => {
           const firstName = profile?.first_name || "";
@@ -75,7 +75,7 @@ export const useAdminColumns = (
         };
 
         return (
-          <Link href={`/admins/${admin.id}/edit`} className="flex items-center gap-3 hover:underline">
+          <Link href={`/admins/${admin.id}/edit`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {profilePictureUrl ? (
                 <AvatarImage src={profilePictureUrl} alt={fullName} />
@@ -97,13 +97,13 @@ export const useAdminColumns = (
     },
     {
       accessorKey: "mobile",
-      header: () => "موبایل",
+      header: () => <div className="table-header-text">موبایل</div>,
       cell: ({ row }) => {
          const mobile = row.original.mobile;
          return (
-           <span className="table-cell-muted table-cell-medium" dir="ltr">
+           <div className="table-cell-muted table-cell-wide" dir="ltr">
              {mobile || "-"}
-           </span>
+           </div>
          );
       },
       enableSorting: false,
@@ -112,13 +112,13 @@ export const useAdminColumns = (
     },
     {
       accessorKey: "email",
-      header: () => "ایمیل",
+      header: () => <div className="table-header-text">ایمیل</div>,
       cell: ({ row }) => {
          const email = row.original.email;
          return (
-           <span className="table-cell-muted table-cell-wide" dir="ltr">
+           <div className="table-cell-muted table-cell-wide" dir="ltr">
              {email || "-"}
-           </span>
+           </div>
          );
       },
       enableSorting: false,
@@ -127,7 +127,7 @@ export const useAdminColumns = (
     },
     {
       accessorKey: "roles",
-      header: () => "نقش‌ها",
+      header: () => <div className="table-header-text">نقش‌ها</div>,
       cell: ({ row }) => {
         const admin = row.original;
         const isSuper = admin.is_superuser;
@@ -170,7 +170,7 @@ export const useAdminColumns = (
     },
     {
       accessorKey: "is_superuser",
-      header: () => "نوع ادمین",
+      header: () => <div className="table-header-text">نوع ادمین</div>,
       cell: ({ row }) => {
         const admin = row.original;
         const isSuper = admin.is_superuser;
@@ -213,7 +213,7 @@ export const useAdminColumns = (
     },
     {
       accessorKey: "is_active",
-      header: () => "وضعیت",
+      header: () => <div className="table-header-text">وضعیت</div>,
       cell: ({ row }) => {
         const isActive = row.getValue("is_active");
         return (
@@ -235,11 +235,11 @@ export const useAdminColumns = (
     },
     {
       accessorKey: "created_at",
-      header: () => "تاریخ ایجاد",
+      header: () => <div className="table-header-text">تاریخ ایجاد</div>,
       cell: ({ row }) => {
         const date = row.getValue("created_at") as string;
         return (
-          <div className="table-cell-muted">
+          <div className="table-date-cell">
             {formatDate(date)}
           </div>
         );

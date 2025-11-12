@@ -173,34 +173,34 @@ export const getAvailableRoles = (currentUserLevel: number = 10): RoleConfig[] =
  */
 export const ROLE_COLORS = {
   yellow: {
-    bg: 'bg-yellow-50',
-    text: 'text-yellow-700',
-    border: 'border-yellow-200'
+    bg: 'bg-yellow',
+    text: 'text-yellow-2',
+    border: 'border-yellow-1'
   },
   blue: {
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200'
+    bg: 'bg-blue',
+    text: 'text-blue-2',
+    border: 'border-blue-1'
   },
   green: {
-    bg: 'bg-green-50',
-    text: 'text-green-700',
-    border: 'border-green-200'
+    bg: 'bg-green',
+    text: 'text-green-2',
+    border: 'border-green-1'
   },
   purple: {
-    bg: 'bg-purple-50',
-    text: 'text-purple-700',
-    border: 'border-purple-200'
+    bg: 'bg-purple',
+    text: 'text-purple-2',
+    border: 'border-purple-1'
   },
   orange: {
-    bg: 'bg-orange-50',
-    text: 'text-orange-700',
-    border: 'border-orange-200'
+    bg: 'bg-orange',
+    text: 'text-orange-2',
+    border: 'border-orange-1'
   },
   gray: {
-    bg: 'bg-gray-50',
-    text: 'text-gray-700',
-    border: 'border-gray-200'
+    bg: 'bg-gray',
+    text: 'text-gray-2',
+    border: 'border-gray-1'
   }
 };
 

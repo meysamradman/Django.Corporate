@@ -103,7 +103,7 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
           <h1 className="page-title">ویرایش تگ</h1>
         </div>
         <div className="text-center py-8">
-          <p className="text-red-500 mb-4">خطا در بارگذاری داده‌ها</p>
+          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
             onClick={() => router.back()} 
             className="mt-4"

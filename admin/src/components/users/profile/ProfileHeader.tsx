@@ -111,7 +111,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                                 />
                             </div>
                         ) : (
-                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground text-4xl font-bold border-4 border-card">
+                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-static-w text-4xl font-bold border-4 border-card">
                                 {(formData.firstName?.[0] || user.full_name?.[0] || "U")}{(formData.lastName?.[0] || user.full_name?.split(" ")?.[1]?.[0] || "")}
                             </div>
                         )}
@@ -120,7 +120,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                         <Button
                             variant="outline"
                             size="sm"
-                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-background border-2 border-border hover:bg-muted transition-colors"
+                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 border-border hover:bg-bg transition-colors"
                             onClick={() => setShowMediaSelector(true)}
                         >
                             <Camera className="h-3 w-3" />
@@ -133,25 +133,25 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                                 : user.full_name || "نام کاربری"
                             }
                         </h2>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground mt-3">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-font-s mt-3">
                             <div className="flex items-center gap-2">
                                 <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${
-                                    user.is_active ? "bg-green-100" : "bg-yellow-100"
+                                    user.is_active ? "bg-green" : "bg-yellow"
                                 }`}>
                                     {user.is_active ? (
-                                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                        <CheckCircle2 className="w-5 h-5 text-green-1" />
                                     ) : (
-                                        <XCircle className="w-5 h-5 text-yellow-600" />
+                                        <XCircle className="w-5 h-5 text-yellow-1" />
                                     )}
                                 </div>
-                                <span className={user.is_active ? "text-green-600" : "text-yellow-600"}>
+                                <span className={user.is_active ? "text-green-1" : "text-yellow-1"}>
                                     {user.is_active ? "فعال" : "غیرفعال"}
                                 </span>
                             </div>
                             {user.created_at && (
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 p-2">
-                                        <Clock className="w-5 h-5 text-blue-600" />
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue p-2">
+                                        <Clock className="w-5 h-5 text-blue-1" />
                                     </div>
                                     <span>
                                         ایجاد شده در{" "}
@@ -161,8 +161,8 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                             )}
                             {(formData.mobile || user.mobile) && (
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple-100 p-2">
-                                        <Smartphone className="w-5 h-5 text-purple-600" />
+                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple p-2">
+                                        <Smartphone className="w-5 h-5 text-purple-1" />
                                     </div>
                                     <span>{formData.mobile || user.mobile}</span>
                                 </div>

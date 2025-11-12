@@ -3,6 +3,8 @@
 import React from "react";
 import { Badge } from "@/components/elements/Badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { colorPaletteShowcase, type ColorPaletteItem, type ColorScheme } from "./palette-data";
+import { CheckCircle2, Sparkles, Star, ShieldCheck, Rocket, Flame, Award } from "lucide-react";
 
 const badgeVariants = [
   { name: "default", label: "Default", description: "رنگ پیش‌فرض (Primary)", category: "basic" },
@@ -51,19 +53,215 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function BadgesPage() {
+  const paletteIcons = [CheckCircle2, Sparkles, Star, ShieldCheck, Rocket, Flame, Award];
+  const colorModes: Array<{ key: keyof ColorPaletteItem["colors"]; title: string }> = [
+    { key: "light", title: "Light" },
+    { key: "dark", title: "Dark" },
+  ];
+  const swatchKeys: Array<keyof ColorScheme> = ["surface", "accent", "iconBg", "border", "text", "mutedText", "highlight"];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="page-title">صفحه تست Badge ها</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-font-s mt-2">
           تمام variant های Badge با رنگ‌های مختلف
         </p>
       </div>
 
       <Card>
         <CardHeader>
+          <CardTitle>پروپوزال پالت رنگی برای Badge و کارت‌ها</CardTitle>
+          <p className="text-sm text-font-s mt-1">
+            ترکیب‌های پیشنهادی شامل رنگ سطح، حاشیه، آیکون و Badge جهت انتخاب نهایی و هماهنگی با Dark Mode اختصاصی.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {colorPaletteShowcase.map((palette, index) => {
+              const Icon = paletteIcons[index % paletteIcons.length];
+              const light = palette.colors.light;
+              return (
+                <div
+                  key={palette.name}
+                  className="flex flex-col gap-6 rounded-3xl border p-6 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg"
+                  style={{
+                    backgroundColor: light.surface,
+                    borderColor: light.border,
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+                        style={{
+                          backgroundColor: light.iconBg,
+                          color: light.icon,
+                        }}
+                      >
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3
+                          className="text-base font-semibold"
+                          style={{ color: light.text }}
+                        >
+                          {palette.title}
+                        </h3>
+                        <p
+                          className="text-sm leading-6"
+                          style={{ color: light.mutedText }}
+                        >
+                          {palette.description}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-medium"
+                      style={{
+                        backgroundColor: light.highlight,
+                        color: light.text,
+                      }}
+                    >
+                      {palette.name}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {palette.usage.map((usage) => (
+                      <span
+                        key={usage}
+                        className="rounded-full px-3 py-1 text-xs font-medium"
+                        style={{
+                          backgroundColor: light.border,
+                          color: light.text,
+                        }}
+                      >
+                        {usage}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {colorModes.map((mode) => {
+                      const scheme = palette.colors[mode.key];
+                      const isDark = mode.key === "dark";
+                      const backgroundColor = isDark ? "#111827" : scheme.surface;
+                      const borderColor = isDark ? scheme.border : scheme.border;
+
+                      return (
+                        <div
+                          key={mode.key}
+                          className="rounded-2xl border p-4"
+                          style={{
+                            backgroundColor,
+                            borderColor,
+                            color: scheme.text,
+                          }}
+                        >
+                          <div className="flex items-center justify-between pb-3">
+                            <span className="text-sm font-semibold">{mode.title}</span>
+                            <span
+                              className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                              style={{
+                                backgroundColor: scheme.highlight,
+                                color: scheme.text,
+                              }}
+                            >
+                              {scheme.surface}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3 pb-3">
+                            <span
+                              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm"
+                              style={{
+                                backgroundColor: scheme.accent,
+                                color: scheme.accentText,
+                              }}
+                            >
+                              <Icon className="h-4 w-4" />
+                              نمونه Badge
+                            </span>
+                            <span
+                              className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
+                              style={{
+                                borderColor: scheme.border,
+                                color: scheme.text,
+                              }}
+                            >
+                              عنوان کارت
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 pb-3">
+                            <div
+                              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm"
+                              style={{
+                                backgroundColor: scheme.iconBg,
+                                color: scheme.text,
+                              }}
+                            >
+                              <span
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-transparent"
+                              >
+                                <Icon
+                                  className="h-4 w-4"
+                                  style={{ color: scheme.accent }}
+                                />
+                              </span>
+                              <span>آیکون با پس‌زمینه کمرنگ</span>
+                            </div>
+                            <div
+                              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium border"
+                              style={{
+                                borderColor: scheme.border,
+                                color: scheme.text,
+                              }}
+                            >
+                              <span
+                                className="flex h-6 w-6 items-center justify-center rounded-full"
+                                style={{
+                                  backgroundColor: scheme.highlight,
+                                }}
+                              >
+                                <Icon
+                                  className="h-4 w-4"
+                                  style={{ color: scheme.accent }}
+                                />
+                              </span>
+                              <span>آیکون روی زمینه ملایم</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-[10px]">
+                            {swatchKeys.map((key) => (
+                              <div key={key} className="flex flex-col items-center gap-1 text-center">
+                                <span
+                                  className="h-9 w-full rounded-md border"
+                                  style={{
+                                    backgroundColor: scheme[key],
+                                    borderColor: scheme.border,
+                                  }}
+                                />
+                                <span>{key}</span>
+                                <span style={{ color: scheme.mutedText }}>{scheme[key]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>تمام Badge Variants ({badgeVariants.length} عدد)</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-font-s mt-1">
             تمام variant ها با پشتیبانی کامل از Dark Mode
           </p>
         </CardHeader>
@@ -83,13 +281,13 @@ export default function BadgesPage() {
                   {variantsInCategory.map((variant) => (
                     <div
                       key={variant.name}
-                      className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-bg/50 transition-colors"
                     >
                       <div>
                         <h4 className="font-semibold text-base mb-1">
                           {variant.label}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-font-s">
                           {variant.description}
                         </p>
                       </div>
@@ -107,7 +305,7 @@ export default function BadgesPage() {
                           12
                         </Badge>
                       </div>
-                      <div className="text-xs text-muted-foreground font-mono p-2 bg-muted rounded border">
+                      <div className="text-xs text-font-s font-mono p-2 bg-bg rounded border">
                         variant="{variant.name}"
                       </div>
                     </div>

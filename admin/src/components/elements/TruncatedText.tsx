@@ -1,6 +1,6 @@
 "use client";
 
-import { CustomTooltip, CustomTooltipContent, CustomTooltipTrigger } from '@/components/elements/Tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/elements/Tooltip';
 import { cn } from '@/core/utils/cn';
 
 interface TruncatedTextProps {
@@ -30,24 +30,20 @@ export function TruncatedText({
       </span>
     );
   }
-
-  // با Tooltip - فقط اگر متن طولانی‌تر از maxLength باشد
   if (isTruncated) {
     return (
-      <CustomTooltip>
-        <CustomTooltipTrigger asChild>
+      <Tooltip>
+        <TooltipTrigger asChild>
           <span className={cn("truncate cursor-help block min-w-0 w-full", className)}>
             {text}
           </span>
-        </CustomTooltipTrigger>
-        <CustomTooltipContent side="top" className="max-w-xs break-words">
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs break-words">
           <p className="text-xs">{text}</p>
-        </CustomTooltipContent>
-      </CustomTooltip>
+        </TooltipContent>
+      </Tooltip>
     );
   }
-
-  // اگر کوتاه بود، فقط truncate CSS (بدون tooltip)
   return (
     <span className={cn("truncate block min-w-0 w-full", className)}>
       {text}

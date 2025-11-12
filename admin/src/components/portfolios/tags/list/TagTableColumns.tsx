@@ -1,6 +1,12 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - فعال: green
+ * - غیرفعال: red
+ * - عمومی: blue
+ * - خصوصی: gray
+ */
 import { ColumnDef } from "@tanstack/react-table";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/elements/Badge";
@@ -50,7 +56,7 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => (
-        <Link href={`/portfolios/tags/${row.original.id}/edit`} className="table-cell-text hover:underline">
+        <Link href={`/portfolios/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
           {row.original.name}
         </Link>
       ),
@@ -62,9 +68,9 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
       accessorKey: "slug",
       header: () => <div className="table-header-text">اسلاگ</div>,
       cell: ({ row }) => (
-        <span className="table-cell-text table-cell-muted">
+        <div className="table-cell-muted table-cell-wide">
           {row.original.slug}
-        </span>
+        </div>
       ),
       enableSorting: false,
       enableHiding: true,
@@ -76,7 +82,7 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_active ? (
-            <Badge variant="blue">فعال</Badge>
+            <Badge variant="green">فعال</Badge>
           ) : (
             <Badge variant="red">غیرفعال</Badge>
           )}
@@ -92,9 +98,9 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_public ? (
-            <Badge variant="sky">عمومی</Badge>
+            <Badge variant="blue">عمومی</Badge>
           ) : (
-            <Badge variant="slate">خصوصی</Badge>
+            <Badge variant="gray">خصوصی</Badge>
           )}
         </div>
       ),
@@ -117,7 +123,6 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
     {
       id: "actions",
       cell: ({ row }) => {
-        // Default actions if none provided
         const defaultActions: DataTableRowAction<PortfolioTag>[] = [
           {
             label: "ویرایش",
@@ -128,14 +133,12 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (tag) => {
-              console.log("Delete tag", tag.id);
+              // Delete tag functionality would go here
             },
             isDestructive: true,
           },
         ];
-        
         const rowActions = actions.length > 0 ? actions : defaultActions;
-        
         return <DataTableRowActions row={row} actions={rowActions} />;
       },
       enableSorting: false,

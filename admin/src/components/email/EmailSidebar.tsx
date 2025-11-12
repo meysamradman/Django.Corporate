@@ -1,3 +1,11 @@
+/**
+ * رنگ‌های استاندارد صندوق‌های ایمیل:
+ * - صندوق ورودی: default (blue/primary)
+ * - ارسال شده: green
+ * - پیش‌نویس: orange
+ * - ستاره‌دار: amber
+ * - هرزنامه: red
+ */
 "use client";
 
 import React from "react";
@@ -38,7 +46,7 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
     <aside className="w-full flex flex-col h-full overflow-hidden">
       {/* Compose Button */}
       <div className="p-4 border-b border-border flex-shrink-0">
-        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" onClick={onComposeClick}>
+        <Button className="w-full" onClick={onComposeClick}>
           <span>ایجاد ایمیل</span>
         </Button>
       </div>
@@ -58,38 +66,38 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                   };
                 case "sent":
                   return {
-                    bg: "bg-green-500/10",
-                    text: "text-green-600",
-                    border: "bg-green-500",
-                    icon: "text-green-600",
+                    bg: "bg-green",
+                    text: "text-green-1",
+                    border: "bg-green-1",
+                    icon: "text-green-1",
                   };
                 case "draft":
                   return {
-                    bg: "bg-orange-500/10",
-                    text: "text-orange-600",
-                    border: "bg-orange-500",
-                    icon: "text-orange-600",
+                    bg: "bg-orange",
+                    text: "text-orange-1",
+                    border: "bg-orange-1",
+                    icon: "text-orange-1",
                   };
                 case "starred":
                   return {
-                    bg: "bg-amber-500/10",
-                    text: "text-amber-600",
-                    border: "bg-amber-500",
-                    icon: "text-amber-600",
+                    bg: "bg-amber",
+                    text: "text-amber-1",
+                    border: "bg-amber-1",
+                    icon: "text-amber-1",
                   };
                 case "spam":
                   return {
-                    bg: "bg-destructive/10",
-                    text: "text-destructive",
-                    border: "bg-destructive",
-                    icon: "text-destructive",
+                    bg: "bg-red",
+                    text: "text-red-1",
+                    border: "bg-red-1",
+                    icon: "text-red-1",
                   };
                 case "trash":
                   return {
-                    bg: "bg-muted",
-                    text: "text-muted-foreground",
-                    border: "bg-muted-foreground",
-                    icon: "text-muted-foreground",
+                    bg: "bg-bg",
+                    text: "text-font-s",
+                    border: "bg-font-s",
+                    icon: "text-font-s",
                   };
                 default:
                   return {
@@ -108,33 +116,33 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                   };
                 case "sent":
                   return {
-                    text: "text-green-600",
-                    icon: "text-green-600",
+                    text: "text-green-1",
+                    icon: "text-green-1",
                   };
                 case "draft":
                   return {
-                    text: "text-orange-600",
-                    icon: "text-orange-600",
+                    text: "text-orange-1",
+                    icon: "text-orange-1",
                   };
                 case "starred":
                   return {
-                    text: "text-amber-600",
-                    icon: "text-amber-600",
+                    text: "text-amber-1",
+                    icon: "text-amber-1",
                   };
                 case "spam":
                   return {
-                    text: "text-destructive",
-                    icon: "text-destructive",
+                    text: "text-red-1",
+                    icon: "text-red-1",
                   };
                 case "trash":
                   return {
-                    text: "text-muted-foreground",
-                    icon: "text-muted-foreground",
+                    text: "text-font-s",
+                    icon: "text-font-s",
                   };
                 default:
                   return {
-                    text: "text-muted-foreground",
-                    icon: "text-muted-foreground",
+                    text: "text-font-s",
+                    icon: "text-font-s",
                   };
               }
             }
@@ -152,7 +160,7 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                 mailbox.id !== mailboxes[mailboxes.length - 1].id && "mb-1",
                 isSelected
                   ? `${colors.bg} ${colors.text}`
-                  : `${colors.text} hover:bg-accent hover:text-accent-foreground`
+                  : `${colors.text} hover:bg-bg`
               )}
             >
               {isSelected && (
@@ -165,15 +173,14 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                 </div>
                 {mailbox.count !== undefined && mailbox.count > 0 && (
                   <Badge
-                    variant="default"
-                    className={cn(
-                      "text-xs px-2 py-0.5 border-0 flex-shrink-0",
-                      mailbox.id === "inbox" && "bg-primary text-primary-foreground",
-                      mailbox.id === "sent" && "bg-green-500 text-white",
-                      mailbox.id === "draft" && "bg-orange-500 text-white",
-                      mailbox.id === "starred" && "bg-amber-500 text-white",
-                      mailbox.id === "spam" && "bg-destructive text-white"
-                    )}
+                    variant={
+                      mailbox.id === "inbox" ? "default" :
+                      mailbox.id === "sent" ? "green" :
+                      mailbox.id === "draft" ? "orange" :
+                      mailbox.id === "starred" ? "amber" :
+                      mailbox.id === "spam" ? "red" : "default"
+                    }
+                    className="text-xs px-2 py-0.5 border-0 flex-shrink-0"
                   >
                     {mailbox.count}
                   </Badge>

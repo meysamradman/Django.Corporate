@@ -135,7 +135,7 @@ export function PersianDatePicker({
     return (
       <div 
         ref={calendarRef}
-        className="absolute top-full mt-1 right-0 bg-background border rounded-md shadow-lg z-50 w-80"
+        className="absolute top-full mt-1 right-0 bg-card border rounded-md shadow-lg z-50 w-80"
       >
         {/* Header with month/year navigation */}
         <div className="flex items-center justify-between p-3 border-b">
@@ -162,7 +162,7 @@ export function PersianDatePicker({
           
           <div className="flex items-center gap-1">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={toggleYearSelector}
               className="font-medium px-2"
@@ -231,7 +231,7 @@ export function PersianDatePicker({
         {/* Weekday headers */}
         <div className="grid grid-cols-7 gap-1 p-2">
           {weekdayNames.map((day) => (
-            <div key={day} className="text-center font-medium p-1 text-muted-foreground text-sm">
+            <div key={day} className="text-center font-medium p-1 text-font-s text-sm">
               {day}
             </div>
           ))}
@@ -249,12 +249,12 @@ export function PersianDatePicker({
                 key={index}
                 className={`p-2 text-center rounded-md text-sm h-10 w-10 ${
                   isSelected 
-                    ? "bg-primary text-primary-foreground" 
+                    ? "bg-primary text-static-w" 
                     : isToday
-                      ? "bg-accent text-accent-foreground border border-accent"
+                      ? "bg-bg text-font-p border border-br"
                       : isCurrentMonth
-                        ? "hover:bg-accent"
-                        : "text-muted-foreground"
+                        ? "hover:bg-bg"
+                        : "text-font-s"
                 }`}
                 onClick={() => handleDateSelect(day)}
                 disabled={disabled || !isCurrentMonth}
@@ -290,10 +290,10 @@ export function PersianDatePicker({
           readOnly
           disabled={disabled}
           onClick={toggleCalendar}
-          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer md:text-sm"
+          className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-font-s focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer md:text-sm"
         />
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
           className="absolute left-0 top-0 h-full"
           onClick={toggleCalendar}

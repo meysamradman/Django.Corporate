@@ -1,3 +1,8 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - فعال: green
+ * - غیرفعال: red
+ */
 "use client"
 
 import * as React from "react";
@@ -19,18 +24,22 @@ export const useUserColumns = (
     {
       id: "select",
       header: ({ table }) => (
+        <div className="flex items-center justify-center">
         <Checkbox
           checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="انتخاب همه"
         />
+        </div>
       ),
       cell: ({ row }) => (
+        <div className="flex items-center justify-center">
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="انتخاب ردیف"
         />
+        </div>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -41,7 +50,7 @@ export const useUserColumns = (
     {
       accessorKey: "profile.full_name",
       id: "profile.full_name",
-      header: () => "نام",
+      header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
         const user = row.original;
         const profile = user.profile;
@@ -63,12 +72,12 @@ export const useUserColumns = (
         };
 
         return (
-          <Link href={`/users/${user.id}/edit`} className="flex items-center gap-3 hover:underline">
+          <Link href={`/users/${user.id}/edit`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {profilePictureUrl ? (
                 <AvatarImage src={profilePictureUrl} alt={fullName} />
               ) : (
-                <AvatarFallback className="table-avatar-fallback">
+                <AvatarFallback className="table-cell-avatar-fallback">
                   {getInitial()}
                 </AvatarFallback>
               )}
@@ -85,13 +94,13 @@ export const useUserColumns = (
     },
     {
       accessorKey: "mobile",
-      header: () => "موبایل",
+      header: () => <div className="table-header-text">موبایل</div>,
       cell: ({ row }) => {
          const mobile = row.original.mobile;
          return (
-           <span className="table-cell-muted table-cell-medium" dir="ltr">
+           <div className="table-cell-muted table-cell-wide" dir="ltr">
              {mobile || "-"}
-           </span>
+           </div>
          );
       },
       enableSorting: false,
@@ -100,13 +109,13 @@ export const useUserColumns = (
     },
     {
       accessorKey: "email",
-      header: () => "ایمیل",
+      header: () => <div className="table-header-text">ایمیل</div>,
       cell: ({ row }) => {
         const email = row.original.email;
         return (
-          <span className="table-cell-muted table-cell-medium" dir="ltr">
+          <div className="table-cell-muted table-cell-wide" dir="ltr">
             {email || "-"}
-          </span>
+          </div>
         );
       },
       enableSorting: true,
@@ -115,7 +124,7 @@ export const useUserColumns = (
     },
     {
       accessorKey: "is_active",
-      header: () => "وضعیت",
+      header: () => <div className="table-header-text">وضعیت</div>,
       cell: ({ row }) => {
         const isActive = row.original.is_active;
         return (
@@ -137,11 +146,11 @@ export const useUserColumns = (
     },
     {
       accessorKey: "created_at",
-      header: () => "تاریخ عضویت",
+      header: () => <div className="table-header-text">تاریخ عضویت</div>,
       cell: ({ row }) => {
         const date = row.getValue("created_at") as string;
         return (
-          <div className="table-cell-muted">
+          <div className="table-date-cell">
             {formatDate(date)}
           </div>
         );

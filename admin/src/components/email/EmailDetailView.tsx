@@ -1,3 +1,10 @@
+/**
+ * رنگ‌های استاندارد وضعیت ایمیل:
+ * - جدید: red
+ * - خوانده شده: blue
+ * - پاسخ داده شده: green
+ * - پیش‌نویس: orange
+ */
 "use client";
 
 import React from "react";
@@ -42,12 +49,12 @@ export function EmailDetailView({
 
   const getAvatarColor = (text: string) => {
     const colors = [
-      "bg-green-500",
-      "bg-blue-500",
-      "bg-purple-500",
-      "bg-red-500",
-      "bg-orange-500",
-      "bg-pink-500",
+      "bg-green-1",
+      "bg-blue-1",
+      "bg-purple-1",
+      "bg-red-1",
+      "bg-orange-1",
+      "bg-pink-1",
     ];
     const index = text.charCodeAt(0) % colors.length;
     return colors[index];
@@ -98,7 +105,7 @@ export function EmailDetailView({
       <div className="border-b border-border p-4 flex-shrink-0">
         {onBack && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={onBack}
             className="mb-4"
@@ -114,7 +121,7 @@ export function EmailDetailView({
               alt={displayName}
               className="object-cover"
             />
-            <AvatarFallback className={cn("text-white text-sm", getAvatarColor(avatarText))}>
+            <AvatarFallback className={cn("text-static-w text-sm", getAvatarColor(avatarText))}>
               {getInitials(email.name, email.email, email.source)}
             </AvatarFallback>
           </Avatar>
@@ -124,26 +131,20 @@ export function EmailDetailView({
               <Badge
                 variant={
                   email.status === "new"
-                    ? "default"
+                    ? "red"
                     : email.status === "read"
-                    ? "secondary"
+                    ? "blue"
                     : email.status === "replied"
-                    ? "default"
+                    ? "green"
                     : email.status === "draft"
-                    ? "secondary"
-                    : "secondary"
+                    ? "orange"
+                    : "gray"
                 }
-                className={cn(
-                  email.status === "new" && "bg-red-500 text-white",
-                  email.status === "read" && "bg-blue-500 text-white",
-                  email.status === "replied" && "bg-green-500 text-white",
-                  email.status === "draft" && "bg-orange-500 text-white"
-                )}
               >
                 {email.status_display}
               </Badge>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm text-font-s">
               <div className="flex items-center gap-1">
                 <Mail className="size-3.5" />
                 <span>{email.email}</span>
@@ -165,7 +166,7 @@ export function EmailDetailView({
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{email.subject}</h2>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1 text-sm text-font-s">
               <Calendar className="size-4" />
               <span>{formatDate(email.created_at)}</span>
             </div>
@@ -179,7 +180,7 @@ export function EmailDetailView({
         {email.has_attachments && email.attachments && email.attachments.length > 0 && (
           <div className="border-b border-border pb-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Paperclip className="size-4 text-muted-foreground" />
+              <Paperclip className="size-4 text-font-s" />
               <span className="text-sm font-semibold">پیوست‌ها ({email.attachments.length})</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -192,7 +193,7 @@ export function EmailDetailView({
                 >
                   <Download className="size-3.5" />
                   <span className="text-xs">{attachment.filename}</span>
-                  <span className="text-xs text-muted-foreground">({attachment.file_size_formatted})</span>
+                  <span className="text-xs text-font-s">({attachment.file_size_formatted})</span>
                 </Button>
               ))}
             </div>
@@ -209,12 +210,12 @@ export function EmailDetailView({
         {/* Reply Section */}
         {email.reply_message && (
           <div className="border-t border-border pt-4 mt-4">
-            <div className="bg-muted/50 rounded-lg p-4">
+            <div className="bg-bg/50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Reply className="size-4 text-primary" />
                 <span className="font-semibold text-sm">پاسخ ادمین</span>
                 {email.replied_at && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-font-s">
                     {formatDate(email.replied_at)}
                   </span>
                 )}
@@ -228,24 +229,24 @@ export function EmailDetailView({
         <div className="border-t border-border pt-4 mt-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-muted-foreground">شناسه:</span>
+              <span className="text-font-s">شناسه:</span>
               <span className="mr-2 font-mono">{email.public_id}</span>
             </div>
             {email.ip_address && (
               <div>
-                <span className="text-muted-foreground">IP:</span>
+                <span className="text-font-s">IP:</span>
                 <span className="mr-2">{email.ip_address}</span>
               </div>
             )}
             {email.read_at && (
               <div>
-                <span className="text-muted-foreground">خوانده شده در:</span>
+                <span className="text-font-s">خوانده شده در:</span>
                 <span className="mr-2">{formatDate(email.read_at)}</span>
               </div>
             )}
             {email.replied_at && (
               <div>
-                <span className="text-muted-foreground">پاسخ داده شده در:</span>
+                <span className="text-font-s">پاسخ داده شده در:</span>
                 <span className="mr-2">{formatDate(email.replied_at)}</span>
               </div>
             )}

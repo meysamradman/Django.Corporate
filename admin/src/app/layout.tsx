@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="fa" dir="rtl" className={fontPersian.className} suppressHydrationWarning>
-        <body className="bg-background">
+        <body className="bg-bg">
         <NextTopLoader
             showSpinner={false}
             color="#3b82f6"

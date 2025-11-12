@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
@@ -71,16 +72,14 @@ export default function CreateOptionPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
-                <Settings className="w-5 h-5 stroke-primary" />
-              </div>
-              اطلاعات گزینه
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <CardWithIcon
+          icon={Settings}
+          title="اطلاعات گزینه"
+          iconBgColor="bg-primary/10"
+          iconColor="stroke-primary"
+          borderColor="border-b-primary"
+          className="hover:shadow-lg transition-all duration-300"
+        >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="نام"
@@ -160,8 +159,7 @@ export default function CreateOptionPage() {
                 {createOptionMutation.isPending ? "در حال ایجاد..." : "ایجاد گزینه"}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+        </CardWithIcon>
       </form>
     </div>
   );

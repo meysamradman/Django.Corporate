@@ -48,24 +48,24 @@ export function FormField({
         htmlFor={htmlFor}
         className={cn(
           "text-sm font-medium",
-          error && "text-red-600 dark:text-red-400"
+          error && "text-red-1"
         )}
       >
         {label}
-        {required && <span className="text-red-500 mr-1">*</span>}
+        {required && <span className="text-red-1 mr-1">*</span>}
       </Label>
       
       {children}
       
       {error && (
-        <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+        <div className="flex items-start gap-2 text-sm text-red-1">
           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
       
       {description && !error && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-font-s">
           {description}
         </p>
       )}
@@ -103,7 +103,7 @@ export function FormFieldInput({
       <Input 
         {...inputProps}
         className={cn(
-          error && "border-red-500 focus-visible:ring-red-500"
+          error && "border-red-1 focus-visible:ring-red-1"
         )}
       />
     </FormField>
@@ -140,7 +140,7 @@ export function FormFieldTextarea({
       <Textarea 
         {...textareaProps}
         className={cn(
-          error && "border-red-500 focus-visible:ring-red-500"
+          error && "border-red-1 focus-visible:ring-red-1"
         )}
       />
     </FormField>

@@ -31,13 +31,13 @@ export function EmailToolbar({
 }: EmailToolbarProps) {
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={onRefresh}>
+      <Button variant="outline" size="icon" onClick={onRefresh}>
         <RefreshCw className="size-4" />
       </Button>
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="outline" size="icon">
             <MoreVertical className="size-4" />
           </Button>
         </DropdownMenuTrigger>

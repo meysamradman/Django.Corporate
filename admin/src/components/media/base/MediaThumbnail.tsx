@@ -1,3 +1,10 @@
+/**
+ * رنگ‌های استاندارد نوع مدیا:
+ * - تصویر: blue (پیش‌فرض)
+ * - ویدیو: red
+ * - صدا: blue
+ * - سند/PDF: orange
+ */
 "use client";
 
 import React from 'react';
@@ -79,14 +86,14 @@ export function MediaThumbnail({
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
       case 'video':
-        return 'bg-red-500/20';
+        return 'bg-red/20';
       case 'audio':
-        return 'bg-blue-500/20';
+        return 'bg-blue/20';
       case 'document':
       case 'pdf':
-        return 'bg-orange-500/20';
+        return 'bg-orange/20';
       default:
-        return 'bg-gray-500/20';
+        return 'bg-gray/20';
     }
   };
 
@@ -95,14 +102,14 @@ export function MediaThumbnail({
     return (
       <div 
         className={cn(
-          "flex items-center justify-center bg-muted relative",
+          "flex items-center justify-center bg-bg relative",
           getMediaBgColor(),
           className
         )}
         style={style}
       >
         {showIcon && (
-          <div className="flex flex-col items-center justify-center text-muted-foreground">
+          <div className="flex flex-col items-center justify-center text-font-s">
             {getMediaIcon()}
             <span className="text-xs mt-1 font-medium">
               {(media.media_type || 'file').toUpperCase()}
@@ -121,7 +128,7 @@ export function MediaThumbnail({
   );
 
   const overlayClasses = cn(
-    "absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity duration-300",
+    "absolute inset-0 flex items-center justify-center bg-static-b/20 opacity-0 hover:opacity-100 transition-opacity duration-300",
     showIcon ? "opacity-60" : "opacity-0"
   );
 
@@ -140,7 +147,7 @@ export function MediaThumbnail({
         />
         {showIcon && (media.media_type || '') !== 'image' && (
           <div className={overlayClasses}>
-            <div className="bg-white/90 rounded-full p-2 shadow-lg">
+            <div className="bg-static-w/90 rounded-full p-2 shadow-lg">
               {getMediaIcon()}
             </div>
           </div>
@@ -164,7 +171,7 @@ export function MediaThumbnail({
       />
       {showIcon && (media.media_type || '') !== 'image' && (
         <div className={overlayClasses}>
-          <div className="bg-white/90 rounded-full p-2 shadow-lg">
+          <div className="bg-static-w/90 rounded-full p-2 shadow-lg">
             {getMediaIcon()}
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { TabsContent } from "@/components/elements/Tabs";
@@ -287,20 +288,18 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         <TabsContent value="advanced_settings">
             <div className="space-y-6">
             {/* Admin Settings Card */}
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
-                            <Shield className="w-5 h-5 stroke-purple-600" />
-                        </div>
-                        تنظیمات پیشرفته
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+            <CardWithIcon
+                icon={Shield}
+                title="تنظیمات پیشرفته"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+            >
                         <div className="flex items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
                                 <Label htmlFor="account-status">{getPermissionTranslation('وضعیت حساب', 'resource')}</Label>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-font-s">
                                     {getPermissionTranslation('حساب کاربری این ادمین را فعال یا غیرفعال کنید.', 'description')}
                                 </p>
                             </div>
@@ -314,7 +313,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                         <div className="flex items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
                                 <Label htmlFor="super-admin-access">{getPermissionTranslation('دسترسی سوپر ادمین', 'resource')}</Label>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-font-s">
                                     {getPermissionTranslation('این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.', 'description')}
                                 </p>
                             </div>
@@ -345,22 +344,22 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
                         {/* Base Permissions Display - دسترسی‌های پایه */}
                         {basePermissions.length > 0 && (
-                            <div className="rounded-lg border p-4 bg-green-50/50">
+                            <div className="rounded-lg border p-4 bg-green">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Shield className="w-4 h-4 text-green-600" />
-                                    <Label className="text-green-700">دسترسی‌های پایه</Label>
+                                    <Shield className="w-4 h-4 text-green-1" />
+                                    <Label className="text-green-2">دسترسی‌های پایه</Label>
                                 </div>
-                                <p className="text-muted-foreground mb-3">
+                                <p className="text-font-s mb-3">
                                     این دسترسی‌ها به صورت خودکار برای همه ادمین‌ها فعال است:
                                 </p>
                                 <div className="space-y-2">
                                     {basePermissions.map((perm) => (
-                                        <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-100">
-                                            <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                        <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-1">
+                                            <Check className="w-4 h-4 text-green-1 mt-0.5 flex-shrink-0" />
                                             <div className="flex-1">
-                                                <div className="text-foreground">{perm.display_name}</div>
+                                                <div className="text-font-p">{perm.display_name}</div>
                                                 {perm.description && (
-                                                    <div className="text-muted-foreground">{perm.description}</div>
+                                                    <div className="text-font-s">{perm.description}</div>
                                                 )}
                                             </div>
                                         </div>
@@ -368,18 +367,17 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                 </div>
                             </div>
                         )}
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
             {/* Role Assignment Card - Simplified role assignment without detailed permissions */}
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-3">
-                        <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
-                            <Users className="w-5 h-5 stroke-indigo-600" />
-                        </div>
-                        اختصاص نقش‌ها
-                    </CardTitle>
+            <CardWithIcon
+                icon={Users}
+                title="اختصاص نقش‌ها"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="hover:shadow-lg transition-all duration-300"
+                titleExtra={
                     <div className="flex gap-2">
                         {canManagePermissions ? (
                             <>
@@ -404,22 +402,22 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                 )}
                             </>
                         ) : (
-                            <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className="flex items-center gap-2 text-font-s">
                                 <AlertTriangle className="w-4 h-4" />
                                 {getPermissionTranslation('فقط مشاهده (عدم دسترسی ویرایش)', 'description')}
                             </div>
                         )}
                     </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                }
+            >
                     {/* Super Admin Info */}
                     {admin.is_superuser && (
-                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="mb-4 p-4 bg-green border border-green-1 rounded-lg">
                             <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-green-600"></div>
-                                <h4 className="text-green-700">{getPermissionTranslation('سوپر ادمین - دسترسی کامل', 'description')}</h4>
+                                <div className="h-2 w-2 rounded-full bg-green-1"></div>
+                                <h4 className="text-green-2">{getPermissionTranslation('سوپر ادمین - دسترسی کامل', 'description')}</h4>
                             </div>
-                            <p className="text-green-600 mt-1">
+                            <p className="text-green-1 mt-1">
                                 {getPermissionTranslation('این کاربر به عنوان سوپر ادمین به صورت خودکار تمام ماژول‌ها و عملیات را در اختیار دارد.', 'description')}
                             </p>
                         </div>
@@ -428,7 +426,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     {isLoading ? (
                         <div className="space-y-2">
                             {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                                <div key={i} className="h-4 bg-bg animate-pulse rounded" />
                             ))}
                         </div>
                     ) : error ? (
@@ -441,7 +439,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             <div className="rounded-md border">
                                 <div className="p-4 space-y-3">
                                     {availableRoles.map((role) => (
-                                        <div key={role.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50">
+                                        <div key={role.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-bg/50">
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
                                                     id={`role-${role.id}`}
@@ -458,7 +456,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <div className="text-muted-foreground">
+                                            <div className="text-font-s">
                                                 {getPermissionTranslation(role.name, 'roleDescription') || role.description}
                                             </div>
                                         </div>
@@ -467,7 +465,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             </div>
                             
                             {editMode && !admin.is_superuser && (
-                                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                                <div className="mt-4 p-3 bg-bg rounded-lg">
                                     <div>
                                         {getPermissionTranslation('نقش‌های انتخاب شده:', 'resource')} {
                                             roleAssignments.filter(a => a.assigned).length
@@ -477,12 +475,11 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             )}
                         </div>
                     ) : (
-                        <div className="text-center text-muted-foreground py-8">
+                        <div className="text-center text-font-s py-8">
                             {getPermissionTranslation('نقشی موجود نیست', 'description')}
                         </div>
                     )}
-                </CardContent>
-            </Card>
+            </CardWithIcon>
             </div>
         </TabsContent>
     );

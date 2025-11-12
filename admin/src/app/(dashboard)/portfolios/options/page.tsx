@@ -283,7 +283,7 @@ export default function OptionPage() {
           <h1 className="page-title">مدیریت گزینه‌ها</h1>
         </div>
         <div className="text-center py-8">
-          <p className="text-red-500 mb-4">خطا در بارگذاری داده‌ها</p>
+          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
             onClick={() => window.location.reload()} 
             className="mt-4"
@@ -359,7 +359,7 @@ export default function OptionPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-static-w hover:bg-destructive/90"
             >
               حذف
             </AlertDialogAction>

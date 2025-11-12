@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { MenuGroup, MenuItem } from "@/components/layout/Sidebar/SidebarMenu";
 import {
-  CustomTooltipProvider,
-  CustomTooltip,
-  CustomTooltipTrigger,
-  CustomTooltipContent,
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
 } from "@/components/elements/Tooltip";
 import { usePathname } from "next/navigation";
 import { cn } from "@/core/utils/cn";
@@ -32,7 +32,7 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
   };
 
   return (
-    <CustomTooltipProvider>
+    <TooltipProvider>
       <div className="flex flex-col space-y-2 p-2">
         {allItems.map((item) => {
           const isActive = isItemActive(item);
@@ -40,27 +40,27 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
           const hasDirectUrl = item.url && !hasSubMenus;
           
           const iconElement = item.icon && (
-            <item.icon className={cn(
-              "h-5 w-5 transition-colors",
-              isActive 
-                ? "stroke-primary" 
-                : "stroke-sdb-ic group-hover:stroke-primary"
-            )} />
+            <item.icon
+              className={cn(
+                "h-5 w-5 transition-colors",
+                isActive
+                  ? "text-primary"
+                  : "text-sdb-ic group-hover:text-primary"
+              )}
+            />
           );
           
           const buttonClasses = cn(
             "w-10 h-10 flex items-center justify-center rounded-md transition-colors group",
-            item.disabled 
-              ? "cursor-not-allowed opacity-50" 
-              : "cursor-pointer",
-            isActive 
-              ? "bg-sdb-hover text-primary" 
-              : !item.disabled && "hover:bg-sdb-hover hover:text-primary"
+            item.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+            isActive
+              ? "bg-sdb-hv text-primary"
+              : "text-sdb-menu-txt hover:bg-sdb-hv hover:text-primary"
           );
           
           return (
-            <CustomTooltip key={item.title}>
-              <CustomTooltipTrigger asChild>
+            <Tooltip key={item.title}>
+              <TooltipTrigger asChild>
                 {hasDirectUrl && !item.disabled ? (
                   <div onClick={() => {
                     onIconClick?.(item);
@@ -84,14 +84,14 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
                     {iconElement}
                   </button>
                 )}
-              </CustomTooltipTrigger>
-              <CustomTooltipContent side="left">
+              </TooltipTrigger>
+              <TooltipContent side="left">
                 <p>{item.title}</p>
-              </CustomTooltipContent>
-            </CustomTooltip>
+              </TooltipContent>
+            </Tooltip>
           );
         })}
       </div>
-    </CustomTooltipProvider>
+    </TooltipProvider>
   );
 }

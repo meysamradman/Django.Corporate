@@ -66,14 +66,63 @@ export default function PortfolioPage() {
   const [categories, setCategories] = useState<PortfolioCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   
-  const [pagination, setPagination] = useState<TablePaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  // Initialize state from URL params
+  const [pagination, setPagination] = useState<TablePaginationState>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = parseInt(urlParams.get('page') || '1', 10);
+      const size = parseInt(urlParams.get('size') || '10', 10);
+      return {
+        pageIndex: Math.max(0, page - 1),
+        pageSize: size,
+      };
+    }
+    return {
+      pageIndex: 0,
+      pageSize: 10,
+    };
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderBy = urlParams.get('order_by');
+      const orderDesc = urlParams.get('order_desc');
+      if (orderBy) {
+        return [{
+          id: orderBy,
+          desc: orderDesc === 'true',
+        }];
+      }
+    }
+    return [];
+  });
   const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<PortfolioFilters>({});
+  const [searchValue, setSearchValue] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('search') || '';
+    }
+    return '';
+  });
+  const [clientFilters, setClientFilters] = useState<PortfolioFilters>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filters: PortfolioFilters = {};
+      if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
+      if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
+      if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
+      if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
+      if (urlParams.get('categories__in')) {
+        const categoryIds = urlParams.get('categories__in')?.split(',').map(Number);
+        if (categoryIds && categoryIds.length > 0) {
+          // Store as comma-separated string to match the API format
+          filters.categories = categoryIds.join(',') as any;
+        }
+      }
+      return filters;
+    }
+    return {};
+  });
 
   // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -555,61 +604,6 @@ export default function PortfolioPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Load filters from URL on initial load
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Load pagination from URL
-    if (urlParams.get('page')) {
-      const page = parseInt(urlParams.get('page')!, 10);
-      if (!isNaN(page) && page > 0) {
-        setPagination(prev => ({ ...prev, pageIndex: page - 1 })); // Convert one-based to zero-based indexing
-      }
-    }
-    if (urlParams.get('size')) {
-      const size = parseInt(urlParams.get('size')!, 10);
-      if (!isNaN(size) && size > 0) {
-        setPagination(prev => ({ ...prev, pageSize: size }));
-      }
-    }
-    
-    // Load sorting from URL
-    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
-      const orderBy = urlParams.get('order_by')!;
-      const orderDesc = urlParams.get('order_desc') === 'true';
-      setSorting([{ id: orderBy, desc: orderDesc }]);
-    }
-    
-    // Load search from URL
-    if (urlParams.get('search')) {
-      setSearchValue(urlParams.get('search')!);
-    }
-    
-    // Load filters from URL
-    const newClientFilters: PortfolioFilters = {};
-    if (urlParams.get('status')) {
-      newClientFilters.status = urlParams.get('status')!;
-    }
-    if (urlParams.get('is_featured') !== null) {
-      newClientFilters.is_featured = urlParams.get('is_featured') === 'true';
-    }
-    if (urlParams.get('is_public') !== null) {
-      newClientFilters.is_public = urlParams.get('is_public') === 'true';
-    }
-    if (urlParams.get('is_active') !== null) { // اضافه کردن فیلتر فعال بودن
-      newClientFilters.is_active = urlParams.get('is_active') === 'true';
-    }
-    if (urlParams.get('categories')) {
-      // Convert to number if it's a valid number, otherwise keep as string
-      const categoriesValue = urlParams.get('categories')!;
-      const numValue = parseInt(categoriesValue, 10);
-      newClientFilters.categories = isNaN(numValue) ? categoriesValue : numValue;
-    }
-    
-    if (Object.keys(newClientFilters).length > 0) {
-      setClientFilters(newClientFilters);
-    }
-  }, []);
 
   // Show error state - but keep header visible
   if (error) {
@@ -619,8 +613,8 @@ export default function PortfolioPage() {
           <h1 className="page-title">مدیریت نمونه‌کارها</h1>
         </div>
         <div className="text-center py-8">
-          <p className="text-red-500 mb-4">خطا در بارگذاری داده‌ها</p>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
+          <p className="text-sm text-font-s mb-4">
             سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
           </p>
           <Button 
@@ -744,7 +738,7 @@ export default function PortfolioPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-static-w hover:bg-destructive/90"
             >
               حذف
             </AlertDialogAction>

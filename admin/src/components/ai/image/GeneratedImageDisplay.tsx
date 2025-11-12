@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
+import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Media } from '@/types/shared/media';
 import { Image as ImageIcon, Save } from 'lucide-react';
@@ -30,22 +31,25 @@ export function GeneratedImageDisplay({
     }
 
     return (
-        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
-            <CardHeader className="pb-3 border-b">
-                <CardTitle className="flex items-center gap-3">
-                    <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
-                        <ImageIcon className="w-5 h-5 stroke-indigo-600" />
-                    </div>
+        <CardWithIcon
+            icon={ImageIcon}
+            title={
+                <>
                     تصویر تولید شده
                     {!saveToDb && generatedImageUrl && (
-                        <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                        <span className="text-xs text-orange-1 bg-orange px-2 py-1 rounded">
                             (ذخیره نشده)
                         </span>
                     )}
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="relative w-full h-96 rounded-lg overflow-auto border bg-muted/20">
+                </>
+            }
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
+            className="hover:shadow-lg transition-all duration-300"
+            headerClassName="pb-3 border-b"
+        >
+                <div className="relative w-full h-96 rounded-lg overflow-auto border bg-bg/20">
                     <div className="w-full min-h-full flex items-center justify-center">
                         {generatedMedia ? (
                             <MediaImage
@@ -93,7 +97,7 @@ export function GeneratedImageDisplay({
                             <Button
                                 onClick={onSelect}
                                 className="flex-1"
-                                variant="secondary"
+                                variant="outline"
                                 disabled
                             >
                                 انتخاب (ابتدا ذخیره کنید)
@@ -107,8 +111,7 @@ export function GeneratedImageDisplay({
                         </>
                     ) : null}
                 </div>
-            </CardContent>
-        </Card>
+        </CardWithIcon>
     );
 }
 

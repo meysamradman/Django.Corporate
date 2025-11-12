@@ -44,8 +44,8 @@ export function DataTableRowActions<TData>({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          variant="outline"
+          className="flex h-8 w-8 p-0 data-[state=open]:bg-bg"
         >
           <MoreVertical className="h-4 w-4" />
                       <span className="sr-only">باز کردن منو</span>

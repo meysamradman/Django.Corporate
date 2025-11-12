@@ -19,18 +19,18 @@ export function DarkMode() {
     if (!mounted) {
         return (
             <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="icon" 
                 aria-label="Loading theme"
                 className="cursor-pointer [&_svg]:!size-5 p-0 hover:bg-transparent">
-                <div className="w-6 h-6 bg-gray-200 animate-pulse rounded-full" />
+                <div className="w-6 h-6 bg-br animate-pulse rounded-full" />
             </Button>
         );
     }
 
     return (
         <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             aria-label="Toggle theme"
             className="cursor-pointer [&_svg]:!size-5 p-0 hover:bg-transparent"

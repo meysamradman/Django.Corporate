@@ -1,6 +1,12 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - فعال: green
+ * - غیرفعال: red
+ * - عمومی: blue
+ * - خصوصی: gray
+ */
 import { ColumnDef } from "@tanstack/react-table";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/elements/Badge";
@@ -52,7 +58,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       cell: ({ row }) => {
         const option = row.original;
         return (
-          <Link href={`/portfolios/options/${option.id}/edit`} className="table-cell-primary table-cell-wide hover:underline">
+          <Link href={`/portfolios/options/${option.id}/edit`} className="table-cell-primary table-cell-wide">
             {option.name}
           </Link>
         );
@@ -65,7 +71,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       accessorKey: "slug",
       header: () => <div className="table-header-text">اسلاگ</div>,
       cell: ({ row }) => (
-        <div className="table-cell-secondary">
+        <div className="table-cell-muted table-cell-wide">
           {row.original.slug}
         </div>
       ),
@@ -79,7 +85,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_active ? (
-            <Badge variant="blue">فعال</Badge>
+            <Badge variant="green">فعال</Badge>
           ) : (
             <Badge variant="red">غیرفعال</Badge>
           )}
@@ -95,9 +101,9 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_public ? (
-            <Badge variant="sky">عمومی</Badge>
+            <Badge variant="blue">عمومی</Badge>
           ) : (
-            <Badge variant="slate">خصوصی</Badge>
+            <Badge variant="gray">خصوصی</Badge>
           )}
         </div>
       ),
@@ -131,7 +137,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (option) => {
-              console.log("Delete option", option.id);
+              // Delete option functionality would go here
             },
             isDestructive: true,
           },

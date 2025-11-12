@@ -26,7 +26,7 @@ export default function LogoUploader({
     showLabel = true,
     size = "md",
     className = "",
-    statusColor = "bg-emerald-500",
+    statusColor = "bg-emerald-1",
     accentGradient = "from-primary/30 via-primary/10 to-transparent"
 }: LogoUploaderProps) {
     const [showMediaSelector, setShowMediaSelector] = useState(false);
@@ -81,7 +81,7 @@ export default function LogoUploader({
                                 sizes={`${size === "sm" ? "96px" : size === "md" ? "112px" : "128px"}`}
                             />
                         ) : (
-                            <div className="relative flex h-full w-full items-center justify-center rounded-2xl bg-white/60 backdrop-blur-sm">
+                            <div className="relative flex h-full w-full items-center justify-center rounded-2xl bg-static-w/60 backdrop-blur-sm">
                                 <ImagePlus
                                     className={`${size === "sm" ? "h-10 w-10" : size === "md" ? "h-12 w-12" : "h-14 w-14"} text-primary`}
                                     strokeWidth={1.5}
@@ -94,7 +94,7 @@ export default function LogoUploader({
                         <Button
                             variant="outline"
                             size="sm"
-                            className="absolute -top-1 -left-1 h-7 w-7 rounded-full border border-border bg-background p-0 transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                            className="absolute -top-1 -left-1 h-7 w-7 rounded-full border border-border bg-card p-0 transition-colors hover:bg-destructive hover:text-static-w"
                             onClick={handleRemoveImage}
                             type="button"
                         >
@@ -105,7 +105,7 @@ export default function LogoUploader({
                     <Button
                         variant="outline"
                         size={buttonSize[size]}
-                        className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border border-border bg-background p-0 transition-colors hover:bg-muted"
+                        className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border border-border bg-card p-0 transition-colors hover:bg-bg"
                         onClick={() => setShowMediaSelector(true)}
                         type="button"
                     >

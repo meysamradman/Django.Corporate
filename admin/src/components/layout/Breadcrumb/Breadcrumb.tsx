@@ -88,25 +88,25 @@ export function Breadcrumb() {
     }, [pathname]);
 
     return (
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-font-a h-full py-2">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-font-p h-full py-2">
             {displayItems.map((item, index) => (
                 <React.Fragment key={index}>
                     {index > 0 && (
                         <ChevronRight 
-                            className="h-4 w-4 text-muted-foreground/50 rotate-180 shrink-0" 
+                            className="h-4 w-4 text-font-s/50 rotate-180 shrink-0" 
                         />
                     )}
                     
                     {item.label === "..." ? (
-                        <span className="px-1 text-muted-foreground/70 flex items-center">...</span>
+                        <span className="px-1 text-font-s/50 flex items-center">...</span>
                     ) : item.isLast || !item.href ? (
-                        <span className="font-medium text-foreground flex items-center leading-none">
+                        <span className="font-medium text-font-p flex items-center leading-none">
                             {item.label}
                         </span>
                     ) : (
                         <Link
                             href={item.href}
-                            className="hover:text-foreground transition-colors duration-200 font-normal flex items-center leading-none"
+                            className="hover:text-font-p transition-colors duration-200 font-normal flex items-center leading-none"
                         >
                             {item.label}
                         </Link>

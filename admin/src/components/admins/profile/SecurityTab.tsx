@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
@@ -38,21 +39,19 @@ export function SecurityTab() {
     return (
         <TabsContent value="security">
             {/* Change Password */}
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-red-500">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3">
-                        <div className="p-2.5 bg-red-100 rounded-xl shadow-sm">
-                            <Lock className="w-5 h-5 stroke-red-600" />
-                        </div>
-                        امنیت
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+            <CardWithIcon
+                icon={Lock}
+                title="امنیت"
+                iconBgColor="bg-red"
+                iconColor="stroke-red-2"
+                borderColor="border-b-red-1"
+                className="hover:shadow-lg transition-all duration-300"
+            >
                     <div className="space-y-6">
                         {newPassword && passwordStrength < 100 && (
-                            <Alert variant="default" className="bg-amber-50 border-amber-200">
-                                <AlertCircle className="h-4 w-4 text-amber-600" />
-                                <AlertDescription className="text-amber-800">
+                            <Alert variant="default" className="bg-amber border-amber-1">
+                                <AlertCircle className="h-4 w-4 text-amber-1" />
+                                <AlertDescription className="text-amber-2">
                                     <div className="mb-1">
                                         مطمئن شوید که این الزامات رعایت شده است:
                                     </div>
@@ -76,7 +75,7 @@ export function SecurityTab() {
                                     />
                                     <Button
                                         type="button"
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
                                         className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                         onClick={() => setShowNewPassword(!showNewPassword)}
@@ -90,18 +89,18 @@ export function SecurityTab() {
                                 </div>
                                 {newPassword && (
                                     <div className="space-y-1">
-                                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                        <div className="h-2 bg-bg rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all ${passwordStrength < 40
                                                         ? "bg-destructive"
                                                         : passwordStrength < 70
-                                                            ? "bg-amber-600"
-                                                            : "bg-green-600"
+                                                            ? "bg-amber-1"
+                                                            : "bg-green-1"
                                                     }`}
                                                 style={{ width: `${passwordStrength}%` }}
                                             />
                                         </div>
-                                        <p className="text-muted-foreground">
+                                        <p className="text-font-s">
                                             قدرت رمز: {passwordStrength < 40 ? "ضعیف" : passwordStrength < 70 ? "متوسط" : "قوی"}
                                         </p>
                                     </div>
@@ -120,7 +119,7 @@ export function SecurityTab() {
                                     />
                                     <Button
                                         type="button"
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
                                         className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -139,8 +138,7 @@ export function SecurityTab() {
                             تغییر رمز عبور
                         </Button>
                     </div>
-                </CardContent>
-            </Card>
+            </CardWithIcon>
         </TabsContent>
     );
 }

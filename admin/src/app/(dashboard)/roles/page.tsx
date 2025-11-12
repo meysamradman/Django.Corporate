@@ -283,7 +283,7 @@ export default function RolesPage() {
           <h1 className="page-title">مدیریت نقش‌ها</h1>
         </div>
         <div className="text-center py-8">
-          <p className="text-red-500">خطا در بارگیری داده‌ها</p>
+          <p className="text-red-1">خطا در بارگیری داده‌ها</p>
           <Button 
             onClick={() => window.location.reload()} 
             className="mt-4"
@@ -360,7 +360,7 @@ export default function RolesPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-static-w hover:bg-destructive/90"
             >
               حذف
             </AlertDialogAction>

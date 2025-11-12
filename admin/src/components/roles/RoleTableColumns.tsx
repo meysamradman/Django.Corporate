@@ -1,3 +1,8 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - سیستمی: yellow
+ * - سفارشی: green
+ */
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,20 +19,22 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     {
       id: "select",
       header: ({ table }) => (
+        <div className="flex items-center justify-center">
         <Checkbox
           checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="انتخاب همه"
-          className="translate-y-[2px]"
         />
+        </div>
       ),
       cell: ({ row }) => (
+        <div className="flex items-center justify-center">
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="انتخاب ردیف"
-          className="translate-y-[2px]"
         />
+        </div>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -37,7 +44,7 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     },
     {
       accessorKey: "name",
-      header: () => "نام",
+      header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         const displayName = row.original.display_name;
@@ -61,7 +68,7 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     },
     {
       accessorKey: "is_active",
-      header: () => "وضعیت",
+      header: () => <div className="table-header-text">وضعیت</div>,
       cell: ({ row }) => {
         const isActive = row.getValue("is_active") as boolean;
         return (
@@ -83,7 +90,7 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     },
     {
       accessorKey: "is_system_role",
-      header: () => "نوع",
+      header: () => <div className="table-header-text">نوع</div>,
       cell: ({ row }) => {
         const isSystemRole = row.getValue("is_system_role") as boolean;
         return (
@@ -105,13 +112,13 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     },
     {
       accessorKey: "level",
-      header: () => "سطح",
+      header: () => <div className="table-header-text">سطح</div>,
       cell: ({ row }) => {
         const level = row.getValue("level") as number;
         return (
-          <span className="table-cell-muted">
+          <div className="table-cell-muted">
             {level}
-          </span>
+          </div>
         );
       },
       enableSorting: true,
@@ -120,11 +127,11 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     },
     {
       accessorKey: "created_at",
-      header: () => "تاریخ ایجاد",
+      header: () => <div className="table-header-text">تاریخ ایجاد</div>,
       cell: ({ row }) => {
         const date = row.getValue("created_at") as string;
         return (
-          <div className="table-cell-muted">
+          <div className="table-date-cell">
             {formatDate(date)}
           </div>
         );

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
@@ -44,16 +45,15 @@ export function SEOTab({
 }: SEOTabProps) {
     return (
         <div className="space-y-6">
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
-                            <Search className="w-5 h-5 stroke-green-600" />
-                        </div>
-                        <CardTitle>SEO - Meta Tags</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <CardWithIcon
+                icon={Search}
+                title="SEO - Meta Tags"
+                iconBgColor="bg-green"
+                iconColor="stroke-green-2"
+                borderColor="border-b-green-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+            >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="meta_title">Meta Title (حداکثر 70 کاراکتر)</Label>
@@ -64,7 +64,7 @@ export function SEOTab({
                                 placeholder="عنوان برای SEO"
                                 maxLength={70}
                             />
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-font-s">
                                 {metaTitle.length}/70
                             </p>
                         </div>
@@ -91,7 +91,7 @@ export function SEOTab({
                             rows={3}
                             maxLength={300}
                         />
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-font-s">
                             {metaDescription.length}/300
                         </p>
                     </div>
@@ -105,19 +105,17 @@ export function SEOTab({
                             placeholder="index,follow"
                         />
                     </div>
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
-            <Card className="hover:shadow-lg transition-all	duration-300 border-b-4 border-b-purple-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
-                            <ImageIcon className="w-5 h-5 stroke-purple-600" />
-                        </div>
-                        <CardTitle>SEO - Open Graph</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <CardWithIcon
+                icon={ImageIcon}
+                title="SEO - Open Graph"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+            >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="og_title">OG Title</Label>
@@ -153,8 +151,7 @@ export function SEOTab({
                             showLabel={false}
                         />
                     </div>
-                </CardContent>
-            </Card>
+            </CardWithIcon>
         </div>
     );
 }

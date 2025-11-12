@@ -1,6 +1,12 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - فعال: green
+ * - غیرفعال: red
+ * - عمومی: blue
+ * - خصوصی: gray
+ */
 import { ColumnDef } from "@tanstack/react-table";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/elements/Badge";
@@ -66,7 +72,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
         };
 
         return (
-          <Link href={`/portfolios/categories/${category.id}/edit`} className="flex items-center gap-3 hover:underline">
+          <Link href={`/portfolios/categories/${category.id}/edit`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={category.name} />
@@ -92,7 +98,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_active ? (
-            <Badge variant="blue">فعال</Badge>
+            <Badge variant="green">فعال</Badge>
           ) : (
             <Badge variant="red">غیرفعال</Badge>
           )}
@@ -108,9 +114,9 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_public ? (
-            <Badge variant="sky">عمومی</Badge>
+            <Badge variant="blue">عمومی</Badge>
           ) : (
-            <Badge variant="slate">خصوصی</Badge>
+            <Badge variant="gray">خصوصی</Badge>
           )}
         </div>
       ),
@@ -144,7 +150,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (category) => {
-              console.log("Delete category", category.id);
+              // Delete category functionality would go here
             },
             isDestructive: true,
           },

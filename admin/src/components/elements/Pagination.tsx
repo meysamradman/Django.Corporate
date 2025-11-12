@@ -56,13 +56,13 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         // Base styles
-        "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
         // Size styles
         size === "icon" ? "h-9 w-9" : "h-9 px-3",
         // Active state - like the image
         isActive 
-          ? "bg-gray-100 text-gray-900 rounded-md" 
-          : "text-gray-600 hover:text-gray-900",
+          ? "bg-gray text-font-p rounded-md" 
+          : "text-font-s hover:text-font-p",
         className
       )}
       {...props}
@@ -78,7 +78,7 @@ function PaginationPrevious({
     <PaginationLink
       aria-label="Go to previous page"
       size="icon"
-      className={cn("text-gray-600 hover:text-gray-900", className)}
+      className={cn("text-font-s hover:text-font-p", className)}
       {...props}
     >
       <ChevronRightIcon className="h-4 w-4" />
@@ -94,7 +94,7 @@ function PaginationNext({
     <PaginationLink
       aria-label="Go to next page"
       size="icon"
-      className={cn("text-gray-600 hover:text-gray-900", className)}
+      className={cn("text-font-s hover:text-font-p", className)}
       {...props}
     >
       <ChevronLeftIcon className="h-4 w-4" />

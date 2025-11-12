@@ -1,3 +1,10 @@
+/**
+ * رنگ‌های استاندارد وضعیت ایمیل:
+ * - جدید: red
+ * - خوانده شده: blue
+ * - پاسخ داده شده: green
+ * - پیش‌نویس: orange
+ */
 "use client";
 
 import React from "react";
@@ -44,12 +51,12 @@ export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemPro
 
   const getAvatarColor = (text: string) => {
     const colors = [
-      "bg-green-500",
-      "bg-blue-500",
-      "bg-purple-500",
-      "bg-red-500",
-      "bg-orange-500",
-      "bg-pink-500",
+      "bg-green-1",
+      "bg-blue-1",
+      "bg-purple-1",
+      "bg-red-1",
+      "bg-orange-1",
+      "bg-pink-1",
     ];
     const index = text.charCodeAt(0) % colors.length;
     return colors[index];
@@ -78,8 +85,8 @@ export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemPro
   return (
     <div
       className={cn(
-        "flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer",
-        isSelected && "bg-muted"
+        "flex items-center gap-4 px-4 py-3 hover:bg-bg/50 transition-colors cursor-pointer",
+        isSelected && "bg-bg"
       )}
       onClick={() => onClick?.(email)}
     >
@@ -96,7 +103,7 @@ export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemPro
       <Star
         className={cn(
           "size-4 shrink-0 cursor-pointer",
-          email.status === "read" ? "text-muted-foreground fill-none" : "text-orange-500 fill-orange-500"
+          email.status === "read" ? "text-font-s fill-none" : "text-orange-1 fill-orange-1"
         )}
       />
 
@@ -107,7 +114,7 @@ export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemPro
           alt={displayName}
           className="object-cover"
         />
-        <AvatarFallback className={cn("text-white text-xs", getAvatarColor(avatarText))}>
+        <AvatarFallback className={cn("text-static-w text-xs", getAvatarColor(avatarText))}>
           {getInitials(email.name, email.email, email.source)}
         </AvatarFallback>
       </Avatar>
@@ -118,31 +125,31 @@ export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemPro
           <div
             className={cn(
               "size-2 rounded-full shrink-0",
-              email.status === "new" && "bg-red-500",
-              email.status === "read" && "bg-blue-500",
-              email.status === "replied" && "bg-green-500",
-              email.status === "draft" && "bg-orange-500"
+              email.status === "new" && "bg-red-1",
+              email.status === "read" && "bg-blue-1",
+              email.status === "replied" && "bg-green-1",
+              email.status === "draft" && "bg-orange-1"
             )}
           />
-          <span className="font-semibold text-sm text-foreground truncate cursor-pointer">
+          <span className="font-semibold text-sm text-font-p truncate cursor-pointer">
             {displayName}
           </span>
           {email.has_attachments && (
-            <Paperclip className="size-3.5 text-muted-foreground shrink-0 cursor-pointer" />
+            <Paperclip className="size-3.5 text-font-s shrink-0 cursor-pointer" />
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground truncate cursor-pointer">
+          <span className="text-sm text-font-s truncate cursor-pointer">
             {email.subject}
           </span>
-          <span className="text-xs text-muted-foreground truncate cursor-pointer">
+          <span className="text-xs text-font-s truncate cursor-pointer">
             - {email.message.substring(0, 50)}...
           </span>
         </div>
       </div>
 
       {/* Date */}
-      <div className="text-xs text-muted-foreground shrink-0 cursor-pointer">
+      <div className="text-xs text-font-s shrink-0 cursor-pointer">
         {formatDate(email.created_at)}
       </div>
     </div>

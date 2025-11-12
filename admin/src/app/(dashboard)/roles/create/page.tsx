@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCreateRole, usePermissions } from "@/components/auth/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield, AlertCircle, ShieldCheck, User } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -195,23 +196,23 @@ export default function CreateRolePage() {
       {/* Form */}
       <div className="space-y-6">
         {/* Permissions */}
-        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
-                <ShieldCheck className="w-5 h-5 stroke-indigo-600" />
-              </div>
-              دسترسی‌ها
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
+        <CardWithIcon
+          icon={ShieldCheck}
+          title="دسترسی‌ها"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          className="hover:shadow-lg transition-all duration-300"
+          titleExtra={
+            <p className="text-sm text-font-s mt-2">
               دسترسی‌های مورد نیاز برای این نقش را انتخاب کنید
             </p>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          }
+        >
             {permissionsLoading ? (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                  <div key={i} className="h-4 bg-bg animate-pulse rounded" />
                 ))}
               </div>
             ) : permissionsError ? (
@@ -321,7 +322,7 @@ export default function CreateRolePage() {
                 </div>
                 
                 {selectedPermissions.length > 0 && (
-                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="mt-4 p-3 bg-bg/50 rounded-lg">
                     <div className="text-sm font-medium">
                       دسترسی‌های انتخاب شده: {selectedPermissions.length}
                     </div>
@@ -337,24 +338,21 @@ export default function CreateRolePage() {
                 )}
               </div>
             ) : (
-              <div className="text-center text-muted-foreground py-8">
+              <div className="text-center text-font-s py-8">
                 دسترسی‌ای موجود نیست
               </div>
             )}
-          </CardContent>
-        </Card>
+        </CardWithIcon>
 
         {/* Basic Info */}
-        <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
-                <User className="w-5 h-5 stroke-primary" />
-              </div>
-              اطلاعات پایه
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <CardWithIcon
+          icon={User}
+          title="اطلاعات پایه"
+          iconBgColor="bg-primary/10"
+          iconColor="stroke-primary"
+          borderColor="border-b-primary"
+          className="hover:shadow-lg transition-all duration-300"
+        >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <FormFieldInput
                 label="نام"
@@ -398,8 +396,7 @@ export default function CreateRolePage() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+        </CardWithIcon>
       </div>
     </div>
   );

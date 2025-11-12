@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/elements/Card';
+import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Textarea } from '@/components/elements/Textarea';
 import {
@@ -165,67 +165,66 @@ export function AIChat() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto pb-0">
-            <Card className="flex flex-col flex-1 flex-shrink-0 overflow-hidden hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary">
-                <CardHeader className="flex-shrink-0 border-b pb-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm">
-                                <MessageSquare className="w-5 h-5 stroke-primary" />
-                            </div>
-                            <CardTitle>چت با AI</CardTitle>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {loadingProviders ? (
-                                <Skeleton className="h-10 w-32" />
-                            ) : (
-                                <Select
-                                    value={selectedProvider || undefined}
-                                    onValueChange={setSelectedProvider}
-                                >
-                                    <SelectTrigger className="w-40">
-                                        <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableProviders.length === 0 ? (
-                                            <div className="p-2 text-sm text-muted-foreground text-center">
-                                                {msg.aiUI('noActiveProviders')}
-                                            </div>
-                                        ) : (
-                                            availableProviders.map((provider) => (
-                                                <SelectItem
-                                                    key={provider.id}
-                                                    value={provider.provider_name}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                        <span>مدل {getProviderDisplayName(provider)}</span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        </div>
+            <CardWithIcon
+                icon={MessageSquare}
+                title="چت با AI"
+                iconBgColor="bg-primary/10"
+                iconColor="stroke-primary"
+                borderColor="border-b-primary"
+                className="flex flex-col flex-1 flex-shrink-0 overflow-hidden"
+                headerClassName="flex-shrink-0 border-b pb-3"
+                titleExtra={
+                    <div className="flex items-center gap-2">
+                        {loadingProviders ? (
+                            <Skeleton className="h-10 w-32" />
+                        ) : (
+                            <Select
+                                value={selectedProvider || undefined}
+                                onValueChange={setSelectedProvider}
+                            >
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableProviders.length === 0 ? (
+                                        <div className="p-2 text-sm text-font-s text-center">
+                                            {msg.aiUI('noActiveProviders')}
+                                        </div>
+                                    ) : (
+                                        availableProviders.map((provider) => (
+                                            <SelectItem
+                                                key={provider.id}
+                                                value={provider.provider_name}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-lg">{getProviderIcon(provider)}</span>
+                                                    <span>مدل {getProviderDisplayName(provider)}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
-                </CardHeader>
-
-                <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
+                }
+            >
+                <div className="flex-1 flex flex-col overflow-hidden p-0">
                     <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
                         {messages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                            <div className="flex flex-col items-center justify-center h-full text-center text-font-s">
                                 <Sparkles className="h-12 w-12 mb-4 opacity-50" />
                                 <p className="text-lg font-medium mb-2">{msg.aiUI('startConversation')}</p>
                                 <p className="text-sm">
                                     {msg.aiUI('chatDescription')}
                                 </p>
                                 {availableProviders.length === 0 && (
-                                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <div className="mt-4 p-3 bg-yellow border border-yellow-1 rounded-lg">
                                         <div className="flex items-start gap-2">
-                                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-yellow-100 mt-0.5">
-                                                <AlertCircle className="h-4 w-4 stroke-yellow-600" />
+                                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-yellow mt-0.5">
+                                                <AlertCircle className="h-4 w-4 stroke-yellow-1" />
                                             </div>
-                                            <div className="text-sm text-yellow-800">
+                                            <div className="text-sm text-yellow-2">
                                                 <p className="font-medium mb-1">{msg.aiUI('noActiveProviders')}</p>
                                                 <p>
                                                     {msg.aiUI('chatInstructionsFull')}
@@ -252,7 +251,7 @@ export function AIChat() {
                                                     className="object-cover"
                                                 />
                                             ) : (
-                                                <AvatarFallback className="bg-slate-700 text-white text-xs font-medium rounded-full">
+                                                <AvatarFallback className="bg-gray-2 text-static-w text-xs font-medium rounded-full">
                                                     {getAdminInitials()}
                                                 </AvatarFallback>
                                             )}
@@ -261,8 +260,8 @@ export function AIChat() {
                                     <div
                                         className={`max-w-[80%] rounded-lg px-4 py-2 ${
                                             msg.role === 'user'
-                                                ? 'bg-card text-card-foreground border border-border'
-                                                : 'bg-muted text-muted-foreground'
+                                                ? 'bg-card text-font-p border border-border'
+                                                : 'bg-bg text-font-s'
                                         }`}
                                     >
                                         <p className="text-sm whitespace-pre-wrap break-words">
@@ -270,8 +269,8 @@ export function AIChat() {
                                         </p>
                                     </div>
                                     {msg.role === 'assistant' && (
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                                            <Sparkles className="h-4 w-4 stroke-muted-foreground" />
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-bg flex items-center justify-center">
+                                            <Sparkles className="h-4 w-4 stroke-font-s" />
                                         </div>
                                     )}
                                 </div>
@@ -279,10 +278,10 @@ export function AIChat() {
                         )}
                         {sending && (
                             <div className="flex gap-3 justify-start">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 stroke-muted-foreground" />
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-bg flex items-center justify-center">
+                                    <Sparkles className="h-4 w-4 stroke-font-s" />
                                 </div>
-                                <div className="bg-muted text-muted-foreground rounded-lg px-4 py-2">
+                                <div className="bg-bg text-font-s rounded-lg px-4 py-2">
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                         <span className="text-sm">{msg.aiUI('responding')}</span>
@@ -292,9 +291,8 @@ export function AIChat() {
                         )}
                         <div ref={messagesEndRef} />
                     </div>
-                </CardContent>
-
-                <CardFooter className="flex-shrink-0 border-t border-border bg-card px-6 pt-4 pb-0">
+                </div>
+                <div className="flex-shrink-0 border-t border-border bg-card px-6 pt-4 pb-0">
                     <div className="relative w-full">
                         <Textarea
                             ref={textareaRef}
@@ -309,14 +307,14 @@ export function AIChat() {
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                             <button
                                 type="button"
-                                className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                className="flex items-center justify-center text-font-s hover:text-font-p transition-colors"
                                 aria-label="میکروفون"
                             >
                                 <Mic className="h-5 w-5" />
                             </button>
                             <button
                                 type="button"
-                                className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                className="flex items-center justify-center text-font-s hover:text-font-p transition-colors"
                                 aria-label="پیوست"
                             >
                                 <Paperclip className="h-5 w-5" />
@@ -324,7 +322,7 @@ export function AIChat() {
                             <Button
                                 onClick={handleSend}
                                 disabled={sending || !message.trim() || !selectedProvider}
-                                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 gap-2 rounded-lg"
+                                className="bg-primary hover:bg-primary/90 text-static-w px-4 gap-2 rounded-lg"
                             >
                                 {sending ? (
                                     <>
@@ -341,12 +339,12 @@ export function AIChat() {
                         </div>
                     </div>
                     {availableProviders.length === 0 && (
-                        <p className="text-xs text-muted-foreground mt-2 text-center w-full">
+                        <p className="text-xs text-font-s mt-2 text-center w-full">
                             {msg.aiUI('chatInstructions')}
                         </p>
                     )}
-                </CardFooter>
-            </Card>
+                </div>
+            </CardWithIcon>
         </div>
     );
 }

@@ -60,7 +60,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
           </Button>
         </div>
         <div className="text-center py-8">
-          <p className="text-red-500">نقش مورد نظر یافت نشد</p>
+          <p className="text-red-1">نقش مورد نظر یافت نشد</p>
           <Button onClick={() => router.back()} className="mt-4">
             بازگشت به لیست
           </Button>
@@ -82,40 +82,40 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {(role as any).is_protected ? (
-                <ShieldCheck className="h-5 w-5 text-blue-500" />
+                <ShieldCheck className="h-5 w-5 text-blue-1" />
               ) : (
-                <Shield className="h-5 w-5 text-gray-500" />
+                <Shield className="h-5 w-5 text-gray-1" />
               )}
               اطلاعات نقش
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">نام نقش</label>
+              <label className="text-sm font-medium text-font-s">نام نقش</label>
               <p className="text-lg font-semibold">{role.name}</p>
             </div>
             
             {role.description && (
               <div>
-                <label className="text-sm font-medium text-muted-foreground">توضیحات</label>
+                <label className="text-sm font-medium text-font-s">توضیحات</label>
                 <p className="text-sm">{role.description}</p>
               </div>
             )}
 
             <div className="flex items-center gap-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">وضعیت</label>
+                <label className="text-sm font-medium text-font-s">وضعیت</label>
                 <div className="mt-1">
                   {role.is_active ? (
                     <Badge variant="default">فعال</Badge>
                   ) : (
-                    <Badge variant="secondary">غیرفعال</Badge>
+                    <Badge variant="outline">غیرفعال</Badge>
                   )}
                 </div>
               </div>
               
               <div>
-                <label className="text-sm font-medium text-muted-foreground">نوع</label>
+                <label className="text-sm font-medium text-font-s">نوع</label>
                 <div className="mt-1">
                   {(role as any).is_protected ? (
                     <Badge variant="default">سیستمی</Badge>
@@ -129,9 +129,9 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
             <Separator />
 
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-font-s" />
               <div>
-                <label className="text-sm font-medium text-muted-foreground">تاریخ ایجاد</label>
+                <label className="text-sm font-medium text-font-s">تاریخ ایجاد</label>
                 <p className="text-sm">
                   {new Date(role.created_at).toLocaleDateString('en-US')}
                 </p>
@@ -140,9 +140,9 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
 
             {role.updated_at && (
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Calendar className="h-4 w-4 text-font-s" />
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">آخرین به‌روزرسانی</label>
+                  <label className="text-sm font-medium text-font-s">آخرین به‌روزرسانی</label>
                   <p className="text-sm">
                     {new Date(role.updated_at).toLocaleDateString('en-US')}
                   </p>
@@ -163,7 +163,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
           <CardContent>
             {/* Base Permissions - همیشه نمایش داده می‌شود */}
             <div className="mb-6">
-              <h4 className="font-semibold text-sm mb-3 text-blue-600">🟢 دسترسی‌های پایه (همه ادمین‌ها):</h4>
+              <h4 className="font-semibold text-sm mb-3 text-blue-1">🟢 دسترسی‌های پایه (همه ادمین‌ها):</h4>
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
                   {basePermissions ? (
@@ -188,7 +188,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
             {/* Role-specific Permissions */}
             {role.permissions && Object.keys(role.permissions).length > 0 ? (
               <div className="space-y-4">
-                <h4 className="font-semibold text-sm mb-3 text-green-600">🎯 دسترسی‌های اختصاصی این نقش:</h4>
+                <h4 className="font-semibold text-sm mb-3 text-green-1">🎯 دسترسی‌های اختصاصی این نقش:</h4>
                 
                 {/* Modules */}
                 {role.permissions.modules && role.permissions.modules.length > 0 && (
@@ -196,7 +196,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                     <h5 className="font-medium text-sm mb-2">ماژول‌ها:</h5>
                     <div className="flex flex-wrap gap-2">
                       {role.permissions.modules.map((module, index) => (
-                        <Badge key={index} variant="secondary">
+                        <Badge key={index} variant="outline">
                           {module === 'all' ? 'همه ماژول‌ها' : 
                            module === 'users' ? 'کاربران' :
                            module === 'media' ? 'رسانه' :
@@ -264,7 +264,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                 )}
               </div>
             ) : (
-              <div className="text-center py-4 text-muted-foreground">
+              <div className="text-center py-4 text-font-s">
                 <p>فقط دسترسی‌های پایه تخصیص داده شده است</p>
               </div>
             )}

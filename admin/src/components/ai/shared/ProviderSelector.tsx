@@ -31,12 +31,12 @@ export function ProviderSelector({
 }: ProviderSelectorProps) {
     if (loading) {
         if (compact) {
-            return <div className="h-10 bg-muted animate-pulse rounded-md" />;
+            return <div className="h-10 bg-bg animate-pulse rounded-md" />;
         }
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3].map(i => (
-                    <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+                    <div key={i} className="h-32 bg-bg animate-pulse rounded-lg" />
                 ))}
             </div>
         );
@@ -108,7 +108,7 @@ export function ProviderSelector({
                                 `}>
                                     {getProviderDisplayName(provider)}
                                 </h3>
-                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                <p className="text-xs text-font-s line-clamp-2">
                                     {getProviderDescription(provider, type)}
                                 </p>
                             </div>
@@ -117,7 +117,7 @@ export function ProviderSelector({
                         <div className="flex items-center justify-between mt-3 pt-3 border-t">
                             <div className={`
                                 flex items-center gap-2 text-xs
-                                ${isSelected ? 'text-primary font-medium' : 'text-muted-foreground'}
+                                ${isSelected ? 'text-primary font-medium' : 'text-font-s'}
                             `}>
                                 {isSelected ? (
                                     <>

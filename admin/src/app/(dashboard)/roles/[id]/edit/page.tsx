@@ -255,32 +255,32 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             بازگشت
           </Button>
           <div>
-            <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-            <div className="h-4 w-32 bg-muted animate-pulse rounded mt-2" />
+            <div className="h-8 w-48 bg-bg animate-pulse rounded" />
+            <div className="h-4 w-32 bg-bg animate-pulse rounded mt-2" />
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+              <div className="h-6 w-24 bg-bg animate-pulse rounded" />
             </CardHeader>
             <CardContent className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="space-y-2">
-                  <div className="h-4 w-16 bg-muted animate-pulse rounded" />
-                  <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                  <div className="h-4 w-16 bg-bg animate-pulse rounded" />
+                  <div className="h-10 w-full bg-bg animate-pulse rounded" />
                 </div>
               ))}
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <div className="h-6 w-20 bg-muted animate-pulse rounded" />
+              <div className="h-6 w-20 bg-bg animate-pulse rounded" />
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                  <div key={i} className="h-4 bg-bg animate-pulse rounded" />
                 ))}
               </div>
             </CardContent>
@@ -300,7 +300,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           </Button>
         </div>
         <div className="text-center py-8">
-          <p className="text-muted-foreground">داده‌ای یافت نشد</p>
+          <p className="text-font-s">داده‌ای یافت نشد</p>
         </div>
       </div>
     );
@@ -323,7 +323,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         <Card>
           <CardHeader>
             <CardTitle>دسترسی‌ها</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-font-s">
               دسترسی‌های مورد نیاز برای این نقش را انتخاب کنید
             </p>
           </CardHeader>
@@ -331,11 +331,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             {permissionsLoading ? (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                  <div key={i} className="h-4 bg-bg animate-pulse rounded" />
                 ))}
               </div>
             ) : permissionsError ? (
-              <div className="text-center text-red-500 py-8">
+              <div className="text-center text-red-1 py-8">
                 <p>خطا در بارگیری دسترسی‌ها</p>
                 <p className="text-sm mt-2">{String(permissionsError)}</p>
               </div>
@@ -442,7 +442,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 </div>
                 
                 {selectedPermissions.length > 0 && (
-                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="mt-4 p-3 bg-bg/50 rounded-lg">
                     <div className="text-sm font-medium">
                       دسترسی‌های انتخاب شده: {selectedPermissions.length}
                     </div>
@@ -450,7 +450,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 )}
               </div>
             ) : (
-              <div className="text-center text-muted-foreground py-8">
+              <div className="text-center text-font-s py-8">
                 دسترسی‌ای موجود نیست
               </div>
             )}
@@ -470,10 +470,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   id="name"
                   {...register("name")}
                   placeholder="نام نقش را وارد کنید"
-                  className={errors.name ? "border-red-500" : ""}
+                  className={errors.name ? "border-red-1" : ""}
                 />
                 {errors.name && (
-                  <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+                  <p className="text-sm text-red-1 mt-1">{errors.name.message}</p>
                 )}
               </div>
 

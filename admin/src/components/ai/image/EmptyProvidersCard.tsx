@@ -13,9 +13,9 @@ export function EmptyProvidersCard({ onNavigateToSettings }: EmptyProvidersCardP
         <Card>
             <CardContent className="py-8">
                 <div className="text-center space-y-4">
-                    <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <Sparkles className="h-12 w-12 mx-auto text-font-s mb-4" />
                     <h3 className="text-lg font-semibold mb-2">هیچ مدل AI فعالی برای تولید تصویر وجود ندارد</h3>
-                    <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="space-y-2 text-sm text-font-s">
                         <p>
                             برای تولید تصویر با AI، باید:
                         </p>

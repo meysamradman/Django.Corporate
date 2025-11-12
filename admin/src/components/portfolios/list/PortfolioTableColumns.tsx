@@ -1,3 +1,10 @@
+/**
+ * رنگ‌های استاندارد Badge:
+ * - منتشر شده: green
+ * - پیش‌نویس: yellow
+ * - فعال: green
+ * - غیرفعال: red
+ */
 import { ColumnDef } from "@tanstack/react-table";
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { Button } from "@/components/elements/Button";
@@ -129,9 +136,9 @@ export const usePortfolioColumns = (
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_public ? (
-            <Badge variant="sky">عمومی</Badge>
+            <Badge variant="blue">عمومی</Badge>
           ) : (
-            <Badge variant="slate">خصوصی</Badge>
+            <Badge variant="gray">خصوصی</Badge>
           )}
         </div>
       ),
@@ -149,7 +156,7 @@ export const usePortfolioColumns = (
         if (categories.length === 0) {
           return (
             <div className="table-cell-secondary">
-              <span className="text-muted-foreground">بدون دسته</span>
+              بدون دسته
             </div>
           );
         }
@@ -165,12 +172,12 @@ export const usePortfolioColumns = (
         return (
           <div className="flex flex-wrap gap-1">
             {categories.slice(0, 2).map((category) => (
-              <Badge key={category.id} variant="outline" className="text-xs" title={renderCategoryPath(category)}>
+              <Badge key={category.id} variant="purple" className="text-xs" title={renderCategoryPath(category)}>
                 {category.name.length > 15 ? `${category.name.substring(0, 15)}...` : category.name}
               </Badge>
             ))}
             {categories.length > 2 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="purple" className="text-xs">
                 +{categories.length - 2}
               </Badge>
             )}
@@ -214,7 +221,7 @@ export const usePortfolioColumns = (
         return (
           <div className="table-badge-container">
             {isActive ? (
-              <Badge variant="blue">فعال</Badge>
+              <Badge variant="green">فعال</Badge>
             ) : (
               <Badge variant="red">غیرفعال</Badge>
             )}

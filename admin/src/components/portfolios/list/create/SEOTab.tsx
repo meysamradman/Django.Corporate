@@ -1,8 +1,13 @@
+/**
+ * رنگ‌های استاندارد:
+ * - برچسب‌های Meta: emerald
+ * - Open Graph: blue
+ */
 "use client";
 
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
@@ -140,16 +145,13 @@ export default function SEOTab(props: SEOTabProps) {
                 {/* Left Column: Meta Tags & Open Graph Fields */}
                 <div className="flex-1 min-w-0 space-y-6">
                     {/* Meta Tags Section */}
-                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
-                                    <Search className="w-5 h-5 stroke-green-600" />
-                                </div>
-                                برچسب‌های Meta
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                    <CardWithIcon
+                        icon={Search}
+                        title="برچسب‌های Meta"
+                        iconBgColor="bg-emerald"
+                        iconColor="stroke-emerald-2"
+                        borderColor="border-b-emerald-1"
+                    >
                             <div className="space-y-6">
                                 <div className="flex flex-col lg:flex-row gap-6">
                                     <div className="lg:w-[35%] lg:max-w-[320px]">
@@ -263,20 +265,16 @@ export default function SEOTab(props: SEOTabProps) {
                                     )}
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                    </CardWithIcon>
 
                     {/* Open Graph Preview Section */}
-                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                                    <Globe className="w-5 h-5 stroke-blue-600" />
-                                </div>
-                                پیش‌نمایش Open Graph
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                    <CardWithIcon
+                        icon={Globe}
+                        title="پیش‌نمایش Open Graph"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        borderColor="border-b-blue-1"
+                    >
                             <div className="flex flex-col lg:flex-row gap-6">
                                 <div className="lg:w-[35%] lg:max-w-[320px]">
                                     {isFormApproach ? (
@@ -334,22 +332,19 @@ export default function SEOTab(props: SEOTabProps) {
                                     )}
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                    </CardWithIcon>
                 </div>
 
                 {/* Right Column: OG Image Sidebar */}
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <Card className={`lg:sticky lg:top-20 hover:shadow-lg transition-all duration-300 border-b-4 ${(formState.errors as any)?.og_image ? 'border-b-destructive' : 'border-b-blue-500'}`}>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                                    <ImageIcon className="w-5 h-5 stroke-blue-600" />
-                                </div>
-                                تصویر Open Graph
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                    <CardWithIcon
+                        icon={ImageIcon}
+                        title="تصویر Open Graph"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        borderColor={(formState.errors as any)?.og_image ? 'border-b-red-1' : 'border-b-blue-1'}
+                        className="lg:sticky lg:top-20"
+                    >
                             {ogImageValue ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
                                     <NextImage
@@ -359,9 +354,9 @@ export default function SEOTab(props: SEOTabProps) {
                                         className="object-cover"
                                         unoptimized
                                     />
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button
-                                            variant="secondary"
+                                            variant="outline"
                                             size="sm"
                                             onClick={() => setIsMediaModalOpen(true)}
                                             className="mx-1"
@@ -385,11 +380,11 @@ export default function SEOTab(props: SEOTabProps) {
                             ) : (
                                 <div
                                     onClick={() => editMode && setIsMediaModalOpen(true)}
-                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500 transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-1 transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                                    <UploadCloud className="w-12 h-12 text-font-s" />
                                     <p className="font-semibold">انتخاب تصویر Open Graph</p>
-                                    <p className="text-muted-foreground text-center">
+                                    <p className="text-font-s text-center">
                                         برای انتخاب از کتابخانه کلیک کنید
                                     </p>
                                 </div>
@@ -397,13 +392,12 @@ export default function SEOTab(props: SEOTabProps) {
                             
                             {/* نمایش خطا */}
                             {(formState.errors as any)?.og_image?.message && (
-                                <div className="flex items-start gap-2 text-destructive">
+                                <div className="flex items-start gap-2 text-red-2">
                                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                    <span>{String((formState.errors as any).og_image.message)}</span>
+                                    <span>{String((formState.errors as any).og_image.message)}                                    </span>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                    </CardWithIcon>
                 </div>
             </div>
             

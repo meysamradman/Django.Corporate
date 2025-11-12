@@ -46,12 +46,12 @@ export function MediaImage({
     const imageAlt = media ? mediaService.getMediaAltText(media) : (alt || "تصویر");
     
     if (!imageUrl && !media) {
-        return <div className={cn("bg-muted", className)} style={{width, height, ...style}}/>;
+        return <div className={cn("bg-bg", className)} style={{width, height, ...style}}/>;
     }
     
     if (hasError) {
-        return <div className={cn("bg-muted flex items-center justify-center", className)} style={{width, height, ...style}}>
-            <span className="text-xs text-muted-foreground">خطا در بارگذاری</span>
+        return <div className={cn("bg-bg flex items-center justify-center", className)} style={{width, height, ...style}}>
+            <span className="text-xs text-font-s">خطا در بارگذاری</span>
         </div>;
     }
     const imageClasses = cn(

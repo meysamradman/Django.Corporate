@@ -1,12 +1,7 @@
 "use client";
 
 import { TabsContent } from "@/components/elements/Tabs";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { Badge } from "@/components/elements/Badge";
 import { FolderOpen, Tag, Globe, Eye, EyeOff, FileText } from "lucide-react";
@@ -27,38 +22,36 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
     <TabsContent value="general" className="mt-6 space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 space-y-6">
-          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
-                  <FileText className="w-5 h-5 stroke-purple-600" />
-                </div>
-                <div>اطلاعات پایه</div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <CardWithIcon
+            icon={FileText}
+            title="اطلاعات پایه"
+            iconBgColor="bg-purple"
+            iconColor="stroke-purple-2"
+            borderColor="border-b-purple-1"
+            contentClassName="space-y-6"
+          >
               <div className="space-y-4">
                 <div>
-                  <label className="text-muted-foreground mb-2 block">
+                  <label className="text-font-s mb-2 block">
                     عنوان
                   </label>
                   <div>{portfolio.title || '-'}</div>
                 </div>
 
                 <div>
-                  <label className="text-muted-foreground mb-2 block">
+                  <label className="text-font-s mb-2 block">
                     لینک (اسلاگ)
                   </label>
                   <div>{portfolio.slug || '-'}</div>
                 </div>
 
                 <div>
-                  <label className="text-muted-foreground mb-2 block">
+                  <label className="text-font-s mb-2 block">
                     توضیحات کوتاه
                   </label>
-                  <div className="text-muted-foreground">
+                  <div className="text-font-s">
                     {portfolio.short_description || (
-                      <span className="text-muted-foreground">
+                      <span className="text-font-s">
                         توضیحی وارد نشده است
                       </span>
                     )}
@@ -66,35 +59,32 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
                 </div>
 
                 <div>
-                  <label className="text-muted-foreground mb-2 block">
+                  <label className="text-font-s mb-2 block">
                     توضیحات بلند
                   </label>
                   <div
-                    className="text-muted-foreground prose prose-sm max-w-none"
+                    className="text-font-s prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: portfolio.description || "<p class='text-muted-foreground'>توضیحی وارد نشده است</p>",
+                      __html: portfolio.description || "<p class='text-font-s'>توضیحی وارد نشده است</p>",
                     }}
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </CardWithIcon>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-indigo-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 rounded-xl shadow-sm">
-                  <FolderOpen className="w-5 h-5 stroke-indigo-600" />
-                </div>
-                <div>تنظیمات</div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <CardWithIcon
+            icon={FolderOpen}
+            title="تنظیمات"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
+            contentClassName="space-y-6"
+          >
               <div>
-                <label className="text-muted-foreground mb-3 block flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-blue-500" />
+                <label className="text-font-s mb-3 block flex items-center gap-2">
+                  <FolderOpen className="w-4 h-4 stroke-blue-1" />
                   دسته‌بندی
                 </label>
                 {portfolio.categories && portfolio.categories.length > 0 ? (
@@ -111,15 +101,15 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
                     ))}
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">
+                  <span className="text-font-s">
                     دسته‌بندی‌ای انتخاب نشده است
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="text-muted-foreground mb-3 block flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-green-500" />
+                <label className="text-font-s mb-3 block flex items-center gap-2">
+                  <Tag className="w-4 h-4 stroke-green-1" />
                   تگ‌ها
                 </label>
                 {portfolio.tags && portfolio.tags.length > 0 ? (
@@ -131,13 +121,13 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
                     ))}
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">
+                  <span className="text-font-s">
                     تگی انتخاب نشده است
                   </span>
                 )}
               </div>
 
-              <div className="space-y-3 pt-4 border-t">
+              <div className="space-y-3 pt-4 border-t border-br">
                 <div className="flex items-center justify-between">
                   <span>وضعیت انتشار</span>
                   <Badge
@@ -153,12 +143,12 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
                     عمومی
                   </span>
                   {portfolio.is_public ? (
-                    <div className="flex items-center gap-2 text-green-600">
+                    <div className="flex items-center gap-2 text-green-2">
                       <Eye className="w-4 h-4" />
                       <span>عمومی</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex items-center gap-2 text-font-s">
                       <EyeOff className="w-4 h-4" />
                       <span>خصوصی</span>
                     </div>
@@ -183,8 +173,7 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </CardWithIcon>
         </div>
       </div>
     </TabsContent>

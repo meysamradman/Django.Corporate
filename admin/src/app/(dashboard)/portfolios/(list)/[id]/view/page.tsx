@@ -66,8 +66,8 @@ export default function PortfolioViewPage() {
         <h1 className="page-title">نمایش نمونه‌کار</h1>
         <div className="rounded-lg border p-6">
           <div className="text-center py-8">
-            <p className="text-red-500 mb-4">خطا در بارگذاری اطلاعات نمونه‌کار</p>
-            <p className="text-muted-foreground">
+            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات نمونه‌کار</p>
+            <p className="text-font-s">
               لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
             </p>
           </div>

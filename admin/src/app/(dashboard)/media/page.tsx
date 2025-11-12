@@ -352,11 +352,11 @@ export default function MediaPage() {
                     aria-label="انتخاب همه موارد این صفحه"
                     className="h-4 w-4"
                   />
-                  <span className="text-xs text-muted-foreground">انتخاب همه</span>
+                  <span className="text-xs text-font-s">انتخاب همه</span>
                 </div>
 
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s" />
                   <Input
                     placeholder="جستجو..."
                     defaultValue={filters.search}
@@ -397,7 +397,7 @@ export default function MediaPage() {
                     placeholder="از تاریخ"
                     className="h-8 w-36"
                   />
-                  <span className="text-xs text-muted-foreground">تا</span>
+                  <span className="text-xs text-font-s">تا</span>
                   <PersianDatePicker
                     value={filters.date_to || ''}
                     onChange={(date) => handleDateToChange(date)}
@@ -415,7 +415,7 @@ export default function MediaPage() {
                 <TableLoadingCompact />
               </div>
             ) : mediaItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-12 text-font-s">
                 <ImageOff className="h-16 w-16 mb-4" />
                 <p className="text-lg">رسانه‌ای یافت نشد</p>
                 <p className="text-sm mt-1">آپلود رسانه جدید یا تغییر فیلترها</p>
@@ -434,12 +434,12 @@ export default function MediaPage() {
                       key={`media-item-${item.media_type}-${item.id}`}
                       className={cn(
                         "overflow-hidden group relative transition-all border-2 cursor-pointer hover:shadow-lg p-0",
-                        selectedItems[item.id] ? "border-primary shadow-md" : "border-transparent hover:border-muted-foreground/20"
+                        selectedItems[item.id] ? "border-primary shadow-md" : "border-transparent hover:border-font-s/20"
                       )}
                       onClick={() => handleMediaClick(item)}
                     >
                       {/* Image Container */}
-                      <div className="w-full h-48 flex items-center justify-center bg-muted relative overflow-hidden">
+                      <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
                         {hasCoverImage ? (
                           <MediaImage
                             media={item}
@@ -460,8 +460,8 @@ export default function MediaPage() {
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center w-full h-full">
-                            <ImageOff className="h-8 w-8 text-muted-foreground mb-2" />
-                            <span className="text-xs text-muted-foreground capitalize">
+                            <ImageOff className="h-8 w-8 text-font-s mb-2" />
+                            <span className="text-xs text-font-s capitalize">
                               {item.media_type === 'video' ? 'ویدیو' : item.media_type === 'audio' ? 'صوت' : item.media_type}
                             </span>
                           </div>
@@ -470,11 +470,11 @@ export default function MediaPage() {
                         {/* Video/Audio icon overlay */}
                         {(item.media_type === 'video' || item.media_type === 'audio') && (
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="bg-black/50 rounded-full p-3">
+                            <div className="bg-static-b/50 rounded-full p-3">
                               {item.media_type === 'video' ? (
-                                <Play className="h-6 w-6 text-white" />
+                                <Play className="h-6 w-6 text-static-w" />
                               ) : (
-                                <FileAudio className="h-6 w-6 text-white" />
+                                <FileAudio className="h-6 w-6 text-static-w" />
                               )}
                             </div>
                           </div>
@@ -488,7 +488,7 @@ export default function MediaPage() {
                           checked={!!selectedItems[item.id]}
                           onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
                           aria-label={`انتخاب ${item.title || 'رسانه'}`}
-                          className="bg-background/90 border-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                          className="bg-card/90 border-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:text-static-w"
                         />
                       </div>
 
@@ -497,7 +497,7 @@ export default function MediaPage() {
                         "absolute bottom-0 left-0 right-0 p-3 text-xs z-0 transition-all duration-300 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none",
                         selectedItems[item.id] ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                       )}>
-                        <p className="truncate drop-shadow-lg text-white" title={displayName}>{displayName}</p>
+                        <p className="truncate drop-shadow-lg text-static-w" title={displayName}>{displayName}</p>
                       </div>
                     </Card>
                   );
@@ -539,7 +539,7 @@ export default function MediaPage() {
             <AlertDialogCancel onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
               انصراف
             </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDialog.onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90"> 
+            <AlertDialogAction onClick={confirmDialog.onConfirm} className="bg-destructive text-static-w hover:bg-destructive/90"> 
               تأیید حذف
             </AlertDialogAction>
           </AlertDialogFooter>

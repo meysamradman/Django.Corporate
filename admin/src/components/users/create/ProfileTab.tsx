@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
@@ -184,16 +185,14 @@ export default function ProfileTab({
     <div>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 space-y-6">
-          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                  <UserCircle className="w-5 h-5 stroke-blue-600" />
-                </div>
-                اطلاعات شخصی
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <CardWithIcon
+            icon={UserCircle}
+            title="اطلاعات شخصی"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
+            className="hover:shadow-lg transition-all duration-300"
+          >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   label="نام"
@@ -268,19 +267,16 @@ export default function ProfileTab({
                   />
                 </FormField>
               </div>
-            </CardContent>
-          </Card>
+          </CardWithIcon>
           
-          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
-                  <MapPin className="w-5 h-5 stroke-green-600" />
-                </div>
-                موقعیت جغرافیایی
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <CardWithIcon
+            icon={MapPin}
+            title="موقعیت جغرافیایی"
+            iconBgColor="bg-green"
+            iconColor="stroke-green-2"
+            borderColor="border-b-green-1"
+            className="hover:shadow-lg transition-all duration-300"
+          >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   label="استان"
@@ -349,19 +345,16 @@ export default function ProfileTab({
                   />
                 </FormField>
               </div>
-            </CardContent>
-          </Card>
+          </CardWithIcon>
 
-          <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
-                  <FileText className="w-5 h-5 stroke-purple-600" />
-                </div>
-                بیوگرافی
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <CardWithIcon
+            icon={FileText}
+            title="بیوگرافی"
+            iconBgColor="bg-purple"
+            iconColor="stroke-purple-2"
+            borderColor="border-b-purple-1"
+            className="hover:shadow-lg transition-all duration-300"
+          >
               <FormField
                 label="بیوگرافی"
                 htmlFor="profile_bio"
@@ -375,8 +368,7 @@ export default function ProfileTab({
                   {...register("profile_bio")}
                 />
               </FormField>
-            </CardContent>
-          </Card>
+          </CardWithIcon>
 
         </div>
 
@@ -397,7 +389,7 @@ export default function ProfileTab({
                       />
                     </div>
                   ) : (
-                    <div className="w-64 h-64 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground text-4xl font-bold border-4 border-card">
+                    <div className="w-64 h-64 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-static-w text-4xl font-bold border-4 border-card">
                       <User className="w-32 h-32" strokeWidth={1.5} />
                     </div>
                   )}
@@ -406,7 +398,7 @@ export default function ProfileTab({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-background border-2 border-border hover:bg-muted transition-colors"
+                    className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 border-border hover:bg-bg transition-colors"
                     onClick={() => setShowMediaSelector(true)}
                   >
                     <Camera className="h-3 w-3" />

@@ -8,6 +8,7 @@ import { Button } from "@/components/elements/Button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/elements/Form";
 import { Input } from "@/components/elements/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Separator } from "@/components/elements/Separator";
 import LogoUploader from './LogoUploader';
 import { usePanelSettings, useUpdatePanelSettings } from '@/core/hooks/useAdminData';
@@ -139,17 +140,16 @@ export default function PanelSettingsForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                                    <ImageIcon className="w-5 h-5 stroke-blue-600" />
-                                </div>
-                                <CardTitle>لوگوی پنل</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground mb-4">
+                    <CardWithIcon
+                        icon={ImageIcon}
+                        title="لوگوی پنل"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        borderColor="border-b-blue-1"
+                        className="hover:shadow-lg transition-all duration-300"
+                        headerClassName="pb-3"
+                    >
+                            <p className="text-font-s mb-4">
                                 لوگوی اصلی پنل مدیریتی که در منوی کناری و بالای صفحه نمایش داده می‌شود
                             </p>
                             <LogoUploader
@@ -158,20 +158,18 @@ export default function PanelSettingsForm() {
                                 onMediaSelect={handleLogoSelect}
                                 size="md"
                             />
-                        </CardContent>
-                    </Card>
+                    </CardWithIcon>
 
-                    <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-500">
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-purple-100 rounded-xl shadow-sm">
-                                    <Palette className="w-5 h-5 stroke-purple-600" />
-                                </div>
-                                <CardTitle>فاویکون پنل</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground mb-4">
+                    <CardWithIcon
+                        icon={Palette}
+                        title="فاویکون پنل"
+                        iconBgColor="bg-purple"
+                        iconColor="stroke-purple-2"
+                        borderColor="border-b-purple-1"
+                        className="hover:shadow-lg transition-all duration-300"
+                        headerClassName="pb-3"
+                    >
+                            <p className="text-font-s mb-4">
                                 آیکون کوچک که در تب مرورگر نمایش داده می‌شود
                             </p>
                             <LogoUploader
@@ -180,21 +178,19 @@ export default function PanelSettingsForm() {
                                 onMediaSelect={handleFaviconSelect}
                                 size="md"
                             />
-                        </CardContent>
-                    </Card>
+                    </CardWithIcon>
                 </div>
 
-                <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-green-500">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-green-100 rounded-xl shadow-sm">
-                                <FileText className="w-5 h-5 stroke-green-600" />
-                            </div>
-                            <CardTitle>اطلاعات پنل</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground mb-4">
+                <CardWithIcon
+                    icon={FileText}
+                    title="اطلاعات پنل"
+                    iconBgColor="bg-green"
+                    iconColor="stroke-green-2"
+                    borderColor="border-b-green-1"
+                    className="hover:shadow-lg transition-all duration-300"
+                    headerClassName="pb-3"
+                >
+                        <p className="text-font-s mb-4">
                             عنوان پنل که در بالای صفحه و در تب مرورگر نمایش داده می‌شود
                         </p>
                         <FormField
@@ -213,8 +209,7 @@ export default function PanelSettingsForm() {
                                 </FormItem>
                             )}
                         />
-                    </CardContent>
-                </Card>
+                </CardWithIcon>
 
                 <div className="flex justify-end">
                     <Button 

@@ -297,7 +297,7 @@ export function LoginForm() {
                                         type="text"
                                         placeholder="کد کپچا را وارد کنید"
                                         {...passwordForm.register("captchaAnswer")}
-                                        className={passwordForm.formState.errors.captchaAnswer ? "border-red-500" : ""}
+                                        className={passwordForm.formState.errors.captchaAnswer ? "border-red-1" : ""}
                                         disabled={loading}
                                     />
                                 </div>
@@ -318,7 +318,7 @@ export function LoginForm() {
                             </div>
                             {captchaDigits && (
                                 <div className="flex items-center gap-2 mt-2">
-                                    <div className="h-10 px-4 bg-gray-100 border rounded flex items-center justify-center font-mono text-lg font-bold text-gray-800 tracking-wider min-w-32">
+                                    <div className="h-10 px-4 bg-bg border rounded flex items-center justify-center font-mono text-lg font-bold text-font-p tracking-wider min-w-32">
                                         {captchaDigits}
                                     </div>
                                 </div>
@@ -365,7 +365,7 @@ export function LoginForm() {
                                 otpForm.setValue("otp", filteredValue);
                             }
                         })}
-                        className={`text-center tracking-widest ${otpForm.formState.errors.otp ? "border-red-500" : ""}`}
+                        className={`text-center tracking-widest ${otpForm.formState.errors.otp ? "border-red-1" : ""}`}
                         error={otpForm.formState.errors.otp?.message}
                         required
                         disabled={loading}
@@ -385,7 +385,7 @@ export function LoginForm() {
                                         type="text"
                                         placeholder="کد کپچا را وارد کنید"
                                         {...otpForm.register("captchaAnswer")}
-                                        className={otpForm.formState.errors.captchaAnswer ? "border-red-500" : ""}
+                                        className={otpForm.formState.errors.captchaAnswer ? "border-red-1" : ""}
                                         disabled={loading}
                                     />
                                 </div>
@@ -406,7 +406,7 @@ export function LoginForm() {
                             </div>
                             {captchaDigits && (
                                 <div className="flex items-center gap-2 mt-2">
-                                    <div className="h-10 px-4 bg-gray-100 border rounded flex items-center justify-center font-mono text-lg font-bold text-gray-800 tracking-wider min-w-32">
+                                    <div className="h-10 px-4 bg-bg border rounded flex items-center justify-center font-mono text-lg font-bold text-font-p tracking-wider min-w-32">
                                         {captchaDigits}
                                     </div>
                                 </div>

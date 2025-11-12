@@ -288,9 +288,9 @@ export function MediaLibraryModal({
                   <div className="flex items-center">
                       <DialogClose asChild>
                           <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-8 w-8 p-0 cursor-pointer hover:bg-muted-foreground/10"
+                              className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10"
                           >
                               <X className="h-4 w-4" />
                           </Button>
@@ -309,7 +309,7 @@ export function MediaLibraryModal({
             <div className="border-b border-border">
               <div className="flex space-x-1 px-4 py-2">
                 <Button
-                  variant={currentActiveTab === "select" ? "default" : "ghost"}
+                  variant={currentActiveTab === "select" ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleTabChange("select")}
                   className="flex gap-2"
@@ -318,7 +318,7 @@ export function MediaLibraryModal({
                   انتخاب از کتابخانه
                 </Button>
                 <Button
-                  variant={currentActiveTab === "upload" ? "default" : "ghost"}
+                  variant={currentActiveTab === "upload" ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleTabChange("upload")}
                   className="flex gap-2"
@@ -347,7 +347,7 @@ export function MediaLibraryModal({
                 {/* Progress Bar */}
                 {isUploading && (
                   <div className="px-6 space-y-2">
-                    <div className="flex justify-between text-sm text-muted-foreground">
+                    <div className="flex justify-between text-sm text-font-s">
                       <span>در حال آپلود...</span>
                       <span>{Math.round(uploadProgress)}%</span>
                     </div>
@@ -376,7 +376,7 @@ export function MediaLibraryModal({
 
               {/* Upload Footer */}
               {files.length > 0 && (
-                <div className="bg-muted/50 border-t border-border px-6 py-4">
+                <div className="bg-bg/50 border-t border-border px-6 py-4">
                   <div className="flex gap-3 justify-between">
                     <div className="flex gap-3">
                       <Button variant="outline" onClick={() => handleTabChange("select")} disabled={isUploading}>
@@ -424,14 +424,14 @@ export function MediaLibraryModal({
 
               <div className="flex-grow p-4 overflow-auto">
                   {error && (
-                      <div className="text-center text-red-600 p-4">{error}</div>
+                      <div className="text-center text-red-1 p-4">{error}</div>
                   )}
                   {isLoading ? (
                       <div className="flex justify-center items-center h-full">
                           <TableLoadingCompact />
                       </div>
                   ) : mediaItems.length === 0 ? (
-                      <div className="text-center text-muted-foreground py-10">
+                      <div className="text-center text-font-s py-10">
                           <ImageOff className="mx-auto h-12 w-12" />
                           <p className="mt-4">No media items found matching filters.</p>
                       </div>
@@ -446,7 +446,7 @@ export function MediaLibraryModal({
                                       key={`media-item-${item.media_type}-${item.id}`}
                                       className={cn(
                                           "relative group aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all",
-                                          isSelected ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent hover:border-muted-foreground/50"
+                                          isSelected ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent hover:border-font-s/50"
                                       )}
                                       onClick={() => handleSelectMedia(item)}
                                       role="button"
@@ -463,7 +463,7 @@ export function MediaLibraryModal({
                                       </div>
                                       <div className={cn(
                                           "absolute top-1.5 right-1.5 z-10 p-0.5 rounded-full transition-colors",
-                                          isSelected ? "bg-primary text-primary-foreground" : "bg-background/60 text-muted-foreground group-hover:bg-background"
+                                          isSelected ? "bg-primary text-static-w" : "bg-card/60 text-font-s group-hover:bg-card"
                                       )}>
                                           {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
                                       </div>
@@ -475,7 +475,7 @@ export function MediaLibraryModal({
                                       >
                                           <div className="flex items-center gap-1">
                                             {getMediaTypeIcon(item.media_type)}
-                                            <p className="font-medium truncate text-white" title={displayName}>{displayName}</p>
+                                            <p className="font-medium truncate text-static-w" title={displayName}>{displayName}</p>
                                           </div>
                                       </div>
                                   </div>

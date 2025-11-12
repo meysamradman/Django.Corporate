@@ -5,6 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import LogoUploader from "@/app/(dashboard)/settings/panel/LogoUploader";
 import { settingsApi, GeneralSettings } from "@/api/settings/general/route";
 import { toast } from "@/components/elements/Sonner";
@@ -127,7 +128,7 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
             </div>
         );
     }
@@ -138,11 +139,11 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             title: "لوگو",
             subtitle: logoImage?.title || "تصویری انتخاب نشده است",
             description: "لوگوی اصلی وب‌سایت که در بالای صفحات نمایش داده می‌شود",
-            accent: "from-emerald-500/25 via-emerald-400/15 to-transparent",
-            iconWrapper: "bg-emerald-100",
-            iconColor: "stroke-emerald-600",
-            statusColor: "bg-emerald-500",
-            borderClass: "border-b-emerald-500",
+            accent: "from-emerald-1/25 via-emerald-1/15 to-transparent",
+            iconWrapper: "bg-emerald",
+            iconColor: "stroke-emerald-2",
+            statusColor: "bg-emerald-1",
+            borderClass: "border-b-emerald-1",
             selectedMedia: logoImage,
             onSelect: setLogoImage,
         },
@@ -151,11 +152,11 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             title: "فاویکون",
             subtitle: faviconImage?.title || "فاویکونی انتخاب نشده است",
             description: "آیکون کوچک که در تب مرورگر نمایش داده می‌شود",
-            accent: "from-violet-500/25 via-violet-400/15 to-transparent",
-            iconWrapper: "bg-violet-100",
-            iconColor: "stroke-violet-600",
-            statusColor: "bg-violet-500",
-            borderClass: "border-b-violet-500",
+            accent: "from-purple-1/25 via-purple-1/15 to-transparent",
+            iconWrapper: "bg-purple",
+            iconColor: "stroke-purple-2",
+            statusColor: "bg-purple-1",
+            borderClass: "border-b-purple-1",
             selectedMedia: faviconImage,
             onSelect: setFaviconImage,
         },
@@ -164,11 +165,11 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             title: "اینماد",
             subtitle: enamadImage?.title || "تصویر اینماد انتخاب نشده است",
             description: "تصویر نماد اعتماد الکترونیکی (اینماد)",
-            accent: "from-amber-500/25 via-amber-400/15 to-transparent",
-            iconWrapper: "bg-amber-100",
-            iconColor: "stroke-amber-600",
-            statusColor: "bg-amber-500",
-            borderClass: "border-b-amber-500",
+            accent: "from-amber-1/25 via-amber-1/15 to-transparent",
+            iconWrapper: "bg-amber",
+            iconColor: "stroke-amber-2",
+            statusColor: "bg-amber-1",
+            borderClass: "border-b-amber-1",
             selectedMedia: enamadImage,
             onSelect: setEnamadImage,
         },
@@ -176,16 +177,15 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
 
     return (
         <div className="space-y-6">
-            <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-blue-500">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm">
-                            <FileText className="w-5 h-5 stroke-blue-600" />
-                        </div>
-                        <CardTitle>اطلاعات پایه</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent>
+            <CardWithIcon
+                icon={FileText}
+                title="اطلاعات پایه"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="hover:shadow-lg transition-all duration-300"
+                headerClassName="pb-3"
+            >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="site_name">عنوان</Label>
@@ -218,8 +218,7 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                             />
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+            </CardWithIcon>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {imageCards.map((card) => (
@@ -242,11 +241,11 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                                 <div className="text-base font-semibold text-foreground">
                                     {card.title}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-font-s">
                                     {card.subtitle}
                                 </p>
                             </div>
-                            <p className="text-xs leading-relaxed text-muted-foreground/80">
+                            <p className="text-xs leading-relaxed text-font-s/80">
                                 {card.description}
                             </p>
                         </CardContent>

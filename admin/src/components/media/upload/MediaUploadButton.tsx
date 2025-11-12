@@ -9,7 +9,7 @@ import { Media } from "@/types/shared/media";
 interface MediaUploadButtonProps {
     onUploadComplete?: () => void;
     onMediaSelect?: (media: Media | Media[]) => void;
-    variant?: "default" | "outline" | "ghost";
+    variant?: "default" | "outline";
     size?: "default" | "sm" | "lg";
     children?: React.ReactNode;
     className?: string;
@@ -89,7 +89,7 @@ export function QuickMediaUploadButton({
         <>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size={size}
                 onClick={() => setShowUploadModal(true)}
                 className={`h-8 w-8 p-0 ${className}`}
