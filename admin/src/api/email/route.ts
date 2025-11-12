@@ -25,6 +25,7 @@ export interface EmailMessage {
   is_new: boolean;
   is_replied: boolean;
   is_draft?: boolean;
+  is_starred?: boolean;
   created_by?: number | null;
   created_at: string;
   updated_at: string;
@@ -216,6 +217,19 @@ class EmailApi {
 
     if (response.metaData.status !== 'success') {
       throw new Error(response.metaData.message || 'خطا در علامت‌گذاری پیام');
+    }
+
+    const responseData = response.data as BackendResponse<EmailMessage>;
+    return responseData.data;
+  }
+
+  async toggleStar(id: number | string): Promise<EmailMessage> {
+    const response = await fetchApi.post<BackendResponse<EmailMessage>>(
+      `${this.baseUrl}/${id}/toggle_star/`
+    );
+
+    if (response.metaData.status !== 'success') {
+      throw new Error(response.metaData.message || 'خطا در ستاره‌دار کردن پیام');
     }
 
     const responseData = response.data as BackendResponse<EmailMessage>;

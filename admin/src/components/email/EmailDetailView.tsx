@@ -11,22 +11,27 @@ import React from "react";
 import { Button } from "@/components/elements/Button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Badge } from "@/components/elements/Badge";
-import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Paperclip, Download, ArrowRight } from "lucide-react";
+import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Paperclip, Download, Send, Star } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import { EmailMessage } from "@/api/email/route";
+import { MailboxType } from "./types";
 
 interface EmailDetailViewProps {
   email: EmailMessage | null;
   onReply?: (email: EmailMessage) => void;
   onDelete?: (email: EmailMessage) => void;
-  onBack?: () => void;
+  onPublish?: (email: EmailMessage) => void;
+  onToggleStar?: (email: EmailMessage) => void;
+  mailbox?: MailboxType;
 }
 
 export function EmailDetailView({
   email,
   onReply,
   onDelete,
-  onBack,
+  onPublish,
+  onToggleStar,
+  mailbox = "inbox",
 }: EmailDetailViewProps) {
   if (!email) return null;
 
@@ -103,18 +108,7 @@ export function EmailDetailView({
     <div className="w-full h-full flex flex-col overflow-hidden bg-card">
       {/* Header */}
       <div className="border-b border-border p-4 flex-shrink-0">
-        {onBack && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onBack}
-            className="mb-4"
-          >
-            <ArrowRight className="size-4 ml-2" />
-            بازگشت به لیست
-          </Button>
-        )}
-        <div className="flex items-start gap-4 mb-4">
+        <div className="flex items-center gap-4 mb-4">
           <Avatar className="size-12 shrink-0">
             <AvatarImage 
               src={undefined}
@@ -126,36 +120,43 @@ export function EmailDetailView({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold text-base">{displayName}</span>
-              <Badge
-                variant={
-                  email.status === "new"
-                    ? "red"
-                    : email.status === "read"
-                    ? "blue"
-                    : email.status === "replied"
-                    ? "green"
-                    : email.status === "draft"
-                    ? "orange"
-                    : "gray"
-                }
-              >
-                {email.status_display}
-              </Badge>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-semibold text-lg">{displayName}</span>
+              {mailbox !== "sent" && (
+                <Badge
+                  variant={
+                    email.status === "new"
+                      ? "red"
+                      : email.status === "read"
+                      ? "blue"
+                      : email.status === "replied"
+                      ? "green"
+                      : email.status === "draft"
+                      ? "orange"
+                      : "gray"
+                  }
+                >
+                  {email.status_display}
+                </Badge>
+              )}
+              {mailbox === "sent" && (
+                <Badge variant="green">
+                  ارسال شده
+                </Badge>
+              )}
             </div>
-            <div className="flex items-center gap-4 text-sm text-font-s">
-              <div className="flex items-center gap-1">
-                <Mail className="size-3.5" />
+            <div className="flex items-center gap-4 flex-wrap text-base">
+              <div className="flex items-center gap-1.5 text-font-p">
+                <Mail className="size-4 shrink-0" />
                 <span>{email.email}</span>
               </div>
               {email.phone && (
-                <div className="flex items-center gap-1">
-                  <Phone className="size-3.5" />
+                <div className="flex items-center gap-1.5 text-font-p">
+                  <Phone className="size-4 shrink-0" />
                   <span>{email.phone}</span>
                 </div>
               )}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5 text-font-s">
                 {getSourceIcon(email.source)}
                 <span>{email.source_display}</span>
               </div>
@@ -163,13 +164,11 @@ export function EmailDetailView({
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="text-xl font-bold">{email.subject}</h2>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-sm text-font-s">
-              <Calendar className="size-4" />
-              <span>{formatDate(email.created_at)}</span>
-            </div>
+          <div className="flex items-center gap-1.5 text-base text-font-s">
+            <Calendar className="size-4" />
+            <span>{formatDate(email.created_at)}</span>
           </div>
         </div>
       </div>
@@ -238,10 +237,16 @@ export function EmailDetailView({
                 <span className="mr-2">{email.ip_address}</span>
               </div>
             )}
-            {email.read_at && (
+            {email.read_at && mailbox !== "sent" && (
               <div>
                 <span className="text-font-s">خوانده شده در:</span>
                 <span className="mr-2">{formatDate(email.read_at)}</span>
+              </div>
+            )}
+            {mailbox === "sent" && email.created_at && (
+              <div>
+                <span className="text-font-s">ارسال شده در:</span>
+                <span className="mr-2">{formatDate(email.created_at)}</span>
               </div>
             )}
             {email.replied_at && (
@@ -257,12 +262,39 @@ export function EmailDetailView({
       {/* Footer Actions */}
       <div className="border-t border-border px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => onReply?.(email)}>
-            <Reply className="size-4 ml-2" />
-            پاسخ
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onDelete?.(email)}>
-            <Trash2 className="size-4 ml-2" />
+          {onToggleStar && mailbox !== "spam" && mailbox !== "trash" && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onToggleStar(email)}
+              className={email.is_starred 
+                ? "bg-amber text-amber-1 border-amber-1 hover:bg-amber/90" 
+                : "border-amber-1 text-amber-1 hover:bg-amber/10"
+              }
+            >
+              <Star className={cn("size-4", email.is_starred && "fill-amber-1")} />
+              {email.is_starred ? "حذف ستاره" : "ستاره‌دار"}
+            </Button>
+          )}
+          {mailbox === "draft" && onPublish && (
+            <Button variant="default" size="sm" onClick={() => onPublish(email)}>
+              <Send className="size-4" />
+              منتشر کردن
+            </Button>
+          )}
+          {mailbox !== "draft" && onReply && (
+            <Button variant="default" size="sm" onClick={() => onReply(email)}>
+              <Reply className="size-4" />
+              پاسخ
+            </Button>
+          )}
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => onDelete?.(email)}
+            className="!bg-red-1 hover:!bg-red-2 !text-white border-0"
+          >
+            <Trash2 className="size-4" />
             حذف
           </Button>
         </div>

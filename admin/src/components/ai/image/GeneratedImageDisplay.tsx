@@ -49,25 +49,26 @@ export function GeneratedImageDisplay({
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3 border-b"
         >
-                <div className="relative w-full h-96 rounded-lg overflow-auto border bg-bg/20">
-                    <div className="w-full min-h-full flex items-center justify-center">
-                        {generatedMedia ? (
-                            <MediaImage
-                                media={generatedMedia}
-                                alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
-                                className="w-full h-auto max-h-full object-cover"
-                                unoptimized
-                            />
-                        ) : generatedImageUrl ? (
-                            <img
-                                src={generatedImageUrl}
-                                alt={prompt || 'تصویر تولید شده'}
-                                className="w-full h-auto max-h-full object-cover"
-                            />
-                        ) : null}
+                <div className="space-y-4">
+                    <div className="relative w-full h-96 rounded-lg overflow-auto border bg-bg/20">
+                        <div className="w-full min-h-full flex items-center justify-center">
+                            {generatedMedia ? (
+                                <MediaImage
+                                    media={generatedMedia}
+                                    alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
+                                    className="w-full h-auto max-h-full object-cover"
+                                    unoptimized
+                                />
+                            ) : generatedImageUrl ? (
+                                <img
+                                    src={generatedImageUrl}
+                                    alt={prompt || 'تصویر تولید شده'}
+                                    className="w-full h-auto max-h-full object-cover"
+                                />
+                            ) : null}
+                        </div>
                     </div>
-                </div>
-                <div className="flex gap-2">
+                    <div className="flex gap-2">
                     {generatedMedia ? (
                         <>
                             <Button
@@ -91,7 +92,7 @@ export function GeneratedImageDisplay({
                                 className="flex-1"
                                 variant="default"
                             >
-                                <Save className="h-4 w-4 mr-2" />
+                                <Save className="h-4 w-4" />
                                 ذخیره در دیتابیس
                             </Button>
                             <Button
@@ -110,6 +111,7 @@ export function GeneratedImageDisplay({
                             </Button>
                         </>
                     ) : null}
+                    </div>
                 </div>
         </CardWithIcon>
     );

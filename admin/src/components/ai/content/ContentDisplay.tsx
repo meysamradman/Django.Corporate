@@ -31,7 +31,7 @@ export function ContentDisplay({ content, copiedField, onCopy }: ContentDisplayP
                 </CardDescription>
             }
         >
-                <div className="space-y-2">
+                <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <Label className="text-sm font-semibold">{msg.aiUI('fullContent')}</Label>
                         <div className="flex gap-2">
@@ -45,12 +45,12 @@ export function ContentDisplay({ content, copiedField, onCopy }: ContentDisplayP
                             >
                                 {copiedField === 'content_html' ? (
                                     <>
-                                        <Check className="h-4 w-4 mr-2 text-green-1" />
+                                        <Check className="h-4 w-4 text-green-1" />
                                         {msg.aiUI('copiedHTML')}
                                     </>
                                 ) : (
                                     <>
-                                        <Copy className="h-4 w-4 mr-2" />
+                                        <Copy className="h-4 w-4" />
                                         {msg.aiUI('copyHTML')}
                                     </>
                                 )}
@@ -68,12 +68,12 @@ export function ContentDisplay({ content, copiedField, onCopy }: ContentDisplayP
                             >
                                 {copiedField === 'content' ? (
                                     <>
-                                        <Check className="h-4 w-4 mr-2 text-green-1" />
+                                        <Check className="h-4 w-4 text-green-1" />
                                         {msg.ai('copied')}
                                     </>
                                 ) : (
                                     <>
-                                        <Copy className="h-4 w-4 mr-2" />
+                                        <Copy className="h-4 w-4" />
                                         {msg.aiUI('copyText')}
                                     </>
                                 )}

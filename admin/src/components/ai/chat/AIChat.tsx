@@ -37,6 +37,7 @@ export function AIChat() {
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const sampleMessagesAdded = useRef(false);
 
     const getAdminDisplayName = () => {
         if (user?.profile?.full_name) return user.profile.full_name;
@@ -163,16 +164,41 @@ export function AIChat() {
         }
     };
 
+    useEffect(() => {
+        if (!sampleMessagesAdded.current && !loadingProviders && availableProviders.length > 0 && messages.length === 0) {
+            const sampleMessages: ChatMessage[] = [
+                {
+                    role: 'assistant',
+                    content: 'سلام! من دستیار هوش مصنوعی شما هستم. چطور می‌تونم کمکتون کنم؟',
+                    timestamp: Date.now() - 60000,
+                },
+                {
+                    role: 'user',
+                    content: 'سلام! می‌خواستم بپرسم چطور می‌تونم از این سیستم استفاده کنم؟',
+                    timestamp: Date.now() - 30000,
+                },
+                {
+                    role: 'assistant',
+                    content: 'خیلی خوشحالم که می‌خواید از سیستم استفاده کنید! شما می‌تونید سوالات خودتون رو از من بپرسید و من سعی می‌کنم بهترین پاسخ رو بهتون بدم. همچنین می‌تونید از من برای تولید محتوا، ترجمه، خلاصه‌سازی و کارهای دیگه استفاده کنید.',
+                    timestamp: Date.now() - 10000,
+                },
+            ];
+            setMessages(sampleMessages);
+            sampleMessagesAdded.current = true;
+        }
+    }, [loadingProviders, availableProviders.length, messages.length]);
+
     return (
-        <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto pb-0">
+        <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
             <CardWithIcon
                 icon={MessageSquare}
                 title="چت با AI"
                 iconBgColor="bg-pink"
                 iconColor="stroke-pink-2"
                 borderColor="border-b-pink-1"
-                className="flex flex-col flex-1 flex-shrink-0 overflow-hidden"
+                className="flex flex-col h-full overflow-hidden"
                 headerClassName="flex-shrink-0 border-b pb-3"
+                contentClassName="!p-0 flex-1 flex flex-col overflow-hidden"
                 titleExtra={
                     <div className="flex items-center gap-2">
                         {loadingProviders ? (
@@ -182,7 +208,7 @@ export function AIChat() {
                                 value={selectedProvider || undefined}
                                 onValueChange={setSelectedProvider}
                             >
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className="w-auto min-w-[140px] border-0 bg-bg hover:bg-bg/80 shadow-sm px-4 py-1.5">
                                     <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -209,8 +235,7 @@ export function AIChat() {
                     </div>
                 }
             >
-                <div className="flex-1 flex flex-col overflow-hidden p-0">
-                    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
                         {messages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center text-font-s">
                                 <Sparkles className="h-12 w-12 mb-4 opacity-50" />
@@ -238,7 +263,7 @@ export function AIChat() {
                             messages.map((msg, idx) => (
                                 <div
                                     key={idx}
-                                    className={`flex gap-3 ${
+                                    className={`flex items-center gap-3 ${
                                         msg.role === 'user' ? 'justify-end' : 'justify-start'
                                     }`}
                                 >
@@ -277,7 +302,7 @@ export function AIChat() {
                             ))
                         )}
                         {sending && (
-                            <div className="flex gap-3 justify-start">
+                            <div className="flex items-center gap-3 justify-start">
                                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-bg flex items-center justify-center">
                                     <Sparkles className="h-4 w-4 stroke-font-s" />
                                 </div>
@@ -290,7 +315,6 @@ export function AIChat() {
                             </div>
                         )}
                         <div ref={messagesEndRef} />
-                    </div>
                 </div>
                 <div className="flex-shrink-0 border-t border-border bg-card px-6 pt-4 pb-0">
                     <div className="relative w-full">

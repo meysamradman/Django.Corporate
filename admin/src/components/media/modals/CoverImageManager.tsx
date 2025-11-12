@@ -109,7 +109,7 @@ export function CoverImageManager({
           className="w-full"
           onClick={() => setIsLibraryOpen(true)}
         >
-          <ImageIcon className="h-4 w-4 ml-2" />
+          <ImageIcon className="h-4 w-4" />
           انتخاب از کتابخانه
         </Button>
         

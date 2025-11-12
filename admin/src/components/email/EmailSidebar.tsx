@@ -5,6 +5,7 @@
  * - پیش‌نویس: orange
  * - ستاره‌دار: amber
  * - هرزنامه: red
+ * - سطل زباله: gray
  */
 "use client";
 
@@ -45,7 +46,7 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
   return (
     <aside className="w-full flex flex-col h-full overflow-hidden">
       {/* Compose Button */}
-      <div className="p-4 border-b border-border flex-shrink-0">
+      <div className="p-5 border-b border-border flex-shrink-0">
         <Button className="w-full" onClick={onComposeClick}>
           <span>ایجاد ایمیل</span>
         </Button>
@@ -94,10 +95,10 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                   };
                 case "trash":
                   return {
-                    bg: "bg-bg",
-                    text: "text-font-s",
-                    border: "bg-font-s",
-                    icon: "text-font-s",
+                    bg: "bg-gray",
+                    text: "text-gray-1",
+                    border: "bg-gray-1",
+                    icon: "text-gray-1",
                   };
                 default:
                   return {
@@ -136,8 +137,8 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                   };
                 case "trash":
                   return {
-                    text: "text-font-s",
-                    icon: "text-font-s",
+                    text: "text-gray-1",
+                    icon: "text-gray-1",
                   };
                 default:
                   return {
@@ -156,8 +157,7 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
               key={mailbox.id}
               onClick={() => onMailboxChange(mailbox.id)}
               className={cn(
-                "w-full flex items-center justify-between py-2.5 transition-colors relative cursor-pointer",
-                mailbox.id !== mailboxes[mailboxes.length - 1].id && "mb-1",
+                "w-full flex items-center justify-between py-4 transition-colors relative cursor-pointer",
                 isSelected
                   ? `${colors.bg} ${colors.text}`
                   : `${colors.text} hover:bg-bg`
@@ -166,7 +166,7 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
               {isSelected && (
                 <div className={cn("absolute right-0 top-0 bottom-0 w-1", colors.border)} />
               )}
-              <div className="flex items-center justify-between w-full pl-4 pr-3">
+              <div className="flex items-center justify-between w-full pl-5 pr-4">
                 <div className="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
                   <span className={cn("cursor-pointer", colors.icon)}>{mailbox.icon}</span>
                   <span className="text-sm font-medium cursor-pointer">{mailbox.label}</span>
@@ -178,7 +178,8 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
                       mailbox.id === "sent" ? "green" :
                       mailbox.id === "draft" ? "orange" :
                       mailbox.id === "starred" ? "amber" :
-                      mailbox.id === "spam" ? "red" : "default"
+                      mailbox.id === "spam" ? "red" :
+                      mailbox.id === "trash" ? "gray" : "default"
                     }
                     className="text-xs px-2 py-0.5 border-0 flex-shrink-0"
                   >

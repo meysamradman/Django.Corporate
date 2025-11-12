@@ -6,7 +6,7 @@ import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
-import { Send, Save, X } from "lucide-react";
+import { Send, Save } from "lucide-react";
 import { EmailMessage } from "@/api/email/route";
 
 export interface ComposeEmailData {
@@ -80,13 +80,6 @@ export function ComposeEmailDialog({
     }
   };
 
-  const handleClose = () => {
-    onOpenChange(false);
-    setTo("");
-    setSubject("");
-    setMessage("");
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
@@ -126,10 +119,6 @@ export function ComposeEmailDialog({
           </div>
         </div>
         <DialogFooter className="flex-shrink-0">
-          <Button variant="outline" onClick={handleClose} disabled={sending || savingDraft}>
-            <X className="w-4 h-4 me-2" />
-            لغو
-          </Button>
           <Button
             variant="outline"
             onClick={handleSaveDraft}

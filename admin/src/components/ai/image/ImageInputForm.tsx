@@ -58,8 +58,8 @@ export function ImageInputForm({
                     </CardTitle>
                 </CardHeader>
             )}
-            <CardContent className={compact ? "space-y-3 pt-4" : "space-y-4"}>
-                <div className="space-y-2">
+            <CardContent className={compact ? "space-y-3 pt-4" : "space-y-6"}>
+                <div className="space-y-3">
                     <Label className={`flex items-center gap-2 ${compact ? 'text-sm' : 'text-base font-medium'}`}>
                         {!compact && <Brain className="w-4 h-4 text-font-s" />}
                         <span>{compact ? 'مدل AI:' : 'انتخاب مدل AI'}</span>
@@ -117,12 +117,12 @@ export function ImageInputForm({
                 >
                     {generating ? (
                         <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                             {compact ? 'در حال تولید...' : 'در حال تولید تصویر...'}
                         </>
                     ) : (
                         <>
-                            <Sparkles className="h-4 w-4 mr-2" />
+                            <Sparkles className="h-4 w-4" />
                             تولید تصویر
                         </>
                     )}

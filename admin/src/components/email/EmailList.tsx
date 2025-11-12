@@ -5,11 +5,15 @@ import { EmailItem } from "./EmailItem";
 import { EmailMessage } from "@/api/email/route";
 import { cn } from "@/core/utils/cn";
 
+import { MailboxType } from "./types";
+
 interface EmailListProps {
   emails: EmailMessage[];
   selectedEmails: Set<number>;
   onSelectEmail: (emailId: number) => void;
   onEmailClick?: (email: EmailMessage) => void;
+  onToggleStar?: (email: EmailMessage) => void;
+  mailbox?: MailboxType;
   loading?: boolean;
 }
 
@@ -18,6 +22,8 @@ export function EmailList({
   selectedEmails,
   onSelectEmail,
   onEmailClick,
+  onToggleStar,
+  mailbox = "inbox",
   loading = false,
 }: EmailListProps) {
   if (loading) {
@@ -46,6 +52,7 @@ export function EmailList({
             isSelected={selectedEmails.has(email.id)}
             onSelect={onSelectEmail}
             onClick={onEmailClick}
+            onToggleStar={mailbox !== "spam" && mailbox !== "trash" ? onToggleStar : undefined}
           />
         ))}
       </div>

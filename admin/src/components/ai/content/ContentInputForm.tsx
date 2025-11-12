@@ -41,53 +41,55 @@ export function ContentInputForm({
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3"
         >
-                <div className="space-y-3">
-                    <Label className="flex items-center gap-2 text-base font-medium">
-                        <Brain className="w-4 h-4 text-font-s" />
-                        {msg.aiUI('selectModel')}
-                    </Label>
-                    <ProviderSelector
-                        providers={providers}
-                        selectedProvider={selectedProvider}
-                        onSelectProvider={onSelectProvider}
-                        type="content"
-                        loading={loadingProviders}
-                    />
-                </div>
+                <div className="space-y-6">
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-medium">
+                            <Brain className="w-4 h-4 text-font-s" />
+                            {msg.aiUI('selectModel')}
+                        </Label>
+                        <ProviderSelector
+                            providers={providers}
+                            selectedProvider={selectedProvider}
+                            onSelectProvider={onSelectProvider}
+                            type="content"
+                            loading={loadingProviders}
+                        />
+                    </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="topic" className="flex items-center gap-2">
-                        <Type className="w-4 h-4 text-font-s" />
-                        {msg.aiUI('contentTopic')} <span className="text-destructive">*</span>
-                    </Label>
-                    <Textarea
-                        id="topic"
-                        placeholder={msg.aiUI('topicPlaceholder')}
-                        value={topic}
-                        onChange={(e) => onTopicChange(e.target.value)}
-                        rows={4}
-                        className="resize-none"
-                    />
-                </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="topic" className="flex items-center gap-2">
+                            <Type className="w-4 h-4 text-font-s" />
+                            {msg.aiUI('contentTopic')} <span className="text-destructive">*</span>
+                        </Label>
+                        <Textarea
+                            id="topic"
+                            placeholder={msg.aiUI('topicPlaceholder')}
+                            value={topic}
+                            onChange={(e) => onTopicChange(e.target.value)}
+                            rows={4}
+                            className="resize-none"
+                        />
+                    </div>
 
-                <Button
-                    onClick={onGenerate}
-                    disabled={generating || !topic.trim() || !selectedProvider}
-                    className="w-full h-12 text-base font-semibold"
-                    size="lg"
-                >
-                    {generating ? (
-                        <>
-                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                            {msg.aiUI('generatingContent')}
-                        </>
-                    ) : (
-                        <>
-                            <Sparkles className="h-5 w-5 mr-2" />
-                            {msg.aiUI('generateContent')}
-                        </>
-                    )}
-                </Button>
+                    <Button
+                        onClick={onGenerate}
+                        disabled={generating || !topic.trim() || !selectedProvider}
+                        className="w-full h-12 text-base font-semibold"
+                        size="lg"
+                    >
+                        {generating ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                {msg.aiUI('generatingContent')}
+                            </>
+                        ) : (
+                            <>
+                                <Sparkles className="h-5 w-5" />
+                                {msg.aiUI('generateContent')}
+                            </>
+                        )}
+                    </Button>
+                </div>
         </CardWithIcon>
     );
 }

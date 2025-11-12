@@ -308,7 +308,7 @@ export function AIProviderSettings() {
                                             className="w-full text-sm h-9"
                                             size="sm"
                                         >
-                                            <SettingsIcon className="h-3 w-3 ml-2" />
+                                            <SettingsIcon className="h-3 w-3" />
                                             {provider.has_api_key ? 'تغییر API Key' : 'وارد کردن API Key'}
                                         </Button>
                                     </div>

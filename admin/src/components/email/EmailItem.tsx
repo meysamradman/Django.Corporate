@@ -19,9 +19,10 @@ interface EmailItemProps {
   isSelected: boolean;
   onSelect: (emailId: number) => void;
   onClick?: (email: EmailMessage) => void;
+  onToggleStar?: (email: EmailMessage) => void;
 }
 
-export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemProps) {
+export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }: EmailItemProps) {
   const getInitials = (name: string, email?: string, source?: string) => {
     if (name && name.trim()) {
       const words = name.trim().split(" ");
@@ -102,9 +103,16 @@ export function EmailItem({ email, isSelected, onSelect, onClick }: EmailItemPro
       {/* Star */}
       <Star
         className={cn(
-          "size-4 shrink-0 cursor-pointer",
-          email.status === "read" ? "text-font-s fill-none" : "text-orange-1 fill-orange-1"
+          "size-4 shrink-0 transition-colors",
+          email.is_starred 
+            ? "text-amber-1 fill-amber-1" 
+            : "text-font-s fill-none",
+          onToggleStar ? "cursor-pointer hover:text-amber-1" : "cursor-default"
         )}
+        onClick={onToggleStar ? (e) => {
+          e.stopPropagation();
+          onToggleStar(email);
+        } : undefined}
       />
 
       {/* Avatar */}

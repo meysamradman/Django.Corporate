@@ -21,22 +21,20 @@ export default function EmailPage() {
   const fetchEmails = useCallback(async () => {
     try {
       setLoading(true);
-      let statusFilter: string | undefined;
-      if (selectedMailbox === "inbox") {
-        statusFilter = "new";
-      } else if (selectedMailbox === "draft") {
-        statusFilter = "draft";
-      } else if (selectedMailbox === "starred") {
-        statusFilter = "replied";
-      } else if (selectedMailbox === "spam") {
-        statusFilter = "archived";
-      }
+      const statusMap: Record<MailboxType, string | undefined> = {
+        inbox: "new",
+        draft: "draft",
+        starred: "replied",
+        spam: "archived",
+        sent: "read",
+        trash: undefined,
+      };
       
       const response = await emailApi.getList({
         page: 1,
         size: 50,
         search: searchQuery || undefined,
-        status: statusFilter,
+        status: statusMap[selectedMailbox],
       });
       setEmails(response.data);
     } catch (error) {
@@ -343,6 +341,129 @@ export default function EmailPage() {
         created_at: new Date(Date.now() - 86400000).toISOString(),
         updated_at: new Date(Date.now() - 86400000).toISOString(),
       },
+      {
+        id: 12,
+        public_id: "test-12",
+        name: "پیش‌نویس دوم",
+        email: "draft2@example.com",
+        phone: "09123456800",
+        subject: "پیش‌نویس مهم",
+        message: "این یک پیش‌نویس مهم است که باید ارسال شود.",
+        status: "draft",
+        status_display: "پیش‌نویس",
+        source: "email",
+        source_display: "ایمیل",
+        ip_address: "192.168.1.111",
+        has_attachments: false,
+        is_new: false,
+        is_replied: false,
+        is_draft: true,
+        attachments: [],
+        created_at: new Date(Date.now() - 172800000).toISOString(),
+        updated_at: new Date(Date.now() - 172800000).toISOString(),
+      },
+      {
+        id: 13,
+        public_id: "test-13",
+        name: "ایمیل هرزنامه",
+        email: "spam@example.com",
+        phone: "09123456801",
+        subject: "برنده شدید!",
+        message: "این یک ایمیل هرزنامه است.",
+        status: "archived",
+        status_display: "آرشیو شده",
+        source: "email",
+        source_display: "ایمیل",
+        ip_address: "192.168.1.112",
+        has_attachments: false,
+        is_new: false,
+        is_replied: false,
+        attachments: [],
+        created_at: new Date(Date.now() - 259200000).toISOString(),
+        updated_at: new Date(Date.now() - 259200000).toISOString(),
+      },
+      {
+        id: 14,
+        public_id: "test-14",
+        name: "ایمیل هرزنامه دیگر",
+        email: "spam2@example.com",
+        phone: "09123456802",
+        subject: "پیشنهاد ویژه",
+        message: "این یک ایمیل هرزنامه دیگر است.",
+        status: "archived",
+        status_display: "آرشیو شده",
+        source: "email",
+        source_display: "ایمیل",
+        ip_address: "192.168.1.113",
+        has_attachments: false,
+        is_new: false,
+        is_replied: false,
+        attachments: [],
+        created_at: new Date(Date.now() - 345600000).toISOString(),
+        updated_at: new Date(Date.now() - 345600000).toISOString(),
+      },
+      {
+        id: 15,
+        public_id: "test-15",
+        name: "ایمیل حذف شده",
+        email: "deleted@example.com",
+        phone: "09123456803",
+        subject: "ایمیل حذف شده",
+        message: "این ایمیل حذف شده است.",
+        status: "archived",
+        status_display: "آرشیو شده",
+        source: "email",
+        source_display: "ایمیل",
+        ip_address: "192.168.1.114",
+        has_attachments: false,
+        is_new: false,
+        is_replied: false,
+        attachments: [],
+        created_at: new Date(Date.now() - 432000000).toISOString(),
+        updated_at: new Date(Date.now() - 432000000).toISOString(),
+      },
+      {
+        id: 16,
+        public_id: "test-16",
+        name: "کاربر تستی",
+        email: "user@example.com",
+        phone: "09123456804",
+        subject: "ایمیل ارسال شده",
+        message: "این یک ایمیل ارسال شده از طرف ادمین است.",
+        status: "read",
+        status_display: "خوانده شده",
+        source: "email",
+        source_display: "ایمیل",
+        ip_address: "192.168.1.115",
+        has_attachments: false,
+        is_new: false,
+        is_replied: false,
+        created_by: 1,
+        attachments: [],
+        created_at: new Date(Date.now() - 518400000).toISOString(),
+        updated_at: new Date(Date.now() - 518400000).toISOString(),
+      },
+      {
+        id: 17,
+        public_id: "test-17",
+        name: "کاربر دیگر",
+        email: "user2@example.com",
+        phone: "09123456805",
+        subject: "ایمیل ارسال شده دیگر",
+        message: "این یک ایمیل ارسال شده دیگر از طرف ادمین است.",
+        status: "read",
+        status_display: "خوانده شده",
+        source: "email",
+        source_display: "ایمیل",
+        ip_address: "192.168.1.116",
+        has_attachments: false,
+        is_new: false,
+        is_replied: false,
+        created_by: 1,
+        attachments: [],
+        created_at: new Date(Date.now() - 604800000).toISOString(),
+        updated_at: new Date(Date.now() - 604800000).toISOString(),
+      },
       ];
 
       // برای تست، از داده‌های mock استفاده می‌کنیم
@@ -352,7 +473,7 @@ export default function EmailPage() {
       // در حالت production از API استفاده کنید:
       fetchEmails();
     }
-  }, []);
+  }, [fetchEmails]);
 
   const handleMailboxChange = useCallback((mailbox: MailboxType) => {
     setSelectedMailbox(mailbox);
@@ -372,14 +493,16 @@ export default function EmailPage() {
     });
   }, []);
 
-  const handleSelectAll = useCallback(() => {
+  const handleSelectAll = useCallback((filteredEmails: EmailMessage[]) => {
     setSelectedEmails(prev => {
-      if (prev.size === emails.length) {
-        return new Set();
+      const filteredIds = new Set(filteredEmails.map((e) => e.id));
+      const allSelected = filteredEmails.length > 0 && filteredEmails.every(e => prev.has(e.id));
+      if (allSelected) {
+        return new Set([...prev].filter(id => !filteredIds.has(id)));
       }
-      return new Set(emails.map((e) => e.id));
+      return new Set([...prev, ...filteredEmails.map(e => e.id)]);
     });
-  }, [emails]);
+  }, []);
 
   const handleEmailClick = useCallback((email: EmailMessage) => {
     setSelectedEmail(email);
@@ -467,14 +590,90 @@ export default function EmailPage() {
     }
   }, [fetchEmails]);
 
+  const handlePublishDraft = useCallback(async (email: EmailMessage) => {
+    try {
+      await emailApi.update(email.id, {
+        status: "new",
+      });
+      toast.success("پیش‌نویس با موفقیت منتشر شد");
+      setSelectedEmail(null);
+      fetchEmails();
+    } catch (error) {
+      console.error("Error publishing draft:", error);
+      toast.error("خطا در انتشار پیش‌نویس");
+    }
+  }, [fetchEmails]);
+
+  const handleToggleStar = useCallback(async (email: EmailMessage) => {
+    try {
+      await emailApi.toggleStar(email.id);
+      const updatedEmail = { ...email, is_starred: !email.is_starred };
+      setEmails(prev => prev.map(e => e.id === email.id ? updatedEmail : e));
+      if (selectedEmail?.id === email.id) {
+        setSelectedEmail(updatedEmail);
+      }
+      toast.success(email.is_starred ? "ستاره حذف شد" : "ستاره اضافه شد");
+    } catch (error) {
+      console.error("Error toggling star:", error);
+      toast.error("خطا در تغییر وضعیت ستاره");
+    }
+  }, [selectedEmail]);
+
+  const filteredEmails = useMemo(() => {
+    const isSpam = (e: EmailMessage) => 
+      e.status === 'archived' && (
+        e.subject?.toLowerCase().includes('هرزنامه') || 
+        e.subject?.toLowerCase().includes('spam') || 
+        e.email?.toLowerCase().includes('spam')
+      );
+    
+    const isTrash = (e: EmailMessage) => 
+      e.status === 'archived' && (
+        e.subject?.toLowerCase().includes('حذف') || 
+        e.subject?.toLowerCase().includes('deleted') || 
+        e.email?.toLowerCase().includes('deleted')
+      );
+
+    switch (selectedMailbox) {
+      case "inbox":
+        return emails.filter(e => e.status === 'new');
+      case "draft":
+        return emails.filter(e => e.status === 'draft' || e.is_draft);
+      case "sent":
+        return emails.filter(e => e.status === 'read' && e.created_by);
+      case "starred":
+        return emails.filter(e => e.is_starred === true);
+      case "spam":
+        return emails.filter(isSpam);
+      case "trash":
+        return emails.filter(isTrash);
+      default:
+        return emails;
+    }
+  }, [emails, selectedMailbox]);
+
   const mailboxCounts = useMemo(() => {
+    const isSpam = (e: EmailMessage) => 
+      e.status === 'archived' && (
+        e.subject?.toLowerCase().includes('هرزنامه') || 
+        e.subject?.toLowerCase().includes('spam') || 
+        e.email?.toLowerCase().includes('spam')
+      );
+    
+    const isTrash = (e: EmailMessage) => 
+      e.status === 'archived' && (
+        e.subject?.toLowerCase().includes('حذف') || 
+        e.subject?.toLowerCase().includes('deleted') || 
+        e.email?.toLowerCase().includes('deleted')
+      );
+
     return {
       inbox: emails.filter(e => e.status === 'new').length,
-      sent: 0,
-      draft: emails.filter(e => e.subject.includes('پیش‌نویس') || e.subject.includes('درفت')).length,
-      starred: emails.filter(e => e.status === 'replied').length,
-      spam: emails.filter(e => e.status === 'archived').length,
-      trash: 0,
+      sent: emails.filter(e => e.status === 'read' && e.created_by).length,
+      draft: emails.filter(e => e.status === 'draft' || e.is_draft).length,
+      starred: emails.filter(e => e.is_starred === true).length,
+      spam: emails.filter(isSpam).length,
+      trash: emails.filter(isTrash).length,
     };
   }, [emails]);
 
@@ -491,7 +690,7 @@ export default function EmailPage() {
       </div>
 
       {/* Divider */}
-      <div className="w-px bg-border flex-shrink-0"></div>
+      <div className="w-[1px] h-full bg-gray-200 dark:bg-gray-700 flex-shrink-0"></div>
 
       {/* Main Content - List or Detail */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -500,7 +699,9 @@ export default function EmailPage() {
             email={selectedEmail}
             onReply={handleReplyEmail}
             onDelete={handleDeleteEmail}
-            onBack={() => setSelectedEmail(null)}
+            onPublish={handlePublishDraft}
+            onToggleStar={handleToggleStar}
+            mailbox={selectedMailbox}
           />
         ) : (
           <>
@@ -511,13 +712,13 @@ export default function EmailPage() {
                 <div className="flex items-center gap-3 flex-1">
                   <Checkbox
                     checked={
-                      selectedEmails.size === emails.length && emails.length > 0
+                      filteredEmails.length > 0 && filteredEmails.every(e => selectedEmails.has(e.id))
                         ? true
-                        : selectedEmails.size > 0
+                        : filteredEmails.some(e => selectedEmails.has(e.id))
                         ? "indeterminate"
                         : false
                     }
-                    onCheckedChange={handleSelectAll}
+                    onCheckedChange={() => handleSelectAll(filteredEmails)}
                     aria-label="انتخاب همه"
                   />
                   <EmailSearch value={searchQuery} onChange={setSearchQuery} />
@@ -527,11 +728,12 @@ export default function EmailPage() {
                 <div className="flex items-center gap-2">
                   <EmailToolbar
                     selectedCount={selectedEmails.size}
-                    totalCount={emails.length}
-                    onSelectAll={handleSelectAll}
+                    totalCount={filteredEmails.length}
+                    onSelectAll={() => handleSelectAll(filteredEmails)}
                     onRefresh={fetchEmails}
                     onMarkAsRead={handleMarkAsRead}
                     onMarkAsUnread={handleMarkAsUnread}
+                    mailbox={selectedMailbox}
                   />
                 </div>
               </div>
@@ -539,10 +741,12 @@ export default function EmailPage() {
 
             {/* Email List */}
             <EmailList
-              emails={emails}
+              emails={filteredEmails}
               selectedEmails={selectedEmails}
               onSelectEmail={handleSelectEmail}
               onEmailClick={handleEmailClick}
+              onToggleStar={handleToggleStar}
+              mailbox={selectedMailbox}
               loading={loading}
             />
           </>
