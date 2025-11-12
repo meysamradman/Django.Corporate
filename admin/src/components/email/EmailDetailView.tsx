@@ -292,7 +292,7 @@ export function EmailDetailView({
             variant="destructive" 
             size="sm" 
             onClick={() => onDelete?.(email)}
-            className="!bg-red-1 hover:!bg-red-2 !text-white border-0"
+            className="!bg-red-1 hover:!bg-red-2 !text-static-w border-0"
           >
             <Trash2 className="size-4" />
             حذف

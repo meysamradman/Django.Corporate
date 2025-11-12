@@ -184,7 +184,7 @@ export function MediaUploadModal({
               <Button 
                 onClick={handleUpload} 
                 disabled={isUploading || files.length === 0}
-                className="bg-primary hover:bg-primary/90 text-white gap-2 font-medium"
+                className="bg-primary hover:bg-primary/90 text-static-w gap-2 font-medium"
               >
                 {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
                 {!isUploading && <Upload className="h-4 w-4" />}
