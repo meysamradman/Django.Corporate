@@ -75,9 +75,9 @@ export default function CreateOptionPage() {
         <CardWithIcon
           icon={Settings}
           title="اطلاعات گزینه"
-          iconBgColor="bg-primary/10"
-          iconColor="stroke-primary"
-          borderColor="border-b-primary"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
           className="hover:shadow-lg transition-all duration-300"
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

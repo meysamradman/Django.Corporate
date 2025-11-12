@@ -168,9 +168,9 @@ export function AIChat() {
             <CardWithIcon
                 icon={MessageSquare}
                 title="چت با AI"
-                iconBgColor="bg-primary/10"
-                iconColor="stroke-primary"
-                borderColor="border-b-primary"
+                iconBgColor="bg-pink"
+                iconColor="stroke-pink-2"
+                borderColor="border-b-pink-1"
                 className="flex flex-col flex-1 flex-shrink-0 overflow-hidden"
                 headerClassName="flex-shrink-0 border-b pb-3"
                 titleExtra={

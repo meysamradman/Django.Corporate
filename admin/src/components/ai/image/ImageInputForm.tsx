@@ -39,7 +39,7 @@ export function ImageInputForm({
 }: ImageInputFormProps) {
     const cardClass = compact 
         ? "border border-border" 
-        : "hover:shadow-lg transition-all duration-300 border-b-4 border-b-primary";
+        : "hover:shadow-lg transition-all duration-300 border-b-4 border-b-pink-1";
     
     const headerClass = compact ? "pb-2" : "pb-3";
     const titleClass = compact ? "text-base" : "";
@@ -51,8 +51,8 @@ export function ImageInputForm({
             {!compact && (
                 <CardHeader className={headerClass}>
                     <CardTitle className={`flex items-center gap-3 ${titleClass}`}>
-                        <div className={`${iconPadding} bg-primary/10 rounded-xl shadow-sm`}>
-                            <Wand2 className={`${iconSize} stroke-primary`} />
+                        <div className={`${iconPadding} bg-pink rounded-xl shadow-sm`}>
+                            <Wand2 className={`${iconSize} stroke-pink-2`} />
                         </div>
                         تولید تصویر با AI
                     </CardTitle>

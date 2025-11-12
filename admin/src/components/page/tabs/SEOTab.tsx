@@ -48,9 +48,9 @@ export function SEOTab({
             <CardWithIcon
                 icon={Search}
                 title="SEO - Meta Tags"
-                iconBgColor="bg-green"
-                iconColor="stroke-green-2"
-                borderColor="border-b-green-1"
+                iconBgColor="bg-emerald"
+                iconColor="stroke-emerald-2"
+                borderColor="border-b-emerald-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
             >
@@ -110,9 +110,9 @@ export function SEOTab({
             <CardWithIcon
                 icon={ImageIcon}
                 title="SEO - Open Graph"
-                iconBgColor="bg-purple"
-                iconColor="stroke-purple-2"
-                borderColor="border-b-purple-1"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
             >

@@ -184,9 +184,9 @@ export default function PanelSettingsForm() {
                 <CardWithIcon
                     icon={FileText}
                     title="اطلاعات پنل"
-                    iconBgColor="bg-green"
-                    iconColor="stroke-green-2"
-                    borderColor="border-b-green-1"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
                     className="hover:shadow-lg transition-all duration-300"
                     headerClassName="pb-3"
                 >

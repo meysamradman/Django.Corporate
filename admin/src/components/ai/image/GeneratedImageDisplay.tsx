@@ -43,9 +43,9 @@ export function GeneratedImageDisplay({
                     )}
                 </>
             }
-            iconBgColor="bg-blue"
-            iconColor="stroke-blue-2"
-            borderColor="border-b-blue-1"
+            iconBgColor="bg-pink"
+            iconColor="stroke-pink-2"
+            borderColor="border-b-pink-1"
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3 border-b"
         >

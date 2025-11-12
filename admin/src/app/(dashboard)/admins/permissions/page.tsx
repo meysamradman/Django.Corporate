@@ -293,9 +293,9 @@ export default function PermissionsManagementPage() {
                     )}
                   </div>
                 }
-                iconBgColor="bg-purple"
-                iconColor="stroke-purple-2"
-                borderColor="border-b-purple-1"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
                 titleExtra={
                   <p className="text-sm text-font-s mt-1">
                     تیک زدن یا برداشتن تیک دسترسی‌ها

@@ -42,9 +42,9 @@ export function SecurityTab() {
             <CardWithIcon
                 icon={Lock}
                 title="امنیت"
-                iconBgColor="bg-red"
-                iconColor="stroke-red-2"
-                borderColor="border-b-red-1"
+                iconBgColor="bg-amber"
+                iconColor="stroke-amber-2"
+                borderColor="border-b-amber-1"
                 className="hover:shadow-lg transition-all duration-300"
             >
                     <div className="space-y-6">

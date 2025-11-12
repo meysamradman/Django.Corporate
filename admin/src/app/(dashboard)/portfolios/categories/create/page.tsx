@@ -188,9 +188,9 @@ export default function CreateCategoryPage() {
             <CardWithIcon
               icon={FolderTree}
               title="اطلاعات دسته‌بندی"
-              iconBgColor="bg-primary/10"
-              iconColor="stroke-primary"
-              borderColor="border-b-primary"
+              iconBgColor="bg-purple"
+              iconColor="stroke-purple-2"
+              borderColor="border-b-purple-1"
               className="hover:shadow-lg transition-all duration-300"
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

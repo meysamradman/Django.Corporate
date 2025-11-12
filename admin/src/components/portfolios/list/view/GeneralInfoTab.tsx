@@ -25,9 +25,9 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
           <CardWithIcon
             icon={FileText}
             title="اطلاعات پایه"
-            iconBgColor="bg-purple"
-            iconColor="stroke-purple-2"
-            borderColor="border-b-purple-1"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
             contentClassName="space-y-6"
           >
               <div className="space-y-4">

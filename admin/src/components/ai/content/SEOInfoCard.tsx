@@ -22,9 +22,9 @@ export function SEOInfoCard({ content, copiedField, onCopy }: SEOInfoCardProps) 
         <CardWithIcon
             icon={FileText}
             title="اطلاعات SEO"
-            iconBgColor="bg-blue"
-            iconColor="stroke-blue-2"
-            borderColor="border-b-blue-1"
+            iconBgColor="bg-emerald"
+            iconColor="stroke-emerald-2"
+            borderColor="border-b-emerald-1"
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3"
         >

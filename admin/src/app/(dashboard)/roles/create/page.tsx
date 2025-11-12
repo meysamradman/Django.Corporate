@@ -348,9 +348,9 @@ export default function CreateRolePage() {
         <CardWithIcon
           icon={User}
           title="اطلاعات پایه"
-          iconBgColor="bg-primary/10"
-          iconColor="stroke-primary"
-          borderColor="border-b-primary"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
           className="hover:shadow-lg transition-all duration-300"
         >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

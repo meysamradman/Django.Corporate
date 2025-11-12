@@ -37,9 +37,9 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
         <CardWithIcon
           icon={Search}
           title="برچسب‌های Meta"
-          iconBgColor="bg-green"
-          iconColor="stroke-green-2"
-          borderColor="border-b-green-1"
+          iconBgColor="bg-emerald"
+          iconColor="stroke-emerald-2"
+          borderColor="border-b-emerald-1"
           contentClassName="space-y-6 pt-6"
         >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
