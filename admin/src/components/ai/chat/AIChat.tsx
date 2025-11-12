@@ -285,7 +285,7 @@ export function AIChat() {
                                     <div
                                         className={`max-w-[80%] rounded-lg px-4 py-2 ${
                                             msg.role === 'user'
-                                                ? 'bg-card text-font-p border border-br'
+                                                ? 'bg-card text-font-p border'
                                                 : 'bg-bg text-font-s'
                                         }`}
                                     >
@@ -316,7 +316,7 @@ export function AIChat() {
                         )}
                         <div ref={messagesEndRef} />
                 </div>
-                <div className="flex-shrink-0 border-t border-br bg-card px-6 pt-4 pb-0">
+                <div className="flex-shrink-0 border-t bg-card px-6 pt-4 pb-0">
                     <div className="relative w-full">
                         <Textarea
                             ref={textareaRef}
@@ -324,7 +324,7 @@ export function AIChat() {
                             onChange={(e) => setMessage(e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder="پیام خود را بنویسید..."
-                            className="min-h-[60px] max-h-[200px] resize-none w-full border-br bg-card pl-32 pr-4 rounded-lg shadow-sm py-4"
+                            className="min-h-[60px] max-h-[200px] resize-none w-full border bg-card pl-32 pr-4 rounded-lg shadow-sm py-4"
                             style={{ paddingTop: '18px', paddingBottom: '18px' }}
                             disabled={sending || !selectedProvider}
                         />

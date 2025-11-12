@@ -106,7 +106,7 @@ export function MediaUploadModal({
         <DialogTitle className="sr-only">آپلود رسانه</DialogTitle>
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-b border-br px-6 py-5">
+        <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-b px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -169,7 +169,7 @@ export function MediaUploadModal({
         
         {/* Footer */}
         {files.length > 0 && (
-          <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t border-br px-6 py-4">
+          <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t px-6 py-4">
             <div className="flex gap-3 justify-between">
               <div className="flex gap-3">
                 <Button 

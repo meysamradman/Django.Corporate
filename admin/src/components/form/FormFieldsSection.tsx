@@ -282,7 +282,7 @@ export function FormFieldsSection() {
                             فیلدی ثبت نشده است
                         </div>
                     ) : (
-                        <div className="rounded-lg border border-br overflow-hidden">
+                        <div className="rounded-lg border overflow-hidden">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-bg/50 hover:bg-bg/50">

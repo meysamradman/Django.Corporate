@@ -261,7 +261,7 @@ export function MediaDetailsModal({
         </DialogDescription>
         
         {/* Header */}
-        <div className="bg-bg/50 border-b border-br px-6 py-4">
+        <div className="bg-bg/50 border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               {getFileTypeIcon()}
@@ -282,10 +282,10 @@ export function MediaDetailsModal({
         {/* Main Content */}
         <div className="flex flex-col lg:flex-row">
           {/* Right Pane - Media Preview */}
-          <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l border-br">
+          <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l">
             <div className="space-y-4">
               {/* Media Preview */}
-              <div className="relative w-full aspect-square lg:aspect-video min-h-[400px] lg:min-h-[500px] bg-bg rounded-lg overflow-hidden border border-br">
+              <div className="relative w-full aspect-square lg:aspect-video min-h-[400px] lg:min-h-[500px] bg-bg rounded-lg overflow-hidden border">
                 {renderMediaContent()}
               </div>
               
@@ -342,7 +342,7 @@ export function MediaDetailsModal({
             ) : (
               <>
                 {/* Metadata Section */}
-                <div className="bg-bg/30 rounded-lg border border-br p-4">
+                <div className="bg-bg/30 rounded-lg border p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="sm:col-span-2 flex gap-2">
                       <span className="font-medium text-font-s shrink-0">نام فایل:</span>
@@ -392,7 +392,7 @@ export function MediaDetailsModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-bg/50 border-t border-br px-6 py-4">
+        <div className="bg-bg/50 border-t px-6 py-4">
           <div className="flex gap-3 justify-between">
             {isEditing ? (
               <>

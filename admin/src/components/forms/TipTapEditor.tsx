@@ -392,7 +392,7 @@ export function TipTapEditor({
           aria-label="افزودن عکس"
         >
           {isUploadingImage ? (
-            <div className="h-4 w-4 border-2 border-br border-t-transparent rounded-full animate-spin" />
+            <div className="h-4 w-4 border-2 border-t-transparent rounded-full animate-spin" />
           ) : (
             <ImageIcon className="h-4 w-4" />
           )}
@@ -486,7 +486,7 @@ export function TipTapEditor({
           {/* Custom Color Picker */}
           <input
             type="color"
-            className="w-6 h-6 border border-br rounded cursor-pointer"
+            className="w-6 h-6 border rounded cursor-pointer"
             onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
             title="انتخاب رنگ کاستوم"
           />

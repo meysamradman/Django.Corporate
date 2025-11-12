@@ -87,7 +87,7 @@ export function FileDropzone({ onFilesAdded, allowedTypes, disabled = false }: F
             : "cursor-pointer bg-bg/30",
           isDragging && !disabled
             ? "border-primary bg-primary/10 scale-[1.02] shadow-lg" 
-            : "border-br hover:border-primary/50 hover:bg-bg/40 hover:shadow-md"
+            : "hover:border-primary/50 hover:bg-bg/40 hover:shadow-md"
         )}
       >
         <div className={cn(

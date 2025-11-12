@@ -127,7 +127,7 @@ export function GeneralInfoTab({ portfolio }: GeneralInfoTabProps) {
                 )}
               </div>
 
-              <div className="space-y-3 pt-4 border-t border-br">
+              <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center justify-between">
                   <span>وضعیت انتشار</span>
                   <Badge

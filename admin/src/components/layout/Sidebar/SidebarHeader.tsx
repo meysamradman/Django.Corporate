@@ -24,7 +24,7 @@ export function SidebarHeader({
   const title = getTitle();
 
   return (
-    <div className="relative flex h-16 items-center justify-between px-4 border-b border-br">
+    <div className="relative flex h-16 items-center justify-between px-4 border-b">
       {/* Section Title - positioned based on RTL */}
       <div className={cn(
         "flex-1",
@@ -47,7 +47,7 @@ export function SidebarHeader({
             onClick={onContentToggle}
             className={cn(
               "flex items-center justify-center w-6 h-6 rounded-full",
-              "bg-sidebar border border-br shadow-xl",
+              "bg-sidebar border shadow-xl",
               "hover:bg-sidebar-accent transition-colors",
               "focus:outline-none focus:ring-2 focus:ring-ring"
             )}

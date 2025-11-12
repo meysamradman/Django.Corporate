@@ -145,7 +145,7 @@ export function Sidebar({
         "fixed top-0 z-50 h-screen bg-sdb",
         "flex overflow-hidden transition-all duration-300 ease-in-out",
         "lg:z-40",
-        "right-0 border-l border-br",
+        "right-0 border-l",
         isContentCollapsed ? "w-14" : "w-80",
         isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0",
         className
@@ -154,7 +154,7 @@ export function Sidebar({
     const iconStripClasses = cn(
         "sidebar-icons",
         "bg-sidebar flex flex-col w-14 shrink-0",
-        "border-l border-br"
+        "border-l"
     );
 
     return (
@@ -172,7 +172,7 @@ export function Sidebar({
                     <nav className="flex-1 overflow-y-auto">
                         <NavMain groups={menuData.groups} onIconClick={handleIconClick} onLinkClick={onToggle}/>
                     </nav>
-                    <div className="h-16 flex items-center justify-center border-t border-br">
+                    <div className="h-16 flex items-center justify-center border-t">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button

@@ -135,7 +135,7 @@ export function PaginationControls({
             value={String(pageSize)}
             onValueChange={(value) => onPageSizeChange(parseInt(value, 10))}
           >
-            <SelectTrigger className="h-8 w-[70px] border border-br rounded-md">
+            <SelectTrigger className="h-8 w-[70px] border rounded-md">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent side="top">

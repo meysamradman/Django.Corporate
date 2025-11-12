@@ -20,7 +20,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSubMenu }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 min-h-16 items-center justify-between gap-4 border-b border-br bg-header px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 min-h-16 items-center justify-between gap-4 border-b bg-header px-4 sm:px-6">
       {/* Left side: Toggles + Breadcrumb (grows) */}
       <div className="flex flex-1 items-center gap-2 min-w-0 sm:gap-4">
         {/* Mobile Menu Toggle */}

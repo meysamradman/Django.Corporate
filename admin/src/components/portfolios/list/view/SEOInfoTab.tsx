@@ -49,7 +49,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                   <FileText className="w-4 h-4" />
                   عنوان متا (Meta Title)
                 </label>
-                <div className="p-4 bg-bg/50 rounded-lg border border-br hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                   {metaTitle ? (
                     <div className="font-medium text-font-p line-clamp-2">
                       {metaTitle}
@@ -68,7 +68,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                   <FileText className="w-4 h-4" />
                   توضیحات متا (Meta Description)
                 </label>
-                <div className="p-4 bg-bg/50 rounded-lg border border-br hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                   {metaDescription ? (
                     <div className="text-font-p line-clamp-3">
                       {metaDescription}
@@ -87,7 +87,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                   <ExternalLink className="w-4 h-4" />
                   آدرس Canonical
                 </label>
-                <div className="p-4 bg-bg/50 rounded-lg border border-br hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                   {portfolio.canonical_url ? (
                     <div className="font-mono text-sm text-font-p break-all">
                       {portfolio.canonical_url}
@@ -106,7 +106,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                   <Bot className="w-4 h-4" />
                   Robots Meta
                 </label>
-                <div className="p-4 bg-bg/50 rounded-lg border border-br hover:bg-bg/70 transition-colors min-h-[60px] flex items-center">
+                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-center">
                   {portfolio.robots_meta ? (
                     <Badge variant="blue" className="font-mono">
                       {portfolio.robots_meta}
@@ -138,7 +138,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                     <FileText className="w-4 h-4" />
                     عنوان Open Graph
                   </label>
-                  <div className="p-4 bg-bg/50 rounded-lg border border-br hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                  <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                     {ogTitle ? (
                       <div className="font-medium text-font-p line-clamp-2">
                         {ogTitle}
@@ -156,7 +156,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                     <FileText className="w-4 h-4" />
                     توضیحات Open Graph
                   </label>
-                  <div className="p-4 bg-bg/50 rounded-lg border border-br hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                  <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                     {ogDescription ? (
                       <div className="text-font-p line-clamp-3">
                         {ogDescription}
@@ -177,7 +177,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                   تصویر Open Graph (OG Image)
                 </label>
                 {ogImageUrl ? (
-                  <div className="relative aspect-video rounded-lg overflow-hidden border border-br shadow-md group hover:shadow-lg transition-all duration-300 bg-bg/20">
+                  <div className="relative aspect-video rounded-lg overflow-hidden border shadow-md group hover:shadow-lg transition-all duration-300 bg-bg/20">
                     <MediaImage
                       media={{ file_url: ogImageUrl } as any}
                       alt="OG Image Preview"
@@ -194,7 +194,7 @@ export function SEOInfoTab({ portfolio }: SEOInfoTabProps) {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative aspect-video rounded-lg border-2 border-dashed border-br bg-bg/30 flex items-center justify-center group hover:bg-bg/50 transition-colors">
+                  <div className="relative aspect-video rounded-lg border-2 border-dashed bg-bg/30 flex items-center justify-center group hover:bg-bg/50 transition-colors">
                     <div className="text-center space-y-2">
                       <div className="inline-flex p-3 bg-bg rounded-full">
                         <ImageIcon className="w-6 h-6 text-font-s" />

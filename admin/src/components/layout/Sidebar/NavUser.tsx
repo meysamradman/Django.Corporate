@@ -65,7 +65,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
   return (
     <div className={cn("flex items-center space-x-2 space-x-reverse", className)}>
       <Avatar className={cn(
-        "border-2 border-br",
+        "border-2",
         size === 'sm' && "h-8 w-8",
         size === 'md' && "h-10 w-10",
         size === 'lg' && "h-12 w-12"

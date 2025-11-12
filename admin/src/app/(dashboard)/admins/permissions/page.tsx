@@ -246,7 +246,7 @@ export default function PermissionsManagementPage() {
                       className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                         selectedRole?.id === role.id
                           ? 'border-primary bg-primary/5'
-                          : 'border-br hover:border-primary/50 hover:bg-bg/50'
+                          : 'hover:border-primary/50 hover:bg-bg/50'
                       }`}
                       onClick={() => {
                         setSelectedRole(role);
@@ -321,7 +321,7 @@ export default function PermissionsManagementPage() {
                             <div
                               key={permission.id}
                               className={`p-3 rounded-lg border transition-all ${
-                                isModified ? 'border-yellow-1 bg-yellow' : 'border-br'
+                                isModified ? 'border-yellow-1 bg-yellow' : ''
                               }`}
                             >
                               <div className="flex items-center space-x-2 space-x-reverse">

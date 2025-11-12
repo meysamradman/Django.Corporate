@@ -251,7 +251,7 @@ export function PersianDatePicker({
                   isSelected 
                     ? "bg-primary text-static-w" 
                     : isToday
-                      ? "bg-bg text-font-p border border-br"
+                      ? "bg-bg text-font-p border"
                       : isCurrentMonth
                         ? "hover:bg-bg"
                         : "text-font-s"

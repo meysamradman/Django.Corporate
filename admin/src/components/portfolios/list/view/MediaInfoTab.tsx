@@ -44,7 +44,7 @@ export function MediaInfoTab({ portfolio }: MediaInfoTabProps) {
           return (
             <div
               key={item.id}
-              className="relative aspect-square border border-br rounded-lg overflow-hidden group cursor-pointer hover:border-primary transition-all shadow-sm hover:shadow-md"
+              className="relative aspect-square border rounded-lg overflow-hidden group cursor-pointer hover:border-primary transition-all shadow-sm hover:shadow-md"
             >
               {fullUrl ? (
                 <MediaImage

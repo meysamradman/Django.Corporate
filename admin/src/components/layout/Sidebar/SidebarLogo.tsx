@@ -14,7 +14,7 @@ export function SidebarLogo() {
   const logoUrl = logoPath ? mediaService.getMediaUrlFromObject({ file_url: logoPath } as any) : null;
 
   return (
-    <div className="h-16 flex items-center justify-center border-b border-br">
+    <div className="h-16 flex items-center justify-center border-b">
       {logoUrl ? (
         <div className="w-10 h-10 relative overflow-hidden rounded-md">
           <Image

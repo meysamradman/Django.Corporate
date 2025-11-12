@@ -306,7 +306,7 @@ export function MediaLibraryModal({
 
           {/* Tabs */}
           {showTabs && (
-            <div className="border-b border-br">
+            <div className="border-b">
               <div className="flex space-x-1 px-4 py-2">
                 <Button
                   variant={currentActiveTab === "select" ? "default" : "outline"}
@@ -376,7 +376,7 @@ export function MediaLibraryModal({
 
               {/* Upload Footer */}
               {files.length > 0 && (
-                <div className="bg-bg/50 border-t border-br px-6 py-4">
+                <div className="bg-bg/50 border-t px-6 py-4">
                   <div className="flex gap-3 justify-between">
                     <div className="flex gap-3">
                       <Button variant="outline" onClick={() => handleTabChange("select")} disabled={isUploading}>

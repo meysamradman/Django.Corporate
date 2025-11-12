@@ -83,7 +83,7 @@ export function ProviderSelector({
                             relative p-4 rounded-lg border-2 cursor-pointer transition-all
                             ${isSelected 
                                 ? 'border-primary bg-primary/5 shadow-md' 
-                                : 'border-br hover:border-primary/50 hover:shadow-sm bg-card'
+                                : 'hover:border-primary/50 hover:shadow-sm bg-card'
                             }
                         `}
                     >

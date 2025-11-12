@@ -99,7 +99,7 @@ export function FileItem({
   };
 
   return (
-    <div className="border border-br rounded-xl p-5 bg-card hover:shadow-lg transition-all duration-200 flex flex-col gap-5">
+    <div className="border rounded-xl p-5 bg-card hover:shadow-lg transition-all duration-200 flex flex-col gap-5">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
           <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-primary border border-primary/20">
@@ -168,7 +168,7 @@ export function FileItem({
         <div className="space-y-5">
           {!needsCover ? (
             <>
-              <div className="relative w-full h-64 bg-bg/30 rounded-lg overflow-hidden border border-br shadow-sm">
+              <div className="relative w-full h-64 bg-bg/30 rounded-lg overflow-hidden border shadow-sm">
                 {renderFilePreview()}
               </div>
 
@@ -205,7 +205,7 @@ export function FileItem({
           ) : (
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative w-full h-48 bg-bg/30 rounded-lg overflow-hidden border border-br shadow-sm">
+                <div className="relative w-full h-48 bg-bg/30 rounded-lg overflow-hidden border shadow-sm">
                   {renderFilePreview()}
                 </div>
 
@@ -221,7 +221,7 @@ export function FileItem({
                   />
                   
                   {file.coverFile ? (
-                    <div className="relative w-full h-48 bg-bg/30 rounded-lg overflow-hidden border border-br shadow-sm group">
+                    <div className="relative w-full h-48 bg-bg/30 rounded-lg overflow-hidden border shadow-sm group">
                       <img 
                         src={URL.createObjectURL(file.coverFile)}
                         alt="کاور"
@@ -241,7 +241,7 @@ export function FileItem({
                   ) : (
                     <div 
                       onClick={handleCoverFileSelectClick}
-                      className="border-2 border-dashed border-br rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-gradient-to-br hover:from-primary/5 hover:to-transparent transition-all duration-200 group"
+                      className="border-2 border-dashed rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-gradient-to-br hover:from-primary/5 hover:to-transparent transition-all duration-200 group"
                     >
                       <div className="w-16 h-16 rounded-full bg-bg flex items-center justify-center mb-3 group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-200">
                         <Plus className="h-8 w-8 text-font-s group-hover:text-primary transition-colors" />
