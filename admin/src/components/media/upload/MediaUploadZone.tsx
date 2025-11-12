@@ -81,22 +81,31 @@ export function FileDropzone({ onFilesAdded, allowedTypes, disabled = false }: F
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center transition-colors",
+          "border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center transition-all duration-200",
           disabled
-            ? "cursor-not-allowed opacity-50"
-            : "cursor-pointer",
+            ? "cursor-not-allowed opacity-50 bg-bg/20"
+            : "cursor-pointer bg-bg/30",
           isDragging && !disabled
-            ? "border-primary bg-primary/5" 
-            : "border-border hover:border-primary/50 hover:bg-bg/50"
+            ? "border-primary bg-primary/10 scale-[1.02] shadow-lg" 
+            : "border-br hover:border-primary/50 hover:bg-bg/40 hover:shadow-md"
         )}
       >
-        <Upload className={cn(
-          "h-10 w-10 mb-4",
-          disabled ? "text-font-s/50" : "text-font-s"
-        )} />
+        <div className={cn(
+          "w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-all duration-200",
+          disabled 
+            ? "bg-bg/50" 
+            : isDragging 
+            ? "bg-primary/20 scale-110" 
+            : "bg-primary/10 group-hover:bg-primary/20"
+        )}>
+          <Upload className={cn(
+            "h-8 w-8 transition-colors",
+            disabled ? "text-font-s/50" : isDragging ? "text-primary" : "text-font-p"
+          )} />
+        </div>
         <p className={cn(
-          "text-center mb-1",
-          disabled ? "text-font-s/50" : "text-font-s"
+          "text-center font-medium mb-1 transition-colors",
+          disabled ? "text-font-s/50" : isDragging ? "text-primary font-semibold" : "text-font-p"
         )}>
           {isDragging && !disabled
             ? "فایل‌ها را اینجا رها کنید..." 
@@ -104,7 +113,11 @@ export function FileDropzone({ onFilesAdded, allowedTypes, disabled = false }: F
             ? "در حال آپلود..."
             : "فایل‌ها را اینجا بکشید و رها کنید، یا کلیک کنید"}
         </p>
-
+        {!disabled && !isDragging && (
+          <p className="text-xs text-font-s mt-2">
+            فرمت‌های پشتیبانی شده: تصویر، ویدیو، صوتی، سند
+          </p>
+        )}
       </div>
     </>
   );

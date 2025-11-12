@@ -341,7 +341,7 @@ export default function MediaPage() {
       )}
 
         <Card className="gap-0 shadow-sm border-0">
-          <CardHeader className="border-b border-border">
+          <CardHeader className="border-b border-br">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
@@ -507,7 +507,7 @@ export default function MediaPage() {
           </CardContent>
 
           {!isLoading && mediaItems.length > 0 && (
-            <CardFooter className="border-t border-border">
+            <CardFooter className="border-t border-br">
               <PaginationControls
                 currentPage={filters.page || 1}
                 totalPages={Math.ceil(totalCount / (filters.size ?? DEFAULT_MEDIA_PAGE_SIZE))}

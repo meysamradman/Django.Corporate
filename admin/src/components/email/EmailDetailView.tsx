@@ -107,7 +107,7 @@ export function EmailDetailView({
   return (
     <div className="w-full h-full flex flex-col overflow-hidden bg-card">
       {/* Header */}
-      <div className="border-b border-border p-4 flex-shrink-0">
+      <div className="border-b border-br p-4 flex-shrink-0">
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="size-12 shrink-0">
             <AvatarImage 
@@ -177,7 +177,7 @@ export function EmailDetailView({
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {/* Attachments */}
         {email.has_attachments && email.attachments && email.attachments.length > 0 && (
-          <div className="border-b border-border pb-4 mb-4">
+          <div className="border-b border-br pb-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Paperclip className="size-4 text-font-s" />
               <span className="text-sm font-semibold">پیوست‌ها ({email.attachments.length})</span>
@@ -208,7 +208,7 @@ export function EmailDetailView({
 
         {/* Reply Section */}
         {email.reply_message && (
-          <div className="border-t border-border pt-4 mt-4">
+          <div className="border-t border-br pt-4 mt-4">
             <div className="bg-bg/50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Reply className="size-4 text-primary" />
@@ -225,7 +225,7 @@ export function EmailDetailView({
         )}
 
         {/* Metadata */}
-        <div className="border-t border-border pt-4 mt-4">
+        <div className="border-t border-br pt-4 mt-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-font-s">شناسه:</span>
@@ -260,7 +260,7 @@ export function EmailDetailView({
       </div>
 
       {/* Footer Actions */}
-      <div className="border-t border-border px-4 py-3 flex items-center justify-between flex-shrink-0">
+      <div className="border-t border-br px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           {onToggleStar && mailbox !== "spam" && mailbox !== "trash" && (
             <Button 

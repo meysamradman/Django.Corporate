@@ -106,17 +106,20 @@ export function MediaUploadModal({
         <DialogTitle className="sr-only">آپلود رسانه</DialogTitle>
         
         {/* Header */}
-        <div className="bg-bg/50 border-b border-border px-6 py-4">
+        <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-b border-br px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <h3 className="text-lg font-semibold">آپلود رسانه</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Upload className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-font-p">آپلود رسانه</h3>
             </div>
             <div className="flex items-center">
               <DialogClose asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10"
+                  className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -126,7 +129,7 @@ export function MediaUploadModal({
         </div>
         
         {/* Content */}
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-6">
           {/* File Dropzone */}
           <div className="px-6">
             <FileDropzone 
@@ -138,12 +141,12 @@ export function MediaUploadModal({
 
           {/* Progress Bar */}
           {isUploading && (
-            <div className="px-6 space-y-2">
-              <div className="flex justify-between text-sm text-font-s">
-                <span>در حال آپلود...</span>
-                <span>{Math.round(uploadProgress)}%</span>
+            <div className="px-6 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-font-p font-medium">در حال آپلود...</span>
+                <span className="text-font-s font-semibold">{Math.round(uploadProgress)}%</span>
               </div>
-              <Progress value={uploadProgress} className="h-2" />
+              <Progress value={uploadProgress} className="h-2.5" />
             </div>
           )}
 
@@ -166,19 +169,25 @@ export function MediaUploadModal({
         
         {/* Footer */}
         {files.length > 0 && (
-          <div className="bg-bg/50 border-t border-border px-6 py-4">
+          <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t border-br px-6 py-4">
             <div className="flex gap-3 justify-between">
               <div className="flex gap-3">
-                <Button variant="outline" onClick={handleClose} disabled={isUploading}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleClose} 
+                  disabled={isUploading}
+                  className="hover:bg-font-s/10"
+                >
                   انصراف
                 </Button>
               </div>
               <Button 
                 onClick={handleUpload} 
                 disabled={isUploading || files.length === 0}
-                className="flex gap-2"
+                className="bg-primary hover:bg-primary/90 text-white gap-2 font-medium"
               >
-                {isUploading && <Loader2 className="animate-spin" />}
+                {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {!isUploading && <Upload className="h-4 w-4" />}
                 {isUploading ? "در حال آپلود..." : `آپلود ${files.length} فایل`}
               </Button>
             </div>

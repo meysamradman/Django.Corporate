@@ -1,6 +1,8 @@
 "use client";
 
-import { env } from '@/core/config/environment';
+import { mediaConfig, MediaType } from '@/core/config/media';
+
+export type { MediaType };
 
 export interface UploadSettings {
     MEDIA_IMAGE_SIZE_LIMIT: number;
@@ -13,26 +15,31 @@ export interface UploadSettings {
     MEDIA_DOCUMENT_SIZE_LIMIT: number;
 }
 
-export type MediaType = 'image' | 'video' | 'audio' | 'document';
-
+/**
+ * دریافت تنظیمات آپلود از core/config/media
+ * این تابع برای سازگاری با کدهای موجود است
+ */
 export const getUploadSettings = (): UploadSettings => {
     return {
-        MEDIA_IMAGE_SIZE_LIMIT: env.MEDIA_IMAGE_SIZE_LIMIT,
-        MEDIA_ALLOWED_IMAGE_EXTENSIONS: env.MEDIA_IMAGE_EXTENSIONS,
-        MEDIA_ALLOWED_VIDEO_EXTENSIONS: env.MEDIA_VIDEO_EXTENSIONS,
-        MEDIA_ALLOWED_AUDIO_EXTENSIONS: env.MEDIA_AUDIO_EXTENSIONS,
-        MEDIA_ALLOWED_PDF_EXTENSIONS: env.MEDIA_PDF_EXTENSIONS,
-        MEDIA_VIDEO_SIZE_LIMIT: env.MEDIA_VIDEO_SIZE_LIMIT,
-        MEDIA_AUDIO_SIZE_LIMIT: env.MEDIA_AUDIO_SIZE_LIMIT,
-        MEDIA_DOCUMENT_SIZE_LIMIT: env.MEDIA_PDF_SIZE_LIMIT,
+        MEDIA_IMAGE_SIZE_LIMIT: mediaConfig.sizeLimits.image,
+        MEDIA_ALLOWED_IMAGE_EXTENSIONS: [...mediaConfig.allowedExtensions.image],
+        MEDIA_VIDEO_SIZE_LIMIT: mediaConfig.sizeLimits.video,
+        MEDIA_ALLOWED_VIDEO_EXTENSIONS: [...mediaConfig.allowedExtensions.video],
+        MEDIA_AUDIO_SIZE_LIMIT: mediaConfig.sizeLimits.audio,
+        MEDIA_ALLOWED_AUDIO_EXTENSIONS: [...mediaConfig.allowedExtensions.audio],
+        MEDIA_DOCUMENT_SIZE_LIMIT: mediaConfig.sizeLimits.document,
+        MEDIA_ALLOWED_PDF_EXTENSIONS: [...mediaConfig.allowedExtensions.document],
     };
 };
 
+/**
+ * دریافت تنظیمات آپلود (chunk size, timeout, etc.)
+ */
 export const getUploadConfig = () => ({
-    chunkSize: env.UPLOAD_CHUNK_SIZE,
-    timeout: env.UPLOAD_TIMEOUT,
-    maxParallelUploads: env.MAX_PARALLEL_UPLOADS,
-    showProgress: env.SHOW_UPLOAD_PROGRESS,
+    chunkSize: mediaConfig.uploadConfig.chunkSize,
+    timeout: mediaConfig.uploadConfig.timeout,
+    maxParallelUploads: mediaConfig.uploadConfig.maxParallelUploads,
+    showProgress: mediaConfig.uploadConfig.showProgress,
 });
 
 export const clearCache = (): void => {

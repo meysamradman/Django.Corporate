@@ -120,7 +120,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                         <Button
                             variant="outline"
                             size="sm"
-                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 border-border hover:bg-bg transition-colors"
+                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 border-br hover:bg-bg transition-colors"
                             onClick={() => setShowMediaSelector(true)}
                         >
                             <Camera className="h-3 w-3" />

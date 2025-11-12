@@ -246,7 +246,7 @@ export default function PermissionsManagementPage() {
                       className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                         selectedRole?.id === role.id
                           ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50 hover:bg-bg/50'
+                          : 'border-br hover:border-primary/50 hover:bg-bg/50'
                       }`}
                       onClick={() => {
                         setSelectedRole(role);

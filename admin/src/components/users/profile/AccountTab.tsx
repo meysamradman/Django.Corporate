@@ -234,10 +234,10 @@ export function AccountTab({
                                 </div>
                                 <div className="relative my-6">
                                     <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-border/50"></div>
+                                        <div className="w-full border-t border-br/50"></div>
                                     </div>
                                     <div className="relative flex justify-center">
-                                        <div className="bg-card px-3 py-1 rounded-full border border-border/50 shadow-sm">
+                                        <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
                                             <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
                                         </div>
                                     </div>

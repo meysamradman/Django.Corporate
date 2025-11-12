@@ -94,7 +94,7 @@ export default function LogoUploader({
                         <Button
                             variant="outline"
                             size="sm"
-                            className="absolute -top-1 -left-1 h-7 w-7 rounded-full border border-border bg-card p-0 transition-colors hover:bg-destructive hover:text-static-w"
+                            className="absolute -top-1 -left-1 h-7 w-7 rounded-full border border-br bg-card p-0 transition-colors hover:bg-destructive hover:text-static-w"
                             onClick={handleRemoveImage}
                             type="button"
                         >
@@ -105,7 +105,7 @@ export default function LogoUploader({
                     <Button
                         variant="outline"
                         size={buttonSize[size]}
-                        className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border border-border bg-card p-0 transition-colors hover:bg-bg"
+                        className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border border-br bg-card p-0 transition-colors hover:bg-bg"
                         onClick={() => setShowMediaSelector(true)}
                         type="button"
                     >

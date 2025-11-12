@@ -2,7 +2,7 @@
 
 import { Media } from '@/types/shared/media';
 import { MediaType } from './config';
-import { env } from '@/core/config/environment';
+import { mediaConfig } from '@/core/config/media';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -41,10 +41,10 @@ export const getFileCategory = (input: File | Media): MediaType => {
         }
     }
 
-    if (env.MEDIA_IMAGE_EXTENSIONS.includes(ext)) return 'image';
-    if (env.MEDIA_VIDEO_EXTENSIONS.includes(ext)) return 'video';
-    if (env.MEDIA_AUDIO_EXTENSIONS.includes(ext)) return 'audio';
-    if (env.MEDIA_PDF_EXTENSIONS.includes(ext)) return 'document';
+    if (mediaConfig.isExtensionAllowed(ext, 'image')) return 'image';
+    if (mediaConfig.isExtensionAllowed(ext, 'video')) return 'video';
+    if (mediaConfig.isExtensionAllowed(ext, 'audio')) return 'audio';
+    if (mediaConfig.isExtensionAllowed(ext, 'document')) return 'document';
 
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType.startsWith('video/')) return 'video';
@@ -55,75 +55,33 @@ export const getFileCategory = (input: File | Media): MediaType => {
 };
 
 export const getImageAcceptTypes = (): string => {
-    return env.MEDIA_IMAGE_EXTENSIONS.map(ext => `.${ext}`).join(',');
+    return mediaConfig.getAcceptTypes('image');
 };
 
 export const getVideoAcceptTypes = (): string => {
-    return env.MEDIA_VIDEO_EXTENSIONS.map(ext => `.${ext}`).join(',');
+    return mediaConfig.getAcceptTypes('video');
 };
 
 export const getAudioAcceptTypes = (): string => {
-    return env.MEDIA_AUDIO_EXTENSIONS.map(ext => `.${ext}`).join(',');
+    return mediaConfig.getAcceptTypes('audio');
 };
 
 export const getDocumentAcceptTypes = (): string => {
-    return env.MEDIA_PDF_EXTENSIONS.map(ext => `.${ext}`).join(',');
+    return mediaConfig.getAcceptTypes('document');
 };
 
 export const validateFileSize = (file: File, type: MediaType): boolean => {
-    let maxSize: number;
-    switch (type) {
-        case 'image':
-            maxSize = env.MEDIA_IMAGE_SIZE_LIMIT;
-            break;
-        case 'video':
-            maxSize = env.MEDIA_VIDEO_SIZE_LIMIT;
-            break;
-        case 'audio':
-            maxSize = env.MEDIA_AUDIO_SIZE_LIMIT;
-            break;
-        case 'document':
-            maxSize = env.MEDIA_PDF_SIZE_LIMIT;
-            break;
-        default:
-            return false;
-    }
-    
+    const maxSize = mediaConfig.getMediaSizeLimit(type);
     return file.size <= maxSize;
 };
 
 export const validateFileType = (file: File, type: MediaType): boolean => {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    
-    let allowedExtensions: string[];
-    switch (type) {
-        case 'image':
-            allowedExtensions = env.MEDIA_IMAGE_EXTENSIONS;
-            break;
-        case 'video':
-            allowedExtensions = env.MEDIA_VIDEO_EXTENSIONS;
-            break;
-        case 'audio':
-            allowedExtensions = env.MEDIA_AUDIO_EXTENSIONS;
-            break;
-        case 'document':
-            allowedExtensions = env.MEDIA_PDF_EXTENSIONS;
-            break;
-        default:
-            return false;
-    }
-    
-    return allowedExtensions.includes(ext);
+    return mediaConfig.isExtensionAllowed(ext, type);
 };
 
 const getMaxSizeForCategory = (category: MediaType): number => {
-    switch (category) {
-        case 'image': return env.MEDIA_IMAGE_SIZE_LIMIT;
-        case 'video': return env.MEDIA_VIDEO_SIZE_LIMIT;
-        case 'audio': return env.MEDIA_AUDIO_SIZE_LIMIT;
-        case 'document': return env.MEDIA_PDF_SIZE_LIMIT;
-        default: return env.MEDIA_PDF_SIZE_LIMIT;
-    }
+    return mediaConfig.getMediaSizeLimit(category);
 };
 
 export const formatBytes = (bytes: number): string => {

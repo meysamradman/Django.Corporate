@@ -46,7 +46,7 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
   return (
     <aside className="w-full flex flex-col h-full overflow-hidden">
       {/* Compose Button */}
-      <div className="p-5 border-b border-border flex-shrink-0">
+      <div className="p-5 border-b border-br flex-shrink-0">
         <Button className="w-full" onClick={onComposeClick}>
           <span>ایجاد ایمیل</span>
         </Button>

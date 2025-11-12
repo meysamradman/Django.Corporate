@@ -38,7 +38,7 @@ export function ImageInputForm({
     compact = false,
 }: ImageInputFormProps) {
     const cardClass = compact 
-        ? "border border-border" 
+        ? "border border-br" 
         : "hover:shadow-lg transition-all duration-300 border-b-4 border-b-pink-1";
     
     const headerClass = compact ? "pb-2" : "pb-3";

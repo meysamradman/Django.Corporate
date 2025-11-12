@@ -64,7 +64,7 @@ export function MediaPreview({
   return (
     <div
       className={cn(
-        "relative group cursor-pointer overflow-hidden rounded-lg border border-border transition-all duration-300 hover:shadow-lg hover:scale-105",
+        "relative group cursor-pointer overflow-hidden rounded-lg border border-br transition-all duration-300 hover:shadow-lg hover:scale-105",
         getMediaBgColor(),
         className
       )}

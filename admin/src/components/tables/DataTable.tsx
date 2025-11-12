@@ -177,7 +177,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
 
   return (
     <Card 
-      className="gap-0 shadow-sm border border-border hover:shadow-lg transition-all duration-300"
+      className="gap-0 shadow-sm border border-br hover:shadow-lg transition-all duration-300"
       data-table="portfolio-table"
     >
       <CardHeader className="border-b">
