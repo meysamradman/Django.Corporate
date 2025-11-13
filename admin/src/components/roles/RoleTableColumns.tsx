@@ -1,7 +1,7 @@
 /**
  * رنگ‌های استاندارد Badge:
- * - سیستمی: yellow
- * - سفارشی: green
+ * - سیستمی: default (blue/primary)
+ * - سفارشی: outline
  */
 "use client";
 
@@ -97,9 +97,9 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
         return (
           <div className="table-badge-container">
             {isSystemRole ? (
-              <Badge variant="yellow">سیستمی</Badge>
+              <Badge variant="default">سیستمی</Badge>
             ) : (
-              <Badge variant="green">سفارشی</Badge>
+              <Badge variant="outline">سفارشی</Badge>
             )}
           </div>
         );
