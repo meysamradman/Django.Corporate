@@ -91,61 +91,58 @@ export const GetMediaUrl = (mediaType: string, fileName: string): string => {
     return handler ? handler(fileName) : `${env.MEDIA_BASE_URL}/${fileName}`;
 };
 
-export const GetFullMediaUrl = (relativeUrl: string): string => {
-  // If it's already a full URL, return as is
-  if (relativeUrl.startsWith('http')) {
-    return relativeUrl;
+const buildMediaUrl = (path: string | null | undefined): string => {
+  if (!path) return '';
+  
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
   }
   
-  // حالا که .env درست شده، فقط ترکیب می‌کنیم
-  // env.MEDIA_BASE_URL = http://localhost:8000
-  // relativeUrl = /media/image/2025/...
-  return `${env.MEDIA_BASE_URL}${relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${env.MEDIA_BASE_URL}${cleanPath}`;
 };
 
-export const GetMediaUrlFromObject = (media: Media): string => {
+export const GetFullMediaUrl = (relativeUrl: string | null | undefined): string => {
+  return buildMediaUrl(relativeUrl);
+};
+
+export const GetMediaUrlFromObject = (media: Media | null): string => {
     if (!media) return '';
     
-    // If file_url exists, use it and convert to full URL
     if (media.file_url) {
-        return GetFullMediaUrl(media.file_url);
+        return buildMediaUrl(media.file_url);
     }
     
-    // Fallback: try to construct URL from file_name or title
     if (media.media_type === 'image' && (media.title || media.file_name)) {
         const fileName = media.file_name || media.title;
-        return GetFullMediaUrl(GetImageUrl(fileName));
+        return buildMediaUrl(GetImageUrl(fileName));
     }
     
     return '';
 };
 
-export const GetMediaCoverUrl = (media: Media): string => {
-    // First check if media has a cover_image_url property (from API response)
+export const GetMediaCoverUrl = (media: Media | null): string => {
+    if (!media) return '';
+    
     if (media.cover_image_url) {
-        return GetFullMediaUrl(media.cover_image_url);
+        return buildMediaUrl(media.cover_image_url);
     }
     
-    // Then check cover_image.file_url (nested object)
     if (media?.cover_image && typeof media.cover_image === 'object' && 'file_url' in media.cover_image) {
         const coverUrl = (media.cover_image as Media).file_url;
         if (coverUrl) {
-            return GetFullMediaUrl(coverUrl);
+            return buildMediaUrl(coverUrl);
         }
     }
     
-    // Then check if cover_image is a string URL
     if (typeof media?.cover_image === 'string') {
-        return GetFullMediaUrl(media.cover_image);
+        return buildMediaUrl(media.cover_image);
     }
     
-    // For videos and audio, if no cover is set, return empty string
-    // We should not fallback to the main file URL as it's not an image
     if (media.media_type === 'video' || media.media_type === 'audio' || media.media_type === 'pdf' || media.media_type === 'document') {
         return '';
     }
     
-    // For images, fallback to the main file URL
     if (media.media_type === 'image') {
         return GetMediaUrlFromObject(media);
     }

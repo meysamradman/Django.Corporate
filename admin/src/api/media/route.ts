@@ -28,49 +28,56 @@ export const mediaApi = {
             cache?: RequestCache;
             revalidate?: number | false;
             cookieHeader?: string;
+            forceRefresh?: boolean;
         }
     ): Promise<ApiResponse<Media[]>> => {
         try {
             const safeFilters: Partial<MediaFilter> = filters ? { ...filters } : {};
 
-            // Normalize pagination parameters
             const normalizedParams = normalizePaginationParams(
                 { page: safeFilters.page, size: safeFilters.size },
                 DEFAULT_MEDIA_PAGE_SIZE,
                 VALID_MEDIA_PAGE_SIZES
             );
             
-            // Build query parameters
             const queryParams = new URLSearchParams();
             if (safeFilters) {
                 Object.entries(safeFilters).forEach(([key, value]) => {
                     if (value !== undefined && value !== null && value !== '') {
-                        // Skip page/size and use limit/offset instead
                         if (key === 'page' || key === 'size') return;
-                        // For file_type, we need to handle 'all' case
                         if (key === 'file_type' && value === 'all') return;
                         queryParams.append(key, String(value));
                     }
                 });
                 
-                // Add limit and offset for Django REST Framework pagination
-                // Django REST Framework uses limit/offset pagination by default
                 if (safeFilters.size) {
                     queryParams.append('limit', String(safeFilters.size));
                 } else {
                     queryParams.append('limit', String(DEFAULT_MEDIA_PAGE_SIZE));
                 }
                 
-                // Calculate offset based on page and size
                 const pageSize = safeFilters.size || DEFAULT_MEDIA_PAGE_SIZE;
                 const page = safeFilters.page || 1;
                 const offset = (page - 1) * pageSize;
                 queryParams.append('offset', String(offset));
             }
 
+            let cacheStrategy: RequestCache = 'no-store';
+            let revalidate: number | false = false;
+
+            if (!options?.forceRefresh) {
+                if (!safeFilters?.search && !safeFilters?.date_from && !safeFilters?.date_to) {
+                    cacheStrategy = 'force-cache';
+                    revalidate = 60;
+                } else if (safeFilters?.search) {
+                    cacheStrategy = 'default';
+                    revalidate = 30;
+                }
+            }
+
             const fetchOptions = {
-                cache: options?.cache ?? 'no-store',
-                revalidate: options?.revalidate,
+                cache: options?.cache ?? cacheStrategy,
+                revalidate: options?.revalidate ?? revalidate,
                 tags: [MEDIA_CACHE_TAG],
                 cookieHeader: options?.cookieHeader,
             };
@@ -244,39 +251,34 @@ export const mediaApi = {
         options?: {
             onProgress?: (progress: number) => void;
             cookieHeader?: string;
+            signal?: AbortSignal;
         }
     ): Promise<ApiResponse<Media>> => {
         try {
-            // Use the correct endpoint for media upload
             const endpoint = `${BASE_MEDIA_PATH}/`;
-            
-            // Create a custom fetch with progress tracking
             const xhr = new XMLHttpRequest();
             
-            // Create a promise to wrap the XHR request
             const uploadPromise = new Promise<ApiResponse<Media>>((resolve, reject) => {
+                if (options?.signal) {
+                    options.signal.addEventListener('abort', () => {
+                        xhr.abort();
+                        reject(new Error('Upload cancelled'));
+                    });
+                }
+
                 xhr.open('POST', `${env.API_BASE_URL}${endpoint}`);
                 
-                // Add authorization header if provided
                 if (options?.cookieHeader) {
                     xhr.setRequestHeader('Cookie', options.cookieHeader);
                 }
                 
-                // Add CSRF token header for authenticated requests
                 const csrfToken = csrfTokenStore.getToken();
                 if (csrfToken) {
                     xhr.setRequestHeader('X-CSRFToken', csrfToken);
                 }
                 
-                // Set credentials to include cookies
                 xhr.withCredentials = true;
                 
-                // Debug: Log cookies being sent (development only)
-                if (process.env.NODE_ENV === 'development') {
-                    
-                }
-                
-                // Set up progress tracking
                 xhr.upload.onprogress = (event) => {
                     if (event.lengthComputable && options?.onProgress) {
                         const percentComplete = Math.round((event.loaded / event.total) * 100);
@@ -284,21 +286,16 @@ export const mediaApi = {
                     }
                 };
                 
-                // Handle response
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         try {
                             const responseData = JSON.parse(xhr.responseText);
                             
-                            // Handle different response formats
                             let formattedResponse: ApiResponse<Media>;
                             
-                            // Check if the response has the ApiResponse structure
                             if (responseData && responseData.metaData) {
                                 formattedResponse = responseData;
-                            } 
-                            // Check if response is a plain success object with data
-                            else if (responseData && responseData.data) {
+                            } else if (responseData && responseData.data) {
                                 formattedResponse = {
                                     metaData: {
                                         status: 'success',
@@ -308,9 +305,7 @@ export const mediaApi = {
                                     },
                                     data: responseData.data
                                 };
-                            }
-                            // Otherwise assume the whole response is the data
-                            else {
+                            } else {
                                 formattedResponse = {
                                     metaData: {
                                         status: 'success',
@@ -343,7 +338,6 @@ export const mediaApi = {
                             
                             console.error("Upload error response:", errorData);
                         } catch {
-                            // If response can't be parsed, use status text
                             errorMessage = xhr.statusText || 'Upload failed';
                             console.error("Upload error (unparseable response):", xhr.status, xhr.statusText, xhr.responseText);
                         }
@@ -352,19 +346,16 @@ export const mediaApi = {
                     }
                 };
                 
-                // Handle network errors
                 xhr.onerror = () => {
                     console.error("Network error during upload");
                     reject(new Error('Network error during upload'));
                 };
                 
-                // Handle timeouts
                 xhr.ontimeout = () => {
                     console.error("Upload request timed out");
                     reject(new Error('Upload request timed out'));
                 };
                 
-                // Send the request
                 xhr.send(formData);
             });
             

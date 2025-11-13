@@ -42,10 +42,36 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         date_to = request.query_params.get('date_to')
         is_active = request.query_params.get('is_active')
         
-        image_qs = ImageMedia.objects.all()
-        video_qs = VideoMedia.objects.all()
-        audio_qs = AudioMedia.objects.all()
-        document_qs = DocumentMedia.objects.all()
+        if not file_type or file_type == 'all':
+            image_qs = ImageMedia.objects.all()
+            video_qs = VideoMedia.objects.select_related('cover_image').all()
+            audio_qs = AudioMedia.objects.select_related('cover_image').all()
+            document_qs = DocumentMedia.objects.select_related('cover_image').all()
+        elif file_type == 'image':
+            image_qs = ImageMedia.objects.all()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.none()
+        elif file_type == 'video':
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.select_related('cover_image').all()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.none()
+        elif file_type == 'audio':
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.select_related('cover_image').all()
+            document_qs = DocumentMedia.objects.none()
+        elif file_type in ['document', 'pdf']:
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.select_related('cover_image').all()
+        else:
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.none()
         
         if search_term:
             image_qs = image_qs.filter(title__icontains=search_term)
@@ -95,7 +121,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         
         all_media.sort(key=lambda x: x.created_at, reverse=True)
         
-        # Apply pagination
         page = self.paginate_queryset(all_media)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -126,22 +151,26 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             media_type = 'pdf'
         
         try:
-            media = MediaAdminService.create_media(media_type, {
+            cover_image_file = request.FILES.get('cover_image')
+            cover_media = None
+            
+            if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and cover_image_file:
+                cover_media = MediaAdminService.create_media('image', {
+                    'file': cover_image_file,
+                    'title': f"Cover for {file.name}",
+                    'alt_text': f"Cover image for {file.name}",
+                })
+            
+            media_data = {
                 'file': file,
                 'title': request.data.get('title', file.name),
                 'alt_text': request.data.get('alt_text', ''),
-            })
+            }
             
-            if media_type == 'video':
-                cover_image_file = request.FILES.get('cover_image')
-                if cover_image_file:
-                    cover_media = MediaAdminService.create_media('image', {
-                        'file': cover_image_file,
-                        'title': f"Cover for {file.name}",
-                        'alt_text': f"Cover image for {file.name}",
-                    })
-                    media.cover_image = cover_media
-                    media.save(update_fields=['cover_image'])
+            if cover_media:
+                media_data['cover_image'] = cover_media
+            
+            media = MediaAdminService.create_media(media_type, media_data)
             
             serializer = self.get_serializer(media)
             return APIResponse.success(
@@ -166,7 +195,10 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         
         for model in [ImageMedia, VideoMedia, AudioMedia, DocumentMedia]:
             try:
-                media = model.objects.get(id=media_id)
+                if model in [VideoMedia, AudioMedia, DocumentMedia]:
+                    media = model.objects.select_related('cover_image').get(id=media_id)
+                else:
+                    media = model.objects.get(id=media_id)
                 break
             except model.DoesNotExist:
                 continue
@@ -291,6 +323,8 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         """Bulk delete media files"""
+        from django.db import transaction
+        
         media_data = request.data.get('media_data', [])
         if not media_data:
             return APIResponse.error(
@@ -304,25 +338,33 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
+        MAX_BULK_DELETE = 100
+        if len(media_data) > MAX_BULK_DELETE:
+            return APIResponse.error(
+                message=f"Maximum {MAX_BULK_DELETE} items allowed for bulk delete",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
         deleted_count = 0
         failed_items = []
         
-        for item in media_data:
-            try:
-                media_id = item.get('id')
-                media_type = item.get('type')
-                if not media_id or not media_type:
+        with transaction.atomic():
+            for item in media_data:
+                try:
+                    media_id = item.get('id')
+                    media_type = item.get('type')
+                    if not media_id or not media_type:
+                        failed_items.append(item)
+                        continue
+                    
+                    MediaAdminService.delete_media_by_id_and_type(media_id, media_type)
+                    deleted_count += 1
+                except ProtectedError:
                     failed_items.append(item)
                     continue
-                
-                MediaAdminService.delete_media_by_id_and_type(media_id, media_type)
-                deleted_count += 1
-            except ProtectedError:
-                failed_items.append(item)
-                continue
-            except Exception:
-                failed_items.append(item)
-                continue
+                except Exception:
+                    failed_items.append(item)
+                    continue
         
         return APIResponse.success(
             message=MEDIA_SUCCESS["media_bulk_deleted"],
@@ -356,10 +398,36 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
         
-        image_qs = ImageMedia.objects.filter(is_active=True)
-        video_qs = VideoMedia.objects.filter(is_active=True)
-        audio_qs = AudioMedia.objects.filter(is_active=True)
-        document_qs = DocumentMedia.objects.filter(is_active=True)
+        if not file_type or file_type == 'all':
+            image_qs = ImageMedia.objects.filter(is_active=True)
+            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True)
+            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True)
+            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True)
+        elif file_type == 'image':
+            image_qs = ImageMedia.objects.filter(is_active=True)
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.none()
+        elif file_type == 'video':
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True)
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.none()
+        elif file_type == 'audio':
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True)
+            document_qs = DocumentMedia.objects.none()
+        elif file_type in ['document', 'pdf']:
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True)
+        else:
+            image_qs = ImageMedia.objects.none()
+            video_qs = VideoMedia.objects.none()
+            audio_qs = AudioMedia.objects.none()
+            document_qs = DocumentMedia.objects.none()
         
         if search_term:
             image_qs = image_qs.filter(title__icontains=search_term)
@@ -402,7 +470,6 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         all_media.sort(key=lambda x: x.created_at, reverse=True)
         
-        # Apply pagination
         page = self.paginate_queryset(all_media)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
-import { env } from '@/core/config/environment';
 import { cn } from '@/core/utils/cn';
 
 interface MediaImageProps {
@@ -38,58 +37,63 @@ export function MediaImage({
                          }: MediaImageProps) {
     const [hasError, setError] = useState(false);
     const [loaded, setLoaded] = useState(false);
-    
-    // Debug logging removed for production
-    
-    // First try direct src, then media object
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     const imageUrl = src || (media ? mediaService.getMediaUrlFromObject(media) : '');
     const imageAlt = media ? mediaService.getMediaAltText(media) : (alt || "تصویر");
-    
+
+    const handleLoad = () => {
+        if (isMountedRef.current) {
+            setLoaded(true);
+        }
+    };
+
+    const handleError = () => {
+        if (isMountedRef.current) {
+            setError(true);
+        }
+    };
+
     if (!imageUrl && !media) {
         return <div className={cn("bg-bg", className)} style={{width, height, ...style}}/>;
     }
-    
+
     if (hasError) {
-        return <div className={cn("bg-bg flex items-center justify-center", className)} style={{width, height, ...style}}>
-            <span className="text-xs text-font-s">خطا در بارگذاری</span>
-        </div>;
+        return (
+            <div className={cn("bg-bg flex items-center justify-center", className)} style={{width, height, ...style}}>
+                <span className="text-xs text-font-s">خطا در بارگذاری</span>
+            </div>
+        );
     }
+
     const imageClasses = cn(
         "transition-opacity duration-300",
         !loaded ? "opacity-0" : "opacity-100",
         className
     );
+
+    const commonProps = {
+        src: imageUrl!,
+        alt: imageAlt,
+        className: imageClasses,
+        priority,
+        quality,
+        unoptimized,
+        style,
+        onError: handleError,
+        onLoad: handleLoad,
+    };
+
     if (fill) {
-        return (
-            <Image
-                src={imageUrl!}
-                alt={imageAlt}
-                className={imageClasses}
-                fill={true}
-                sizes={sizes || "100vw"}
-                priority={priority}
-                quality={quality}
-                unoptimized={unoptimized}
-                style={style}
-                onError={() => setError(true)}
-                onLoad={() => setLoaded(true)}
-            />
-        );
+        return <Image {...commonProps} fill sizes={sizes || "100vw"} />;
     }
-    return (
-        <Image
-            src={imageUrl!}
-            alt={imageAlt}
-            className={imageClasses}
-            width={width || 100}
-            height={height || 100}
-            sizes={sizes}
-            priority={priority}
-            quality={quality}
-            unoptimized={unoptimized}
-            style={style}
-            onError={() => setError(true)}
-            onLoad={() => setLoaded(true)}
-        />
-    );
+
+    return <Image {...commonProps} width={width || 100} height={height || 100} sizes={sizes} />;
 } 

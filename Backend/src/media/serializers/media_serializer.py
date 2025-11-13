@@ -51,80 +51,59 @@ class BaseMediaSerializer(serializers.ModelSerializer):
 
 class ImageMediaSerializer(BaseMediaSerializer):
     """Serializer for image media"""
-    media_type = serializers.SerializerMethodField()  # Add media_type field
-    
     class Meta(BaseMediaSerializer.Meta):
         model = ImageMedia
-        fields = BaseMediaSerializer.Meta.fields + ['media_type']
-    
-    def get_media_type(self, obj):
-        return 'image'
+        fields = BaseMediaSerializer.Meta.fields
 
 
 class VideoMediaSerializer(BaseMediaSerializer):
     """Serializer for video media"""
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
-    media_type = serializers.SerializerMethodField()  # Add media_type field
     
     class Meta(BaseMediaSerializer.Meta):
         model = VideoMedia
-        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration', 'media_type']
+        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration']
 
     def get_cover_image_url(self, obj):
-        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            # Make sure cover_image.file exists
             if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
                 return obj.cover_image.file.url
         return None
-    
-    def get_media_type(self, obj):
-        return 'video'
 
 
 class AudioMediaSerializer(BaseMediaSerializer):
     """Serializer for audio media"""
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
-    media_type = serializers.SerializerMethodField()  # Add media_type field
     
     class Meta(BaseMediaSerializer.Meta):
         model = AudioMedia
-        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration', 'media_type']
+        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'duration']
 
     def get_cover_image_url(self, obj):
-        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            # Make sure cover_image.file exists
             if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
                 return obj.cover_image.file.url
         return None
-    
-    def get_media_type(self, obj):
-        return 'audio'
 
 
 class DocumentMediaSerializer(BaseMediaSerializer):
     """Serializer for document media"""
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
-    media_type = serializers.SerializerMethodField()  # Add media_type field
     
     class Meta(BaseMediaSerializer.Meta):
         model = DocumentMedia
-        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url', 'media_type']
+        fields = BaseMediaSerializer.Meta.fields + ['cover_image', 'cover_image_url']
 
     def get_cover_image_url(self, obj):
-        # Check if cover_image exists and is loaded
         if hasattr(obj, 'cover_image') and obj.cover_image:
-            # Make sure cover_image.file exists
             if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
                 return obj.cover_image.file.url
         return None
     
     def get_media_type(self, obj):
-        # Return 'pdf' for PDF documents for frontend compatibility
         if obj.mime_type == 'application/pdf':
             return 'pdf'
         return 'document'

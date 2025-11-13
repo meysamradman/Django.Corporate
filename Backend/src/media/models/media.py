@@ -78,13 +78,18 @@ class AbstractMedia(BaseModel):
     file = models.FileField(upload_to=upload_media_path)
     file_size = models.PositiveIntegerField(editable=False, null=True, blank=True)
     mime_type = models.CharField(max_length=100, editable=False, blank=True)
-    title = models.CharField(max_length=100, blank=True)
+    title = models.CharField(max_length=100, blank=True, db_index=True)
     alt_text = models.CharField(max_length=255, blank=True)
     etag = models.CharField(max_length=40, editable=False, blank=True)
 
     class Meta(BaseModel.Meta):
         abstract = True
-        ordering = ['created_at']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['is_active', 'created_at']),
+            models.Index(fields=['title']),
+        ]
 
     # -----------------------------
     # 🧩 Validation

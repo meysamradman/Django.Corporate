@@ -106,21 +106,23 @@ class MediaAdminService:
         if not model:
             raise ValidationError(f"Unsupported media type: {media_type}")
             
-        # Handle cover_image for videos and audio
+        # Handle cover_image for videos, audio, and pdf
         cover_image = None
-        if (media_type == 'video' or media_type == 'audio') and 'cover_image' in data:
+        if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and 'cover_image' in data:
             cover_image_value = data.pop('cover_image', None)
             if isinstance(cover_image_value, int):
                 try:
                     cover_image = ImageMedia.objects.get(id=cover_image_value)
                 except ImageMedia.DoesNotExist:
                     pass
+            elif isinstance(cover_image_value, ImageMedia):
+                cover_image = cover_image_value
         
         # Create the media object
         media = model(**data)
         
-        # Set cover image for videos and audio
-        if (media_type == 'video' or media_type == 'audio') and cover_image:
+        # Set cover image for videos, audio, and pdf
+        if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and cover_image:
             media.cover_image = cover_image
             
         media.full_clean()

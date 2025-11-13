@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,6 @@ import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE, VALID_MEDIA_PAGE_SIZES } from '@/api
 import { MediaFilter } from '@/types/shared/media';
 import { Media } from '@/types/shared/media';
 import { MediaPreview } from '@/components/media/base/MediaPreview';
-import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
 import { Input } from '@/components/elements/Input';
 import { PaginationControls } from '@/components/shared/Pagination';
 import { ImageOff, CheckSquare, Square, FolderOpen, Upload, Loader2, X, Play, FileAudio, FileText } from 'lucide-react';
@@ -33,10 +32,8 @@ import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { toast } from "@/components/elements/Sonner";
 import { mediaService } from '@/components/media/services';
-import { env } from '@/core/config/environment';
-import { Card, CardContent } from "@/components/elements/Card";
-import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
+import { useDebounceValue } from '@/core/hooks/useDebounce';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;
@@ -71,7 +68,6 @@ export function MediaLibraryModal({
 }: MediaLibraryModalProps) {
   const [internalActiveTab, setInternalActiveTab] = useState<"select" | "upload">(activeTab || "select");
   
-  // Use internal state if onTabChange is not provided
   const currentActiveTab = onTabChange ? activeTab : internalActiveTab;
   const handleTabChange = onTabChange || setInternalActiveTab;
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
@@ -80,6 +76,8 @@ export function MediaLibraryModal({
       ...actualDefaultFilters,
       file_type: initialFileType || actualDefaultFilters.file_type,
   }));
+  const [searchTerm, setSearchTerm] = useState<string>(filters.search || '');
+  const debouncedSearch = useDebounceValue(searchTerm, 500);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedMedia, setSelectedMedia] = useState<Record<string | number, Media>>({});
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +116,6 @@ export function MediaLibraryModal({
       });
       
       if (response.metaData.status === 'success') {
-        // Ensure we're getting the data correctly from the response
         const mediaData = Array.isArray(response.data) ? response.data : [];
         setMediaItems(mediaData);
         setTotalCount(response.pagination?.count || mediaData.length || 0);
@@ -128,7 +125,6 @@ export function MediaLibraryModal({
         setTotalCount(0);
       }
     } catch (err) {
-      // Error fetching admin media handled silently
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
       setMediaItems([]);
       setTotalCount(0);
@@ -138,24 +134,28 @@ export function MediaLibraryModal({
   }, []);
 
   useEffect(() => {
+    if (debouncedSearch !== filters.search) {
+      setFilters(prev => ({ ...prev, search: debouncedSearch, page: 1 }));
+    }
+  }, [debouncedSearch, filters.search]);
+
+  useEffect(() => {
     if (isOpen) {
       fetchMedia(filters);
     }
   }, [filters, fetchMedia, isOpen]);
 
-
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     setFilters((prev) => ({ ...prev, page: newPage }));
-  };
+  }, []);
 
-
-  const handleFileTypeChange = (newType: string) => {
+  const handleFileTypeChange = useCallback((newType: string) => {
       setFilters(prev => ({ 
         ...prev, 
         file_type: newType, 
         page: 1 
       }));
-  };
+  }, []);
 
   const handleSelectMedia = (item: Media) => {
     setSelectedMedia(prev => {
@@ -401,8 +401,8 @@ export function MediaLibraryModal({
                   <Input
                       type="text"
                       placeholder="جستجو در رسانه‌ها..."
-                      value={filters.search || ''}
-                      onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="mb-4"
                   />
 
