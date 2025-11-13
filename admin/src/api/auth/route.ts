@@ -15,13 +15,8 @@ export const authApi = {
     },
 
     login: async (data: LoginRequest): Promise<LoginResponse> => {
-        try {
-            const response = await fetchApi.post<LoginResponse>('/admin/login/', data);
-            return response.data;
-        } catch (error) {
-            showErrorToast(error, 'Login failed');
-            throw error;
-        }
+        const response = await fetchApi.post<LoginResponse>('/admin/login/', data);
+        return response.data;
     },
 
     logout: async (): Promise<void> => {
@@ -72,19 +67,12 @@ export const authApi = {
             const response = await fetchApi.get<{ otp_length: number }>('/mobile/otp-settings/');
             return response.data;
         } catch (error) {
-            console.error('Error fetching OTP settings:', error);
             return {otp_length: 5};
         }
     },
 
     getCaptchaChallenge: async (): Promise<{ captcha_id: string; digits: string }> => {
-        try {
-            const response = await fetchApi.get<{ captcha_id: string; digits: string }>('/admin/auth/captcha/generate/');
-            return response.data;
-        } catch (error) {
-            console.error("CAPTCHA fetch failed:", error);
-            showErrorToast(error, 'Failed to load CAPTCHA challenge');
-            throw error;
-        }
+        const response = await fetchApi.get<{ captcha_id: string; digits: string }>('/admin/auth/captcha/generate/');
+        return response.data;
     },
 };

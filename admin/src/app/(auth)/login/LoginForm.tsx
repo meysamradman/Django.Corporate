@@ -67,9 +67,8 @@ export function LoginForm() {
             setCaptchaId(captcha_id);
             setCaptchaDigits(digits);
         } catch (error) {
-            console.error("CAPTCHA fetch error:", error);
-            setCaptchaError("خطا در اتصال به شبکه");
-            showErrorToast(error, "خطا در اتصال به شبکه");
+            setCaptchaError(msg.error("network"));
+            showErrorToast(error, msg.error("network"));
         } finally {
             setCaptchaLoading(false);
         }
@@ -85,7 +84,6 @@ export function LoginForm() {
             
                 }
             } catch (error) {
-                console.error('Failed to fetch OTP settings, using default value:', error);
                 setOtpLength(5);
             }
         };
@@ -101,7 +99,7 @@ export function LoginForm() {
             intervalId = setInterval(() => {
                 setResendTimer((prevTimer) => prevTimer - 1);
             }, 1000);
-        } else if (otpSent && resendTimer === 0) {}
+        }
 
         return () => {
             if (intervalId) clearInterval(intervalId);
@@ -110,7 +108,7 @@ export function LoginForm() {
 
     const handlePasswordLogin = async (data: PasswordLoginForm) => {
         if (!captchaId) {
-            showErrorToast(new Error('کپچا بارگذاری نشده'));
+            showErrorToast(new Error(msg.validation("captchaRequired")));
             return;
         }
 
@@ -121,21 +119,22 @@ export function LoginForm() {
             showSuccessToast(msg.auth("loginSuccess"));
             // Navigation is handled by AuthContext after successful login
         } catch (error) {
-            console.error('Login error:', error);
-            
             // Handle specific error types
-            let errorMessage = msg.auth("loginFailed");
+            let errorMessage = msg.auth("invalidCredentials");
             
             if (error instanceof ApiError) {
-                errorMessage = error.response?.message || error.message || msg.auth("loginFailed");
+                const backendMessage = error.response?.message || '';
                 
-                // Refresh CAPTCHA if it's invalid
-                if (error.response?.AppStatusCode === 400 && errorMessage.includes('CAPTCHA')) {
+                // Check for captcha errors
+                if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
+                    errorMessage = backendMessage || msg.validation("captchaRequired");
                     fetchCaptchaChallenge();
                     passwordForm.setValue('captchaAnswer', '');
+                } else {
+                    errorMessage = backendMessage || msg.auth("invalidCredentials");
                 }
             } else if (error instanceof Error) {
-                errorMessage = error.message;
+                errorMessage = error.message || msg.auth("invalidCredentials");
             }
             
             // Show error toast only once
@@ -166,15 +165,13 @@ export function LoginForm() {
             setResendTimer(60);
             showSuccessToast(msg.auth("otpSent"));
         } catch (error) {
-            console.error('Send OTP error:', error);
-            
             // Handle specific error types
             let errorMessage = msg.auth("otpSendFailed");
             
             if (error instanceof ApiError) {
-                errorMessage = error.response?.message || error.message || msg.auth("otpSendFailed");
+                errorMessage = error.response?.message || msg.auth("otpSendFailed");
             } else if (error instanceof Error) {
-                errorMessage = error.message;
+                errorMessage = error.message || msg.auth("otpSendFailed");
             }
             
             // Show error toast only once
@@ -186,7 +183,7 @@ export function LoginForm() {
 
     const handleOTPLogin = async (data: OtpLoginForm) => {
         if (!otpSent) {
-            showErrorToast(new Error('ابتدا کد یکبار مصرف را درخواست کنید'));
+            showErrorToast(new Error(msg.validation("otpRequired")));
             return;
         }
 
@@ -197,21 +194,22 @@ export function LoginForm() {
             showSuccessToast(msg.auth("loginSuccess"));
             // Navigation is handled by AuthContext after successful login
         } catch (error) {
-            console.error('OTP Login error:', error);
-            
             // Handle specific error types
-            let errorMessage = msg.auth("loginFailed");
+            let errorMessage = msg.auth("invalidCredentials");
             
             if (error instanceof ApiError) {
-                errorMessage = error.response?.message || error.message || msg.auth("loginFailed");
+                const backendMessage = error.response?.message || '';
                 
-                // Refresh CAPTCHA if it's invalid
-                if (error.response?.AppStatusCode === 400 && errorMessage.includes('CAPTCHA')) {
+                // Check for captcha errors
+                if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
+                    errorMessage = backendMessage || msg.validation("captchaRequired");
                     fetchCaptchaChallenge();
                     otpForm.setValue('captchaAnswer', '');
+                } else {
+                    errorMessage = backendMessage || msg.auth("invalidCredentials");
                 }
             } else if (error instanceof Error) {
-                errorMessage = error.message;
+                errorMessage = error.message || msg.auth("invalidCredentials");
             }
             
             // Show error toast only once
