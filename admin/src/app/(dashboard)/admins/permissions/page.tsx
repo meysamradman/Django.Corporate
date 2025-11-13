@@ -14,6 +14,7 @@ import { useUserPermissions } from "@/components/auth/hooks/usePermissions";
 import { PermissionGate } from "@/components/auth/PermissionGate";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { toast } from "@/components/elements/Sonner";
+import { PermissionGroup, Permission, RoleWithPermissions } from "@/types/auth/permission";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,30 +26,8 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 
-interface PermissionGroup {
-  resource: string;
-  permissions: Array<{
-    id: number;
-    resource: string;
-    action: string;
-    description?: string;
-  }>;
-}
-
-interface RoleWithPermissions {
-  id: number;
-  name: string;
-  description?: string;
-  is_protected: boolean;
-  permissions: Array<{
-    id: number;
-    resource: string;
-    action: string;
-  }>;
-}
-
 export default function PermissionsManagementPage() {
-  const { hasPermission } = useUserPermissions();
+  const { hasPermission: checkUserPermission } = useUserPermissions();
   const { data: rolesData, isLoading: rolesLoading } = useRoles();
   const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
 
@@ -62,7 +41,7 @@ export default function PermissionsManagementPage() {
   const permissionGroups = permissionsData || [];
 
   // Filter roles based on search
-  const filteredRoles = roles.filter((role: RoleWithPermissions) =>
+  const filteredRoles = (roles as unknown as RoleWithPermissions[]).filter((role: RoleWithPermissions) =>
     role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (role.description?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -71,10 +50,10 @@ export default function PermissionsManagementPage() {
   const groupedPermissions = React.useMemo(() => {
     if (!Array.isArray(permissionGroups)) return {};
     
-    const groups: Record<string, Array<{id: number, resource: string, action: string, description?: string}>> = {};
+    const groups: Record<string, Permission[]> = {};
     
     permissionGroups.forEach((group: PermissionGroup) => {
-      if (group.permissions) {
+      if (group.permissions && Array.isArray(group.permissions)) {
         groups[group.resource] = group.permissions;
       }
     });
@@ -329,7 +308,7 @@ export default function PermissionsManagementPage() {
                                   id={`permission-${permission.id}`}
                                   checked={hasPermission}
                                   onCheckedChange={() => togglePermission(permission.id)}
-                                  disabled={selectedRole.is_protected && !hasPermission("admin.roles.manage")}
+                                  disabled={selectedRole.is_protected && !checkUserPermission("admin.roles.manage")}
                                 />
                                 <label 
                                   htmlFor={`permission-${permission.id}`}

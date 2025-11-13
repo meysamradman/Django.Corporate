@@ -23,7 +23,8 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
-import { settingsApi, SocialMedia } from "@/api/settings/general/route";
+import { settingsApi } from "@/api/settings/general/route";
+import { SocialMedia } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";
 import { Media } from "@/types/shared/media";
@@ -60,24 +61,6 @@ export function SocialMediaSection() {
         }
     };
 
-    const convertImageMediaToMedia = (imageMedia: any): Media => {
-        return {
-            id: imageMedia.id,
-            public_id: imageMedia.public_id,
-            title: imageMedia.title || "",
-            file_url: imageMedia.file_url,
-            file_size: imageMedia.file_size,
-            mime_type: imageMedia.mime_type,
-            alt_text: imageMedia.alt_text || "",
-            is_active: imageMedia.is_active,
-            created_at: imageMedia.created_at,
-            updated_at: imageMedia.updated_at,
-            created_by: null,
-            updated_by: null,
-            media_type: imageMedia.media_type || "image",
-            cover_image: null,
-        };
-    };
 
     const handleOpenDialog = (socialMedia?: SocialMedia) => {
         if (socialMedia) {
@@ -86,7 +69,7 @@ export function SocialMediaSection() {
             setUrl(socialMedia.url);
             setOrder(socialMedia.order);
             if (socialMedia.icon_data) {
-                setIcon(convertImageMediaToMedia(socialMedia.icon_data));
+                setIcon(socialMedia.icon_data);
             } else {
                 setIcon(null);
             }

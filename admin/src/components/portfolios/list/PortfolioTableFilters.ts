@@ -1,16 +1,5 @@
-import { FilterConfig } from "@/components/tables/DataTable";
-
-// Define portfolio filter types
-export interface PortfolioFilters {
-  status?: string;
-  is_featured?: boolean;
-  is_public?: boolean;
-  is_active?: boolean; // اضافه کردن فیلتر فعال بودن
-  categories?: number | string; // اضافه کردن فیلتر دسته‌بندی - می‌تواند عدد یا رشته باشد
-  
-  // Index signature to allow Record<string, unknown> compatibility
-  [key: string]: string | boolean | number | undefined;
-}
+import { FilterConfig } from "@/types/shared/table";
+import { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 
 // Filter options
 export const usePortfolioFilterOptions = () => {

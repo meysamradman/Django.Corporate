@@ -17,14 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/elements/Popover"
-
-export interface CategoryItem {
-  id: string | number
-  label: string
-  value: string
-  parent_id?: string | number | null
-  children?: CategoryItem[]
-}
+import { CategoryItem } from "@/types/shared/table";
 
 interface DataTableHierarchicalFilterProps<TValue> {
   title?: string

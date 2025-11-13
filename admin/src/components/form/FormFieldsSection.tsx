@@ -37,7 +37,8 @@ import {
     SelectValue,
 } from "@/components/elements/Select";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { formApi, ContactFormField, ContactFormFieldCreate } from "@/api/form/route";
+import { formApi } from "@/api/form/route";
+import { ContactFormField, ContactFormFieldCreate } from "@/types/form/contactForm";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, FileText, Loader2, Globe, Smartphone } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";

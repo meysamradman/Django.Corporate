@@ -82,3 +82,12 @@ export interface RolePermissionsResponse {
   role_name: string;
   permissions: RawPermissionGroupData[];
 }
+
+// Role with permissions for management pages
+export interface RoleWithPermissions {
+  id: number;
+  name: string;
+  description?: string;
+  is_protected: boolean;
+  permissions: Permission[];
+}

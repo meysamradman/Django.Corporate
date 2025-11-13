@@ -42,6 +42,7 @@ export function BaseInfoTab({
                 borderColor="border-b-blue-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
+                contentClassName="space-y-6"
             >
                     <div className="space-y-2">
                         <Label htmlFor="title">عنوان صفحه</Label>
@@ -83,7 +84,6 @@ export function BaseInfoTab({
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
             >
-                    <div className="mb-4" />
                     <LogoUploader
                         label="تصویر شاخص"
                         selectedMedia={featuredImage}

@@ -1,27 +1,10 @@
 import { fetchApi } from '@/core/config/fetch'
 import { ApiResponse, Pagination } from '@/types/api/apiResponse'
 import { AdminWithProfile, AdminCreateRequest, AdminUpdateRequest } from '@/types/auth/admin';
+import { Filter, AdminFilter, UserFilter } from '@/types/auth/adminFilter';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 
 export type UserStatus = 'active' | 'inactive' | 'all';
-
-export interface Filter {
-    [key: string]: string | number | boolean | string[] | undefined;
-    search_query?: string;
-    page?: number;
-    size?: number;
-    limit?: number;
-    offset?: number;
-}
-
-export interface AdminFilter extends Filter {
-    is_active?: boolean;
-    is_superuser?: boolean;
-}
-
-export interface UserFilter extends Filter {
-    is_active?: boolean;
-}
 
 export const ADMIN_CACHE_TAG = 'admin-list';
 export const USER_CACHE_TAG = 'user-list';
@@ -50,12 +33,6 @@ export function createQueryString(params: Record<string, any>, additionalParams?
     return queryParams.toString();
 }
 
-interface EnhancedFilter extends Filter {
-    page?: number;
-    size?: number;
-    limit?: number;
-    offset?: number;
-}
 
 export type UserType = 'admin' | 'user';
 

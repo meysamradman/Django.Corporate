@@ -53,8 +53,9 @@ export function SEOTab({
                 borderColor="border-b-emerald-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
+                contentClassName="space-y-6"
             >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="meta_title">Meta Title (حداکثر 70 کاراکتر)</Label>
                             <Input
@@ -115,8 +116,9 @@ export function SEOTab({
                 borderColor="border-b-blue-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
+                contentClassName="space-y-6"
             >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="og_title">OG Title</Label>
                             <Input

@@ -4,17 +4,16 @@ import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/tables/DataTable';
 import { useDataTableLogic } from '@/components/tables/logic/useDataTableLogic';
-import type { 
-  SearchConfig, 
-  FilterConfig, 
-  DeleteConfig,
+import type {
   BaseApiFilterParams,
   BaseClientFilterParams 
-} from './index';
-
-export interface BaseTableData {
-  id: string | number;
-}
+} from '@/types/shared/tableFilters';
+import type {
+  SearchConfig,
+  FilterConfig,
+  DeleteConfig,
+  BaseTableData
+} from '@/types/shared/table';
 
 export interface TableConfig<TData extends BaseTableData, TApiFilters extends BaseApiFilterParams, TClientFilters extends BaseClientFilterParams> {
   fetchDataFn: (filters: TApiFilters) => Promise<unknown>;

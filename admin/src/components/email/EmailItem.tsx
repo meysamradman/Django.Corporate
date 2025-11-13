@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avata
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Star, Paperclip } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { EmailMessage } from "@/api/email/route";
+import { EmailMessage } from "@/types/email/emailMessage";
 
 interface EmailItemProps {
   email: EmailMessage;

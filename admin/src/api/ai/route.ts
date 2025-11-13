@@ -3,39 +3,11 @@ import { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import { showErrorToast } from '@/core/config/errorHandler';
 import { Media } from '@/types/shared/media';
-
-  export interface AIContentGenerationRequest {
-      provider_name: string;
-      topic: string;
-      word_count?: number;
-      tone?: string;
-      keywords?: string[];
-  }
-  
-  export interface AIContentGenerationResponse {
-      title: string;
-      meta_title: string;
-      meta_description: string;
-      slug: string;
-      h1: string;
-      content: string; // HTML content with <p>, <h2>, <h3> tags
-      keywords: string[];
-      word_count: number;
-      provider_name: string;
-      generation_time_ms: number;
-  }
-
-export interface AvailableProvider {
-    id: number;
-    provider_name: string;
-    provider_display?: string;
-    can_generate?: boolean;
-    can_chat?: boolean;
-    has_api_key?: boolean;
-    is_active?: boolean;
-    usage_count?: number;
-    last_used_at?: string | null;
-}
+import {
+    AIContentGenerationRequest,
+    AIContentGenerationResponse,
+    AvailableProvider
+} from '@/types/ai/ai';
 
 export const aiApi = {
     /**

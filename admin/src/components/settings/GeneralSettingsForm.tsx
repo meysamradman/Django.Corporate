@@ -7,7 +7,8 @@ import { Label } from "@/components/elements/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import LogoUploader from "@/app/(dashboard)/settings/panel/LogoUploader";
-import { settingsApi, GeneralSettings } from "@/api/settings/general/route";
+import { settingsApi } from "@/api/settings/general/route";
+import { GeneralSettings } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Image as ImageIcon } from "lucide-react";
@@ -40,13 +41,13 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             setSettings(data);
             
             if (data.logo_image_data) {
-                setLogoImage(convertImageMediaToMedia(data.logo_image_data));
+                setLogoImage(data.logo_image_data);
             }
             if (data.favicon_image_data) {
-                setFaviconImage(convertImageMediaToMedia(data.favicon_image_data));
+                setFaviconImage(data.favicon_image_data);
             }
             if (data.enamad_image_data) {
-                setEnamadImage(convertImageMediaToMedia(data.enamad_image_data));
+                setEnamadImage(data.enamad_image_data);
             }
         } catch (error: any) {
             console.error("Error fetching settings:", error);
@@ -57,24 +58,6 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
         }
     };
 
-    const convertImageMediaToMedia = (imageMedia: any): Media => {
-        return {
-            id: imageMedia.id,
-            public_id: imageMedia.public_id,
-            title: imageMedia.title || "",
-            file_url: imageMedia.file_url,
-            file_size: imageMedia.file_size,
-            mime_type: imageMedia.mime_type,
-            alt_text: imageMedia.alt_text || "",
-            is_active: imageMedia.is_active,
-            created_at: imageMedia.created_at,
-            updated_at: imageMedia.updated_at,
-            created_by: null,
-            updated_by: null,
-            media_type: imageMedia.media_type || "image",
-            cover_image: null,
-        };
-    };
 
     const handleSave = async () => {
         try {

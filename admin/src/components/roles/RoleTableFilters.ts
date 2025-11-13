@@ -1,4 +1,4 @@
-import { FilterConfig, FilterOption } from "@/components/tables/DataTable";
+import { FilterConfig, FilterOption } from "@/types/shared/table";
 
 export const useRoleFilterOptions = () => {
     const roleTypeFilterOptions: FilterOption[] = [

@@ -10,7 +10,8 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/elements/Badge"
 import { Checkbox } from "@/components/elements/Checkbox"
 import { UserWithProfile } from "@/types/auth/user"
-import { DataTableRowActions, type DataTableRowAction } from "@/components/tables/DataTableRowActions"
+import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
+import type { DataTableRowAction } from "@/types/shared/table";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";

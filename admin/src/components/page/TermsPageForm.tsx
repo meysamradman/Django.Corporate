@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { pageApi, TermsPage } from "@/api/page/route";
+import { pageApi } from "@/api/page/route";
+import { TermsPage } from "@/types/page/page";
 import { toast } from "@/components/elements/Sonner";
 import { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Search } from "lucide-react";
@@ -53,10 +54,10 @@ export function TermsPageForm() {
             setRobotsMeta(data.robots_meta || "index,follow");
             
             if (data.featured_image_data) {
-                setFeaturedImage(convertImageMediaToMedia(data.featured_image_data));
+                setFeaturedImage(data.featured_image_data);
             }
             if (data.og_image_data) {
-                setOgImage(convertImageMediaToMedia(data.og_image_data));
+                setOgImage(data.og_image_data);
             }
         } catch (error: any) {
             console.error("Error fetching Terms Page:", error);
@@ -67,24 +68,6 @@ export function TermsPageForm() {
         }
     };
 
-    const convertImageMediaToMedia = (imageMedia: any): Media => {
-        return {
-            id: imageMedia.id,
-            public_id: imageMedia.public_id,
-            title: imageMedia.title || "",
-            file_url: imageMedia.file_url,
-            file_size: imageMedia.file_size,
-            mime_type: imageMedia.mime_type,
-            alt_text: imageMedia.alt_text || "",
-            is_active: imageMedia.is_active,
-            created_at: imageMedia.created_at,
-            updated_at: imageMedia.updated_at,
-            created_by: null,
-            updated_by: null,
-            media_type: imageMedia.media_type || "image",
-            cover_image: null,
-        };
-    };
 
     const handleSave = async () => {
         if (!title.trim()) {

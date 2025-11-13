@@ -28,7 +28,7 @@ import {
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
-import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
+import type { DataTableRowAction } from "@/types/shared/table";
 
 export default function TagPage() {
   const router = useRouter();

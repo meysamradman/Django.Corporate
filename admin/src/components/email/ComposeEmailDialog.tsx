@@ -7,7 +7,7 @@ import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
 import { Send, Save } from "lucide-react";
-import { EmailMessage } from "@/api/email/route";
+import { EmailMessage } from "@/types/email/emailMessage";
 
 export interface ComposeEmailData {
   to: string;

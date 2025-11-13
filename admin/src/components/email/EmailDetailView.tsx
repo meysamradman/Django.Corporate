@@ -13,7 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avata
 import { Badge } from "@/components/elements/Badge";
 import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Paperclip, Download, Send, Star } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { EmailMessage } from "@/api/email/route";
+import { EmailMessage } from "@/types/email/emailMessage";
 import { MailboxType } from "./types";
 
 interface EmailDetailViewProps {

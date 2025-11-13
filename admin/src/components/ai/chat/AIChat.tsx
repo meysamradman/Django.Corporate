@@ -12,7 +12,8 @@ import {
     SelectValue,
 } from "@/components/elements/Select";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/elements/Avatar';
-import { aiApi, AvailableProvider } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/route';
+import { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Mic, Paperclip } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';

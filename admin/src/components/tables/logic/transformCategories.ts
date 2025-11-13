@@ -1,5 +1,4 @@
-import { CategoryItem } from "@/components/tables/DataTableHierarchicalFilter";
-import { FilterOption } from "@/components/tables/DataTable";
+import { CategoryItem, FilterOption } from "@/types/shared/table";
 
 /**
  * @param options A flat array of filter options that may have parent_id

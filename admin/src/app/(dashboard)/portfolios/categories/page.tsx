@@ -28,8 +28,8 @@ import {
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
-import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
-import { CategoryListParams } from "@/api/portfolios/route";
+import type { DataTableRowAction } from "@/types/shared/table";
+import { CategoryListParams } from "@/types/portfolio/portfolioListParams";
 
 export default function CategoryPage() {
   const router = useRouter();

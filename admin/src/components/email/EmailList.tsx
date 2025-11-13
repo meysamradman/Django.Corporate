@@ -2,7 +2,7 @@
 
 import React from "react";
 import { EmailItem } from "./EmailItem";
-import { EmailMessage } from "@/api/email/route";
+import { EmailMessage } from "@/types/email/emailMessage";
 import { cn } from "@/core/utils/cn";
 
 import { MailboxType } from "./types";

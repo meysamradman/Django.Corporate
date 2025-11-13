@@ -9,15 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu"
+import type { DataTableRowAction } from "@/types/shared/table";
 
-
-export interface DataTableRowAction<TData> {
-  label: string | ((item: TData) => string);
-  icon?: React.ReactNode;
-  onClick: (item: TData) => void;
-  condition?: (item: TData) => boolean;
-  isDestructive?: boolean;
-}
+export type { DataTableRowAction };
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>

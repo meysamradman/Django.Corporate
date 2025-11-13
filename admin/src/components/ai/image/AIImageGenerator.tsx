@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { aiApi, AvailableProvider } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/route';
+import { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/route';
 import { Media } from '@/types/shared/media';
 import { toast } from '@/components/elements/Sonner';

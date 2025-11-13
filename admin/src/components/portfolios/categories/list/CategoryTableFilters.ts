@@ -1,4 +1,4 @@
-import { FilterConfig } from "@/components/tables/DataTable";
+import { FilterConfig } from "@/types/shared/table";
 
 // Define category filter types
 export interface CategoryFilters {

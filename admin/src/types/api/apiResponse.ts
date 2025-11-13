@@ -37,11 +37,4 @@ export function hasErrors(response: ApiResponse<unknown>): response is ApiRespon
     return 'errors' in response && response.errors !== undefined;
 }
 
-export interface PaginationResponse<T> {
-    items: T[];
-    total: number;
-    page: number;
-    size: number;
-    pages?: number;
-}
 

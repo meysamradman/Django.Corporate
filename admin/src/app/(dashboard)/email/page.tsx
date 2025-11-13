@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, EmailDetailView, type ComposeEmailData } from "@/components/email";
 import { ComposeEmailDialog } from "@/components/email/ComposeEmailDialog";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { emailApi, EmailMessage } from "@/api/email/route";
+import { emailApi } from "@/api/email/route";
+import { EmailMessage } from "@/types/email/emailMessage";
 import { MailboxType } from "@/components/email/types";
 import { toast } from "@/components/elements/Sonner";
 

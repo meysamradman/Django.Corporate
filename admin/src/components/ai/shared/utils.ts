@@ -1,4 +1,4 @@
-import { AvailableProvider } from '@/api/ai/route';
+import { AvailableProvider } from '@/types/ai/ai';
 
 export const getProviderDisplayName = (provider: AvailableProvider): string => {
     const providerMap: Record<string, string> = {

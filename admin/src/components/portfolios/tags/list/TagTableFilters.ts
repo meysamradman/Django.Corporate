@@ -1,4 +1,4 @@
-import { FilterConfig } from "@/components/tables/DataTable";
+import { FilterConfig } from "@/types/shared/table";
 
 // Define tag filter types
 export interface TagFilters {

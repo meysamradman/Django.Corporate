@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
-import { AIContentGenerationResponse } from '@/api/ai/route';
+import { AIContentGenerationResponse } from '@/types/ai/ai';
 import { FileText, Copy, Check } from 'lucide-react';
 import { msg } from '@/core/messages/message';
 

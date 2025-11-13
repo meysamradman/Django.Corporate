@@ -22,7 +22,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
-import { settingsApi, ContactPhone } from "@/api/settings/general/route";
+import { settingsApi } from "@/api/settings/general/route";
+import { ContactPhone } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Phone, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";

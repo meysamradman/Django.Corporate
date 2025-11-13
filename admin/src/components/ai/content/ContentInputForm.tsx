@@ -6,7 +6,7 @@ import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
 import { Textarea } from '@/components/elements/Textarea';
 import { ProviderSelector } from '../shared/ProviderSelector';
-import { AvailableProvider } from '@/api/ai/route';
+import { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Brain, Type } from 'lucide-react';
 import { msg } from '@/core/messages/message';
 

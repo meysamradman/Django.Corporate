@@ -4,76 +4,14 @@ import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory"
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
+import { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
-import { useQuery } from '@tanstack/react-query';
-
-// Define types
-export interface PortfolioListParams {
-  search?: string;
-  page?: number;
-  size?: number;
-  order_by?: string;
-  order_desc?: boolean;
-  status?: string;
-  is_featured?: string | boolean;  // Accept both string and boolean
-  is_public?: string | boolean;    // Accept both string and boolean
-  is_active?: string | boolean;    // اضافه کردن فیلتر فعال بودن
-  categories__in?: string; // اضافه کردن فیلتر دسته‌بندی
-}
-
-export interface PortfolioFilters {
-  status?: string;
-  is_featured?: boolean;
-  is_public?: boolean;
-  is_active?: boolean; // اضافه کردن فیلتر فعال بودن
-  categories?: number | string; // اضافه کردن فیلتر دسته‌بندی
-}
-
-// Backend response types
-interface BackendPagination {
-  count?: number;
-  next?: string | null;
-  previous?: string | null;
-  page_size?: number;
-  current_page?: number;
-  total_pages?: number;
-}
-
-// This is the actual response structure from our backend
-interface BackendResponse<T> {
-  metaData: {
-    status: string;
-    message: string;
-    AppStatusCode: number;
-    timestamp: string;
-  };
-  pagination: BackendPagination;
-  data: T[];
-}
-
-interface BackendPaginatedResponse<T> {
-  data: T[];
-  pagination: BackendPagination;
-}
-
-// Category and Tag types
-export interface CategoryListParams {
-  search?: string;
-  page?: number;
-  size?: number;
-  is_active?: boolean;
-  is_public?: boolean;
-  created_after?: string;
-  created_before?: string;
-}
-
-export interface TagListParams {
-  search?: string;
-  page?: number;
-  size?: number;
-  is_active?: boolean;
-  is_public?: boolean;
-}
+import {
+    PortfolioListParams,
+    PortfolioFilters,
+    CategoryListParams,
+    TagListParams
+} from "@/types/portfolio/portfolioListParams";
 
 // Portfolio API functions
 export const portfolioApi = {
@@ -118,9 +56,8 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<BackendResponse<Portfolio>>(url);
+    const response = await fetchApi.get<Portfolio[]>(url);
     
-    // Check if response is valid
     if (!response) {
       return {
         data: [],
@@ -135,25 +72,18 @@ export const portfolioApi = {
       };
     }
     
-    // Handle the response structure from the backend
-    // The backend uses a custom renderer that wraps the data in a specific format
-    const responseData = response.data || [];
-    const responsePagination = response.pagination || {};
+    const responseData = Array.isArray(response.data) ? response.data : [];
+    const responsePagination = response.pagination;
     
-    // Parse pagination from the response
-    const backendPagination = responsePagination || {} as BackendPagination;
-    
-    // Use backend pagination directly - it now includes all the fields we need
     const pagination: ApiPagination = {
-      count: ('count' in backendPagination && typeof backendPagination.count === 'number') ? backendPagination.count : (Array.isArray(responseData) ? responseData.length : 0),
-      next: ('next' in backendPagination && typeof backendPagination.next === 'string') ? backendPagination.next : null,
-      previous: ('previous' in backendPagination && typeof backendPagination.previous === 'string') ? backendPagination.previous : null,
-      page_size: ('page_size' in backendPagination && typeof backendPagination.page_size === 'number') ? backendPagination.page_size : (params?.size || 10),
-      current_page: ('current_page' in backendPagination && typeof backendPagination.current_page === 'number') ? backendPagination.current_page : 1,
-      total_pages: ('total_pages' in backendPagination && typeof backendPagination.total_pages === 'number') ? backendPagination.total_pages : 1
+      count: responsePagination?.count || responseData.length,
+      next: responsePagination?.next || null,
+      previous: responsePagination?.previous || null,
+      page_size: responsePagination?.page_size || (params?.size || 10),
+      current_page: responsePagination?.current_page || (params?.page || 1),
+      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
     
-    // Ensure current_page is valid
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
@@ -162,7 +92,7 @@ export const portfolioApi = {
     }
     
     return {
-      data: Array.isArray(responseData) ? responseData : [],
+      data: responseData,
       pagination: pagination
     };
   },
@@ -292,22 +222,20 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<BackendResponse<PortfolioCategory>>(url);
+    const response = await fetchApi.get<PortfolioCategory[]>(url);
     
-    // Parse pagination from the response
-    const backendPagination = response.pagination || {} as BackendPagination;
+    const responseData = Array.isArray(response.data) ? response.data : [];
+    const responsePagination = response.pagination;
     
-    // Use backend pagination directly - it now includes all the fields we need
     const pagination: ApiPagination = {
-      count: ('count' in backendPagination && typeof backendPagination.count === 'number') ? backendPagination.count : (Array.isArray(response.data) ? response.data.length : 0),
-      next: ('next' in backendPagination && typeof backendPagination.next === 'string') ? backendPagination.next : null,
-      previous: ('previous' in backendPagination && typeof backendPagination.previous === 'string') ? backendPagination.previous : null,
-      page_size: ('page_size' in backendPagination && typeof backendPagination.page_size === 'number') ? backendPagination.page_size : (params?.size || 10),
-      current_page: ('current_page' in backendPagination && typeof backendPagination.current_page === 'number') ? backendPagination.current_page : 1,
-      total_pages: ('total_pages' in backendPagination && typeof backendPagination.total_pages === 'number') ? backendPagination.total_pages : 1
+      count: responsePagination?.count || responseData.length,
+      next: responsePagination?.next || null,
+      previous: responsePagination?.previous || null,
+      page_size: responsePagination?.page_size || (params?.size || 10),
+      current_page: responsePagination?.current_page || (params?.page || 1),
+      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
     
-    // Ensure current_page is valid
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
@@ -316,7 +244,7 @@ export const portfolioApi = {
     }
     
     return {
-      data: Array.isArray(response.data) ? response.data : [],
+      data: responseData,
       pagination: pagination
     };
   },
@@ -384,22 +312,20 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<BackendResponse<PortfolioTag>>(url);
+    const response = await fetchApi.get<PortfolioTag[]>(url);
     
-    // Parse pagination from the response
-    const backendPagination = response.pagination || {} as BackendPagination;
+    const responseData = Array.isArray(response.data) ? response.data : [];
+    const responsePagination = response.pagination;
     
-    // Use backend pagination directly - it now includes all the fields we need
     const pagination: ApiPagination = {
-      count: ('count' in backendPagination && typeof backendPagination.count === 'number') ? backendPagination.count : (Array.isArray(response.data) ? response.data.length : 0),
-      next: ('next' in backendPagination && typeof backendPagination.next === 'string') ? backendPagination.next : null,
-      previous: ('previous' in backendPagination && typeof backendPagination.previous === 'string') ? backendPagination.previous : null,
-      page_size: ('page_size' in backendPagination && typeof backendPagination.page_size === 'number') ? backendPagination.page_size : (params?.size || 10),
-      current_page: ('current_page' in backendPagination && typeof backendPagination.current_page === 'number') ? backendPagination.current_page : 1,
-      total_pages: ('total_pages' in backendPagination && typeof backendPagination.total_pages === 'number') ? backendPagination.total_pages : 1
+      count: responsePagination?.count || responseData.length,
+      next: responsePagination?.next || null,
+      previous: responsePagination?.previous || null,
+      page_size: responsePagination?.page_size || (params?.size || 10),
+      current_page: responsePagination?.current_page || (params?.page || 1),
+      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
     
-    // Ensure current_page is valid
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
@@ -408,7 +334,7 @@ export const portfolioApi = {
     }
     
     return {
-      data: Array.isArray(response.data) ? response.data : [],
+      data: responseData,
       pagination: pagination
     };
   },
@@ -476,22 +402,20 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<BackendResponse<PortfolioOption>>(url);
+    const response = await fetchApi.get<PortfolioOption[]>(url);
     
-    // Parse pagination from the response
-    const backendPagination = response.pagination || {} as BackendPagination;
+    const responseData = Array.isArray(response.data) ? response.data : [];
+    const responsePagination = response.pagination;
     
-    // Use backend pagination directly - it now includes all the fields we need
     const pagination: ApiPagination = {
-      count: ('count' in backendPagination && typeof backendPagination.count === 'number') ? backendPagination.count : (Array.isArray(response.data) ? response.data.length : 0),
-      next: ('next' in backendPagination && typeof backendPagination.next === 'string') ? backendPagination.next : null,
-      previous: ('previous' in backendPagination && typeof backendPagination.previous === 'string') ? backendPagination.previous : null,
-      page_size: ('page_size' in backendPagination && typeof backendPagination.page_size === 'number') ? backendPagination.page_size : (params?.size || 10),
-      current_page: ('current_page' in backendPagination && typeof backendPagination.current_page === 'number') ? backendPagination.current_page : 1,
-      total_pages: ('total_pages' in backendPagination && typeof backendPagination.total_pages === 'number') ? backendPagination.total_pages : 1
+      count: responsePagination?.count || responseData.length,
+      next: responsePagination?.next || null,
+      previous: responsePagination?.previous || null,
+      page_size: responsePagination?.page_size || (params?.size || 10),
+      current_page: responsePagination?.current_page || (params?.page || 1),
+      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
     
-    // Ensure current_page is valid
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
@@ -500,7 +424,7 @@ export const portfolioApi = {
     }
     
     return {
-      data: Array.isArray(response.data) ? response.data : [],
+      data: responseData,
       pagination: pagination
     };
   },

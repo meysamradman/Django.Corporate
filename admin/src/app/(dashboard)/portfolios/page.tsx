@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
 import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
-import { usePortfolioFilterOptions, getPortfolioFilterConfig, PortfolioFilters } from "@/components/portfolios/list/PortfolioTableFilters";
+import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";
+import { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import Link from "next/link";
@@ -29,7 +30,7 @@ import { Portfolio } from "@/types/portfolio/portfolio";
 import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
 import { exportPortfolios } from "@/api/portfolios/export";
-import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
+import type { DataTableRowAction } from "@/types/shared/table";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { env } from '@/core/config/environment';
 

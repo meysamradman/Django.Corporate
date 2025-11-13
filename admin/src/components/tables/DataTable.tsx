@@ -28,43 +28,20 @@ import {
 } from "@/components/elements/Table"
 
 import { DataTableSelectFilter } from "./DataTableSelectFilter"
-import { DataTableHierarchicalFilter, CategoryItem } from "./DataTableHierarchicalFilter"
+import { DataTableHierarchicalFilter } from "./DataTableHierarchicalFilter"
+import { CategoryItem } from "@/types/shared/table";
 import { DataTableDateFilter } from "./DataTableDateFilter"
 import { Trash, Search, Download, Printer, FileSpreadsheet, FileText } from "lucide-react"
 import { TableLoadingCompact } from "@/components/elements/TableLoading"
 import { PaginationControls } from "@/components/shared/Pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select"
-
-
-export interface SearchConfig {
-  placeholder: string;
-  columnId: string;
-}
-
-export interface FilterOption {
-  label: string;
-  value: string | boolean;
-}
-
-export interface FilterConfig {
-  columnId: string;
-  title: string;
-  options?: FilterOption[];
-  placeholder?: string;
-  type?: 'select' | 'hierarchical' | 'date';
-}
-
-export interface DeleteConfig {
-  onDeleteSelected: (selectedIds: (string | number)[]) => void;
-  buttonText?: string;
-}
-
-export interface ExportConfig<TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
-  onExport: (filters: TClientFilters, search: string) => Promise<void>;
-  buttonText?: string;
-  value?: string;
-  variant?: 'default' | 'outline' | 'destructive' | 'link';
-}
+import {
+  SearchConfig,
+  FilterOption,
+  FilterConfig,
+  DeleteConfig,
+  ExportConfig
+} from "@/types/shared/table";
 
 interface DataTableProps<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
   columns: ColumnDef<TData, TValue>[];

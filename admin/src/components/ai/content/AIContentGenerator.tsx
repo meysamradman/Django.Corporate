@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { aiApi, AvailableProvider, AIContentGenerationResponse } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/route';
+import { AvailableProvider, AIContentGenerationResponse } from '@/types/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { msg } from '@/core/messages/message';
 import { ContentInputForm } from './ContentInputForm';

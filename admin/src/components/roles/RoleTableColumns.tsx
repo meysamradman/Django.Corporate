@@ -8,7 +8,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/elements/Badge";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { DataTableRowActions, DataTableRowAction } from "@/components/tables/DataTableRowActions";
+import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
+import type { DataTableRowAction } from "@/types/shared/table";
 import { Role } from "@/types/auth/permission";
 import { formatDate } from "@/core/utils/format";
 import { getPermissionTranslation } from "@/core/messages/permissions";

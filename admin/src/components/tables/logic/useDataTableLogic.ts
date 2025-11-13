@@ -11,29 +11,8 @@ import { useDebounceValue } from '@/core/hooks/useDebounce';
 
 
 import { ApiPagination } from '@/types/shared/pagination';
-
-interface ApiResponse<T> {
-  data: T[];
-  pagination: ApiPagination;
-  metaData?: unknown;
-}
-
-export interface BaseApiFilterParams {
-  search?: string;
-  limit?: number;
-  offset?: number;
-  size?: number;
-  ordering?: string;
-  [key: string]: string | number | boolean | string[] | undefined;
-}
-
-export interface BaseClientFilterParams {
-  search?: string;
-  page: number;
-  limit: number;
-  ordering?: string;
-  [key: string]: string | number | boolean | undefined;
-}
+import { ApiResponse } from '@/types/api/apiResponse';
+import { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tableFilters';
 
 type FetchDataFn<TData, TApiFilters extends BaseApiFilterParams> = (
   filters: TApiFilters,

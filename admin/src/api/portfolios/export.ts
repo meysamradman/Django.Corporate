@@ -1,5 +1,5 @@
 import { fetchApi } from "@/core/config/fetch";
-import { PortfolioListParams } from "./route";
+import { PortfolioListParams } from "@/types/portfolio/portfolioListParams";
 
 /**
  * Extended params for export (includes export_all flag)

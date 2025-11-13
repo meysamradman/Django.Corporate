@@ -1,4 +1,4 @@
-import type { FilterConfig, FilterOption } from "@/components/tables/DataTable";
+import type { FilterConfig, FilterOption } from "@/types/shared/table";
 
 export const useUserFilterOptions = () => {
     const booleanFilterOptions: FilterOption[] = [

@@ -14,7 +14,7 @@ import { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table
 import { useMutation } from "@tanstack/react-query";
 import { PermissionGate, usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
-import { DataTableRowAction } from "@/components/tables/DataTableRowActions";
+import type { DataTableRowAction } from "@/types/shared/table";
 import {
   AlertDialog,
   AlertDialogAction,
