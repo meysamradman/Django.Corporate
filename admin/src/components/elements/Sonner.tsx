@@ -1,7 +1,14 @@
 "use client"
 
+import {
+  CircleCheckIcon,
+  InfoIcon,
+  Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
+} from "lucide-react"
 import { useTheme } from "next-themes"
-import { Toaster as Sonner, ToasterProps, toast as originalToast } from "sonner"
+import { Toaster as Sonner, type ToasterProps, toast as originalToast } from "sonner"
 import { fontPersian } from "@/core/styles/fonts"
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -10,53 +17,33 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className={`toaster group ${fontPersian.className}`}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          fontFamily: "var(--font-persian), Tahoma, Arial, sans-serif",
-        } as React.CSSProperties
-      }
+      className={`toaster group ${fontPersian.variable}`}
+      icons={{
+        success: <CircleCheckIcon className="size-4" />,
+        info: <InfoIcon className="size-4" />,
+        warning: <TriangleAlertIcon className="size-4" />,
+        error: <OctagonXIcon className="size-4" />,
+        loading: <Loader2Icon className="size-4 animate-spin" />,
+      }}
       {...props}
     />
   )
 }
 
-// Override toast functions to use our colors by default
 const toast = {
   ...originalToast,
-  success: (message: string, options?: any) => {
-    return originalToast.success(message, {
-      ...options,
-      className: 'success-toast',
-    });
-  },
-  error: (message: string, options?: any) => {
-    return originalToast.error(message, {
-      ...options,
-      className: 'error-toast',
-    });
-  },
-  warning: (message: string, options?: any) => {
-    return originalToast.warning(message, {
-      ...options,
-      className: 'warning-toast',
-    });
-  },
-  info: (message: string, options?: any) => {
-    return originalToast.info(message, {
-      ...options,
-      className: 'info-toast',
-    });
-  },
-  loading: (message: string, options?: any) => {
-    return originalToast.loading(message, {
-      ...options,
-      className: 'loading-toast',
-    });
-  },
-};
+  success: (message: string, options?: any) => 
+    originalToast.success(message, { ...options, className: `toast toast-success ${options?.className || ''}` }),
+  error: (message: string, options?: any) => 
+    originalToast.error(message, { ...options, className: `toast toast-error ${options?.className || ''}` }),
+  warning: (message: string, options?: any) => 
+    originalToast.warning(message, { ...options, className: `toast toast-warning ${options?.className || ''}` }),
+  info: (message: string, options?: any) => 
+    originalToast.info(message, { ...options, className: `toast toast-info ${options?.className || ''}` }),
+  loading: (message: string, options?: any) => 
+    originalToast.loading(message, { ...options, className: `toast toast-loading ${options?.className || ''}` }),
+  promise: <T,>(promise: Promise<T>, messages: any) =>
+    originalToast.promise(promise, messages),
+}
 
 export { Toaster, toast }

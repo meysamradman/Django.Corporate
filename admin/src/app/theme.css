@@ -8,49 +8,64 @@ html {
     margin-left: 0 !important;
   }
 
-.success-toast {
-    background-color: var(--color-green-500) !important;
-    color: white !important;
-    border-color: var(--color-green-600) !important;
+  .toast {
+    color: var(--static-w) !important;
+    font-family: var(--font-persian), Tahoma, Arial, sans-serif !important;
   }
-  
-  /* اطمینان از سفید بودن نوشته در success toast */
-  .success-toast * {
-    color: white !important;
+
+  .toast * {
+    color: var(--static-w) !important;
   }
-  
-  .success-toast [data-title] {
-    color: white !important;
+
+  .toast [data-title] {
+    color: var(--static-w) !important;
   }
-  
-  .success-toast [data-description] {
-    color: white !important;
+
+  .toast.toast-success {
+    background-color: var(--green-100) !important;
+    border-color: var(--green-100) !important;
   }
-  
-  .error-toast {
-    background-color: var(--color-destructive) !important;
-    color: white !important;
-    border-color: var(--color-destructive) !important;
+
+  .toast.toast-success * {
+    color: var(--static-w) !important;
   }
-  
-  .warning-toast {
-    background-color: var(--color-amber-500) !important;
-    color: white !important;
-    border-color: var(--color-amber-600) !important;
+
+  .toast.toast-error {
+    background-color: var(--red-100) !important;
+    border-color: var(--red-100) !important;
   }
-  
-  .info-toast {
-    background-color: var(--color-primary) !important;
-    color: white !important;
-    border-color: var(--color-primary) !important;
+
+  .toast.toast-error * {
+    color: var(--static-w) !important;
   }
-  
-  .loading-toast {
+
+  .toast.toast-warning {
+    background-color: var(--amber-100) !important;
+    border-color: var(--amber-100) !important;
+  }
+
+  .toast.toast-warning * {
+    color: var(--static-w) !important;
+  }
+
+  .toast.toast-info {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+  }
+
+  .toast.toast-info * {
+    color: var(--static-w) !important;
+  }
+
+  .toast.toast-loading {
     background-color: var(--font-s) !important;
-    color: white !important;
     border-color: var(--font-s) !important;
   }
-  
+
+  .toast.toast-loading * {
+    color: var(--static-w) !important;
+  }
+
   @layer base {
     * {
       @apply border-br;
