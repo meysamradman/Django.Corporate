@@ -3,7 +3,7 @@ import { Media, MediaFilter } from '@/types/shared/media';
 import { ApiResponse, Pagination } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import { showErrorToast } from '@/core/config/errorHandler';
-import { csrfTokenStore } from '@/core/auth/sessionToken';
+import { csrfTokenStore } from '@/core/auth/csrfToken';
 import { env } from '@/core/config/environment';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 

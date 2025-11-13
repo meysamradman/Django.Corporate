@@ -1,6 +1,6 @@
 import { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from "@/types/api/apiError";
-import { csrfTokenStore } from '@/core/auth/sessionToken';
+import { csrfTokenStore } from '@/core/auth/csrfToken';
 import { env } from '@/core/config/environment';
 
 const isServer = typeof window === 'undefined'; 
@@ -15,7 +15,8 @@ type RequestOptions = {
     tags?: string[];
     headers?: Record<string, string>;
     cookieHeader?: string;
-    useFetchForErrorHandling?: boolean; // Force use fetch instead of iframe for error handling
+    useFetchForErrorHandling?: boolean;
+    timeout?: number;
 };
 
 function getCsrfToken(): string | null {
@@ -78,9 +79,9 @@ async function baseFetch<T>(
     body?: BodyInit | Record<string, unknown> | null,
     options?: RequestOptions
 ): Promise<ApiResponse<T>> {
-    // Create AbortController for timeout (default: 200 seconds for long operations like AI image generation)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 200000); // 200 seconds
+    const timeout = options?.timeout || 30000;
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
