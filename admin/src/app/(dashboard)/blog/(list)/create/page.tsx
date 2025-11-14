@@ -12,7 +12,7 @@ import {
   Loader2, Save, Search
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { blogApi } from "@/api/blogs/route";
+import { blogApi } from "@/api/blog/route";
 import { blogFormSchema, blogFormDefaults, BlogFormValues } from "@/core/validations/blogSchema";
 import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";

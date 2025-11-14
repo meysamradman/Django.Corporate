@@ -8,7 +8,7 @@ import { Button } from "@/components/elements/Button";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from "@/components/elements/Skeleton";
-import { blogApi } from "@/api/blogs/route";
+import { blogApi } from "@/api/blog/route";
 import { BlogSidebar } from "@/components/blog/list/view/BlogSidebar";
 import { OverviewTab } from "@/components/blog/list/view/OverviewTab";
 import { MediaInfoTab } from "@/components/blog/list/view/MediaInfoTab";

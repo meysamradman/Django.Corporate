@@ -87,6 +87,17 @@ const VALIDATION_MESSAGES = {
   portfolioCategoryRequired: "انتخاب دسته‌بندی الزامی است",
   portfolioFeaturedImageRequired: "انتخاب تصویر شاخص الزامی است",
   
+  // Blog
+  blogNameRequired: "عنوان وبلاگ الزامی است",
+  blogNameMinLength: "عنوان وبلاگ باید حداقل ۳ کاراکتر باشد",
+  blogNameMaxLength: "عنوان وبلاگ نباید بیشتر از ۲۰۰ کاراکتر باشد",
+  blogSlugRequired: "اسلاگ وبلاگ الزامی است",
+  blogSlugInvalid: "اسلاگ وبلاگ فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و خط تیره باشد",
+  blogSlugMaxLength: "اسلاگ وبلاگ نباید بیشتر از ۶۰ کاراکتر باشد",
+  blogShortDescMaxLength: "توضیحات کوتاه وبلاگ نباید بیشتر از ۳۰۰ کاراکتر باشد",
+  blogCategoryRequired: "انتخاب دسته‌بندی وبلاگ الزامی است",
+  blogFeaturedImageRequired: "انتخاب تصویر شاخص وبلاگ الزامی است",
+  
   // Role
   roleNameRequired: "نام نقش الزامی است",
   roleNameMinLength: "نام نقش باید حداقل ۲ کاراکتر باشد",
@@ -246,6 +257,12 @@ const COMMON_UI_MESSAGES = {
   portfolioUpdated: "نمونه‌کار با موفقیت به‌روزرسانی شد",
   portfolioDeleted: "نمونه‌کار با موفقیت حذف شد",
   portfolioDraftSaved: "پیش‌نویس با موفقیت ذخیره شد",
+  
+  // Blog Success Messages
+  blogCreated: "وبلاگ با موفقیت ایجاد شد",
+  blogUpdated: "وبلاگ با موفقیت به‌روزرسانی شد",
+  blogDeleted: "وبلاگ با موفقیت حذف شد",
+  blogDraftSaved: "پیش‌نویس وبلاگ با موفقیت ذخیره شد",
   
   // Role Success Messages
   roleCreated: "نقش با موفقیت ایجاد شد",

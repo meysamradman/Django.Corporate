@@ -13,7 +13,7 @@ import { Media } from "@/types/shared/media";
 import { Blog } from "@/types/blog/blog";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
-import { blogApi } from "@/api/blogs/route";
+import { blogApi } from "@/api/blog/route";
 import { generateSlug } from '@/core/utils/slugUtils';
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/core/utils/blogMediaUtils";
