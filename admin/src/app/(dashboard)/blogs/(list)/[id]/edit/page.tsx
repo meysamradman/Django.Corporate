@@ -213,6 +213,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        status: "published",
         is_public: formData.is_public,
         is_active: formData.is_active,
       };
@@ -269,6 +270,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        status: "draft",
         is_public: formData.is_public,
         is_active: formData.is_active,
       };

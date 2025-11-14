@@ -2,7 +2,6 @@
 import {Moon, SunMedium} from "lucide-react"
 import * as React from "react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/elements/Button";
 
 export function DarkMode() {
     const { setTheme, resolvedTheme } = useTheme();
@@ -18,28 +17,28 @@ export function DarkMode() {
 
     if (!mounted) {
         return (
-            <Button 
-                variant="outline" 
-                size="icon" 
+            <div
                 aria-label="Loading theme"
-                className="cursor-pointer [&_svg]:!size-5 p-0 hover:bg-transparent">
+                className="inline-flex h-10 w-10 items-center justify-center">
                 <div className="w-6 h-6 bg-br animate-pulse rounded-full" />
-            </Button>
+            </div>
         );
     }
 
     return (
-        <Button
-            variant="outline"
-            size="icon"
+        <div
+            role="button"
+            tabIndex={0}
+            onClick={toggleTheme}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleTheme()}
             aria-label="Toggle theme"
-            className="cursor-pointer [&_svg]:!size-5 p-0 hover:bg-transparent"
-            onClick={toggleTheme}>
+            className="inline-flex h-10 w-10 items-center justify-center cursor-pointer select-none text-font-p hover:text-foreground transition-colors"
+        >
             {resolvedTheme === "light" ? (
-                <Moon className="hover:text-foreground/80" />
+                <Moon className="h-5 w-5" />
             ) : (
-                <SunMedium className="hover:text-foreground/80 text-foreground" />
+                <SunMedium className="h-5 w-5" />
             )}
-        </Button>
+        </div>
     );
 }

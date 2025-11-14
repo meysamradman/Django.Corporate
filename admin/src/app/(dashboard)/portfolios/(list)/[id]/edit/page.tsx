@@ -237,6 +237,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        status: "published",
         is_public: formData.is_public,
         is_active: formData.is_active,
       };
@@ -295,6 +296,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        status: "draft",
         is_public: formData.is_public,
         is_active: formData.is_active,
       };

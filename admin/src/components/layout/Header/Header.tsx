@@ -28,7 +28,7 @@ export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSu
           variant="outline"
           size="icon"
           onClick={onMenuClick}
-          className="lg:hidden shrink-0"
+          className="lg:hidden shrink-0 border-none bg-transparent shadow-none hover:bg-transparent cursor-pointer"
           aria-label="باز کردن منو"
         >
           <Menu className="h-5 w-5" />
