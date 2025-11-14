@@ -6,6 +6,22 @@ import { useDebounce } from '@/core/hooks/useDebounce';
 import { mediaApi, VALID_MEDIA_PAGE_SIZES, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/route';
 import { Media, MediaFilter } from '@/types/shared/media';
 import { MediaImage } from '@/components/media/base/MediaImage';
+import { Skeleton } from "@/components/elements/Skeleton";
+const MediaGridSkeleton = () => (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
+    {Array.from({ length: 10 }).map((_, index) => (
+      <Card key={`media-skeleton-${index}`} className="overflow-hidden border-2 p-0">
+        <div className="w-full h-48">
+          <Skeleton className="h-full w-full" />
+        </div>
+        <div className="p-4 space-y-2">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+      </Card>
+    ))}
+  </div>
+);
 import { Input } from '@/components/elements/Input';
 import { mediaService } from '@/components/media/services';
 import { Button } from '@/components/elements/Button';
@@ -411,9 +427,7 @@ export default function MediaPage() {
 
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <TableLoadingCompact />
-              </div>
+              <MediaGridSkeleton />
             ) : mediaItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-font-s">
                 <ImageOff className="h-16 w-16 mb-4" />

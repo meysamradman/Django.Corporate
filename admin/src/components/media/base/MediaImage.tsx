@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';
+import { Skeleton } from "@/components/elements/Skeleton";
 
 interface MediaImageProps {
     media?: Media | null;
@@ -19,6 +20,8 @@ interface MediaImageProps {
     quality?: number;
     unoptimized?: boolean;
     style?: React.CSSProperties;
+  showSkeleton?: boolean;
+  skeletonClassName?: string;
 }
 
 export function MediaImage({
@@ -34,6 +37,8 @@ export function MediaImage({
                              quality = 75,
                              unoptimized = false,
                              style,
+                             showSkeleton = true,
+                             skeletonClassName,
                          }: MediaImageProps) {
     const [hasError, setError] = useState(false);
     const [loaded, setLoaded] = useState(false);
@@ -92,8 +97,28 @@ export function MediaImage({
     };
 
     if (fill) {
-        return <Image {...commonProps} fill sizes={sizes || "100vw"} />;
+        return (
+            <div className="relative h-full w-full overflow-hidden">
+                {showSkeleton && !loaded && (
+                    <Skeleton className={cn("absolute inset-0 h-full w-full", skeletonClassName)} />
+                )}
+                <Image {...commonProps} fill sizes={sizes || "100vw"} />
+            </div>
+        );
     }
 
-    return <Image {...commonProps} width={width || 100} height={height || 100} sizes={sizes} />;
+    return (
+        <div
+            className="relative inline-block overflow-hidden"
+            style={{
+                width: width ?? undefined,
+                height: height ?? undefined,
+            }}
+        >
+            {showSkeleton && !loaded && (
+                <Skeleton className={cn("absolute inset-0 h-full w-full", skeletonClassName)} />
+            )}
+            <Image {...commonProps} width={width || 100} height={height || 100} sizes={sizes} />
+        </div>
+    );
 } 

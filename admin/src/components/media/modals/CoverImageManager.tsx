@@ -6,6 +6,7 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Media } from '@/types/shared/media';
 import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
+import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -81,11 +82,12 @@ export function CoverImageManager({
       </div>
       
       {coverImageUrl ? (
-        <div className="relative">
-          <img 
-            src={coverImageUrl} 
-            alt="پیش‌نمایش کاور" 
-            className="w-full h-40 rounded-lg object-cover border"
+        <div className="relative h-40 rounded-lg overflow-hidden border">
+          <MediaImage
+            src={coverImageUrl}
+            alt="پیش‌نمایش کاور"
+            fill
+            className="object-cover"
           />
           <Button
             type="button"

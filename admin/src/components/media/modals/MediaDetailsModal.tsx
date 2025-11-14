@@ -16,6 +16,7 @@ import { X, Download, Edit3, FileText, Play, FileAudio, Save, ImageOff } from 'l
 import { Media } from '@/types/shared/media';
 import { MediaPlayer } from '@/components/media/base/MediaPlayer';
 import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
+import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { mediaApi } from '@/api/media/route';
 import { toast } from 'sonner';
@@ -217,11 +218,12 @@ export function MediaDetailsModal({
             mediaType={media.media_type}
           />
         ) : hasCoverImage ? (
-          <div className="w-full h-32 rounded-lg overflow-hidden">
-            <img 
-              src={coverImageUrl} 
-              alt={media.alt_text || media.title || 'کاور رسانه'} 
-              className="w-full h-full object-cover"
+          <div className="w-full h-32 rounded-lg overflow-hidden relative">
+            <MediaImage
+              src={coverImageUrl}
+              alt={media.alt_text || media.title || 'کاور رسانه'}
+              fill
+              className="object-cover"
             />
           </div>
         ) : (
