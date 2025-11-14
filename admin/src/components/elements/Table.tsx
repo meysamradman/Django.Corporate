@@ -11,11 +11,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom", className)}
-        style={{ 
-          fontSize: 'var(--table-cell-size)',
-          tableLayout: 'fixed'
-        }}
+        className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       />
     </div>
@@ -26,7 +22,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("table-header [&_tr]:border-b", className)}
+      className={cn("bg-table-header-bg border-b", className)}
       {...props}
     />
   )
@@ -60,7 +56,9 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "table-row border-b transition-colors h-[calc(var(--spacing)*10)]",
+        "border-b transition-colors duration-200 h-12",
+        "hover:bg-table-row-hv",
+        "data-[state=selected]:bg-table-row-slc",
         className
       )}
       {...props}
@@ -73,10 +71,9 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "table-header-text align-middle whitespace-nowrap",
-        "[padding-inline:calc(var(--spacing)_*_4)]",
+        "px-4 py-3 text-right align-middle font-semibold text-font-p text-sm",
+        "whitespace-nowrap border-r first:border-r-0",
         "[&:has([role=checkbox])]:text-center",
-        "first:border-r-0 border-r",
         className
       )}
       {...props}
@@ -89,11 +86,9 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "table-cell-text align-middle whitespace-nowrap",
-        "[padding-inline:calc(var(--spacing)_*_4)] [padding-block:calc(var(--spacing)_*_3)]",
+        "px-4 py-3 text-right align-middle text-font-s text-sm",
+        "whitespace-nowrap border-r first:border-r-0",
         "[&:has([role=checkbox])]:text-center",
-
-        "first:border-r-0 border-r",
         className
       )}
       {...props}
@@ -108,7 +103,7 @@ function TableCaption({
   return (
     <caption
       data-slot="table-caption"
-      className={cn("text-font-s mt-4 text-sm", className)}
+      className={cn("mt-4 text-sm text-font-s", className)}
       {...props}
     />
   )

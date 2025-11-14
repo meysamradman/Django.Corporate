@@ -146,38 +146,11 @@ html {
       @apply text-lg font-bold tracking-tight;
       color: var(--font-p);
     }
-    .table-header {
-      background-color: var(--bg);
-    }
-    .table-row:hover {
-      background-color: var(--sdb-hv) !important;
-    }
-    .table-row[data-state="selected"] {
-      background-color: var(--sdb-hv);
-    }
-    .table-header-text {
-      @apply font-semibold;
-      color: var(--font-p);
-      font-size: var(--table-header-size);
-    }
-    .table-cell-text {
-      color: var(--font-s);
-      font-size: var(--table-cell-size);
-    }
     .table-avatar {
       @apply h-9 w-9 !rounded-md;
     }
-    .table-avatar img,
-    .table-avatar [data-slot="avatar-image"] {
-      @apply !rounded-md;
-    }
-    .table-avatar [data-slot="avatar-fallback"],
-    .table-avatar-fallback,
-    .table-cell-avatar-fallback {
-      @apply text-xs font-medium !rounded-md;
-    }
-    .table-badge-container {
-      @apply flex w-[100px] items-center;
+    .table-cell-wide {
+      @apply max-w-[200px] truncate;
     }
     .table-cell-extra-wide {
       @apply max-w-[250px] truncate;
@@ -185,32 +158,10 @@ html {
     .table-cell-xxl {
       @apply max-w-[300px] truncate;
     }
-    .table-date-cell {
-      @apply w-[100px];
-      color: var(--font-s);
-      font-size: var(--table-cell-size);
+    .table-badge-container {
+      @apply flex w-[100px] items-center;
     }
-    .table-category-avatar {
-      @apply h-10 w-10 rounded-md;
-    }
-    .table-category-avatar-fallback {
-      @apply rounded-md text-xs font-medium;
-    }
-    .table-cell-primary {
-      color: var(--font-p);
-      font-size: var(--table-cell-size);
-    }
-    .table-cell-secondary {
-      color: var(--font-s);
-      font-size: var(--table-cell-size);
-    }
-    .table-cell-wide {
-      @apply max-w-[200px] truncate;
-    }
-    .table-cell-muted {
-      color: var(--font-s);
-      font-size: var(--table-cell-size);
-    }
+
   }
   @layer utilities {
     .transition-smooth {

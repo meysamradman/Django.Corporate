@@ -29,6 +29,10 @@
 --header: #ffffff;
 /* Card */
 --card: #fff;
+/* Table */
+--table-header-bg: #fafbfb;
+--table-row-hv: #f8f9fa;
+--table-row-slc: #dbeafe;
 /* --- Absolute Colors --- */
 --static-w: #ffffff;
 --static-b: #000000;
@@ -106,6 +110,10 @@
 --header: #0f0f0f;
 /* --- Card --- */
 --card: #111111;
+/* Table */
+--table-header-bg: #fafbfb;
+--table-row-hv: #f8f9fa;
+--table-row-slc: #dbeafe;
 /* --- Element Color --- */
 --wt: #000;
 --bl: #fff;
@@ -137,6 +145,10 @@
   --color-static-b: var(--static-b);
   /* --- Card --- */
   --color-card: var(--card);
+  /* Table */
+  --color-table-header-bg: var(--table-header-bg);
+  --color-table-row-hv: var(--table-row-hv);
+  --color-table-row-slc: var(--table-row-slc);
   /* --- Chart --- */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
