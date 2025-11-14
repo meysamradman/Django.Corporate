@@ -183,7 +183,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
     tags = PortfolioTagAdminSerializer(many=True, read_only=True)
-    options = PortfolioOptionSimpleAdminSerializer(many=True, read_only=True, source="portfolio_options")
+    options = PortfolioOptionSimpleAdminSerializer(many=True, read_only=True)
     media = serializers.SerializerMethodField()
     portfolio_media = serializers.SerializerMethodField()  # Alias for frontend compatibility
     

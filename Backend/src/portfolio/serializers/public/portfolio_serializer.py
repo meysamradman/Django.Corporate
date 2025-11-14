@@ -92,7 +92,7 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
 class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
     """Full serializer for public detail with SEO data"""
     categories = PortfolioCategorySimplePublicSerializer(many=True, read_only=True)
-    options = PortfolioOptionPublicSerializer(many=True, read_only=True, source="portfolio_options")
+    options = PortfolioOptionPublicSerializer(many=True, read_only=True)
     tags = PortfolioTagPublicSerializer(many=True, read_only=True)
     media = serializers.SerializerMethodField()
     

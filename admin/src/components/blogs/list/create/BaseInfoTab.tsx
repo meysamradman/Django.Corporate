@@ -17,9 +17,10 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
+import { Switch } from "@/components/elements/Switch";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText } from "lucide-react";
+import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText, Globe, Power } from "lucide-react";
 import { blogApi } from "@/api/blogs/route";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { BlogTag } from "@/types/blog/tags/blogTag";
@@ -320,12 +321,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {formSelectedCategories.map((category: BlogCategory) => (
                                                 <span 
                                                     key={category.id} 
-                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-purple text-purple-2"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-purple text-purple-2 transition hover:shadow-sm"
                                                 >
                                                     {category.name}
                                                     <button 
                                                         type="button" 
-                                                        className="text-purple-2 hover:text-purple-2"
+                                                        className="text-purple-2 hover:text-purple-2 cursor-pointer"
+                                                        title="حذف"
                                                         onClick={() => {
                                                             if (isFormApproach) {
                                                                 const currentCategories = watch?.("selectedCategories" as any) || [];
@@ -365,16 +367,26 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "دسته‌بندی‌ها را انتخاب کنید"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {categories
-                                                        .filter(category => !formSelectedCategories.some((selected: BlogCategory) => selected.id === category.id))
-                                                        .map((category) => (
+                                                    {categories.map((category) => {
+                                                        const isSelected = formSelectedCategories.some((selected: BlogCategory) => selected.id === category.id);
+                                                        return (
                                                             <SelectItem 
                                                                 key={category.id} 
                                                                 value={String(category.id)}
+                                                                disabled={isSelected}
+                                                                className={isSelected ? "opacity-60" : undefined}
                                                             >
-                                                                {category.name}
+                                                                <div className="flex items-center justify-between w-full gap-2">
+                                                                    <span>{category.name}</span>
+                                                                    {isSelected && (
+                                                                        <span className="inline-flex items-center">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-2 shadow-[0_0_5px_rgba(107,33,168,0.7)]"></span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </SelectItem>
-                                                        ))}
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -414,12 +426,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {formSelectedTags.map((tag: BlogTag) => (
                                                 <span 
                                                     key={tag.id} 
-                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-indigo text-indigo-2"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-indigo text-indigo-2 transition hover:shadow-sm"
                                                 >
                                                     {tag.name}
                                                     <button 
                                                         type="button" 
-                                                        className="text-indigo-2 hover:text-indigo-2"
+                                                        className="text-indigo-2 hover:text-indigo-2 cursor-pointer"
+                                                        title="حذف"
                                                         onClick={() => handleTagRemoveFn(tag.id)}
                                                     >
                                                         <X className="w-3 h-3" />
@@ -443,16 +456,26 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {tags
-                                                        .filter(tag => !formSelectedTags.some((selected: BlogTag) => selected.id === tag.id))
-                                                        .map((tag) => (
+                                                    {tags.map((tag) => {
+                                                        const isSelected = formSelectedTags.some((selected: BlogTag) => selected.id === tag.id);
+                                                        return (
                                                             <SelectItem 
                                                                 key={tag.id} 
                                                                 value={String(tag.id)}
+                                                                disabled={isSelected}
+                                                                className={isSelected ? "opacity-60" : undefined}
                                                             >
-                                                                {tag.name}
+                                                                <div className="flex items-center justify-between w-full gap-2">
+                                                                    <span>{tag.name}</span>
+                                                                    {isSelected && (
+                                                                        <span className="inline-flex items-center">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-2 shadow-[0_0_5px_rgba(55,48,163,0.7)]"></span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </SelectItem>
-                                                        ))}
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -466,7 +489,51 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         >
                                             <Plus />
                                         </Button>
+                            </div>
+
+                            {!isFormApproach && (
+                                <div className="space-y-4 rounded-xl border border-border/60 p-4 bg-bg/50 mt-6">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-1.5 bg-blue rounded-lg">
+                                                <Globe className="w-4 h-4 stroke-blue-2" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium">نمایش عمومی</p>
+                                                <p className="text-xs text-font-s">
+                                                    اگر غیرفعال باشد بلاگ در سایت نمایش داده نمی‌شود.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Switch
+                                            checked={(formData?.is_public ?? true)}
+                                            disabled={!editMode}
+                                            onCheckedChange={(checked) => handleInputChange?.("is_public", checked)}
+                                        />
                                     </div>
+
+                                    <div className="h-px bg-border/60" />
+
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-1.5 bg-green rounded-lg">
+                                                <Power className="w-4 h-4 stroke-green-2" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium">وضعیت فعال</p>
+                                                <p className="text-xs text-font-s">
+                                                    با غیرفعال شدن، بلاگ از لیست مدیریت نیز مخفی می‌شود.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Switch
+                                            checked={(formData?.is_active ?? true)}
+                                            disabled={!editMode}
+                                            onCheckedChange={(checked) => handleInputChange?.("is_active", checked)}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                                 </div>
                                 {errors.selectedTags?.message && (
                                     <div className="flex items-start gap-2 text-red-2">
@@ -499,6 +566,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                     return await blogApi.createCategory(categoryData);
                 }}
                 onSuccess={(createdCategory) => {
+                    setCategories(prev => prev.some(cat => cat.id === createdCategory.id) ? prev : [...prev, createdCategory]);
                     if (isFormApproach) {
                         const currentCategories = watch?.("selectedCategories" as any) || [];
                         setValue?.("selectedCategories" as any, [...currentCategories, createdCategory]);
@@ -526,6 +594,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                     });
                 }}
                 onSuccess={(createdTag) => {
+                    setTags(prev => prev.some(tag => tag.id === createdTag.id) ? prev : [...prev, createdTag]);
                     if (isFormApproach) {
                         const currentTags = watch?.("selectedTags") || [];
                         setValue?.("selectedTags", [...currentTags, createdTag]);

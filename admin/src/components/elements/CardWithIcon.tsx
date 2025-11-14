@@ -33,7 +33,7 @@ const CardWithIcon = React.memo(function CardWithIcon({
       <CardHeader className={headerClassName}>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn("p-2.5 rounded-xl shadow-sm", iconBgColor)}>
+            <div className={cn("p-2.5 rounded-lg shadow-sm", iconBgColor)}>
               <Icon className={cn("w-5 h-5", iconColor)} />
             </div>
             <span>{title}</span>

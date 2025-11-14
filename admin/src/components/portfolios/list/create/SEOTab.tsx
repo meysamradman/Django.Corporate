@@ -54,7 +54,7 @@ export default function SEOTab(props: SEOTabProps) {
         formData,
         handleInputChange
     } = isFormApproach ? {} as any : props;
-    
+
     // Watch values for form approach
     const metaTitleValue = isFormApproach ? watch?.("meta_title") : formData?.meta_title;
     const metaDescriptionValue = isFormApproach ? watch?.("meta_description") : formData?.meta_description;
@@ -63,6 +63,8 @@ export default function SEOTab(props: SEOTabProps) {
     const canonicalUrlValue = isFormApproach ? watch?.("canonical_url") : formData?.canonical_url;
     const robotsMetaValue = isFormApproach ? watch?.("robots_meta") : formData?.robots_meta;
     const ogImageValue = isFormApproach ? watch?.("og_image") : formData?.og_image;
+
+    const ogImageUrl = ogImageValue ? mediaService.getMediaUrlFromObject(ogImageValue) : "";
 
     // Handle input changes for manual approach
     const handleMetaTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -345,10 +347,10 @@ export default function SEOTab(props: SEOTabProps) {
                         borderColor={(formState.errors as any)?.og_image ? 'border-b-red-1' : 'border-b-blue-1'}
                         className="lg:sticky lg:top-20"
                     >
-                            {ogImageValue ? (
+                            {ogImageValue && ogImageUrl ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
                                     <NextImage
-                                        src={mediaService.getMediaUrlFromObject(ogImageValue)}
+                                        src={ogImageUrl}
                                         alt={ogImageValue.alt_text || "تصویر Open Graph"}
                                         fill
                                         className="object-cover"

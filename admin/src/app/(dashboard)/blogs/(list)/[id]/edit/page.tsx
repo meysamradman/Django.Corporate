@@ -57,6 +57,8 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     og_image: null as Media | null,
     canonical_url: "",
     robots_meta: "",
+    is_public: true,
+    is_active: true,
   });
   
   // Category and tag state for edit page
@@ -89,6 +91,8 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         og_image: blogData.og_image || null,
         canonical_url: blogData.canonical_url || "",
         robots_meta: blogData.robots_meta || "",
+        is_public: blogData.is_public ?? true,
+        is_active: blogData.is_active ?? true,
       });
       
       // Set categories if available
@@ -113,7 +117,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  const handleInputChange = (field: string, value: string | Media | null) => {
+  const handleInputChange = (field: string, value: string | Media | boolean | null) => {
     // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
@@ -209,6 +213,8 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        is_public: formData.is_public,
+        is_active: formData.is_active,
       };
       
       // Update blog (includes media sync with cover images)
@@ -263,6 +269,8 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        is_public: formData.is_public,
+        is_active: formData.is_active,
       };
       
       // Update blog as draft (includes media sync with cover images)
