@@ -2,24 +2,23 @@ import logging
 from rest_framework import serializers
 from django.core.cache import cache
 from django.conf import settings
-from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
-from src.portfolio.serializers.admin.category_serializer import PortfolioCategorySimpleAdminSerializer
-from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
-from src.portfolio.serializers.admin.option_serializer import PortfolioOptionSimpleAdminSerializer
-from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
-from src.portfolio.utils.cache import PortfolioCacheKeys
+from src.blog.models.blog import Blog
+from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
+from src.blog.serializers.admin.category_serializer import BlogCategorySimpleAdminSerializer
+from src.blog.serializers.admin.tag_serializer import BlogTagAdminSerializer
+from src.blog.services.admin.media_services import BlogAdminMediaService
+from src.blog.utils.cache import BlogCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 
 logger = logging.getLogger(__name__)
 
 # Cache settings values for performance (module-level cache)
-_MEDIA_LIST_LIMIT = settings.PORTFOLIO_MEDIA_LIST_LIMIT
-_MEDIA_DETAIL_LIMIT = settings.PORTFOLIO_MEDIA_DETAIL_LIMIT
+_MEDIA_LIST_LIMIT = settings.BLOG_MEDIA_LIST_LIMIT
+_MEDIA_DETAIL_LIMIT = settings.BLOG_MEDIA_DETAIL_LIMIT
 
 
-class PortfolioMediaAdminSerializer(serializers.Serializer):
-    """Admin serializer for portfolio media"""
+class BlogMediaAdminSerializer(serializers.Serializer):
+    """Admin serializer for blog media"""
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     media_detail = MediaAdminSerializer(read_only=True, source='media')
@@ -31,17 +30,17 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """Convert instance to appropriate serializer based on media type"""
         # Serialize media detail once
-        if isinstance(instance, PortfolioImage):
+        if isinstance(instance, BlogImage):
             media_detail = MediaAdminSerializer(instance.image, context=self.context).data
-        elif isinstance(instance, PortfolioVideo):
+        elif isinstance(instance, BlogVideo):
             media_detail = MediaAdminSerializer(instance.video, context=self.context).data
-            self._apply_portfolio_cover_image(instance, media_detail)
-        elif isinstance(instance, PortfolioAudio):
+            self._apply_blog_cover_image(instance, media_detail)
+        elif isinstance(instance, BlogAudio):
             media_detail = MediaAdminSerializer(instance.audio, context=self.context).data
-            self._apply_portfolio_cover_image(instance, media_detail)
-        elif isinstance(instance, PortfolioDocument):
+            self._apply_blog_cover_image(instance, media_detail)
+        elif isinstance(instance, BlogDocument):
             media_detail = MediaAdminSerializer(instance.document, context=self.context).data
-            self._apply_portfolio_cover_image(instance, media_detail)
+            self._apply_blog_cover_image(instance, media_detail)
         else:
             return super().to_representation(instance)
         
@@ -56,31 +55,31 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
             'updated_at': instance.updated_at,
         }
         
-        # Add is_main_image only for PortfolioImage
-        if isinstance(instance, PortfolioImage):
+        # Add is_main_image only for BlogImage
+        if isinstance(instance, BlogImage):
             result['is_main_image'] = instance.is_main
         
         return result
     
-    def _apply_portfolio_cover_image(self, instance, media_detail):
+    def _apply_blog_cover_image(self, instance, media_detail):
         """
-        Apply portfolio-specific cover image to media_detail
-        Priority: portfolio.cover_image > media.cover_image (fallback)
+        Apply blog-specific cover image to media_detail
+        Priority: blog.cover_image > media.cover_image (fallback)
         """
         if instance.cover_image is not None:
             media_detail['cover_image'] = MediaCoverSerializer(instance.cover_image, context=self.context).data
             media_detail['cover_image_url'] = instance.cover_image.file.url if instance.cover_image.file else None
         else:
-            portfolio_cover = instance.get_cover_image()
-            if portfolio_cover:
-                media_detail['cover_image'] = MediaCoverSerializer(portfolio_cover, context=self.context).data
-                media_detail['cover_image_url'] = portfolio_cover.file.url if portfolio_cover.file else None
+            blog_cover = instance.get_cover_image()
+            if blog_cover:
+                media_detail['cover_image'] = MediaCoverSerializer(blog_cover, context=self.context).data
+                media_detail['cover_image_url'] = blog_cover.file.url if blog_cover.file else None
 
 
-class PortfolioAdminListSerializer(serializers.ModelSerializer):
+class BlogAdminListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for admin listing with SEO status and detailed media counts"""
     main_image = serializers.SerializerMethodField()
-    categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
+    categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
     
     # Use annotated fields from queryset - no database queries!
     media_count = serializers.IntegerField(source='total_media_count', read_only=True)
@@ -92,7 +91,7 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
     media = serializers.SerializerMethodField()
     
     class Meta:
-        model = Portfolio
+        model = Blog
         fields = [
             'id', 'public_id', 'status', 'title', 'slug',
             'short_description', 'description', 'is_featured', 'is_public', 'is_active',
@@ -157,7 +156,7 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         all_media.sort(key=lambda x: (x.order, x.created_at))
         
         # Serialize with cached serializer instance
-        serializer = PortfolioMediaAdminSerializer(context=self.context)
+        serializer = BlogMediaAdminSerializer(context=self.context)
         return [serializer.to_representation(media) for media in all_media]
 
     def get_main_image(self, obj):
@@ -178,14 +177,13 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         }
 
 
-class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
+class BlogAdminDetailSerializer(serializers.ModelSerializer):
     """Full serializer for admin detail/edit with complete SEO support"""
     main_image = serializers.SerializerMethodField()
-    categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
-    tags = PortfolioTagAdminSerializer(many=True, read_only=True)
-    options = PortfolioOptionSimpleAdminSerializer(many=True, read_only=True, source="portfolio_options")
+    categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
+    tags = BlogTagAdminSerializer(many=True, read_only=True)
     media = serializers.SerializerMethodField()
-    portfolio_media = serializers.SerializerMethodField()  # Alias for frontend compatibility
+    blog_media = serializers.SerializerMethodField()  # Alias for frontend compatibility
     
     # SEO computed fields
     seo_data = serializers.SerializerMethodField()
@@ -193,12 +191,12 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     seo_completeness = serializers.SerializerMethodField()
     
     class Meta:
-        model = Portfolio
+        model = Blog
         fields = [
             'id', 'public_id', 'status', 'title', 'slug',
             'short_description', 'description',
             'is_featured', 'is_public', 'is_active',
-            'main_image', 'categories', 'tags', 'options', 'media', 'portfolio_media',
+            'main_image', 'categories', 'tags', 'media', 'blog_media',
             # SEO fields from SEOMixin
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
@@ -213,7 +211,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         return obj.get_main_image_details()
     
     def get_media(self, obj):
-        """Get all media for the portfolio with optimized queries using prefetched data"""
+        """Get all media for the blog with optimized queries using prefetched data"""
         media_limit = _MEDIA_DETAIL_LIMIT
         
         # Use prefetched data if available (from for_detail queryset)
@@ -263,7 +261,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         all_media.sort(key=lambda x: (x.order, x.created_at))
         
         # Serialize
-        serializer = PortfolioMediaAdminSerializer(context=self.context)
+        serializer = BlogMediaAdminSerializer(context=self.context)
         return [serializer.to_representation(media) for media in all_media]
     
     def _prefetch_cover_image_urls(self, items, media_type):
@@ -287,14 +285,14 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
                     except Exception:
                         pass
     
-    def get_portfolio_media(self, obj):
+    def get_blog_media(self, obj):
         """Alias for media field - frontend compatibility"""
         return self.get_media(obj)
     
     def get_seo_data(self, obj):
         """Get comprehensive SEO data using SEOMixin methods with caching"""
         # Try to get from cache first
-        cache_key = PortfolioCacheKeys.seo_data(obj.pk)
+        cache_key = BlogCacheKeys.seo_data(obj.pk)
         cached_data = cache.get(cache_key)
         if cached_data:
             return cached_data
@@ -315,7 +313,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     def get_seo_preview(self, obj):
         """SEO preview for admin panel (Google + Facebook) with caching"""
         # Try to get from cache first
-        cache_key = PortfolioCacheKeys.seo_preview(obj.pk)
+        cache_key = BlogCacheKeys.seo_preview(obj.pk)
         cached_preview = cache.get(cache_key)
         if cached_preview:
             return cached_preview
@@ -341,7 +339,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     def get_seo_completeness(self, obj):
         """Calculate SEO completeness percentage with caching"""
         # Try to get from cache first
-        cache_key = PortfolioCacheKeys.seo_completeness(obj.pk)
+        cache_key = BlogCacheKeys.seo_completeness(obj.pk)
         cached_completeness = cache.get(cache_key)
         if cached_completeness:
             return cached_completeness
@@ -370,19 +368,14 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         return completeness_data
 
 
-class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating portfolios with SEO auto-generation"""
+class BlogAdminCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating blogs with SEO auto-generation"""
     categories_ids = serializers.ListField(
         child=serializers.IntegerField(), 
         write_only=True, 
         required=False
     )
     tags_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
-        required=False
-    )
-    options_ids = serializers.ListField(
         child=serializers.IntegerField(), 
         write_only=True, 
         required=False
@@ -396,7 +389,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
     )
     
     class Meta:
-        model = Portfolio
+        model = Blog
         fields = [
             'title', 'slug', 'short_description', 'description',
             'status', 'is_featured', 'is_public',
@@ -404,7 +397,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             # Relations
-            'categories_ids', 'tags_ids', 'options_ids',
+            'categories_ids', 'tags_ids',
             # Media
             'media_files'
         ]
@@ -412,7 +405,6 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         categories_ids = validated_data.pop('categories_ids', [])
         tags_ids = validated_data.pop('tags_ids', [])
-        options_ids = validated_data.pop('options_ids', [])
         # Remove media_files from validated_data as we handle it in the view
         media_files = validated_data.pop('media_files', [])
         
@@ -423,22 +415,20 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
             validated_data['meta_description'] = validated_data['short_description'][:300]
         
-        # Create portfolio
-        portfolio = Portfolio.objects.create(**validated_data)
+        # Create blog
+        blog = Blog.objects.create(**validated_data)
         
         # Set relations
         if categories_ids:
-            portfolio.categories.set(categories_ids)
+            blog.categories.set(categories_ids)
         if tags_ids:
-            portfolio.tags.set(tags_ids)
-        if options_ids:
-            portfolio.options.set(options_ids)
+            blog.tags.set(tags_ids)
             
-        return portfolio
+        return blog
 
 
-class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating portfolios with SEO handling and media sync"""
+class BlogAdminUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating blogs with SEO handling and media sync"""
     categories_ids = serializers.ListField(
         child=serializers.IntegerField(), 
         write_only=True, 
@@ -449,17 +439,12 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         write_only=True, 
         required=False
     )
-    options_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
-        required=False
-    )
     media_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
         required=False,
         allow_empty=True,
-        help_text="List of media IDs to sync with portfolio (removes deleted, adds new)"
+        help_text="List of media IDs to sync with blog (removes deleted, adds new)"
     )
     main_image_id = serializers.IntegerField(
         write_only=True,
@@ -471,11 +456,11 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(allow_null=True),
         write_only=True,
         required=False,
-        help_text="Mapping of media_id to cover_image_id for portfolio-specific covers. Format: {media_id: cover_image_id}"
+        help_text="Mapping of media_id to cover_image_id for blog-specific covers. Format: {media_id: cover_image_id}"
     )
     
     class Meta:
-        model = Portfolio
+        model = Blog
         fields = [
             'title', 'slug', 'short_description', 'description',
             'status', 'is_featured', 'is_public', 'is_active',
@@ -483,13 +468,12 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             # Relations
-            'categories_ids', 'tags_ids', 'options_ids', 'media_ids', 'main_image_id', 'media_covers'
+            'categories_ids', 'tags_ids', 'media_ids', 'main_image_id', 'media_covers'
         ]
     
     def update(self, instance, validated_data):
         categories_ids = validated_data.pop('categories_ids', None)
         tags_ids = validated_data.pop('tags_ids', None)
-        options_ids = validated_data.pop('options_ids', None)
         media_ids = validated_data.pop('media_ids', None)
         main_image_id = validated_data.pop('main_image_id', None)
         media_covers = validated_data.pop('media_covers', None)
@@ -501,7 +485,7 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
             validated_data['meta_description'] = validated_data['short_description'][:300]
         
-        # Update portfolio fields
+        # Update blog fields
         for field, value in validated_data.items():
             setattr(instance, field, value)
         
@@ -512,13 +496,11 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             instance.categories.set(categories_ids)
         if tags_ids is not None:
             instance.tags.set(tags_ids)
-        if options_ids is not None:
-            instance.options.set(options_ids)
         
         # Sync media (remove deleted, add new, update main image and covers)
         if media_ids is not None:
-            PortfolioAdminMediaService.sync_media(
-                portfolio_id=instance.id,
+            BlogAdminMediaService.sync_media(
+                blog_id=instance.id,
                 media_ids=media_ids,
                 main_image_id=main_image_id,
                 media_covers=media_covers
@@ -528,6 +510,6 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
 
 
 # Backward compatibility - rename existing serializer
-class PortfolioAdminSerializer(PortfolioAdminDetailSerializer):
+class BlogAdminSerializer(BlogAdminDetailSerializer):
     """Backward compatibility alias for existing code"""
     pass

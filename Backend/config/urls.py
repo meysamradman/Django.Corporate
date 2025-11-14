@@ -5,6 +5,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from src.portfolio.views.admin.portfolio_export_view import PortfolioExportView
+from src.blog.views.admin.blog_export_view import BlogExportView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,13 +20,12 @@ urlpatterns = [
     path('api/', include('src.form.urls')),
     path('api/', include('src.statistics.urls')),
     path('api/', include('src.panel.urls')),
-    # path('api/', include('src.blog.urls')),
-    # Portfolio export endpoint - CRITICAL: Must be before portfolio.urls include
-    # This is more specific than the generic 'api/' prefix, so it will match first
+    path('api/', include('src.blog.urls')),
+    path('api/admin/blog/export/', BlogExportView.as_view(), name='admin-blog-export'),
+    path('api/admin/blog/export', BlogExportView.as_view(), name='admin-blog-export-no-slash'),
+    path('api/', include('src.portfolio.urls')),
     path('api/admin/portfolio/export/', PortfolioExportView.as_view(), name='admin-portfolio-export'),
     path('api/admin/portfolio/export', PortfolioExportView.as_view(), name='admin-portfolio-export-no-slash'),
-    # Portfolio URLs - include after export endpoint to avoid conflicts
-    path('api/', include('src.portfolio.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),

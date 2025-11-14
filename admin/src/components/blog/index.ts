@@ -1,0 +1,1 @@
+export { BlogMediaGallery } from './list/BlogMediaGallery';

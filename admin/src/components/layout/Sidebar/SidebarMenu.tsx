@@ -48,11 +48,14 @@ export const useMenuData = () => {
                         title: "بلاگ",
                         icon: BookOpen,
                         items: [
-                            { title: "لیست بلاگ‌ها", url: "/blogs" },
-                            { title: "ایجاد بلاگ", url: "/blogs/create" },
+                            { title: "لیست بلاگ‌ها", url: "/blog" },
+                            { title: "ایجاد بلاگ", url: "/blog/create" },
                             { title: "دسته‌بندی‌های بلاگ", isTitle: true },
-                            { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories" },
-                            { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create" },
+                            { title: "لیست دسته‌بندی‌ها", url: "/blog/categories" },
+                            { title: "ایجاد دسته‌بندی", url: "/blog/categories/create" },
+                            { title: "تگ‌های بلاگ", isTitle: true },
+                            { title: "لیست تگ‌ها", url: "/blog/tags" },
+                            { title: "ایجاد تگ", url: "/blog/tags/create" },
                         ],
                     },
                     {

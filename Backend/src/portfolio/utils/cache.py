@@ -62,6 +62,13 @@ class PortfolioCacheManager:
     def invalidate_portfolio(portfolio_id):
         """Invalidate all cache related to a portfolio"""
         cache_keys = PortfolioCacheKeys.all_keys(portfolio_id)
+        # Add additional cache keys that might be used
+        additional_keys = [
+            f"portfolio:{portfolio_id}:main_image_details",
+            f"portfolio:{portfolio_id}:media_list",
+            f"portfolio:{portfolio_id}:media_detail",
+        ]
+        cache_keys.extend(additional_keys)
         cache.delete_many(cache_keys)
     
     @staticmethod
@@ -70,6 +77,13 @@ class PortfolioCacheManager:
         all_keys = []
         for pid in portfolio_ids:
             all_keys.extend(PortfolioCacheKeys.all_keys(pid))
+            # Add additional cache keys for each portfolio
+            additional_keys = [
+                f"portfolio:{pid}:main_image_details",
+                f"portfolio:{pid}:media_list",
+                f"portfolio:{pid}:media_detail",
+            ]
+            all_keys.extend(additional_keys)
         if all_keys:
             cache.delete_many(all_keys)
 

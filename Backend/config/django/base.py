@@ -32,7 +32,7 @@ APPEND_SLASH = False  # Disable automatic slash appending to prevent POST redire
 LOCAL_APPS = [
     'src.core.apps.CoreConfig',
     'src.user.apps.UserConfig',
-    # 'src.blog.apps.BlogConfig',
+    'src.blog.apps.BlogConfig',
     'src.portfolio.apps.PortfolioConfig',
     'src.media.apps.MediaConfig',
     'src.ai.apps.AiConfig',
@@ -309,6 +309,11 @@ PORTFOLIO_EXPORT_PAGE_SIZE = env.int('PORTFOLIO_EXPORT_PAGE_SIZE', default=50)  
 PORTFOLIO_EXPORT_RATE_LIMIT = env.int('PORTFOLIO_EXPORT_RATE_LIMIT', default=10)
 PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW = env.int('PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW', default=3600)
 
+# Blog Export Settings (defaults fallback to portfolio values)
+BLOG_EXPORT_MAX_ITEMS = env.int('BLOG_EXPORT_MAX_ITEMS', default=PORTFOLIO_EXPORT_MAX_ITEMS)
+BLOG_EXPORT_RATE_LIMIT = env.int('BLOG_EXPORT_RATE_LIMIT', default=PORTFOLIO_EXPORT_RATE_LIMIT)
+BLOG_EXPORT_RATE_LIMIT_WINDOW = env.int('BLOG_EXPORT_RATE_LIMIT_WINDOW', default=PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW)
+
 # Portfolio Media Settings
 # Limit for media items in list view (for performance)
 PORTFOLIO_MEDIA_LIST_LIMIT = env.int('PORTFOLIO_MEDIA_LIST_LIMIT', default=5)  # Max media items per type in list view
@@ -316,6 +321,11 @@ PORTFOLIO_MEDIA_LIST_LIMIT = env.int('PORTFOLIO_MEDIA_LIST_LIMIT', default=5)  #
 PORTFOLIO_MEDIA_DETAIL_LIMIT = env.int('PORTFOLIO_MEDIA_DETAIL_LIMIT', default=0)  # 0 = unlimited in detail view
 # Max media items that can be uploaded at once
 PORTFOLIO_MEDIA_UPLOAD_MAX = env.int('PORTFOLIO_MEDIA_UPLOAD_MAX', default=50)  # Max media files per upload
+
+# Blog Media Settings (defaults fallback to portfolio values)
+BLOG_MEDIA_LIST_LIMIT = env.int('BLOG_MEDIA_LIST_LIMIT', default=PORTFOLIO_MEDIA_LIST_LIMIT)
+BLOG_MEDIA_DETAIL_LIMIT = env.int('BLOG_MEDIA_DETAIL_LIMIT', default=PORTFOLIO_MEDIA_DETAIL_LIMIT)
+BLOG_MEDIA_UPLOAD_MAX = env.int('BLOG_MEDIA_UPLOAD_MAX', default=PORTFOLIO_MEDIA_UPLOAD_MAX)
 
 MEDIA_ALLOWED_EXTENSIONS = {
     'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,webp,png,svg,gif').split(','),
