@@ -10,37 +10,35 @@ import {
   Loader2, Save
 } from "lucide-react";
 import { Media } from "@/types/shared/media";
-import { Portfolio } from "@/types/portfolio/portfolio";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { portfolioApi } from "@/api/portfolios/route";
+import { Blog } from "@/types/blog/blog";
+import { BlogTag } from "@/types/blog/tags/blogTag";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
+import { blogApi } from "@/api/blogs/route";
 import { generateSlug } from '@/core/utils/slugUtils';
-import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
-import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/core/utils/portfolioMediaUtils";
+import { BlogMedia } from "@/types/blog/blogMedia";
+import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/core/utils/blogMediaUtils";
 
-// Extend Portfolio interface to include category and tag IDs for API calls
-interface PortfolioUpdateData extends Partial<Portfolio> {
+// Extend Blog interface to include category and tag IDs for API calls
+interface BlogUpdateData extends Partial<Blog> {
   categories_ids?: number[];
   tags_ids?: number[];
-  options_ids?: number[];
   media_ids?: number[];
   main_image_id?: number | null;
   media_covers?: { [mediaId: number]: number | null };
 }
 
-const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/blog/list/create/BaseInfoTab"));
+const MediaTab = lazy(() => import("@/components/blog/list/create/MediaTab"));
+const SEOTab = lazy(() => import("@/components/blog/list/create/SEOTab"));
 
-export default function EditPortfolioPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState<string>("account");
   const [editMode, setEditMode] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
+  const [blogMedia, setBlogMedia] = useState<BlogMedia>({
     featuredImage: null,
     imageGallery: [],
     videoGallery: [],
@@ -62,60 +60,54 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
   });
   
   // Category and tag state for edit page
-  const [selectedCategories, setSelectedCategories] = useState<PortfolioCategory[]>([]);
-  const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<PortfolioOption[]>([]);
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<BlogCategory[]>([]);
+  const [selectedTags, setSelectedTags] = useState<BlogTag[]>([]);
+  const [blog, setBlog] = useState<Blog | null>(null);
 
   useEffect(() => {
     if (id) {
-      fetchPortfolioData();
+      fetchBlogData();
     }
   }, [id]);
 
-  const fetchPortfolioData = async () => {
+  const fetchBlogData = async () => {
     try {
       setIsLoading(true);
-      const portfolioData = await portfolioApi.getPortfolioById(Number(id));
-      setPortfolio(portfolioData);
+      const blogData = await blogApi.getBlogById(Number(id));
+      setBlog(blogData);
       
       // Set form data
       setFormData({
-        name: portfolioData.title || "",
-        slug: portfolioData.slug || "",
-        short_description: portfolioData.short_description || "",
-        description: portfolioData.description || "",
-        meta_title: portfolioData.meta_title || "",
-        meta_description: portfolioData.meta_description || "",
-        og_title: portfolioData.og_title || "",
-        og_description: portfolioData.og_description || "",
-        og_image: portfolioData.og_image || null,
-        canonical_url: portfolioData.canonical_url || "",
-        robots_meta: portfolioData.robots_meta || "",
+        name: blogData.title || "",
+        slug: blogData.slug || "",
+        short_description: blogData.short_description || "",
+        description: blogData.description || "",
+        meta_title: blogData.meta_title || "",
+        meta_description: blogData.meta_description || "",
+        og_title: blogData.og_title || "",
+        og_description: blogData.og_description || "",
+        og_image: blogData.og_image || null,
+        canonical_url: blogData.canonical_url || "",
+        robots_meta: blogData.robots_meta || "",
       });
       
       // Set categories if available
-      if (portfolioData.categories) {
-        setSelectedCategories(portfolioData.categories);
+      if (blogData.categories) {
+        setSelectedCategories(blogData.categories);
       }
       
       // Set tags if available
-      if (portfolioData.tags) {
-        setSelectedTags(portfolioData.tags);
-      }
-      
-      // Set options if available
-      if (portfolioData.options) {
-        setSelectedOptions(portfolioData.options);
+      if (blogData.tags) {
+        setSelectedTags(blogData.tags);
       }
       
       // Set media data if available
-      if (portfolioData.portfolio_media) {
-        const parsedMedia = parsePortfolioMedia(portfolioData.portfolio_media);
-        setPortfolioMedia(parsedMedia);
+      if (blogData.blog_media) {
+        const parsedMedia = parseBlogMedia(blogData.blog_media);
+        setBlogMedia(parsedMedia);
       }
     } catch (error) {
-      console.error("Error fetching portfolio data:", error);
+      console.error("Error fetching blog data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +133,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const handleCategoryToggle = (category: PortfolioCategory) => {
+  const handleCategoryToggle = (category: BlogCategory) => {
     setSelectedCategories(prev => {
       if (prev.some(c => c.id === category.id)) {
         return prev.filter(c => c.id !== category.id);
@@ -155,7 +147,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     setSelectedCategories(prev => prev.filter(category => category.id !== categoryId));
   };
 
-  const handleTagToggle = (tag: PortfolioTag) => {
+  const handleTagToggle = (tag: BlogTag) => {
     // Toggle tag selection
     setSelectedTags(prev => {
       if (prev.some(t => t.id === tag.id)) {
@@ -170,29 +162,15 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
   };
 
-  const handleOptionToggle = (option: PortfolioOption) => {
-    setSelectedOptions(prev => {
-      if (prev.some(o => o.id === option.id)) {
-        return prev.filter(o => o.id !== option.id);
-      } else {
-        return [...prev, option];
-      }
-    });
-  };
-
-  const handleOptionRemove = (optionId: number) => {
-    setSelectedOptions(prev => prev.filter(option => option.id !== optionId));
-  };
-
   const handleFeaturedImageChange = (media: Media | null) => {
-    setPortfolioMedia(prev => ({
+    setBlogMedia(prev => ({
       ...prev,
       featuredImage: media
     }));
   };
 
   const handleSave = async () => {
-    if (!portfolio) return;
+    if (!blog) return;
     
     setIsSaving(true);
     try {
@@ -207,22 +185,20 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
-      const optionIds = selectedOptions.map(option => option.id);
       
       // Collect all media IDs and covers using utility functions
-      const allMediaIds = collectMediaIds(portfolioMedia);
-      const mainImageId = portfolioMedia.featuredImage?.id || null;
-      const mediaCovers = collectMediaCovers(portfolioMedia);
+      const allMediaIds = collectMediaIds(blogMedia);
+      const mainImageId = blogMedia.featuredImage?.id || null;
+      const mediaCovers = collectMediaCovers(blogMedia);
       
       // Prepare update data with extended interface
-      const updateData: PortfolioUpdateData = {
+      const updateData: BlogUpdateData = {
         title: formData.name,
         slug: formattedSlug,
         short_description: formData.short_description,
         description: formData.description,
         categories_ids: categoryIds,
         tags_ids: tagIds,
-        options_ids: optionIds,
         media_ids: allMediaIds,
         main_image_id: mainImageId,
         media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
@@ -235,20 +211,20 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         robots_meta: formData.robots_meta || undefined,
       };
       
-      // Update portfolio (includes media sync with cover images)
-      const updatedPortfolio = await portfolioApi.updatePortfolio(portfolio.id, updateData);
+      // Update blog (includes media sync with cover images)
+      const updatedBlog = await blogApi.updateBlog(blog.id, updateData);
       
-      // Redirect to portfolio list after saving
-      router.push("/portfolios");
+      // Redirect to blog list after saving
+      router.push("/blogs");
     } catch (error) {
-      console.error("Error updating portfolio:", error);
+      console.error("Error updating blog:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleSaveDraft = async () => {
-    if (!portfolio) return;
+    if (!blog) return;
     
     setIsSaving(true);
     try {
@@ -263,22 +239,20 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
-      const optionIds = selectedOptions.map(option => option.id);
       
       // Collect all media IDs and covers using utility functions
-      const allMediaIds = collectMediaIds(portfolioMedia);
-      const mainImageId = portfolioMedia.featuredImage?.id || null;
-      const mediaCovers = collectMediaCovers(portfolioMedia);
+      const allMediaIds = collectMediaIds(blogMedia);
+      const mainImageId = blogMedia.featuredImage?.id || null;
+      const mediaCovers = collectMediaCovers(blogMedia);
       
       // Prepare update data with extended interface
-      const updateData: PortfolioUpdateData = {
+      const updateData: BlogUpdateData = {
         title: formData.name,
         slug: formattedSlug,
         short_description: formData.short_description,
         description: formData.description,
         categories_ids: categoryIds,
         tags_ids: tagIds,
-        options_ids: optionIds,
         media_ids: allMediaIds,
         main_image_id: mainImageId,
         media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
@@ -291,13 +265,13 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         robots_meta: formData.robots_meta || undefined,
       };
       
-      // Update portfolio as draft (includes media sync with cover images)
-      const updatedPortfolio = await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
+      // Update blog as draft (includes media sync with cover images)
+      const updatedBlog = await blogApi.partialUpdateBlog(blog.id, updateData);
       
-      // Redirect to portfolio list after saving draft
-      router.push("/portfolios");
+      // Redirect to blog list after saving draft
+      router.push("/blogs");
     } catch (error) {
-      console.error("Error saving portfolio draft:", error);
+      console.error("Error saving blog draft:", error);
     } finally {
       setIsSaving(false);
     }
@@ -318,7 +292,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  if (!portfolio) {
+  if (!blog) {
     return (
       <div className="space-y-6">
         <div>
@@ -406,21 +380,18 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               editMode={editMode}
               selectedCategories={selectedCategories}
               selectedTags={selectedTags}
-              selectedOptions={selectedOptions}
               onCategoryToggle={handleCategoryToggle}
               onCategoryRemove={handleCategoryRemove}
               onTagToggle={handleTagToggle}
               onTagRemove={handleTagRemove}
-              onOptionToggle={handleOptionToggle}
-              onOptionRemove={handleOptionRemove}
             />
           )}
           {activeTab === "media" && (
             <MediaTab 
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
+              blogMedia={blogMedia}
+              setBlogMedia={setBlogMedia}
               editMode={editMode}
-              featuredImage={portfolioMedia.featuredImage}
+              featuredImage={blogMedia.featuredImage}
               onFeaturedImageChange={handleFeaturedImageChange}
             />
           )}

@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
-import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
-import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";
-import { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
+import { useBlogColumns } from "@/components/blog/list/BlogTableColumns";
+import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blog/list/BlogTableFilters";
+import { BlogFilters } from "@/types/blog/blogListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import Link from "next/link";
@@ -26,21 +26,21 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 
-import { Portfolio } from "@/types/portfolio/portfolio";
+import { Blog } from "@/types/blog/blog";
 import { ColumnDef } from "@tanstack/react-table";
-import { portfolioApi } from "@/api/portfolios/route";
-import { exportPortfolios } from "@/api/portfolios/export";
+import { blogApi } from "@/api/blog/route";
+import { exportBlogs } from "@/api/blog/export";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { env } from '@/core/config/environment';
 
 // تابع تبدیل دسته‌بندی‌ها به فرمت سلسله مراتبی
-const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
+const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
   // ابتدا دسته‌بندی‌های ریشه را پیدا می‌کنیم
   const rootCategories = categories.filter(cat => !cat.parent_id);
   
   // تابع بازگشتی برای ساخت درخت
-  const buildTree = (category: PortfolioCategory): any => {
+  const buildTree = (category: BlogCategory): any => {
     const children = categories.filter(cat => cat.parent_id === category.id);
     
     return {
@@ -56,15 +56,14 @@ const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[]
   return rootCategories.map(buildTree);
 };
 
-export default function PortfolioPage() {
+export default function BlogPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { getCRUDProps } = usePermissionProps();
-  const portfolioAccess = getCRUDProps('portfolio');
-  const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
+  const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
   
   // استیت برای دسته‌بندی‌ها
-  const [categories, setCategories] = useState<PortfolioCategory[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   
   // Initialize state from URL params
@@ -105,10 +104,10 @@ export default function PortfolioPage() {
     }
     return '';
   });
-  const [clientFilters, setClientFilters] = useState<PortfolioFilters>(() => {
+  const [clientFilters, setClientFilters] = useState<BlogFilters>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const filters: PortfolioFilters = {};
+      const filters: BlogFilters = {};
       if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
       if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
       if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
@@ -128,8 +127,8 @@ export default function PortfolioPage() {
   // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
-    portfolioId?: number;
-    portfolioIds?: number[];
+    blogId?: number;
+    blogIds?: number[];
     isBulk: boolean;
   }>({
     open: false,
@@ -140,7 +139,7 @@ export default function PortfolioPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await portfolioApi.getCategories({
+        const response = await blogApi.getCategories({
           page: 1,
           size: 1000, // دریافت همه دسته‌بندی‌ها
           is_active: true,
@@ -158,7 +157,7 @@ export default function PortfolioPage() {
   }, []);
 
   // ساخت کانفیگ فیلترها
-  const portfolioFilterConfig = getPortfolioFilterConfig(
+  const blogFilterConfig = getBlogFilterConfig(
     statusFilterOptions, 
     booleanFilterOptions,
     categoryOptions
@@ -180,23 +179,23 @@ export default function PortfolioPage() {
   };
 
   // Use React Query for data fetching
-  const { data: portfolios, isLoading, error } = useQuery({
-    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
+  const { data: blogs, isLoading, error } = useQuery({
+    queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
     queryFn: async () => {
-      const response = await portfolioApi.getPortfolioList(queryParams);
+      const response = await blogApi.getBlogList(queryParams);
       return response;
     },
     staleTime: 0, // Always fetch fresh data
     retry: 1, // Retry once on failure
   });
 
-  const data: Portfolio[] = portfolios?.data || [];
-  const pageCount = portfolios?.pagination?.total_pages || 1;
+  const data: Blog[] = blogs?.data || [];
+  const pageCount = blogs?.pagination?.total_pages || 1;
 
-  const deletePortfolioMutation = useMutation({
-    mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
+  const deleteBlogMutation = useMutation({
+    mutationFn: (blogId: number) => blogApi.deleteBlog(blogId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
       toast.success("با موفقیت حذف شد");
     },
     onError: (error) => {
@@ -205,26 +204,26 @@ export default function PortfolioPage() {
   });
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
+    mutationFn: (blogIds: number[]) => blogApi.bulkDeleteBlogs(blogIds),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
       toast.success("با موفقیت حذف شد");
       setRowSelection({});
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete portfolio error:", error);
+      console.error("Bulk delete blog error:", error);
     },
   });
 
   // Toggle active status mutation
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
-      return portfolioApi.partialUpdatePortfolio(id, { is_active });
+      return blogApi.partialUpdateBlog(id, { is_active });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(`نمونه‌کار با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      toast.success(`بلاگ با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
     },
     onError: (error) => {
       toast.error("خطا در تغییر وضعیت");
@@ -233,18 +232,18 @@ export default function PortfolioPage() {
   });
 
   // Handle toggle active status
-  const handleToggleActive = (portfolio: Portfolio) => {
+  const handleToggleActive = (blog: Blog) => {
     toggleActiveMutation.mutate({
-      id: portfolio.id,
-      is_active: !portfolio.is_active,
+      id: blog.id,
+      is_active: !blog.is_active,
     });
   };
 
-  // تابع حذف نمونه‌کار
-  const handleDeletePortfolio = (portfolioId: number | string) => {
+  // تابع حذف بلاگ
+  const handleDeleteBlog = (blogId: number | string) => {
     setDeleteConfirm({
       open: true,
-      portfolioId: Number(portfolioId),
+      blogId: Number(blogId),
       isBulk: false,
     });
   };
@@ -253,7 +252,7 @@ export default function PortfolioPage() {
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
-      portfolioIds: selectedIds.map(id => Number(id)),
+      blogIds: selectedIds.map(id => Number(id)),
       isBulk: true,
     });
   };
@@ -261,10 +260,10 @@ export default function PortfolioPage() {
   // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
-      if (deleteConfirm.isBulk && deleteConfirm.portfolioIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.portfolioIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.portfolioId) {
-        await deletePortfolioMutation.mutateAsync(deleteConfirm.portfolioId);
+      if (deleteConfirm.isBulk && deleteConfirm.blogIds) {
+        await bulkDeleteMutation.mutateAsync(deleteConfirm.blogIds);
+      } else if (!deleteConfirm.isBulk && deleteConfirm.blogId) {
+        await deleteBlogMutation.mutateAsync(deleteConfirm.blogId);
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -273,24 +272,24 @@ export default function PortfolioPage() {
   };
 
   // تعریف ستون‌های جدول
-  const rowActions: DataTableRowAction<Portfolio>[] = [
+  const rowActions: DataTableRowAction<Blog>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (portfolio) => router.push(`/portfolios/${portfolio.id}/edit`),
+      onClick: (blog) => router.push(`/blog/${blog.id}/edit`),
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
-      onClick: (portfolio) => handleDeletePortfolio(portfolio.id),
+      onClick: (blog) => handleDeleteBlog(blog.id),
       isDestructive: true,
     },
   ];
   
-  const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
+  const columns = useBlogColumns(rowActions, handleToggleActive) as ColumnDef<Blog>[];
 
   // Export handlers
-  const handleExportExcel = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
+  const handleExportExcel = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
     try {
       const exportParams: any = {
         search: search || undefined,
@@ -310,7 +309,7 @@ export default function PortfolioPage() {
         exportParams.size = pagination.pageSize;
       }
       
-      await exportPortfolios(exportParams, 'excel');
+      await exportBlogs(exportParams, 'excel');
       toast.success(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
@@ -318,7 +317,7 @@ export default function PortfolioPage() {
     }
   };
 
-  const handleExportPDF = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
+  const handleExportPDF = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
     try {
       const exportParams: any = {
         search: search || undefined,
@@ -338,7 +337,7 @@ export default function PortfolioPage() {
         exportParams.size = pagination.pageSize;
       }
       
-      await exportPortfolios(exportParams, 'pdf');
+      await exportBlogs(exportParams, 'pdf');
       toast.success(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
@@ -371,7 +370,7 @@ export default function PortfolioPage() {
           is_active: clientFilters.is_active as boolean | undefined,
           categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
         };
-        const response = await portfolioApi.getPortfolioList(allParams);
+        const response = await blogApi.getBlogList(allParams);
         printData = response.data;
         const totalCount = response.pagination?.count || 0;
         if (totalCount > MAX_PRINT_ITEMS) {
@@ -406,25 +405,25 @@ export default function PortfolioPage() {
     };
 
     // Build table rows
-    const tableRows = printData.map((portfolio) => {
-      const categories = portfolio.categories?.map(c => c.name).join(', ') || '-';
-      const tags = portfolio.tags?.map(t => t.name).join(', ') || '-';
-      const options = portfolio.options?.map(o => o.name + (o.description ? ` (${o.description})` : '')).join(', ') || '-';
-      const statusText = getStatusText(portfolio.status);
-      const createdDate = portfolio.created_at ? formatDate(portfolio.created_at) : '-';
+    const tableRows = printData.map((blog) => {
+      const categories = blog.categories?.map(c => c.name).join(', ') || '-';
+      const tags = blog.tags?.map(t => t.name).join(', ') || '-';
+      const shortDescription = blog.short_description ? blog.short_description.substring(0, 80) : '-';
+      const statusText = getStatusText(blog.status);
+      const createdDate = blog.created_at ? formatDate(blog.created_at) : '-';
       
       return `
         <tr>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${options}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${shortDescription}</td>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${tags}</td>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${categories}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_active ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_public ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_featured ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.id}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.title || '-'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_active ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_public ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_featured ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.id}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.title || '-'}</td>
         </tr>
       `;
     }).join('');
@@ -435,7 +434,7 @@ export default function PortfolioPage() {
       <html dir="rtl">
         <head>
           <meta charset="utf-8">
-          <title>پرینت لیست نمونه‌کارها ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
+          <title>پرینت لیست بلاگ‌ها ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
           <style>
             * {
               margin: 0;
@@ -492,7 +491,7 @@ export default function PortfolioPage() {
               <tr>
                 <th>وضعیت</th>
                 <th>تاریخ ایجاد</th>
-                <th>گزینه‌ها</th>
+                <th>خلاصه</th>
                 <th>تگ‌ها</th>
                 <th>دسته‌بندی‌ها</th>
                 <th>فعال</th>
@@ -611,7 +610,7 @@ export default function PortfolioPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت نمونه‌کارها</h1>
+          <h1 className="page-title">مدیریت بلاگ‌ها</h1>
         </div>
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
@@ -628,7 +627,7 @@ export default function PortfolioPage() {
             variant="outline"
             onClick={() => {
               // Clear any cached data and retry
-              queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+              queryClient.invalidateQueries({ queryKey: ['blogs'] });
               window.location.reload();
             }}
             className="mt-4 mr-2"
@@ -646,14 +645,14 @@ export default function PortfolioPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
-            مدیریت نمونه‌کارها
+            مدیریت بلاگ‌ها
           </h1>
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/portfolios/create">
+            <Link href="/blog/create">
               <Edit className="h-4 w-4 me-2" />
-              افزودن نمونه‌کار
+              افزودن بلاگ
             </Link>
           </Button>
         </div>
@@ -715,7 +714,7 @@ export default function PortfolioPage() {
           },
         ]}
         onPrint={() => handlePrint(false)}
-        filterConfig={portfolioFilterConfig}
+        filterConfig={blogFilterConfig}
       />
 
       {/* Confirm Delete Dialog */}
@@ -728,7 +727,7 @@ export default function PortfolioPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirmMessage('bulkDeleteAdmins', { count: deleteConfirm.portfolioIds?.length || 0 })
+                ? getConfirmMessage('bulkDeleteAdmins', { count: deleteConfirm.blogIds?.length || 0 })
                 : getConfirmMessage('deleteAdmin')
               }
             </AlertDialogDescription>

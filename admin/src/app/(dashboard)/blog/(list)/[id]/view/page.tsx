@@ -8,26 +8,26 @@ import { Button } from "@/components/elements/Button";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from "@/components/elements/Skeleton";
-import { portfolioApi } from "@/api/portfolios/route";
-import { PortfolioSidebar } from "@/components/portfolios/list/view/PortfolioSidebar";
-import { OverviewTab } from "@/components/portfolios/list/view/OverviewTab";
-import { MediaInfoTab } from "@/components/portfolios/list/view/MediaInfoTab";
-import { SEOInfoTab } from "@/components/portfolios/list/view/SEOInfoTab";
+import { blogApi } from "@/api/blogs/route";
+import { BlogSidebar } from "@/components/blog/list/view/BlogSidebar";
+import { OverviewTab } from "@/components/blog/list/view/OverviewTab";
+import { MediaInfoTab } from "@/components/blog/list/view/MediaInfoTab";
+import { SEOInfoTab } from "@/components/blog/list/view/SEOInfoTab";
 
-export default function PortfolioViewPage() {
+export default function BlogViewPage() {
   const params = useParams();
   const router = useRouter();
-  const portfolioId = params?.id as string;
+  const blogId = params?.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: portfolioData, isLoading, error } = useQuery({
-    queryKey: ["portfolio", portfolioId],
-    queryFn: () => portfolioApi.getPortfolioById(Number(portfolioId)),
+  const { data: blogData, isLoading, error } = useQuery({
+    queryKey: ["blog", blogId],
+    queryFn: () => blogApi.getBlogById(Number(blogId)),
     staleTime: 0,
-    enabled: !!portfolioId,
+    enabled: !!blogId,
   });
 
-  if (!portfolioId) {
+  if (!blogId) {
     return (
       <div className="space-y-6">
         <h1 className="page-title">نمایش نمونه‌کار</h1>
@@ -60,7 +60,7 @@ export default function PortfolioViewPage() {
     );
   }
 
-  if (error || !portfolioData) {
+  if (error || !blogData) {
     return (
       <div className="space-y-6">
         <h1 className="page-title">نمایش نمونه‌کار</h1>
@@ -87,7 +87,7 @@ export default function PortfolioViewPage() {
             variant="outline"
             onClick={async () => {
               try {
-                await portfolioApi.exportPortfolioPdf(Number(portfolioId));
+                await blogApi.exportBlogPdf(Number(blogId));
                 toast.success("فایل PDF با موفقیت دانلود شد");
               } catch (error) {
                 toast.error("خطا در دانلود فایل PDF");
@@ -99,7 +99,7 @@ export default function PortfolioViewPage() {
             خروجی PDF
           </Button>
           <Button
-            onClick={() => router.push(`/portfolios/${portfolioId}/edit`)}
+            onClick={() => router.push(`/blogs/${blogId}/edit`)}
           >
             <Edit2 />
             ویرایش نمونه کار
@@ -109,7 +109,7 @@ export default function PortfolioViewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">
-          <PortfolioSidebar portfolio={portfolioData} />
+          <BlogSidebar blog={blogData} />
         </div>
 
         <div className="lg:col-span-4">
@@ -129,9 +129,9 @@ export default function PortfolioViewPage() {
               </TabsTrigger>
             </TabsList>
 
-            <OverviewTab portfolio={portfolioData} />
-            <MediaInfoTab portfolio={portfolioData} />
-            <SEOInfoTab portfolio={portfolioData} />
+            <OverviewTab blog={blogData} />
+            <MediaInfoTab blog={blogData} />
+            <SEOInfoTab blog={blogData} />
           </Tabs>
         </div>
       </div>

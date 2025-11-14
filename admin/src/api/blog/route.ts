@@ -171,7 +171,7 @@ export const blogApi = {
   },
 
   // Export functions moved to separate file for better organization
-  // Import from '@/api/blogs/export' if needed
+  // Import from '@/api/blog/export' if needed
   exportBlogPdf: async (blogId: number): Promise<void> => {
     const { exportBlogPdf } = await import('./export');
     return exportBlogPdf(blogId);

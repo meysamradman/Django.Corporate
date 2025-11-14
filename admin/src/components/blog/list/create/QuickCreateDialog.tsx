@@ -22,7 +22,7 @@ import { generateSlug } from '@/core/utils/slugUtils';
 interface QuickCreateDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    type: 'category' | 'tag' | 'option';
+    type: 'category' | 'tag';
     onSubmit: (data: { name: string; slug: string; image_id?: number; is_active?: boolean; is_public?: boolean }) => Promise<any>;
     onSuccess?: (createdItem: any) => void;
     refetchList: () => void;
@@ -98,8 +98,7 @@ export function QuickCreateDialog({
     const typeLabels = {
         category: { title: "افزودن دسته‌بندی جدید", desc: "یک دسته‌بندی جدید اضافه کنید" },
         tag: { title: "افزودن تگ جدید", desc: "یک تگ جدید اضافه کنید" },
-        option: { title: "افزودن گزینه جدید", desc: "یک گزینه جدید اضافه کنید" },
-    };
+    } as const;
 
     const labels = typeLabels[type];
 

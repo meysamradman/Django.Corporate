@@ -12,26 +12,26 @@ import {
   Loader2, Save, Search
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { portfolioApi } from "@/api/portfolios/route";
-import { portfolioFormSchema, portfolioFormDefaults, PortfolioFormValues } from "@/core/validations/portfolioSchema";
+import { blogApi } from "@/api/blogs/route";
+import { blogFormSchema, blogFormDefaults, BlogFormValues } from "@/core/validations/blogSchema";
 import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 import { msg } from "@/core/messages/message";
 import { env } from "@/core/config/environment";
-import { Portfolio } from "@/types/portfolio/portfolio";
-import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
-import { collectMediaFilesAndIds } from "@/core/utils/portfolioMediaUtils";
+import { Blog } from "@/types/blog/blog";
+import { BlogMedia } from "@/types/blog/blogMedia";
+import { collectMediaFilesAndIds } from "@/core/utils/blogMediaUtils";
 
-const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/blog/list/create/BaseInfoTab"));
+const MediaTab = lazy(() => import("@/components/blog/list/create/MediaTab"));
+const SEOTab = lazy(() => import("@/components/blog/list/create/SEOTab"));
 
-export default function CreatePortfolioPage() {
+export default function CreateBlogPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("account");
   const [editMode, setEditMode] = useState(true);
-  const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
+  const [blogMedia, setBlogMedia] = useState<BlogMedia>({
     featuredImage: null,
     imageGallery: [],
     videoGallery: [],
@@ -40,17 +40,17 @@ export default function CreatePortfolioPage() {
   });
   
   // React Hook Form با Zod validation
-  const form = useForm<PortfolioFormValues>({
-    resolver: zodResolver(portfolioFormSchema) as any,
-    defaultValues: portfolioFormDefaults as any,
+  const form = useForm<BlogFormValues>({
+    resolver: zodResolver(blogFormSchema) as any,
+    defaultValues: blogFormDefaults as any,
     mode: "onSubmit", // Validation فقط موقع submit
   });
 
-  const createPortfolioMutation = useMutation({
-    mutationFn: async (data: PortfolioFormValues & { status: "draft" | "published" }) => {
+  const createBlogMutation = useMutation({
+    mutationFn: async (data: BlogFormValues & { status: "draft" | "published" }) => {
       // Collect media files and IDs using utility function
       const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
-        portfolioMedia,
+        blogMedia,
         data.featuredImage
       );
       
@@ -61,9 +61,9 @@ export default function CreatePortfolioPage() {
         throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
       }
       
-      // Create portfolio with media_ids in single request (if we have media IDs)
+      // Create blog with media_ids in single request (if we have media IDs)
       // If we have files, we need to send them separately after creation
-      const portfolioData: any = {
+      const blogData: any = {
         title: data.name,
         slug: data.slug,
         short_description: data.short_description || "",
@@ -80,40 +80,39 @@ export default function CreatePortfolioPage() {
         robots_meta: data.robots_meta || undefined,
         categories_ids: data.selectedCategories ? data.selectedCategories.map((cat: any) => typeof cat === 'number' ? cat : cat.id) : [],
         tags_ids: data.selectedTags.map(tag => tag.id),
-        options_ids: data.selectedOptions.map(option => option.id),
       };
       
-      // Always include media_ids in portfolio data if we have any
+      // Always include media_ids in blog data if we have any
       if (allMediaIds.length > 0) {
-        portfolioData.media_ids = allMediaIds;
+        blogData.media_ids = allMediaIds;
       }
       
-      // Create portfolio - if we have files, use FormData, otherwise use JSON
-      let portfolio: Portfolio;
+      // Create blog - if we have files, use FormData, otherwise use JSON
+      let blog: Blog;
       if (allMediaFiles.length > 0) {
         // If we have files, use FormData and send everything together
-        portfolio = await portfolioApi.createPortfolioWithMedia(portfolioData, allMediaFiles);
+        blog = await blogApi.createBlogWithMedia(blogData, allMediaFiles);
       } else {
         // No files, just send JSON with media_ids
-        portfolio = await portfolioApi.createPortfolio(portfolioData);
+        blog = await blogApi.createBlog(blogData);
       }
       
-      return portfolio;
+      return blog;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
       
       // نمایش پیام موفقیت
       const successMessage = variables.status === "draft" 
-        ? msg.ui("portfolioDraftSaved")
-        : msg.ui("portfolioCreated");
+        ? msg.ui("blogDraftSaved")
+        : msg.ui("blogCreated");
       showSuccessToast(successMessage);
       
       // انتقال به صفحه لیست
-      router.push("/portfolios");
+      router.push("/blogs");
     },
     onError: (error: any) => {
-      console.error("Error creating portfolio:", error);
+      console.error("Error creating blog:", error);
       
       // بررسی خطاهای فیلدها از Django
       if (hasFieldErrors(error)) {
@@ -151,7 +150,7 @@ export default function CreatePortfolioPage() {
     if (!isValid) return;
     
     const data = form.getValues();
-    createPortfolioMutation.mutate({
+    createBlogMutation.mutate({
       ...data,
       status: "published" as const
     });
@@ -163,7 +162,7 @@ export default function CreatePortfolioPage() {
     if (!isValid) return;
     
     const data = form.getValues();
-    createPortfolioMutation.mutate({
+    createBlogMutation.mutate({
       ...data,
       status: "draft" as const
     });
@@ -184,8 +183,8 @@ export default function CreatePortfolioPage() {
           )}
           {editMode && (
             <>
-              <Button onClick={handleSaveDraft} variant="outline" disabled={createPortfolioMutation.isPending}>
-                {createPortfolioMutation.isPending ? (
+              <Button onClick={handleSaveDraft} variant="outline" disabled={createBlogMutation.isPending}>
+                {createBlogMutation.isPending ? (
                   <>
                     <Loader2 className="animate-spin" />
                     در حال ذخیره...
@@ -197,8 +196,8 @@ export default function CreatePortfolioPage() {
                   </>
                 )}
               </Button>
-              <Button onClick={handleSave} disabled={createPortfolioMutation.isPending}>
-                {createPortfolioMutation.isPending ? (
+              <Button onClick={handleSave} disabled={createBlogMutation.isPending}>
+                {createBlogMutation.isPending ? (
                   <>
                     <Loader2 className="animate-spin" />
                     در حال ذخیره...
@@ -246,8 +245,8 @@ export default function CreatePortfolioPage() {
           {activeTab === "media" && (
             <MediaTab 
               form={form as any}
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
+              blogMedia={blogMedia}
+              setBlogMedia={setBlogMedia}
               editMode={editMode}
             />
           )}

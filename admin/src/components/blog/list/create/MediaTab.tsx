@@ -12,7 +12,7 @@ import { UseFormReturn } from "react-hook-form";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { BlogMediaGallery } from "@/components/blogs/list/BlogMediaGallery";
+import { BlogMediaGallery } from "@/components/blog/list/BlogMediaGallery";
 import { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";

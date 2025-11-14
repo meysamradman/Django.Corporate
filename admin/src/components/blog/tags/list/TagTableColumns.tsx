@@ -57,7 +57,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => (
-        <Link href={`/blogs/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
+        <Link href={`/blog/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
           {row.original.name}
         </Link>
       ),
@@ -128,7 +128,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (tag) => router.push(`/blogs/tags/${tag.id}/edit`),
+            onClick: (tag) => router.push(`/blog/tags/${tag.id}/edit`),
           },
           {
             label: "حذف",

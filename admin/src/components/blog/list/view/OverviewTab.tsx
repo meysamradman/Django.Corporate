@@ -13,7 +13,6 @@ import {
   Video,
   Music,
   FileText,
-  FileCode,
 } from "lucide-react";
 
 interface OverviewTabProps {
@@ -37,7 +36,6 @@ export function OverviewTab({ blog }: OverviewTabProps) {
 
   const categoriesCount = blog.categories?.length || 0;
   const tagsCount = blog.tags?.length || 0;
-  const optionsCount = blog.options?.length || 0;
 
   const renderCategoryPath = (category: any) => {
     if (category?.parent) {
@@ -146,36 +144,6 @@ export function OverviewTab({ blog }: OverviewTabProps) {
             </div>
         </CardWithIcon>
 
-        <CardWithIcon
-          icon={FileCode}
-          title="گزینه‌ها"
-          iconBgColor="bg-teal"
-          iconColor="stroke-teal-2"
-          borderColor="border-b-teal-1"
-          headerClassName="pb-3"
-          titleExtra={<Badge variant="teal">{optionsCount} مورد</Badge>}
-        >
-            <p className="text-font-s mb-4">
-              گزینه‌های اضافی مرتبط با نمونه کار
-            </p>
-            {blog.options && blog.options.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {blog.options.map((option) => (
-                  <Badge
-                    key={option.id}
-                    variant="teal"
-                    className="cursor-default"
-                  >
-                    {option.name}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-font-s">
-                گزینه‌ای انتخاب نشده است
-              </p>
-            )}
-        </CardWithIcon>
       </div>
 
       <CardWithIcon

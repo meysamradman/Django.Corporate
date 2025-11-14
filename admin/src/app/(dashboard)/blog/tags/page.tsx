@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
-import { useTagColumns } from "@/components/portfolios/tags/list/TagTableColumns";
-import { useTagFilterOptions, getTagFilterConfig } from "@/components/portfolios/tags/list/TagTableFilters";
+import { useTagColumns } from "@/components/blog/tags/list/TagTableColumns";
+import { useTagFilterOptions, getTagFilterConfig } from "@/components/blog/tags/list/TagTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import Link from "next/link";
@@ -25,16 +25,16 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { BlogTag } from "@/types/blog/tags/blogTag";
 import { ColumnDef } from "@tanstack/react-table";
-import { portfolioApi } from "@/api/portfolios/route";
+import { blogApi } from "@/api/blog/route";
 import type { DataTableRowAction } from "@/types/shared/table";
 
 export default function TagPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { getCRUDProps } = usePermissionProps();
-  const tagAccess = getCRUDProps('portfolio-tag');
+  const tagAccess = getCRUDProps('blog-tag');
   const { booleanFilterOptions } = useTagFilterOptions();
   const tagFilterConfig = getTagFilterConfig(booleanFilterOptions);
 
@@ -71,17 +71,17 @@ export default function TagPage() {
   const { data: tags, isLoading, error } = useQuery({
     queryKey: ['tags', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
     queryFn: async () => {
-      return await portfolioApi.getTags(queryParams);
+      return await blogApi.getTags(queryParams);
     },
     staleTime: 0, // Always fetch fresh data
   });
 
-  const data: PortfolioTag[] = Array.isArray(tags?.data) ? tags.data : [];
+  const data: BlogTag[] = Array.isArray(tags?.data) ? tags.data : [];
   const pageCount = tags?.pagination?.total_pages || 1;
 
   const deleteTagMutation = useMutation({
     mutationFn: (tagId: number) => {
-      return portfolioApi.deleteTag(tagId);
+      return blogApi.deleteTag(tagId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
@@ -94,7 +94,7 @@ export default function TagPage() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: (tagIds: number[]) => {
-      return portfolioApi.bulkDeleteTags(tagIds);
+      return blogApi.bulkDeleteTags(tagIds);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
@@ -140,11 +140,11 @@ export default function TagPage() {
   };
 
   // تعریف ستون‌های جدول
-  const rowActions: DataTableRowAction<PortfolioTag>[] = [
+  const rowActions: DataTableRowAction<BlogTag>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (tag) => router.push(`/portfolios/tags/${tag.id}/edit`),
+      onClick: (tag) => router.push(`/blogs/tags/${tag.id}/edit`),
     },
     {
       label: "حذف",
@@ -154,7 +154,7 @@ export default function TagPage() {
     },
   ];
   
-  const columns = useTagColumns(rowActions) as ColumnDef<PortfolioTag>[];
+  const columns = useTagColumns(rowActions) as ColumnDef<BlogTag>[];
 
   const handleFilterChange = (filterId: string | number, value: unknown) => {
     if (filterId === "search") {
@@ -256,7 +256,7 @@ export default function TagPage() {
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/portfolios/tags/create">
+            <Link href="/blogs/tags/create">
               <Edit className="h-4 w-4 me-2" />
               افزودن تگ
             </Link>

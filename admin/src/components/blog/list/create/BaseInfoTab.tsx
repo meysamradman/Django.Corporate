@@ -20,10 +20,9 @@ import { Label } from "@/components/elements/Label";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText } from "lucide-react";
-import { blogApi } from "@/api/blogs/route";
+import { blogApi } from "@/api/blog/route";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { BlogTag } from "@/types/blog/tags/blogTag";
-import { BlogOption } from "@/types/blog/options/blogOption";
 import { BlogFormValues } from "@/core/validations/blogSchema";
 import { formatSlug, generateSlug } from '@/core/utils/slugUtils';
 import { QuickCreateDialog } from "./QuickCreateDialog";
@@ -41,13 +40,10 @@ interface BaseInfoTabManualProps {
     editMode: boolean;
     selectedCategories: BlogCategory[];
     selectedTags: BlogTag[];
-    selectedOptions: BlogOption[];
     onCategoryToggle: (category: BlogCategory) => void;
     onCategoryRemove: (categoryId: number) => void;
     onTagToggle: (tag: BlogTag) => void;
     onTagRemove: (tagId: number) => void;
-    onOptionToggle: (option: BlogOption) => void;
-    onOptionRemove: (optionId: number) => void;
 }
 
 // Union type for both approaches
@@ -56,13 +52,10 @@ type BaseInfoTabProps = BaseInfoTabFormProps | BaseInfoTabManualProps;
 export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [categories, setCategories] = useState<BlogCategory[]>([]);
     const [tags, setTags] = useState<BlogTag[]>([]);
-    const [options, setOptions] = useState<BlogOption[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [loadingTags, setLoadingTags] = useState(true);
-    const [loadingOptions, setLoadingOptions] = useState(true);
     const [showCategoryDialog, setShowCategoryDialog] = useState(false);
     const [showTagDialog, setShowTagDialog] = useState(false);
-    const [showOptionDialog, setShowOptionDialog] = useState(false);
     
     // Check which approach is being used
     const isFormApproach = 'form' in props;
@@ -78,13 +71,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
     const selectedCategories = isFormApproach ? [] : (props as any).selectedCategories || [];
     const selectedTags = isFormApproach ? [] : (props as any).selectedTags || [];
-    const selectedOptions = isFormApproach ? [] : (props as any).selectedOptions || [];
     const onCategoryToggle = isFormApproach ? null : (props as any).onCategoryToggle;
     const onCategoryRemove = isFormApproach ? null : (props as any).onCategoryRemove;
     const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
     const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
-    const onOptionToggle = isFormApproach ? null : (props as any).onOptionToggle;
-    const onOptionRemove = isFormApproach ? null : (props as any).onOptionRemove;
     
     // Watch values for form approach
     const nameValue = isFormApproach ? watch?.("name") : formData?.name;
@@ -93,7 +83,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
     const formSelectedCategories = isFormApproach ? (watch?.("selectedCategories" as any) || []) : selectedCategories || [];
     const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : selectedTags || [];
-    const formSelectedOptions = isFormApproach ? watch?.("selectedOptions") || [] : selectedOptions || [];
 
     useEffect(() => {
         // Fetch categories
@@ -120,21 +109,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
             }
         };
 
-        // Fetch options
-        const fetchOptions = async () => {
-            try {
-                const response = await blogApi.getOptions({ page: 1, size: 100 });
-                setOptions(response.data || []);
-            } catch (error) {
-                console.error("Error fetching options:", error);
-            } finally {
-                setLoadingOptions(false);
-            }
-        };
-
         fetchCategories();
         fetchTags();
-        fetchOptions();
     }, []);
 
     // Auto-generate slug from name (form approach)
@@ -164,28 +140,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
             setValue?.("selectedTags", currentTags.filter((tag: BlogTag) => tag.id !== tagId));
         } else {
             onTagRemove?.(tagId);
-        }
-    };
-
-    const handleOptionToggleFn = (option: BlogOption) => {
-        if (isFormApproach) {
-            const currentOptions = watch?.("selectedOptions") || [];
-            if (currentOptions.some((o: BlogOption) => o.id === option.id)) {
-                setValue?.("selectedOptions", currentOptions.filter((o: BlogOption) => o.id !== option.id));
-            } else {
-                setValue?.("selectedOptions", [...currentOptions, option]);
-            }
-        } else {
-            onOptionToggle?.(option);
-        }
-    };
-
-    const handleOptionRemoveFn = (optionId: number) => {
-        if (isFormApproach) {
-            const currentOptions = watch?.("selectedOptions") || [];
-            setValue?.("selectedOptions", currentOptions.filter((option: BlogOption) => option.id !== optionId));
-        } else {
-            onOptionRemove?.(optionId);
         }
     };
 
@@ -522,83 +476,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-1.5 bg-teal rounded-lg">
-                                        <Settings className="w-4 h-4 stroke-teal-2" />
-                                    </div>
-                                    <Label>
-                                        گزینه‌ها
-                                    </Label>
-                                </div>
-                                <div className="space-y-2">
-                                    {/* Display selected options */}
-                                    {formSelectedOptions.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
-                                            {formSelectedOptions.map((option: BlogOption) => (
-                                                <span 
-                                                    key={option.id} 
-                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-teal text-teal-2"
-                                                >
-                                                    {option.name}
-                                                    <button 
-                                                        type="button" 
-                                                        className="text-teal-2 hover:text-teal-2"
-                                                        onClick={() => handleOptionRemoveFn(option.id)}
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                    
-                                    {/* Option selection dropdown */}
-                                    <div className="flex gap-4 w-full">
-                                        <div className="flex-1">
-                                            <Select 
-                                                disabled={!editMode || loadingOptions}
-                                                onValueChange={(value) => {
-                                                    const option = options.find(o => String(o.id) === value);
-                                                    if (option) handleOptionToggleFn(option);
-                                                }}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "گزینه‌ها را انتخاب کنید"} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {options
-                                                        .filter(option => !formSelectedOptions.some((selected: BlogOption) => selected.id === option.id))
-                                                        .map((option) => (
-                                                            <SelectItem 
-                                                                key={option.id} 
-                                                                value={String(option.id)}
-                                                            >
-                                                                {option.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="bg-teal hover:bg-teal border-teal-1 text-teal-2"
-                                            disabled={!editMode}
-                                            onClick={() => setShowOptionDialog(true)}
-                                        >
-                                            <Plus />
-                                        </Button>
-                                    </div>
-                                </div>
-                                {errors.selectedOptions?.message && (
-                                    <div className="flex items-start gap-2 text-red-2">
-                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                        <span>{errors.selectedOptions?.message}</span>
-                                    </div>
-                                )}
-                            </div>
                             </div>
                     </CardWithIcon>
                 </div>
@@ -663,32 +540,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 }}
             />
 
-            <QuickCreateDialog
-                open={showOptionDialog}
-                onOpenChange={setShowOptionDialog}
-                type="option"
-                onSubmit={async (data) => {
-                    return await blogApi.createOption({ 
-                        name: data.name, 
-                        slug: data.slug, 
-                        is_public: data.is_public ?? true, 
-                        is_active: data.is_active ?? true 
-                    });
-                }}
-                onSuccess={(createdOption) => {
-                    if (isFormApproach) {
-                        const currentOptions = watch?.("selectedOptions") || [];
-                        setValue?.("selectedOptions", [...currentOptions, createdOption]);
-                    } else {
-                        onOptionToggle?.(createdOption);
-                    }
-                }}
-                refetchList={() => {
-                    blogApi.getOptions({ page: 1, size: 100 }).then(response => {
-                        setOptions(response.data || []);
-                    });
-                }}
-            />
         </TabsContent>
     );
 }
