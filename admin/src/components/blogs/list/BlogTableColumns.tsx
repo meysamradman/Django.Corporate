@@ -76,7 +76,7 @@ export const useBlogColumns = (
         };
 
         return (
-          <Link href={`/blog/${blog.id}/view`} className="flex items-center gap-3">
+          <Link href={`/blogs/${blog.id}/view`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={blog.title} />
@@ -242,7 +242,7 @@ export const useBlogColumns = (
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (blog) => router.push(`/blog/${blog.id}/edit`),
+            onClick: (blog) => router.push(`/blogs/${blog.id}/edit`),
           },
           {
             label: "حذف",

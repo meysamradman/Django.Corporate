@@ -20,7 +20,7 @@ import { Label } from "@/components/elements/Label";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText } from "lucide-react";
-import { blogApi } from "@/api/blog/route";
+import { blogApi } from "@/api/blogs/route";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogFormValues } from "@/core/validations/blogSchema";

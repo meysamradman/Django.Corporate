@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
-import { useTagColumns } from "@/components/blog/tags/list/TagTableColumns";
-import { useTagFilterOptions, getTagFilterConfig } from "@/components/blog/tags/list/TagTableFilters";
+import { useTagColumns } from "@/components/blogs/tags/list/TagTableColumns";
+import { useTagFilterOptions, getTagFilterConfig } from "@/components/blogs/tags/list/TagTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import Link from "next/link";
@@ -27,7 +27,7 @@ import {
 
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { ColumnDef } from "@tanstack/react-table";
-import { blogApi } from "@/api/blog/route";
+import { blogApi } from "@/api/blogs/route";
 import type { DataTableRowAction } from "@/types/shared/table";
 
 export default function TagPage() {
@@ -144,7 +144,7 @@ export default function TagPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (tag) => router.push(`/blog/tags/${tag.id}/edit`),
+      onClick: (tag) => router.push(`/blogs/tags/${tag.id}/edit`),
     },
     {
       label: "حذف",
@@ -256,7 +256,7 @@ export default function TagPage() {
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/blog/tags/create">
+            <Link href="/blogs/tags/create">
               <Edit className="h-4 w-4 me-2" />
               افزودن تگ
             </Link>

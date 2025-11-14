@@ -13,7 +13,7 @@ import { Media } from "@/types/shared/media";
 import { Blog } from "@/types/blog/blog";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
-import { blogApi } from "@/api/blog/route";
+import { blogApi } from "@/api/blogs/route";
 import { generateSlug } from '@/core/utils/slugUtils';
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/core/utils/blogMediaUtils";
@@ -27,9 +27,9 @@ interface BlogUpdateData extends Partial<Blog> {
   media_covers?: { [mediaId: number]: number | null };
 }
 
-const BaseInfoTab = lazy(() => import("@/components/blog/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/blog/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/blog/list/create/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
+const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
+const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));
 
 export default function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -215,7 +215,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       const updatedBlog = await blogApi.updateBlog(blog.id, updateData);
       
       // Redirect to blog list after saving
-      router.push("/blog");
+      router.push("/blogs");
     } catch (error) {
       console.error("Error updating blog:", error);
     } finally {
@@ -269,7 +269,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       const updatedBlog = await blogApi.partialUpdateBlog(blog.id, updateData);
       
       // Redirect to blog list after saving draft
-      router.push("/blog");
+      router.push("/blogs");
     } catch (error) {
       console.error("Error saving blog draft:", error);
     } finally {

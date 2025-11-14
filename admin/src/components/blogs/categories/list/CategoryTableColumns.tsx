@@ -73,7 +73,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
         };
 
         return (
-          <Link href={`/blog/categories/${category.id}/edit`} className="flex items-center gap-3">
+          <Link href={`/blogs/categories/${category.id}/edit`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={category.name} />
@@ -145,7 +145,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (category) => router.push(`/blog/categories/${category.id}/edit`),
+            onClick: (category) => router.push(`/blogs/categories/${category.id}/edit`),
           },
           {
             label: "حذف",

@@ -221,7 +221,7 @@ export default function SEOTab(props: SEOTabProps) {
                                             label="آدرس کانونیکال (Canonical URL)"
                                             id="canonical_url"
                                             error={(formState.errors as any)?.canonical_url?.message}
-                                            placeholder="https://example.com/blog/item"
+                                            placeholder="https://example.com/blogs/item"
                                             type="url"
                                             disabled={!editMode}
                                             {...(register as any)?.("canonical_url", {
@@ -233,7 +233,7 @@ export default function SEOTab(props: SEOTabProps) {
                                             label="آدرس کانونیکال (Canonical URL)"
                                             id="canonical_url"
                                             error={(formState.errors as any)?.canonical_url?.message}
-                                            placeholder="https://example.com/blog/item"
+                                            placeholder="https://example.com/blogs/item"
                                             type="url"
                                             disabled={!editMode}
                                             value={canonicalUrlValue || ""}

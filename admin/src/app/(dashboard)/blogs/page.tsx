@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
-import { useBlogColumns } from "@/components/blog/list/BlogTableColumns";
-import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blog/list/BlogTableFilters";
+import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
+import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
 import { BlogFilters } from "@/types/blog/blogListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
@@ -28,8 +28,8 @@ import {
 
 import { Blog } from "@/types/blog/blog";
 import { ColumnDef } from "@tanstack/react-table";
-import { blogApi } from "@/api/blog/route";
-import { exportBlogs } from "@/api/blog/export";
+import { blogApi } from "@/api/blogs/route";
+import { exportBlogs } from "@/api/blogs/export";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { env } from '@/core/config/environment';
@@ -276,7 +276,7 @@ export default function BlogPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (blog) => router.push(`/blog/${blog.id}/edit`),
+      onClick: (blog) => router.push(`/blogs/${blog.id}/edit`),
     },
     {
       label: "حذف",
@@ -650,7 +650,7 @@ export default function BlogPage() {
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/blog/create">
+            <Link href="/blogs/create">
               <Edit className="h-4 w-4 me-2" />
               افزودن بلاگ
             </Link>

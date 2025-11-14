@@ -12,7 +12,7 @@ import {
   Loader2, Save, Search
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { blogApi } from "@/api/blog/route";
+import { blogApi } from "@/api/blogs/route";
 import { blogFormSchema, blogFormDefaults, BlogFormValues } from "@/core/validations/blogSchema";
 import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
@@ -22,9 +22,9 @@ import { Blog } from "@/types/blog/blog";
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaFilesAndIds } from "@/core/utils/blogMediaUtils";
 
-const BaseInfoTab = lazy(() => import("@/components/blog/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/blog/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/blog/list/create/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
+const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
+const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));
 
 export default function CreateBlogPage() {
   const router = useRouter();
@@ -109,7 +109,8 @@ export default function CreateBlogPage() {
       showSuccessToast(successMessage);
       
       // انتقال به صفحه لیست
-      router.push("/blog");
+      router.push("/blogs");
+      router.push("/blogs");
     },
     onError: (error: any) => {
       console.error("Error creating blog:", error);

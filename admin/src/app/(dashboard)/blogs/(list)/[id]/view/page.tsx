@@ -8,11 +8,11 @@ import { Button } from "@/components/elements/Button";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from "@/components/elements/Skeleton";
-import { blogApi } from "@/api/blog/route";
-import { BlogSidebar } from "@/components/blog/list/view/BlogSidebar";
-import { OverviewTab } from "@/components/blog/list/view/OverviewTab";
-import { MediaInfoTab } from "@/components/blog/list/view/MediaInfoTab";
-import { SEOInfoTab } from "@/components/blog/list/view/SEOInfoTab";
+import { blogApi } from "@/api/blogs/route";
+import { BlogSidebar } from "@/components/blogs/list/view/BlogSidebar";
+import { OverviewTab } from "@/components/blogs/list/view/OverviewTab";
+import { MediaInfoTab } from "@/components/blogs/list/view/MediaInfoTab";
+import { SEOInfoTab } from "@/components/blogs/list/view/SEOInfoTab";
 
 export default function BlogViewPage() {
   const params = useParams();
@@ -99,7 +99,7 @@ export default function BlogViewPage() {
             خروجی PDF
           </Button>
           <Button
-            onClick={() => router.push(`/blog/${blogId}/edit`)}
+            onClick={() => router.push(`/blogs/${blogId}/edit`)}
           >
             <Edit2 />
             ویرایش وبلاگ
