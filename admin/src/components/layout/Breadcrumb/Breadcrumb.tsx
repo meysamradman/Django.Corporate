@@ -26,6 +26,7 @@ export function Breadcrumb() {
                 'dashboard': 'داشبورد',
                 'blogs': 'بلاگ',
                 'portfolios': 'نمونه‌کارها',
+                'blog': 'وبلاگ',
                 'media': 'رسانه',
                 'statistics': 'آمار',
                 'create': 'ایجاد',

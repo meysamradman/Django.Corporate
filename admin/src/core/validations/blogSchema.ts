@@ -2,10 +2,10 @@ import { z } from "zod";
 import { msg } from "@/core/messages/message";
 
 /**
- * Zod Schema برای Validation فرم نمونه‌کار
- * 
+ * Zod Schema برای Validation فرم وبلاگ
+ *
  * @description
- * این Schema تمام فیلدهای فرم نمونه‌کار را validate می‌کند
+ * این Schema تمام فیلدهای فرم وبلاگ را validate می‌کند
  * و از message system برای نمایش خطاها استفاده می‌کند
  */
 export const blogFormSchema = z.object({
@@ -46,11 +46,6 @@ export const blogFormSchema = z.object({
   
   // ❌ اختیاری: تگ‌ها
   selectedTags: z
-    .array(z.any())
-    .default([]),
-  
-  // ❌ اختیاری: گزینه‌ها
-  selectedOptions: z
     .array(z.any())
     .default([]),
   
@@ -119,7 +114,6 @@ export const blogFormDefaults: Partial<BlogFormValues> = {
   description: "",
   selectedCategories: [],
   selectedTags: [],
-  selectedOptions: [],
   featuredImage: null,
   meta_title: "",
   meta_description: "",

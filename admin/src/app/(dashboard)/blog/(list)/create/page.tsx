@@ -109,7 +109,7 @@ export default function CreateBlogPage() {
       showSuccessToast(successMessage);
       
       // انتقال به صفحه لیست
-      router.push("/blogs");
+      router.push("/blog");
     },
     onError: (error: any) => {
       console.error("Error creating blog:", error);
@@ -172,7 +172,7 @@ export default function CreateBlogPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">ایجاد نمونه‌کار جدید</h1>
+          <h1 className="page-title">ایجاد وبلاگ جدید</h1>
         </div>
         <div className="flex gap-2">
           {!editMode && (

@@ -210,7 +210,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             id="name"
                                             required
                                             error={errors.name?.message}
-                                            placeholder="نام نمونه‌کار"
+                                            placeholder="نام وبلاگ"
                                             disabled={!editMode}
                                             {...register!("name")}
                                         />
@@ -220,7 +220,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             id="name"
                                             required
                                             error={errors.name?.message}
-                                            placeholder="نام نمونه‌کار"
+                                            placeholder="نام وبلاگ"
                                             disabled={!editMode}
                                             value={formData?.name || ""}
                                             onChange={handleNameChange}
@@ -233,7 +233,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             id="slug"
                                             required
                                             error={errors.slug?.message}
-                                            placeholder="نمونه-کار-من یا my-blog-item"
+                                            placeholder="وبلاگ-من یا my-blog-post"
                                             disabled={!editMode}
                                             {...register!("slug")}
                                         />
@@ -243,7 +243,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             id="slug"
                                             required
                                             error={errors.slug?.message}
-                                            placeholder="نمونه-کار-من یا my-blog-item"
+                                            placeholder="وبلاگ-من یا my-blog-post"
                                             disabled={!editMode}
                                             value={formData?.slug || ""}
                                             onChange={handleSlugChange}
@@ -256,7 +256,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         label="توضیحات کوتاه"
                                         id="short_description"
                                         error={errors.short_description?.message}
-                                        placeholder="یک توضیح کوتاه درباره نمونه‌کار... (حداکثر ۳۰۰ کاراکتر)"
+                                        placeholder="یک توضیح کوتاه درباره وبلاگ... (حداکثر ۳۰۰ کاراکتر)"
                                         rows={3}
                                         disabled={!editMode}
                                         maxLength={300}
@@ -269,7 +269,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         label="توضیحات کوتاه"
                                         id="short_description"
                                         error={errors.short_description?.message}
-                                        placeholder="یک توضیح کوتاه درباره نمونه‌کار... (حداکثر ۳۰۰ کاراکتر)"
+                                        placeholder="یک توضیح کوتاه درباره وبلاگ... (حداکثر ۳۰۰ کاراکتر)"
                                         rows={3}
                                         disabled={!editMode}
                                         maxLength={300}
@@ -285,7 +285,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <TipTapEditor
                                         content={descriptionValue || ""}
                                         onChange={handleDescriptionChange}
-                                        placeholder="توضیحات کامل نمونه‌کار را وارد کنید... (اختیاری)"
+                                        placeholder="توضیحات کامل وبلاگ را وارد کنید... (اختیاری)"
                                     />
                                 </FormField>
                                 </div>

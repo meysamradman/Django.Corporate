@@ -144,7 +144,7 @@ export default function TagPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (tag) => router.push(`/blogs/tags/${tag.id}/edit`),
+      onClick: (tag) => router.push(`/blog/tags/${tag.id}/edit`),
     },
     {
       label: "حذف",
@@ -256,7 +256,7 @@ export default function TagPage() {
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/blogs/tags/create">
+            <Link href="/blog/tags/create">
               <Edit className="h-4 w-4 me-2" />
               افزودن تگ
             </Link>

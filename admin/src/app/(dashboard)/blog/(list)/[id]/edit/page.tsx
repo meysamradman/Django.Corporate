@@ -215,7 +215,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       const updatedBlog = await blogApi.updateBlog(blog.id, updateData);
       
       // Redirect to blog list after saving
-      router.push("/blogs");
+      router.push("/blog");
     } catch (error) {
       console.error("Error updating blog:", error);
     } finally {
@@ -269,7 +269,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       const updatedBlog = await blogApi.partialUpdateBlog(blog.id, updateData);
       
       // Redirect to blog list after saving draft
-      router.push("/blogs");
+      router.push("/blog");
     } catch (error) {
       console.error("Error saving blog draft:", error);
     } finally {
@@ -296,10 +296,10 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="page-title">ویرایش نمونه‌کار</h1>
+          <h1 className="page-title">ویرایش وبلاگ</h1>
         </div>
         <div className="text-center py-8">
-          <p className="text-destructive">نمونه‌کار مورد نظر یافت نشد.</p>
+          <p className="text-destructive">وبلاگ مورد نظر یافت نشد.</p>
         </div>
       </div>
     );
@@ -309,7 +309,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">ویرایش نمونه‌کار</h1>
+          <h1 className="page-title">ویرایش وبلاگ</h1>
         </div>
         <div className="flex gap-2">
           {!editMode && (

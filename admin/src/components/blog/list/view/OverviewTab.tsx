@@ -57,7 +57,7 @@ export function OverviewTab({ blog }: OverviewTabProps) {
           titleExtra={<Badge variant="purple">{categoriesCount} مورد</Badge>}
         >
             <p className="text-font-s mb-4">
-              دسته‌بندی‌های مرتبط با این نمونه کار
+              دسته‌بندی‌های مرتبط با این وبلاگ
             </p>
             {blog.categories && blog.categories.length > 0 ? (
               <div className="flex flex-wrap gap-2">
@@ -90,7 +90,7 @@ export function OverviewTab({ blog }: OverviewTabProps) {
           titleExtra={<Badge variant="indigo">{tagsCount} مورد</Badge>}
         >
             <p className="text-font-s mb-4">
-              برچسب‌های مرتبط با این نمونه کار
+              برچسب‌های مرتبط با این وبلاگ
             </p>
             {blog.tags && blog.tags.length > 0 ? (
               <div className="flex flex-wrap gap-2">

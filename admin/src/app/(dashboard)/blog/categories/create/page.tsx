@@ -352,8 +352,7 @@ export default function CreateCategoryPage() {
                     {createCategoryMutation.isPending ? "در حال ایجاد..." : "ایجاد دسته‌بندی"}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+            </CardWithIcon>
             </div>
           </div>
 

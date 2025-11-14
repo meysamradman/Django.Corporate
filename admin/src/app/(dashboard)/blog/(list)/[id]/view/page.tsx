@@ -30,9 +30,9 @@ export default function BlogViewPage() {
   if (!blogId) {
     return (
       <div className="space-y-6">
-        <h1 className="page-title">نمایش نمونه‌کار</h1>
+        <h1 className="page-title">نمایش وبلاگ</h1>
         <div className="text-center py-8">
-          <p className="text-destructive">شناسه نمونه‌کار یافت نشد</p>
+          <p className="text-destructive">شناسه وبلاگ یافت نشد</p>
         </div>
       </div>
     );
@@ -63,10 +63,10 @@ export default function BlogViewPage() {
   if (error || !blogData) {
     return (
       <div className="space-y-6">
-        <h1 className="page-title">نمایش نمونه‌کار</h1>
+        <h1 className="page-title">نمایش وبلاگ</h1>
         <div className="rounded-lg border p-6">
           <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات نمونه‌کار</p>
+            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وبلاگ</p>
             <p className="text-font-s">
               لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
             </p>
@@ -80,7 +80,7 @@ export default function BlogViewPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="page-title">اطلاعات نمونه کار</h1>
+          <h1 className="page-title">اطلاعات وبلاگ</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -99,10 +99,10 @@ export default function BlogViewPage() {
             خروجی PDF
           </Button>
           <Button
-            onClick={() => router.push(`/blogs/${blogId}/edit`)}
+            onClick={() => router.push(`/blog/${blogId}/edit`)}
           >
             <Edit2 />
-            ویرایش نمونه کار
+            ویرایش وبلاگ
           </Button>
         </div>
       </div>
