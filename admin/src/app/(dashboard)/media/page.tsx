@@ -330,19 +330,19 @@ export default function MediaPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button 
-            size="sm" 
-            variant="outline"
+            size="sm"
+            className="border border-pink-1 bg-pink text-pink-2 shadow-sm transition hover:bg-pink/90"
             onClick={() => setIsAIGenerateModalOpen(true)}
           >
-            <Sparkles className="mr-2 h-4 w-4" />
+            <Sparkles className="h-4 w-4" />
             تولید با AI
           </Button>
           <Button 
-            size="sm" 
-            variant="outline"
+            size="sm"
+            className="bg-primary text-static-w shadow-sm hover:shadow-md"
             onClick={handleUploadClick}
           >
-            <Upload className="mr-2 h-4 w-4" />
+            <Upload className="h-4 w-4" />
             آپلود رسانه
           </Button>
         </div>
@@ -383,7 +383,7 @@ export default function MediaPage() {
                 
                 {selectedIds.length > 0 && (
                   <Button variant="destructive" onClick={handleDeleteSelected} size="sm">
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                     حذف ({selectedIds.length})
                   </Button>
                 )}
