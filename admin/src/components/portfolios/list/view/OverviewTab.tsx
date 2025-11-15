@@ -48,7 +48,7 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
 
   return (
     <TabsContent value="overview" className="mt-0 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <CardWithIcon
           icon={FolderOpen}
           title="دسته‌بندی‌ها"
@@ -115,38 +115,6 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
         </CardWithIcon>
 
         <CardWithIcon
-          icon={ImageIcon}
-          title="مدیا"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          headerClassName="pb-3"
-          titleExtra={<Badge variant="blue">{portfolio.media_count || 0} مورد</Badge>}
-        >
-            <p className="text-font-s mb-4">
-              تعداد کل رسانه‌های آپلود شده
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2 p-2 bg-blue rounded">
-                <ImageIcon className="w-4 h-4 stroke-blue-2" />
-                <span>{imagesCount} تصویر</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-purple rounded">
-                <Video className="w-4 h-4 stroke-purple-2" />
-                <span>{videosCount} ویدیو</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-pink rounded">
-                <Music className="w-4 h-4 stroke-pink-2" />
-                <span>{audiosCount} صدا</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-gray rounded">
-                <FileText className="w-4 h-4 stroke-gray-2" />
-                <span>{documentsCount} سند</span>
-              </div>
-            </div>
-        </CardWithIcon>
-
-        <CardWithIcon
           icon={FileCode}
           title="گزینه‌ها"
           iconBgColor="bg-teal"
@@ -176,6 +144,40 @@ export function OverviewTab({ portfolio }: OverviewTabProps) {
               </p>
             )}
         </CardWithIcon>
+
+        <CardWithIcon
+          icon={ImageIcon}
+          title="مدیا"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          headerClassName="pb-3"
+          titleExtra={<Badge variant="blue">{portfolio.media_count || 0} مورد</Badge>}
+          className="md:col-span-3"
+        >
+            <p className="text-font-s mb-4">
+              تعداد کل رسانه‌های آپلود شده
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 p-2 bg-blue rounded">
+                <ImageIcon className="w-4 h-4 stroke-blue-2" />
+                <span>{imagesCount} تصویر</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-purple rounded">
+                <Video className="w-4 h-4 stroke-purple-2" />
+                <span>{videosCount} ویدیو</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-pink rounded">
+                <Music className="w-4 h-4 stroke-pink-2" />
+                <span>{audiosCount} صدا</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-gray rounded">
+                <FileText className="w-4 h-4 stroke-gray-2" />
+                <span>{documentsCount} سند</span>
+              </div>
+            </div>
+        </CardWithIcon>
+
       </div>
 
       <CardWithIcon

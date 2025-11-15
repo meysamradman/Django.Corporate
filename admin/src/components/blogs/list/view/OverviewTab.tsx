@@ -46,7 +46,7 @@ export function OverviewTab({ blog }: OverviewTabProps) {
 
   return (
     <TabsContent value="overview" className="mt-0 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CardWithIcon
           icon={FolderOpen}
           title="دسته‌بندی‌ها"
@@ -120,6 +120,7 @@ export function OverviewTab({ blog }: OverviewTabProps) {
           borderColor="border-b-blue-1"
           headerClassName="pb-3"
           titleExtra={<Badge variant="blue">{blog.media_count || 0} مورد</Badge>}
+          className="md:col-span-2"
         >
             <p className="text-font-s mb-4">
               تعداد کل رسانه‌های آپلود شده
