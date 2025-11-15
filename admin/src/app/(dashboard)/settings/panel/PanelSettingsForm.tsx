@@ -9,7 +9,6 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/elements/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Separator } from "@/components/elements/Separator";
 import LogoUploader from './LogoUploader';
 import { usePanelSettings, useUpdatePanelSettings } from '@/core/hooks/useAdminData';
 import { showSuccessToast } from '@/core/config/errorHandler';
@@ -18,7 +17,6 @@ import { Media } from '@/types/shared/media';
 import { PanelSettings } from '@/types/settings/panelSettings';
 import { 
     Image as ImageIcon, 
-    Palette, 
     FileText,
     Save
 } from 'lucide-react';
@@ -58,6 +56,7 @@ export default function PanelSettingsForm() {
 
     const handleLogoSelect = (media: Media | null) => {
         setSelectedLogo(media);
+        setLogoDeleted(!media);
         if (media) {
             setLogoDeleted(false);
         }
@@ -65,6 +64,7 @@ export default function PanelSettingsForm() {
 
     const handleFaviconSelect = (media: Media | null) => {
         setSelectedFavicon(media);
+        setFaviconDeleted(!media);
         if (media) {
             setFaviconDeleted(false);
         }
@@ -136,49 +136,65 @@ export default function PanelSettingsForm() {
         );
     }
 
+    const brandingCards = [
+        {
+            key: "logo",
+            title: "لوگوی پنل",
+            subtitle: selectedLogo?.title || "لوگویی انتخاب نشده است",
+            description: "لوگوی اصلی که در سایدبار و صفحات کلیدی نمایش داده می‌شود",
+            accent: "from-blue-1/30 via-blue-1/10 to-transparent",
+            statusColor: "bg-blue-1",
+            borderClass: "border-b-blue-1",
+            selectedMedia: selectedLogo,
+            onSelect: handleLogoSelect,
+        },
+        {
+            key: "favicon",
+            title: "فاویکون",
+            subtitle: selectedFavicon?.title || "فاویکونی انتخاب نشده است",
+            description: "آیکون کوچک تب مرورگر برای شناسایی سریع برند شما",
+            accent: "from-purple-1/30 via-purple-1/10 to-transparent",
+            statusColor: "bg-purple-1",
+            borderClass: "border-b-purple-1",
+            selectedMedia: selectedFavicon,
+            onSelect: handleFaviconSelect,
+        },
+    ];
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CardWithIcon
-                        icon={ImageIcon}
-                        title="لوگوی پنل"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                        className="hover:shadow-lg transition-all duration-300"
-                        headerClassName="pb-3"
-                    >
-                            <p className="text-font-s mb-4">
-                                لوگوی اصلی پنل مدیریتی که در منوی کناری و بالای صفحه نمایش داده می‌شود
-                            </p>
-                            <LogoUploader
-                                label="لوگوی پنل"
-                                selectedMedia={selectedLogo}
-                                onMediaSelect={handleLogoSelect}
-                                size="md"
-                            />
-                    </CardWithIcon>
-
-                    <CardWithIcon
-                        icon={Palette}
-                        title="فاویکون پنل"
-                        iconBgColor="bg-purple"
-                        iconColor="stroke-purple-2"
-                        borderColor="border-b-purple-1"
-                        className="hover:shadow-lg transition-all duration-300"
-                        headerClassName="pb-3"
-                    >
-                            <p className="text-font-s mb-4">
-                                آیکون کوچک که در تب مرورگر نمایش داده می‌شود
-                            </p>
-                            <LogoUploader
-                                label="فاویکون پنل"
-                                selectedMedia={selectedFavicon}
-                                onMediaSelect={handleFaviconSelect}
-                                size="md"
-                            />
-                    </CardWithIcon>
+                    {brandingCards.map((card) => (
+                        <Card
+                            key={card.key}
+                            className={`text-center transition-transform duration-300 hover:-translate-y-1 border-b-4 ${card.borderClass}`}
+                        >
+                            <CardContent className="flex flex-col items-center gap-5 py-8">
+                                <LogoUploader
+                                    label={card.title}
+                                    selectedMedia={card.selectedMedia}
+                                    onMediaSelect={card.onSelect}
+                                    size="md"
+                                    showLabel={false}
+                                    className="w-full"
+                                    statusColor={card.statusColor}
+                                    accentGradient={card.accent}
+                                />
+                                <div className="space-y-2">
+                                    <div className="text-base font-semibold text-foreground">
+                                        {card.title}
+                                    </div>
+                                    <p className="text-sm text-font-s">
+                                        {card.subtitle}
+                                    </p>
+                                </div>
+                                <p className="text-xs leading-relaxed text-font-s/80 max-w-sm">
+                                    {card.description}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
 
                 <CardWithIcon
