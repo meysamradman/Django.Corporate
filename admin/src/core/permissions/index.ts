@@ -1,0 +1,95 @@
+/**
+ * ✅ Centralized Permission & Role System
+ * تمام hook‌ها، component‌ها، و utility های مربوط به permission و role از اینجا export می‌شن
+ */
+
+// Context & Provider
+export { PermissionProvider, usePermission } from './context/PermissionContext';
+export type { PermissionContextValue, UIPermissions } from './context/PermissionContext';
+
+// Hooks
+export { useHasPermission } from './hooks/useHasPermission';
+export { useCanUpload } from './hooks/useCanUpload';
+export { useHasAccess } from './hooks/useHasAccess';
+export { usePermissionMap } from './hooks/usePermissionMap';
+export { useUserPermissions, type ModuleAction } from './hooks/useUserPermissions';
+export {
+  useUIPermissions,
+  useCanManageSettings,
+  useCanUploadMedia,
+  useCanManageAI,
+  useCanManageForms,
+  useCanManagePanel,
+  useCanManagePages,
+} from './hooks/useUIPermissions';
+export {
+  useRoles,
+  useRole,
+  useCreateRole,
+  useUpdateRole,
+  useDeleteRole,
+  useBulkDeleteRoles,
+  useUpdateRoleStatus,
+  usePermissions,
+  useBasePermissions,
+} from './hooks/useRoles';
+
+// Components
+export { PermissionGate } from './components/PermissionGate';
+export { ProtectedButton } from './components/ProtectedButton';
+export { ProtectedLink } from './components/ProtectedLink';
+export { RoutePermissionGuard } from './components/RoutePermissionGuard';
+export { ProtectedRoute } from './components/ProtectedRoute';
+export {
+  PermissionGate as PermissionGateLegacy,
+  PermissionMultiGate,
+  ProtectedAction,
+  usePermissionProps,
+} from './components/PermissionGateLegacy';
+
+// Utils
+export {
+  parsePermission,
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+  getPermissionsByResource,
+  getPermissionsByAction,
+  formatPermission,
+  groupPermissionsByResource,
+  hasRole,
+  getHighestPriorityRole,
+  usePermissions as usePermissionsUtils,
+  type PermissionCheck,
+  type UserPermissions,
+} from './utils/permissionUtils';
+
+// Config
+export {
+  SYSTEM_ROLES,
+  getRoleConfig,
+  getRoleDisplayName,
+  getRoleIcon,
+  getRoleColor,
+  isSuperAdmin,
+  getUserRoleDisplayText,
+  getSystemRoles,
+  getAvailableRoles,
+  ROLE_COLORS,
+  getRoleColorClasses,
+  type RoleConfig,
+} from './config/roles';
+
+export {
+  findRouteRule,
+  routeRules,
+  type RouteRule,
+} from './config/accessControl';
+
+// Types
+export type {
+  PermissionMeta,
+  PermissionMap,
+  PermissionSnapshot,
+} from './types';
+
