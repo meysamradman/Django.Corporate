@@ -43,7 +43,6 @@ class CaptchaService:
             cache_key = f"{CAPTCHA_REDIS_PREFIX}{captcha_id}"
             cache.set(cache_key, challenge_digits, CAPTCHA_EXPIRY_SECONDS)
             
-            logger.info(f"Generated CAPTCHA: ID={captcha_id}, Digits='{challenge_digits}'")
             
             return {
                 "captcha_id": captcha_id,

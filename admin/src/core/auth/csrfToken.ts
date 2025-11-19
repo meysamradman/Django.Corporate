@@ -50,8 +50,7 @@ class CSRFTokenManager {
         localStorage.removeItem(oldKey);
       }
     } catch (error) {
-      console.warn('[CSRF] Cleanup error:', error);
-    }
+          }
   }
 
   public static getInstance(): CSRFTokenManager {
@@ -73,7 +72,7 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      console.error('[CSRF] Cookie read error:', error);
+      // Error reading cookie
     }
     return null;
   }
@@ -95,7 +94,6 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      console.error('[CSRF] Storage load error:', error);
       this.clear();
     }
   }
@@ -116,7 +114,7 @@ class CSRFTokenManager {
         sessionStorage.removeItem(this.SESSION_STORAGE_KEY);
       }
     } catch (error) {
-      console.error('[CSRF] Storage save error:', error);
+      // Error saving to storage
     }
   }
 

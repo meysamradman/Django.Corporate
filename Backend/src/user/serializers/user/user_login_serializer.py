@@ -5,7 +5,7 @@ from src.user.utils.validate_identifier import validate_identifier
 
 class UserLoginSerializer(serializers.Serializer):
     """
-    سریالایزر برای ورود کاربر معمولی
+    Serializer for regular-user login requests.
     """
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(required=False, write_only=True, allow_blank=True)
@@ -13,12 +13,12 @@ class UserLoginSerializer(serializers.Serializer):
     captcha_id = serializers.CharField(required=True)
     captcha_answer = serializers.CharField(required=True)
     login_type = serializers.ChoiceField(
-        choices=[('password', 'رمز عبور'), ('otp', 'کد یکبار مصرف')], 
+        choices=[('password', 'Password'), ('otp', 'One-Time Code')],
         default='password'
     )
 
     def validate_identifier(self, value):
-        """اعتبارسنجی شناسه (ایمیل یا موبایل)"""
+        """Validate identifier (email or mobile)."""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         
@@ -32,7 +32,7 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate(self, data):
-        """اعتبارسنجی داده‌ها"""
+        """Perform payload-level validation."""
         login_type = data.get('login_type')
         identifier = data.get('identifier')
         captcha_id = data.get('captcha_id')

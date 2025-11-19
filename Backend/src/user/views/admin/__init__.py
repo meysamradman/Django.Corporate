@@ -1,5 +1,5 @@
 """
-ویوهای ادمین - تمام ویوهای مربوط به ادمین‌ها
+Admin views module - exports all admin-related API views.
 """
 from .admin_management_view import AdminManagementView
 from .admin_profile_view import AdminProfileView

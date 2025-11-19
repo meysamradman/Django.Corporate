@@ -53,7 +53,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                 : [];
             setAdminRoles(adminRolesData);
         } catch (error) {
-            console.error("Error loading admin roles:", error);
+            // Error loading admin roles
         }
     };
 
@@ -61,38 +61,22 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
     const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
     
     // Debug logs
-    console.log("🔍 ProfileHeader Debug:", {
-        "formData.profileImage": formData.profileImage,
-        "admin?.profile?.profile_picture": admin?.profile?.profile_picture,
-        "currentProfileImage": currentProfileImage,
-        "formData.profileImage?.id": formData.profileImage?.id,
-        "admin?.profile?.profile_picture?.id": admin?.profile?.profile_picture?.id,
-    });
-
-    const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
-        console.log("📸 handleProfileImageSelect called:", selectedMedia);
-        
-        if (onProfileImageChange) {
+        const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
+                if (onProfileImageChange) {
             const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
-            console.log("🎯 Selected image:", selectedImage);
-            
-            onProfileImageChange(selectedImage);
+                        onProfileImageChange(selectedImage);
             
             // خودکار ذخیره عکس پروفایل
             try {
                 const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                console.log("💾 Saving profile picture with ID:", profilePictureId);
-                
-                // Import adminApi dynamically
+                                // Import adminApi dynamically
                 const { adminApi } = await import('@/api/admins/route');
                 
                 await adminApi.updateProfile({
                     profile_picture: profilePictureId,
                 } as any);
                 
-                console.log("✅ Profile picture saved successfully");
-                
-                // Invalidate admin profile cache to refresh the page
+                                // Invalidate admin profile cache to refresh the page
                 await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
                 await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
                 await queryClient.refetchQueries({ queryKey: ['admin-profile'] });
@@ -103,20 +87,14 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                     const adminId = adminIdMatch[1];
                     await queryClient.invalidateQueries({ queryKey: ['admin', adminId] });
                     await queryClient.refetchQueries({ queryKey: ['admin', adminId] });
-                    console.log(`🔄 Query cache invalidated for admin ${adminId}`);
-                }
+                                    }
                 
-                console.log("🔄 Query cache invalidated");
-                
-                // Refresh AuthContext to update user data everywhere
+                                // Refresh AuthContext to update user data everywhere
                 await refreshUser();
                 
-                console.log("🔄 AuthContext refreshed");
-                
-                // Show success message
+                                // Show success message
                 toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
             } catch (error) {
-                console.error("❌ Error saving profile picture:", error);
                 toast.error("خطا در ذخیره عکس پروفایل");
             }
         }
@@ -250,6 +228,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
                 onUploadComplete={handleUploadComplete}
+                context="media_library"
             />
         </Card>
     );

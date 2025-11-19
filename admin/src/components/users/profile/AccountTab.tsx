@@ -97,7 +97,7 @@ export function AccountTab({
                 const provinces = await locationApi.getProvincesCompact();
                 setProvinces(provinces);
             } catch (error) {
-                console.error("Error fetching provinces:", error);
+                // Error handled silently
             } finally {
                 setLoadingProvinces(false);
             }
@@ -119,7 +119,7 @@ export function AccountTab({
                         setCities(cities);
                     }
                 } catch (error) {
-                    console.error("Error fetching cities:", error);
+                    // Error handled silently
                 } finally {
                     setLoadingCities(false);
                 }

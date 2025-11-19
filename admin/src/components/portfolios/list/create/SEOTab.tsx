@@ -22,6 +22,7 @@ import { UploadCloud, X, AlertCircle, Search, Image as ImageIcon, Globe } from "
 interface SEOTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
     editMode: boolean;
+    portfolioId?: number | string; // Portfolio ID for context-aware permissions
 }
 
 // Props interface for manual state approach (edit page)
@@ -29,6 +30,7 @@ interface SEOTabManualProps {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
     editMode: boolean;
+    portfolioId?: number | string; // Portfolio ID for context-aware permissions
 }
 
 // Union type for both approaches
@@ -45,6 +47,9 @@ export default function SEOTab(props: SEOTabProps) {
     const register = isFormApproach ? props.form.register : null;
     const watch = isFormApproach ? props.form.watch : null;
     const setValue = isFormApproach ? props.form.setValue : null;
+    
+    // Get portfolioId from props (both approaches may have it)
+    const portfolioId = isFormApproach ? props.portfolioId : props.portfolioId;
     
     // Get editMode from props (both approaches have it)
     const editMode = isFormApproach ? props.editMode : props.editMode;
@@ -396,7 +401,7 @@ export default function SEOTab(props: SEOTabProps) {
                             {(formState.errors as any)?.og_image?.message && (
                                 <div className="flex items-start gap-2 text-red-2">
                                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                    <span>{String((formState.errors as any).og_image.message)}                                    </span>
+                                    <span>{String((formState.errors as any).og_image.message)}</span>
                                 </div>
                             )}
                     </CardWithIcon>
@@ -409,6 +414,8 @@ export default function SEOTab(props: SEOTabProps) {
                 onSelect={handleOgImageSelect}
                 selectMultiple={false}
                 initialFileType="image"
+                context="portfolio"
+                contextId={portfolioId}
             />
         </TabsContent>
     );

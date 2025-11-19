@@ -57,7 +57,6 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
     },
     onError: (error) => {
       toast.error("خطا در به‌روزرسانی گزینه");
-      console.error("Update option error:", error);
     },
   });
 

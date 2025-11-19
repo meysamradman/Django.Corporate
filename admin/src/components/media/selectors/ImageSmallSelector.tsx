@@ -7,6 +7,7 @@ import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Media } from "@/types/shared/media";
 import { Camera, X } from "lucide-react";
+import { useMediaContext } from '@/core/media/MediaContext';
 
 interface ImageSmallSelectorProps {
     selectedMedia: Media | null;
@@ -15,6 +16,8 @@ interface ImageSmallSelectorProps {
     name?: string;
     disabled?: boolean;
     className?: string;
+    context?: 'media_library' | 'portfolio' | 'blog';
+    contextId?: number | string;
 }
 
 export function ImageSmallSelector({
@@ -23,8 +26,13 @@ export function ImageSmallSelector({
     label = "تصویر",
     name = "",
     disabled = false,
-    className = ""
+    className = "",
+    context: overrideContext,
+    contextId: overrideContextId
 }: ImageSmallSelectorProps) {
+    // اگر context پاس داده نشه، از route تشخیص بده
+    const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+    
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
@@ -108,6 +116,8 @@ export function ImageSmallSelector({
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 onUploadComplete={handleUploadComplete}
+                context={context}
+                contextId={contextId}
             />
         </div>
     );

@@ -11,7 +11,7 @@ class AdminManagementService:
     @staticmethod
     def get_admins_list(search=None, is_active=None, is_superuser=None, request=None):
         """
-        دریافت لیست ادمین‌ها با فیلترهای مختلف
+        Retrieve admin list with optional filters applied.
         """
         queryset = User.objects.select_related('admin_profile').prefetch_related(
             'admin_profile__profile_picture'
@@ -40,7 +40,7 @@ class AdminManagementService:
     @staticmethod
     def get_admin_detail(admin_id):
         """
-        دریافت جزئیات یک ادمین
+        Retrieve a single admin instance with profile relations.
         """
         try:
             return User.objects.select_related('admin_profile').prefetch_related(
@@ -52,13 +52,13 @@ class AdminManagementService:
     @staticmethod
     def update_admin(admin_id, validated_data, admin_user=None):
         """
-        به‌روزرسانی ادمین و پروفایل آن
+        Update admin core fields and the related profile record.
         """
         try:
             if admin_user is not None:
                 if not admin_user.is_staff:
                     raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
-                # بررسی دسترسی برای تغییر فیلدهای حساس
+                # Validate access for sensitive field changes
                 modifying_sensitive = any(key in validated_data for key in ['is_staff', 'is_superuser'])
                 if modifying_sensitive and not admin_user.is_superuser:
                     user_to_update = User.objects.get(id=admin_id)
@@ -70,22 +70,22 @@ class AdminManagementService:
             except (TypeError, ValueError):
                 raise ValidationError({"admin_id": AUTH_ERRORS.get("invalid_user_id_format")})
             
-            # دریافت ادمین با پروفایل
+            # Fetch admin with related profile
             admin = User.objects.select_related('admin_profile').get(id=admin_id)
             
-            # جدا کردن داده‌های ادمین و پروفایل
+            # Split admin fields from profile fields
             admin_fields_to_update = {}
             profile_fields_to_update = {}
             profile_picture = validated_data.pop('profile_picture', None)
             profile_picture_file = validated_data.pop('profile_picture_file', None)
 
-            # پردازش identifier
+            # Handle identifier updates
             if 'identifier' in validated_data:
                 identifier = validated_data.pop('identifier')
                 if identifier:
                     try:
                         email, mobile = validate_identifier(identifier)
-                        # بررسی تکراری بودن
+                        # Enforce uniqueness
                         if email and User.objects.filter(~Q(id=admin_id), email=email).exists():
                             raise ValidationError(AUTH_ERRORS["auth_email_exists"])
                         if mobile and User.objects.filter(~Q(id=admin_id), mobile=mobile).exists():
@@ -96,7 +96,7 @@ class AdminManagementService:
                     except ValidationError as e:
                         raise ValidationError({"identifier": str(e)})
             
-            # پردازش email و mobile مستقیم
+            # Direct email/mobile updates
             if 'email' in validated_data:
                 email = validated_data.pop('email')
                 final_email = None if email == '' else email 
@@ -111,7 +111,7 @@ class AdminManagementService:
                     raise ValidationError({"mobile": AUTH_ERRORS["auth_mobile_exists"]})
                 admin_fields_to_update['mobile'] = final_mobile
 
-            # پردازش فیلدهای ادمین
+            # Map admin model fields
             admin_model_fields = ['password', 'is_active', 'is_staff', 'is_superuser']
             for field in admin_model_fields:
                 if field in validated_data:
@@ -120,13 +120,13 @@ class AdminManagementService:
                         continue
                     admin_fields_to_update[field] = value
 
-            # پردازش فیلدهای پروفایل
+            # Map profile model fields
             profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone']
             for field in profile_model_fields:
                 if field in validated_data:
                     profile_fields_to_update[field] = validated_data.pop(field)
 
-            # پردازش فیلدهای پیشوند دار پروفایل
+            # Handle prefixed profile_* fields
             profile_prefix = 'profile_'
             prefix_keys = [k for k in validated_data.keys() if k.startswith(profile_prefix)]
             for key in prefix_keys:
@@ -134,14 +134,14 @@ class AdminManagementService:
                 if field in profile_model_fields:
                     profile_fields_to_update[field] = validated_data.pop(key)
 
-            # پردازش آبجکت پروفایل تو در تو
+            # Handle nested profile payload
             nested_profile = validated_data.pop('profile', {}) or {}
             if isinstance(nested_profile, dict):
                 for field in profile_model_fields:
                     if field in nested_profile:
                         profile_fields_to_update[field] = nested_profile[field]
             
-            # پردازش حذف تصویر پروفایل
+            # Determine profile picture removal flag
             should_remove_picture = validated_data.pop('remove_profile_picture', 'false').lower() == 'true'
             
             if not should_remove_picture:
@@ -154,15 +154,15 @@ class AdminManagementService:
                 else:
                     should_remove_picture = should_remove_picture.lower() == 'true'
 
-            # اضافه کردن تصویر پروفایل به لیست به‌روزرسانی
+            # Upload new profile image if provided
             if profile_picture_file:
                 try:
                     from src.media.services.media_service import MediaService
                     
                     media = MediaService.upload_file(
                         file=profile_picture_file,
-                        title=f"تصویر پروفایل - ادمین {admin.id}",
-                        alt_text=f"تصویر پروفایل برای ادمین {admin.id}",
+                        title=f"Admin profile picture - admin {admin.id}",
+                        alt_text=f"Profile picture for admin {admin.id}",
                         folder="profile_pictures"
                     )
                     
@@ -173,7 +173,7 @@ class AdminManagementService:
             elif profile_picture:
                 profile_fields_to_update['profile_picture'] = profile_picture
 
-            # به‌روزرسانی فیلدهای ادمین
+            # Persist admin model updates
             if admin_fields_to_update:
                 if 'password' in admin_fields_to_update:
                     password = admin_fields_to_update.pop('password')
@@ -183,7 +183,7 @@ class AdminManagementService:
                     setattr(admin, field, value)
                 admin.save()
             
-            # به‌روزرسانی نقش
+            # Update role assignment if requested
             role_id_str = validated_data.pop('role_id', None)
             if role_id_str is not None:
                 try:
@@ -215,7 +215,7 @@ class AdminManagementService:
                                 user_role.is_active = True
                                 user_role.save()
                             
-                            from src.user.utils.permission_helper import PermissionHelper
+                            from src.user.permissions.helpers import PermissionHelper
                             PermissionHelper.clear_user_cache(admin.id)
                             
                         except AdminRole.DoesNotExist:
@@ -225,7 +225,7 @@ class AdminManagementService:
                 except Exception as e:
                     pass
 
-            # به‌روزرسانی پروفایل
+            # Update profile details
             if profile_fields_to_update or should_remove_picture:
                 from src.user.services.admin.admin_profile_service import AdminProfileService
                 
@@ -251,7 +251,7 @@ class AdminManagementService:
     @staticmethod
     def delete_admin(admin_id, admin_user=None):
         """
-        حذف ادمین
+        Delete an admin account.
         """
         if admin_user is not None and not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
@@ -275,7 +275,7 @@ class AdminManagementService:
     @staticmethod
     def bulk_delete_admins(admin_ids, admin_user=None):
         """
-        حذف دسته‌ای ادمین‌ها
+        Delete multiple admins in bulk.
         """
         if not isinstance(admin_ids, list) or not admin_ids:
             raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))

@@ -5,6 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { MediaUploadModal } from "@/components/media/modals/MediaUploadModal";
 import { Upload, Plus } from "lucide-react";
 import { Media } from "@/types/shared/media";
+import { useMediaContext } from '@/core/media/MediaContext';
 
 interface MediaUploadButtonProps {
     onUploadComplete?: () => void;
@@ -14,6 +15,8 @@ interface MediaUploadButtonProps {
     children?: React.ReactNode;
     className?: string;
     showIcon?: boolean;
+    context?: 'media_library' | 'portfolio' | 'blog';
+    contextId?: number | string;
 }
 
 export function MediaUploadButton({
@@ -23,8 +26,13 @@ export function MediaUploadButton({
     size = "default",
     children = "آپلود فایل",
     className = "",
-    showIcon = true
+    showIcon = true,
+    context: overrideContext,
+    contextId: overrideContextId
 }: MediaUploadButtonProps) {
+    // اگر context پاس داده نشه، از route تشخیص بده
+    const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+    
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     const handleUploadComplete = () => {
@@ -56,6 +64,8 @@ export function MediaUploadButton({
                 onClose={handleClose}
                 onUploadComplete={handleUploadComplete}
                 onMediaSelect={onMediaSelect}
+                context={context}
+                contextId={contextId}
             />
         </>
     );
@@ -65,13 +75,20 @@ export function QuickMediaUploadButton({
     onUploadComplete,
     onMediaSelect,
     size = "sm",
-    className = ""
+    className = "",
+    context: overrideContext,
+    contextId: overrideContextId
 }: {
     onUploadComplete?: () => void;
     onMediaSelect?: (media: Media | Media[]) => void;
     size?: "default" | "sm" | "lg";
     className?: string;
+    context?: 'media_library' | 'portfolio' | 'blog';
+    contextId?: number | string;
 }) {
+    // اگر context پاس داده نشه، از route تشخیص بده
+    const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+    
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     const handleUploadComplete = () => {
@@ -102,6 +119,8 @@ export function QuickMediaUploadButton({
                 onClose={handleClose}
                 onUploadComplete={handleUploadComplete}
                 onMediaSelect={onMediaSelect}
+                context={context}
+                contextId={contextId}
             />
         </>
     );

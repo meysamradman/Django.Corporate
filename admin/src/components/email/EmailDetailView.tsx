@@ -8,13 +8,13 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/elements/Button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Badge } from "@/components/elements/Badge";
 import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Paperclip, Download, Send, Star } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import { EmailMessage } from "@/types/email/emailMessage";
 import { MailboxType } from "./types";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 
 interface EmailDetailViewProps {
   email: EmailMessage | null;
@@ -184,16 +184,18 @@ export function EmailDetailView({
             </div>
             <div className="flex flex-wrap gap-2">
               {email.attachments.map((attachment) => (
-                <Button
+                <ProtectedButton
                   key={attachment.id}
                   variant="outline"
                   size="sm"
                   className="gap-2"
+                  permission="email.read"
+                  showDenyToast={false}
                 >
                   <Download className="size-3.5" />
                   <span className="text-xs">{attachment.filename}</span>
                   <span className="text-xs text-font-s">({attachment.file_size_formatted})</span>
-                </Button>
+                </ProtectedButton>
               ))}
             </div>
           </div>
@@ -263,7 +265,7 @@ export function EmailDetailView({
       <div className="border-t px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           {onToggleStar && mailbox !== "spam" && mailbox !== "trash" && (
-            <Button 
+            <ProtectedButton 
               variant="outline" 
               size="sm" 
               onClick={() => onToggleStar(email)}
@@ -271,32 +273,48 @@ export function EmailDetailView({
                 ? "bg-amber text-amber-1 border-amber-1 hover:bg-amber/90" 
                 : "border-amber-1 text-amber-1 hover:bg-amber/10"
               }
+              permission="email.update"
+              showDenyToast={false}
             >
               <Star className={cn("size-4", email.is_starred && "fill-amber-1")} />
               {email.is_starred ? "حذف ستاره" : "ستاره‌دار"}
-            </Button>
+            </ProtectedButton>
           )}
           {mailbox === "draft" && onPublish && (
-            <Button variant="default" size="sm" onClick={() => onPublish(email)}>
+            <ProtectedButton 
+              variant="default" 
+              size="sm" 
+              onClick={() => onPublish(email)}
+              permission="email.create"
+              showDenyToast={false}
+            >
               <Send className="size-4" />
               منتشر کردن
-            </Button>
+            </ProtectedButton>
           )}
           {mailbox !== "draft" && onReply && (
-            <Button variant="default" size="sm" onClick={() => onReply(email)}>
+            <ProtectedButton 
+              variant="default" 
+              size="sm" 
+              onClick={() => onReply(email)}
+              permission="email.create"
+              showDenyToast={false}
+            >
               <Reply className="size-4" />
               پاسخ
-            </Button>
+            </ProtectedButton>
           )}
-          <Button 
+          <ProtectedButton 
             variant="destructive" 
             size="sm" 
             onClick={() => onDelete?.(email)}
             className="!bg-red-1 hover:!bg-red-2 !text-static-w border-0"
+            permission="email.delete"
+            showDenyToast={false}
           >
             <Trash2 className="size-4" />
             حذف
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
     </div>

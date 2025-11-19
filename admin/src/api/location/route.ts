@@ -11,7 +11,6 @@ export const locationApi = {
       // بر اساس response structure که تو Postman نشون دادی
       return response.data || [];
     } catch (error) {
-      console.error("Error fetching provinces:", error);
       throw error;
     }
   },
@@ -25,7 +24,6 @@ export const locationApi = {
       // بر اساس response structure که تو Postman نشون دادی
       return response.data || [];
     } catch (error) {
-      console.error("Error fetching cities:", error);
       throw error;
     }
   },
@@ -38,7 +36,6 @@ export const locationApi = {
       const response = await fetchApi.get<{data: City[]}>("/cities/");
       return response.data?.data || [];
     } catch (error) {
-      console.error("Error fetching all cities:", error);
       throw error;
     }
   },
@@ -52,7 +49,6 @@ export const locationApi = {
       // بر اساس response structure که تو Postman نشون دادی
       return response.data || [];
     } catch (error) {
-      console.error("Error fetching cities compact:", error);
       throw error;
     }
   },
@@ -66,7 +62,6 @@ export const locationApi = {
       // بر اساس response structure که تو Postman نشون دادی
       return response.data || [];
     } catch (error) {
-      console.error("Error fetching provinces compact:", error);
       throw error;
     }
   }

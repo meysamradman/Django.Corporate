@@ -22,11 +22,15 @@ import {
   type OtpLoginForm 
 } from '@/core/validations/loginSchema';
 import { msg } from '@/core/messages/message';
+import { usePathname } from 'next/navigation';
+import { Spinner } from '@/components/elements/Spinner';
 
 export function LoginForm() {
     const { login, loginWithOTP, isLoading: authLoading } = useAuth();
+    const pathname = usePathname();
   
     const [isLoading, setIsLoading] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
     const [loginType, setLoginType] = useState('password');
     const [otpLength, setOtpLength] = useState(5);
@@ -106,6 +110,13 @@ export function LoginForm() {
         };
     }, [resendTimer, otpSent]);
 
+    // Reset isRedirecting when pathname changes (redirect completed)
+    useEffect(() => {
+        if (isRedirecting && pathname !== '/login') {
+            setIsRedirecting(false);
+        }
+    }, [pathname, isRedirecting]);
+
     const handlePasswordLogin = async (data: PasswordLoginForm) => {
         if (!captchaId) {
             showErrorToast(new Error(msg.validation("captchaRequired")));
@@ -117,6 +128,8 @@ export function LoginForm() {
         try {
             await login(data.mobile, data.password, captchaId, data.captchaAnswer);
             showSuccessToast(msg.auth("loginSuccess"));
+            // Show redirecting overlay while navigating
+            setIsRedirecting(true);
             // Navigation is handled by AuthContext after successful login
         } catch (error) {
             // Handle specific error types
@@ -192,6 +205,8 @@ export function LoginForm() {
         try {
             await loginWithOTP(data.mobile, data.otp, captchaId, data.captchaAnswer);
             showSuccessToast(msg.auth("loginSuccess"));
+            // Show redirecting overlay while navigating
+            setIsRedirecting(true);
             // Navigation is handled by AuthContext after successful login
         } catch (error) {
             // Handle specific error types
@@ -231,6 +246,16 @@ export function LoginForm() {
 
     return (
         <>
+            {/* Full-screen loading overlay when redirecting after successful login */}
+            {isRedirecting && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-4">
+                        <Spinner className="size-8 text-primary" />
+                        <p className="text-sm text-font-s">در حال انتقال به داشبورد...</p>
+                    </div>
+                </div>
+            )}
+
             <div className="mb-6">
                 <RadioGroup
                     defaultValue="password"

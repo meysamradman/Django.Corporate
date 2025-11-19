@@ -7,18 +7,19 @@ from src.user.serializers.admin.admin_profile_serializer import AdminCompletePro
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
+from src.user.authorization.admin_permission import SimpleAdminPermission
 from src.core.responses import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from django.http import Http404
 from django.core.exceptions import ValidationError
 from src.user.models import User
-from src.user.utils.permission_helper import PermissionHelper
+from src.user.permissions.helpers import PermissionHelper
 from django.core.cache import cache
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminProfileView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [SimpleAdminPermission]  # فقط ادمین‌ها می‌تونن دسترسی داشته باشن
     serializer_class = AdminCompleteProfileSerializer
 
     def get(self, request):
@@ -32,12 +33,18 @@ class AdminProfileView(APIView):
             
             # Cache key based on user type
             cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
+            force_refresh = (
+                request.query_params.get('refresh') == '1'
+                or request.headers.get('X-Bypass-Cache') == '1'
+            )
             
             # Try to get from cache
-            cached_data = cache.get(cache_key)
-            if cached_data:
-                cached_data.pop('csrf_token', None)
-                return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=cached_data)
+            if not force_refresh:
+                cached_data = cache.get(cache_key)
+                if cached_data:
+                    cached_data = dict(cached_data)
+                    cached_data.pop('csrf_token', None)
+                    return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=cached_data)
             
             # Fetch the User instance with related profile and permissions prefetched
             user = User.objects.select_related(
@@ -48,14 +55,6 @@ class AdminProfileView(APIView):
                 'groups__permissions',
                 'user_permissions'
             ).get(id=request.user.id)
-            
-            # Debug: Check if profile_picture exists
-            if hasattr(user, 'admin_profile') and user.admin_profile:
-                print(f"🔍 AdminProfile Debug - profile_picture: {user.admin_profile.profile_picture}")
-                if user.admin_profile.profile_picture:
-                    print(f"🔍 Profile Picture Debug - ID: {user.admin_profile.profile_picture.id}, URL: {user.admin_profile.profile_picture.file.url}")
-                else:
-                    print("🔍 Profile Picture Debug - No profile picture found")
             
             # Directly instantiate the serializer class
             serializer = self.serializer_class(user, context={'request': request})
@@ -77,12 +76,8 @@ class AdminProfileView(APIView):
                 )
             
             # Cache for different durations based on user type
-            if user.is_superuser:
-                # Superuser data is static, cache longer
-                cache.set(cache_key, response_data, 1800)  # 30 minutes
-            else:
-                # Regular admin permissions might change
-                cache.set(cache_key, response_data, 300)   # 5 minutes
+            cache_ttl = 1800 if user.is_superuser else 300
+            cache.set(cache_key, response_data, cache_ttl)
             
             return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=response_data)
         except User.DoesNotExist:
@@ -294,11 +289,6 @@ class AdminProfileView(APIView):
                     cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
                     cache.delete(cache_key)
                     
-                    # Debug: Check profile_picture before update
-                    print(f"🔍 Before Update - profile_picture: {admin_profile.profile_picture}")
-                    if admin_profile.profile_picture:
-                        print(f"🔍 Before Update - Profile Picture ID: {admin_profile.profile_picture.id}")
-                    
                     # Refresh user and related profile data from database
                     user.refresh_from_db()
                     if hasattr(user, 'admin_profile'):
@@ -316,14 +306,6 @@ class AdminProfileView(APIView):
                         'groups__permissions',
                         'user_permissions'
                     ).get(id=user.id)
-                    
-                    # Debug: Check profile_picture after update
-                    if hasattr(user, 'admin_profile') and user.admin_profile:
-                        print(f"🔍 After Update - profile_picture: {user.admin_profile.profile_picture}")
-                        if user.admin_profile.profile_picture:
-                            print(f"🔍 After Update - Profile Picture ID: {user.admin_profile.profile_picture.id}, URL: {user.admin_profile.profile_picture.file.url}")
-                        else:
-                            print("🔍 After Update - No profile picture found")
                     
                     from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
                     response_serializer = AdminCompleteProfileSerializer(

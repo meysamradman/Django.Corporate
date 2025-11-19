@@ -14,8 +14,8 @@ import { Checkbox } from "@/components/elements/Checkbox"
 import { AdminWithProfile } from "@/types/auth/admin"
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
+import { ProtectedLink } from "@/core/permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
-import Link from "next/link";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";
 import { getPermissionTranslation } from "@/core/messages/permissions";
@@ -76,7 +76,11 @@ export const useAdminColumns = (
         };
 
         return (
-          <Link href={`/admins/${admin.id}/edit`} className="flex items-center gap-3">
+          <ProtectedLink 
+            href={`/admins/${admin.id}/edit`} 
+            permission="admin.update"
+            className="flex items-center gap-3"
+          >
             <Avatar className="table-avatar">
               {profilePictureUrl ? (
                 <AvatarImage src={profilePictureUrl} alt={fullName} />
@@ -89,7 +93,7 @@ export const useAdminColumns = (
             <div className="table-cell-primary table-cell-wide">
               {fullName}
             </div>
-          </Link>
+          </ProtectedLink>
         );
       },
       enableSorting: true,

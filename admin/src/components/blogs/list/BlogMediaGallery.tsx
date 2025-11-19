@@ -24,6 +24,7 @@ interface BlogMediaGalleryProps {
   maxSelection?: number;
   isGallery?: boolean; // New prop to distinguish between single item with cover vs gallery
   disabled?: boolean;
+  contextId?: number | string; // Blog ID for context-aware permissions
 }
 
 export function BlogMediaGallery({
@@ -34,6 +35,7 @@ export function BlogMediaGallery({
   maxSelection,
   isGallery = false, // By default, it's not a gallery (single item with cover)
   disabled = false,
+  contextId,
 }: BlogMediaGalleryProps) {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
@@ -156,7 +158,7 @@ export function BlogMediaGallery({
           </div>
         </div>
 
-        {/* Media Library Modal for cover image */}
+        {/* Media Library Modal for cover image (blog context) */}
         <MediaLibraryModal
           isOpen={showMediaLibrary}
           onClose={() => setShowMediaLibrary(false)}
@@ -179,6 +181,8 @@ export function BlogMediaGallery({
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onUploadComplete={handleUploadComplete}
+          context="blog"
+          contextId={contextId}
         />
       </div>
     );
@@ -302,7 +306,7 @@ export function BlogMediaGallery({
         </div>
       )}
 
-      {/* Media Library Modal */}
+      {/* Media Library Modal (blog context) */}
       <MediaLibraryModal
         isOpen={showMediaLibrary}
         onClose={() => setShowMediaLibrary(false)}
@@ -313,6 +317,8 @@ export function BlogMediaGallery({
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onUploadComplete={handleUploadComplete}
+        context="blog"
+        contextId={contextId}
       />
     </div>
   );

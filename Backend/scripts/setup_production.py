@@ -21,7 +21,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 django.setup()
 
 from src.user.models import User, AdminRole, AdminUserRole
-from src.user.authorization.role_permissions import ADMIN_ROLE_PERMISSIONS
+from src.user.permissions.config import SYSTEM_ROLES as ADMIN_ROLE_PERMISSIONS
 
 def setup_production_admin():
     """Complete admin setup for production"""

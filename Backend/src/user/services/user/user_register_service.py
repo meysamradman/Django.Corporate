@@ -11,7 +11,7 @@ class UserRegisterService:
     @classmethod
     def register_user(cls, identifier, password, admin_user=None):
         """
-        ثبت‌نام کاربر معمولی جدید
+        Register a new regular user.
         """
         user_type = 'user'
         is_staff = False
@@ -48,7 +48,7 @@ class UserRegisterService:
     @classmethod
     def register_user_from_serializer(cls, validated_data, admin_user=None):
         """
-        ثبت‌نام کاربر معمولی از داده‌های سریالایزر
+        Register a regular user using serializer data.
         """
         identifier = validated_data.get('identifier')
         password = validated_data.get('password')
@@ -143,7 +143,7 @@ class UserRegisterService:
                 defaults=profile_data
             )
             
-            # اگر UserProfile قبلاً وجود داشت، فیلدها را به‌روزرسانی کن
+            # Update existing UserProfile fields if one already exists
             if not created:
                 for key, value in profile_data.items():
                     setattr(user_profile, key, value)
@@ -161,15 +161,15 @@ class UserRegisterService:
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, user_id):
         """
-        مدیریت آپلود تصویر پروفایل با استفاده از سرویس مرکزی مدیا
+        Handle profile picture uploads via the central media service.
         """
         try:
             from src.media.services.media_service import MediaService
             
             media = MediaService.upload_file(
                 file=uploaded_file,
-                title=f"تصویر پروفایل - کاربر {user_id}",
-                alt_text=f"تصویر پروفایل برای کاربر {user_id}",
+                title=f"User profile picture - user {user_id}",
+                alt_text=f"Profile picture for user {user_id}",
                 folder="profile_pictures"
             )
             

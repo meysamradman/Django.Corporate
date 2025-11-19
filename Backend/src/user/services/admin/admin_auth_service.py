@@ -10,12 +10,12 @@ class AdminAuthService:
     @staticmethod
     def authenticate_admin(mobile, password, otp_code=None, request=None):
         """
-        احراز هویت ادمین با mobile و password
+        Authenticate an admin using mobile/password (and optional OTP).
         """
         if not mobile or not password:
             raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         
-        # احراز هویت اولیه با mobile - جستجو در دیتابیس
+        # Initial lookup by mobile number
         try:
             admin = User.objects.get(
                 mobile=mobile, 
@@ -25,7 +25,7 @@ class AdminAuthService:
                 is_active=True
             )
             
-            # بررسی پسورد
+            # Verify password
             if not admin.check_password(password):
                 return None, None
                 
@@ -33,16 +33,16 @@ class AdminAuthService:
             return None, None
         
         if admin and admin.is_active:
-            # بررسی دو مرحله‌ای (اگر فعال باشد)
+            # Handle optional two-factor authentication
             if os.getenv('ADMIN_2FA_ENABLED', 'False').lower() == 'true':
                 if not otp_code:
                     raise AuthenticationFailed(AUTH_ERRORS.get("auth_validation_error"))
                 
-                # بررسی کد OTP
+                # Verify OTP code
                 if not AdminAuthService.verify_otp(admin, otp_code):
                     raise AuthenticationFailed(AUTH_ERRORS.get("otp_invalid"))
             
-            # ایجاد session
+            # Create admin session
             session_key = AdminSessionService.create_session(admin, request)
             
             return admin, session_key
@@ -52,16 +52,15 @@ class AdminAuthService:
     @staticmethod
     def verify_otp(admin, otp_code):
         """
-        بررسی کد OTP برای ادمین
+        Verify OTP for admin 2FA (placeholder implementation).
         """
-        # اینجا باید منطق بررسی OTP پیاده شود
-        # برای مثال با استفاده از یک سرویس OTP خارجی
-        return True  # موقت برای تست
+        # TODO: Integrate with dedicated OTP provider.
+        return True
     
     @staticmethod
     def logout_admin(session_key):
         """
-        خروج ادمین و پاک کردن session
+        Log out an admin and destroy the associated session.
         """
         AdminSessionService.destroy_session(session_key)
         return True

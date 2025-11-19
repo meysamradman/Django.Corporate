@@ -15,6 +15,7 @@ import { PanelSettings } from '@/types/settings/panelSettings';
 import { getPanelSettings } from '@/api/settings/panel/route';
 import { getQueryClient } from '@/core/utils/queryClient';
 import { FaviconManager } from '@/components/layout/FaviconManager';
+import { PermissionProfile } from '@/types/auth/permission';
 
 // CSRF token is now only available in cookies, not in response body
 
@@ -54,11 +55,20 @@ const publicPaths = ['/login']; // Add other public paths if needed
 function serializeUser(user: any | null): UserWithProfile | null {
   if (!user) return null;
   
+  const { normalizedPermissions, permissionProfile } = normalizePermissionPayload(user.permissions);
+  const fallbackProfile = buildPermissionProfileFromUser(user);
+  const mergedProfile = mergePermissionProfile({
+    profile: permissionProfile || user.permission_profile,
+    fallback: fallbackProfile,
+    normalizedPermissions,
+  });
+
   // Create a plain object copy to avoid class/prototype issues
   return {
     ...user,
     user_type: user.user_type || 'admin', // Default to admin for admin users
-    permissions: Array.isArray(user.permissions) ? [...user.permissions] : [],
+    permissions: normalizedPermissions,
+    permission_profile: mergedProfile,
     permission_categories: user.permission_categories ? { ...user.permission_categories } : {},
     profile: user.profile ? { ...user.profile } : undefined,
     roles: user.roles ? [...user.roles] : [],
@@ -84,6 +94,118 @@ function serializePanelSettings(settings: PanelSettings | null): PanelSettings |
   };
 }
 
+function normalizePermissionPayload(rawPermissions: unknown): {
+  normalizedPermissions: string[];
+  permissionProfile?: PermissionProfile;
+} {
+  if (Array.isArray(rawPermissions)) {
+    return { normalizedPermissions: [...rawPermissions] };
+  }
+
+  if (typeof rawPermissions === "string") {
+    return { normalizedPermissions: [rawPermissions] };
+  }
+
+  if (rawPermissions && typeof rawPermissions === "object") {
+    const profile = rawPermissions as PermissionProfile;
+    const nestedPermissions = Array.isArray(profile.permissions)
+      ? [...profile.permissions]
+      : [];
+
+    return {
+      normalizedPermissions: nestedPermissions,
+      permissionProfile: profile,
+    };
+  }
+
+  return { normalizedPermissions: [] };
+}
+
+function buildPermissionProfileFromUser(user: any): PermissionProfile | undefined {
+  if (!user) return undefined;
+
+  const modules = Array.isArray(user.modules) ? [...user.modules] : [];
+  const actions = Array.isArray(user.actions) ? [...user.actions] : [];
+  const permissions =
+    Array.isArray(user.permissions) && user.permissions.every((perm: unknown) => typeof perm === "string")
+      ? [...user.permissions]
+      : undefined;
+
+  if (!modules.length && !actions.length && !(permissions && permissions.length)) {
+    return undefined;
+  }
+
+  const roles =
+    Array.isArray(user.roles) && user.roles.length
+      ? user.roles.map((role: any) => role?.name || role)
+      : undefined;
+
+  return {
+    access_level: user.access_level || user.permissions?.access_level || "admin",
+    modules,
+    actions,
+    permissions,
+    roles,
+    permissions_count: user.permissions_count,
+    has_permissions: user.has_permissions,
+    base_permissions: user.base_permissions,
+    permission_summary: user.permission_summary,
+  };
+}
+
+function mergePermissionProfile(options: {
+  profile?: PermissionProfile;
+  fallback?: PermissionProfile;
+  normalizedPermissions?: string[];
+}): PermissionProfile | undefined {
+  const { profile, fallback, normalizedPermissions } = options;
+  const base = profile || fallback;
+
+  const hasInlinePermissions = normalizedPermissions && normalizedPermissions.length > 0;
+
+  if (!base && !hasInlinePermissions) {
+    return undefined;
+  }
+
+  const mergeStringArray = (...lists: (string[] | undefined)[]) => {
+    const set = new Set<string>();
+    lists.flat().forEach((value) => {
+      if (Array.isArray(value)) {
+        value.forEach(item => {
+          if (item) {
+            set.add(String(item));
+          }
+        });
+      }
+    });
+    return set.size ? Array.from(set) : undefined;
+  };
+
+  const modulesFromPermissions = normalizedPermissions
+    ?.map(permission => permission?.split(".")[0])
+    .filter(Boolean) as string[] | undefined;
+
+  const actionsFromPermissions = normalizedPermissions
+    ?.map(permission => permission?.split(".")[1])
+    .filter(Boolean) as string[] | undefined;
+
+  return {
+    access_level: base?.access_level || "admin",
+    permissions: hasInlinePermissions
+      ? normalizedPermissions
+      : profile?.permissions || fallback?.permissions,
+    roles: mergeStringArray(fallback?.roles, profile?.roles),
+    modules: mergeStringArray(fallback?.modules, profile?.modules, modulesFromPermissions),
+    actions: mergeStringArray(fallback?.actions, profile?.actions, actionsFromPermissions),
+    permissions_count: base?.permissions_count ?? fallback?.permissions_count,
+    has_permissions: base?.has_permissions ?? fallback?.has_permissions,
+    base_permissions: base?.base_permissions ?? fallback?.base_permissions,
+    permission_summary: base?.permission_summary ?? fallback?.permission_summary,
+    restrictions: base?.restrictions ?? fallback?.restrictions,
+    special: base?.special ?? fallback?.special,
+  };
+}
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<UserWithProfile | null>(null);
   const [panelSettings, setPanelSettings] = useState<PanelSettings | null>(null);
@@ -103,12 +225,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (panelData) {
             setPanelSettings(serializePanelSettings(panelData));
         } else {
-            setPanelSettings(null);
-        }
+        setPanelSettings(null);
+    }
     } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error('AuthContext: Error fetching panel settings:', error);
-        }
         setPanelSettings(null);
     }
   }, []);
@@ -118,15 +237,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     try {
       // 1. Get user data
-      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store' }); 
+      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true }); 
       if (userData) {
         setUser(serializeUser(userData));
         
         await csrfManager.refresh();
         
         // 3. Load panel settings in background - موازی
-        fetchPanelSettings().catch(error => {
-          console.warn('Panel settings loading failed:', error);
+        fetchPanelSettings().catch(() => {
+          // Silently handle error - panel settings are not critical
         });
       } else {
         setUser(null);
@@ -183,7 +302,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         await csrfManager.refresh();
 
-        const userData = await authApi.getCurrentAdminUser({ cache: 'no-store' });
+        const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true });
         
         if (!userData) {
           throw new Error('Failed to load user data after login');
@@ -191,9 +310,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         setUser(serializeUser(userData));
 
-        fetchPanelSettings().catch(err => 
-          console.warn('[Auth] Background settings load failed:', err)
-        );
+        fetchPanelSettings().catch(() => {
+          // Silently handle error - panel settings are not critical for login
+        });
 
         const urlParams = new URLSearchParams(window.location.search);
         const returnTo = urlParams.get('return_to') || '/';
@@ -225,7 +344,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       await csrfManager.refresh();
 
-      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store' });
+      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true });
       
       if (!userData) {
         throw new Error('Failed to load user data after login');
@@ -233,9 +352,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       setUser(serializeUser(userData));
 
-      fetchPanelSettings().catch(err => 
-        console.warn('[Auth] Background settings load failed:', err)
-      );
+      fetchPanelSettings().catch(() => {
+        // Silently handle error - panel settings are not critical
+      });
 
       const urlParams = new URLSearchParams(window.location.search);
       const returnTo = urlParams.get('return_to') || '/';
@@ -303,8 +422,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         queryClient.clear();
 
       } catch (error) {
-        console.warn('Error clearing query cache:', error);
-      }
+              }
     }
   };
 
@@ -345,23 +463,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshUser = async () => {
     try {
-      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store' });
+      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true });
       if (userData) {
         setUser(serializeUser(userData));
         
         await csrfManager.refresh();
-        fetchPanelSettings().catch(err => 
-          console.warn('[Auth] Background settings load failed:', err)
-        );
+        fetchPanelSettings().catch(() => {
+          // Silently handle error - panel settings are not critical
+        });
       } else {
         setUser(null);
         setPanelSettings(null);
         csrfManager.clear();
       }
     } catch (error) {
-      if (!(error instanceof ApiError && error.response.AppStatusCode === 401)) {
-         console.error('Error refreshing user:', error);
-      }
       setUser(null);
       setPanelSettings(null);
       csrfManager.clear();

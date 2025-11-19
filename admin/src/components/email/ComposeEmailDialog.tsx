@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/elements/Dialog";
-import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
 import { Send, Save } from "lucide-react";
 import { EmailMessage } from "@/types/email/emailMessage";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 
 export interface ComposeEmailData {
   to: string;
@@ -41,7 +41,11 @@ export function ComposeEmailDialog({
       if (replyTo) {
         setTo(replyTo.email);
         setSubject(replyTo.subject.startsWith("Re:") ? replyTo.subject : `Re: ${replyTo.subject}`);
-        setMessage(`\n\n--- پیام قبلی ---\n${replyTo.message}\n`);
+        setMessage(`
+
+--- پیام قبلی ---
+${replyTo.message}
+`);
       } else {
         setTo("");
         setSubject("");
@@ -62,7 +66,7 @@ export function ComposeEmailDialog({
       setSubject("");
       setMessage("");
     } catch (error) {
-      console.error("Error sending email:", error);
+      // Error handled by parent component
     } finally {
       setSending(false);
     }
@@ -74,7 +78,7 @@ export function ComposeEmailDialog({
       await onSaveDraft({ to, subject, message });
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving draft:", error);
+      // Error handled by parent component
     } finally {
       setSavingDraft(false);
     }
@@ -119,21 +123,25 @@ export function ComposeEmailDialog({
           </div>
         </div>
         <DialogFooter className="flex-shrink-0">
-          <Button
+          <ProtectedButton
             variant="outline"
             onClick={handleSaveDraft}
             disabled={sending || savingDraft}
+            permission="email.create"
+            showDenyToast={false}
           >
             <Save className="w-4 h-4 me-2" />
             {savingDraft ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
-          </Button>
-          <Button
+          </ProtectedButton>
+          <ProtectedButton
             onClick={handleSend}
             disabled={!to.trim() || !subject.trim() || !message.trim() || sending || savingDraft}
+            permission="email.create"
+            showDenyToast={false}
           >
             <Send className="w-4 h-4 me-2" />
             {sending ? "در حال ارسال..." : "ارسال"}
-          </Button>
+          </ProtectedButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

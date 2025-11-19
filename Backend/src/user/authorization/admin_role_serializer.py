@@ -2,6 +2,7 @@ from rest_framework import serializers
 from src.user.models import AdminRole, AdminUserRole, User
 from django.core.exceptions import ValidationError
 from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
+from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
 
 
 class AdminRoleSerializer(serializers.ModelSerializer):
@@ -23,13 +24,8 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         # User-created roles should NOT be system roles
         validated_data['is_system_role'] = False
         
-        # ✅ FIX: Ensure permissions is always a valid dict
-        if 'permissions' not in validated_data or validated_data['permissions'] is None:
-            validated_data['permissions'] = {}
-        elif not isinstance(validated_data['permissions'], dict):
-            validated_data['permissions'] = {}
-        
-        return super().create(validated_data)
+        role = super().create(validated_data)
+        return role
     
     def validate_name(self, value):
         """Validate role name - support Persian/Arabic text"""
@@ -75,6 +71,34 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         if not value:
             return {}
         
+        # ✅ NEW: Support 'specific_permissions' format to avoid cartesian product
+        # Format: {'specific_permissions': [{'module': 'admin', 'action': 'view'}, ...]}
+        if 'specific_permissions' in value:
+            specific_perms = value['specific_permissions']
+            
+            if not isinstance(specific_perms, list):
+                raise serializers.ValidationError("specific_permissions must be a list")
+            
+            # Validate each permission
+            allowed_modules = {'all', *AVAILABLE_MODULES.keys()}
+            allowed_actions = {'create', 'read', 'update', 'delete', 'export', 'manage', 'all', 'import'}
+            
+            for perm in specific_perms:
+                if not isinstance(perm, dict):
+                    raise serializers.ValidationError("Each permission must be a dict with 'module' and 'action'")
+                
+                if 'module' not in perm or 'action' not in perm:
+                    raise serializers.ValidationError("Each permission must have 'module' and 'action' fields")
+                
+                if perm['module'] not in allowed_modules:
+                    raise serializers.ValidationError(f"Invalid module: {perm['module']}")
+                
+                if perm['action'] not in allowed_actions:
+                    raise serializers.ValidationError(f"Invalid action: {perm['action']}")
+            
+            return value
+        
+        # Old validation for backward compatibility
         # Validate required keys (at least one should be present if not empty)
         allowed_keys = {'modules', 'actions', 'restrictions', 'special'}
         if not any(key in value for key in allowed_keys):
@@ -87,7 +111,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             if not isinstance(modules, list):
                 raise serializers.ValidationError("modules must be a list")
             
-            allowed_modules = {'all', 'users', 'media', 'portfolio', 'blog', 'categories', 'analytics'}
+            allowed_modules = {'all', *AVAILABLE_MODULES.keys()}
             invalid_modules = set(modules) - allowed_modules
             if invalid_modules:
                 raise serializers.ValidationError(
@@ -186,7 +210,7 @@ class AdminRoleListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'name', 'display_name', 'description',
             'level', 'is_system_role', 'is_active', 'users_count',
-            'created_at', 'updated_at'  # ✅ اضافه شدن فیلدهای تاریخ
+            'created_at', 'updated_at'  # Include timestamp fields for auditing
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 

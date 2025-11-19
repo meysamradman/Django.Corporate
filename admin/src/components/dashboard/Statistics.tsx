@@ -15,7 +15,6 @@ export const Statistics: React.FC = () => {
   const { data: stats, isLoading, error } = useStatistics();
 
   if (error) {
-    console.error("Statistics Error:", error);
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

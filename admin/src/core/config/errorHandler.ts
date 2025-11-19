@@ -131,12 +131,10 @@ export function showErrorToast(error: unknown, customMessage?: string): void {
     const message = handleApiError(error, customMessage);
     
     if (error instanceof ApiError && error.response.AppStatusCode === 401) {
-        console.warn('errorHandler: Suppressing toast for 401, handled by fetch interceptor or redirect.');
-        return; 
+                return; 
     }
 
     if (isServer) {
-        console.error('Server-side error:', message);
         return;
     }
 
@@ -158,8 +156,7 @@ export function showSuccessToast(message: string): void {
 
 export function showValidationToast(validationKey: keyof typeof import('@/core/messages/message').VALIDATION_MESSAGES, params?: Record<string, string | number>): void {
     if (isServer) {
-        console.warn('Server-side validation error:', validationKey);
-        return;
+                return;
     }
 
     const message = getValidationMessage(validationKey, params);
@@ -186,8 +183,6 @@ export function wrapServiceCall<T>(
         
         if (shouldShowToast && !isServer) {
             showErrorToast(error, options?.errorMessage);
-        } else if (shouldShowToast && isServer) {
-            console.error('Server-side error in wrapServiceCall:', message);
         }
         
         throw error;

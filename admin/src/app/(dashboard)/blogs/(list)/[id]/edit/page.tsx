@@ -111,7 +111,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         setBlogMedia(parsedMedia);
       }
     } catch (error) {
-      console.error("Error fetching blog data:", error);
+      // Error fetching blog data
     } finally {
       setIsLoading(false);
     }
@@ -224,7 +224,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       // Redirect to blog list after saving
       router.push("/blogs");
     } catch (error) {
-      console.error("Error updating blog:", error);
+      // Error updating blog
     } finally {
       setIsSaving(false);
     }
@@ -281,7 +281,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       // Redirect to blog list after saving draft
       router.push("/blogs");
     } catch (error) {
-      console.error("Error saving blog draft:", error);
+      // Error saving blog draft
     } finally {
       setIsSaving(false);
     }
@@ -394,6 +394,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
               onCategoryRemove={handleCategoryRemove}
               onTagToggle={handleTagToggle}
               onTagRemove={handleTagRemove}
+              blogId={id}
             />
           )}
           {activeTab === "media" && (
@@ -403,6 +404,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
               editMode={editMode}
               featuredImage={blogMedia.featuredImage}
               onFeaturedImageChange={handleFeaturedImageChange}
+              blogId={id}
             />
           )}
           {activeTab === "seo" && (
@@ -410,6 +412,7 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
+              blogId={id}
             />
           )}
         </Suspense>

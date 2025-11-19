@@ -39,7 +39,6 @@ export default function EmailPage() {
       });
       setEmails(response.data);
     } catch (error) {
-      console.error("Error fetching emails:", error);
       toast.error("خطا در دریافت ایمیل‌ها");
     } finally {
       setLoading(false);
@@ -520,7 +519,6 @@ export default function EmailPage() {
       setSelectedEmail(null);
       toast.success("ایمیل با موفقیت حذف شد");
     } catch (error) {
-      console.error("Error deleting email:", error);
       toast.error("خطا در حذف ایمیل");
     }
   }, []);
@@ -535,7 +533,6 @@ export default function EmailPage() {
       fetchEmails();
       setSelectedEmails(new Set());
     } catch (error) {
-      console.error("Error marking emails as read:", error);
       toast.error("خطا در علامت‌گذاری ایمیل‌ها");
     }
   }, [selectedEmails.size, fetchEmails]);
@@ -550,7 +547,6 @@ export default function EmailPage() {
       fetchEmails();
       setSelectedEmails(new Set());
     } catch (error) {
-      console.error("Error marking emails as unread:", error);
       toast.error("خطا در علامت‌گذاری ایمیل‌ها");
     }
   }, [selectedEmails.size, fetchEmails]);
@@ -569,7 +565,6 @@ export default function EmailPage() {
       setReplyToEmail(null);
       fetchEmails();
     } catch (error) {
-      console.error("Error sending email:", error);
       toast.error("خطا در ارسال ایمیل");
     }
   }, [fetchEmails]);
@@ -586,7 +581,6 @@ export default function EmailPage() {
       toast.success("پیش‌نویس با موفقیت ذخیره شد");
       fetchEmails();
     } catch (error) {
-      console.error("Error saving draft:", error);
       toast.error("خطا در ذخیره پیش‌نویس");
     }
   }, [fetchEmails]);
@@ -600,7 +594,6 @@ export default function EmailPage() {
       setSelectedEmail(null);
       fetchEmails();
     } catch (error) {
-      console.error("Error publishing draft:", error);
       toast.error("خطا در انتشار پیش‌نویس");
     }
   }, [fetchEmails]);
@@ -615,7 +608,6 @@ export default function EmailPage() {
       }
       toast.success(email.is_starred ? "ستاره حذف شد" : "ستاره اضافه شد");
     } catch (error) {
-      console.error("Error toggling star:", error);
       toast.error("خطا در تغییر وضعیت ستاره");
     }
   }, [selectedEmail]);

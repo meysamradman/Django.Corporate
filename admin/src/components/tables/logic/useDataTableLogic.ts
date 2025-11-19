@@ -293,8 +293,7 @@ export function useDataTableLogic<
     setPagination(current => {
         const newState = typeof updater === 'function' ? updater(current) : updater;
         if (!pageSizeOptions.includes(newState.pageSize)) {
-             console.warn(`Invalid page size ${newState.pageSize} requested. Using closest valid size.`);
-            const validPageSize = pageSizeOptions.reduce((prev, curr) =>
+                         const validPageSize = pageSizeOptions.reduce((prev, curr) =>
                 Math.abs(curr - newState.pageSize) < Math.abs(prev - newState.pageSize) ? curr : prev
             );
             return { ...newState, pageSize: validPageSize };
@@ -314,7 +313,6 @@ export function useDataTableLogic<
       triggerRefetch();
       setRowSelection({});
     } catch (error) {
-        console.error("Error deleting item:", error);
         toast.error("خطای نامشخص");
     }
   }, [deleteItemFn, triggerRefetch, setRowSelection]);
@@ -329,8 +327,7 @@ export function useDataTableLogic<
         if (!isNaN(rowIndex) && data[rowIndex]) {
             return data[rowIndex][idField];
         }
-        console.warn(`Could not map row selection key "${key}" to an item ID.`);
-        return null;
+                return null;
     }).filter(id => id !== null) as (string | number)[];
 
     if (!selectedIds || selectedIds.length === 0) {
@@ -344,7 +341,6 @@ export function useDataTableLogic<
       triggerRefetch();
       setRowSelection({});
     } catch (error) {
-        console.error("Error deleting selected items:", error);
         toast.error("خطای نامشخص");
     }
   }, [deleteMultipleItemsFn, triggerRefetch, setRowSelection, rowSelection, data, idField]);

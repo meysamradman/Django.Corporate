@@ -143,7 +143,6 @@ export function TipTapEditor({
         }
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
       toast.error('خطا در آپلود عکس: ' + (error.message || 'خطای نامشخص'));
     } finally {
       setIsUploadingImage(false);

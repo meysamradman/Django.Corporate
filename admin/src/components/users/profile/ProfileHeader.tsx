@@ -32,20 +32,14 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
     const currentProfileImage = formData.profileImage || user?.profile?.profile_picture;
 
     const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
-        console.log("📸 handleProfileImageSelect called:", selectedMedia);
-        
-        if (onProfileImageChange) {
+                if (onProfileImageChange) {
             const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
-            console.log("🎯 Selected image:", selectedImage);
-            
-            onProfileImageChange(selectedImage);
+                        onProfileImageChange(selectedImage);
             
             // خودکار ذخیره عکس پروفایل
             try {
                 const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                console.log("💾 Saving profile picture with ID:", profilePictureId);
-                
-                // Import adminApi dynamically
+                                // Import adminApi dynamically
                 const { adminApi } = await import('@/api/admins/route');
                 
                 await adminApi.updateUserByType(user.id, {
@@ -54,9 +48,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                     }
                 }, 'user');
                 
-                console.log("✅ Profile picture saved successfully");
-                
-                // Invalidate user profile cache to refresh the page
+                                // Invalidate user profile cache to refresh the page
                 await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
                 await queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
                 await queryClient.refetchQueries({ queryKey: ['user-profile'] });
@@ -71,7 +63,6 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                 
                 toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
             } catch (error) {
-                console.error("❌ Error saving profile picture:", error);
                 toast.error("خطا در ذخیره عکس پروفایل");
             }
         }
@@ -183,6 +174,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
                 onUploadComplete={handleUploadComplete}
+                context="media_library"
             />
         </Card>
     );

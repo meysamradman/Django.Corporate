@@ -15,16 +15,17 @@ from src.blog.serializers.admin.category_serializer import (
 from src.blog.services.admin.category_services import BlogCategoryAdminService
 from src.blog.filters.admin.category_filters import BlogCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import ContentManagerAccess
+from src.user.authorization.admin_permission import BlogManagerAccess
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
+from src.user.permissions import PermissionValidator
 
 
 class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Category ViewSet for Admin Panel with tree operations
     """
-    permission_classes = [ContentManagerAccess]
+    permission_classes = [BlogManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogCategoryAdminFilter
     search_fields = ['name', 'description']
@@ -56,6 +57,11 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """List categories with tree structure and custom pagination"""
+        if not PermissionValidator.has_permission(request.user, 'blog.category.read'):
+            return APIResponse.error(
+                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to view blog categories"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         tree_mode = request.GET.get('tree', '').lower() == 'true'
         if tree_mode:
             tree_data = BlogCategoryAdminService.get_tree_data()
@@ -91,6 +97,11 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Create category with tree positioning"""
+        if not PermissionValidator.has_permission(request.user, 'blog.category.create'):
+            return APIResponse.error(
+                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to create blog categories"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -110,6 +121,11 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         """Get category detail with tree information"""
+        if not PermissionValidator.has_permission(request.user, 'blog.category.read'):
+            return APIResponse.error(
+                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to view blog categories"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         category = BlogCategoryAdminService.get_category_by_id(kwargs.get('pk'))
         
         if not category:
@@ -127,6 +143,11 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """Update category with tree operations"""
+        if not PermissionValidator.has_permission(request.user, 'blog.category.update'):
+            return APIResponse.error(
+                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to update blog categories"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         partial = kwargs.pop('partial', False)
         category_id = kwargs.get('pk')
         
@@ -155,6 +176,11 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """Delete category with safety checks"""
+        if not PermissionValidator.has_permission(request.user, 'blog.category.delete'):
+            return APIResponse.error(
+                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to delete blog categories"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         category_id = kwargs.get('pk')
         
         try:

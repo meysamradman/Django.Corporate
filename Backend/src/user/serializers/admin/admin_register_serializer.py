@@ -10,9 +10,8 @@ from src.user.utils.national_id_validator import validate_national_id_format
 
 class AdminRegisterSerializer(serializers.Serializer):
     """
-    سریالایزر مخصوص ثبت‌نام ادمین در پنل ادمین - بهینه شده
-    توجه: is_staff=True به طور خودکار برای همه ادمین‌ها تنظیم می‌شود
-    is_superuser فقط توسط سوپر ادمین‌ها قابل تنظیم است
+    Serializer dedicated to creating admin users inside the admin panel.
+    Note: is_staff=True is enforced automatically; only super admins may set is_superuser.
     """
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
@@ -21,8 +20,8 @@ class AdminRegisterSerializer(serializers.Serializer):
     is_superuser = serializers.BooleanField(default=False, required=False)
     
     user_type = serializers.ChoiceField(
-        choices=[('admin', 'ادمین'), ('user', 'کاربر معمولی')], 
-        default='admin', 
+        choices=[('admin', 'Admin'), ('user', 'Regular User')],
+        default='admin',
         required=False
     )
     
@@ -39,7 +38,7 @@ class AdminRegisterSerializer(serializers.Serializer):
     bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
-    # فیلدهای مکان‌یابی
+    # Location fields
     province_id = serializers.IntegerField(required=False, allow_null=True)
     city_id = serializers.IntegerField(required=False, allow_null=True)
     
@@ -49,7 +48,7 @@ class AdminRegisterSerializer(serializers.Serializer):
     role_id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate_mobile(self, value):
-        """اعتبارسنجی فرمت شماره موبایل و یکتا بودن"""
+        """Validate mobile number format and enforce uniqueness."""
         if value == "" or value is None:
             return None
             
@@ -64,7 +63,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_email(self, value):
-        """اعتبارسنجی فرمت ایمیل و یکتا بودن"""
+        """Validate email format and enforce uniqueness."""
         if value == "":
             return None
         if value:
@@ -80,9 +79,9 @@ class AdminRegisterSerializer(serializers.Serializer):
         return value
     
     def validate_password(self, value):
-        """اعتبارسنجی رمز عبور"""
+        """Validate password strength constraints."""
         if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_password_required"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_password_required"])
         
         try:
             from src.user.utils.password_validator import validate_register_password
@@ -92,17 +91,17 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
     
     def validate_birth_date(self, value):
-        """اعتبارسنجی تاریخ تولد"""
+        """Validate birth date is not set in the future."""
         if value and value > datetime.now().date():
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         return value
     
     def validate_national_id(self, value):
-        """اعتبارسنجی کد ملی"""
+        """Validate national ID format."""
         return validate_national_id_format(value)
     
     def validate_phone(self, value):
-        """اعتبارسنجی شماره تلفن"""
+        """Validate optional phone number."""
         if not value or value.strip() == "":
             return None
         
@@ -113,7 +112,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
     
     def validate_profile_picture_id(self, value):
-        """اعتبارسنجی وجود تصویر پروفایل"""
+        """Ensure referenced profile picture exists."""
         if value is None:
             return value
         
@@ -127,7 +126,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_profile_picture(self, value):
-        """اعتبارسنجی فایل تصویر پروفایل آپلود شده با استفاده از سرویس مدیا"""
+        """Validate uploaded profile picture via media service."""
         if value is None:
             return value
         
@@ -140,7 +139,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_role_id(self, value):
-        """اعتبارسنجی ID نقش"""
+        """Validate provided role ID belongs to an active role."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -154,7 +153,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_province_id(self, value):
-        """اعتبارسنجی ID استان"""
+        """Validate province ID references an active province."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -169,7 +168,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_city_id(self, value):
-        """اعتبارسنجی ID شهر"""
+        """Validate city ID references an active city."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -184,7 +183,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate(self, data):
-        """اعتبارسنجی بین فیلدی با بررسی دسترسی‌های سوپر ادمین"""
+        """Cross-field validation plus super admin gatekeeping."""
         admin_user = self.context.get('admin_user')
         
         if data.get('is_superuser') is True and not admin_user.is_superuser:
@@ -216,14 +215,13 @@ class AdminRegisterSerializer(serializers.Serializer):
 
 class AdminCreateRegularUserSerializer(serializers.Serializer):
     """
-    سریالایزر مخصوص ثبت‌نام کاربر معمولی توسط ادمین در پنل ادمین - بهینه شده
-    شامل تمام فیلدهای پروفایل برای کاربران معمولی
+    Serializer used by admins to create regular users with full profile support.
     """
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True, min_length=6)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     
-    # فیلد profile برای استخراج داده‌های پروفایل
+    # Nested profile payload
     profile = serializers.DictField(required=False, allow_empty=True)
     
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
@@ -240,7 +238,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_profile_picture_id(self, value):
-        """اعتبارسنجی وجود تصویر پروفایل"""
+        """Ensure referenced profile picture exists."""
         if value is None:
             return value
         
@@ -254,17 +252,17 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_password(self, value):
-        """اعتبارسنجی رمز عبور"""
+        """Validate password requirements for regular users."""
         if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_password_required"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_password_required"])
         
         if len(value) < 6:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_password_too_short"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_password_too_short"])
         
         return value
 
     def validate_province_id(self, value):
-        """اعتبارسنجی وجود استان"""
+        """Ensure referenced province exists."""
         if value is None:
             return value
         
@@ -278,7 +276,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_city_id(self, value):
-        """اعتبارسنجی وجود شهر"""
+        """Ensure referenced city exists."""
         if value is None:
             return value
         
@@ -292,7 +290,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_profile_picture(self, value):
-        """اعتبارسنجی فایل تصویر پروفایل آپلود شده"""
+        """Validate uploaded profile picture."""
         if value is None:
             return value
         
@@ -310,7 +308,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_phone(self, value):
-        """اعتبارسنجی شماره تلفن"""
+        """Validate optional phone number."""
         if not value or value.strip() == "":
             return None
         
@@ -321,7 +319,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
     
     def validate_identifier(self, value):
-        """اعتبارسنجی شناسه (ایمیل یا موبایل)"""
+        """Validate identifier value (email or mobile)."""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         
@@ -338,7 +336,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate(self, data):
-        """اعتبارسنجی در زمینه ادمین"""
+        """Admin-scoped validation before creating a regular user."""
         admin_user = self.context.get('admin_user')
         if not admin_user or not admin_user.has_admin_access():
             raise serializers.ValidationError({
@@ -373,11 +371,11 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                     data['email'] = email
                 else:
                     raise serializers.ValidationError({
-                        'email': 'ایمیل معتبر نیست'
+                        'email': AUTH_ERRORS["auth_invalid_email"]
                     })
             except Exception as e:
                 raise serializers.ValidationError({
-                    'email': 'ایمیل معتبر نیست'
+                    'email': AUTH_ERRORS["auth_invalid_email"]
                 })
         
         # Handle phone field for user profile
@@ -404,7 +402,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 Province.objects.get(id=data['province_id'], is_active=True)
             except Province.DoesNotExist:
                 raise serializers.ValidationError({
-                    'province_id': 'استان انتخاب شده معتبر نیست'
+                    'province_id': AUTH_ERRORS["location_province_not_found"]
                 })
         
         if 'city_id' in data and data['city_id']:
@@ -413,7 +411,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 City.objects.get(id=data['city_id'], is_active=True)
             except City.DoesNotExist:
                 raise serializers.ValidationError({
-                    'city_id': 'شهر انتخاب شده معتبر نیست'
+                    'city_id': AUTH_ERRORS["location_city_not_found"]
                 })
             
             if 'profile_picture' in profile_data and 'profile_picture_id' not in data:

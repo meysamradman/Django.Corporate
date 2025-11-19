@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
@@ -52,6 +53,9 @@ export function FormFieldsSection() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
     
+    // 🚀 Pre-computed permission flag
+    const { canManageForms } = useUIPermissions();
+    
     const [fieldKey, setFieldKey] = useState("");
     const [fieldType, setFieldType] = useState<ContactFormField['field_type']>('text');
     const [label, setLabel] = useState("");
@@ -73,7 +77,6 @@ export function FormFieldsSection() {
             const data = await formApi.getFields();
             setFields(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error("Error fetching fields:", error);
             toast.error("خطا در دریافت فیلدهای فرم");
         } finally {
             setLoading(false);
@@ -192,7 +195,6 @@ export function FormFieldsSection() {
             handleCloseDialog();
             await fetchFields();
         } catch (error: any) {
-            console.error("Error saving field:", error);
             let errorMessage = "خطا در ذخیره فیلد";
             
             // بررسی خطاهای validation
@@ -232,7 +234,6 @@ export function FormFieldsSection() {
             setDeleteDialogOpen(false);
             setFieldToDelete(null);
         } catch (error) {
-            console.error("Error deleting field:", error);
             toast.error("خطا در حذف فیلد");
         }
     };
@@ -550,7 +551,13 @@ export function FormFieldsSection() {
                             <Button variant="outline" onClick={handleCloseDialog}>
                                 انصراف
                             </Button>
-                            <Button onClick={handleSave} disabled={saving}>
+                            <ProtectedButton 
+                                onClick={handleSave} 
+                                permission="forms.manage"
+                                disabled={saving}
+                                showDenyToast={true}
+                                denyMessage="شما دسترسی لازم برای مدیریت فرم‌ها را ندارید"
+                            >
                                 {saving ? (
                                     <>
                                         <Loader2 className="animate-spin" />
@@ -559,7 +566,7 @@ export function FormFieldsSection() {
                                 ) : (
                                     "ذخیره"
                                 )}
-                            </Button>
+                            </ProtectedButton>
                         </div>
                     </div>
                 </DialogContent>

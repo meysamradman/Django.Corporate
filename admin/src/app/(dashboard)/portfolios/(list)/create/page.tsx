@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,9 +22,9 @@ import { Portfolio } from "@/types/portfolio/portfolio";
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaFilesAndIds } from "@/core/utils/portfolioMediaUtils";
 
-const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
+import BaseInfoTab from "@/components/portfolios/list/create/BaseInfoTab";
+import MediaTab from "@/components/portfolios/list/create/MediaTab";
+import SEOTab from "@/components/portfolios/list/create/SEOTab";
 
 export default function CreatePortfolioPage() {
   const router = useRouter();
@@ -113,7 +113,6 @@ export default function CreatePortfolioPage() {
       router.push("/portfolios");
     },
     onError: (error: any) => {
-      console.error("Error creating portfolio:", error);
       
       // بررسی خطاهای فیلدها از Django
       if (hasFieldErrors(error)) {
@@ -231,33 +230,26 @@ export default function CreatePortfolioPage() {
           </TabsTrigger>
         </TabsList>
 
-        <Suspense fallback={
-          <div className="mt-6">
-            <Skeleton className="w-full h-64" />
-            <Skeleton className="w-full h-64 mt-4" />
-          </div>
-        }>
-          {activeTab === "account" && (
-            <BaseInfoTab 
-              form={form as any}
-              editMode={editMode}
-            />
-          )}
-          {activeTab === "media" && (
-            <MediaTab 
-              form={form as any}
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
-              editMode={editMode}
-            />
-          )}
-          {activeTab === "seo" && (
-            <SEOTab 
-              form={form as any}
-              editMode={editMode}
-            />
-          )}
-        </Suspense>
+        {activeTab === "account" && (
+          <BaseInfoTab 
+            form={form as any}
+            editMode={editMode}
+          />
+        )}
+        {activeTab === "media" && (
+          <MediaTab 
+            form={form as any}
+            portfolioMedia={portfolioMedia}
+            setPortfolioMedia={setPortfolioMedia}
+            editMode={editMode}
+          />
+        )}
+        {activeTab === "seo" && (
+          <SEOTab 
+            form={form as any}
+            editMode={editMode}
+          />
+        )}
       </Tabs>
     </div>
   );

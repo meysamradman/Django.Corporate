@@ -19,5 +19,6 @@ MEDIA_ERRORS = {
     "media_protected": "این رسانه در بخش‌های دیگر استفاده شده و قابل حذف نیست.",
     "media_bulk_delete_failed": "حذف دسته‌جمعی رسانه‌ها ناموفق بود.",
     "media_data_invalid": "داده‌های رسانه نامعتبر است.",
+    "UPLOAD_PERMISSION_DENIED": "شما اجازه آپلود رسانه را ندارید.",
 }
 

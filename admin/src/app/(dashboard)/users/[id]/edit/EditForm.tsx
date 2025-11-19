@@ -95,19 +95,13 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     useEffect(() => {
         if (!userData) return;
         
-        console.log("🔄 EditForm: syncing formData with userData", {
-            currentProfileImage: formData.profileImage?.id,
-            newProfileImage: userData.profile?.profile_picture?.id
-        });
-        
-        // Update profile image if it changed in userData
+                // Update profile image if it changed in userData
         if (userData.profile?.profile_picture?.id !== formData.profileImage?.id) {
             setFormData(prev => ({
                 ...prev,
                 profileImage: userData.profile?.profile_picture || null
             }));
-            console.log("✅ Profile image synced from userData");
-        }
+                    }
     }, [userData?.profile?.profile_picture?.id]);
 
     const handleInputChange = (field: string, value: string | any) => {
@@ -166,21 +160,10 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 updateData.email = formData.email;
             }
             
-            console.log('Sending update data:', updateData);
-            console.log('User ID:', userData.id);
-            
-            const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
-            console.log('Update result:', result);
-            
-            toast.success(getUIMessage('userProfileUpdated'));
+                                    const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
+                        toast.success(getUIMessage('userProfileUpdated'));
             setEditMode(false);
         } catch (error: any) {
-            console.error('Update error:', error);
-            console.error('Error details:', {
-                message: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : undefined
-            });
-            
             // بررسی خطاهای فیلدها
             if (error?.response?.errors) {
                 const errorData = error.response.errors;

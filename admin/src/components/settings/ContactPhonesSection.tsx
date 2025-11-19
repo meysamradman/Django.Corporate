@@ -51,7 +51,6 @@ export function ContactPhonesSection() {
             const data = await settingsApi.getContactPhones();
             setPhones(data);
         } catch (error) {
-            console.error("Error fetching phones:", error);
             toast.error("خطا در دریافت شماره‌های تماس");
         } finally {
             setLoading(false);
@@ -109,7 +108,6 @@ export function ContactPhonesSection() {
             handleCloseDialog();
             await fetchPhones();
         } catch (error) {
-            console.error("Error saving phone:", error);
             toast.error("خطا در ذخیره شماره تماس");
         } finally {
             setSaving(false);
@@ -131,7 +129,6 @@ export function ContactPhonesSection() {
             setDeleteDialogOpen(false);
             setPhoneToDelete(null);
         } catch (error) {
-            console.error("Error deleting phone:", error);
             toast.error("خطا در حذف شماره تماس");
         }
     };

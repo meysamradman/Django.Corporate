@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/route";
 import { TermsPage } from "@/types/page/page";
@@ -60,7 +61,6 @@ export function TermsPageForm() {
                 setOgImage(data.og_image_data);
             }
         } catch (error: any) {
-            console.error("Error fetching Terms Page:", error);
             const errorMessage = error?.message || error?.response?.message || "خطا در دریافت صفحه قوانین و مقررات";
             toast.error(errorMessage);
         } finally {
@@ -106,7 +106,6 @@ export function TermsPageForm() {
             toast.success("صفحه قوانین و مقررات با موفقیت به‌روزرسانی شد");
             await fetchPage();
         } catch (error: any) {
-            console.error("Error updating Terms Page:", error);
             const errorMessage = error?.response?.data?.message || error?.message || "خطا در به‌روزرسانی صفحه قوانین و مقررات";
             toast.error(errorMessage);
         } finally {
@@ -132,7 +131,13 @@ export function TermsPageForm() {
                 <div>
                     <h1 className="page-title">تنظیمات صفحه قوانین و مقررات</h1>
                 </div>
-                <Button onClick={handleSave} disabled={saving}>
+                <ProtectedButton 
+                    onClick={handleSave} 
+                    permission="pages.manage"
+                    disabled={saving}
+                    showDenyToast={true}
+                    denyMessage="شما دسترسی لازم برای مدیریت صفحات وب را ندارید"
+                >
                     {saving ? (
                         <>
                             <Loader2 className="animate-spin" />
@@ -144,7 +149,7 @@ export function TermsPageForm() {
                             ذخیره تغییرات
                         </>
                     )}
-                </Button>
+                </ProtectedButton>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { roleApi } from "@/api/roles/route";
 import { adminApi } from "@/api/admins/route";
 import { useAuth } from "@/core/auth/AuthContext";
-import { hasPermission } from "@/core/auth/permissionUtils";
+import { hasPermission } from "@/core/permissions/utils/permissionUtils";
 import { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 import { getPermissionTranslation } from "@/core/messages/permissions";
@@ -53,18 +53,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     });
 
     // Check if current user can manage permissions
+    const userPermissionsObj = {
+        permissions: user?.permissions || [],
+        is_super: user?.is_superuser || false,
+        is_superuser: user?.is_superuser || false
+    };
+    
     const canManagePermissions = user && (
         user.is_superuser ||
-        hasPermission({
-            permissions: user.permissions || [],
-            is_super: user.is_superuser,
-            is_superuser: user.is_superuser
-        }, 'role.manage') ||
-        hasPermission({
-            permissions: user.permissions || [],
-            is_super: user.is_superuser,
-            is_superuser: user.is_superuser
-        }, 'admin.manage')
+        hasPermission(userPermissionsObj, 'role.manage') ||
+        hasPermission(userPermissionsObj, 'admin.manage')
     );
 
     // Load admin roles and permissions
@@ -77,18 +75,8 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             setIsLoading(true);
             setError(null);
 
-            // Load available roles
-            const rolesResponse = await roleApi.getRoleList({ is_active: true });
-            let rolesData: Role[] = [];
-            
-            if (rolesResponse.data && Array.isArray(rolesResponse.data)) {
-                rolesData = rolesResponse.data;
-            } else if (rolesResponse.data && typeof rolesResponse.data === 'object' && 'results' in rolesResponse.data && Array.isArray((rolesResponse.data as any).results)) {
-                rolesData = (rolesResponse.data as any).results;
-            } else if (rolesResponse && Array.isArray(rolesResponse)) {
-                rolesData = rolesResponse;
-            }
-            
+            // Load available roles - Get all roles by fetching all pages
+            const rolesData = await roleApi.getAllRoles();
             setAvailableRoles(rolesData);
 
             // Load admin roles
@@ -130,7 +118,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     setBasePermissions(basePermsResponse.data);
                 }
             } catch (permError) {
-                console.error('Error loading base permissions:', permError);
+                // Error loading base permissions
             }
             
         } catch (error) {
@@ -448,16 +436,22 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                                     disabled={!editMode || !canManagePermissions || admin.is_superuser}
                                                 />
                                                 <Label htmlFor={`role-${role.id}`}>
-                                                    {getPermissionTranslation(role.name, 'role')}
+                                                    {role.is_system_role
+                                                        ? (getPermissionTranslation(role.name, 'role') || role.display_name || role.name)
+                                                        : (role.display_name || role.name)
+                                                    }
                                                 </Label>
                                                 {role.is_system_role && (
                                                     <Badge variant="outline">
-                                                        {getPermissionTranslation('سیستمی', 'description')}
+                                                        سیستمی
                                                     </Badge>
                                                 )}
                                             </div>
                                             <div className="text-font-s">
-                                                {getPermissionTranslation(role.name, 'roleDescription') || role.description}
+                                                {role.is_system_role
+                                                    ? (getPermissionTranslation(role.name, 'roleDescription') || role.description)
+                                                    : (role.description || '')
+                                                }
                                             </div>
                                         </div>
                                     ))}

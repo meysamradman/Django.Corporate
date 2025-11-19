@@ -16,15 +16,5 @@ router.register(r'portfolio-tag', views.PortfolioTagPublicViewSet, basename='pub
 # Note: Export endpoint is defined in config/urls.py before this include to take precedence
 urlpatterns = [
     path('', include(router.urls)),
-]# Debug: Print URL patterns
-import sys
-if 'runserver' in sys.argv or 'test' in sys.argv:
-    print("=" * 50)
-    print("Portfolio URL Patterns:")
-    for pattern in urlpatterns:
-        print(f"  {pattern.pattern}")
-    print("Router URLs:")
-    for url in router.urls:
-        print(f"  {url.pattern}")
-    print("=" * 50)
+]
 

@@ -79,7 +79,7 @@ export default function ProfileTab({
         const provinces = await locationApi.getProvincesCompact();
         setProvinces(provinces);
       } catch (error) {
-        console.error("Error fetching provinces:", error);
+        // Error fetching provinces
       } finally {
         setLoadingProvinces(false);
       }
@@ -98,7 +98,7 @@ export default function ProfileTab({
           const cities = await locationApi.getCitiesCompactByProvince(provinceValue);
           setCities(cities);
         } catch (error) {
-          console.error("Error fetching cities:", error);
+          // Error fetching cities
         } finally {
           setLoadingCities(false);
         }
@@ -138,7 +138,6 @@ export default function ProfileTab({
           toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
         }
       } catch (error) {
-        console.error("Error saving profile picture:", error);
         const { toast } = await import('@/components/elements/Sonner');
         toast.error("خطا در ذخیره عکس پروفایل");
       }
@@ -410,6 +409,7 @@ export default function ProfileTab({
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onUploadComplete={handleUploadComplete}
+        context="admin"
       />
     </div>
   );

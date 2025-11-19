@@ -13,7 +13,7 @@ class AdminProfile(BaseModel):
         related_name="admin_profile", 
         verbose_name='Admin Profile',
         help_text="The admin user this profile belongs to.",
-        limit_choices_to={'is_staff': True}  # Only admin users
+        limit_choices_to={'is_staff': True}
     )
     profile_picture = models.ForeignKey(
         ImageMedia, on_delete=models.SET_NULL,
@@ -64,8 +64,8 @@ class AdminProfile(BaseModel):
     phone = models.CharField(
         max_length=15, 
         null=True, blank=True,
-        unique=True,  # اضافه کردن unique constraint
-        db_index=True,  # اضافه کردن index برای performance
+        unique=True,
+        db_index=True,
         verbose_name="Phone Number", 
         help_text="Admin's additional phone number (different from mobile for authentication)"
     )
@@ -84,9 +84,9 @@ class AdminProfile(BaseModel):
             models.Index(fields=["national_id"], name="admin_profile_national_id_idx"),
             models.Index(fields=["public_id"], name="admin_profile_public_id_idx"),
             models.Index(fields=["profile_picture"], name="admin_profile_pic_idx"),
-            models.Index(fields=["phone"], name="admin_profile_phone_idx"),  # اضافه کردن index برای phone
-            models.Index(fields=["province"], name="admin_profile_province_idx"),  # اضافه index برای province
-            models.Index(fields=["city"], name="admin_profile_city_idx"),  # اضافه index برای city
+            models.Index(fields=["phone"], name="admin_profile_phone_idx"),
+            models.Index(fields=["province"], name="admin_profile_province_idx"),
+            models.Index(fields=["city"], name="admin_profile_city_idx"),
         ]
 
     def __str__(self):

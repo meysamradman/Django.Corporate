@@ -10,7 +10,7 @@ from src.portfolio.services.admin.excel_export_service import PortfolioExcelExpo
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.authorization.admin_permission import ContentManagerAccess
+from src.user.authorization.admin_permission import PortfolioManagerAccess
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
@@ -19,7 +19,7 @@ class PortfolioExportView(APIView):
     """View for exporting portfolios to Excel or PDF"""
     # Use only CSRFExemptSessionAuthentication - override default authentication
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [ContentManagerAccess]
+    permission_classes = [PortfolioManagerAccess]
     # Disable format suffix negotiation for export endpoints (we handle format via query params)
     format_suffix_kwarg = None
     
@@ -143,9 +143,10 @@ class PortfolioExportView(APIView):
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception as e:
-            if settings.DEBUG:
-                import traceback
-                print(f"Export Error: {e}\n{traceback.format_exc()}")
+            import logging
+            import traceback
+            logger = logging.getLogger(__name__)
+            logger.error(f"Export Error: {e}\n{traceback.format_exc()}")
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -5,14 +5,14 @@ import { DataTable } from "@/components/tables/DataTable";
 import { useRoleColumns } from "@/components/roles/RoleTableColumns";
 import { useRoleFilterOptions, getRoleFilterConfig } from "@/components/roles/RoleTableFilters";
 import { Role } from "@/types/auth/permission";
-import { useRoles, useDeleteRole, useBulkDeleteRoles } from "@/components/auth/hooks/useRoles";
+import { useRoles, useDeleteRole, useBulkDeleteRoles } from "@/core/permissions/hooks/useRoles";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import ProtectedButton from "@/core/permissions/components/ProtectedButton";
 import { toast } from "@/components/elements/Sonner";
 import Link from "next/link";
 import { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useMutation } from "@tanstack/react-query";
-import { PermissionGate, usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import type { DataTableRowAction } from "@/types/shared/table";
 import {
@@ -27,8 +27,6 @@ import {
 } from "@/components/elements/AlertDialog";
 
 export default function RolesPage() {
-  const { getCRUDProps } = usePermissionProps();
-  const rolesAccess = getCRUDProps('admin.roles');
   const { roleTypeFilterOptions } = useRoleFilterOptions();
   const roleFilterConfig = getRoleFilterConfig(roleTypeFilterOptions);
 
@@ -305,12 +303,19 @@ export default function RolesPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" asChild>
+          {/* ✅ دکمه navigation به صفحه ایجاد - با Toast */}
+          <ProtectedButton
+            permission="admin.create"
+            size="sm"
+            asChild
+            showDenyToast={true}
+            denyMessage="اجازه ایجاد نقش ندارید"
+          >
             <Link href="/roles/create">
               <Plus />
               ایجاد نقش
             </Link>
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
 
@@ -334,6 +339,8 @@ export default function RolesPage() {
         filterConfig={roleFilterConfig}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "admin.delete",
+          denyMessage: "اجازه حذف نقش ندارید",
         }}
         searchValue={searchValue}
         pageSizeOptions={[10, 20, 50]}

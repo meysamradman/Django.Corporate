@@ -1,6 +1,7 @@
 import { Media } from "@/types/shared/media";
 import { Base } from "@/types/shared/base";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import { PermissionProfile } from "@/types/auth/permission";
 
 // User Base Interface
 export interface User extends Base {
@@ -35,9 +36,12 @@ export interface UserWithProfile extends Base {
     is_active: boolean;
     is_staff: boolean;
     is_superuser: boolean;
+    is_super?: boolean;
+    is_admin_full?: boolean;
     user_type: string;
     profile?: UserProfile;
     permissions?: string[];
+    permission_profile?: PermissionProfile;
     roles?: Array<{
         id: number;
         name: string;

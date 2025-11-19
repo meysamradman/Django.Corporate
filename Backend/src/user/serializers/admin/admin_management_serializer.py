@@ -2,12 +2,15 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from src.user.models import User, AdminRole
-from src.user.messages import AUTH_ERRORS
+from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
 from src.media.models import ImageMedia
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
 from django.db.models import Q
-from src.user.authorization.role_permissions import BASE_ADMIN_PERMISSIONS, BASE_ADMIN_PERMISSIONS_SIMPLE
+from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
+
+# For backward compatibility - simple version
+BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
 
 class AdminListSerializer(serializers.ModelSerializer):
@@ -22,7 +25,7 @@ class AdminListSerializer(serializers.ModelSerializer):
                  'created_at', 'updated_at', 'profile', 'permissions', 'roles']
     
     def get_profile(self, obj):
-        """دریافت پروفایل بر اساس نوع کاربر"""
+        """Return profile serializer based on user type."""
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
             from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
@@ -32,7 +35,7 @@ class AdminListSerializer(serializers.ModelSerializer):
         return None
     
     def get_full_name(self, obj):
-        """دریافت نام کامل بهینه از پروفایل پیش‌بارگذاری شده"""
+        """Resolve full name using preloaded profile information."""
         if hasattr(obj, 'admin_profile') and obj.admin_profile:
             profile = obj.admin_profile
             if profile.first_name and profile.last_name:
@@ -41,12 +44,12 @@ class AdminListSerializer(serializers.ModelSerializer):
                 return profile.first_name
             elif profile.last_name:
                 return profile.last_name
-        return obj.mobile or obj.email or f"کاربر {obj.id}"
+        return obj.mobile or obj.email or f"User {obj.id}"
     
     def get_roles(self, obj):
-        """دریافت نقش‌های کاربر برای لیست ادمین"""
+        """Return role metadata for admin listing."""
         if obj.is_superuser:
-            return [{'name': 'super_admin', 'display_name': 'سوپر ادمین'}]
+            return [{'name': 'super_admin', 'display_name': 'Super Admin'}]
         
         assigned_roles = []
         try:
@@ -68,7 +71,7 @@ class AdminListSerializer(serializers.ModelSerializer):
         return assigned_roles
     
     def get_permissions(self, user):
-        """دریافت مجوزها به صورت ساده برای لیست ادمین"""
+        """Return simplified permission snapshot for listing."""
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
             return {
                 'access_level': 'user',
@@ -114,7 +117,7 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                  'created_at', 'updated_at', 'profile', 'full_name', 'permissions']
     
     def get_profile(self, obj):
-        """دریافت پروفایل بر اساس نوع کاربر"""
+        """Return profile serializer for admin/user based on type."""
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
             from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
@@ -124,7 +127,7 @@ class AdminDetailSerializer(serializers.ModelSerializer):
         return None
     
     def get_full_name(self, user):
-        """دریافت نام کامل بهینه از پروفایل پیش‌بارگذاری شده"""
+        """Resolve human-friendly full name for detail response."""
         if user.user_type == 'admin' and hasattr(user, 'admin_profile') and user.admin_profile:
             profile = user.admin_profile
             if profile.first_name and profile.last_name:
@@ -141,10 +144,10 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                 return profile.first_name
             elif profile.last_name:
                 return profile.last_name
-        return user.mobile or user.email or f"کاربر {user.id}"
+        return user.mobile or user.email or f"User {user.id}"
     
     def get_permissions(self, user):
-        """دریافت مجوزهای کامل برای جزئیات ادمین"""
+        """Return detailed permission snapshot for a specific admin."""
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
             return {
                 'access_level': 'user',
@@ -189,16 +192,33 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                 for ur in user_role_assignments:
                     assigned_roles.append(ur.role.name)
                     
-                    role_permissions = ur.role.permissions.get('actions', [])
-                    role_modules = ur.role.permissions.get('modules', [])
+                    role_perms = ur.role.permissions
                     
-                    modules.update(role_modules)
-                    actions.update(role_permissions)
-                    
-                    for module in role_modules:
-                        for action in role_permissions:
-                            if module != 'all' and action != 'all':
-                                permissions_list.append(f"{module}.{action}")
+                    # ✅ NEW: Check for specific_permissions format first
+                    if 'specific_permissions' in role_perms:
+                        specific_perms = role_perms.get('specific_permissions', [])
+                        if isinstance(specific_perms, list):
+                            for perm in specific_perms:
+                                if isinstance(perm, dict):
+                                    module = perm.get('module')
+                                    action = perm.get('action')
+                                    if module and action:
+                                        modules.add(module)
+                                        actions.add(action)
+                                        if module != 'all' and action != 'all':
+                                            permissions_list.append(f"{module}.{action}")
+                    else:
+                        # Old format: modules and actions
+                        role_actions = role_perms.get('actions', [])
+                        role_modules = role_perms.get('modules', [])
+                        
+                        modules.update(role_modules)
+                        actions.update(role_actions)
+                        
+                        for module in role_modules:
+                            for action in role_actions:
+                                if module != 'all' and action != 'all':
+                                    permissions_list.append(f"{module}.{action}")
         except Exception as e:
             pass
         
@@ -219,7 +239,7 @@ class AdminDetailSerializer(serializers.ModelSerializer):
 
 
 class AdminUpdateSerializer(serializers.Serializer):
-    # فیلدهای کاربر
+    # User fields
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
@@ -227,17 +247,17 @@ class AdminUpdateSerializer(serializers.Serializer):
     is_staff = serializers.BooleanField(required=False)
     is_superuser = serializers.BooleanField(required=False)
     
-    # فیلد نقش
+    # Role selector
     role_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
-    # آبجکت پروفایل
+    # Profile payload
     profile = serializers.DictField(required=False)
     
-    # پشتیبانی از آپلود مستقیم تصویر پروفایل
+    # Direct profile picture upload support
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_profile_picture(self, value):
-        """اعتبارسنجی فایل تصویر پروفایل آپلود شده با استفاده از سرویس مدیا"""
+        """Validate uploaded profile picture through media service."""
         if value is None:
             return value
         
@@ -250,7 +270,7 @@ class AdminUpdateSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate_profile_picture_id(self, value):
-        """اعتبارسنجی ID تصویر پروفایل"""
+        """Validate profile picture ID exists and is active."""
         if value is None:
             return value
         
@@ -259,7 +279,7 @@ class AdminUpdateSerializer(serializers.Serializer):
             image_media = ImageMedia.objects.get(id=value, is_active=True)
             return value
         except ImageMedia.DoesNotExist:
-            raise serializers.ValidationError("ID مدیا نامعتبر یا تصویر فعال نیست")
+            raise serializers.ValidationError(AUTH_ERRORS["auth_media_id_invalid"])
     
     def validate_email(self, value):
         if value == "": 
@@ -291,7 +311,7 @@ class AdminUpdateSerializer(serializers.Serializer):
         return value
 
     def validate_role_id(self, value):
-        """اعتبارسنجی ID نقش"""
+        """Validate that provided role ID maps to an active role."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -301,9 +321,9 @@ class AdminUpdateSerializer(serializers.Serializer):
             AdminRole.objects.get(id=role_id, is_active=True)
             return role_id
         except (ValueError, TypeError):
-            raise serializers.ValidationError("فرمت ID نقش نامعتبر است")
+            raise serializers.ValidationError(ROLE_ERRORS["role_invalid_ids"])
         except AdminRole.DoesNotExist:
-            raise serializers.ValidationError("نقش یافت نشد یا غیرفعال است")
+            raise serializers.ValidationError(ROLE_ERRORS["role_not_found"])
 
     def validate(self, data):
         admin_user = self.context.get('admin_user')
@@ -313,11 +333,8 @@ class AdminUpdateSerializer(serializers.Serializer):
         return data
     
     def to_internal_value(self, data):
-        """تبدیل داده‌های ورودی به مقادیر داخلی"""
+        """Transform incoming payload into internal data structures."""
         user_id = self.context.get('user_id')
-        
-        # Debug: چاپ داده‌های ورودی
-        print(f"🔍 AdminUpdateSerializer - Input data: {data}")
         
         if user_id:
             try:
@@ -328,10 +345,9 @@ class AdminUpdateSerializer(serializers.Serializer):
                     data['profile'] = data.get('profile', {})
                     profile_data = data['profile']
                     
-                    # اضافه کردن profile_picture به profile_data اگر در data اصلی وجود دارد
+                    # Inject profile_picture into nested profile if present
                     if 'profile_picture' in data:
                         profile_data['profile_picture'] = data['profile_picture']
-                        print(f"🔍 AdminUpdateSerializer - Added profile_picture to profile_data: {data['profile_picture']}")
                     
                     context_with_user_id = self.context.copy()
                     context_with_user_id['admin_user_id'] = user_id
@@ -350,9 +366,7 @@ class AdminUpdateSerializer(serializers.Serializer):
                             else:
                                 profile_data_for_super[key] = value
                         data['profile'] = profile_data_for_super
-                        print(f"🔍 AdminUpdateSerializer - Final profile_data: {profile_data_for_super}")
                     else:
-                        print(f"❌ AdminUpdateSerializer - Profile validation errors: {temp_serializer.errors}")
                         raise serializers.ValidationError({'profile': temp_serializer.errors})
             except User.DoesNotExist:
                 pass
@@ -364,11 +378,9 @@ class AdminUpdateSerializer(serializers.Serializer):
             
             if profile_data:
                 result['profile'] = profile_data
-                print(f"🔍 AdminUpdateSerializer - Final result with profile: {result}")
             
             return result
         except Exception as e:
-            print(f"❌ AdminUpdateSerializer - Error in to_internal_value: {e}")
             raise e
 
 
@@ -387,13 +399,13 @@ class BulkDeleteSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         allow_empty=False,
         min_length=1,
-        help_text="لیست IDهای عددی کاربران برای حذف"
+        help_text="List of numeric user IDs to delete"
     )
     user_type = serializers.CharField(required=False)
 
     def validate_ids(self, value):
         if not value:
-            raise serializers.ValidationError("لیست IDها نمی‌تواند خالی باشد")
+            raise serializers.ValidationError("ID list must not be empty.")
         if not all(isinstance(item, int) for item in value):
-            raise serializers.ValidationError("تمام آیتم‌های لیست باید عدد صحیح باشند")
+            raise serializers.ValidationError("All IDs must be integers.")
         return value

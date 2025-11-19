@@ -51,7 +51,6 @@ export function ContactMobilesSection() {
             const data = await settingsApi.getContactMobiles();
             setMobiles(data);
         } catch (error) {
-            console.error("Error fetching mobiles:", error);
             toast.error("خطا در دریافت شماره‌های موبایل");
         } finally {
             setLoading(false);
@@ -109,7 +108,6 @@ export function ContactMobilesSection() {
             handleCloseDialog();
             await fetchMobiles();
         } catch (error) {
-            console.error("Error saving mobile:", error);
             toast.error("خطا در ذخیره شماره موبایل");
         } finally {
             setSaving(false);
@@ -131,7 +129,6 @@ export function ContactMobilesSection() {
             setDeleteDialogOpen(false);
             setMobileToDelete(null);
         } catch (error) {
-            console.error("Error deleting mobile:", error);
             toast.error("خطا در حذف شماره موبایل");
         }
     };

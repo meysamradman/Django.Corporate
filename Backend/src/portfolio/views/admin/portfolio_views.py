@@ -31,16 +31,17 @@ from src.portfolio.services.admin import (
 )
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import ContentManagerAccess
+from src.user.authorization.admin_permission import PortfolioManagerAccess
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheManager
+from src.user.permissions import PermissionValidator
 
 
 class PortfolioAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Portfolio ViewSet for Admin Panel with SEO support
     """
-    permission_classes = [ContentManagerAccess]
+    permission_classes = [PortfolioManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']
@@ -74,6 +75,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         """Override retrieve to ensure proper serializer and queryset - bypass filters"""
+        if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to view portfolios"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         queryset = Portfolio.objects.for_detail()
         pk = kwargs.get('pk')
         try:
@@ -92,6 +98,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """Optimized list with better performance"""
+        if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to view portfolios"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         # Get base queryset with optimizations
         queryset = self.filter_queryset(self.get_queryset())
         
@@ -170,6 +181,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Create portfolio with SEO auto-generation and media handling"""
+        if not PermissionValidator.has_permission(request.user, 'portfolio.create'):
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to create portfolios"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
@@ -214,6 +230,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """Update portfolio with SEO handling and media sync"""
+        if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to update portfolios"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -239,6 +260,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         """Delete portfolio with media cleanup"""
+        if not PermissionValidator.has_permission(request.user, 'portfolio.delete'):
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to delete portfolios"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         instance = self.get_object()
         
         # Delete using service (handles media cleanup)
@@ -419,6 +445,12 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
         """Add media files to portfolio with optimized performance"""
+        # Require portfolio.update for adding media to an existing portfolio
+        if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
+            return APIResponse.error(
+                message="شما اجازه افزودن رسانه به نمونه‌کار را ندارید.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         media_files = request.FILES.getlist('media_files')
         serializer = PortfolioMediaSerializer(data=request.data.copy())
         serializer.is_valid(raise_exception=True)
@@ -641,8 +673,8 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         """Export single portfolio to PDF
         
         Security:
-        - Uses ContentManagerAccess permission class (inherited from ViewSet)
-        - Only authenticated admin users with content manager or super admin roles can access
+        - Uses PortfolioManagerAccess permission class (inherited from ViewSet)
+        - Only authenticated admin users with portfolio/content manager or super admin roles can access
         - File is streamed directly without exposing data in response body
         """
         try:
@@ -676,8 +708,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             import traceback
             error_message = str(e)
             error_traceback = traceback.format_exc()
-            print(f"PDF Export Error: {error_message}")
-            print(f"Traceback: {error_traceback}")
             return Response(
                 {"detail": f"PDF export failed: {error_message}", "traceback": error_traceback},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

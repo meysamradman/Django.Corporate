@@ -49,6 +49,15 @@ export interface RawPermissionGroupData {
   permissions: Permission[];
 }
 
+export interface BasePermissionDescriptor {
+  id: string;
+  display_name: string;
+  resource?: string;
+  action?: string;
+  description?: string;
+  is_base?: boolean;
+}
+
 export interface RawRoleData {
   id: number;
   name: string;
@@ -63,6 +72,28 @@ export interface RawRoleData {
 export interface RawAdminData {
   roles?: any[];
   [key: string]: unknown;
+}
+
+export interface PermissionSummary {
+  total_permissions: number | string;
+  accessible_modules?: number;
+  available_actions?: number;
+  access_type: string;
+  restrictions?: string;
+}
+
+export interface PermissionProfile {
+  access_level: "none" | "user" | "admin" | "super_admin";
+  permissions?: string[];
+  roles?: string[];
+  modules?: string[];
+  actions?: string[];
+  restrictions?: string[];
+  special?: string[];
+  permission_summary?: PermissionSummary;
+  permissions_count?: number | string;
+  has_permissions?: boolean;
+  base_permissions?: BasePermissionDescriptor[];
 }
 
 // API Request/Response Types

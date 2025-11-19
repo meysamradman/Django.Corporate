@@ -23,8 +23,8 @@ from .admin_permission import (
     require_admin_roles,
     AdminPermissionCache
 )
-from .role_permissions import RolePermissionManager, BASE_ADMIN_PERMISSIONS
-from .create_admin_roles import create_default_admin_roles, get_role_summary
+from src.user.permissions.config import BASE_ADMIN_PERMISSIONS, AVAILABLE_MODULES, AVAILABLE_ACTIONS
+from src.user.authorization.role_utils import create_default_admin_roles, get_role_summary
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
 import logging
 
@@ -280,19 +280,14 @@ class AdminRoleView(viewsets.ViewSet):
                         if existing:
                             # If exists but inactive, reactivate it
                             if not existing.is_active:
-                                logger.info(f"Reactivating role {role.id} ({role.name}) for user {user.id} ({user.email})")
                                 existing.is_active = True
                                 existing.assigned_by = request.user
                                 existing.expires_at = expires_at
                                 existing.save()
                                 existing.update_permissions_cache()
                                 created_assignments.append(existing)
-                            else:
-                                # Already active, skip
-                                logger.info(f"Role {role.id} ({role.name}) already assigned to user {user.id}")
                         else:
                             # Create new assignment
-                            logger.info(f"Assigning role {role.id} ({role.name}) to user {user.id} ({user.email})")
                             
                             assignment = AdminUserRole.objects.create(
                                 user=user,
@@ -403,8 +398,19 @@ class AdminRoleView(viewsets.ViewSet):
             
             # Get predefined system role names
             system_role_names = [
-                'super_admin', 'content_manager', 'user_manager', 
-                'media_manager', 'analytics_viewer', 'support_admin'
+                'super_admin',
+                'content_manager',
+                'blog_manager',
+                'portfolio_manager',
+                'media_manager',
+                'forms_manager',
+                'pages_manager',
+                'email_manager',
+                'ai_manager',
+                'settings_manager',
+                'panel_manager',
+                'statistics_viewer',
+                'user_manager'
             ]
             
             # Find roles that are marked as system but are not in predefined list
@@ -571,11 +577,11 @@ class AdminRoleView(viewsets.ViewSet):
     def permissions(self, request):
         """Get all available permissions grouped by modules - for frontend dropdown"""
         try:
-            from .role_permissions import RolePermissionManager
+            # Get all available modules and actions - already imported at top
             
             # Get all available modules and actions
-            modules = RolePermissionManager.get_all_modules()
-            actions = RolePermissionManager.get_all_actions()
+            modules = AVAILABLE_MODULES
+            actions = AVAILABLE_ACTIONS
             
             # Build permission groups in the format frontend expects
             permission_groups = []
@@ -593,8 +599,8 @@ class AdminRoleView(viewsets.ViewSet):
                     permissions_for_module.append({
                         'id': permission_id,
                         'resource': module_key,
-                        'action': action_info['display_name'],
-                        'description': f"{action_info['description']} در {module_info['display_name']}"
+                        'action': action_key,  # ✅ FIX: Use action_key (lowercase) instead of display_name
+                        'description': f"{action_info['description']} in {module_info['display_name']}"
                     })
                     permission_id += 1
                 

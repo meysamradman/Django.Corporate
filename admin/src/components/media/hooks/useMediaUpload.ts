@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { getFileCategory, validateFileAdvanced, formatBytes, mediaService } from '@/components/media/services';
 import { toast } from "@/components/elements/Sonner";
 import { fetchApi } from '@/core/config/fetch';
+import { useMediaContext } from '@/core/media/MediaContext';
 
 export interface MediaFile {
   file: File;
@@ -41,8 +42,12 @@ export interface UploadSettings {
 
 /**
  * ✅ Custom hook for file upload management
+ * اگر context و contextId پاس داده نشه، خودکار از route تشخیص می‌ده
  */
-export const useMediaUpload = () => {
+export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' | 'blog', overrideContextId?: number | string) => {
+  // اگر override نشده، از route تشخیص بده
+  const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+  
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   // ✅ Direct access - بدون mapping اضافی
@@ -157,7 +162,7 @@ export const useMediaUpload = () => {
       try {
         // Create form data
         const formData = new FormData();
-        formData.append('files', file.file);
+        formData.append('file', file.file);
         
         // Add metadata (only supported fields)
         if (file.alt_text) formData.append('alt_text', file.alt_text);
@@ -166,6 +171,14 @@ export const useMediaUpload = () => {
         // Add cover image if exists (for video/audio/pdf)
         if (file.coverFile) {
             formData.append('cover_image', file.coverFile);
+        }
+        
+        // Add context for context-aware permission checking
+        if (context && context !== 'media_library') {
+          formData.append('context_type', context);
+          // Determine action: if contextId exists, it's update, otherwise create
+          const contextAction = contextId ? 'update' : 'create';
+          formData.append('context_action', contextAction);
         }
 
         // ✅ Simple upload - بدون simulation
@@ -198,7 +211,7 @@ export const useMediaUpload = () => {
     }
 
     return { successCount, totalCount: files.length };
-  }, [files]);
+  }, [files, context, contextId]);
 
   /**
    * ✅ Clear all files

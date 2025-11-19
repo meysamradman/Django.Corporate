@@ -9,6 +9,7 @@ from src.ai.serializers.chat_serializer import (
     AIChatResponseSerializer,
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
+from src.user.permissions import PermissionValidator
 
 
 class AIChatViewSet(viewsets.ViewSet):
@@ -20,6 +21,11 @@ class AIChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='send-message')
     def send_message(self, request):
         """Send a chat message and get AI response"""
+        if not PermissionValidator.has_permission(request.user, 'ai.chat.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("chat_not_authorized", "You don't have permission to use AI chat"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         serializer = AIChatRequestSerializer(data=request.data)
         
         if not serializer.is_valid():
@@ -76,6 +82,11 @@ class AIChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
         """Get list of available chat providers"""
+        if not PermissionValidator.has_permission(request.user, 'ai.chat.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("chat_not_authorized", "You don't have permission to view AI chat providers"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         try:
             providers = AIChatService.get_available_providers()
             return APIResponse.success(

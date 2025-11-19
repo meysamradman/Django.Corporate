@@ -12,7 +12,6 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -33,8 +32,6 @@ import type { DataTableRowAction } from "@/types/shared/table";
 export default function OptionPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
-  const optionAccess = getCRUDProps('portfolio-option');
   const { booleanFilterOptions } = useOptionFilterOptions();
   const optionFilterConfig = getOptionFilterConfig(booleanFilterOptions);
 
@@ -109,7 +106,6 @@ export default function OptionPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete option error:", error);
     },
   });
 
@@ -140,7 +136,7 @@ export default function OptionPage() {
         await deleteOptionMutation.mutateAsync(deleteConfirm.optionId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
@@ -334,6 +330,8 @@ export default function OptionPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "portfolio.delete",
+          denyMessage: "اجازه حذف گزینه ندارید",
         }}
         filterConfig={optionFilterConfig}
       />

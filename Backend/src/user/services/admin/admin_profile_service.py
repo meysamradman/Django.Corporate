@@ -9,7 +9,7 @@ class AdminProfileService:
     @staticmethod
     def get_admin_profile(admin):
         """
-        دریافت یا ایجاد پروفایل ادمین
+        Retrieve or create the profile associated with an admin user.
         """
         try:
             profile_instance = getattr(admin, 'admin_profile', None)
@@ -27,7 +27,7 @@ class AdminProfileService:
     @staticmethod
     def update_admin_profile(admin, profile_data, admin_user=None, profile_picture=None):
         """
-        به‌روزرسانی پروفایل ادمین با داده‌های ارائه شده
+        Update an admin profile using the provided payload and picture.
         """
         if not profile_data and profile_picture is None:
             return AdminProfileService.get_admin_profile(admin)
@@ -36,12 +36,10 @@ class AdminProfileService:
             from src.user.models import AdminProfile
             profile, created = AdminProfile.objects.get_or_create(admin_user=admin)
             
-            # اگر profile_picture به عنوان پارامتر جداگانه ارسال شده، آن را استفاده کن
+            # If profile_picture is provided separately, prefer that value
             if profile_picture is None:
                 profile_picture = profile_data.pop('profile_picture', None)
             
-            print(f"🔍 AdminProfileService - profile_picture from parameter: {profile_picture}")
-            print(f"🔍 AdminProfileService - profile_picture from profile_data: {profile_data.get('profile_picture', 'Not found')}")
             old_media_to_delete = None
             
             update_needed = False
@@ -49,7 +47,7 @@ class AdminProfileService:
             for field, value in profile_data.items():
                 current_value = getattr(profile, field, None)
                 
-                # پردازش فیلدهای کلید خارجی (province, city)
+                # Handle foreign key fields (province, city)
                 if field in ['province', 'city']:
                     current_id = getattr(current_value, 'id', None) if current_value else None
                     new_id = value if isinstance(value, int) else getattr(value, 'id', None) if value else None
@@ -74,34 +72,30 @@ class AdminProfileService:
                             fields_actually_updated.append(field)
                             update_needed = True
                 else:
-                    # پردازش فیلدهای معمولی
+                    # Handle primitive fields
                     if str(value or '') != str(current_value or ''):
                         setattr(profile, field, value)
                         fields_actually_updated.append(field)
                         update_needed = True
             
             
-            # پردازش تصویر پروفایل به صورت جداگانه
+            # Process profile picture separately
             if profile_picture is not None:
                 current_profile_picture = getattr(profile, 'profile_picture', None)
                 current_id = getattr(current_profile_picture, 'id', None) if current_profile_picture else None
                 
-                # اگر profile_picture یک ID است، آن را به ImageMedia object تبدیل کن
+                # Convert integer profile_picture IDs into ImageMedia objects
                 if isinstance(profile_picture, int):
                     try:
                         from src.media.models import ImageMedia
                         profile_picture_obj = ImageMedia.objects.get(id=profile_picture, is_active=True)
                         new_id = profile_picture_obj.id
-                        print(f"🔍 AdminProfileService - Converted profile_picture ID {profile_picture} to ImageMedia object")
                     except ImageMedia.DoesNotExist:
-                        print(f"❌ AdminProfileService - ImageMedia with ID {profile_picture} not found")
                         profile_picture_obj = None
                         new_id = None
                 else:
                     profile_picture_obj = profile_picture
                     new_id = getattr(profile_picture, 'id', None) if profile_picture else None
-                
-                print(f"🔍 AdminProfileService - profile_picture processing: current_id={current_id}, new_id={new_id}")
                 
                 if current_id != new_id:
                     update_needed = True
@@ -111,27 +105,19 @@ class AdminProfileService:
                                 old_media_to_delete = profile.profile_picture
                             profile.profile_picture = None
                             fields_actually_updated.append('profile_picture')
-                            print("🔍 AdminProfileService - Profile picture removed")
                         else:
                             if isinstance(profile_picture_obj, ImageMedia):
                                 if profile.profile_picture:
                                     old_media_to_delete = profile.profile_picture
                                 profile.profile_picture = profile_picture_obj
                                 fields_actually_updated.append('profile_picture')
-                                print(f"🔍 AdminProfileService - Profile picture updated to: {profile_picture_obj.id}")
-                            else:
-                                print(f"🔍 AdminProfileService - Profile picture is not ImageMedia: {type(profile_picture_obj)}")
                     except ImportError:
-                        print("❌ AdminProfileService - ImportError in profile_picture processing")
                         pass
                     except Exception as e:
-                        print(f"❌ AdminProfileService - Error in profile_picture processing: {e}")
                         pass
-            else:
-                print("🔍 AdminProfileService - No profile_picture to process")
             
             if update_needed:
-                # بررسی تکراری بودن national_id قبل از ذخیره
+                # Guard against duplicate national_id values before saving
                 if 'national_id' in fields_actually_updated:
                     national_id = getattr(profile, 'national_id', None)
                     if national_id:
@@ -159,7 +145,7 @@ class AdminProfileService:
     @staticmethod
     def update_profile_image(admin, media_obj):
         """
-        به‌روزرسانی تصویر پروفایل با آبجکت Media از اپ مرکزی مدیا
+        Update the admin profile picture using a media object provided by the media app.
         """
         profile = AdminProfileService.get_admin_profile(admin)
         

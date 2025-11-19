@@ -8,6 +8,7 @@ import { UserWithProfile } from "@/types/auth/user";
 import { adminApi, Filter } from "@/api/admins/route";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
 import Link from "next/link";
 import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
@@ -124,7 +125,6 @@ export default function UsersPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Delete user error:", error);
     },
   });
 
@@ -137,7 +137,6 @@ export default function UsersPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete user error:", error);
     },
   });
 
@@ -168,7 +167,7 @@ export default function UsersPage() {
         await deleteUserMutation.mutateAsync(deleteConfirm.userId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error in delete
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
@@ -288,12 +287,19 @@ export default function UsersPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          <Button size="sm" asChild>
+          {/* ✅ دکمه navigation به صفحه ایجاد - با Toast */}
+          <ProtectedButton
+            permission="users.create"
+            size="sm"
+            asChild
+            showDenyToast={true}
+            denyMessage="اجازه ایجاد کاربر ندارید"
+          >
             <Link href="/users/create">
               <Plus />
               افزودن کاربر
             </Link>
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
 
@@ -316,6 +322,8 @@ export default function UsersPage() {
         filterConfig={userFilterConfig}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "users.delete",
+          denyMessage: "اجازه حذف کاربر ندارید",
         }}
         searchValue={searchValue}
         pageSizeOptions={[10, 20, 50]}

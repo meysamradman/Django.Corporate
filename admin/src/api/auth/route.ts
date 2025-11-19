@@ -15,7 +15,8 @@ export const authApi = {
     },
 
     login: async (data: LoginRequest): Promise<LoginResponse> => {
-        const response = await fetchApi.post<LoginResponse>('/admin/login/', data);
+        const payload = data as unknown as Record<string, unknown>;
+        const response = await fetchApi.post<LoginResponse>('/admin/login/', payload);
         return response.data;
     },
 
@@ -43,9 +44,18 @@ export const authApi = {
 
     getCurrentAdminUser: async (options?: {
         cache?: RequestCache,
-        revalidate?: number | false
+        revalidate?: number | false,
+        refresh?: boolean
     }): Promise<AdminWithProfile> => {
-        const response = await fetchApi.get<AdminWithProfile>('/admin/profile/', options);
+        let url = '/admin/profile/';
+        if (options?.refresh) {
+            url += url.includes('?') ? '&refresh=1' : '?refresh=1';
+        }
+        const fetchOptions = { ...options };
+        if (fetchOptions) {
+            delete (fetchOptions as any).refresh;
+        }
+        const response = await fetchApi.get<AdminWithProfile>(url, fetchOptions);
         if (!response.data) {
             throw new Error("API returned success but no admin user data found.");
         }
@@ -55,7 +65,7 @@ export const authApi = {
 
     isAdminAuthenticated: async (): Promise<boolean> => {
         try {
-            const user = await authApi.getCurrentAdminUser({cache: 'no-store'});
+            const user = await authApi.getCurrentAdminUser({cache: 'no-store', refresh: true});
             return !!user;
         } catch (error) {
             return false;

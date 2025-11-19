@@ -15,7 +15,7 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const { id } = await Promise.resolve(params);
   
   if (!id) {
-    console.error("No valid ID in URL params");
+    // No valid ID in URL params
     return notFound();
   }
   
@@ -29,7 +29,6 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
     const userData = await adminApi.getUserById(Number(userId), { cookieHeader });
     
     if (!userData) {
-      console.error(`Edit Page SSR Error: User with ID ${userId} not found or API call failed.`);
       return notFound();
     }
 
@@ -47,7 +46,6 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
       </div>
     );
   } catch (error) {
-    console.error("Edit Page SSR Error loading user data:", error);
     let errorMessage = "خطایی در بارگذاری اطلاعات کاربر برای ویرایش رخ داده است.";
     if (error instanceof Error) {
         errorMessage = error.message;

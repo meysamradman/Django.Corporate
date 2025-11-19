@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/elements/Checkbox"
 import { UserWithProfile } from "@/types/auth/user"
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import Link from "next/link";
+import { ProtectedLink } from "@/core/permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";
@@ -73,7 +73,11 @@ export const useUserColumns = (
         };
 
         return (
-          <Link href={`/users/${user.id}/edit`} className="flex items-center gap-3">
+          <ProtectedLink 
+            href={`/users/${user.id}/edit`} 
+            permission="users.update"
+            className="flex items-center gap-3"
+          >
             <Avatar className="table-avatar">
               {profilePictureUrl ? (
                 <AvatarImage src={profilePictureUrl} alt={fullName} />
@@ -86,7 +90,7 @@ export const useUserColumns = (
             <div className="table-cell-primary table-cell-wide">
               {fullName}
             </div>
-          </Link>
+          </ProtectedLink>
         );
       },
       enableSorting: true,

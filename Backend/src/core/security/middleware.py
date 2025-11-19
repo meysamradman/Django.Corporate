@@ -20,49 +20,17 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
         """Log suspicious requests"""
-        # Log export requests for debugging
-        if '/export' in request.path:
-            ip = self.get_client_ip(request)
-            print(f"[SECURITY MIDDLEWARE] Export request: {request.method} {request.path} from IP: {ip}")
-            print(f"[SECURITY MIDDLEWARE] Query String: {request.GET.urlencode()}")
-            print(f"[SECURITY MIDDLEWARE] Full URL: {request.build_absolute_uri()}")
-            logger.info(f"Export request: {request.method} {request.path} from IP: {ip}")
-            
-        # Log admin login attempts
-        if request.path.endswith('/admin/login/') and request.method == 'POST':
-            ip = self.get_client_ip(request)
-            logger.info(f"Admin login attempt from IP: {ip}")
-            
-        # Log CAPTCHA requests
-        if '/captcha/' in request.path:
-            ip = self.get_client_ip(request)
-            logger.info(f"CAPTCHA request from IP: {ip} to {request.path}")
+        pass
     
     def process_response(self, request, response):
         """Log security-related responses"""
-        # Log export requests responses
-        if '/export' in request.path:
-            ip = self.get_client_ip(request)
-            print(f"[SECURITY MIDDLEWARE] Export response: {request.method} {request.path} -> {response.status_code}")
-            logger.info(f"Export response: {request.method} {request.path} -> {response.status_code}")
-            if response.status_code == 404:
-                print(f"[SECURITY MIDDLEWARE] 404 Error for export request! Path: {request.path}")
-                logger.warning(f"404 Error for export request: {request.path}")
-        
-        # Log failed admin login attempts
+        # Track failed login attempts for security
         if (request.path.endswith('/admin/login/') and 
             request.method == 'POST' and 
             response.status_code == 401):
             ip = self.get_client_ip(request)
-            logger.warning(f"Failed admin login attempt from IP: {ip}")
-            
             # Track failed attempts
             self.track_failed_attempt(ip)
-        
-        # Log throttled requests
-        if response.status_code == 429:
-            ip = self.get_client_ip(request)
-            logger.warning(f"Request throttled for IP: {ip} to {request.path}")
         
         return response
     
@@ -157,6 +125,5 @@ class CSRFExemptAdminMiddleware(MiddlewareMixin):
         if request.path.startswith('/api/admin/') and request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
             # Exempt from CSRF validation
             setattr(request, '_dont_enforce_csrf_checks', True)
-            logger.debug(f"CSRF checks exempted for admin API endpoint: {request.path}")
             
         return None

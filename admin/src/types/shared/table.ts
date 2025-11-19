@@ -22,6 +22,16 @@ export interface FilterConfig {
 export interface DeleteConfig {
   onDeleteSelected: (selectedIds: (string | number)[]) => void;
   buttonText?: string;
+  /**
+   * Permission required for bulk delete (e.g., "blog.delete", "user.delete")
+   * If not provided, defaults to "delete"
+   */
+  permission?: string;
+  /**
+   * Custom deny message when user doesn't have permission
+   * Defaults to "اجازه حذف ندارید"
+   */
+  denyMessage?: string;
 }
 
 export interface ExportConfig<TClientFilters extends Record<string, unknown> = Record<string, unknown>> {
@@ -49,5 +59,21 @@ export interface DataTableRowAction<TData> {
   onClick: (item: TData) => void;
   condition?: (item: TData) => boolean;
   isDestructive?: boolean;
+  /**
+   * Permission required for this action (e.g., "blog.update", "user.delete")
+   * If user doesn't have permission, the action will be disabled (silently, no toast)
+   * For main buttons (Create, Delete All), use ProtectedButton with showDenyToast
+   */
+  permission?: string | string[];
+  /**
+   * If true, user must have ALL permissions (AND logic)
+   * If false, user needs ANY permission (OR logic) - default
+   */
+  requireAllPermissions?: boolean;
+  /**
+   * Custom disabled logic based on the item data
+   * Return true to disable the action for this specific item
+   */
+  isDisabled?: (item: TData) => boolean;
 }
 

@@ -236,7 +236,6 @@ class PortfolioAdminMediaService:
             # Convert to list and remove duplicates for better performance
             media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
             
-            logger.info(f"Processing {len(media_ids_list)} media IDs for portfolio {portfolio_id}")
             
             # Get all media objects in optimized queries (4 queries instead of 4*N)
             image_medias, video_medias, audio_medias, document_medias = \
@@ -278,7 +277,6 @@ class PortfolioAdminMediaService:
                     failed_ids.append(media_id)
                     logger.warning(f"Media ID {media_id} not found in any media type for portfolio {portfolio_id}")
             
-            logger.info(f"Prepared {len(media_to_create)} media items to create for portfolio {portfolio_id}")
             
             # Create portfolio media relations if we have any
             if media_to_create:
@@ -373,16 +371,11 @@ class PortfolioAdminMediaService:
                     # Update in single query if possible, or use update_fields
                     first_image.is_main = True
                     first_image.save(update_fields=['is_main'])
-                    logger.info(f"Set media ID {first_image.image_id} as main image for portfolio {portfolio_id}")
                     
                     # Set OG image if not provided - use update_fields for better performance
                     if not portfolio.og_image:
                         portfolio.og_image = first_image.image
                         portfolio.save(update_fields=['og_image'])
-                        logger.debug(f"Set OG image for portfolio {portfolio_id}")
-        
-        logger.info(f"Portfolio {portfolio_id} media update completed: created={created_count}, "
-                   f"failed_ids={len(failed_ids)}, failed_files={len(failed_files)}")
         
         return {
             'created_count': created_count,
@@ -491,7 +484,6 @@ class PortfolioAdminMediaService:
                         document_id__in=document_ids_to_remove
                     ).delete()
                 
-                logger.info(f"Removed {len(media_to_remove)} media items from portfolio {portfolio_id}")
             
             # Update main image first if specified (before adding new media)
             if main_image_id is not None:

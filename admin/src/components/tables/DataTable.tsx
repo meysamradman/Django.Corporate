@@ -16,6 +16,7 @@ import {
 import { TablePaginationState } from '@/types/shared/pagination';
 
 import { Button } from "@/components/elements/Button";
+import ProtectedButton from "@/core/permissions/components/ProtectedButton";
 import { Input } from "@/components/elements/Input"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/elements/Card"
 import {
@@ -208,13 +209,16 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                </Select>
              )}
              {selectedRowCount > 0 && deleteConfig && (
-               <Button
+               <ProtectedButton
+                 permission={deleteConfig.permission || "delete"}
                  variant="destructive"
                  onClick={handleDeleteSelectedClick}
+                 showDenyToast={true}
+                 denyMessage={deleteConfig.denyMessage || "اجازه حذف ندارید"}
                >
                  <Trash className="" />
                  {deleteConfig.buttonText || "حذف"}
-               </Button>
+               </ProtectedButton>
              )}
             </div>
 

@@ -75,7 +75,7 @@ class City(BaseModel):
         verbose_name = 'City'
         verbose_name_plural = 'Cities'
         ordering = ['province__name', 'name']
-        unique_together = [('province', 'code')]  # کد شهر در هر استان یکتا باشد
+        unique_together = [('province', 'code')]
         indexes = [
             models.Index(fields=['province', 'name'], name='city_province_name_idx'),
             models.Index(fields=['name'], name='city_name_idx'),
@@ -89,5 +89,4 @@ class City(BaseModel):
 
     @property
     def full_name(self):
-        """نام کامل: شهر، استان"""
         return f"{self.name}, {self.province.name}"

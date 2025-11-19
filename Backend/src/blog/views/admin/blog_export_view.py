@@ -10,7 +10,7 @@ from src.blog.services.admin.excel_export_service import BlogExcelExportService
 from src.blog.services.admin.pdf_list_export_service import BlogPDFListExportService
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.authorization.admin_permission import ContentManagerAccess
+from src.user.authorization.admin_permission import BlogManagerAccess
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.blog.messages.messages import BLOG_ERRORS
 
@@ -19,7 +19,7 @@ class BlogExportView(APIView):
     """View for exporting blogs to Excel or PDF"""
     # Use only CSRFExemptSessionAuthentication - override default authentication
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [ContentManagerAccess]
+    permission_classes = [BlogManagerAccess]
     # Disable format suffix negotiation for export endpoints (we handle format via query params)
     format_suffix_kwarg = None
     
@@ -143,9 +143,10 @@ class BlogExportView(APIView):
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception as e:
-            if settings.DEBUG:
-                import traceback
-                print(f"Export Error: {e}\n{traceback.format_exc()}")
+            import traceback
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Export Error: {e}\n{traceback.format_exc()}")
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

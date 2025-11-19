@@ -7,6 +7,7 @@ import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Media } from "@/types/shared/media";
 import { ImagePlus, X } from "lucide-react";
+import { useMediaContext } from '@/core/media/MediaContext';
 
 interface MediaSelectorProps {
     selectedMedia: Media | null;
@@ -15,6 +16,8 @@ interface MediaSelectorProps {
     size?: "sm" | "md" | "lg";
     showLabel?: boolean;
     className?: string;
+    context?: 'media_library' | 'portfolio' | 'blog';
+    contextId?: number | string;
 }
 
 export function MediaSelector({
@@ -23,8 +26,13 @@ export function MediaSelector({
     label = "انتخاب تصویر",
     size = "md",
     showLabel = true,
-    className = ""
+    className = "",
+    context: overrideContext,
+    contextId: overrideContextId
 }: MediaSelectorProps) {
+    // اگر context پاس داده نشه، از route تشخیص بده
+    const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+    
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
@@ -129,6 +137,8 @@ export function MediaSelector({
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 onUploadComplete={handleUploadComplete}
+                context={context}
+                contextId={contextId}
             />
         </div>
     );

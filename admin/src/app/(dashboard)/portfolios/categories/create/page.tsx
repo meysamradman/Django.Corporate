@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -122,7 +122,6 @@ export default function CreateCategoryPage() {
     },
     onError: (error) => {
       toast.error("خطا در ایجاد دسته‌بندی");
-      console.error("Error creating category:", error);
     },
   });
 
@@ -193,6 +192,7 @@ export default function CreateCategoryPage() {
               borderColor="border-b-purple-1"
               className="hover:shadow-lg transition-all duration-300"
             >
+                <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     label="نام"
@@ -352,8 +352,8 @@ export default function CreateCategoryPage() {
                     {createCategoryMutation.isPending ? "در حال ایجاد..." : "ایجاد دسته‌بندی"}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+                </div>
+            </CardWithIcon>
             </div>
           </div>
 
@@ -367,11 +367,6 @@ export default function CreateCategoryPage() {
               iconColor="stroke-blue-2"
               borderColor="border-b-blue-1"
               className="hover:shadow-lg transition-all duration-300"
-              titleExtra={
-                <CardDescription>
-                  این تصویر به عنوان تصویر اصلی دسته‌بندی استفاده می‌شود.
-                </CardDescription>
-              }
             >
                 {selectedMedia ? (
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
@@ -429,6 +424,8 @@ export default function CreateCategoryPage() {
         onSelect={handleImageSelect}
         selectMultiple={false}
         initialFileType="image"
+        showTabs={true}
+        context="portfolio"
       />
     </div>
   );

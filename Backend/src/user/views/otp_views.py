@@ -12,7 +12,7 @@ from src.user.utils.otp_validator import get_otp_length
 
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [CaptchaThrottle]  # اضافه کردن throttling برای جلوگیری از spam
+    throttle_classes = [CaptchaThrottle]  # Enable throttling to reduce spam attempts
 
     def post(self, request):
         serializer = SendOTPSerializer(data=request.data)

@@ -14,7 +14,7 @@ from .admin_permission import (
     require_admin_roles,
     AdminPermissionCache
 )
-from .role_permissions import AVAILABLE_MODULES, AVAILABLE_ACTIONS
+from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
 
 import logging
 

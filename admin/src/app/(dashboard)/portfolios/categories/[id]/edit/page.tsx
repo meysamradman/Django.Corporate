@@ -91,7 +91,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       router.push("/portfolios/categories");
     },
     onError: (error) => {
-      console.error("Update category error:", error);
+      // Error handled by toast
     },
   });
 

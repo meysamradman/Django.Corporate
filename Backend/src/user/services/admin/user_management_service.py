@@ -10,7 +10,7 @@ class UserManagementService:
     @staticmethod
     def get_users_list(search=None, is_active=None, request=None):
         """
-        دریافت لیست کاربران معمولی با فیلترهای مختلف
+        Retrieve regular users list with optional filters applied.
         """
         queryset = User.objects.select_related('user_profile').prefetch_related(
             'user_profile__profile_picture'
@@ -36,7 +36,7 @@ class UserManagementService:
     @staticmethod
     def get_user_detail(user_id):
         """
-        دریافت جزئیات یک کاربر معمولی
+        Retrieve details for a specific regular user.
         """
         try:
             return User.objects.select_related('user_profile').prefetch_related(
@@ -48,7 +48,7 @@ class UserManagementService:
     @staticmethod
     def get_user_by_public_id(public_id):
         """
-        دریافت کاربر معمولی بر اساس public_id
+        Retrieve a user by public_id value.
         """
         try:
             return User.objects.select_related('user_profile').prefetch_related(
@@ -60,7 +60,7 @@ class UserManagementService:
     @staticmethod
     def update_user(user_id, validated_data, admin_user=None):
         """
-        به‌روزرسانی کاربر معمولی و پروفایل آن
+        Update a regular user along with the related profile.
         """
         try:
             if admin_user is not None:
@@ -177,8 +177,8 @@ class UserManagementService:
                     
                     media = MediaService.upload_file(
                         file=profile_picture_file,
-                        title=f"تصویر پروفایل - کاربر {user.id}",
-                        alt_text=f"تصویر پروفایل برای کاربر {user.id}",
+                        title=f"User profile picture - user {user.id}",
+                        alt_text=f"Profile picture for user {user.id}",
                         folder="profile_pictures"
                     )
                     
@@ -219,7 +219,7 @@ class UserManagementService:
     @staticmethod
     def delete_user(user_id, admin_user=None):
         """
-        حذف کاربر معمولی
+        Delete a regular user.
         """
         if admin_user is not None and not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
@@ -240,7 +240,7 @@ class UserManagementService:
     @staticmethod
     def bulk_delete_users(user_ids, admin_user=None):
         """
-        حذف دسته‌ای کاربران معمولی
+        Bulk delete regular users.
         """
         if not isinstance(user_ids, list) or not user_ids:
                 raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))

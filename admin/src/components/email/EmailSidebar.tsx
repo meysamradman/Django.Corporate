@@ -11,6 +11,7 @@
 
 import React from "react";
 import { Button } from "@/components/elements/Button";
+import ProtectedButton from "@/core/permissions/components/ProtectedButton";
 import { Badge } from "@/components/elements/Badge";
 import { Send, FileEdit, Star, AlertCircle, Trash2, Inbox as InboxIcon } from "lucide-react";
 import { cn } from "@/core/utils/cn";
@@ -47,9 +48,15 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
     <aside className="w-full flex flex-col h-full overflow-hidden">
       {/* Compose Button */}
       <div className="p-5 border-b flex-shrink-0">
-        <Button className="w-full" onClick={onComposeClick}>
+        <ProtectedButton
+          permission="email.create"
+          variant="default"
+          className="w-full" 
+          onClick={onComposeClick}
+          showDenyToast={false}
+        >
           <span>ایجاد ایمیل</span>
-        </Button>
+        </ProtectedButton>
       </div>
 
       {/* Mailboxes */}

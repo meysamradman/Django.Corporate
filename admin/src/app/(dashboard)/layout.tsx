@@ -5,6 +5,9 @@ import {Sidebar} from "@/components/layout/Sidebar/Sidebar";
 import {Header} from "@/components/layout/Header/Header";
 import {cn} from "@/core/utils/cn";
 import {useAdminStore} from "@/components/layout/Sidebar/stores/sidebarStore";
+import { RoutePermissionGuard } from "@/core/permissions/components/RoutePermissionGuard";
+import { MediaContextProvider } from "@/core/media/MediaContext";
+import { PermissionProvider } from "@/core/permissions/context/PermissionContext";
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -46,7 +49,13 @@ export default function MainLayout({children}: MainLayoutProps) {
                                 : ""
                         )}
                     >
-                        {children}
+                        <PermissionProvider>
+                            <MediaContextProvider>
+                                <RoutePermissionGuard>
+                                    {children}
+                                </RoutePermissionGuard>
+                            </MediaContextProvider>
+                        </PermissionProvider>
                     </div>
                 </main>
             </div>

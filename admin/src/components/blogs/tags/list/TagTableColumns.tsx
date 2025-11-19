@@ -14,6 +14,7 @@ import Link from "next/link";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
+import { ProtectedLink } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 
 export interface TagAction {
@@ -57,9 +58,13 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => (
-        <Link href={`/blogs/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
+        <ProtectedLink 
+          href={`/blogs/tags/${row.original.id}/edit`} 
+          permission="blog_tags.update"
+          className="table-cell-primary table-cell-wide"
+        >
           {row.original.name}
-        </Link>
+        </ProtectedLink>
       ),
       enableSorting: true,
       enableHiding: true,

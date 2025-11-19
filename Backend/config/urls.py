@@ -32,15 +32,6 @@ urlpatterns = [
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Debug: Print all URL patterns for export
-if settings.DEBUG:
-    print("=" * 80)
-    print("DEBUG: Main URL Patterns (export related):")
-    for pattern in urlpatterns:
-        if 'export' in str(pattern.pattern):
-            print(f"  {pattern.pattern} -> {pattern.callback if hasattr(pattern, 'callback') else 'N/A'}")
-    print("=" * 80)
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

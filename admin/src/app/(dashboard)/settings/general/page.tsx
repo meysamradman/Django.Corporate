@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Button } from "@/components/elements/Button";
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Settings, Phone, Smartphone, Mail, Share2, Save } from "lucide-react";
 import {
     GeneralSettingsForm,
@@ -15,18 +15,24 @@ import {
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("general");
     const generalFormRef = useRef<{ handleSave: () => void }>(null);
+    
+    // 🚀 Pre-computed permission flag
+    const { canManageSettings } = useUIPermissions();
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="page-title">تنظیمات سیستم</h1>
                 {activeTab === "general" && (
-                    <Button
+                    <ProtectedButton
                         onClick={() => generalFormRef.current?.handleSave()}
+                        permission="settings.manage"
+                        showDenyToast={true}
+                        denyMessage="شما دسترسی لازم برای مدیریت تنظیمات عمومی را ندارید"
                     >
                         <Save className="mr-2 h-4 w-4" />
                         ذخیره تنظیمات
-                    </Button>
+                    </ProtectedButton>
                 )}
             </div>
 

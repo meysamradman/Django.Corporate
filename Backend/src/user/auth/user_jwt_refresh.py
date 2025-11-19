@@ -8,6 +8,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from .user_cookies import UserCookie
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class UserJWTRefreshView(TokenRefreshView):
@@ -42,7 +45,7 @@ class UserJWTRefreshView(TokenRefreshView):
         except Exception as e:
             error_detail = AUTH_ERRORS.get("auth_invalid_token")
             # Log the actual exception for debugging
-            print(f"!!! UserJWTRefreshView Validation Error: {e}")
+            logger.error(f"UserJWTRefreshView Validation Error: {e}")
             # Use standard DRF Response - renderer will format it
             response = Response({
                 "detail": error_detail

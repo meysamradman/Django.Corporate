@@ -36,7 +36,6 @@ export default function CreateOptionPage() {
     },
     onError: (error) => {
       toast.error("خطا در ایجاد گزینه");
-      console.error("Error creating option:", error);
     },
   });
 
@@ -80,6 +79,7 @@ export default function CreateOptionPage() {
           borderColor="border-b-teal-1"
           className="hover:shadow-lg transition-all duration-300"
         >
+            <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="نام"
@@ -158,6 +158,7 @@ export default function CreateOptionPage() {
               >
                 {createOptionMutation.isPending ? "در حال ایجاد..." : "ایجاد گزینه"}
               </Button>
+            </div>
             </div>
         </CardWithIcon>
       </form>

@@ -26,6 +26,8 @@ interface QuickCreateDialogProps {
     onSubmit: (data: { name: string; slug: string; image_id?: number; is_active?: boolean; is_public?: boolean }) => Promise<any>;
     onSuccess?: (createdItem: any) => void;
     refetchList: () => void;
+    context?: 'media_library' | 'portfolio' | 'blog';
+    contextId?: number | string;
 }
 
 export function QuickCreateDialog({ 
@@ -34,7 +36,9 @@ export function QuickCreateDialog({
     type, 
     onSubmit, 
     onSuccess, 
-    refetchList 
+    refetchList,
+    context = 'portfolio',
+    contextId
 }: QuickCreateDialogProps) {
     const [name, setName] = useState("");
     const [slug, setSlug] = useState("");
@@ -51,7 +55,6 @@ export function QuickCreateDialog({
             handleClose();
         },
         onError: (error: any) => {
-            console.error(`Error creating ${type}:`, error);
             showErrorToast(error?.response?.data?.detail || "خطا در اضافه کردن");
         }
     });
@@ -120,6 +123,8 @@ export function QuickCreateDialog({
                                     label=""
                                     name={name}
                                     disabled={createMutation.isPending}
+                                    context={context}
+                                    contextId={contextId}
                                 />
                             </div>
                         )}

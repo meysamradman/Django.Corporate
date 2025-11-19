@@ -54,7 +54,6 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
     },
     onError: (error) => {
       toast.error("خطا در به‌روزرسانی تگ");
-      console.error("Update tag error:", error);
     },
   });
 

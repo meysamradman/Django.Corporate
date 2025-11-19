@@ -37,7 +37,6 @@ export default function CreateTagPage() {
     },
     onError: (error) => {
       toast.error("خطا در ایجاد تگ");
-      console.error("Create tag error:", error);
     },
   });
 
@@ -96,6 +95,7 @@ export default function CreateTagPage() {
           borderColor="border-b-indigo-1"
           className="hover:shadow-lg transition-all duration-300"
         >
+            <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="نام"
@@ -174,6 +174,7 @@ export default function CreateTagPage() {
               >
                 {createTagMutation.isPending ? "در حال ایجاد..." : "ایجاد تگ"}
               </Button>
+            </div>
             </div>
         </CardWithIcon>
       </form>

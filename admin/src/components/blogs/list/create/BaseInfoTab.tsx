@@ -32,6 +32,7 @@ import { QuickCreateDialog } from "./QuickCreateDialog";
 interface BaseInfoTabFormProps {
     form: UseFormReturn<BlogFormValues>;
     editMode: boolean;
+    blogId?: number | string; // Blog ID for context-aware permissions
 }
 
 // Props interface for manual state approach (edit page)
@@ -45,6 +46,7 @@ interface BaseInfoTabManualProps {
     onCategoryRemove: (categoryId: number) => void;
     onTagToggle: (tag: BlogTag) => void;
     onTagRemove: (tagId: number) => void;
+    blogId?: number | string; // Blog ID for context-aware permissions
 }
 
 // Union type for both approaches
@@ -76,6 +78,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const onCategoryRemove = isFormApproach ? null : (props as any).onCategoryRemove;
     const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
     const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
+    const blogId = isFormApproach ? props.blogId : props.blogId;
     
     // Watch values for form approach
     const nameValue = isFormApproach ? watch?.("name") : formData?.name;
@@ -92,7 +95,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 const response = await blogApi.getCategories({ page: 1, size: 100 });
                 setCategories(response.data || []);
             } catch (error) {
-                console.error("Error fetching categories:", error);
+                // Error handled silently
             } finally {
                 setLoadingCategories(false);
             }
@@ -104,7 +107,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 const response = await blogApi.getTags({ page: 1, size: 100 });
                 setTags(response.data || []);
             } catch (error) {
-                console.error("Error fetching tags:", error);
+                // Error handled silently
             } finally {
                 setLoadingTags(false);
             }
@@ -579,6 +582,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         setCategories(response.data || []);
                     });
                 }}
+                context="blog"
+                contextId={blogId}
             />
 
             <QuickCreateDialog
@@ -607,6 +612,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         setTags(response.data || []);
                     });
                 }}
+                context="blog"
+                contextId={blogId}
             />
 
         </TabsContent>

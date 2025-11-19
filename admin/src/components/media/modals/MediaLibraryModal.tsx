@@ -31,9 +31,12 @@ import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { toast } from "@/components/elements/Sonner";
+import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
+import { useHasAccess } from '@/core/permissions/hooks/useHasAccess';
 import { mediaService } from '@/components/media/services';
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
+import { useMediaContext } from '@/core/media/MediaContext';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;
@@ -45,6 +48,8 @@ interface MediaLibraryModalProps {
   activeTab?: "select" | "upload";
   onTabChange?: (tab: "select" | "upload") => void;
   onUploadComplete?: () => void;
+  context?: 'media_library' | 'portfolio' | 'blog';
+  contextId?: number | string;
 }
 
 const actualDefaultFilters = {
@@ -65,7 +70,12 @@ export function MediaLibraryModal({
   activeTab = "select",
   onTabChange,
   onUploadComplete,
+  context: overrideContext,
+  contextId: overrideContextId,
 }: MediaLibraryModalProps) {
+  // اگر context پاس داده نشه، از route تشخیص بده
+  const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+  
   const [internalActiveTab, setInternalActiveTab] = useState<"select" | "upload">(activeTab || "select");
   
   const currentActiveTab = onTabChange ? activeTab : internalActiveTab;
@@ -84,8 +94,20 @@ export function MediaLibraryModal({
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [detailMedia, setDetailMedia] = useState<Media | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { hasModuleAction } = useUserPermissions();
+  const canUploadMediaLegacy = hasModuleAction('media', 'create');
+  const canUploadInMediaLibrary = useHasAccess('media.upload');
+  const canUploadMedia = useMemo(() => {
+    if (context === 'media_library') {
+      return canUploadInMediaLibrary || canUploadMediaLegacy;
+    }
+    if (context === 'portfolio' || context === 'blog') {
+      return true;
+    }
+    return canUploadInMediaLibrary || canUploadMediaLegacy;
+  }, [context, canUploadInMediaLibrary, canUploadMediaLegacy]);
 
-  // Upload functionality
+  // Upload functionality with context
   const {
     files,
     isUploading,
@@ -96,7 +118,7 @@ export function MediaLibraryModal({
     removeCoverFile,
     uploadFiles,
     clearFiles
-  } = useMediaUpload();
+  } = useMediaUpload(context, contextId);
 
   const fetchMedia = useCallback(async (currentFilters: typeof filters) => {
     setIsLoading(true);
@@ -279,7 +301,7 @@ export function MediaLibraryModal({
   };
 
   const dialogContent = (
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0" showCloseButton={false} aria-describedby="media-library-description">
+      <DialogContent className="max-w-6xl h-[80vh] flex flex-col p-0" showCloseButton={false} aria-describedby="media-library-description">
           <DialogHeader className="p-4 border-b">
               <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -317,30 +339,38 @@ export function MediaLibraryModal({
                   <FolderOpen className="h-4 w-4" />
                   انتخاب از کتابخانه
                 </Button>
-                <Button
-                  variant={currentActiveTab === "upload" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleTabChange("upload")}
-                  className="flex gap-2"
-                >
-                  <Upload className="h-4 w-4" />
-                  آپلود فایل جدید
-                </Button>
+                {canUploadMedia && (
+                  <Button
+                    variant={currentActiveTab === "upload" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleTabChange("upload")}
+                    className="flex gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    آپلود فایل جدید
+                  </Button>
+                )}
               </div>
             </div>
           )}
 
           {/* Content based on active tab */}
           {currentActiveTab === "upload" ? (
-            <div className="flex-grow flex flex-col">
+            <div className="flex-grow flex flex-col min-h-0 overflow-hidden">
               {/* Upload Content */}
-              <div className="space-y-6 py-4 flex-grow">
+              <div className="flex-1 overflow-y-auto space-y-6 py-4">
                 {/* File Dropzone */}
                 <div className="px-6">
                   <FileDropzone 
-                    onFilesAdded={processFiles}
+                    onFilesAdded={(files) => {
+                      if (!canUploadMedia) {
+                        toast.error("اجازه آپلود رسانه را ندارید");
+                        return;
+                      }
+                      processFiles(files);
+                    }}
                     allowedTypes={uploadSettings.allowedTypes}
-                    disabled={isUploading}
+                    disabled={isUploading || !canUploadMedia}
                   />
                 </div>
 
@@ -353,9 +383,7 @@ export function MediaLibraryModal({
                     </div>
                     <Progress value={uploadProgress} className="h-2" />
                   </div>
-                )
-
-}
+                )}
 
                 {/* File List */}
                 {files.length > 0 && (
@@ -375,7 +403,7 @@ export function MediaLibraryModal({
               </div>
 
               {/* Upload Footer */}
-              {files.length > 0 && (
+              {files.length > 0 && canUploadMedia && (
                 <div className="bg-bg/50 border-t px-6 py-4">
                   <div className="flex gap-3 justify-between">
                     <div className="flex gap-3">

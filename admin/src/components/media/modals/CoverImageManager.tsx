@@ -125,6 +125,7 @@ export function CoverImageManager({
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onUploadComplete={handleUploadComplete}
+          context="media_library"
         />
       </div>
       

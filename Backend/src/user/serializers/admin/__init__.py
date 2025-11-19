@@ -1,5 +1,5 @@
 """
-سریالایزر‌های ادمین - تمام سریالایزر‌های مربوط به ادمین‌ها
+Admin serializer exports.
 """
 from .admin_management_serializer import (
     AdminListSerializer,

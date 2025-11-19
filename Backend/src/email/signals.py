@@ -57,7 +57,6 @@ def convert_email_to_email_message(sender, message: Message, **kwargs):
                 except Exception as e:
                     logger.error(f"خطا در ذخیره ضمیمه: {str(e)}")
         
-        logger.info(f"ایمیل جدید دریافت شد و به EmailMessage تبدیل شد: {email_message.id}")
         
     except Exception as e:
         logger.error(f"خطا در تبدیل ایمیل به EmailMessage: {str(e)}")

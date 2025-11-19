@@ -119,7 +119,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         setPortfolioMedia(parsedMedia);
       }
     } catch (error) {
-      console.error("Error fetching portfolio data:", error);
+      // Error fetching portfolio data
     } finally {
       setIsLoading(false);
     }
@@ -248,7 +248,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Redirect to portfolio list after saving
       router.push("/portfolios");
     } catch (error) {
-      console.error("Error updating portfolio:", error);
+      // Error updating portfolio
     } finally {
       setIsSaving(false);
     }
@@ -307,7 +307,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       // Redirect to portfolio list after saving draft
       router.push("/portfolios");
     } catch (error) {
-      console.error("Error saving portfolio draft:", error);
+      // Error saving portfolio draft
     } finally {
       setIsSaving(false);
     }
@@ -423,6 +423,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               onTagRemove={handleTagRemove}
               onOptionToggle={handleOptionToggle}
               onOptionRemove={handleOptionRemove}
+              portfolioId={id}
             />
           )}
           {activeTab === "media" && (
@@ -432,6 +433,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               editMode={editMode}
               featuredImage={portfolioMedia.featuredImage}
               onFeaturedImageChange={handleFeaturedImageChange}
+              portfolioId={id}
             />
           )}
           {activeTab === "seo" && (
@@ -439,6 +441,7 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
+              portfolioId={id}
             />
           )}
         </Suspense>

@@ -47,8 +47,8 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
 
     USER_TYPES = (
-        ('user', 'User'),        # For website
-        ('admin', 'Admin User'), # For admin panel
+        ('user', 'User'),
+        ('admin', 'Admin User'),
     )
 
     id = models.AutoField(primary_key=True, editable=False)

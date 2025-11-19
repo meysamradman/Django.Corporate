@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,9 +22,9 @@ import { Blog } from "@/types/blog/blog";
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaFilesAndIds } from "@/core/utils/blogMediaUtils";
 
-const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));
+import BaseInfoTab from "@/components/blogs/list/create/BaseInfoTab";
+import MediaTab from "@/components/blogs/list/create/MediaTab";
+import SEOTab from "@/components/blogs/list/create/SEOTab";
 
 export default function CreateBlogPage() {
   const router = useRouter();
@@ -113,7 +113,6 @@ export default function CreateBlogPage() {
       router.push("/blogs");
     },
     onError: (error: any) => {
-      console.error("Error creating blog:", error);
       
       // بررسی خطاهای فیلدها از Django
       if (hasFieldErrors(error)) {
@@ -231,33 +230,26 @@ export default function CreateBlogPage() {
           </TabsTrigger>
         </TabsList>
 
-        <Suspense fallback={
-          <div className="mt-6">
-            <Skeleton className="w-full h-64" />
-            <Skeleton className="w-full h-64 mt-4" />
-          </div>
-        }>
-          {activeTab === "account" && (
-            <BaseInfoTab 
-              form={form as any}
-              editMode={editMode}
-            />
-          )}
-          {activeTab === "media" && (
-            <MediaTab 
-              form={form as any}
-              blogMedia={blogMedia}
-              setBlogMedia={setBlogMedia}
-              editMode={editMode}
-            />
-          )}
-          {activeTab === "seo" && (
-            <SEOTab 
-              form={form as any}
-              editMode={editMode}
-            />
-          )}
-        </Suspense>
+        {activeTab === "account" && (
+          <BaseInfoTab 
+            form={form as any}
+            editMode={editMode}
+          />
+        )}
+        {activeTab === "media" && (
+          <MediaTab 
+            form={form as any}
+            blogMedia={blogMedia}
+            setBlogMedia={setBlogMedia}
+            editMode={editMode}
+          />
+        )}
+        {activeTab === "seo" && (
+          <SEOTab 
+            form={form as any}
+            editMode={editMode}
+          />
+        )}
       </Tabs>
     </div>
   );

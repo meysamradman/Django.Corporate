@@ -11,6 +11,7 @@ from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationResponseSerializer
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
+from src.user.permissions import PermissionValidator
 
 
 class AIContentGenerationViewSet(viewsets.ViewSet):
@@ -22,6 +23,11 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
         """Get list of available content generation providers"""
+        if not PermissionValidator.has_permission(request.user, 'ai.content.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("content_not_authorized", "You don't have permission to view AI content providers"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         try:
             providers = AIContentGenerationService.get_available_providers()
             return APIResponse.success(
@@ -38,6 +44,11 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_content(self, request):
         """Generate SEO-optimized content"""
+        if not PermissionValidator.has_permission(request.user, 'ai.content.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("content_not_authorized", "You don't have permission to generate AI content"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         serializer = AIContentGenerationRequestSerializer(data=request.data)
         
         if not serializer.is_valid():

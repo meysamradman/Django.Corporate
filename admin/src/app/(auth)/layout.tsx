@@ -1,21 +1,20 @@
+"use client";
+
 import React from "react";
 import NextTopLoader from 'nextjs-toploader';
 
-export default async function AuthLayout({children,}: {
+export default function AuthLayout({children,}: {
     children: React.ReactNode;
 }) {
     return (
         <>
             <NextTopLoader
-                color="#2299DD"
-                initialPosition={0.08}
-                crawlSpeed={200}
+                showSpinner={false}
+                color="#3b82f6"
                 height={3}
-                crawl={true}
-                showSpinner={true}
+                shadow={false}
                 easing="ease"
                 speed={200}
-                shadow="0 0 10px #2299DD,0 0 5px #2299DD"
             />
             {children}
         </>

@@ -25,6 +25,7 @@ const MediaGridSkeleton = () => (
 import { Input } from '@/components/elements/Input';
 import { mediaService } from '@/components/media/services';
 import { Button } from '@/components/elements/Button';
+import ProtectedButton from '@/core/permissions/components/ProtectedButton';
 import { PaginationControls } from '@/components/shared/Pagination';
 import {
   Pagination,
@@ -48,8 +49,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/elements/DropdownMenu";
 import { Checkbox } from '@/components/elements/Checkbox';
-import { toast } from 'sonner';
-import { usePermissions } from '@/core/auth/permissionUtils';
+import { toast } from '@/components/elements/Sonner';
+import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
+import { useHasAccess } from '@/core/permissions/hooks/useHasAccess';
 import { cn } from '@/core/utils/cn';
 import {
   AlertDialog,
@@ -102,6 +104,17 @@ export default function MediaPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [detailMedia, setDetailMedia] = useState<Media | null>(null);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { getResourceAccess, hasModuleAction } = useUserPermissions();
+  const mediaAccess = getResourceAccess('media');
+  const canUploadMedia = useHasAccess('media.upload');
+  const aiAccess = getResourceAccess('ai');
+  const canDeleteMedia = mediaAccess.delete || mediaAccess.manage;
+  const canUseAI = hasModuleAction('ai', 'create');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchMedia = useCallback(async (currentFilters: MediaFilter) => {
     setIsLoading(true);
@@ -252,6 +265,10 @@ export default function MediaPage() {
   const someSelected = selectedIds.length > 0 && !allSelected;
 
   const handleDeleteSelected = async () => {
+      if (!canDeleteMedia) {
+        toast.error("شما اجازه حذف رسانه‌ها را ندارید");
+        return;
+      }
       // Get the selected media items
       const selectedMediaItems = mediaItems.filter(item => selectedItems[item.id]);
       
@@ -282,11 +299,15 @@ export default function MediaPage() {
       });
   };
 
+  const [isAIGenerateModalOpen, setIsAIGenerateModalOpen] = useState(false);
+  
+  const handleAIGenerateClick = () => {
+    setIsAIGenerateModalOpen(true);
+  };
+  
   const handleUploadClick = () => {
     setIsUploadModalOpen(true);
   };
-  
-  const [isAIGenerateModalOpen, setIsAIGenerateModalOpen] = useState(false);
 
   const handleUploadComplete = () => {
     // Refresh media list after upload
@@ -329,22 +350,31 @@ export default function MediaPage() {
           <h1 className="page-title">کتابخانه رسانه</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
+          {/* AI Generate Button - با Toast */}
+          <ProtectedButton
+            permission="ai.create"
             size="sm"
             className="border border-pink-1 bg-pink text-pink-2 shadow-sm transition hover:bg-pink/90"
-            onClick={() => setIsAIGenerateModalOpen(true)}
+            onClick={handleAIGenerateClick}
+            showDenyToast={true}
+            denyMessage="اجازه استفاده از AI را ندارید"
           >
             <Sparkles className="h-4 w-4" />
             تولید با AI
-          </Button>
-          <Button 
+          </ProtectedButton>
+          
+          {/* Upload Button - با Toast */}
+          <ProtectedButton
+            permission="media.upload"
             size="sm"
             className="bg-primary text-static-w shadow-sm hover:shadow-md"
             onClick={handleUploadClick}
+            showDenyToast={true}
+            denyMessage="اجازه آپلود رسانه را ندارید"
           >
             <Upload className="h-4 w-4" />
             آپلود رسانه
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
 
@@ -382,29 +412,38 @@ export default function MediaPage() {
                 </div>
                 
                 {selectedIds.length > 0 && (
-                  <Button variant="destructive" onClick={handleDeleteSelected} size="sm">
+                  <ProtectedButton 
+                    permission="media.delete" 
+                    showDenyToast={true}
+                    denyMessage="اجازه حذف رسانه را ندارید" 
+                    variant="destructive" 
+                    onClick={handleDeleteSelected} 
+                    size="sm"
+                  >
                     <Trash2 className="h-4 w-4" />
                     حذف ({selectedIds.length})
-                  </Button>
+                  </ProtectedButton>
                 )}
               </div>
 
               <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
-                <Select
-                  value={filters.file_type}
-                  onValueChange={handleFileTypeChange}
-                >
-                  <SelectTrigger className="h-8 w-32">
-                    <SelectValue placeholder="نوع فایل" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">همه انواع</SelectItem>
-                    <SelectItem value="image">تصویر</SelectItem>
-                    <SelectItem value="video">ویدیو</SelectItem>
-                    <SelectItem value="audio">صوت</SelectItem>
-                    <SelectItem value="pdf">مستند</SelectItem>
-                  </SelectContent>
-                </Select>
+                {mounted && (
+                  <Select
+                    value={filters.file_type}
+                    onValueChange={handleFileTypeChange}
+                  >
+                    <SelectTrigger className="h-8 w-32">
+                      <SelectValue placeholder="نوع فایل" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">همه انواع</SelectItem>
+                      <SelectItem value="image">تصویر</SelectItem>
+                      <SelectItem value="video">ویدیو</SelectItem>
+                      <SelectItem value="audio">صوت</SelectItem>
+                      <SelectItem value="pdf">مستند</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
 
                 <div className="flex items-center gap-2">
                   <PersianDatePicker
@@ -564,31 +603,34 @@ export default function MediaPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadComplete={handleUploadComplete}
+        context="media_library"
       />
 
       {/* AI Generate Modal */}
-      <Dialog open={isAIGenerateModalOpen} onOpenChange={setIsAIGenerateModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>تولید تصویر با AI</DialogTitle>
-          </DialogHeader>
-          <AIImageGenerator
-            compact={true}
-            onImageGenerated={(media) => {
-              fetchMedia(filters);
-              setIsAIGenerateModalOpen(false);
-            }}
-            onSelectGenerated={(media) => {
-              handleMediaClick(media);
-              setIsAIGenerateModalOpen(false);
-            }}
-            onNavigateToSettings={() => {
-              setIsAIGenerateModalOpen(false);
-              router.push('/settings/ai');
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {canUseAI && (
+        <Dialog open={isAIGenerateModalOpen} onOpenChange={setIsAIGenerateModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>تولید تصویر با AI</DialogTitle>
+            </DialogHeader>
+            <AIImageGenerator
+              compact={true}
+              onImageGenerated={(media) => {
+                fetchMedia(filters);
+                setIsAIGenerateModalOpen(false);
+              }}
+              onSelectGenerated={(media) => {
+                handleMediaClick(media);
+                setIsAIGenerateModalOpen(false);
+              }}
+              onNavigateToSettings={() => {
+                setIsAIGenerateModalOpen(false);
+                router.push('/settings/ai');
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       <MediaDetailsModal
         media={detailMedia}

@@ -127,7 +127,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
         setIsSaving(true);
         
         setTimeout(() => {
-            console.log("Saving role assignments (static):", roleAssignments);
             alert("تغییرات با موفقیت ذخیره شد (شبیه‌سازی استاتیک)!");
             setEditMode(false);
             setIsSaving(false);

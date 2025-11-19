@@ -1,6 +1,6 @@
 import { Media } from "@/types/shared/media";
 import { Base } from "@/types/shared/base";
-import { PermissionCategory, Role } from "@/types/auth/permission";
+import { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 
 // Admin Base Interface
@@ -38,6 +38,7 @@ export interface AdminWithProfile extends Base {
     profile?: AdminProfile;
     permissions?: string[];
     permission_categories?: PermissionCategory;
+    permission_profile?: PermissionProfile;
     roles?: Role[];
     password?: string;
     identifier?: string;

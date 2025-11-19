@@ -4,6 +4,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
+from src.user.authorization.admin_permission import SimpleAdminPermission
 from src.core.responses import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.services.admin.admin_auth_service import AdminAuthService
@@ -12,13 +13,13 @@ from src.user.services.admin.admin_auth_service import AdminAuthService
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminLogoutView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [SimpleAdminPermission]  # فقط ادمین‌ها می‌تونن logout کنن
 
     @staticmethod
     def _delete_cookie_with_settings(response, cookie_type='SESSION'):
         """
-        پاک کردن کوکی با استفاده از تنظیمات Django
-        cookie_type: 'SESSION' یا 'CSRF'
+        Delete cookie using Django settings.
+        cookie_type: 'SESSION' or 'CSRF'
         """
         if cookie_type == 'SESSION':
             cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
@@ -43,24 +44,22 @@ class AdminLogoutView(APIView):
         return response
 
     def post(self, request):
-        """خروج ادمین"""
+        """Handle admin logout."""
         try:
-            # دریافت session key از کوکی Django
+            # Retrieve session key from Django session
             session_key = request.session.session_key
             
             if session_key:
-                # پاک کردن session از دیتابیس و cache
+                # Remove session from database/cache
                 AdminAuthService.logout_admin(session_key)
             
-            # پاک کردن session از request (Django session)
+            # Flush session state
             request.session.flush()
             
-            # ایجاد پاسخ موفقیت‌آمیز
             response = APIResponse.success(
                 message=AUTH_SUCCESS["auth_logged_out"]
             )
             
-            # پاک کردن کوکی‌های session و CSRF با تنظیمات صحیح
             self._delete_cookie_with_settings(response, 'SESSION')
             self._delete_cookie_with_settings(response, 'CSRF')
             

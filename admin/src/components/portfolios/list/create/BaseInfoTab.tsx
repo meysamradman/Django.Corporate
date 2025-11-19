@@ -33,6 +33,7 @@ import { QuickCreateDialog } from "./QuickCreateDialog";
 interface BaseInfoTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
     editMode: boolean;
+    portfolioId?: number | string; // Portfolio ID for context-aware permissions
 }
 
 // Props interface for manual state approach (edit page)
@@ -49,6 +50,7 @@ interface BaseInfoTabManualProps {
     onTagRemove: (tagId: number) => void;
     onOptionToggle: (option: PortfolioOption) => void;
     onOptionRemove: (optionId: number) => void;
+    portfolioId?: number | string; // Portfolio ID for context-aware permissions
 }
 
 // Union type for both approaches
@@ -82,6 +84,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const selectedOptions = isFormApproach ? [] : (props as any).selectedOptions || [];
     const onCategoryToggle = isFormApproach ? null : (props as any).onCategoryToggle;
     const onCategoryRemove = isFormApproach ? null : (props as any).onCategoryRemove;
+    const portfolioId = isFormApproach ? props.portfolioId : props.portfolioId;
     const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
     const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
     const onOptionToggle = isFormApproach ? null : (props as any).onOptionToggle;
@@ -103,7 +106,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 const response = await portfolioApi.getCategories({ page: 1, size: 100 });
                 setCategories(response.data || []);
             } catch (error) {
-                console.error("Error fetching categories:", error);
+                // Error handled silently
             } finally {
                 setLoadingCategories(false);
             }
@@ -115,7 +118,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 const response = await portfolioApi.getTags({ page: 1, size: 100 });
                 setTags(response.data || []);
             } catch (error) {
-                console.error("Error fetching tags:", error);
+                // Error handled silently
             } finally {
                 setLoadingTags(false);
             }
@@ -127,7 +130,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 const response = await portfolioApi.getOptions({ page: 1, size: 100 });
                 setOptions(response.data || []);
             } catch (error) {
-                console.error("Error fetching options:", error);
+                // Error handled silently
             } finally {
                 setLoadingOptions(false);
             }
@@ -712,6 +715,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         setCategories(response.data || []);
                     });
                 }}
+                context="portfolio"
+                contextId={portfolioId}
             />
 
             <QuickCreateDialog
@@ -740,6 +745,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         setTags(response.data || []);
                     });
                 }}
+                context="portfolio"
+                contextId={portfolioId}
             />
 
             <QuickCreateDialog
@@ -767,6 +774,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         setOptions(response.data || []);
                     });
                 }}
+                context="portfolio"
+                contextId={portfolioId}
             />
         </TabsContent>
     );

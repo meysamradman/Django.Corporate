@@ -31,16 +31,17 @@ from src.blog.services.admin import (
 )
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import ContentManagerAccess
+from src.user.authorization.admin_permission import BlogManagerAccess
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
+from src.user.permissions import PermissionValidator
 
 
 class BlogAdminViewSet(viewsets.ModelViewSet):
     """
     Optimized Blog ViewSet for Admin Panel with SEO support
     """
-    permission_classes = [ContentManagerAccess]
+    permission_classes = [BlogManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']
@@ -73,6 +74,11 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         """Override retrieve to ensure proper serializer and queryset - bypass filters"""
+        if not PermissionValidator.has_permission(request.user, 'blog.read'):
+            return APIResponse.error(
+                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to view blogs"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         queryset = Blog.objects.for_detail()
         pk = kwargs.get('pk')
         try:
@@ -91,6 +97,11 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """Optimized list with better performance"""
+        if not PermissionValidator.has_permission(request.user, 'blog.read'):
+            return APIResponse.error(
+                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to view blogs"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         # Get base queryset with optimizations
         queryset = self.filter_queryset(self.get_queryset())
         
@@ -169,6 +180,11 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Create blog with SEO auto-generation and media handling"""
+        if not PermissionValidator.has_permission(request.user, 'blog.create'):
+            return APIResponse.error(
+                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to create blogs"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
@@ -213,6 +229,11 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """Update blog with SEO handling and media sync"""
+        if not PermissionValidator.has_permission(request.user, 'blog.update'):
+            return APIResponse.error(
+                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to update blogs"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -238,6 +259,11 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         """Delete blog with media cleanup"""
+        if not PermissionValidator.has_permission(request.user, 'blog.delete'):
+            return APIResponse.error(
+                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to delete blogs"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         instance = self.get_object()
         
         # Delete using service (handles media cleanup)
@@ -418,6 +444,12 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
         """Add media files to blog with optimized performance"""
+        # Require blog.update for adding media to an existing blog
+        if not PermissionValidator.has_permission(request.user, 'blog.update'):
+            return APIResponse.error(
+                message="شما اجازه افزودن رسانه به بلاگ را ندارید.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         media_files = request.FILES.getlist('media_files')
         serializer = BlogMediaSerializer(data=request.data.copy())
         serializer.is_valid(raise_exception=True)
@@ -640,8 +672,8 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         """Export single blog to PDF
         
         Security:
-        - Uses ContentManagerAccess permission class (inherited from ViewSet)
-        - Only authenticated admin users with content manager or super admin roles can access
+        - Uses BlogManagerAccess permission class (inherited from ViewSet)
+        - Only authenticated admin users with blog/content manager or super admin roles can access
         - File is streamed directly without exposing data in response body
         """
         try:
@@ -674,8 +706,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             import traceback
             error_message = str(e)
             error_traceback = traceback.format_exc()
-            print(f"PDF Export Error: {error_message}")
-            print(f"Traceback: {error_traceback}")
             return Response(
                 {"detail": f"PDF export failed: {error_message}", "traceback": error_traceback},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

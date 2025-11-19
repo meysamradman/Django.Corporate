@@ -14,12 +14,9 @@ class UserListSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """
-    Serializer for Regular User Detail View
-    ✅ فقط اطلاعات پایه یوزر + profile
-    ❌ بدون permissions (چون یوزر معمولیه، نه ادمین)
-    
-    ⚠️ WARNING: این serializer فقط برای یوزرهای معمولی هست!
-    برای ادمین‌ها از AdminDetailSerializer استفاده کن.
+    Serializer for regular user detail responses.
+    Provides only basic user data plus profile information.
+    Admin-specific permission data must be handled by AdminDetailSerializer.
     """
     profile = UserProfileSerializer(source='user_profile', read_only=True)
     full_name = serializers.SerializerMethodField()
@@ -31,26 +28,22 @@ class UserDetailSerializer(serializers.ModelSerializer):
     
     def get_full_name(self, obj):
         """
-        Generate full name from user profile
-        اگه first_name و last_name داشت، ترکیفشون رو برمی‌گردونه
-        اگه نداشت، mobile یا email رو به عنوان fallback برمی‌گردونه
+        Generate a human-readable full name using profile data,
+        falling back to identifier fields when necessary.
         """
         if obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
             profile = obj.user_profile
             if profile.first_name and profile.last_name:
                 return f"{profile.first_name} {profile.last_name}"
         
-        # Fallback to identifier (برای یوزرهای بدون پروفایل کامل)
+        # Fallback to identifier for users without a completed profile
         return obj.mobile or obj.email or str(obj.id)
     
     def to_representation(self, instance):
-        """
-        Override to_representation to prevent AdminDetailSerializer from adding permissions
-        این method برای جلوگیری از اضافه شدن فیلد permissions از AdminDetailSerializer
-        """
+        """Ensure permission fields are not injected by shared mixins."""
         data = super().to_representation(instance)
         
-        # ✅ اطمینان از اینکه فیلد permissions اضافه نشه
+        # Guard against injected permission field
         data.pop('permissions', None)
         
         return data
@@ -64,9 +57,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print(f"🔍 UserUpdateSerializer initialized with data: {self.initial_data}")
-        print(f"🔍 UserUpdateSerializer context: {self.context}")
-        print(f"🔍 UserUpdateSerializer instance: {self.instance}")
     
     def to_internal_value(self, data):
         """Override to pass user_id to profile serializer"""
@@ -94,23 +84,17 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         """Validate email format and uniqueness"""
         if value:
             try:
-                print(f"🔍 Validating email: {value}")
                 # Validate email format
                 validated_email = validate_email_address(value)
-                print(f"✅ Email format valid: {validated_email}")
                 
                 # Check uniqueness (exclude current user)
                 user_id = self.context.get('user_id') or (self.instance.id if self.instance else None)
-                print(f"🔍 User ID for uniqueness check: {user_id}")
                 
                 if user_id and User.objects.filter(email=validated_email).exclude(id=user_id).exists():
-                    print(f"❌ Email already exists: {validated_email}")
-                    raise serializers.ValidationError("این ایمیل قبلاً استفاده شده است")
+                    raise serializers.ValidationError(AUTH_ERRORS["auth_email_exists"])
                 
-                print(f"✅ Email uniqueness check passed: {validated_email}")
                 return validated_email
             except Exception as e:
-                print(f"❌ Email validation error: {str(e)}")
                 raise serializers.ValidationError(str(e))
         return value
     
@@ -118,23 +102,17 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         """Validate mobile format and uniqueness"""
         if value:
             try:
-                print(f"🔍 Validating mobile: {value}")
                 # Validate mobile format
                 validated_mobile = validate_mobile_number(value)
-                print(f"✅ Mobile format valid: {validated_mobile}")
                 
                 # Check uniqueness (exclude current user)
                 user_id = self.context.get('user_id') or (self.instance.id if self.instance else None)
-                print(f"🔍 User ID for mobile uniqueness check: {user_id}")
                 
                 if user_id and User.objects.filter(mobile=validated_mobile).exclude(id=user_id).exists():
-                    print(f"❌ Mobile already exists: {validated_mobile}")
-                    raise serializers.ValidationError("این شماره موبایل قبلاً استفاده شده است")
+                    raise serializers.ValidationError(AUTH_ERRORS["auth_mobile_exists"])
                 
-                print(f"✅ Mobile uniqueness check passed: {validated_mobile}")
                 return validated_mobile
             except Exception as e:
-                print(f"❌ Mobile validation error: {str(e)}")
                 raise serializers.ValidationError(str(e))
         return value
 

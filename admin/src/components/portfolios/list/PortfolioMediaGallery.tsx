@@ -24,6 +24,7 @@ interface PortfolioMediaGalleryProps {
   maxSelection?: number;
   isGallery?: boolean; // New prop to distinguish between single item with cover vs gallery
   disabled?: boolean;
+  contextId?: number | string; // Portfolio ID for context-aware permissions
 }
 
 export function PortfolioMediaGallery({
@@ -34,6 +35,7 @@ export function PortfolioMediaGallery({
   maxSelection,
   isGallery = false, // By default, it's not a gallery (single item with cover)
   disabled = false,
+  contextId,
 }: PortfolioMediaGalleryProps) {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
@@ -156,7 +158,7 @@ export function PortfolioMediaGallery({
           </div>
         </div>
 
-        {/* Media Library Modal for cover image */}
+        {/* Media Library Modal for cover image (portfolio context) */}
         <MediaLibraryModal
           isOpen={showMediaLibrary}
           onClose={() => setShowMediaLibrary(false)}
@@ -179,6 +181,8 @@ export function PortfolioMediaGallery({
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onUploadComplete={handleUploadComplete}
+          context="portfolio"
+          contextId={contextId}
         />
       </div>
     );
@@ -313,6 +317,8 @@ export function PortfolioMediaGallery({
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onUploadComplete={handleUploadComplete}
+        context="portfolio"
+        contextId={contextId}
       />
     </div>
   );

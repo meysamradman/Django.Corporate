@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
 from src.ai.models.image_generation import AIImageGeneration
@@ -14,6 +13,8 @@ from src.media.serializers.media_serializer import MediaAdminSerializer
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses import APIResponse
+from src.user.authorization import AiManagerAccess  # Auto-generated from factory
+from src.user.permissions import PermissionValidator
 
 
 class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
@@ -21,7 +22,7 @@ class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
     ViewSet for managing API keys and AI model settings
     """
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AiManagerAccess]
     queryset = AIImageGeneration.objects.all()
     serializer_class = AIImageGenerationSerializer
     lookup_field = 'id'
@@ -32,6 +33,11 @@ class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """Update method override"""
+        if not PermissionValidator.has_permission(request.user, 'ai.image.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("provider_not_authorized", "You don't have permission to update AI image settings"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
@@ -48,6 +54,11 @@ class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Create or update Provider"""
+        if not PermissionValidator.has_permission(request.user, 'ai.image.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("provider_not_authorized", "You don't have permission to create AI image providers"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         provider_name = request.data.get('provider_name')
         if not provider_name:
             return APIResponse.error(
@@ -86,6 +97,11 @@ class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
         """
         Get list of active providers (that have API key and are active)
         """
+        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("provider_not_authorized", "You don't have permission to view AI settings"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         providers = AIImageGeneration.objects.filter(
             is_active=True
         ).exclude(
@@ -191,11 +207,16 @@ class AIImageGenerationRequestViewSet(viewsets.ViewSet):
     ViewSet for generating images with AI
     """
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AiManagerAccess]
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_image(self, request):
         """Generate image with AI"""
+        if not PermissionValidator.has_permission(request.user, 'ai.image.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("image_not_authorized", "You don't have permission to generate AI images"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         serializer = AIImageGenerationRequestSerializer(data=request.data)
         
         if not serializer.is_valid():

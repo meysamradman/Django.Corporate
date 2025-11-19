@@ -9,9 +9,9 @@ import { Input } from "@/components/elements/Input";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Separator } from "@/components/elements/Separator";
 import { Search, Shield, Users, Settings, Eye, Save, Loader2 } from "lucide-react";
-import { useRoles, usePermissions } from "@/components/auth/hooks/useRoles";
-import { useUserPermissions } from "@/components/auth/hooks/usePermissions";
-import { PermissionGate } from "@/components/auth/PermissionGate";
+import { useRoles, usePermissions } from "@/core/permissions/hooks/useRoles";
+import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
+import { PermissionGate as PermissionGateLegacy } from "@/core/permissions/components/PermissionGateLegacy";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { toast } from "@/components/elements/Sonner";
 import { PermissionGroup, Permission, RoleWithPermissions } from "@/types/auth/permission";
@@ -100,7 +100,6 @@ export default function PermissionsManagementPage() {
       setSaveDialogOpen(false);
     } catch (error) {
       toast.error("خطا در ذخیره تغییرات");
-      console.error("Save permissions error:", error);
     } finally {
       setIsSaving(false);
     }
@@ -163,7 +162,7 @@ export default function PermissionsManagementPage() {
   }
 
   return (
-    <PermissionGate 
+    <PermissionGateLegacy 
       permission="admin.roles.manage" 
       fallback={
         <div className="text-center py-12">
@@ -377,6 +376,6 @@ export default function PermissionsManagementPage() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </PermissionGate>
+    </PermissionGateLegacy>
   );
 } 

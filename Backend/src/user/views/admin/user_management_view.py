@@ -26,6 +26,7 @@ from src.user.authorization import (
     SuperAdminOnly,
     UserManagerAccess
 )
+from src.user.permissions import PermissionValidator
 from src.core.pagination.pagination import StandardLimitPagination
 # Throttling removed for admin operations - admins can work freely
 
@@ -38,17 +39,24 @@ class UserManagementView(UserAuthMixin, APIView):
     # No throttling for admin operations - admins can work freely
 
     def get_permissions(self):
-        """دسترسی بر اساس action - مدیریت کاربران عادی"""
-        # برای مدیریت کاربران عادی، فقط ادمین‌ها دسترسی دارند
-        return [SimpleAdminPermission()]
+        """Return permissions required for user-management actions."""
+        # Base permission: user must be admin with users module access
+        return [UserManagerAccess()]
 
     def get(self, request, user_id=None):
-        """دریافت لیست کاربران یا جزئیات یک کاربر"""
+        """Return user list or detail depending on request parameters."""
+        # Check read permission
+        if not PermissionValidator.has_permission(request.user, 'users.read'):
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         try:
             if user_id:
                 try:
                     user = UserManagementService.get_user_detail(user_id)
-                    # اطمینان از اینکه کاربر معمولی است
+                    # Ensure target user is a regular account
                     if user.is_staff:
                         raise NotFound(AUTH_ERRORS["not_found"])
                     serializer = UserDetailSerializer(user, context={'request': request})
@@ -109,10 +117,10 @@ class UserManagementView(UserAuthMixin, APIView):
 
     @staticmethod
     def get_by_public_id(request, public_id=None):
-        """دریافت کاربر بر اساس public_id"""
+        """Retrieve user by public_id."""
         try:
             user = UserManagementService.get_user_by_public_id(public_id)
-            # اطمینان از اینکه کاربر معمولی است
+            # Ensure queried user is a regular account
             if user.is_staff:
                 raise NotFound(AUTH_ERRORS["not_found"])
             serializer = UserDetailSerializer(user, context={'request': request})
@@ -124,7 +132,7 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def post(self, request, *args, **kwargs):
-        """مدیریت درخواست‌های POST - ایجاد کاربر یا حذف دسته‌ای"""
+        """Handle POST requests for create or bulk-delete operations."""
         bulk_action = kwargs.get('action')
         
         if bulk_action == 'bulk-delete':
@@ -133,7 +141,14 @@ class UserManagementView(UserAuthMixin, APIView):
             return self.create_user_post(request)
 
     def create_user_post(self, request):
-        """مدیریت درخواست POST برای ایجاد کاربر جدید"""
+        """Handle creation of a new regular user."""
+        # Check create permission
+        if not PermissionValidator.has_permission(request.user, 'users.create'):
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         serializer = AdminCreateRegularUserSerializer(data=request.data, context={'admin_user': request.user})
         
         if not serializer.is_valid():
@@ -143,7 +158,7 @@ class UserManagementView(UserAuthMixin, APIView):
             )
             
         try:
-            # استفاده از سرویس ثبت‌نام کاربر
+            # Use dedicated user registration service
             from src.user.services.user.user_register_service import UserRegisterService
             user = UserRegisterService.register_user_from_serializer(
                 validated_data=serializer.validated_data,
@@ -167,7 +182,14 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def bulk_delete_post(self, request):
-        """مدیریت حذف دسته‌ای کاربران"""
+        """Handle bulk deletion of regular users."""
+        # Check delete permission
+        if not PermissionValidator.has_permission(request.user, 'users.delete'):
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         serializer = BulkDeleteSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
@@ -188,7 +210,14 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def put(self, request, user_id):
-        """مدیریت به‌روزرسانی کاربر"""
+        """Handle updates to a regular user."""
+        # Check update permission
+        if not PermissionValidator.has_permission(request.user, 'users.update'):
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         try:
             user = UserManagementService.get_user_detail(user_id)
             if user.is_staff:
@@ -215,8 +244,6 @@ class UserManagementView(UserAuthMixin, APIView):
             )
             
             if not serializer.is_valid():
-                # Debug: Log validation errors
-                print(f"🔍 UserUpdateSerializer validation errors: {serializer.errors}")
                 return APIResponse.error(
                     message=AUTH_ERRORS["auth_validation_error"],
                     errors=serializer.errors
@@ -234,7 +261,14 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def delete(self, request, user_id):
-        """حذف کاربر"""
+        """Delete a regular user."""
+        # Check delete permission
+        if not PermissionValidator.has_permission(request.user, 'users.delete'):
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         try:
             user = UserManagementService.get_user_detail(user_id)
             if user.is_staff:

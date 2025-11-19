@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/route";
 import { AboutPage } from "@/types/page/page";
@@ -17,6 +18,9 @@ export function AboutPageForm() {
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState("base");
     const [page, setPage] = useState<AboutPage | null>(null);
+    
+    // 🚀 Pre-computed permission flag
+    const { canManagePages } = useUIPermissions();
     
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
@@ -60,7 +64,6 @@ export function AboutPageForm() {
                 setOgImage(data.og_image_data);
             }
         } catch (error: any) {
-            console.error("Error fetching About Page:", error);
             const errorMessage = error?.message || error?.response?.message || "خطا در دریافت صفحه درباره ما";
             toast.error(errorMessage);
         } finally {
@@ -106,7 +109,6 @@ export function AboutPageForm() {
             toast.success("صفحه درباره ما با موفقیت به‌روزرسانی شد");
             await fetchPage();
         } catch (error: any) {
-            console.error("Error updating About Page:", error);
             const errorMessage = error?.response?.data?.message || error?.message || "خطا در به‌روزرسانی صفحه درباره ما";
             toast.error(errorMessage);
         } finally {
@@ -132,7 +134,13 @@ export function AboutPageForm() {
                 <div>
                     <h1 className="page-title">تنظیمات صفحه درباره ما</h1>
                 </div>
-                <Button onClick={handleSave} disabled={saving}>
+                <ProtectedButton 
+                    onClick={handleSave} 
+                    permission="pages.manage"
+                    disabled={saving}
+                    showDenyToast={true}
+                    denyMessage="شما دسترسی لازم برای مدیریت صفحات وب را ندارید"
+                >
                     {saving ? (
                         <>
                             <Loader2 className="animate-spin" />
@@ -144,7 +152,7 @@ export function AboutPageForm() {
                             ذخیره تغییرات
                         </>
                     )}
-                </Button>
+                </ProtectedButton>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

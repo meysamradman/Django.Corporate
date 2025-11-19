@@ -91,7 +91,6 @@ export default function BlogViewPage() {
                 toast.success("فایل PDF با موفقیت دانلود شد");
               } catch (error) {
                 toast.error("خطا در دانلود فایل PDF");
-                console.error("PDF export error:", error);
               }
             }}
           >

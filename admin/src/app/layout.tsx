@@ -34,6 +34,7 @@ export default function RootLayout({
                     {children}
                     <Toaster
                         position="top-right"
+                        closeButton
                         duration={4000}
                     />
                 </AuthProvider>

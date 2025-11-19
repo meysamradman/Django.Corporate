@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useRole, useBasePermissions } from "@/components/auth/hooks/useRoles";
+import { useRole, useBasePermissions } from "@/core/permissions/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";

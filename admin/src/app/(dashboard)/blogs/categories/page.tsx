@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
-import { useCategoryColumns } from "@/components/portfolios/categories/list/CategoryTableColumns";
-import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/portfolios/categories/list/CategoryTableFilters";
+import { useCategoryColumns } from "@/components/blogs/categories/list/CategoryTableColumns";
+import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/blogs/categories/list/CategoryTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import Link from "next/link";
@@ -12,7 +12,6 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -25,17 +24,15 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { ColumnDef } from "@tanstack/react-table";
-import { portfolioApi } from "@/api/portfolios/route";
+import { blogApi } from "@/api/blogs/route";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { CategoryListParams } from "@/types/portfolio/portfolioListParams";
+import { CategoryListParams } from "@/types/blog/blogListParams";
 
 export default function CategoryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
-  const categoryAccess = getCRUDProps('portfolio-category');
   const { booleanFilterOptions } = useCategoryFilterOptions();
   const categoryFilterConfig = getCategoryFilterConfig(booleanFilterOptions);
 
@@ -78,17 +75,17 @@ export default function CategoryPage() {
   const { data: categories, isLoading, error } = useQuery({
     queryKey: ['categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
-      return await portfolioApi.getCategories(queryParams);
+      return await blogApi.getCategories(queryParams as CategoryListParams);
     },
     staleTime: 0, // Always fetch fresh data
   });
 
-  const data: PortfolioCategory[] = Array.isArray(categories?.data) ? categories.data : [];
+  const data: BlogCategory[] = Array.isArray(categories?.data) ? categories.data : [];
   const pageCount = categories?.pagination?.total_pages || 1;
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (categoryId: number) => {
-      return portfolioApi.deleteCategory(categoryId);
+      return blogApi.deleteCategory(categoryId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
@@ -101,7 +98,7 @@ export default function CategoryPage() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: (categoryIds: number[]) => {
-      return portfolioApi.bulkDeleteCategories(categoryIds);
+      return blogApi.bulkDeleteCategories(categoryIds);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
@@ -110,7 +107,6 @@ export default function CategoryPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete category error:", error);
     },
   });
 
@@ -141,17 +137,17 @@ export default function CategoryPage() {
         await deleteCategoryMutation.mutateAsync(deleteConfirm.categoryId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
   // تعریف ستون‌های جدول
-  const rowActions: DataTableRowAction<PortfolioCategory>[] = [
+  const rowActions: DataTableRowAction<BlogCategory>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (category) => router.push(`/portfolios/categories/${category.id}/edit`),
+      onClick: (category) => router.push(`/blogs/categories/${category.id}/edit`),
     },
     {
       label: "حذف",
@@ -161,7 +157,7 @@ export default function CategoryPage() {
     },
   ];
   
-  const columns = useCategoryColumns(rowActions) as ColumnDef<PortfolioCategory>[];
+  const columns = useCategoryColumns(rowActions) as ColumnDef<BlogCategory>[];
 
   // Load filters from URL on initial load
   React.useEffect(() => {
@@ -307,9 +303,9 @@ export default function CategoryPage() {
         </div>
         <div className="flex items-center">
           <Button size="sm" asChild>
-            <Link href="/portfolios/categories/create">
+            <Link href="/blogs/categories/create">
               <Edit className="h-4 w-4 me-2" />
-              افزودن دسته‌بندی
+              افزودن دسته‌بندی بلاگ
             </Link>
           </Button>
         </div>
@@ -335,6 +331,8 @@ export default function CategoryPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "blog.delete",
+          denyMessage: "اجازه حذف دسته‌بندی ندارید",
         }}
         filterConfig={categoryFilterConfig}
       />

@@ -1,13 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useCreateRole, usePermissions } from "@/components/auth/hooks/useRoles";
+import { useCreateRole, usePermissions } from "@/core/permissions/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Save, Loader2, Users, Image, FileText, Settings, BarChart3, Shield, AlertCircle, ShieldCheck, User } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  Users,
+  Image,
+  FileText,
+  Settings,
+  BarChart3,
+  Shield,
+  AlertCircle,
+  ShieldCheck,
+  User,
+  Tag,
+  FolderTree,
+  ListChecks,
+  LayoutPanelLeft,
+  BookOpenText,
+  Tags,
+  Component,
+  ListTree,
+  Sparkles,
+  Mail,
+  SquarePen,
+  BookOpenCheck,
+  PieChart
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
@@ -89,20 +114,48 @@ export default function CreateRolePage() {
 
   const onSubmit = async (data: RoleFormValues) => {
     try {
-      console.log('Submitting role with permissions:', data.permission_ids);
-      const result = await createRoleMutation.mutateAsync({
-        ...data,
-        permission_ids: data.permission_ids,
-      });
+      // Convert permission IDs to modules/actions format that backend expects
+      const selectedPermsData: Array<{module: string; action: string}> = [];
+      
+      if (permissions) {
+        permissions.forEach((group: any) => {
+          group.permissions.forEach((perm: any) => {
+            if (selectedPermissions.includes(perm.id)) {
+              selectedPermsData.push({
+                module: perm.resource,  // Backend expects 'module' not 'resource'
+                action: perm.action.toLowerCase() // Backend expects lowercase
+              });
+            }
+          });
+        });
+      }
+
+      // Build permissions object in backend format
+      const permissionsPayload = selectedPermsData.length > 0 
+        ? { specific_permissions: selectedPermsData }
+        : {};
+
+      const payload = {
+        name: data.name,
+        description: data.description,
+        permissions: permissionsPayload,
+      };
+
+      const result = await createRoleMutation.mutateAsync(payload);
       
       // نمایش پیام موفقیت
       showSuccessToast(msg.ui("roleCreated"));
       
       // انتقال به صفحه لیست
       router.push("/roles");
-    } catch (error) {
-      console.error("❌ Create role error:", error);
-      
+    } catch (error: any) {
+      console.error("Role creation error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        status: error.status,
+        data: error.data,
+      });
+
       // بررسی خطاهای فیلدها از Django
       if (hasFieldErrors(error)) {
         const fieldErrors = extractFieldErrors(error);
@@ -124,23 +177,31 @@ export default function CreateRolePage() {
     }
   };
 
-  // Get icon based on resource name
-  const getResourceIcon = (resourceName: string) => {
-    const lowerResourceName = resourceName.toLowerCase();
-    
-    if (lowerResourceName.includes('admin') || lowerResourceName.includes('user')) {
-      return <Users className="h-4 w-4" />;
-    } else if (lowerResourceName.includes('media')) {
-      return <Image className="h-4 w-4" />;
-    } else if (lowerResourceName.includes('portfolio') || lowerResourceName.includes('blog')) {
-      return <FileText className="h-4 w-4" />;
-    } else if (lowerResourceName.includes('statistics') || lowerResourceName.includes('analytics')) {
-      return <BarChart3 className="h-4 w-4" />;
-    } else if (lowerResourceName.includes('settings') || lowerResourceName.includes('panel')) {
-      return <Settings className="h-4 w-4" />;
-    } else {
-      return <Shield className="h-4 w-4" />;
-    }
+  const resourceIconMap: Record<string, React.ReactElement> = {
+    users: <Users className="h-4 w-4 text-blue-600" />,
+    admin: <ShieldCheck className="h-4 w-4 text-purple-600" />,
+    media: <Image className="h-4 w-4 text-pink-600" />,
+    portfolio: <LayoutPanelLeft className="h-4 w-4 text-indigo-600" />,
+    blog: <BookOpenText className="h-4 w-4 text-green-600" />,
+    blog_categories: <FolderTree className="h-4 w-4 text-emerald-600" />,
+    blog_tags: <Tags className="h-4 w-4 text-teal-600" />,
+    portfolio_categories: <Component className="h-4 w-4 text-cyan-600" />,
+    portfolio_tags: <Tag className="h-4 w-4 text-sky-600" />,
+    portfolio_options: <ListTree className="h-4 w-4 text-violet-600" />,
+    portfolio_option_values: <ListChecks className="h-4 w-4 text-fuchsia-600" />,
+    analytics: <BarChart3 className="h-4 w-4 text-amber-600" />,
+    statistics: <PieChart className="h-4 w-4 text-orange-600" />,
+    panel: <Settings className="h-4 w-4 text-slate-600" />,
+    settings: <Settings className="h-4 w-4 text-gray-600" />,
+    ai: <Sparkles className="h-4 w-4 text-yellow-600" />,
+    email: <Mail className="h-4 w-4 text-red-600" />,
+    forms: <SquarePen className="h-4 w-4 text-lime-600" />,
+    pages: <BookOpenCheck className="h-4 w-4 text-rose-600" />
+  };
+
+  const getResourceIcon = (resourceKey: string) => {
+    const iconMap = resourceIconMap[resourceKey];
+    return iconMap || <Shield className="h-4 w-4" />;
   };
 
   // Group permissions by resource and organize actions
@@ -174,7 +235,8 @@ export default function CreateRolePage() {
       'view': ['view', 'list', 'read', 'get'],
       'create': ['create', 'post', 'write', 'add'],
       'edit': ['edit', 'update', 'put', 'patch', 'modify'],
-      'delete': ['delete', 'remove', 'destroy']
+      'delete': ['delete', 'remove', 'destroy'],
+      'manage': ['manage', 'admin']
     };
     
     const variants = actionVariants[action] || [action];
@@ -184,7 +246,44 @@ export default function CreateRolePage() {
     );
   };
 
-  const organizedPermissions = getOrganizedPermissions();
+  // Check if resource should be in management section
+  const isManagementResource = (resource: any) => {
+    const name = resource.resource?.toLowerCase() || '';
+    const perms = resource.permissions || [];
+
+    // 1. FORCE these specific resources to always be in management section
+    const forcedManagementResources = ['pages', 'settings', 'panel', 'forms', 'ai', 'statistics', 'analytics'];
+    if (forcedManagementResources.includes(name)) {
+      return true;
+    }
+    
+    // 2. For others, check if they lack standard actions
+    const standardActions = ['create', 'post', 'write', 'add', 
+                             'edit', 'update', 'put', 'patch', 'modify', 
+                             'delete', 'remove', 'destroy'];
+    
+    const hasStandardAction = perms.some((p: any) => {
+      const action = p.action?.toLowerCase() || '';
+      return standardActions.includes(action);
+    });
+    
+    return !hasStandardAction;
+  };
+
+  // ✅ FIX: Memoize organizedPermissions to prevent re-computation
+  const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
+
+  // Logic Update: Separating based on explicit list AND action types
+  const manageOnlyResources = useMemo(() => {
+    return organizedPermissions.filter((r: any) => isManagementResource(r));
+  }, [organizedPermissions]);
+
+  const standardResources = useMemo(() => {
+    return organizedPermissions.filter((r: any) => !isManagementResource(r));
+  }, [organizedPermissions]);
+
+  // Backward compatibility for logic check (optional, but keeping clean)
+  const hasManageOnlyResources = manageOnlyResources.length > 0;
 
   return (
     <div className="space-y-6">
@@ -221,108 +320,171 @@ export default function CreateRolePage() {
                 <p className="text-sm mt-2">{String(permissionsError)}</p>
               </div>
             ) : permissions && permissions.length > 0 ? (
-              <div className="space-y-4">
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            onCheckedChange={(checked) => {
-                              const allPermissionIds = organizedPermissions.flatMap(
-                                (resource: any) => resource.permissions.map((p: any) => p.id)
-                              );
-                              
-                              const newPermissions = checked ? allPermissionIds : [];
-                              setSelectedPermissions(newPermissions);
-                              
-                              // Sync با form
-                              setValue("permission_ids", newPermissions, { shouldValidate: true });
-                            }}
-                          />
-                        </TableHead>
-                        <TableHead>منبع</TableHead>
-                        <TableHead className="text-center">مشاهده</TableHead>
-                        <TableHead className="text-center">ایجاد</TableHead>
-                        <TableHead className="text-center">ویرایش</TableHead>
-                        <TableHead className="text-center">حذف</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {organizedPermissions.map((resource: any) => (
-                        <TableRow key={resource.resource}>
-                          <TableCell>
+              <div className="space-y-8">
+                {/* Standard Resources Table */}
+                {standardResources.length > 0 && (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
                             <Checkbox
-                              checked={areAllResourcePermissionsSelected(resource.permissions)}
-                              onCheckedChange={() => toggleAllResourcePermissions(resource.permissions)}
+                              onCheckedChange={(checked) => {
+                                const permissionIds = standardResources.flatMap(
+                                  (resource: any) => resource.permissions.map((p: any) => p.id)
+                                );
+                                
+                                const newSelected = checked
+                                  ? [...selectedPermissions, ...permissionIds.filter(id => !selectedPermissions.includes(id))]
+                                  : selectedPermissions.filter(id => !permissionIds.includes(id));
+                                  
+                                setSelectedPermissions(newSelected);
+                                setValue("permission_ids", newSelected, { shouldValidate: true });
+                              }}
                             />
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              {getResourceIcon(resource.display_name)}
-                              {getPermissionTranslation(resource.display_name, 'resource')}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'view')?.id
-                                )}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'view');
-                                  if (perm) togglePermission(perm.id);
-                                }}
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'create')?.id
-                                )}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'create');
-                                  if (perm) togglePermission(perm.id);
-                                }}
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'edit')?.id
-                                )}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'edit');
-                                  if (perm) togglePermission(perm.id);
-                                }}
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'delete')?.id
-                                )}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'delete');
-                                  if (perm) togglePermission(perm.id);
-                                }}
-                              />
-                            </div>
-                          </TableCell>
+                          </TableHead>
+                          <TableHead>منبع</TableHead>
+                          <TableHead className="text-center">مشاهده</TableHead>
+                          <TableHead className="text-center">ایجاد</TableHead>
+                          <TableHead className="text-center">ویرایش</TableHead>
+                          <TableHead className="text-center">حذف</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {standardResources.map((resource: any) => (
+                          <TableRow key={resource.resource}>
+                            <TableCell>
+                              <Checkbox
+                                checked={areAllResourcePermissionsSelected(resource.permissions)}
+                                onCheckedChange={() => toggleAllResourcePermissions(resource.permissions)}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {getResourceIcon(resource.resource)}
+                                {getPermissionTranslation(resource.display_name, 'resource')}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center">
+                                <Checkbox
+                                  checked={isPermissionSelected(
+                                    getActionPermission(resource.permissions, 'view')?.id
+                                  )}
+                                  onCheckedChange={() => {
+                                    const perm = getActionPermission(resource.permissions, 'view');
+                                    if (perm) togglePermission(perm.id);
+                                  }}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center">
+                                <Checkbox
+                                  checked={isPermissionSelected(
+                                    getActionPermission(resource.permissions, 'create')?.id
+                                  )}
+                                  onCheckedChange={() => {
+                                    const perm = getActionPermission(resource.permissions, 'create');
+                                    if (perm) togglePermission(perm.id);
+                                  }}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center">
+                                <Checkbox
+                                  checked={isPermissionSelected(
+                                    getActionPermission(resource.permissions, 'edit')?.id
+                                  )}
+                                  onCheckedChange={() => {
+                                    const perm = getActionPermission(resource.permissions, 'edit');
+                                    if (perm) togglePermission(perm.id);
+                                  }}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center">
+                                <Checkbox
+                                  checked={isPermissionSelected(
+                                    getActionPermission(resource.permissions, 'delete')?.id
+                                  )}
+                                  onCheckedChange={() => {
+                                    const perm = getActionPermission(resource.permissions, 'delete');
+                                    if (perm) togglePermission(perm.id);
+                                  }}
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                {/* Management-Only Modules (Settings, Analytics, etc.) */}
+                {manageOnlyResources.length > 0 && (
+                  <Card className="border-2 border-dashed border-blue-0 bg-blue">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-1/10">
+                            <Settings className="h-5 w-5 text-blue-1" />
+                          </div>
+                          <div>
+                            <CardTitle>ماژول‌های تنظیمات و گزارش‌گیری</CardTitle>
+                            <p className="text-sm text-font-s mt-1">
+                              دسترسی مدیریت کلی (بدون CRUD جداگانه)
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-font-s">
+                          {manageOnlyResources.filter((r: any) => {
+                            const perm = getActionPermission(r.permissions, 'manage') || r.permissions[0];
+                            return perm && isPermissionSelected(perm.id);
+                          }).length} / {manageOnlyResources.length}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {manageOnlyResources.map((resource: any) => {
+                          const managePerm = getActionPermission(resource.permissions, 'manage') || resource.permissions[0];
+                          if (!managePerm) return null;
+                          
+                          const isSelected = isPermissionSelected(managePerm.id);
+
+                          return (
+                            <div 
+                              key={resource.resource}
+                              onClick={() => togglePermission(managePerm.id)}
+                              className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${isSelected ? 'border-blue-1 bg-blue-0' : 'border-br bg-card hover:border-blue-0'}`}
+                            >
+                              <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-blue-1/20' : 'bg-bg group-hover:bg-blue-0/50'}`}>
+                                {getResourceIcon(resource.resource)}
+                              </div>
+                              <span className={`text-center text-sm font-medium leading-tight ${isSelected ? 'text-blue-1' : 'text-font-p'}`}>
+                                {getPermissionTranslation(resource.display_name, 'resource')}
+                              </span>
+                              {isSelected && (
+                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-1 rounded-full flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-wt" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 
                 {selectedPermissions.length > 0 && (
-                  <div className="mt-4 p-3 bg-bg/50 rounded-lg">
+                  <div className="p-3 bg-bg/50 rounded-lg">
                     <div className="text-sm font-medium">
                       دسترسی‌های انتخاب شده: {selectedPermissions.length}
                     </div>

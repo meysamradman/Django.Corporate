@@ -43,20 +43,17 @@ export function normalizePaginationParams(
   
   // Validate page number
   if (typeof page !== 'number' || !Number.isInteger(page) || page < 1) {
-    console.warn(`Invalid page number ${page}, defaulting to 1.`);
-    page = 1;
+        page = 1;
   }
   
   // Validate page size
   if (typeof size !== 'number' || !Number.isInteger(size) || size < 1) {
-    console.warn(`Invalid page size ${size}, defaulting to ${defaultSize}.`);
-    size = defaultSize;
+        size = defaultSize;
   }
   
   // Check if size is in valid sizes
   if (!validSizes.includes(size)) {
-    console.warn(`Page size ${size} not in valid sizes, defaulting to ${defaultSize}.`);
-    size = defaultSize;
+        size = defaultSize;
   }
   
   return { page, size };

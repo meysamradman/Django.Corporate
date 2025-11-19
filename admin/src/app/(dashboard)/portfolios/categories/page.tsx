@@ -12,7 +12,6 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -34,8 +33,6 @@ import { CategoryListParams } from "@/types/portfolio/portfolioListParams";
 export default function CategoryPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
-  const categoryAccess = getCRUDProps('portfolio-category');
   const { booleanFilterOptions } = useCategoryFilterOptions();
   const categoryFilterConfig = getCategoryFilterConfig(booleanFilterOptions);
 
@@ -110,7 +107,6 @@ export default function CategoryPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete category error:", error);
     },
   });
 
@@ -141,7 +137,7 @@ export default function CategoryPage() {
         await deleteCategoryMutation.mutateAsync(deleteConfirm.categoryId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
@@ -335,6 +331,8 @@ export default function CategoryPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "portfolio.delete",
+          denyMessage: "اجازه حذف دسته‌بندی ندارید",
         }}
         filterConfig={categoryFilterConfig}
       />

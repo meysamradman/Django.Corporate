@@ -109,8 +109,6 @@ export const mediaApi = {
 
             return response;
         } catch (error: unknown) {
-            console.error("API Error in getMediaList:", error);
-
             let message = "Failed to fetch media list";
             let statusCode = 500;
 
@@ -179,8 +177,7 @@ export const mediaApi = {
                 // Note: Assuming the backend returns ApiResponse<Media>
                 // If it just returns Media, we need to wrap it
                 if (response && typeof response === 'object' && !('metaData' in response)) {
-                     console.warn("getMediaDetails received raw data, wrapping in ApiResponse");
-                     return {
+                                          return {
                          metaData: { status: 'success', message: 'Details fetched', AppStatusCode: 200, timestamp: new Date().toISOString() },
                          data: response as Media
                      };
@@ -189,9 +186,7 @@ export const mediaApi = {
                 return response;
             } catch (metadataError) {
                 // If metadata endpoint fails with 404, try fetching from list endpoint
-                console.warn(`Metadata endpoint failed, trying to fetch media ID ${mediaIdNumber} from list endpoint`);
-                
-                // Create a filter to get just this media item
+                                // Create a filter to get just this media item
                 const listFilter: MediaFilter = {
                     page: 1,
                     size: 100, // Fetch enough to find the item
@@ -221,17 +216,14 @@ export const mediaApi = {
                 throw metadataError;
             }
         } catch (error: unknown) {
-            console.error(`API Error in getMediaDetails for ID ${mediaId}:`, error);
             let message = `Failed to fetch details for media ID ${mediaId}`;
             let statusCode = 500;
 
             if (error instanceof ApiError) {
                 message = error.message;
                 statusCode = error.response.AppStatusCode;
-                console.error(`FetchError details: Status ${statusCode}, Message: ${message}`);
             } else if (error instanceof Error) {
                 message = error.message;
-                console.error(`Generic Error: ${message}`);
             }
 
             return {
@@ -319,7 +311,6 @@ export const mediaApi = {
                             
                             resolve(formattedResponse);
                         } catch (error) {
-                            console.error("Upload response parse error:", error, "Response:", xhr.responseText);
                             reject(new Error('Failed to parse server response'));
                         }
                     } else {
@@ -335,11 +326,8 @@ export const mediaApi = {
                             } else if (errorData.message) {
                                 errorMessage = errorData.message;
                             }
-                            
-                            console.error("Upload error response:", errorData);
                         } catch {
                             errorMessage = xhr.statusText || 'Upload failed';
-                            console.error("Upload error (unparseable response):", xhr.status, xhr.statusText, xhr.responseText);
                         }
                         
                         reject(new Error(errorMessage));
@@ -347,12 +335,10 @@ export const mediaApi = {
                 };
                 
                 xhr.onerror = () => {
-                    console.error("Network error during upload");
                     reject(new Error('Network error during upload'));
                 };
                 
                 xhr.ontimeout = () => {
-                    console.error("Upload request timed out");
                     reject(new Error('Upload request timed out'));
                 };
                 
@@ -361,8 +347,6 @@ export const mediaApi = {
             
             return await uploadPromise;
         } catch (error: unknown) {
-            console.error("API Error in uploadMedia:", error);
-
             let message = "Failed to upload media";
             let statusCode = 500;
 
@@ -397,7 +381,6 @@ export const mediaApi = {
             const endpoint = `${BASE_MEDIA_PATH}/${mediaId}`;
             return await fetchApi.delete<{ deleted: boolean }>(endpoint);
         } catch (error: unknown) {
-            console.error(`API Error in deleteMedia for ID ${mediaId}:`, error);
             showErrorToast(error, `Failed to delete media item`);
             
             let message = "Failed to delete media";
@@ -436,7 +419,6 @@ export const mediaApi = {
             // Use PUT for full updates
             return await fetchApi.put<Media>(endpoint, updateData);
         } catch (error: unknown) {
-            console.error(`API Error in updateMedia for ID ${mediaId}:`, error);
             showErrorToast(error, `Failed to update media item`);
             
             let message = "Failed to update media";
@@ -477,21 +459,17 @@ export const mediaApi = {
             };
             // Use PATCH for partial updates
             const response = await fetchApi.patch<Media>(endpoint, updateData);
-            console.log('Update cover image response:', response);
-            
-            // Ensure the response contains all necessary data
+                        // Ensure the response contains all necessary data
             if (response.metaData.status === 'success' && response.data) {
                 // Make sure cover_image and cover_image_url are properly set
                 if (coverImageId === null) {
                     response.data.cover_image = null;
                     response.data.cover_image_url = undefined;
                 }
-                console.log('Final cover image response:', response);
-            }
+                            }
             
             return response;
         } catch (error: unknown) {
-            console.error(`API Error in updateCoverImage for ID ${mediaId}:`, error);
             showErrorToast(error, `Failed to update cover image`);
             
             let message = "Failed to update cover image";
@@ -534,7 +512,6 @@ export const mediaApi = {
             
             return await fetchApi.post<{ deleted_count: number }>(endpoint, { media_data: mediaData });
         } catch (error: unknown) {
-            console.error(`API Error in bulkDeleteMedia:`, error);
             showErrorToast(error, `Failed to delete media items`);
             
             let message = "Failed to delete media items";

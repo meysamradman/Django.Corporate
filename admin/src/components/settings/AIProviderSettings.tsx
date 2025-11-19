@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Input } from '@/components/elements/Input';
 import { Label } from '@/components/elements/Label';
 import { Switch } from '@/components/elements/Switch';
@@ -53,6 +54,9 @@ export function AIProviderSettings() {
     const [apiKeys, setApiKeys] = useState<Record<number, string>>({});
     const [showApiKeys, setShowApiKeys] = useState<Record<number, boolean>>({});
     const [saving, setSaving] = useState<Record<number, boolean>>({});
+    
+    // 🚀 استفاده از pre-computed flag بجای runtime check
+    const { canManageAI } = useUIPermissions();
 
     useEffect(() => {
         fetchProviders();
@@ -258,15 +262,18 @@ export function AIProviderSettings() {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button
+                                            <ProtectedButton
                                                 onClick={() => handleSaveProvider(provider.id, provider.provider_name)}
+                                                permission="ai.manage"
                                                 disabled={saving[provider.id] || !apiKeys[provider.id]?.trim()}
+                                                showDenyToast={true}
+                                                denyMessage="شما دسترسی لازم برای مدیریت تنظیمات هوش مصنوعی را ندارید"
                                                 className="flex-1 text-sm h-9"
                                                 size="sm"
                                             >
                                                 {saving[provider.id] && <Loader2 className="h-3 w-3 mr-2 animate-spin" />}
                                                 ذخیره
-                                            </Button>
+                                            </ProtectedButton>
                                             <Button
                                                 variant="outline"
                                                 onClick={() => {

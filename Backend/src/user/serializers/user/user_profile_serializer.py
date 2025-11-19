@@ -70,13 +70,13 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         queryset=ImageMedia.objects.filter(is_active=True),
         required=False, 
         allow_null=True,
-        help_text="ID یک تصویر از کتابخانه مدیا"
+        help_text="ID of an image stored in the media library."
     )
     profile_picture_file = serializers.ImageField(
         required=False, 
         allow_null=True, 
         write_only=True,
-        help_text="آپلود مستقیم فایل تصویر (جایگزین profile_picture ID)"
+        help_text="Upload an image file directly (alternative to profile_picture ID)."
     )
     
     class Meta:
@@ -102,23 +102,17 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         try:
             # Get user_id from context or from instance
             user_id = self.context.get('user_id') or (self.instance.user_id if self.instance else None)
-            print(f"🔍 UserProfileUpdateSerializer phone validation - user_id: {user_id}, value: {value}")
             return validate_phone_number_with_uniqueness(value, user_id, 'user')
         except Exception as e:
-            print(f"❌ UserProfileUpdateSerializer phone validation error: {str(e)}")
             raise serializers.ValidationError(str(e))
     
     def validate_national_id(self, value):
         """Validate national_id uniqueness"""
         if value:
             user_id = self.context.get('user_id') or (self.instance.user_id if self.instance else None)
-            print(f"🔍 UserProfileUpdateSerializer national_id validation - user_id: {user_id}, value: {value}")
             
             if user_id and UserProfile.objects.filter(national_id=value).exclude(user_id=user_id).exists():
-                print(f"❌ National ID already exists: {value}")
-                raise serializers.ValidationError("این کد ملی قبلاً استفاده شده است")
-            
-            print(f"✅ National ID uniqueness check passed: {value}")
+                raise serializers.ValidationError(AUTH_ERRORS["national_id_exists"])
         return value
         
     def validate_birth_date(self, value):
@@ -127,7 +121,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_profile_picture_file(self, value):
-        """اعتبارسنجی فایل تصویر پروفایل آپلود شده با استفاده از سرویس مدیا"""
+        """Validate uploaded profile picture using the media service."""
         if value is None:
             return value
         
@@ -140,7 +134,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(e))
     
     def validate(self, data):
-        """اعتبارسنجی بین فیلدی"""
+        """Cross-field validation for mutually exclusive image inputs."""
         if data.get('profile_picture') and data.get('profile_picture_file'):
             raise serializers.ValidationError({
                 'profile_picture_file': AUTH_ERRORS.get("auth_validation_error")

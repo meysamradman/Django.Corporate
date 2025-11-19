@@ -9,7 +9,7 @@ class UserProfileService:
     @staticmethod
     def get_user_profile(user):
         """
-        دریافت یا ایجاد پروفایل کاربر معمولی
+        Retrieve or create the profile associated with a regular user.
         """
         try:
             profile_instance = getattr(user, 'user_profile', None)
@@ -27,7 +27,7 @@ class UserProfileService:
     @staticmethod
     def update_user_profile(user, profile_data):
         """
-        به‌روزرسانی پروفایل کاربر معمولی با داده‌های ارائه شده
+        Update a regular user's profile with the provided data.
         """
         if not profile_data:
             return UserProfileService.get_user_profile(user)
@@ -44,7 +44,7 @@ class UserProfileService:
             for field, value in profile_data.items():
                 current_value = getattr(profile, field, None)
                 
-                # پردازش فیلدهای کلید خارجی (province, city)
+                # Handle foreign key fields (province, city)
                 if field in ['province', 'city']:
                     current_id = getattr(current_value, 'id', None) if current_value else None
                     new_id = value if isinstance(value, int) else getattr(value, 'id', None) if value else None
@@ -69,14 +69,14 @@ class UserProfileService:
                             fields_actually_updated.append(field)
                             update_needed = True
                 else:
-                    # پردازش فیلدهای معمولی
+                    # Handle primitive fields
                     if str(value or '') != str(current_value or ''):
                         setattr(profile, field, value)
                         fields_actually_updated.append(field)
                         update_needed = True
             
             
-            # پردازش تصویر پروفایل به صورت جداگانه
+            # Process profile picture updates separately
             if profile_picture is not None:
                 current_profile_picture = getattr(profile, 'profile_picture', None)
                 current_id = getattr(current_profile_picture, 'id', None) if current_profile_picture else None
@@ -104,7 +104,7 @@ class UserProfileService:
                         pass
             
             if update_needed:
-                # بررسی تکراری بودن national_id قبل از ذخیره
+                # Guard against duplicate national_id values before saving
                 if 'national_id' in fields_actually_updated:
                     national_id = getattr(profile, 'national_id', None)
                     if national_id:
@@ -132,7 +132,7 @@ class UserProfileService:
     @staticmethod
     def update_profile_image(user, media_obj):
         """
-        به‌روزرسانی تصویر پروفایل با آبجکت Media از اپ مرکزی مدیا
+        Update the profile picture using an ImageMedia object from the media app.
         """
         profile = UserProfileService.get_user_profile(user)
         

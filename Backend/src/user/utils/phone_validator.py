@@ -25,14 +25,14 @@ def validate_phone_number(value):
     
     # Check if it's all digits
     if not cleaned_phone.isdigit():
-        raise ValidationError("شماره تلفن باید فقط شامل اعداد باشد")
+        raise ValidationError("Phone number must contain digits only.")
     
     # Check reasonable length (3-15 digits)
     if len(cleaned_phone) < 3:
-        raise ValidationError("شماره تلفن باید حداقل 3 رقم باشد")
+        raise ValidationError("Phone number must contain at least 3 digits.")
     
     if len(cleaned_phone) > 15:
-        raise ValidationError("شماره تلفن نمی‌تواند بیش از 15 رقم باشد")
+        raise ValidationError("Phone number must not exceed 15 digits.")
     
     return cleaned_phone
 
@@ -84,7 +84,7 @@ def validate_phone_uniqueness(phone, user_id=None, profile_type='user'):
         pass
     
     if user_query.exists():
-        raise ValidationError("این شماره تلفن قبلاً توسط کاربر دیگری استفاده شده است")
+        raise ValidationError("This phone number is already used by another user.")
     
     # Check in AdminProfile
     admin_query = AdminProfile.objects.filter(phone=phone)
@@ -95,7 +95,7 @@ def validate_phone_uniqueness(phone, user_id=None, profile_type='user'):
         pass
     
     if admin_query.exists():
-        raise ValidationError("این شماره تلفن قبلاً توسط ادمین دیگری استفاده شده است")
+        raise ValidationError("This phone number is already used by another admin.")
     
     return phone
 

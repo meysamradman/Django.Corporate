@@ -402,8 +402,9 @@ class PortfolioPDFListExportService:
             
             return response
         except Exception as e:
-            if settings.DEBUG:
-                import traceback
-                print(f"PDF list export error: {e}\n{traceback.format_exc()}")
+            import traceback
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"PDF list export error: {e}\n{traceback.format_exc()}")
             raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
 

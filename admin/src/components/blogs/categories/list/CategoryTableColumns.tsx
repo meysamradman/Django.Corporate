@@ -14,6 +14,7 @@ import Link from "next/link";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
+import { ProtectedLink } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
@@ -73,7 +74,11 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
         };
 
         return (
-          <Link href={`/blogs/categories/${category.id}/edit`} className="flex items-center gap-3">
+          <ProtectedLink 
+            href={`/blogs/categories/${category.id}/edit`} 
+            permission="blog_categories.update"
+            className="flex items-center gap-3"
+          >
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={category.name} />
@@ -86,7 +91,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
             <div className="table-cell-primary table-cell-wide">
               {category.name}
             </div>
-          </Link>
+          </ProtectedLink>
         );
       },
       enableSorting: true,

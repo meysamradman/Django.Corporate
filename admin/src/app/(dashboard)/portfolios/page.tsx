@@ -8,12 +8,12 @@ import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/component
 import { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import ProtectedButton from "@/core/permissions/components/ProtectedButton";
 import Link from "next/link";
 import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -59,8 +59,6 @@ const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[]
 export default function PortfolioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
-  const portfolioAccess = getCRUDProps('portfolio');
   const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
   
   // استیت برای دسته‌بندی‌ها
@@ -150,7 +148,7 @@ export default function PortfolioPage() {
         setCategories(response.data);
         setCategoryOptions(convertCategoriesToHierarchical(response.data));
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        // Error handled silently
       }
     };
     
@@ -213,7 +211,6 @@ export default function PortfolioPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete portfolio error:", error);
     },
   });
 
@@ -228,7 +225,6 @@ export default function PortfolioPage() {
     },
     onError: (error) => {
       toast.error("خطا در تغییر وضعیت");
-      console.error("Toggle active status error:", error);
     },
   });
 
@@ -267,7 +263,7 @@ export default function PortfolioPage() {
         await deletePortfolioMutation.mutateAsync(deleteConfirm.portfolioId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
@@ -650,12 +646,19 @@ export default function PortfolioPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          <Button size="sm" asChild>
+          {/* ✅ دکمه navigation به صفحه ایجاد - با Toast */}
+          <ProtectedButton 
+            permission="portfolio.create"
+            size="sm" 
+            asChild
+            showDenyToast={true}
+            denyMessage="اجازه ایجاد نمونه‌کار ندارید"
+          >
             <Link href="/portfolios/create">
               <Edit className="h-4 w-4 me-2" />
               افزودن نمونه‌کار
             </Link>
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
 
@@ -679,6 +682,8 @@ export default function PortfolioPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "portfolio.delete",
+          denyMessage: "اجازه حذف نمونه‌کار ندارید",
         }}
         exportConfigs={[
           {

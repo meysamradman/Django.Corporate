@@ -12,6 +12,9 @@ import { adminApi } from "@/api/admins/route";
 import dynamic from "next/dynamic";
 import { getErrorMessage, getUIMessage, getValidationMessage } from "@/core/messages/message";
 import { useAuth } from "@/core/auth/AuthContext";
+import { ApiError } from "@/types/api/apiError";
+import { Button } from "@/components/elements/Button";
+import { useRouter } from "next/navigation";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -58,18 +61,35 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     const [activeTab, setActiveTab] = useState("account");
     const queryClient = useQueryClient();
+    const router = useRouter();
     const { user, refreshUser } = useAuth();
     
     // Fetch admin data with React Query for automatic updates
-    const { data: adminData, isLoading } = useQuery({
-        queryKey: ['admin', adminId],
-        queryFn: () => adminApi.getAdminById(Number(adminId)),
+    const isMeRoute = adminId === "me";
+    const isNumericId = !Number.isNaN(Number(adminId));
+    const queryKey = ['admin', isMeRoute ? 'me' : adminId];
+
+    const { data: adminData, isLoading, error } = useQuery({
+        queryKey,
+        queryFn: () => {
+            if (isMeRoute) {
+                return adminApi.getCurrentAdminManagedProfile();
+            }
+            if (!isNumericId) {
+                return Promise.reject(new Error("شناسه ادمین نامعتبر است"));
+            }
+            return adminApi.getAdminById(Number(adminId));
+        },
         staleTime: 0, // Always fetch fresh data
+        retry: (failureCount, requestError) => {
+            if (requestError instanceof ApiError && requestError.response.AppStatusCode === 403) {
+                return false;
+            }
+            return failureCount < 2;
+        },
     });
 
-    console.log("📥 EditForm: Current adminData from query", adminData?.profile?.profile_picture);
-    
-    const [editMode, setEditMode] = useState(false);
+        const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -141,12 +161,9 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             return;
         }
         
-        console.log(`🔧 EditForm handleInputChange: ${field}`, value);
-        
-        setFormData(prev => {
+                setFormData(prev => {
             const newData = { ...prev, [field]: value };
-            console.log("📝 Updated formData:", newData);
-            return newData;
+                        return newData;
         });
         
         // پاک کردن خطای فیلد وقتی کاربر شروع به تایپ می‌کند
@@ -204,18 +221,13 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             }
             
             
-            console.log('Sending admin update data:', profileData);
-            console.log('Admin ID:', adminData?.id);
-            
-            if (!adminData) {
+                                    if (!adminData) {
                 toast.error('اطلاعات ادمین یافت نشد');
                 return;
             }
             
             const result = await adminApi.updateUserByType(adminData.id, profileData, 'admin');
-            console.log('Admin update result:', result);
-            
-            // Close edit mode first to allow formData sync
+                        // Close edit mode first to allow formData sync
             setEditMode(false);
             
             // Invalidate React Query cache for this admin
@@ -227,19 +239,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
             
             // If user is editing their own profile, refresh AuthContext to update sidebar
-            if (user?.id && Number(adminId) === user.id) {
+            if (user?.id && (isMeRoute || Number(adminId) === user.id)) {
                 await refreshUser();
-                console.log('✅ AuthContext refreshed - sidebar name should update now');
-            }
+                            }
             
             toast.success(getUIMessage('adminProfileUpdated'));
         } catch (error: any) {
-            console.error('Admin update error:', error);
-            console.error('Admin error details:', {
-                message: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : undefined
-            });
-            
             // بررسی خطاهای فیلدها
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
@@ -290,6 +295,26 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             setIsSaving(false);
         }
     };
+
+    const handleGoToOwnProfile = () => {
+        router.push("/admins/me/edit");
+    };
+
+    if (error) {
+        const errorMessage =
+            error instanceof ApiError
+                ? error.response.message
+                : error instanceof Error
+                ? error.message
+                : "خطا در دریافت اطلاعات ادمین";
+
+        return (
+            <div className="rounded-lg border p-6 text-center space-y-4">
+                <p className="text-destructive">{errorMessage}</p>
+                <Button onClick={handleGoToOwnProfile}>پروفایل من</Button>
+            </div>
+        );
+    }
 
     // Show loading state while data is being fetched
     if (isLoading || !adminData) {

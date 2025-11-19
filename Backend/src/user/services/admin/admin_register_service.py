@@ -11,7 +11,7 @@ class AdminRegisterService:
     @classmethod
     def register_admin(cls, mobile, password, email=None, admin_user=None):
         """
-        ثبت‌نام ادمین جدید - بهینه شده برای ادمین‌ها
+        Register a new admin user (admin-panel optimized).
         """
         if not admin_user:
             raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
@@ -59,7 +59,7 @@ class AdminRegisterService:
     @classmethod
     def register_admin_from_serializer(cls, validated_data, admin_user=None):
         """
-        ثبت‌نام ادمین از داده‌های سریالایزر - مدیریت mobile و email + داده‌های پروفایل
+        Register an admin using serializer data (handles identifiers and profile info).
         """
         mobile = validated_data.get('mobile')
         email = validated_data.get('email')
@@ -134,7 +134,7 @@ class AdminRegisterService:
             
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
-            # تبدیل province_id و city_id به province و city
+            # Convert province_id and city_id into FK objects
             if 'province_id' in profile_data:
                 from src.user.models.location import Province
                 try:
@@ -205,7 +205,7 @@ class AdminRegisterService:
             
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
-            # تبدیل province_id و city_id به province و city
+            # Convert province_id and city_id when provided
             if 'province_id' in profile_data:
                 from src.user.models.location import Province
                 try:
@@ -263,15 +263,15 @@ class AdminRegisterService:
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):
         """
-        مدیریت آپلود تصویر پروفایل با استفاده از سرویس مرکزی مدیا
+        Handle profile picture uploads via the central media service.
         """
         try:
             from src.media.services.media_service import MediaService
             
             media = MediaService.upload_file(
                 file=uploaded_file,
-                title=f"تصویر پروفایل - ادمین {admin_id}",
-                alt_text=f"تصویر پروفایل برای ادمین {admin_id}",
+                title=f"Admin profile picture - admin {admin_id}",
+                alt_text=f"Profile picture for admin {admin_id}",
                 folder="profile_pictures"
             )
             

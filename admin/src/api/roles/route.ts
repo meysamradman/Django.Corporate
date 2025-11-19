@@ -50,88 +50,67 @@ export const roleApi = {
     } as ApiResponse<Role[]>
   },
 
+  // Get all roles by fetching all pages
+  // Optimized: If total_pages is 1, only one request is made. Otherwise, loops through all pages.
+  getAllRoles: async (params: Omit<RoleListParams, 'page' | 'size'> = {}): Promise<Role[]> => {
+    const allRoles: Role[] = [];
+    const pageSize = 100; // Fetch 100 at a time
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // Fetch first page
+    const firstResponse = await roleApi.getRoleList({
+      ...params,
+      page: currentPage,
+      size: pageSize,
+    });
+
+    if (firstResponse.data && Array.isArray(firstResponse.data)) {
+      allRoles.push(...firstResponse.data);
+    }
+
+    totalPages = firstResponse.pagination?.total_pages || 1;
+
+    // Only loop if there are more pages
+    while (currentPage < totalPages) {
+      currentPage++;
+      const response = await roleApi.getRoleList({
+        ...params,
+        page: currentPage,
+        size: pageSize,
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allRoles.push(...response.data);
+      }
+    }
+
+    return allRoles;
+  },
+
   getRoleById: async (id: number): Promise<ApiResponse<Role>> => {
     return fetchApi.get<Role>(`/admin/roles/${id}/`)
   },
 
-  createRole: async (data: { name: string; description?: string; permission_ids?: number[] }): Promise<ApiResponse<Role>> => {
-    // Transform permission_ids to the format backend expects
-    const { permission_ids, ...roleData } = data;
-    
-    let permissions = {};
-    
-    // Convert permission_ids to modules and actions
-    if (permission_ids && permission_ids.length > 0) {
-      // Get permissions data to map IDs to modules/actions
-      const permissionsResponse = await fetchApi.get<PermissionGroup[]>('/admin/roles/permissions/');
-      const permissionGroups = permissionsResponse.data;
-      
-      const modules = new Set<string>();
-      const actions = new Set<string>();
-      
-      // Find selected permissions and extract modules/actions
-      permissionGroups.forEach(group => {
-        group.permissions.forEach(permission => {
-          if (permission_ids.includes(permission.id)) {
-            modules.add(permission.resource);
-            actions.add(permission.action.toLowerCase());
-          }
-        });
-      });
-      
-      permissions = {
-        modules: Array.from(modules),
-        actions: Array.from(actions)
-      };
-    }
-    
+  createRole: async (data: { name: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
+    // ✅ FIX: Accept permissions directly from frontend
     const requestData = {
-      ...roleData,
-      // Add required display_name field
+      name: data.name,
       display_name: data.name,
-      // Backend expects permissions as JSON object
-      permissions
+      description: data.description || '',
+      permissions: data.permissions || { specific_permissions: [] }
     };
     
     return fetchApi.post<Role>('/admin/roles/', requestData)
   },
 
-  updateRole: async (id: number, data: { name?: string; description?: string; permission_ids?: number[] }): Promise<ApiResponse<Role>> => {
-    // Transform permission_ids to the format backend expects
-    const { permission_ids, ...roleData } = data;
-    
-    let updateData: any = { ...roleData };
-    
-    // Convert permission_ids to modules and actions if provided
-    if (permission_ids !== undefined) {
-      let permissions = {};
-      
-      if (permission_ids.length > 0) {
-        // Get permissions data to map IDs to modules/actions
-        const permissionsResponse = await fetchApi.get<PermissionGroup[]>('/admin/roles/permissions/');
-        const permissionGroups = permissionsResponse.data;
-        
-        const modules = new Set<string>();
-        const actions = new Set<string>();
-        
-        // Find selected permissions and extract modules/actions
-        permissionGroups.forEach(group => {
-          group.permissions.forEach(permission => {
-            if (permission_ids.includes(permission.id)) {
-              modules.add(permission.resource);
-              actions.add(permission.action.toLowerCase());
-            }
-          });
-        });
-        
-        permissions = {
-          modules: Array.from(modules),
-          actions: Array.from(actions)
-        };
-      }
-      
-      updateData.permissions = permissions;
-    }
+  updateRole: async (id: number, data: { name?: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
+    // ✅ FIX: Accept permissions directly from frontend
+    const updateData: any = {
+      name: data.name,
+      description: data.description,
+      permissions: data.permissions || { specific_permissions: [] }
+    };
     
     return fetchApi.put<Role>(`/admin/roles/${id}/`, updateData)
   },

@@ -19,21 +19,32 @@ import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { Media } from '@/types/shared/media';
+import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
+import { useMediaContext } from '@/core/media/MediaContext';
 
 interface MediaUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadComplete: () => void;
   onMediaSelect?: (media: Media | Media[]) => void;
+  context?: 'media_library' | 'portfolio' | 'blog';
+  contextId?: number | string;
 }
 
 export function MediaUploadModal({ 
   isOpen, 
   onClose,
   onUploadComplete,
-  onMediaSelect
+  onMediaSelect,
+  context: overrideContext,
+  contextId: overrideContextId
 }: MediaUploadModalProps) {
+  // اگر context پاس داده نشه، از route تشخیص بده
+  const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
+  
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const { hasModuleAction } = useUserPermissions();
+  const canUploadMedia = hasModuleAction('media', 'create');
   
   const {
     files,
@@ -45,7 +56,7 @@ export function MediaUploadModal({
     removeCoverFile,
     uploadFiles,
     clearFiles
-  } = useMediaUpload();
+  } = useMediaUpload(context, contextId);
 
   const handleCoverFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>, mediaFileId: string) => {
     const selectedCoverFile = event.target.files?.[0];
@@ -66,6 +77,10 @@ export function MediaUploadModal({
   }, [uploadSettings, updateFileMetadata]);
 
   const handleUpload = async () => {
+    if (!canUploadMedia) {
+      toast.error("اجازه آپلود رسانه را ندارید");
+      return;
+    }
     setUploadProgress(0);
     
     // Simulate progress for better UX
@@ -130,45 +145,62 @@ export function MediaUploadModal({
         
         {/* Content */}
         <div className="space-y-6 py-6">
-          {/* File Dropzone */}
-          <div className="px-6">
-            <FileDropzone 
-              onFilesAdded={processFiles}
-              allowedTypes={uploadSettings.allowedTypes}
-              disabled={isUploading}
-            />
-          </div>
-
-          {/* Progress Bar */}
-          {isUploading && (
-            <div className="px-6 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-font-p font-medium">در حال آپلود...</span>
-                <span className="text-font-s font-semibold">{Math.round(uploadProgress)}%</span>
+          {canUploadMedia ? (
+            <>
+              {/* File Dropzone */}
+              <div className="px-6">
+                <FileDropzone 
+                  onFilesAdded={(files) => {
+                    if (!canUploadMedia) {
+                      toast.error("اجازه آپلود رسانه را ندارید");
+                      return;
+                    }
+                    processFiles(files);
+                  }}
+                  allowedTypes={uploadSettings.allowedTypes}
+                  disabled={!canUploadMedia || isUploading}
+                />
               </div>
-              <Progress value={uploadProgress} className="h-2.5" />
-            </div>
-          )}
 
-          {/* File List */}
-          {files.length > 0 && (
-            <div className="px-6">
-              <FileList
-                files={files}
-                activeTab="upload"
-                onTabChange={() => {}}
-                onRemoveFile={removeFile}
-                onUpdateMetadata={updateFileMetadata}
-                onCoverFileChange={handleCoverFileChange}
-                onRemoveCoverFile={removeCoverFile}
-                disabled={isUploading}
-              />
+              {/* Progress Bar */}
+              {isUploading && (
+                <div className="px-6 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-font-p font-medium">در حال آپلود...</span>
+                    <span className="text-font-s font-semibold">{Math.round(uploadProgress)}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2.5" />
+                </div>
+              )}
+
+              {/* File List */}
+              {files.length > 0 && (
+                <div className="px-6">
+                  <FileList
+                    files={files}
+                    activeTab="upload"
+                    onTabChange={() => {}}
+                    onRemoveFile={removeFile}
+                    onUpdateMetadata={updateFileMetadata}
+                    onCoverFileChange={handleCoverFileChange}
+                    onRemoveCoverFile={removeCoverFile}
+                    disabled={isUploading}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="px-6 py-12 text-center space-y-3">
+              <p className="text-font-p font-medium text-lg">دسترسی آپلود برای شما فعال نیست</p>
+              <p className="text-font-s text-sm">
+                برای بارگذاری رسانه باید مجوز مدیریت رسانه‌ها را داشته باشید. برای دریافت دسترسی با مدیر سیستم تماس بگیرید.
+              </p>
             </div>
           )}
         </div>
         
         {/* Footer */}
-        {files.length > 0 && (
+        {canUploadMedia && files.length > 0 && (
           <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t px-6 py-4">
             <div className="flex gap-3 justify-between">
               <div className="flex gap-3">

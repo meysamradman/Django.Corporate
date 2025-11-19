@@ -135,20 +135,8 @@ export default function CreateAdminPage() {
             setLoadingRoles(true);
             setRolesError(null);
             try {
-                const response = await roleApi.getRoleList({ is_active: true });
-                
-                let fetchedRoles: Role[] = [];
-                
-                if (response.data && Array.isArray(response.data)) {
-                    fetchedRoles = response.data;
-                } else if (response.data && typeof response.data === 'object' && 'results' in response.data && Array.isArray((response.data as any).results)) {
-                    fetchedRoles = (response.data as any).results;
-                } else if (response && Array.isArray(response)) {
-                    fetchedRoles = response;
-                } else {
-                    fetchedRoles = [];
-                }
-                
+                // Get all roles by fetching all pages
+                const fetchedRoles = await roleApi.getAllRoles();
                 setRoles(fetchedRoles);
             } catch (error) {
                 setRolesError('بارگذاری نقش‌ها ناموفق بود.');

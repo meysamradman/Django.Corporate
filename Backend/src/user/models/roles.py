@@ -1,7 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models.signals import post_save, post_delete
+from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from src.core.models import BaseModel
@@ -14,12 +15,19 @@ class AdminRole(BaseModel):
     """
     # Pre-defined admin roles for admin panel
     ADMIN_ROLES = (
-        ('super_admin', 'Super Admin'),           # Full access
-        ('content_manager', 'Content Manager'),   # Content management (portfolio, blog)
-        ('user_manager', 'User Manager'),         # Website user management
-        ('media_manager', 'Media Manager'),       # File and media management
-        ('analytics_viewer', 'Analytics Viewer'), # Statistics and reports viewing
-        ('support_admin', 'Support Admin'),       # Limited support access
+        ('super_admin', 'Super Admin'),             # Full access
+        ('content_manager', 'Content Manager'),     # Content management (portfolio, blog)
+        ('blog_manager', 'Blog Manager'),           # Blog module
+        ('portfolio_manager', 'Portfolio Manager'), # Portfolio module
+        ('media_manager', 'Media Manager'),         # File and media management
+        ('forms_manager', 'Forms Manager'),         # Forms module
+        ('pages_manager', 'Pages Manager'),         # Static pages
+        ('email_manager', 'Email Manager'),         # Email center
+        ('ai_manager', 'AI Manager'),               # AI tools
+        ('settings_manager', 'Settings Manager'),   # System settings
+        ('panel_manager', 'Panel Manager'),         # Panel settings
+        ('statistics_viewer', 'Statistics Viewer'), # Statistics dashboards
+        ('user_manager', 'User Manager'),           # Website user management
     )
     
     name = models.CharField(
@@ -141,23 +149,6 @@ class AdminUserRole(BaseModel):
             models.Index(fields=['expires_at'], name='adm_usr_role_exp_idx'),
             models.Index(fields=['public_id'], name='adm_usr_role_pub_idx'),
         ]
-
-    def clean(self):
-        """Validate role assignment based on Permission_System.md rules"""
-        super().clean()
-        
-        # Rule: super_admin role can only be assigned to users with is_superuser=True
-        if (self.role and self.role.name == 'super_admin' and 
-            self.user and not self.user.is_superuser):
-            from django.core.exceptions import ValidationError
-            raise ValidationError(
-                "نقش 'super_admin' فقط برای کاربرانی که 'is_superuser=True' هستند قابل تخصیص است."
-            )
-    
-    def save(self, *args, **kwargs):
-        """Override save to call clean validation"""
-        self.clean()
-        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.user} - {self.role}"
@@ -182,6 +173,18 @@ class AdminUserRole(BaseModel):
         if self.expires_at:
             return timezone.now() > self.expires_at
         return False
+
+
+# Validation signal for AdminUserRole
+@receiver(pre_save, sender=AdminUserRole)
+def validate_admin_user_role(sender, instance, **kwargs):
+    """Validate role assignment before saving"""
+    # Rule: super_admin role can only be assigned to users with is_superuser=True
+    if (instance.role and instance.role.name == 'super_admin' and 
+        instance.user and not instance.user.is_superuser):
+        raise ValidationError(
+            "The 'super_admin' role can only be assigned to users with is_superuser=True."
+        )
 
 
 # Cache invalidation signals

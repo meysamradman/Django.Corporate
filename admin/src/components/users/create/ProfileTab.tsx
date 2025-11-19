@@ -8,6 +8,8 @@ import { Textarea } from "@/components/elements/Textarea";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
+import { useCanUpload } from "@/core/permissions";
 import { Media } from "@/types/shared/media";
 import { User, Camera, UserCircle, MapPin, FileText } from "lucide-react";
 import { useState } from "react";
@@ -66,6 +68,9 @@ export default function ProfileTab({
   const [cities, setCities] = useState<CityCompact[]>([]);
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+  
+  // Check upload permission for media library context
+  const canUpload = useCanUpload('media_library');
 
   // Watch the birth date field and location fields
   const birthDateValue = watch("profile_birth_date");
@@ -80,7 +85,7 @@ export default function ProfileTab({
         const provinces = await locationApi.getProvincesCompact();
         setProvinces(provinces);
       } catch (error) {
-        console.error("Error fetching provinces:", error);
+        // Error fetching provinces
       } finally {
         setLoadingProvinces(false);
       }
@@ -98,7 +103,7 @@ export default function ProfileTab({
           const cities = await locationApi.getCitiesCompactByProvince(provinceIdValue);
           setCities(cities);
         } catch (error) {
-          console.error("Error fetching cities:", error);
+          // Error fetching cities
         } finally {
           setLoadingCities(false);
         }
@@ -140,7 +145,6 @@ export default function ProfileTab({
           toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
         }
       } catch (error) {
-        console.error("Error saving profile picture:", error);
         const { toast } = await import('@/components/elements/Sonner');
         toast.error("خطا در ذخیره عکس پروفایل");
       }
@@ -395,14 +399,18 @@ export default function ProfileTab({
                   )}
                   
                   {/* دکمه تغییر عکس پروفایل */}
-                  <Button
+                  <ProtectedButton
                     variant="outline"
                     size="sm"
+                    permission="media.upload"
                     className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors"
                     onClick={() => setShowMediaSelector(true)}
+                    showDenyToast={true}
+                    denyMessage="شما دسترسی لازم برای آپلود عکس پروفایل را ندارید"
+                    title={canUpload ? "تغییر عکس پروفایل" : "شما دسترسی لازم برای آپلود عکس پروفایل را ندارید"}
                   >
                     <Camera className="h-3 w-3" />
-                  </Button>
+                  </ProtectedButton>
                 </div>
               </div>
             </CardContent>
@@ -421,6 +429,7 @@ export default function ProfileTab({
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onUploadComplete={handleUploadComplete}
+        context="media_library"
       />
     </div>
   );

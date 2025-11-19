@@ -54,7 +54,6 @@ export function SocialMediaSection() {
             const data = await settingsApi.getSocialMedias();
             setSocialMedias(data);
         } catch (error) {
-            console.error("Error fetching social medias:", error);
             toast.error("خطا در دریافت شبکه‌های اجتماعی");
         } finally {
             setLoading(false);
@@ -122,7 +121,6 @@ export function SocialMediaSection() {
             handleCloseDialog();
             await fetchSocialMedias();
         } catch (error) {
-            console.error("Error saving social media:", error);
             toast.error("خطا در ذخیره شبکه اجتماعی");
         } finally {
             setSaving(false);
@@ -144,7 +142,6 @@ export function SocialMediaSection() {
             setDeleteDialogOpen(false);
             setSocialMediaToDelete(null);
         } catch (error) {
-            console.error("Error deleting social media:", error);
             toast.error("خطا در حذف شبکه اجتماعی");
         }
     };

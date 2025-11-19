@@ -79,7 +79,6 @@ export const adminApi = {
             }
             return response.data;
         } catch (error) {
-            console.error('Error updating admin profile:', error);
             throw error;
         }
     },
@@ -149,8 +148,7 @@ export const adminApi = {
             // Check for new API response format without pagination
             else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
                 data = response.data;
-                console.warn(`fetchUsersList for ${userType}: Response missing pagination info. Assuming single page.`);
-                pagination = {
+                                pagination = {
                     count: data.length,
                     next: null,
                     previous: null,
@@ -176,8 +174,7 @@ export const adminApi = {
             else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
                 const apiResponse = response as ApiResponse<AdminWithProfile[]>;
                 data = apiResponse.data;
-                 console.warn(`fetchUsersList for ${userType}: Response missing pagination info. Assuming single page.`);
-                 pagination = {
+                                  pagination = {
                      count: data.length,
                      next: null,
                      previous: null,
@@ -186,8 +183,7 @@ export const adminApi = {
                      total_pages: 1
                  };
             } else {
-                 console.warn(`fetchUsersList for ${userType}: Unexpected response structure. Assuming empty list.`);
-                 data = [];
+                                  data = [];
                  pagination = { count: 0, next: null, previous: null, page_size: finalFilters.size, current_page: 1, total_pages: 0 };
             }
 
@@ -206,7 +202,6 @@ export const adminApi = {
                 pagination
             };
         } catch (error) {
-            console.error(`Error in fetchUsersList for ${userType}:`, error);
             throw error;
         }
     },
@@ -335,7 +330,6 @@ export const adminApi = {
                         await adminApi.assignRoleToAdmin(userId, Number(role_id));
                     }
                 } catch (roleError) {
-                    console.error('Error updating admin role:', roleError);
                     // Don't fail the entire update if role assignment fails
                 }
             }
@@ -343,7 +337,6 @@ export const adminApi = {
             if (response && response.data) {
                  return response.data;
             } else {
-                 console.error(`updateUserByType received unexpected response for ID ${userId}:`, response);
                  throw new Error("Invalid response structure during user update.");
             }
         } catch (error) {
@@ -380,11 +373,9 @@ export const adminApi = {
             if (response && response.data) {
                 return response.data;
             } else {
-                console.error('updateUserStatusByType received unexpected response structure:', response);
                  throw new Error(`Invalid response structure received when updating status for ${userType} ID ${userId}`);
             }
         } catch (error) {
-            console.error(`Error updating ${userType} status for ID ${userId}:`, error);
             throw error;
         }
     },
@@ -408,7 +399,6 @@ export const adminApi = {
             
     
         } catch (error) {
-            console.error(`Error in bulkDeleteUsersByType:`, error);
             throw error;
         }
     },
@@ -418,7 +408,6 @@ export const adminApi = {
             const response = await fetchApi.get<{roles: any[]}>(`/admin/roles/user_roles/?user_id=${adminId}`);
             return response.data?.roles || [];
         } catch (error) {
-            console.error("Error fetching admin roles:", error);
             throw error;
         }
     },
@@ -455,7 +444,6 @@ export const adminApi = {
         try {
             return await adminApi.fetchUsersList('admin', filters, options);
         } catch (error) {
-            console.error('Error in getAdminList:', error);
             throw error; 
         }
     },
@@ -475,6 +463,13 @@ export const adminApi = {
         }
     ): Promise<AdminWithProfile> => {
         return adminApi.fetchUserById(adminId, 'admin', options);
+    },
+
+    getCurrentAdminManagedProfile: async (): Promise<AdminWithProfile> => {
+        const response = await fetchApi.get<AdminWithProfile>('/admin/management/me/', {
+            cache: 'no-store',
+        });
+        return response.data;
     },
 
     createAdmin: async (adminData: AdminCreateRequest, profilePicture?: File): Promise<AdminWithProfile> => {

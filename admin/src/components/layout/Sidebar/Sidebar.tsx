@@ -22,7 +22,7 @@ import {usePathname, useRouter} from "next/navigation";
 import {toast} from "@/components/elements/Sonner";
 import {msg} from "@/core/messages/message";
 import { useAdminStore } from "@/components/layout/Sidebar/stores/sidebarStore";
-import { getUserRoleDisplayText } from "@/core/config/roles";
+import { getUserRoleDisplayText } from "@/core/permissions/config/roles";
 
 
 interface SidebarProps {
@@ -41,6 +41,7 @@ export function Sidebar({
                             onContentToggle
                         }: SidebarProps) {
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+    const [hasUserSelectedItem, setHasUserSelectedItem] = useState(false);
     const [activeSubItem, setActiveSubItem] = useState<string | null>(null);
     const {user, logout} = useAuth();
     const pathname = usePathname();
@@ -91,18 +92,37 @@ export function Sidebar({
     const activeItem = useMemo(() => findActiveItem(), [findActiveItem]);
 
     useEffect(() => {
-        setSelectedItem(activeItem);
-        if (activeItem) {
-            const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
-            setSelectedItemHasSubMenu(hasSubMenu);
-            // Open the content panel if the active item has a submenu
-            if (hasSubMenu) {
-                setContentCollapsed(false);
-            }
+        if (hasUserSelectedItem) {
+            return;
         }
-    }, [activeItem, setSelectedItemHasSubMenu, setContentCollapsed]);
+
+        if (!activeItem) {
+            return;
+        }
+
+        const isSameItem =
+            selectedItem?.title === activeItem.title &&
+            selectedItem?.url === activeItem.url;
+
+        if (isSameItem) {
+            return;
+        }
+
+        setSelectedItem(activeItem);
+        const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
+        setSelectedItemHasSubMenu(hasSubMenu);
+        // Open the content panel if the active item has a submenu
+        if (hasSubMenu) {
+            setContentCollapsed(false);
+        }
+    }, [activeItem, selectedItem, setSelectedItemHasSubMenu, setContentCollapsed, hasUserSelectedItem]);
+
+    useEffect(() => {
+        setHasUserSelectedItem(false);
+    }, [pathname]);
 
     const handleIconClick = (item: MenuItem) => {
+        setHasUserSelectedItem(true);
         setSelectedItem(item);
         const hasSubMenu = Boolean('items' in item && item.items && item.items.length > 0);
         setSelectedItemHasSubMenu(hasSubMenu);
@@ -121,12 +141,7 @@ export function Sidebar({
     };
 
     const handleProfileClick = () => {
-        // Navigate to current admin's profile page
-        if (user?.id) {
-            router.push(`/admins/${user.id}/edit`);
-        } else {
-            toast.error("Unable to navigate to profile page");
-        }
+        router.push(`/admins/me/edit`);
     };
 
     const handleLogout = async () => {
@@ -134,7 +149,6 @@ export function Sidebar({
             await logout();
             // Don't show toast here - let AuthContext or page handle logout notifications
         } catch (error) {
-            console.error("Logout error:", error);
             // Only show error toast if logout fails
             toast.error(msg.error('unauthorized'));
         }
@@ -242,15 +256,17 @@ export function Sidebar({
                                     <div className="space-y-1">
                                         {(
                                             [
-                                                ...(selectedItem.title.trim() && 
-                                                    !(selectedItem.items && selectedItem.items.length > 0 && selectedItem.items[0]?.isTitle) 
+                                                // Add title at the beginning if first item is not a title
+                                                ...(selectedItem.items && selectedItem.items.length > 0 && 
+                                                    !selectedItem.items[0]?.isTitle && 
+                                                    selectedItem.title.trim()
                                                     ? [{title: selectedItem.title, isTitle: true}] 
                                                     : []),
                                                 ...(selectedItem.items || []),
                                             ] as MenuItem[]
                                         ).map((subItem, index) => (
                                             <SubMenuItem
-                                                key={subItem.title}
+                                                key={`${subItem.title}-${index}`}
                                                 item={subItem}
                                                 index={index}
                                                 isActive={activeSubItem === subItem.title && !('isTitle' in subItem && subItem.isTitle)}

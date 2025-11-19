@@ -15,6 +15,7 @@ import { showSuccessToast } from '@/core/config/errorHandler';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Media } from '@/types/shared/media';
 import { PanelSettings } from '@/types/settings/panelSettings';
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { 
     Image as ImageIcon, 
     FileText,
@@ -30,6 +31,9 @@ type FormValues = z.infer<typeof formSchema>;
 export default function PanelSettingsForm() {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
+    
+    // 🚀 Pre-computed permission flag
+    const { canManagePanel } = useUIPermissions();
     
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
     const [selectedFavicon, setSelectedFavicon] = useState<Media | null>(null);
@@ -109,7 +113,7 @@ export default function PanelSettingsForm() {
             setFaviconDeleted(false);
 
         } catch (error) {
-            console.error("Submission error caught in component:", error);
+            // Error in submission
         }
     };
 
@@ -228,14 +232,17 @@ export default function PanelSettingsForm() {
                 </CardWithIcon>
 
                 <div className="flex justify-end">
-                    <Button 
+                    <ProtectedButton 
                         type="submit" 
+                        permission="panel.manage"
                         disabled={isSubmitting || !hasChanges}
                         className="min-w-[120px]"
+                        showDenyToast={true}
+                        denyMessage="شما دسترسی لازم برای مدیریت تنظیمات پنل را ندارید"
                     >
                         <Save className="w-4 h-4 me-2" />
                         {isSubmitting ? "در حال ذخیره..." : "ذخیره تغییرات"}
-                    </Button>
+                    </ProtectedButton>
                 </div>
             </form>
         </Form>

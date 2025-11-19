@@ -6,15 +6,17 @@ import { DataTable } from "@/components/tables/DataTable";
 import { useAdminColumns } from "@/components/admins/AdminTableColumns";
 import { useAdminFilterOptions, getAdminFilterConfig } from "@/components/admins/AdminTableFilters";
 import { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
+import type { DataTableRowAction } from "@/types/shared/table";
+import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/route";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
 import Link from "next/link";
 import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -30,8 +32,7 @@ import {
 export default function AdminsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
-  const adminAccess = getCRUDProps('admin');
+  const { user } = useAuth(); // Get current user from auth context
   const { booleanFilterOptions, roleFilterOptions } = useAdminFilterOptions();
   const adminFilterConfig = getAdminFilterConfig(booleanFilterOptions, roleFilterOptions);
 
@@ -139,7 +140,6 @@ export default function AdminsPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete admin error:", error);
     },
   });
 
@@ -172,27 +172,50 @@ export default function AdminsPage() {
         await deleteAdminMutation.mutateAsync(deleteConfirm.adminId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
-  const columns = useAdminColumns([
-    {
-      label: "ویرایش",
-      icon: <Edit className="h-4 w-4" />,
-      onClick: (admin: AdminWithProfile) => {
-        router.push(`/admins/${admin.id}/edit`);
-      },
-    },
-    {
-      label: "حذف",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: (admin: AdminWithProfile) => handleDeleteAdmin(admin.id),
-      isDestructive: true,
-    },
-  ]);
+  // Cache current user info for permission checks
+  const currentUserId = user?.id;
+  const isSuperAdmin = user?.is_superuser || user?.is_admin_full;
+
+  // Define table columns with access control
+  const columns = useAdminColumns(
+    React.useMemo(() => {
+      const actions: DataTableRowAction<AdminWithProfile>[] = [];
+      
+      // Edit button - only for super admin or own profile
+      actions.push({
+        label: "ویرایش",
+        icon: <Edit className="h-4 w-4" />,
+        onClick: (admin: AdminWithProfile) => {
+          router.push(`/admins/${admin.id}/edit`);
+        },
+        // Enabled only if:
+        // 1. Super admin (can edit all)
+        // 2. Own profile (can edit own profile only)
+        isDisabled: (admin: AdminWithProfile) => {
+          if (!currentUserId) return true;
+          const isOwnProfile = currentUserId === admin.id;
+          return !isSuperAdmin && !isOwnProfile;
+        },
+      });
+      
+      // Delete button - only for super admin
+      actions.push({
+        label: "حذف",
+        icon: <Trash2 className="h-4 w-4" />,
+        onClick: (admin: AdminWithProfile) => handleDeleteAdmin(admin.id),
+        isDestructive: true,
+        // Enabled only if super admin
+        isDisabled: () => !isSuperAdmin,
+      });
+      
+      return actions;
+    }, [router, currentUserId, isSuperAdmin])
+  );
 
   const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
     if (filterId === "search") {
@@ -295,12 +318,18 @@ export default function AdminsPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          <Button size="sm" asChild>
+          <ProtectedButton 
+            size="sm" 
+            asChild
+            permission="admin.create"
+            showDenyToast
+            denyMessage="شما مجوز ایجاد ادمین ندارید"
+          >
             <Link href="/admins/create">
               <Plus />
               افزودن ادمین
             </Link>
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
 
@@ -324,6 +353,8 @@ export default function AdminsPage() {
         filterConfig={adminFilterConfig}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "admin.delete",
+          denyMessage: "اجازه حذف ادمین ندارید",
         }}
         searchValue={searchValue}
         pageSizeOptions={[10, 20, 50]}

@@ -4,7 +4,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 
-from src.user.authorization.admin_permission import AdminRolePermission
+from src.user.authorization import StatisticsManagerAccess
+from src.user.permissions.validator import PermissionValidator
+from src.core.responses import APIResponse
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.category import PortfolioCategory
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
@@ -14,10 +16,12 @@ User = get_user_model()
 
 
 class AdminStatisticsViewSet(viewsets.ViewSet):
-    permission_classes = [AdminRolePermission]
+    permission_classes = [StatisticsManagerAccess]
 
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
+        # Base permission: همه ادمین‌ها می‌تونن statistics رو ببینن (read-only)
+        # پس چک نمی‌کنیم statistics.read رو چون base permission هست
         cache_key = 'admin_stats_dashboard'
         data = cache.get(cache_key)
         if not data:

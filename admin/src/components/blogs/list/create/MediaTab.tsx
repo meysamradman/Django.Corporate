@@ -27,6 +27,7 @@ interface MediaTabFormProps {
     blogMedia: BlogMedia;
     setBlogMedia: (media: BlogMedia) => void;
     editMode: boolean;
+    blogId?: number | string; // Blog ID for context-aware permissions
 }
 
 // Props interface for manual state approach (edit page)
@@ -36,6 +37,7 @@ interface MediaTabManualProps {
     editMode: boolean;
     featuredImage?: Media | null;
     onFeaturedImageChange?: (media: Media | null) => void;
+    blogId?: number | string; // Blog ID for context-aware permissions
 }
 
 // Union type for both approaches
@@ -58,14 +60,16 @@ export default function MediaTab(props: MediaTabProps) {
         setBlogMedia,
         editMode,
         featuredImage: manualFeaturedImage,
-        onFeaturedImageChange
+        onFeaturedImageChange,
+        blogId
     } = isFormApproach 
         ? { 
             blogMedia: props.blogMedia, 
             setBlogMedia: props.setBlogMedia, 
             editMode: props.editMode,
             featuredImage: undefined,
-            onFeaturedImageChange: undefined
+            onFeaturedImageChange: undefined,
+            blogId: props.blogId
         } 
         : props;
     
@@ -127,6 +131,7 @@ export default function MediaTab(props: MediaTabProps) {
                                 title=""
                                 isGallery={true}
                                 disabled={!editMode}
+                                contextId={blogId}
                             />
                     </CardWithIcon>
 
@@ -252,7 +257,7 @@ export default function MediaTab(props: MediaTabProps) {
                             {(formState.errors as any)?.featuredImage?.message && (
                                 <div className="flex items-start gap-2 text-red-2">
                                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                    <span>{String((formState.errors as any).featuredImage.message)}                                    </span>
+                                    <span>{String((formState.errors as any).featuredImage.message)}</span>
                                 </div>
                             )}
                     </CardWithIcon>
@@ -266,6 +271,8 @@ export default function MediaTab(props: MediaTabProps) {
                 onSelect={handleFeaturedImageSelect}
                 selectMultiple={false}
                 initialFileType="image"
+                context="blog"
+                contextId={blogId}
             />
         </TabsContent>
     );

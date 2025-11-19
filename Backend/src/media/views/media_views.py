@@ -15,12 +15,14 @@ from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoM
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
+from src.user.permissions import PermissionValidator
+from src.user.authorization.admin_permission import MediaManagerAccess
 
 
 # -------------------- ViewSet BY ID --------------------
 class MediaAdminViewSet(viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [MediaManagerAccess]  # فقط ادمین‌ها می‌تونن دسترسی داشته باشن
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = MediaAdminSerializer
     pagination_class = StandardLimitPagination
@@ -36,6 +38,9 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         return ImageMedia.objects.none()
 
     def list(self, request, *args, **kwargs):
+        # Base permission: همه ادمین‌ها می‌تونن media رو ببینن (read-only)
+        # فقط برای upload/update/delete نیاز به permission خاص دارن
+        # پس چک نمی‌کنیم media.read رو چون base permission هست
         search_term = request.query_params.get('search') or request.query_params.get('title')
         file_type = request.query_params.get('file_type')
         date_from = request.query_params.get('date_from')
@@ -133,6 +138,36 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
+        """
+        آپلود مدیا (با context awareness)
+        POST /api/admin/media/
+        
+        Body:
+        {
+            "file": <file>,
+            "context_type": "portfolio" | "blog" | "media_library",  # optional
+            "context_action": "create" | "update"  # optional
+        }
+        """
+        # دریافت context از request
+        context_type = request.data.get('context_type', 'media_library')
+        context_action = request.data.get('context_action', 'create')
+        
+        context = {
+            'type': context_type,
+            'action': context_action
+        } if context_type != 'media_library' else None
+        
+        # چک دسترسی (با context)
+        if not PermissionValidator.has_permission(
+            request.user, 
+            'media.upload',
+            context=context
+        ):
+            return APIResponse.error(
+                message=MEDIA_ERRORS["UPLOAD_PERMISSION_DENIED"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         file = request.FILES.get('file') or request.FILES.get('files')
         if not file:
             return APIResponse.error(
@@ -190,6 +225,8 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             )
 
     def retrieve(self, request, *args, **kwargs):
+        # Base permission: همه ادمین‌ها می‌تونن media رو ببینن (read-only)
+        # پس چک نمی‌کنیم media.read رو چون base permission هست
         media_id = kwargs.get("pk")
         media = None
         
@@ -216,6 +253,11 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             )
 
     def update(self, request, *args, **kwargs):
+        if not PermissionValidator.has_permission(request.user, 'media.update'):
+            return APIResponse.error(
+                message=MEDIA_ERRORS.get("media_not_authorized", "You don't have permission to update media"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         media_id = kwargs.get("pk")
         media = None
         media_type = None
@@ -268,6 +310,11 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        if not PermissionValidator.has_permission(request.user, 'media.delete'):
+            return APIResponse.error(
+                message=MEDIA_ERRORS.get("media_not_authorized", "You don't have permission to delete media"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         media_id = kwargs.get("pk")
         media = None
         media_type = None
@@ -323,6 +370,11 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         """Bulk delete media files"""
+        if not PermissionValidator.has_permission(request.user, 'media.delete'):
+            return APIResponse.error(
+                message=MEDIA_ERRORS.get("media_not_authorized", "You don't have permission to delete media"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         from django.db import transaction
         
         media_data = request.data.get('media_data', [])

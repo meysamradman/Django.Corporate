@@ -36,7 +36,7 @@ export function FileList({
         <h3 className="text-base font-semibold text-font-p">فایل‌های آماده آپلود ({files.length})</h3>
       </div>
       
-      <div className="space-y-4 max-h-[500px] overflow-y-auto p-1">
+      <div className="space-y-4 overflow-y-auto p-1">
         {files.map(file => (
           <FileItem
             key={`file-item-${file.id}`}

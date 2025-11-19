@@ -12,7 +12,6 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -33,8 +32,6 @@ import type { DataTableRowAction } from "@/types/shared/table";
 export default function TagPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
-  const tagAccess = getCRUDProps('portfolio-tag');
   const { booleanFilterOptions } = useTagFilterOptions();
   const tagFilterConfig = getTagFilterConfig(booleanFilterOptions);
 
@@ -103,7 +100,6 @@ export default function TagPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete tag error:", error);
     },
   });
 
@@ -134,7 +130,7 @@ export default function TagPage() {
         await deleteTagMutation.mutateAsync(deleteConfirm.tagId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
@@ -284,6 +280,8 @@ export default function TagPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "portfolio.delete",
+          denyMessage: "اجازه حذف تگ ندارید",
         }}
         filterConfig={tagFilterConfig}
       />

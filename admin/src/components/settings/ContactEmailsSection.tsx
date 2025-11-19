@@ -51,7 +51,6 @@ export function ContactEmailsSection() {
             const data = await settingsApi.getContactEmails();
             setEmails(data);
         } catch (error) {
-            console.error("Error fetching emails:", error);
             toast.error("خطا در دریافت ایمیل‌ها");
         } finally {
             setLoading(false);
@@ -109,7 +108,6 @@ export function ContactEmailsSection() {
             handleCloseDialog();
             await fetchEmails();
         } catch (error) {
-            console.error("Error saving email:", error);
             toast.error("خطا در ذخیره ایمیل");
         } finally {
             setSaving(false);
@@ -131,7 +129,6 @@ export function ContactEmailsSection() {
             setDeleteDialogOpen(false);
             setEmailToDelete(null);
         } catch (error) {
-            console.error("Error deleting email:", error);
             toast.error("خطا در حذف ایمیل");
         }
     };

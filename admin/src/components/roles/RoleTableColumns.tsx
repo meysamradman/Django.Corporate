@@ -47,19 +47,19 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
-        const name = row.getValue("name") as string;
-        const displayName = row.original.display_name;
+        const slug = row.original.name;
+        const backendDisplayName = row.original.display_name;
         const isSystemRole = row.original.is_system_role;
-        
-        // ✅ برای نقش‌های سیستمی از ترجمه استفاده می‌کنیم
-        // ✅ برای نقش‌های سفارشی از display_name استفاده می‌کنیم
-        const persianName = isSystemRole 
-          ? getPermissionTranslation(name, 'role') 
-          : displayName;
+
+        // Optimized: Only check messages for system roles (they are defined there)
+        // For custom roles: backend display_name is already in Persian, use it directly
+        const localizedName = isSystemRole
+          ? (getPermissionTranslation(slug, 'role') || backendDisplayName || slug)
+          : (backendDisplayName || slug);
         
         return (
           <div className="table-cell-primary table-cell-wide">
-            {persianName}
+            {localizedName}
           </div>
         );
       },

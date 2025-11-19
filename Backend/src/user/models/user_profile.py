@@ -51,8 +51,8 @@ class UserProfile(BaseModel):
     )
     phone = models.CharField(
         max_length=15, null=True, blank=True,
-        unique=True,  # اضافه کردن unique constraint
-        db_index=True,  # اضافه کردن index برای performance
+        unique=True,
+        db_index=True,
         verbose_name="Phone Number", 
         help_text="User's additional phone number (different from mobile for authentication)"
     )
@@ -71,9 +71,9 @@ class UserProfile(BaseModel):
             models.Index(fields=["national_id"], name="user_profile_national_id_idx"),
             models.Index(fields=["public_id"], name="user_profile_public_id_idx"),
             models.Index(fields=["profile_picture"], name="user_profile_pic_idx"),
-            models.Index(fields=["phone"], name="user_profile_phone_idx"),  # اضافه کردن index برای phone
-            models.Index(fields=["province"], name="user_profile_province_idx"),  # اضافه index برای province
-            models.Index(fields=["city"], name="user_profile_city_idx"),  # اضافه index برای city
+            models.Index(fields=["phone"], name="user_profile_phone_idx"),
+            models.Index(fields=["province"], name="user_profile_province_idx"),
+            models.Index(fields=["city"], name="user_profile_city_idx"),
         ]
 
     def __str__(self):

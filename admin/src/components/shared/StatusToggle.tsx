@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Switch } from "@/components/elements/Switch";
 import { toast } from "@/components/elements/Sonner";
-import { usePermissions } from "@/core/auth/permissionUtils";
+import { usePermissions } from "@/core/permissions/utils/permissionUtils";
 
 
 interface StatusToggleProps {
@@ -25,8 +25,6 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
   const [isLoading, setIsLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(initialStatus);
 
-
-
   const canEdit = hasPermission(editPermission);
 
   const handleToggleStatus = async (checked: boolean) => {
@@ -42,7 +40,6 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
       setIsChecked(checked);
               toast.success(`وضعیت ${entityName} با موفقیت به ${checked ? 'فعال' : 'غیرفعال'} تغییر یافت`);
     } catch (error) {
-      console.error(`Failed to update ${entityName.toLowerCase()} status:`, error);
       toast.error(`Failed to update ${entityName.toLowerCase()} status.`);
       // Revert state on error
       setIsChecked(!checked);

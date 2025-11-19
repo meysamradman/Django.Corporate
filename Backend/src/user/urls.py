@@ -12,6 +12,7 @@ from src.user.views.user.user_logout_view import UserLogoutView
 from src.user.views.user.user_register_view import UserRegisterView
 from src.user.views.user.user_profile_view import UserProfileView
 from src.user.views.location_views import ProvinceViewSet, CityViewSet
+from src.user.permissions.api import get_permission_map, check_permission
 
 app_name = 'user'
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path('admin/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha')),
     path('admin/management/', AdminManagementView.as_view(), name='admin-management'),
     path('admin/management/<int:admin_id>/', AdminManagementView.as_view(), name='admin-management-detail'),
+    path('admin/management/me/', AdminManagementView.as_view(), {'action': 'me'}, name='admin-management-me'),
     path('admin/management/by-public-id/<uuid:public_id>/', AdminManagementView.get_by_public_id, name='admin-management-detail-public'),
     path('admin/management/bulk-delete/', AdminManagementView.as_view(), {'action': 'bulk-delete'}, name='admin-management-bulk-delete'),
     path('admin/profile/', AdminProfileView.as_view(), name='admin-profile'),
@@ -59,4 +61,8 @@ urlpatterns += [
     path('mobile/send-otp/', SendOTPView.as_view(), name='send-otp'),
     path('mobile/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('mobile/otp-settings/', OTPSettingsView.as_view(), name='otp-settings'),
+    
+    # Permissions sync
+    path('admin/permissions/map/', get_permission_map, name='admin-permissions-map'),
+    path('admin/permissions/check/', check_permission, name='admin-permissions-check'),
 ]

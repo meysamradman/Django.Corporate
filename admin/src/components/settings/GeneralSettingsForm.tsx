@@ -50,7 +50,6 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                 setEnamadImage(data.enamad_image_data);
             }
         } catch (error: any) {
-            console.error("Error fetching settings:", error);
             const errorMessage = error?.message || error?.response?.message || "خطا در دریافت تنظیمات";
             toast.error(errorMessage);
         } finally {
@@ -91,7 +90,6 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             toast.success("تنظیمات با موفقیت به‌روزرسانی شد");
             await fetchSettings();
         } catch (error) {
-            console.error("Error updating settings:", error);
             toast.error("خطا در به‌روزرسانی تنظیمات");
         } finally {
             setSaving(false);

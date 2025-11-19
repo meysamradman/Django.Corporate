@@ -1,6 +1,5 @@
 # Third-party (Django, DRF)
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
 
 # Project core
@@ -23,6 +22,8 @@ from src.page.services.about_page_service import (
 
 # Project messages
 from src.page.messages.messages import ABOUT_PAGE_SUCCESS, ABOUT_PAGE_ERRORS
+from src.user.authorization.admin_permission import PagesManagerAccess
+from src.user.permissions import PermissionValidator
 
 
 class AboutPageViewSet(viewsets.ModelViewSet):
@@ -30,7 +31,7 @@ class AboutPageViewSet(viewsets.ModelViewSet):
     
     queryset = AboutPage.objects.all()
     serializer_class = AboutPageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [PagesManagerAccess]
     
     def get_serializer_class(self):
         """انتخاب serializer مناسب بر اساس action"""
@@ -40,6 +41,8 @@ class AboutPageViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         """دریافت صفحه درباره ما (Singleton)"""
+        # استراتژی کلی: یک permission برای همه عملیات (pages.manage)
+        # RouteGuard چک می‌کند که کاربر pages.manage دارد
         try:
             page = get_about_page()
             serializer = self.get_serializer(page)
@@ -74,6 +77,11 @@ class AboutPageViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """به‌روزرسانی صفحه درباره ما"""
+        if not PermissionValidator.has_permission(request.user, 'pages.manage'):
+            return APIResponse.error(
+                message=ABOUT_PAGE_ERRORS.get("about_page_not_authorized", "You don't have permission to update pages"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         try:
             serializer = self.get_serializer(data=request.data, partial=kwargs.get('partial', False))
             serializer.is_valid(raise_exception=True)

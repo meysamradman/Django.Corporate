@@ -6,14 +6,14 @@ import { DataTable } from "@/components/tables/DataTable";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
 import { BlogFilters } from "@/types/blog/blogListParams";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
 import Link from "next/link";
 import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePermissionProps } from "@/components/auth/PermissionGate";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -59,7 +59,6 @@ const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
 export default function BlogPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { getCRUDProps } = usePermissionProps();
   const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
   
   // استیت برای دسته‌بندی‌ها
@@ -149,7 +148,7 @@ export default function BlogPage() {
         setCategories(response.data);
         setCategoryOptions(convertCategoriesToHierarchical(response.data));
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        // Error handled silently
       }
     };
     
@@ -212,7 +211,6 @@ export default function BlogPage() {
     },
     onError: (error) => {
       toast.error("خطای سرور");
-      console.error("Bulk delete blog error:", error);
     },
   });
 
@@ -227,7 +225,6 @@ export default function BlogPage() {
     },
     onError: (error) => {
       toast.error("خطا در تغییر وضعیت");
-      console.error("Toggle active status error:", error);
     },
   });
 
@@ -266,7 +263,7 @@ export default function BlogPage() {
         await deleteBlogMutation.mutateAsync(deleteConfirm.blogId);
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
@@ -277,12 +274,14 @@ export default function BlogPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (blog) => router.push(`/blogs/${blog.id}/edit`),
+      permission: "blog.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (blog) => handleDeleteBlog(blog.id),
       isDestructive: true,
+      permission: "blog.delete",
     },
   ];
   
@@ -649,12 +648,16 @@ export default function BlogPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          <Button size="sm" asChild>
-            <Link href="/blogs/create">
-              <Edit className="h-4 w-4 me-2" />
-              افزودن بلاگ
-            </Link>
-          </Button>
+          <ProtectedButton 
+            size="sm" 
+            permission="blog.create"
+            onClick={() => router.push("/blogs/create")}
+            showDenyToast={true}
+            denyMessage="شما دسترسی لازم برای ایجاد بلاگ را ندارید"
+          >
+            <Plus className="h-4 w-4 me-2" />
+            افزودن بلاگ
+          </ProtectedButton>
         </div>
       </div>
 
@@ -678,6 +681,8 @@ export default function BlogPage() {
         pageSizeOptions={[10, 20, 50]}
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
+          permission: "blog.delete",
+          denyMessage: "اجازه حذف بلاگ ندارید",
         }}
         exportConfigs={[
           {
