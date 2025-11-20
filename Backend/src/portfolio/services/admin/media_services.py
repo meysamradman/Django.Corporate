@@ -131,17 +131,10 @@ class PortfolioAdminMediaService:
             
             for media_file in media_files:
                 try:
-                    # Detect media type
+                    # ✅ تشخیص نوع media از extension با استفاده از settings (env)
+                    from src.media.models.media import detect_media_type_from_extension
                     file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
-                    media_type = 'image'  # Default
-                    
-                    # Simple type detection
-                    if file_ext in ['mp4', 'webm', 'mov']:
-                        media_type = 'video'
-                    elif file_ext in ['mp3', 'ogg', 'aac', 'm4a']:
-                        media_type = 'audio'
-                    elif file_ext == 'pdf':
-                        media_type = 'pdf'
+                    media_type = detect_media_type_from_extension(file_ext)
                     
                     # Create media using central app
                     media = MediaAdminService.create_media(media_type, {

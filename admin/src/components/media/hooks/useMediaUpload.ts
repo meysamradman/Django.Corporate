@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import { getFileCategory, validateFileAdvanced, formatBytes, mediaService } from '@/components/media/services';
+import { getFileCategory, formatBytes, mediaService, useUploadSettings } from '@/components/media/services';
 import { toast } from "@/components/elements/Sonner";
 import { fetchApi } from '@/core/config/fetch';
 import { useMediaContext } from '@/core/media/MediaContext';
@@ -50,9 +50,14 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
   
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  // ✅ Direct access - بدون mapping اضافی
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  
+  // ✅ دریافت تنظیمات از API با React Query
+  const { data: apiSettings, isLoading: isLoadingSettings } = useUploadSettings();
+  
+  // ✅ استفاده از تنظیمات API یا fallback به پیش‌فرض
   const uploadSettings = (() => {
-    const settings = mediaService.getUploadSettings();
+    const settings = apiSettings || mediaService.getUploadSettings();
     return {
       sizeLimit: {
         image: settings.MEDIA_IMAGE_SIZE_LIMIT,
@@ -76,20 +81,116 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
   })();
 
   /**
-   * ✅ Process files with validation
+   * ✅ Process files with validation (using API settings)
    */
   const processFiles = useCallback((filesToProcess: File[]) => {
+    // ✅ پاک کردن خطاهای قبلی
+    setValidationErrors([]);
+    
+    // ✅ اگر تنظیمات هنوز load نشده، صبر کن
+    if (isLoadingSettings) {
+      setValidationErrors(['در حال بارگذاری تنظیمات... لطفا صبر کنید']);
+      return;
+    }
+    
+    // ✅ Debug: فقط در development mode لاگ کن
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Media Upload] Processing files:', {
+        filesCount: filesToProcess.length,
+        files: filesToProcess.map(f => ({
+          name: f.name,
+          size: f.size,
+          sizeFormatted: formatBytes(f.size),
+          type: f.type
+        })),
+        uploadSettings: uploadSettings ? {
+          imageLimit: uploadSettings.sizeLimit?.image,
+          imageLimitFormatted: uploadSettings.sizeLimitFormatted?.image,
+          videoLimit: uploadSettings.sizeLimit?.video,
+          videoLimitFormatted: uploadSettings.sizeLimitFormatted?.video,
+          audioLimit: uploadSettings.sizeLimit?.audio,
+          audioLimitFormatted: uploadSettings.sizeLimitFormatted?.audio,
+          documentLimit: uploadSettings.sizeLimit?.document,
+          documentLimitFormatted: uploadSettings.sizeLimitFormatted?.document,
+        } : 'NOT LOADED',
+        isLoadingSettings
+      });
+    }
+    
+    const errors: string[] = [];
     const validFiles = filesToProcess.filter(file => {
-      // Advanced validation
-      const validation = validateFileAdvanced(file);
+      // ✅ Validation using API settings (uploadSettings)
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      const category = getFileCategory(file);
       
-      if (!validation.isValid) {
-        validation.errors.forEach(error => toast.error(error));
+      // ✅ بررسی اینکه تنظیمات موجود است
+      if (!uploadSettings || !uploadSettings.allowedTypes || !uploadSettings.sizeLimit) {
+        errors.push('خطا در دریافت تنظیمات آپلود. لطفا صفحه را رفرش کنید');
         return false;
       }
       
-      if (validation.warnings.length > 0) {
-        validation.warnings.forEach(warning => toast.warning(warning));
+      // Check extension - خطا را در state ذخیره کن
+      const allowedExts = uploadSettings.allowedTypes[category] || [];
+      if (!ext || !allowedExts.includes(ext)) {
+        errors.push(`فایل "${file.name}": پسوند "${ext}" برای نوع "${category}" مجاز نیست. پسوندهای مجاز: ${allowedExts.join(', ')}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[Media Upload] Extension rejected: ${ext} for category ${category}. Allowed: ${allowedExts.join(', ')}`);
+        }
+        return false;
+      }
+      
+      // Check file size - خطا را در state ذخیره کن
+      const maxSize = uploadSettings.sizeLimit[category];
+      if (!maxSize) {
+        errors.push(`فایل "${file.name}": تنظیمات حجم فایل برای نوع "${category}" یافت نشد`);
+        return false;
+      }
+      
+      if (file.size > maxSize) {
+        const maxSizeFormatted = uploadSettings.sizeLimitFormatted?.[category] || formatBytes(maxSize);
+        const fileSizeFormatted = formatBytes(file.size);
+        errors.push(`فایل "${file.name}": حجم فایل (${fileSizeFormatted}) از حد مجاز (${maxSizeFormatted}) بیشتر است`);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[Media Upload] File rejected: ${file.name}`, {
+            fileSize: file.size,
+            fileSizeFormatted,
+            maxSize,
+            maxSizeFormatted,
+            category,
+            exceedsBy: file.size - maxSize,
+            exceedsByFormatted: formatBytes(file.size - maxSize)
+          });
+        }
+        return false;
+      }
+      
+      // Basic validations - بدون toast (سریع‌تر)
+      if (!file.name || file.name.trim() === '') {
+        return false;
+      }
+      
+      const dangerousChars = /[<>:"/\\|?*\x00-\x1f]/;
+      if (dangerousChars.test(file.name)) {
+        return false;
+      }
+      
+      if (file.name.length > 255) {
+        return false;
+      }
+      
+      if (file.size === 0) {
+        return false;
+      }
+      
+      // Warnings - فقط در development
+      if (process.env.NODE_ENV === 'development') {
+        if (file.size < maxSize * 0.01) {
+          console.warn(`[Media Upload] File size very small: ${formatBytes(file.size)}`);
+        }
+        
+        if (file.name.includes(' ')) {
+          console.warn('[Media Upload] File name contains spaces - consider using _ or -');
+        }
       }
       
       return true;
@@ -107,8 +208,24 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
       coverFile: null
     }));
     
+    // ✅ نمایش خطاها در popup
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+    }
+    
+    // ✅ Debug: فقط در development mode لاگ کن
+    if (process.env.NODE_ENV === 'development') {
+      const rejectedCount = filesToProcess.length - validFiles.length;
+      if (rejectedCount > 0) {
+        console.warn(`[Media Upload] Rejected ${rejectedCount} file(s) out of ${filesToProcess.length}`);
+      }
+      if (newFiles.length > 0) {
+        console.log(`[Media Upload] Added ${newFiles.length} valid file(s) to upload queue`);
+      }
+    }
+    
     setFiles(prev => [...prev, ...newFiles]);
-  }, []);
+  }, [uploadSettings, isLoadingSettings]);
 
   /**
    * ✅ Update file metadata
@@ -218,12 +335,15 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
    */
   const clearFiles = useCallback(() => {
     setFiles([]);
+    setValidationErrors([]);
   }, []);
 
   return {
     files,
     isUploading,
     uploadSettings,
+    isLoadingSettings, // ✅ برای نمایش loading state در UI
+    validationErrors, // ✅ خطاهای validation برای نمایش در popup
     processFiles,
     updateFileMetadata,
     removeFile,

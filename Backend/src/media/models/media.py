@@ -6,6 +6,7 @@ import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.conf import settings
 from src.core.models.base import BaseModel
 
 # -----------------------------
@@ -19,24 +20,30 @@ MEDIA_TYPE_CHOICES = [
     ('pdf', 'PDF'),
 ]
 
-# اندازه مجاز فایل‌ها از ENV
+# ✅ اندازه مجاز فایل‌ها از settings (که خودش از env می‌خواند)
 def get_file_size_limit(media_type):
-    """دریافت محدودیت حجم فایل از متغیرهای محیطی"""
-    size_limits = {
-        'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 5 * 1024 * 1024)),   # 5MB
-        'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)), # 150MB
-        'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20 * 1024 * 1024)),  # 20MB
-        'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),      # 10MB
-    }
-    return size_limits.get(media_type, 10 * 1024 * 1024)
+    """دریافت محدودیت حجم فایل از settings (که از env خوانده می‌شود)"""
+    return settings.MEDIA_FILE_SIZE_LIMITS.get(media_type, 10 * 1024 * 1024)
 
-# پسوندهای مجاز
-ALLOWED_EXTENSIONS = {
-    'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,png,webp,gif,svg').split(','),
-    'video': os.getenv('MEDIA_VIDEO_EXTENSIONS', 'mp4,webm,mov').split(','),
-    'audio': os.getenv('MEDIA_AUDIO_EXTENSIONS', 'mp3,ogg,aac,m4a').split(','),
-    'pdf': os.getenv('MEDIA_PDF_EXTENSIONS', 'pdf').split(','),
-}
+# ✅ پسوندهای مجاز از settings (که خودش از env می‌خواند)
+ALLOWED_EXTENSIONS = settings.MEDIA_ALLOWED_EXTENSIONS
+
+# ✅ Helper function برای تشخیص نوع media از extension (از settings می‌خواند)
+def detect_media_type_from_extension(file_ext):
+    """
+    تشخیص نوع media از پسوند فایل
+    از settings.MEDIA_ALLOWED_EXTENSIONS استفاده می‌کند (که از env می‌خواند)
+    """
+    file_ext = file_ext.lower().strip('.') if file_ext else ''
+    
+    # بررسی هر نوع media از settings
+    for media_type, allowed_exts in ALLOWED_EXTENSIONS.items():
+        if file_ext in allowed_exts:
+            # Return media_type as-is (settings uses 'pdf', service uses 'pdf')
+            return media_type
+    
+    # Default: image اگر تشخیص داده نشد
+    return 'image'
 
 # مسیر آپلود داینامیک
 def upload_media_path(instance, filename):

@@ -116,7 +116,7 @@ export default function MediaPage() {
     setMounted(true);
   }, []);
 
-  const fetchMedia = useCallback(async (currentFilters: MediaFilter) => {
+  const fetchMedia = useCallback(async (currentFilters: MediaFilter, forceRefresh: boolean = false) => {
     setIsLoading(true);
     setError(null);
 
@@ -130,7 +130,12 @@ export default function MediaPage() {
     };
 
     try {
-      const response = await mediaApi.getMediaList(apiFilters);
+      // ✅ کش برای performance، اما بعد از آپلود force refresh
+      const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
+        cache: 'no-store',
+        revalidate: 0,
+        forceRefresh: true
+      } : undefined);
       
       if (response.metaData.status === 'success') {
         // Ensure we're getting the data correctly from the response
@@ -285,12 +290,12 @@ export default function MediaPage() {
                   mediaApi.bulkDeleteMedia(selectedMediaItems),
                   {
                       loading: 'در حال حذف رسانه‌ها...',
-                      success: (response) => {
+                      success: (response: any) => {
                           fetchMedia(filters);
                           setSelectedItems({});
                           return `${response.data?.deleted_count || selectedMediaItems.length} رسانه برای حذف علامت‌گذاری شد.`;
                       },
-                      error: (error) => {
+                      error: (error: any) => {
                            return error instanceof Error ? error.message : 'خطا در حذف رسانه‌ها.';
                       },
                   }
@@ -310,8 +315,8 @@ export default function MediaPage() {
   };
 
   const handleUploadComplete = () => {
-    // Refresh media list after upload
-    fetchMedia(filters);
+    // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
+    fetchMedia({ ...filters, page: 1 }, true);
   };
 
   const handleMediaClick = (media: Media) => {

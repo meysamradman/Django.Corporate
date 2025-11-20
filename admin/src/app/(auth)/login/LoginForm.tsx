@@ -10,7 +10,7 @@ import { Label} from '@/components/elements/Label';
 import { RadioGroup, RadioGroupItem } from '@/components/elements/RadioGroup';
 import { FormField, FormFieldInput } from "@/components/forms/FormField";
 import { useAuth } from '@/core/auth/AuthContext';
-import { RotateCw, Loader2 } from 'lucide-react';
+import { RotateCw, Loader2, Eye, EyeOff } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,6 +35,7 @@ export function LoginForm() {
     const [loginType, setLoginType] = useState('password');
     const [otpLength, setOtpLength] = useState(5);
     const [resendTimer, setResendTimer] = useState(0);
+    const [showPassword, setShowPassword] = useState(false);
 
     // --- CAPTCHA State ---
     const [captchaId, setCaptchaId] = useState<string>('');
@@ -256,26 +257,26 @@ export function LoginForm() {
                 </div>
             )}
 
-            <div className="mb-6">
+            <div className="mb-8">
                 <RadioGroup
                     defaultValue="password"
                     value={loginType}
                     onValueChange={setLoginType}
-                    className="flex gap-4"
+                    className="flex gap-6 bg-bg/50 p-1 rounded-lg"
                 >
-                    <div className="flex items-center gap-2">
-                        <RadioGroupItem value="password" id="password"/>
-                        <Label htmlFor="password">رمز عبور</Label>
+                    <div className="flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-md transition-all cursor-pointer hover:bg-bg/80 data-[state=checked]:bg-card data-[state=checked]:shadow-sm">
+                        <RadioGroupItem value="password" id="password" className="data-[state=checked]:border-primary"/>
+                        <Label htmlFor="password" className="cursor-pointer font-medium text-sm">رمز عبور</Label>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <RadioGroupItem value="otp" id="otp"/>
-                        <Label htmlFor="otp">کد یکبار مصرف</Label>
+                    <div className="flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-md transition-all cursor-pointer hover:bg-bg/80 data-[state=checked]:bg-card data-[state=checked]:shadow-sm">
+                        <RadioGroupItem value="otp" id="otp" className="data-[state=checked]:border-primary"/>
+                        <Label htmlFor="otp" className="cursor-pointer font-medium text-sm">کد یکبار مصرف</Label>
                     </div>
                 </RadioGroup>
             </div>
 
             {loginType === 'password' ? (
-                <form onSubmit={passwordForm.handleSubmit(handlePasswordLogin)} className="space-y-4">
+                <form onSubmit={passwordForm.handleSubmit(handlePasswordLogin)} className="space-y-5">
                     <FormFieldInput
                         id="mobile"
                         label="شماره موبایل"
@@ -295,16 +296,36 @@ export function LoginForm() {
                         disabled={loading}
                     />
 
-                    <FormFieldInput
-                        id="password"
+                    <FormField
                         label="رمز عبور"
-                        type="password"
-                        placeholder="رمز عبور خود را وارد کنید"
-                        {...passwordForm.register("password")}
                         error={passwordForm.formState.errors.password?.message}
                         required
-                        disabled={loading}
-                    />
+                        htmlFor="password"
+                    >
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="رمز عبور خود را وارد کنید"
+                                {...passwordForm.register("password")}
+                                disabled={loading}
+                                className={passwordForm.formState.errors.password ? "border-red-1 focus-visible:ring-red-1 pl-10" : "pl-10"}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-font-s hover:text-font-p transition-colors"
+                                tabIndex={-1}
+                                disabled={loading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4" />
+                                ) : (
+                                    <Eye className="h-4 w-4" />
+                                )}
+                            </button>
+                        </div>
+                    </FormField>
 
                     {/* CAPTCHA */}
                     {captchaId && (
@@ -313,7 +334,12 @@ export function LoginForm() {
                             error={passwordForm.formState.errors.captchaAnswer?.message}
                             required
                         >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                                {captchaDigits && (
+                                    <div className="flex items-center justify-center h-11 min-w-[100px] px-4 bg-gradient-to-br from-primary/10 via-primary/5 to-bg border-2 border-primary/20 rounded-lg font-mono text-2xl font-bold text-primary select-none shadow-sm">
+                                        {captchaDigits}
+                                    </div>
+                                )}
                                 <div className="flex-1">
                                     <Input
                                         id="captchaAnswer"
@@ -330,31 +356,35 @@ export function LoginForm() {
                                     size="icon"
                                     onClick={fetchCaptchaChallenge}
                                     disabled={captchaLoading || loading}
-                                    className="shrink-0"
+                                    className="shrink-0 h-11 w-11 hover:bg-primary/10 hover:border-primary/30 transition-all"
                                 >
                                     {captchaLoading ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                     ) : (
-                                        <RotateCw className="h-4 w-4" />
+                                        <RotateCw className="h-5 w-5 text-font-p hover:text-primary transition-colors" />
                                     )}
                                 </Button>
                             </div>
-                            {captchaDigits && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className="h-10 px-4 bg-bg border rounded flex items-center justify-center font-mono text-lg font-bold text-font-p tracking-wider min-w-32">
-                                        {captchaDigits}
-                                    </div>
-                                </div>
-                            )}
                         </FormField>
                     )}
 
-                    <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "در حال بارگذاری..." : "ورود"}
+                    <Button 
+                        type="submit" 
+                        className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin ml-2" />
+                                در حال بارگذاری...
+                            </>
+                        ) : (
+                            "ورود"
+                        )}
                     </Button>
                 </form>
             ) : (
-                <form onSubmit={otpForm.handleSubmit(handleOTPLogin)} className="space-y-4">
+                <form onSubmit={otpForm.handleSubmit(handleOTPLogin)} className="space-y-5">
                     <FormFieldInput
                         id="mobile"
                         label="شماره موبایل"
@@ -388,7 +418,7 @@ export function LoginForm() {
                                 otpForm.setValue("otp", filteredValue);
                             }
                         })}
-                        className={`text-center tracking-widest ${otpForm.formState.errors.otp ? "border-red-1" : ""}`}
+                        className={`text-center tracking-[0.5em] text-xl font-semibold font-mono ${otpForm.formState.errors.otp ? "border-red-1" : ""}`}
                         error={otpForm.formState.errors.otp?.message}
                         required
                         disabled={loading}
@@ -401,7 +431,12 @@ export function LoginForm() {
                             error={otpForm.formState.errors.captchaAnswer?.message}
                             required
                         >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                                {captchaDigits && (
+                                    <div className="flex items-center justify-center h-11 min-w-[100px] px-4 bg-gradient-to-br from-primary/10 via-primary/5 to-bg border-2 border-primary/20 rounded-lg font-mono text-2xl font-bold text-primary select-none shadow-sm">
+                                        {captchaDigits}
+                                    </div>
+                                )}
                                 <div className="flex-1">
                                     <Input
                                         id="captchaAnswer"
@@ -418,37 +453,41 @@ export function LoginForm() {
                                     size="icon"
                                     onClick={fetchCaptchaChallenge}
                                     disabled={captchaLoading || loading}
-                                    className="shrink-0"
+                                    className="shrink-0 h-11 w-11 hover:bg-primary/10 hover:border-primary/30 transition-all"
                                 >
                                     {captchaLoading ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                     ) : (
-                                        <RotateCw className="h-4 w-4" />
+                                        <RotateCw className="h-5 w-5 text-font-p hover:text-primary transition-colors" />
                                     )}
                                 </Button>
                             </div>
-                            {captchaDigits && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className="h-10 px-4 bg-bg border rounded flex items-center justify-center font-mono text-lg font-bold text-font-p tracking-wider min-w-32">
-                                        {captchaDigits}
-                                    </div>
-                                </div>
-                            )}
                         </FormField>
                     )}
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-3 pt-2">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleSendOTP}
                             disabled={loading || resendTimer > 0}
-                            className="flex-1"
+                            className="flex-1 h-11 font-semibold hover:bg-bg transition-all"
                         >
                             {resendTimer > 0 ? `ارسال مجدد (${formatResendTimer()})` : "ارسال کد"}
                         </Button>
-                        <Button type="submit" className="flex-1" disabled={loading}>
-                            {loading ? "در حال بارگذاری..." : 'تأیید کد'}
+                        <Button 
+                            type="submit" 
+                            className="flex-1 h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="h-5 w-5 animate-spin ml-2" />
+                                    در حال بارگذاری...
+                                </>
+                            ) : (
+                                'تأیید کد'
+                            )}
                         </Button>
                     </div>
                 </form>

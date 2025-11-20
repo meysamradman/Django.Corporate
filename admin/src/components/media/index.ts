@@ -15,6 +15,9 @@ export { MediaLibraryModal } from './modals/MediaLibraryModal';
 // Base Components
 export { MediaImage } from './base/MediaImage';
 
+// Gallery Components
+export { MediaGallery } from './galleries/MediaGallery';
+
 // Media Services
 export { mediaService } from './services';
 

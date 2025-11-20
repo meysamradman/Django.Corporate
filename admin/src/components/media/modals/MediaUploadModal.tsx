@@ -12,7 +12,7 @@ import {
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
 import { Progress } from "@/components/elements/Progress";
-import { Loader2, X, Upload } from "lucide-react";
+import { Loader2, X, Upload, AlertCircle } from "lucide-react";
 import { toast } from "@/components/elements/Sonner";
 import { mediaService } from "@/components/media/services";
 import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
@@ -50,6 +50,8 @@ export function MediaUploadModal({
     files,
     isUploading,
     uploadSettings,
+    isLoadingSettings,
+    validationErrors,
     processFiles,
     updateFileMetadata,
     removeFile,
@@ -68,8 +70,9 @@ export function MediaUploadModal({
       return;
     }
 
-    if (selectedCoverFile.size > uploadSettings.sizeLimit.image) {
-      toast.error(`حجم فایل کاور بیش از حد مجاز است (${uploadSettings.sizeLimitFormatted.image})`);
+    if (!uploadSettings?.sizeLimit?.image || selectedCoverFile.size > uploadSettings.sizeLimit.image) {
+      const maxSize = uploadSettings?.sizeLimitFormatted?.image || 'نامشخص';
+      toast.error(`حجم فایل کاور بیش از حد مجاز است (${maxSize})`);
       return;
     }
     
@@ -97,9 +100,18 @@ export function MediaUploadModal({
     setUploadProgress(100);
 
     if (result.successCount === result.totalCount && result.successCount > 0) {
+        // ✅ Clear files before closing
+        clearFiles();
         setTimeout(() => {
           onUploadComplete();
           onClose();
+          setUploadProgress(0);
+        }, 1500);
+    } else if (result.successCount > 0) {
+        // ✅ Some files uploaded successfully - still refresh and clear
+        clearFiles();
+        setTimeout(() => {
+          onUploadComplete();
           setUploadProgress(0);
         }, 1500);
     }
@@ -148,18 +160,48 @@ export function MediaUploadModal({
           {canUploadMedia ? (
             <>
               {/* File Dropzone */}
-              <div className="px-6">
-                <FileDropzone 
-                  onFilesAdded={(files) => {
-                    if (!canUploadMedia) {
-                      toast.error("اجازه آپلود رسانه را ندارید");
-                      return;
-                    }
-                    processFiles(files);
-                  }}
-                  allowedTypes={uploadSettings.allowedTypes}
-                  disabled={!canUploadMedia || isUploading}
-                />
+              <div className="px-6 space-y-3">
+                {isLoadingSettings ? (
+                  <div className="border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                    <p className="text-sm text-font-s">در حال بارگذاری تنظیمات...</p>
+                  </div>
+                ) : (
+                  <>
+                    <FileDropzone 
+                      onFilesAdded={(files) => {
+                        if (!canUploadMedia) {
+                          toast.error("اجازه آپلود رسانه را ندارید");
+                          return;
+                        }
+                        if (isLoadingSettings) {
+                          toast.warning('لطفا صبر کنید تا تنظیمات بارگذاری شود');
+                          return;
+                        }
+                        processFiles(files);
+                      }}
+                      allowedTypes={uploadSettings?.allowedTypes || { image: [], video: [], audio: [], document: [] }}
+                      disabled={!canUploadMedia || isUploading || isLoadingSettings}
+                    />
+                    
+                    {/* نمایش خطاهای validation در popup */}
+                    {validationErrors && validationErrors.length > 0 && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium text-red-800 dark:text-red-200">خطا در آپلود فایل:</p>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-red-700 dark:text-red-300">
+                              {validationErrors.map((error, index) => (
+                                <li key={index}>{error}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Progress Bar */}

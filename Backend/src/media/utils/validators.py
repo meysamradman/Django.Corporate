@@ -1,10 +1,9 @@
-import os
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-# Get allowed extensions from settings
-ALLOWED_IMAGE_EXTENSIONS = getattr(settings, 'MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,webp,png,svg,gif').split(',')
-MAX_IMAGE_SIZE = getattr(settings, 'MEDIA_IMAGE_SIZE_LIMIT', 5242880)  # 5MB default
+# ✅ دریافت تنظیمات از settings (که از env می‌خواند)
+ALLOWED_IMAGE_EXTENSIONS = settings.MEDIA_ALLOWED_EXTENSIONS.get('image', [])
+MAX_IMAGE_SIZE = settings.MEDIA_FILE_SIZE_LIMITS.get('image', 5 * 1024 * 1024)
 
 
 def validate_image_file(file):

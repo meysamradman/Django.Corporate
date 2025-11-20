@@ -175,15 +175,10 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
+        # ✅ استفاده از helper function که از settings (env) می‌خواند
+        from src.media.models.media import detect_media_type_from_extension
         file_ext = file.name.lower().split('.')[-1] if '.' in file.name else ''
-        media_type = 'image'
-        
-        if file_ext in ['mp4', 'webm', 'mov']:
-            media_type = 'video'
-        elif file_ext in ['mp3', 'ogg', 'aac', 'm4a']:
-            media_type = 'audio'
-        elif file_ext == 'pdf':
-            media_type = 'pdf'
+        media_type = detect_media_type_from_extension(file_ext)
         
         try:
             cover_image_file = request.FILES.get('cover_image')

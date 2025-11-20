@@ -296,10 +296,17 @@ MELIPAYAMAK_BODY_ID = int(os.getenv('MELIPAYAMAK_BODY_ID'))
 MELIPAYAMAK_API_KEY = os.getenv('MELIPAYAMAK_API_KEY')
 
 MEDIA_FILE_SIZE_LIMITS = {
-    'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 5 * 1024 * 1024)),      # Default: 5MB
-    'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)),    # Default: 150MB
-    'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20 * 1024 * 1024)),     # Default: 20MB
-    'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),         # Default: 10MB
+    # ⚠️ موقتاً برای تست: همه روی 500KB
+    # TODO: بعد از تست به مقادیر اصلی برگردانید
+    'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 500 * 1024)),      # 500KB (موقت برای تست)
+    'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 500 * 1024)),      # 500KB (موقت برای تست)
+    'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 500 * 1024)),      # 500KB (موقت برای تست)
+    'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 500 * 1024)),          # 500KB (موقت برای تست)
+    # مقادیر اصلی (بعد از تست برگردانید):
+    # 'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 5 * 1024 * 1024)),      # Default: 5MB
+    # 'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)),    # Default: 150MB
+    # 'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20 * 1024 * 1024)),     # Default: 20MB
+    # 'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),         # Default: 10MB
 }
 
 # Portfolio Export Settings (from env, with defaults)

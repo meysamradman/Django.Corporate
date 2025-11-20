@@ -7,6 +7,17 @@ import { csrfTokenStore } from '@/core/auth/csrfToken';
 import { env } from '@/core/config/environment';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 
+export interface MediaUploadSettings {
+  MEDIA_IMAGE_SIZE_LIMIT: number;
+  MEDIA_VIDEO_SIZE_LIMIT: number;
+  MEDIA_AUDIO_SIZE_LIMIT: number;
+  MEDIA_DOCUMENT_SIZE_LIMIT: number;
+  MEDIA_ALLOWED_IMAGE_EXTENSIONS: string[];
+  MEDIA_ALLOWED_VIDEO_EXTENSIONS: string[];
+  MEDIA_ALLOWED_AUDIO_EXTENSIONS: string[];
+  MEDIA_ALLOWED_PDF_EXTENSIONS: string[];
+}
+
 export const MEDIA_CACHE_TAG = 'media';
 
 // Define valid page sizes for the media grid
@@ -534,6 +545,27 @@ export const mediaApi = {
                 data: { deleted_count: 0 }
             };
         }
+    },
+
+    /**
+     * دریافت تنظیمات آپلود media از بک‌اند
+     * این تنظیمات از .env در بک‌اند خوانده می‌شود
+     */
+    getUploadSettings: async (clearCache: boolean = false): Promise<MediaUploadSettings> => {
+        const url = clearCache 
+            ? '/core/upload-settings/?clear_cache=true'
+            : '/core/upload-settings/';
+        
+        const response = await fetchApi.get<MediaUploadSettings>(url, {
+            cache: clearCache ? 'no-store' : 'force-cache',
+            revalidate: clearCache ? 0 : 3600, // 1 hour
+        });
+        
+        if (!response.data) {
+            throw new Error("API returned success but no upload settings data found.");
+        }
+        
+        return response.data;
     },
 
 };

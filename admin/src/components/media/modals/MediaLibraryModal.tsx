@@ -17,7 +17,7 @@ import { Media } from '@/types/shared/media';
 import { MediaPreview } from '@/components/media/base/MediaPreview';
 import { Input } from '@/components/elements/Input';
 import { PaginationControls } from '@/components/shared/Pagination';
-import { ImageOff, CheckSquare, Square, FolderOpen, Upload, Loader2, X, Play, FileAudio, FileText } from 'lucide-react';
+import { ImageOff, CheckSquare, Square, FolderOpen, Upload, Loader2, X, Play, FileAudio, FileText, AlertCircle } from 'lucide-react';
 import { TableLoadingCompact } from '@/components/elements/TableLoading';
 import { cn } from '@/core/utils/cn';
 import {
@@ -112,6 +112,8 @@ export function MediaLibraryModal({
     files,
     isUploading,
     uploadSettings,
+    isLoadingSettings,
+    validationErrors,
     processFiles,
     updateFileMetadata,
     removeFile,
@@ -120,7 +122,7 @@ export function MediaLibraryModal({
     clearFiles
   } = useMediaUpload(context, contextId);
 
-  const fetchMedia = useCallback(async (currentFilters: typeof filters) => {
+  const fetchMedia = useCallback(async (currentFilters: typeof filters, forceRefresh: boolean = false) => {
     setIsLoading(true);
     setError(null);
 
@@ -133,9 +135,12 @@ export function MediaLibraryModal({
     };
 
     try {
-      const response = await mediaApi.getMediaList(apiFilters, {
+      // ✅ کش برای performance، اما بعد از آپلود force refresh
+      const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
         cache: 'no-store',
-      });
+        revalidate: 0,
+        forceRefresh: true
+      } : undefined);
       
       if (response.metaData.status === 'success') {
         const mediaData = Array.isArray(response.data) ? response.data : [];
@@ -220,8 +225,9 @@ export function MediaLibraryModal({
       return;
     }
 
-    if (selectedCoverFile.size > uploadSettings.sizeLimit.image) {
-      toast.error(`حجم فایل کاور بیش از حد مجاز است (${uploadSettings.sizeLimitFormatted.image})`);
+    if (!uploadSettings?.sizeLimit?.image || selectedCoverFile.size > uploadSettings.sizeLimit.image) {
+      const maxSize = uploadSettings?.sizeLimitFormatted?.image || 'نامشخص';
+      toast.error(`حجم فایل کاور بیش از حد مجاز است (${maxSize})`);
       return;
     }
     
@@ -244,16 +250,29 @@ export function MediaLibraryModal({
     setUploadProgress(100);
 
     if (result.successCount === result.totalCount && result.successCount > 0) {
+      // ✅ Clear files immediately
+      clearFiles();
       setTimeout(() => {
-                    onUploadComplete?.();
-                    handleTabChange("select");
-                    setUploadProgress(0);
-                    clearFiles();
-                    // Refresh media list after upload with a longer delay to ensure backend processing
-                    setTimeout(() => {
-                      fetchMedia(filters);
-                    }, 1000);
-                  }, 1500);
+        onUploadComplete?.();
+        handleTabChange("select");
+        setUploadProgress(0);
+        // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
+        setTimeout(() => {
+          fetchMedia(filters, true);
+        }, 1000);
+      }, 1500);
+    } else if (result.successCount > 0) {
+      // ✅ Some files uploaded successfully - still refresh and clear
+      clearFiles();
+      setTimeout(() => {
+        onUploadComplete?.();
+        handleTabChange("select");
+        setUploadProgress(0);
+        // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
+        setTimeout(() => {
+          fetchMedia(filters, true);
+        }, 1000);
+      }, 1500);
     }
   };
 
@@ -360,18 +379,48 @@ export function MediaLibraryModal({
               {/* Upload Content */}
               <div className="flex-1 overflow-y-auto space-y-6 py-4">
                 {/* File Dropzone */}
-                <div className="px-6">
-                  <FileDropzone 
-                    onFilesAdded={(files) => {
-                      if (!canUploadMedia) {
-                        toast.error("اجازه آپلود رسانه را ندارید");
-                        return;
-                      }
-                      processFiles(files);
-                    }}
-                    allowedTypes={uploadSettings.allowedTypes}
-                    disabled={isUploading || !canUploadMedia}
-                  />
+                <div className="px-6 space-y-3">
+                  {isLoadingSettings ? (
+                    <div className="border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                      <p className="text-sm text-font-s">در حال بارگذاری تنظیمات...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <FileDropzone 
+                        onFilesAdded={(files) => {
+                          if (!canUploadMedia) {
+                            toast.error("اجازه آپلود رسانه را ندارید");
+                            return;
+                          }
+                          if (isLoadingSettings) {
+                            toast.warning('لطفا صبر کنید تا تنظیمات بارگذاری شود');
+                            return;
+                          }
+                          processFiles(files);
+                        }}
+                        allowedTypes={uploadSettings?.allowedTypes || { image: [], video: [], audio: [], document: [] }}
+                        disabled={isUploading || !canUploadMedia || isLoadingSettings}
+                      />
+                      
+                      {/* نمایش خطاهای validation در popup */}
+                      {validationErrors && validationErrors.length > 0 && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-2">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-medium text-red-800 dark:text-red-200">خطا در آپلود فایل:</p>
+                              <ul className="list-disc list-inside space-y-1 text-sm text-red-700 dark:text-red-300">
+                                {validationErrors.map((error, index) => (
+                                  <li key={index}>{error}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* Progress Bar */}
@@ -549,8 +598,8 @@ export function MediaLibraryModal({
   );
 
   const handleUploadComplete = () => {
-    // Refresh media list after upload
-    fetchMedia(filters);
+    // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
+    fetchMedia(filters, true);
     onUploadComplete?.();
   };
 

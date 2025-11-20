@@ -42,7 +42,8 @@ export function FileItem({
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   
   const fileCategory = getFileCategory(file.file);
-  const needsCover = ['video', 'audio'].includes(fileCategory);
+  // ✅ کاور برای video، audio و pdf (document) نمایش داده می‌شود
+  const needsCover = ['video', 'audio', 'document'].includes(fileCategory);
 
   const getFileIcon = (file: File) => {
     const category = getFileCategory(file);
@@ -247,7 +248,7 @@ export function FileItem({
                         <Plus className="h-8 w-8 text-font-s group-hover:text-primary transition-colors" />
                       </div>
                       <p className="text-sm font-medium text-font-p">
-                        تصویر کاور ({fileCategory === 'video' ? 'ویدیو' : 'فایل صوتی'})
+                        تصویر کاور ({fileCategory === 'video' ? 'ویدیو' : fileCategory === 'audio' ? 'فایل صوتی' : 'سند PDF'})
                       </p>
                     </div>
                   )}

@@ -169,6 +169,7 @@ export const GetMediaAltText = (media: Media): string => {
     return media.alt_text || media.title || 'Image';
 };
 
+// ✅ Aliases برای سازگاری با کدهای قدیمی - همه به توابع اصلی اشاره می‌کنند
 export const GetUserProfileImageUrl = GetImageUrl;
 export const GetPortfolioImageUrl = GetImageUrl;
 export const GetPortfolioVideoUrl = GetVideoUrl;

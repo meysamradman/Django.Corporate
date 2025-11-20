@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.core.exceptions import ValidationError as DjangoValidationError
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.email_validator import validate_email_address
 from src.user.messages import AUTH_ERRORS
@@ -68,16 +69,15 @@ class UserRegisterSerializer(serializers.Serializer):
         if value is None:
             return value
         
+        # ✅ استفاده از validator مرکزی media که از settings (env) می‌خواند
+        from src.media.utils.validators import validate_image_file
+        
         try:
-            from src.media.services.media_service import MediaService
-            if value.size > 5 * 1024 * 1024:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_file_size_exceed"))
-            
-            allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-            if value.content_type not in allowed_types:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_file_must_be_image"))
-            
+            validate_image_file(value)
             return value
+        except DjangoValidationError as e:
+            # اگر خطای validation از media service باشد، آن را برمی‌گردانیم
+            raise serializers.ValidationError(str(e))
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 

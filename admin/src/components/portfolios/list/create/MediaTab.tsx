@@ -151,6 +151,7 @@ export default function MediaTab(props: MediaTabProps) {
                                 isGallery={false}
                                 maxSelection={1}
                                 disabled={!editMode}
+                                contextId={portfolioId}
                             />
                     </CardWithIcon>
 
@@ -170,6 +171,7 @@ export default function MediaTab(props: MediaTabProps) {
                                 isGallery={false}
                                 maxSelection={1}
                                 disabled={!editMode}
+                                contextId={portfolioId}
                             />
                     </CardWithIcon>
 
@@ -189,6 +191,7 @@ export default function MediaTab(props: MediaTabProps) {
                                 isGallery={false}
                                 maxSelection={1}
                                 disabled={!editMode}
+                                contextId={portfolioId}
                             />
                     </CardWithIcon>
                 </div>

@@ -290,20 +290,20 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_profile_picture(self, value):
-        """Validate uploaded profile picture."""
+        """Validate uploaded profile picture via media service."""
         if value is None:
             return value
         
+        # ✅ استفاده از validator مرکزی media که از settings (env) می‌خواند
+        from src.media.utils.validators import validate_image_file
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        
         try:
-            from src.media.utils.validators import validate_image_file
-            if value.size > 5 * 1024 * 1024:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_file_size_exceed"))
-            
-            allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-            if value.content_type not in allowed_types:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_file_must_be_image"))
-            
+            validate_image_file(value)
             return value
+        except DjangoValidationError as e:
+            # اگر خطای validation از media service باشد، آن را برمی‌گردانیم
+            raise serializers.ValidationError(str(e))
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { getUploadSettings, clearCache, getUploadConfig } from './config';
+import { getUploadSettings, clearCache, getUploadConfig, useUploadSettings } from './config';
 import { 
     getFileCategory,
     getImageAcceptTypes,
@@ -47,6 +47,7 @@ export const mediaService = {
 // Named exports for direct use
 export {
     getUploadSettings,
+    useUploadSettings,
     getFileCategory,
     validateFileAdvanced,
     formatBytes
