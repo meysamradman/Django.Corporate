@@ -25,14 +25,16 @@ const mediaRoutes: RouteRule[] = [
   createRule({
     id: "media-list",
     pattern: /^\/media\/?$/,
-    description: "کتابخانه مدیا",
+    module: "media",
+    action: "read",
+    description: "Media library - requires media.read permission",
   }),
   createRule({
     id: "media-detail",
     pattern: new RegExp(`^/media/${ID_SEGMENT}/?$`),
     module: "media",
     action: "update",
-    description: "جزئیات مدیا",
+    description: "Media details - requires media.update permission",
   }),
 ];
 

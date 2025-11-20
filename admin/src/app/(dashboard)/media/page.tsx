@@ -350,27 +350,25 @@ export default function MediaPage() {
           <h1 className="page-title">کتابخانه رسانه</h1>
         </div>
         <div className="flex items-center gap-2">
-          {/* AI Generate Button - با Toast */}
+          {/* AI Generate Button - فقط Disable (باز کردن مودال) */}
           <ProtectedButton
             permission="ai.create"
             size="sm"
             className="border border-pink-1 bg-pink text-pink-2 shadow-sm transition hover:bg-pink/90"
             onClick={handleAIGenerateClick}
-            showDenyToast={true}
-            denyMessage="اجازه استفاده از AI را ندارید"
+            showDenyToast={false}
           >
             <Sparkles className="h-4 w-4" />
             تولید با AI
           </ProtectedButton>
           
-          {/* Upload Button - با Toast */}
+          {/* Upload Button - فقط Disable (باز کردن مودال) */}
           <ProtectedButton
             permission="media.upload"
             size="sm"
             className="bg-primary text-static-w shadow-sm hover:shadow-md"
             onClick={handleUploadClick}
-            showDenyToast={true}
-            denyMessage="اجازه آپلود رسانه را ندارید"
+            showDenyToast={false}
           >
             <Upload className="h-4 w-4" />
             آپلود رسانه
@@ -414,8 +412,6 @@ export default function MediaPage() {
                 {selectedIds.length > 0 && (
                   <ProtectedButton 
                     permission="media.delete" 
-                    showDenyToast={true}
-                    denyMessage="اجازه حذف رسانه را ندارید" 
                     variant="destructive" 
                     onClick={handleDeleteSelected} 
                     size="sm"

@@ -390,15 +390,15 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="account">
-            <FileText className="h-4 w-4 me-2" />
+            <FileText className="h-4 w-4" />
             اطلاعات پایه
           </TabsTrigger>
           <TabsTrigger value="media">
-            <Image className="h-4 w-4 me-2" />
+            <Image className="h-4 w-4" />
             مدیا
           </TabsTrigger>
           <TabsTrigger value="seo">
-            <Search className="h-4 w-4 me-2" />
+            <Search className="h-4 w-4" />
             سئو
           </TabsTrigger>
         </TabsList>

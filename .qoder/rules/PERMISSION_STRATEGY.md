@@ -1,3 +1,6 @@
+---
+trigger: manual
+---
 # 🔥 استراتژی Permission برای دکمه‌ها و لینک‌ها
 
 ## 📋 فهرست مطالب
@@ -14,34 +17,73 @@
 ---
 
 ## ایده کلی
-به جای اینکه برای همه دکمه‌ها `ProtectedButton` با toast استفاده کنیم، از استراتژی ترکیبی استفاده می‌کنیم:
 
-**قاعده کلی:**
-- **دکمه‌های اصلی (Create, Save در Settings)**: `ProtectedButton` با toast
-- **دکمه‌های درون لیست (Row Actions)**: `permission` در `DataTableRowAction` (disable بدون toast)
-- **لینک‌های ستون اول**: `ProtectedLink` (disable بدون toast)
+### 🎯 استراتژی اصلی: Disable بدون Toast
+
+بهترین تجربه کاربری زمانی است که:
+- کاربر دکمه‌های disable شده را می‌بیند (opacity کمتر)
+- متوجه می‌شود که دسترسی ندارد بدون نیاز به کلیک
+- بدون مزاحمت toast و پیام‌های اضافی
+
+**قاعده کلی (پیش‌فرض):**
+- **دکمه‌های اصلی (Create, Save)**: فقط disable (بدون toast)
+- **دکمه‌های درون لیست (Row Actions)**: فقط disable (بدون toast)
+- **لینک‌های ستون اول**: فقط disable (بدون toast)
 - **دکمه Save در Create/Edit**: `Button` معمولی (RouteGuard چک می‌کند)
+
+### 💡 Toast اختیاری
+
+اگر در موارد خاصی نیاز به نمایش پیام برای کاربر بود، می‌توانید از `showDenyToast={true}` استفاده کنید:
+
+```tsx
+<ProtectedButton 
+  permission="blog.create"
+  showDenyToast={true}  // ✅ اختیاری - در صورت نیاز
+  denyMessage="شما دسترسی لازم برای ایجاد وبلاگ را ندارید"
+>
+  ایجاد وبلاگ
+</ProtectedButton>
+```
+
+**چه زمانی از toast استفاده کنیم؟**
+- زمانی که کاربر ممکن است گیج شود چرا نمی‌تواند عملیات را انجام دهد
+- زمانی که دکمه در جای مخفی قرار دارد و کاربر متوجه disable بودن آن نمی‌شود
+- در صفحات تنظیمات که کاربر ممکن است انتظار ذخیره‌سازی داشته باشد
+
+**پیش‌فرض: بدون toast**
+- در اکثر موارد، disable کردن کافی است
+- کاربر با دیدن دکمه disable متوجه می‌شود که دسترسی ندارد
+- UX بهتر و بدون مزاحمت
 
 ### 1. دکمه‌های اصلی (Main Buttons)
 
 #### الف) دکمه "ایجاد" در لیست
-**استفاده از `ProtectedButton` با toast**
+**پیش‌فرض: فقط disable (بدون toast)**
 
 ```tsx
 <ProtectedButton 
   permission="blog.create"
   onClick={() => router.push("/blogs/create")}
-  showDenyToast={true}
-  denyMessage="شما دسترسی لازم برای ایجاد وبلاگ را ندارید"
+  // ✅ پیش‌فرض: فقط disable می‌شود
 >
   <Plus />
   ایجاد وبلاگ
 </ProtectedButton>
 ```
 
-**چرا toast؟**
-- کاربر باید بداند چرا نمی‌تواند عملیات را انجام دهد
-- فقط یک دکمه است، toast مزاحم نیست
+**اگر نیاز به toast دارید (اختیاری):**
+
+```tsx
+<ProtectedButton 
+  permission="blog.create"
+  onClick={() => router.push("/blogs/create")}
+  showDenyToast={true}  // ✅ فعال کردن toast
+  denyMessage="شما دسترسی لازم برای ایجاد وبلاگ را ندارید"
+>
+  <Plus />
+  ایجاد وبلاگ
+</ProtectedButton>
+```
 
 #### ب) دکمه "ذخیره" در صفحات Create/Edit
 **استفاده از `Button` معمولی (نه ProtectedButton)**
@@ -60,14 +102,28 @@
 - پس دکمه Save نیاز به ProtectedButton ندارد
 
 #### ج) دکمه "ذخیره" در صفحات Settings
-**استفاده از `ProtectedButton` با toast**
+**پیش‌فرض: فقط disable (بدون toast)**
 
 ```tsx
 // در صفحات settings (مثل /settings/panel, /settings/page/about)
 <ProtectedButton 
   permission="panel.update"
   onClick={handleSave}
-  showDenyToast={true}
+  // ✅ پیش‌فرض: فقط disable می‌شود
+>
+  <Save />
+  ذخیره تغییرات
+</ProtectedButton>
+```
+
+**اگر نیاز به toast دارید (اختیاری):**
+
+```tsx
+<ProtectedButton 
+  permission="panel.update"
+  onClick={handleSave}
+  showDenyToast={true}  // ✅ فعال کردن toast
+  denyMessage="شما دسترسی لازم برای ذخیره‌سازی تغییرات را ندارید"
 >
   <Save />
   ذخیره تغییرات
@@ -665,10 +721,11 @@ def save_as_draft(self, request, pk=None):
 
 ## مزایا
 
-✅ **UX بهتر**: بدون مزاحمت toast در لیست‌ها  
+✅ **UX بهتر**: کاربر با دیدن دکمه disable متوجه می‌شود  
+✅ **بدون مزاحمت**: بدون toastهای اضافی در لیست‌ها  
 ✅ **Performance**: همه چیز از cache می‌آید  
 ✅ **ساده**: فقط `permission` اضافه می‌کنیم  
-✅ **انعطاف‌پذیر**: می‌توانیم toast را فعال/غیرفعال کنیم  
+✅ **انعطاف‌پذیر**: می‌توانیم toast را در صورت نیاز فعال کنیم  
 
 ---
 
@@ -676,11 +733,18 @@ def save_as_draft(self, request, pk=None):
 
 ### ✅ قوانین کلی:
 
-1. **دکمه "ایجاد" در لیست**: همیشه `ProtectedButton` با `showDenyToast={true}`
+1. **دکمه "ایجاد" در لیست**: `ProtectedButton` بدون toast (پیش‌فرض)
+   - برای فعال کردن toast: `showDenyToast={true}`
+
 2. **دکمه "ذخیره" در Create/Edit**: همیشه `Button` معمولی (RoutePermissionGuard چک می‌کند)
-3. **دکمه "ذخیره" در Settings**: همیشه `ProtectedButton` با `showDenyToast={true}` (route guard فقط read را چک می‌کند)
+
+3. **دکمه "ذخیره" در Settings**: `ProtectedButton` بدون toast (پیش‌فرض)
+   - برای فعال کردن toast: `showDenyToast={true}`
+   - دلیل: route guard فقط read را چک می‌کند
+
 4. **لینک ستون اول**: همیشه `ProtectedLink` (disable بدون toast)
-5. **دکمه‌های درون لیست (Row Actions)**: فقط `permission` در `DataTableRowAction` (disable بدون toast)
+
+5. **دکمن‌های درون لیست (Row Actions)**: فقط `permission` در `DataTableRowAction` (disable بدون toast)
 
 ### 🔑 Permission Mapping:
 
@@ -730,13 +794,18 @@ permission: ["blog.update", "blog.delete"], requireAllPermissions: true
 
 ## 📊 خلاصه استراتژی
 
-| نوع دکمه/لینک | محل | Component | Toast | مثال |
-|---------|-----|-----------|-------|------|
-| **Create Button** | بالای لیست | `ProtectedButton` | ✅ بله | دکمه "ایجاد وبلاگ" |
-| **Save Button** | صفحات Create/Edit | `Button` معمولی | ❌ نه | دکمه "ذخیره" در `/blogs/create` |
-| **Save Button** | صفحات Settings | `ProtectedButton` | ✅ بله | دکمه "ذخیره" در `/settings/panel` |
-| **Name Column Link** | ستون اول جدول | `ProtectedLink` | ❌ نه | لینک نام در جدول users |
-| **Row Actions** | Dropdown در جدول | `permission` در `DataTableRowAction` | ❌ نه | دکمه "ویرایش" در dropdown |
+| نوع دکمه/لینک | محل | Component | Toast (پیش‌فرض) | Toast (اختیاری) | مثال |
+|---------|-----|-----------|-------|------|------|
+| **Create Button** | بالای لیست | `ProtectedButton` | ❌ خیر | ✅ `showDenyToast={true}` | دکمه "ایجاد وبلاگ" |
+| **Save Button** | صفحات Create/Edit | `Button` معمولی | ❌ خیر | ❌ خیر | دکمه "ذخیره" در `/blogs/create` |
+| **Save Button** | صفحات Settings | `ProtectedButton` | ❌ خیر | ✅ `showDenyToast={true}` | دکمه "ذخیره" در `/settings/panel` |
+| **Name Column Link** | ستون اول جدول | `ProtectedLink` | ❌ خیر | ❌ خیر | لینک نام در جدول users |
+| **Row Actions** | Dropdown در جدول | `permission` در `DataTableRowAction` | ❌ خیر | ❌ خیر | دکمه "ویرایش" در dropdown |
+
+### 💡 نکته مهم:
+- **پیش‌فرض**: همه دکمه‌ها بدون toast فقط disable می‌شوند
+- **اختیاری**: اگر نیاز دارید، می‌تونید `showDenyToast={true}` اضافه کنید
+- **UX بهتر**: کاربر با دیدن دکمه disable متوجه می‌شه که دسترسی نداره
 
 ---
 

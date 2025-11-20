@@ -130,7 +130,7 @@ ${replyTo.message}
             permission="email.create"
             showDenyToast={false}
           >
-            <Save className="w-4 h-4 me-2" />
+            <Save className="w-4 h-4" />
             {savingDraft ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
           </ProtectedButton>
           <ProtectedButton
@@ -139,7 +139,7 @@ ${replyTo.message}
             permission="email.create"
             showDenyToast={false}
           >
-            <Send className="w-4 h-4 me-2" />
+            <Send className="w-4 h-4" />
             {sending ? "در حال ارسال..." : "ارسال"}
           </ProtectedButton>
         </DialogFooter>

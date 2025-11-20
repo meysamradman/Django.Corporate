@@ -74,7 +74,7 @@ const ROLE_ACCESS_OVERRIDES: Record<
 > = {
   blog_manager: {
     full: ['blog', 'blog_categories', 'blog_tags'],
-    readOnly: ['media'],
+    // Media access managed via specific permissions (media.image.upload, etc.)
   },
   portfolio_manager: {
     full: [
@@ -84,7 +84,7 @@ const ROLE_ACCESS_OVERRIDES: Record<
       'portfolio_options',
       'portfolio_option_values',
     ],
-    readOnly: ['media'],
+    // Media access managed via specific permissions
   },
   media_manager: {
     full: ['media'],
@@ -109,7 +109,12 @@ const ROLE_ACCESS_OVERRIDES: Record<
   },
   statistics_viewer: {
     full: [],
-    readOnly: ['statistics', 'analytics'],
+    // Statistics access managed via granular permissions:
+    // - statistics.dashboard.read (base - all admins)
+    // - statistics.users.read (sensitive)
+    // - statistics.admins.read (highly sensitive)
+    // - statistics.content.read
+    // No module-level access for statistics
   },
 };
 
@@ -235,10 +240,17 @@ export function useUserPermissions() {
     
     // Check wildcard patterns
     const [resource, action] = permission.split('.');
-    const resourceWildcard = `${resource}.*`;
-    
-    if (permissions.includes(resourceWildcard)) {
-      return true;
+    if (resource) {
+      const resourceWildcard = `${resource}.*`;
+      if (permissions.includes(resourceWildcard)) {
+        return true;
+      }
+      
+      // ✅ FIX: Check manage permission (super permission for resource)
+      // اگر کاربر دسترسی manage داره، یعنی همه کار می‌تونه بکنه
+      if (permissions.includes(`${resource}.manage`) || permissions.includes(`${resource}.admin`)) {
+        return true;
+      }
     }
     
     return false;

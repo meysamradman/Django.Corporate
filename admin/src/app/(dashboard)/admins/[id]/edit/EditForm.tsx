@@ -340,19 +340,19 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="account">
-                        <User className="w-4 h-4 me-2" />
+                        <User className="w-4 h-4" />
                         حساب کاربری
                     </TabsTrigger>
                     <TabsTrigger value="security">
-                        <KeyRound className="w-4 h-4 me-2" />
+                        <KeyRound className="w-4 h-4" />
                         گذرواژه
                     </TabsTrigger>
                     <TabsTrigger value="social">
-                        <Share2 className="w-4 h-4 me-2" />
+                        <Share2 className="w-4 h-4" />
                         شبکه‌های اجتماعی
                     </TabsTrigger>
                     <TabsTrigger value="advanced_settings">
-                        <Settings2 className="w-4 h-4 me-2" />
+                        <Settings2 className="w-4 h-4" />
                         تنظیمات پیشرفته
                     </TabsTrigger>
                 </TabsList>

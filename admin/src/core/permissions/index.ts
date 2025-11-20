@@ -21,6 +21,16 @@ export {
   useCanManageForms,
   useCanManagePanel,
   useCanManagePages,
+  useCanUploadImage,
+  useCanUploadVideo,
+  useCanUploadAudio,
+  useCanUploadDocument,
+  useCanViewDashboardStats,
+  useCanViewUsersStats,
+  useCanViewAdminsStats,
+  useCanViewContentStats,
+  useCanExportStats,
+  useCanManageStatistics,
 } from './hooks/useUIPermissions';
 export {
   useRoles,
@@ -40,6 +50,7 @@ export { ProtectedButton } from './components/ProtectedButton';
 export { ProtectedLink } from './components/ProtectedLink';
 export { RoutePermissionGuard } from './components/RoutePermissionGuard';
 export { ProtectedRoute } from './components/ProtectedRoute';
+export { AccessDenied } from './components/AccessDenied';
 export {
   PermissionGate as PermissionGateLegacy,
   PermissionMultiGate,

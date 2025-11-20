@@ -43,13 +43,9 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
             <item.icon
               className={cn(
                 "h-5 w-5 transition-colors",
-                item.state === "readOnly" && "text-amber-400",
-                item.state === "limited" && "text-sky-400",
-                item.state === "locked" && "text-slate-400",
-                !item.state &&
-                  (isActive
-                    ? "text-primary"
-                    : "text-sdb-ic group-hover:text-primary")
+                isActive
+                  ? "text-primary"
+                  : "text-sdb-ic group-hover:text-primary"
               )}
             />
           );
@@ -58,9 +54,9 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
             "relative w-10 h-10 flex items-center justify-center rounded-md transition-colors group",
             item.disabled && "cursor-not-allowed opacity-50",
             !item.disabled && "cursor-pointer",
-            item.state === "readOnly" && "border border-amber-400/30 text-amber-400",
-            item.state === "limited" && "border border-sky-400/30 text-sky-400",
-            item.state === "locked" && "border border-slate-400/30 text-slate-400",
+            item.state === "readOnly" && "border border-amber-1",
+            item.state === "limited" && "border border-blue-1",
+            item.state === "locked" && "border border-gray-1",
             !item.state &&
               (isActive
                 ? "bg-sdb-hv text-primary"

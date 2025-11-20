@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useCreateRole, usePermissions } from "@/core/permissions/hooks/useRoles";
+import { useCreateRole, usePermissions, useBasePermissions } from "@/core/permissions/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -31,7 +31,8 @@ import {
   Mail,
   SquarePen,
   BookOpenCheck,
-  PieChart
+  PieChart,
+  LayoutDashboard
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,11 +43,19 @@ import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField"
 import { extractFieldErrors, hasFieldErrors, showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 import { msg } from "@/core/messages/message";
 
+// ✅ OPTIMIZED: Statistics permissions that are actually used (defined once, reused)
+const STATISTICS_USED_PERMISSIONS: readonly string[] = [
+  'statistics.users.read',
+  'statistics.admins.read',
+  'statistics.content.read'
+];
+
 export default function CreateRolePage() {
   const router = useRouter();
 
   const createRoleMutation = useCreateRole();
   const { data: permissions, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
+  const { data: basePermissions } = useBasePermissions();
   
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
 
@@ -115,16 +124,26 @@ export default function CreateRolePage() {
   const onSubmit = async (data: RoleFormValues) => {
     try {
       // Convert permission IDs to modules/actions format that backend expects
-      const selectedPermsData: Array<{module: string; action: string}> = [];
+      const selectedPermsData: Array<{module: string; action: string; permission_key?: string}> = [];
       
       if (permissions) {
         permissions.forEach((group: any) => {
           group.permissions.forEach((perm: any) => {
             if (selectedPermissions.includes(perm.id)) {
-              selectedPermsData.push({
-                module: perm.resource,  // Backend expects 'module' not 'resource'
-                action: perm.action.toLowerCase() // Backend expects lowercase
-              });
+              // ✅ FIX: Always use original_key if available for exact permission matching
+              // This ensures backend can match the exact permission, not just module+action
+              if (perm.original_key) {
+                selectedPermsData.push({
+                  module: perm.resource,
+                  action: perm.action.toLowerCase(),
+                  permission_key: perm.original_key // ✅ Add original_key for all permissions
+                });
+              } else {
+                selectedPermsData.push({
+                  module: perm.resource,  // Backend expects 'module' not 'resource'
+                  action: perm.action.toLowerCase() // Backend expects lowercase
+                });
+              }
             }
           });
         });
@@ -143,8 +162,8 @@ export default function CreateRolePage() {
 
       const result = await createRoleMutation.mutateAsync(payload);
       
-      // نمایش پیام موفقیت
-      showSuccessToast(msg.ui("roleCreated"));
+      // ✅ FIX: Toast is already shown in useCreateRole hook, no need to show again
+      // showSuccessToast(msg.ui("roleCreated")); // Removed to avoid duplicate toast
       
       // انتقال به صفحه لیست
       router.push("/roles");
@@ -178,6 +197,7 @@ export default function CreateRolePage() {
   };
 
   const resourceIconMap: Record<string, React.ReactElement> = {
+    dashboard: <LayoutDashboard className="h-4 w-4 text-blue-600" />,
     users: <Users className="h-4 w-4 text-blue-600" />,
     admin: <ShieldCheck className="h-4 w-4 text-purple-600" />,
     media: <Image className="h-4 w-4 text-pink-600" />,
@@ -204,14 +224,45 @@ export default function CreateRolePage() {
     return iconMap || <Shield className="h-4 w-4" />;
   };
 
+  // Helper function to get base permission IDs from API
+  const getBasePermissionIds = (permissionGroups: any[]) => {
+    if (!basePermissions || !Array.isArray(basePermissions)) return [];
+    
+    const basePermissionIds: number[] = [];
+    
+    // Use base permissions from API
+    basePermissions.forEach((basePerm: any) => {
+      permissionGroups.forEach(group => {
+        group.permissions.forEach((permission: any) => {
+          if (permission.resource === basePerm.resource && 
+              permission.action === basePerm.action) {
+            basePermissionIds.push(permission.id);
+          }
+        });
+      });
+    });
+    
+    return basePermissionIds;
+  };
+
   // Group permissions by resource and organize actions
   const getOrganizedPermissions = () => {
     if (!permissions) return [];
+    
+    // Get base permission IDs to exclude them from the form
+    // Base permissions (dashboard.read, profile.read, profile.update) are automatically granted to all admins
+    const basePermissionIds = getBasePermissionIds(permissions);
     
     // Create a map of resources and their permissions
     const resourceMap: Record<string, any> = {};
     
     permissions.forEach(group => {
+      // Filter out base permissions
+      const filteredPermissions = group.permissions.filter((p: any) => !basePermissionIds.includes(p.id));
+      
+      // Skip if no permissions left after filtering
+      if (filteredPermissions.length === 0) return;
+      
       if (!resourceMap[group.resource]) {
         resourceMap[group.resource] = {
           resource: group.resource,
@@ -220,8 +271,8 @@ export default function CreateRolePage() {
         };
       }
       
-      // Add all permissions for this resource
-      resourceMap[group.resource].permissions.push(...group.permissions);
+      // Add filtered permissions for this resource
+      resourceMap[group.resource].permissions.push(...filteredPermissions);
     });
     
     // Convert to array
@@ -248,19 +299,21 @@ export default function CreateRolePage() {
 
   // Check if resource should be in management section
   const isManagementResource = (resource: any) => {
-    const name = resource.resource?.toLowerCase() || '';
     const perms = resource.permissions || [];
 
-    // 1. FORCE these specific resources to always be in management section
-    const forcedManagementResources = ['pages', 'settings', 'panel', 'forms', 'ai', 'statistics', 'analytics'];
-    if (forcedManagementResources.includes(name)) {
+    // 1. Source of Truth: Check if any permission has is_standalone flag from backend
+    // This aligns perfectly with Backend/src/user/permissions/config.py
+    // Only these 5 have is_standalone=True: panel, pages, forms, settings, ai
+    const hasStandalonePermission = perms.some((p: any) => p.is_standalone);
+    if (hasStandalonePermission) {
       return true;
     }
     
-    // 2. For others, check if they lack standard actions
+    // 2. For others, check if they lack standard CRUD actions
+    // Statistics has CRUD permissions (read, export, manage) so should NOT be in management section
     const standardActions = ['create', 'post', 'write', 'add', 
                              'edit', 'update', 'put', 'patch', 'modify', 
-                             'delete', 'remove', 'destroy'];
+                             'delete', 'remove', 'destroy', 'read', 'export'];
     
     const hasStandardAction = perms.some((p: any) => {
       const action = p.action?.toLowerCase() || '';
@@ -278,12 +331,44 @@ export default function CreateRolePage() {
     return organizedPermissions.filter((r: any) => isManagementResource(r));
   }, [organizedPermissions]);
 
+  // Separate statistics from standard resources
+  const statisticsResources = useMemo(() => {
+    return organizedPermissions.filter((r: any) => r.resource === 'statistics');
+  }, [organizedPermissions]);
+
   const standardResources = useMemo(() => {
-    return organizedPermissions.filter((r: any) => !isManagementResource(r));
+    return organizedPermissions.filter((r: any) => !isManagementResource(r) && r.resource !== 'statistics');
   }, [organizedPermissions]);
 
   // Backward compatibility for logic check (optional, but keeping clean)
   const hasManageOnlyResources = manageOnlyResources.length > 0;
+
+  // 🔥 Smart Warning Logic: Check for resources with actions but no view permission
+  const logicalPermissionErrors = useMemo(() => {
+    const errors: string[] = [];
+    
+    standardResources.forEach((resource: any) => {
+      const viewPerm = getActionPermission(resource.permissions, 'view');
+      
+      // Skip if resource doesn't have a view permission (unlikely for standard resources)
+      if (!viewPerm) return;
+      
+      const hasView = isPermissionSelected(viewPerm.id);
+      
+      // Check if any other action is selected
+      const otherActions = ['create', 'edit', 'delete'];
+      const hasOtherAction = otherActions.some(action => {
+        const perm = getActionPermission(resource.permissions, action);
+        return perm && isPermissionSelected(perm.id);
+      });
+      
+      if (hasOtherAction && !hasView) {
+        errors.push(resource.resource);
+      }
+    });
+    
+    return errors;
+  }, [standardResources, selectedPermissions]);
 
   return (
     <div className="space-y-6">
@@ -321,6 +406,36 @@ export default function CreateRolePage() {
               </div>
             ) : permissions && permissions.length > 0 ? (
               <div className="space-y-8">
+                
+                {/* 🔥 Smart Warning Alert */}
+                {logicalPermissionErrors.length > 0 && (
+                  <div className="rounded-lg border border-amber-1 bg-amber p-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-amber-0 rounded-full shrink-0 border border-amber-1">
+                        <AlertCircle className="h-5 w-5 text-amber-2" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-medium text-amber-2">توجه: دسترسی‌های ناقص شناسایی شد</h4>
+                        <p className="text-sm text-font-s leading-relaxed">
+                          شما برای برخی ماژول‌ها دسترسی عملیاتی (ایجاد، ویرایش یا حذف) داده‌اید، اما دسترسی <strong>«مشاهده»</strong> را فعال نکرده‌اید.
+                          <br />
+                          کاربران بدون دسترسی مشاهده، معمولاً نمی‌توانند وارد بخش مربوطه شوند تا عملیاتی انجام دهند.
+                        </p>
+                        <div className="pt-2 flex flex-wrap gap-2">
+                          {logicalPermissionErrors.map(resourceKey => {
+                            const resource = standardResources.find((r: any) => r.resource === resourceKey);
+                            return (
+                              <span key={resourceKey} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-0 text-amber-2 border border-amber-1">
+                                {resource ? getPermissionTranslation(resource.display_name, 'resource') : resourceKey}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Standard Resources Table */}
                 {standardResources.length > 0 && (
                   <div className="rounded-md border">
@@ -365,21 +480,30 @@ export default function CreateRolePage() {
                                 {getPermissionTranslation(resource.display_name, 'resource')}
                               </div>
                             </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center">
-                                <Checkbox
-                                  checked={isPermissionSelected(
-                                    getActionPermission(resource.permissions, 'view')?.id
+                            <TableCell className="text-center relative">
+                              <div className="flex justify-center relative">
+                                <div className="relative">
+                                  <Checkbox
+                                    checked={isPermissionSelected(
+                                      getActionPermission(resource.permissions, 'view')?.id
+                                    )}
+                                    onCheckedChange={() => {
+                                      const perm = getActionPermission(resource.permissions, 'view');
+                                      if (perm) togglePermission(perm.id);
+                                    }}
+                                    className={logicalPermissionErrors.includes(resource.resource) ? "border-amber-1 data-[state=unchecked]:bg-amber" : ""}
+                                  />
+                                  {logicalPermissionErrors.includes(resource.resource) && (
+                                    <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 pointer-events-none">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-1 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-1 border-2 border-white"></span>
+                                    </span>
                                   )}
-                                  onCheckedChange={() => {
-                                    const perm = getActionPermission(resource.permissions, 'view');
-                                    if (perm) togglePermission(perm.id);
-                                  }}
-                                />
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
-                              <div className="flex justify-center">
+                              <div className="flex justify-center relative group">
                                 <Checkbox
                                   checked={isPermissionSelected(
                                     getActionPermission(resource.permissions, 'create')?.id
@@ -389,10 +513,15 @@ export default function CreateRolePage() {
                                     if (perm) togglePermission(perm.id);
                                   }}
                                 />
+                                {getActionPermission(resource.permissions, 'create')?.requires_superadmin && (
+                                  <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
+                                    <Shield className="h-3 w-3" />
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
-                              <div className="flex justify-center">
+                              <div className="flex justify-center relative group">
                                 <Checkbox
                                   checked={isPermissionSelected(
                                     getActionPermission(resource.permissions, 'edit')?.id
@@ -402,10 +531,15 @@ export default function CreateRolePage() {
                                     if (perm) togglePermission(perm.id);
                                   }}
                                 />
+                                {getActionPermission(resource.permissions, 'edit')?.requires_superadmin && (
+                                  <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
+                                    <Shield className="h-3 w-3" />
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
-                              <div className="flex justify-center">
+                              <div className="flex justify-center relative group">
                                 <Checkbox
                                   checked={isPermissionSelected(
                                     getActionPermission(resource.permissions, 'delete')?.id
@@ -415,6 +549,11 @@ export default function CreateRolePage() {
                                     if (perm) togglePermission(perm.id);
                                   }}
                                 />
+                                {getActionPermission(resource.permissions, 'delete')?.requires_superadmin && (
+                                  <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
+                                    <Shield className="h-3 w-3" />
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -422,6 +561,71 @@ export default function CreateRolePage() {
                       </TableBody>
                     </Table>
                   </div>
+                )}
+
+                {/* Statistics Permissions - Separate Card */}
+                {statisticsResources.length > 0 && statisticsResources[0]?.permissions?.length > 0 && (
+                  <Card className="border-2 border-dashed border-blue-0 bg-blue">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-1/10">
+                            <PieChart className="h-5 w-5 text-blue-1" />
+                          </div>
+                          <div>
+                            <CardTitle>آمار و گزارش‌ها</CardTitle>
+                            <p className="text-sm text-font-s mt-1">
+                              دسترسی به آمارهای مختلف سیستم
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-font-s">
+                          {statisticsResources[0].permissions.filter((p: any) => 
+                            isPermissionSelected(p.id)
+                          ).length} / {statisticsResources[0].permissions.length}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {statisticsResources[0].permissions
+                          .filter((perm: any) => {
+                            // فقط permissions هایی که واقعاً استفاده می‌شوند را نمایش بده
+                            return STATISTICS_USED_PERMISSIONS.includes(perm.original_key);
+                          })
+                          .map((perm: any) => {
+                          const isSelected = isPermissionSelected(perm.id);
+
+                          return (
+                            <div 
+                              key={perm.id}
+                              onClick={() => togglePermission(perm.id)}
+                              className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${isSelected ? 'border-blue-1 bg-blue-0' : 'border-br bg-card hover:border-blue-0'}`}
+                            >
+                              <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-blue-1/20' : 'bg-bg group-hover:bg-blue-0/50'}`}>
+                                {getResourceIcon('statistics')}
+                              </div>
+                              <span className={`text-center text-sm font-medium leading-tight ${isSelected ? 'text-blue-1' : 'text-font-p'}`}>
+                                {getPermissionTranslation(perm.display_name, 'description')}
+                              </span>
+                              {perm.requires_superadmin && (
+                                <div className="absolute top-2 right-2 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
+                                  <Shield className="h-3 w-3" />
+                                </div>
+                              )}
+                              {isSelected && (
+                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-1 rounded-full flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-wt" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {/* Management-Only Modules (Settings, Analytics, etc.) */}
@@ -442,8 +646,11 @@ export default function CreateRolePage() {
                         </div>
                         <div className="text-sm text-font-s">
                           {manageOnlyResources.filter((r: any) => {
-                            const perm = getActionPermission(r.permissions, 'manage') || r.permissions[0];
-                            return perm && isPermissionSelected(perm.id);
+                            // ✅ FIX: Find manage permission more reliably
+                            const perm = r.permissions.find((p: any) => 
+                              p.action?.toLowerCase() === 'manage' || p.is_standalone
+                            ) || r.permissions[0];
+                            return perm && perm.id && isPermissionSelected(perm.id);
                           }).length} / {manageOnlyResources.length}
                         </div>
                       </div>
@@ -451,14 +658,18 @@ export default function CreateRolePage() {
                     <CardContent>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         {manageOnlyResources.map((resource: any) => {
-                          const managePerm = getActionPermission(resource.permissions, 'manage') || resource.permissions[0];
-                          if (!managePerm) return null;
+                          // ✅ FIX: Find manage permission more reliably
+                          const managePerm = resource.permissions.find((p: any) => 
+                            p.action?.toLowerCase() === 'manage' || p.is_standalone
+                          ) || resource.permissions[0];
+                          
+                          if (!managePerm || !managePerm.id) return null;
                           
                           const isSelected = isPermissionSelected(managePerm.id);
 
                           return (
                             <div 
-                              key={resource.resource}
+                              key={`${resource.resource}-${managePerm.id}`}
                               onClick={() => togglePermission(managePerm.id)}
                               className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${isSelected ? 'border-blue-1 bg-blue-0' : 'border-br bg-card hover:border-blue-0'}`}
                             >
@@ -468,6 +679,11 @@ export default function CreateRolePage() {
                               <span className={`text-center text-sm font-medium leading-tight ${isSelected ? 'text-blue-1' : 'text-font-p'}`}>
                                 {getPermissionTranslation(resource.display_name, 'resource')}
                               </span>
+                              {managePerm.requires_superadmin && (
+                                <div className="absolute top-2 right-2 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
+                                  <Shield className="h-3 w-3" />
+                                </div>
+                              )}
                               {isSelected && (
                                 <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-1 rounded-full flex items-center justify-center">
                                   <svg className="w-3 h-3 text-wt" fill="currentColor" viewBox="0 0 20 20">

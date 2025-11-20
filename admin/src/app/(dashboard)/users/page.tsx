@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/tables/DataTable";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
 import { UserWithProfile } from "@/types/auth/user";
-import { adminApi, Filter } from "@/api/admins/route";
+import { adminApi } from "@/api/admins/route";
+import { Filter } from "@/types/auth/adminFilter";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
@@ -14,6 +16,7 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
 import { getConfirmMessage } from "@/core/messages/message";
 import {
@@ -28,6 +31,7 @@ import {
 } from "@/components/elements/AlertDialog";
 
 export default function UsersPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = useUserFilterOptions();
   const userFilterConfig = getUserFilterConfig(booleanFilterOptions);
@@ -36,7 +40,8 @@ export default function UsersPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // ✅ FIX: Default sorting: created_at descending (newest first)
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<Filter>({});
@@ -60,6 +65,9 @@ export default function UsersPage() {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
+    } else {
+      // ✅ FIX: If no sorting in URL, use default from initSortingFromURL
+      setSorting(initSortingFromURL());
     }
     
     // Load search from URL
@@ -177,15 +185,15 @@ export default function UsersPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (user: UserWithProfile) => {
-        window.location.href = `/users/${user.id}/edit`;
-      },
+      onClick: (user: UserWithProfile) => router.push(`/users/${user.id}/edit`),
+      permission: "users.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (user: UserWithProfile) => handleDeleteUser(user.id),
       isDestructive: true,
+      permission: "users.delete",
     },
   ]);
 
@@ -204,7 +212,7 @@ export default function UsersPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      setClientFilters(prev => ({
+      setClientFilters((prev: Filter) => ({
         ...prev,
         [filterId]: value as boolean | undefined
       }));
@@ -291,14 +299,10 @@ export default function UsersPage() {
           <ProtectedButton
             permission="users.create"
             size="sm"
-            asChild
-            showDenyToast={true}
-            denyMessage="اجازه ایجاد کاربر ندارید"
+            onClick={() => router.push("/users/create")}
           >
-            <Link href="/users/create">
-              <Plus />
-              افزودن کاربر
-            </Link>
+            <Plus className="h-4 w-4" />
+            افزودن کاربر
           </ProtectedButton>
         </div>
       </div>

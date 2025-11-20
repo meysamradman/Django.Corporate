@@ -44,7 +44,7 @@ LOCAL_APPS = [
     'src.form.apps.FormConfig',
 ]
 INSTALLED_APPS = [
-     'django.contrib.admin',
+     # 'django.contrib.admin',  # ✅ حذف شد - از Next.js برای پنل ادمین استفاده می‌شود
      'django.contrib.auth',
      'django.contrib.contenttypes',
      'django.contrib.sessions',

@@ -27,10 +27,8 @@ export default function SettingsPage() {
                     <ProtectedButton
                         onClick={() => generalFormRef.current?.handleSave()}
                         permission="settings.manage"
-                        showDenyToast={true}
-                        denyMessage="شما دسترسی لازم برای مدیریت تنظیمات عمومی را ندارید"
                     >
-                        <Save className="mr-2 h-4 w-4" />
+                        <Save className="h-4 w-4" />
                         ذخیره تنظیمات
                     </ProtectedButton>
                 )}
@@ -39,23 +37,23 @@ export default function SettingsPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="general">
-                        <Settings className="h-4 w-4 me-2" />
+                        <Settings className="h-4 w-4" />
                         تنظیمات عمومی
                     </TabsTrigger>
                     <TabsTrigger value="phones">
-                        <Phone className="h-4 w-4 me-2" />
+                        <Phone className="h-4 w-4" />
                         شماره تماس
                     </TabsTrigger>
                     <TabsTrigger value="mobiles">
-                        <Smartphone className="h-4 w-4 me-2" />
+                        <Smartphone className="h-4 w-4" />
                         موبایل
                     </TabsTrigger>
                     <TabsTrigger value="emails">
-                        <Mail className="h-4 w-4 me-2" />
+                        <Mail className="h-4 w-4" />
                         ایمیل
                     </TabsTrigger>
                     <TabsTrigger value="social">
-                        <Share2 className="h-4 w-4 me-2" />
+                        <Share2 className="h-4 w-4" />
                         شبکه‌های اجتماعی
                     </TabsTrigger>
                 </TabsList>

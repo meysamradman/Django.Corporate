@@ -5,6 +5,7 @@ from django.core.cache import cache
 from src.core.responses.response import APIResponse
 from .registry import PermissionRegistry
 from .validator import PermissionValidator
+from .config import BASE_ADMIN_PERMISSIONS
 from src.user.messages.permission import PERMISSION_SUCCESS, PERMISSION_ERRORS
 
 
@@ -23,11 +24,15 @@ def get_permission_map(request):
         
         user_permissions = PermissionValidator.get_user_permissions(request.user)
         
+        # Get base permissions (همیشه برای همه ادمین‌ها رایگان)
+        base_permissions = list(BASE_ADMIN_PERMISSIONS.keys())
+        
         return APIResponse.success(
             message=PERMISSION_SUCCESS["permission_map_retrieved"],
             data={
                 "all_permissions": all_permissions,
                 "user_permissions": user_permissions,
+                "base_permissions": base_permissions,
                 "is_superadmin": bool(
                     getattr(request.user, "is_superuser", False) or getattr(request.user, "is_admin_full", False)
                 ),

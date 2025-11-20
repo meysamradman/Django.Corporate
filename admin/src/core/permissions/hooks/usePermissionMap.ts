@@ -24,6 +24,9 @@ export const usePermissionMap = () => {
       user: Array.isArray(query.data.user_permissions) 
         ? query.data.user_permissions 
         : [],
+      base: Array.isArray(query.data.base_permissions)
+        ? query.data.base_permissions
+        : [],
       isSuper: query.data.is_superadmin,
     }
   }, [query.data])

@@ -375,7 +375,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                     onClick={() => editMode ? handleCancel() : setEditMode(true)}
                                     disabled={isLoading || isSaving}
                                 >
-                                    <Edit2 className="w-4 h-4 me-2" />
+                                    <Edit2 className="w-4 h-4" />
                                     {editMode ? getPermissionTranslation("لغو", 'action') : getPermissionTranslation("ویرایش نقش‌ها", 'resource')}
                                 </Button>
                                 {editMode && !admin.is_superuser && (
@@ -384,7 +384,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                         onClick={handleSave}
                                         disabled={isSaving}
                                     >
-                                        {isSaving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                                        {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                                         {getPermissionTranslation("ذخیره", 'action')}
                                     </Button>
                                 )}

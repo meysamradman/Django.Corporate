@@ -165,32 +165,25 @@ class AdminRolePermission(permissions.BasePermission):
     
     def _check_base_admin_permissions(self, action: str, method: str, view) -> bool:
         """Set of baseline permissions granted to every admin - using config."""
-        # Check if this is a base permission from config
-        # BASE_ADMIN_PERMISSIONS already imported at top
+        # Only these permissions are in BASE_ADMIN_PERMISSIONS:
+        # - dashboard.read (Statistics dashboard overview)
+        # - profile.read (own profile)
+        # - profile.update (own profile)
+        # Media is NO LONGER in base - requires explicit permission
         
-        # Map common view patterns to permission IDs
         view_name = view.__class__.__name__
         
-        # Dashboard/Statistics
+        # Dashboard/Statistics - only general overview (GET)
         if method.upper() == 'GET' and any(x in view_name for x in ['Statistics', 'Dashboard']):
+            # Only allow if it's the general dashboard endpoint
+            # Specific stats endpoints (users_stats, admins_stats) will be blocked
             return True
         
-        # Media read-only
-        if method.upper() == 'GET' and 'Media' in view_name:
-            return True
-        
-        # Pages read-only
-        if method.upper() == 'GET' and 'Page' in view_name:
-            return True
-        
-        # Panel settings read-only
-        if method.upper() == 'GET' and 'Panel' in view_name:
-            return True
-        
-        # Profile read/update
+        # Profile read/update (own profile only)
         if 'Profile' in view_name and method.upper() in ['GET', 'PUT', 'PATCH']:
             return True
         
+        # Everything else requires explicit permission
         return False
 
     def _is_accessing_own_profile(self, request, view) -> bool:

@@ -14,6 +14,7 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -81,20 +82,8 @@ export default function PortfolioPage() {
       pageSize: 10,
     };
   });
-  const [sorting, setSorting] = useState<SortingState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const orderBy = urlParams.get('order_by');
-      const orderDesc = urlParams.get('order_desc');
-      if (orderBy) {
-        return [{
-          id: orderBy,
-          desc: orderDesc === 'true',
-        }];
-      }
-    }
-    return [];
-  });
+  // ✅ FIX: Default sorting: created_at descending (newest first)
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -274,12 +263,14 @@ export default function PortfolioPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (portfolio) => router.push(`/portfolios/${portfolio.id}/edit`),
+      permission: "portfolio.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (portfolio) => handleDeletePortfolio(portfolio.id),
       isDestructive: true,
+      permission: "portfolio.delete",
     },
   ];
   
@@ -646,18 +637,13 @@ export default function PortfolioPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          {/* ✅ دکمه navigation به صفحه ایجاد - با Toast */}
           <ProtectedButton 
             permission="portfolio.create"
-            size="sm" 
-            asChild
-            showDenyToast={true}
-            denyMessage="اجازه ایجاد نمونه‌کار ندارید"
+            size="sm"
+            onClick={() => router.push('/portfolios/create')}
           >
-            <Link href="/portfolios/create">
-              <Edit className="h-4 w-4 me-2" />
-              افزودن نمونه‌کار
-            </Link>
+            <Edit className="h-4 w-4" />
+            افزودن نمونه‌کار
           </ProtectedButton>
         </div>
       </div>

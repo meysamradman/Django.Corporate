@@ -1,6 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from src.statistics.views import AdminStatisticsViewSet
+from src.statistics.views.admin.statistics_viewset import AdminStatisticsViewSet
 
 router = DefaultRouter()
 router.register(r'admin/statistics', AdminStatisticsViewSet, basename='admin-statistics')

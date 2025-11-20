@@ -87,6 +87,15 @@ class AdminRoleSerializer(serializers.ModelSerializer):
                 if not isinstance(perm, dict):
                     raise serializers.ValidationError("Each permission must be a dict with 'module' and 'action'")
                 
+                # ✅ FIX: Support permission_key for statistics permissions (all have module='statistics', action='read')
+                # If permission_key is provided, use it directly (for statistics.users.read, statistics.admins.read, etc.)
+                if 'permission_key' in perm and perm['permission_key']:
+                    from src.user.permissions.registry import PermissionRegistry
+                    if not PermissionRegistry.exists(perm['permission_key']):
+                        raise serializers.ValidationError(f"Invalid permission_key: {perm['permission_key']}")
+                    # Skip module/action validation if permission_key is valid
+                    continue
+                
                 if 'module' not in perm or 'action' not in perm:
                     raise serializers.ValidationError("Each permission must have 'module' and 'action' fields")
                 

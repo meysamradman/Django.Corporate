@@ -7,11 +7,13 @@ import { useOptionColumns } from "@/components/portfolios/options/list/OptionTab
 import { useOptionFilterOptions, getOptionFilterConfig } from "@/components/portfolios/options/list/OptionTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
 import Link from "next/link";
 import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -39,7 +41,8 @@ export default function OptionPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // ✅ FIX: Default sorting: created_at descending (newest first)
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({
@@ -301,12 +304,16 @@ export default function OptionPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          <Button size="sm" asChild>
+          <ProtectedButton 
+            permission="portfolio.create"
+            size="sm" 
+            asChild
+          >
             <Link href="/portfolios/options/create">
-              <Edit className="h-4 w-4 me-2" />
+              <Edit className="h-4 w-4" />
               افزودن گزینه
             </Link>
-          </Button>
+          </ProtectedButton>
         </div>
       </div>
 

@@ -2,12 +2,12 @@
 
 import { ReactNode, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ShieldAlert } from "lucide-react";
 import { useAuth } from "@/core/auth/AuthContext";
 import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
 import { findRouteRule } from "../config/accessControl";
-import { Button } from "@/components/elements/Button";
+import { Spinner } from "@/components/elements/Spinner";
+import { AccessDenied } from "./AccessDenied";
 
 interface RoutePermissionGuardProps {
     children: ReactNode;
@@ -17,8 +17,8 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
     const pathname = usePathname();
     const router = useRouter();
     const { isLoading: authLoading, user } = useAuth();
-    const { isLoading: permissionLoading } = usePermission();
-    const { hasModuleAction, isSuperAdmin } = useUserPermissions();
+    const { isLoading: permissionLoading, hasPermission } = usePermission();
+    const { isSuperAdmin } = useUserPermissions();
 
     const rule = useMemo(() => {
         if (!pathname) return undefined;
@@ -41,16 +41,29 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
     const isLoading = authLoading || permissionLoading;
 
     if (isLoading) {
-        return <>{children}</>;
+        return (
+            <div className="w-full h-full min-h-[50vh] flex items-center justify-center">
+                <Spinner className="size-8 text-primary" />
+            </div>
+        );
     }
 
     if (!rule) {
         return <>{children}</>;
     }
 
+    // Skip permission check for create pages - handled by ProtectedButton with Toast
+    if (pathname === '/portfolios/create' || pathname === '/blogs/create') {
+        return <>{children}</>;
+    }
+
     if (rule.requireSuperAdmin && !isSuperAdmin) {
         return (
-            <AccessDenied message="این بخش فقط برای سوپر ادمین در دسترس است." />
+            <AccessDenied 
+                message="این بخش فقط برای سوپر ادمین در دسترس است."
+                showBackButton={true}
+                showDashboardButton={true}
+            />
         );
     }
 
@@ -61,50 +74,27 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             action === "update" &&
             isSelfEditRoute;
 
+        // ✅ FIX: Use hasPermission which checks wildcards, manage, and synonyms
+        const permissionString = `${rule.module}.${action}`;
         const hasAccess =
             bypassOwnProfile ||
-            hasModuleAction(rule.module, action) ||
+            hasPermission(permissionString) ||
             (rule.module === "admin" && isOwnAdminProfile);
 
         if (!hasAccess) {
             return (
                 <AccessDenied
-                    message={`برای دسترسی به "${rule.description || "این بخش"}" نیاز به مجوز ${action} روی ماژول ${rule.module} دارید.`}
-                    onBack={() => router.back()}
+                    permission={permissionString}
+                    module={rule.module}
+                    action={action}
+                    description={rule.description}
+                    showBackButton={true}
+                    showDashboardButton={true}
                 />
             );
         }
     }
 
     return <>{children}</>;
-}
-
-interface AccessDeniedProps {
-    message: string;
-    onBack?: () => void;
-}
-
-function AccessDenied({ message, onBack }: AccessDeniedProps) {
-    return (
-        <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-6">
-            <div className="flex flex-col items-center space-y-4 max-w-md">
-                <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                    <ShieldAlert className="w-8 h-8" />
-                </div>
-                <div>
-                    <h2 className="text-xl font-semibold text-foreground">دسترسی محدود است</h2>
-                    <p className="text-sm text-muted-foreground mt-2 leading-6">{message}</p>
-                </div>
-            </div>
-            <div className="flex items-center gap-3">
-                <Button variant="outline" onClick={() => onBack?.()}>
-                    بازگشت
-                </Button>
-                <Button onClick={() => (window.location.href = "/")}>
-                    رفتن به داشبورد
-                </Button>
-            </div>
-        </div>
-    );
 }
 

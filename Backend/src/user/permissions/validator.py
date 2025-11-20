@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Dict, List, Set, Tuple, Optional
 from django.core.cache import cache
 from .registry import PermissionRegistry, Permission
+from .config import BASE_ADMIN_PERMISSIONS
 
 
 class PermissionValidator:
@@ -120,6 +121,7 @@ class PermissionValidator:
         """
         گرفتن لیست permissions کاربر با Redis cache
         فقط برای ادمین‌ها کار می‌کنه (کاربران معمولی لیست خالی برمی‌گردونن)
+        همه ادمین‌ها BASE_ADMIN_PERMISSIONS + role permissions دارند
         """
         if not hasattr(user, 'id') or not user.id:
             return []
@@ -139,29 +141,101 @@ class PermissionValidator:
             return cached_perms
         
         # 🔥 همه ادمین‌ها (حتی superadmin) permissions خودشون رو از roles می‌گیرن
-        modules, actions = PermissionValidator._get_user_modules_actions(user)
         granted = []
         
-        # اگر superadmin role نداشته باشه، همه permissions رو برمی‌گردونیم (fallback)
-        if is_superadmin and not modules and not actions:
-            all_perms = list(PermissionRegistry.get_all().keys())
-            cache.set(cache_key, all_perms, 300)
-            return all_perms
+        # ✅ FIX: Get permissions directly from roles (support both specific_permissions and old format)
+        from src.user.models import AdminUserRole
+        roles_qs = AdminUserRole.objects.filter(
+            user=user, 
+            is_active=True
+        ).select_related("role").only("role__permissions", "role__name")
         
-        # اگر ادمین معمولی role نداشته باشه، permissions خالی برمی‌گردونه
-        if not is_superadmin and not modules and not actions:
-            cache.set(cache_key, [], 300)
-            return []
+        has_any_role = False
+        has_specific_permissions_format = False
         
-        for perm_id, perm in PermissionRegistry.get_all().items():
-            if perm.requires_superadmin and not is_superadmin:
-                continue
+        for user_role in roles_qs:
+            role = user_role.role
+            role_perms: Dict = role.permissions or {}
+            has_any_role = True
             
-            has_module = "all" in modules or perm.module in modules
-            has_action = "all" in actions or perm.action in actions
+            # ✅ NEW FORMAT: specific_permissions (precise - direct conversion)
+            if isinstance(role_perms, dict) and 'specific_permissions' in role_perms:
+                has_specific_permissions_format = True
+                specific_perms = role_perms.get('specific_permissions', [])
+                if isinstance(specific_perms, list):
+                    for perm in specific_perms:
+                        if isinstance(perm, dict):
+                            # ✅ FIX: Support permission_key for statistics permissions (all have module='statistics', action='read')
+                            # If permission_key is provided, use it directly (for statistics.users.read, statistics.admins.read, etc.)
+                            if 'permission_key' in perm and perm.get('permission_key'):
+                                perm_string = perm['permission_key']
+                                # Check if permission exists in registry
+                                if PermissionRegistry.exists(perm_string):
+                                    perm_obj = PermissionRegistry.get(perm_string)
+                                    if perm_obj:
+                                        # Check requires_superadmin
+                                        if perm_obj.requires_superadmin and not is_superadmin:
+                                            continue
+                                        if perm_string not in granted:
+                                            granted.append(perm_string)
+                                continue
+                            
+                            perm_module = perm.get('module')
+                            perm_action = perm.get('action')
+                            
+                            # Handle 'all' cases
+                            if perm_module == 'all' or perm_action == 'all':
+                                if is_superadmin:
+                                    all_perms = list(PermissionRegistry.get_all().keys())
+                                    granted.extend(all_perms)
+                                continue
+                            
+                            # Convert to permission string format (module.action)
+                            perm_string = f"{perm_module}.{perm_action}"
+                            
+                            # Check if permission exists in registry
+                            if PermissionRegistry.exists(perm_string):
+                                perm_obj = PermissionRegistry.get(perm_string)
+                                if perm_obj:
+                                    # Check requires_superadmin
+                                    if perm_obj.requires_superadmin and not is_superadmin:
+                                        continue
+                                    if perm_string not in granted:
+                                        granted.append(perm_string)
+        
+        # ✅ OLD FORMAT: modules/actions (cartesian product - backward compatibility)
+        # Only use old format if no role has specific_permissions format
+        if not has_specific_permissions_format and has_any_role:
+            modules, actions = PermissionValidator._get_user_modules_actions(user)
             
-            if has_module and has_action:
-                granted.append(perm_id)
+            # بررسی permissions از roles (old format)
+            for perm_id, perm in PermissionRegistry.get_all().items():
+                if perm.requires_superadmin and not is_superadmin:
+                    continue
+                
+                has_module = "all" in modules or perm.module in modules
+                has_action = "all" in actions or perm.action in actions
+                
+                if has_module and has_action:
+                    if perm_id not in granted:
+                        granted.append(perm_id)
+        
+        # اگر هیچ role نداشت
+        if not has_any_role:
+            if is_superadmin:
+                all_perms = list(PermissionRegistry.get_all().keys())
+                cache.set(cache_key, all_perms, 300)
+                return all_perms
+            else:
+                base_perms = list(BASE_ADMIN_PERMISSIONS.keys())
+                cache.set(cache_key, base_perms, 300)
+                return base_perms
+        
+        # اضافه کردن BASE_ADMIN_PERMISSIONS به همه ادمین‌ها
+        base_perms = list(BASE_ADMIN_PERMISSIONS.keys())
+        for base_perm in base_perms:
+            if base_perm not in granted:
+                granted.append(base_perm)
         
         # ذخیره در Redis cache
         cache.set(cache_key, granted, 300)

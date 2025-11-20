@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { cn } from "@/core/utils/cn";
-import { MenuItem, MENU_BADGE_TONES } from "@/components/layout/Sidebar/SidebarMenu";
+import { MenuItem } from "@/components/layout/Sidebar/SidebarMenu";
 import { usePathname } from "next/navigation";
-import { Badge } from "@/components/elements/Badge";
 
 interface SubMenuItemProps {
   item: MenuItem;
@@ -38,17 +37,6 @@ export function SubMenuItem({
 
   const titleClasses = cn("text-sdb-menu-title font-semibold text-xs");
 
-  const badgeElement = item.badge && (
-    <span
-      className={cn(
-        "text-[10px] leading-none px-2 py-0.5 rounded-full border",
-        MENU_BADGE_TONES[item.badge.tone] ?? ""
-      )}
-    >
-      {item.badge.label}
-    </span>
-  );
-
   if (item.isTitle) {
     return (
       <div
@@ -73,7 +61,6 @@ export function SubMenuItem({
         aria-disabled="true"
       >
         <span>{item.title}</span>
-        {badgeElement}
       </div>
     );
   }
@@ -86,7 +73,6 @@ export function SubMenuItem({
       onClick={() => onItemClick(item.title)}
     >
       <span>{item.title}</span>
-      {badgeElement}
     </Link>
   );
 } 

@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePermission } from '../context/PermissionContext';
 import { cn } from '@/core/utils/cn';
+import { toast } from '@/components/elements/Sonner';
 
 interface ProtectedLinkProps extends React.ComponentProps<typeof Link> {
   /**
@@ -25,6 +26,15 @@ interface ProtectedLinkProps extends React.ComponentProps<typeof Link> {
    * If false, hide the link completely
    */
   showWhenDenied?: boolean;
+  /**
+   * If true, show toast notification when user clicks without permission
+   * Default: false (silent disable)
+   */
+  showDenyToast?: boolean;
+  /**
+   * Custom message to show in toast when access is denied
+   */
+  denyMessage?: string;
 }
 
 /**
@@ -43,6 +53,8 @@ export const ProtectedLink: React.FC<ProtectedLinkProps> = ({
   requireAll = false,
   fallback,
   showWhenDenied = true,
+  showDenyToast = false,
+  denyMessage = 'شما دسترسی لازم برای این عملیات را ندارید',
   children,
   className,
   onClick,
@@ -95,25 +107,49 @@ export const ProtectedLink: React.FC<ProtectedLinkProps> = ({
 
   // If user doesn't have access
   if (!showWhenDenied) {
+    console.log('❌ ProtectedLink hidden:', { permission, href: rest.href });
     return <>{fallback || null}</>;
   }
 
-  // Show disabled link (default behavior)
-  const handleDisabledClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+  console.log('⚠️ ProtectedLink disabled:', { 
+    permission, 
+    href: rest.href, 
+    hasAccess, 
+    isLoading,
+    showDenyToast 
+  });
+
+  // Show disabled content without navigation - CRITICAL: must block all click events
+  const handleDisabledClick = (e: React.MouseEvent) => {
+    debugger; // 🛑 متوقف کردن مرورگر برای بررسی
+    console.log('🚫 ProtectedLink blocked:', { permission, href: rest.href });
     e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation(); // ✅ Stop all event propagation
+    
+    if (showDenyToast) {
+      console.log('🍞 Showing toast:', denyMessage);
+      toast.error(denyMessage);
+    }
+    
+    return false; // ✅ Extra safety
   };
 
+  // Render as div (NOT Link, NOT span) to completely prevent navigation
   return (
-    <span
+    <div
       className={cn(
-        "opacity-50 pointer-events-none cursor-not-allowed",
+        "opacity-50 cursor-not-allowed inline-flex",
         className
       )}
       onClick={handleDisabledClick}
+      onClickCapture={handleDisabledClick} // ✅ Capture phase to block early
+      role="link"
+      aria-disabled="true"
+      style={{ pointerEvents: 'auto' }} // ✅ Ensure clicks are captured
     >
       {fallback || children}
-    </span>
+    </div>
   );
 };
 

@@ -226,11 +226,11 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="account">
-                        <User className="w-4 h-4 me-2" />
+                        <User className="w-4 h-4" />
                         حساب کاربری
                     </TabsTrigger>
                     <TabsTrigger value="security">
-                        <KeyRound className="w-4 h-4 me-2" />
+                        <KeyRound className="w-4 h-4" />
                         گذرواژه
                     </TabsTrigger>
                 </TabsList>

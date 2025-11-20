@@ -1,6 +1,6 @@
 """
 Permission Class Factory - Auto-generate permission classes from registry
-این فایل خودکار permission classها رو از registry می‌سازه
+Automatically creates permission classes from permission registry
 """
 from typing import Dict, List
 from src.user.authorization.admin_permission import RequireModuleAccess

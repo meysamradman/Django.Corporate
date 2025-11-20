@@ -13,11 +13,13 @@ export type PermissionMapResponse = {
         display_name: string
         description: string
         requires_superadmin: boolean
+        is_standalone: boolean
       }
     >
     modules: string[]
   }
   user_permissions: string[]
+  base_permissions: string[]  // Base permissions (رایگان برای همه ادمین‌ها)
   is_superadmin: boolean
 }
 

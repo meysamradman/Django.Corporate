@@ -28,31 +28,27 @@ interface Props extends React.ComponentProps<typeof Button> {
 export const ProtectedButton: React.FC<Props> = ({
   permission,
   requireAll = false,
-  showDenyToast = true,
+  showDenyToast = false, // ✅ FIX: Default to false - disable is better than toast
   denyMessage = 'شما دسترسی لازم برای این عملیات را ندارید',
   onClick,
   children,
   className,
+  asChild,
   ...rest
 }) => {
-  const { permissionMap, isLoading } = usePermission();
+  const { hasPermission, hasAllPermissions, hasAnyPermission, isLoading } = usePermission();
 
-  // Fast permission check using cached Set (no function calls)
+  // ✅ FIX: Use hasPermission function which checks wildcards, manage, and synonyms
   const hasAccess = useMemo(() => {
-    if (isLoading || !permissionMap) return false;
+    if (isLoading) return false;
     
-    // Super admin bypass
-    if (permissionMap.is_superadmin) return true;
-    
-    // Direct Set lookup (O(1) - fastest)
     const permissions = Array.isArray(permission) ? permission : [permission];
-    const permSet = new Set(permissionMap.user_permissions || []);
     
     if (requireAll) {
-      return permissions.every(p => permSet.has(p));
+      return hasAllPermissions(permissions);
     }
-    return permissions.some(p => permSet.has(p));
-  }, [isLoading, permissionMap, permission, requireAll]);
+    return hasAnyPermission(permissions);
+  }, [isLoading, hasPermission, hasAllPermissions, hasAnyPermission, permission, requireAll]);
 
   const isDisabled = isLoading || !hasAccess;
 
@@ -60,7 +56,7 @@ export const ProtectedButton: React.FC<Props> = ({
     if (!hasAccess) {
       e.preventDefault();
       e.stopPropagation();
-
+      // ✅ FIX: Show toast only if showDenyToast is true
       if (showDenyToast) {
         toast.error(denyMessage);
       }
@@ -70,9 +66,38 @@ export const ProtectedButton: React.FC<Props> = ({
     onClick?.(e);
   };
 
+  // اگر asChild هست و دسترسی نداره، محتوای Link رو extract کنیم
+  if (asChild && !hasAccess) {
+    // Extract children from Link component
+    let linkChildren = children;
+    if (React.isValidElement(children)) {
+      linkChildren = (children.props as any).children;
+    }
+
+    return (
+      <Button
+        {...rest}
+        asChild={false}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (showDenyToast) {
+            toast.error(denyMessage);
+          }
+        }}
+        className={cn(className)}
+        disabled={true}
+        aria-disabled={true}
+      >
+        {linkChildren}
+      </Button>
+    );
+  }
+
   return (
     <Button
       {...rest}
+      asChild={asChild}
       onClick={handleClick}
       className={cn(className)}
       disabled={isDisabled}

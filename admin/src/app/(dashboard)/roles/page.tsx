@@ -14,6 +14,7 @@ import Link from "next/link";
 import { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useMutation } from "@tanstack/react-query";
 import { getConfirmMessage } from "@/core/messages/message";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import type { DataTableRowAction } from "@/types/shared/table";
 import {
   AlertDialog,
@@ -34,7 +35,8 @@ export default function RolesPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // ✅ FIX: Default sorting: created_at descending (newest first)
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<{
@@ -61,6 +63,9 @@ export default function RolesPage() {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
+    } else {
+      // ✅ FIX: If no sorting in URL, use default from initSortingFromURL
+      setSorting(initSortingFromURL());
     }
     
     // Load search from URL
@@ -308,8 +313,6 @@ export default function RolesPage() {
             permission="admin.create"
             size="sm"
             asChild
-            showDenyToast={true}
-            denyMessage="اجازه ایجاد نقش ندارید"
           >
             <Link href="/roles/create">
               <Plus />

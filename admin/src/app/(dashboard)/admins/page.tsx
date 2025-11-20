@@ -17,6 +17,7 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -40,7 +41,8 @@ export default function AdminsPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // ✅ FIX: Default sorting: created_at descending (newest first)
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<AdminFilters>({});
@@ -64,6 +66,9 @@ export default function AdminsPage() {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
+    } else {
+      // ✅ FIX: If no sorting in URL, use default from initSortingFromURL
+      setSorting(initSortingFromURL());
     }
     
     // Load search from URL

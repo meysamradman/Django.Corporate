@@ -213,7 +213,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                  permission={deleteConfig.permission || "delete"}
                  variant="destructive"
                  onClick={handleDeleteSelectedClick}
-                 showDenyToast={true}
                  denyMessage={deleteConfig.denyMessage || "اجازه حذف ندارید"}
                >
                  <Trash className="" />

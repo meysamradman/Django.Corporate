@@ -1,11 +1,25 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
-  // فقط برای CSR: SSG/SSR خاموش، pages معمولی کار می‌کنه
+  // ✅ CSR برای پنل ادمین - SSG/SSR خاموش
   reactStrictMode: true,
   trailingSlash: false,
+  
+  // ✅ بهینه‌سازی برای production
+  // Note: swcMinify در Next.js 16 به صورت پیش‌فرض فعال است
+  compress: isProduction, // فشرده‌سازی فقط در production
+  poweredByHeader: false, // حذف header امنیتی
+  
+  // ✅ Output برای deploy بهتر (standalone برای Docker/VPS)
+  output: 'standalone',
+  
+  // ✅ Source maps فقط در development
+  productionBrowserSourceMaps: false, // امنیت بیشتر در production
 
-  // Experimental تنظیمات اضافی حذف شد، فقط optimizePackageImports نگه داشته شد
+  // ✅ Experimental: بهینه‌سازی import پکیج‌ها
   experimental: {
     optimizePackageImports: [
       "lucide-react",
@@ -49,11 +63,13 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // تصاویر بدون فشرده سازی و فقط load مستقیم
+  // ✅ تصاویر: unoptimized برای CSR (پنل ادمین)
+  // remotePatterns برای localhost (development) و production domain
   images: {
-    unoptimized: true,
-    formats: ["image/webp", "image/avif"], // می‌تونی حذف هم بکنی، اختیاری
+    unoptimized: true, // برای CSR و پنل ادمین
+    formats: ["image/webp", "image/avif"], // فرمت‌های مدرن
     remotePatterns: [
+      // Development
       {
         protocol: "http",
         hostname: "localhost",
@@ -66,16 +82,24 @@ const nextConfig: NextConfig = {
         port: "8000",
         pathname: "/media/**",
       },
+      // Production - از environment variable استفاده می‌شود
+      // می‌توانید domain خود را اضافه کنید:
+      // {
+      //   protocol: "https",
+      //   hostname: "your-domain.com",
+      //   pathname: "/media/**",
+      // },
     ],
   },
 
-  compress: false, // خاموش کردن فشرده سازی
-  poweredByHeader: false,
-
+  // ✅ TypeScript: خطاها را در build نشان می‌دهد
   typescript: {
     ignoreBuildErrors: false,
   },
+  
+  // Note: ESLint در Next.js 16 به صورت پیش‌فرض در build اجرا می‌شود
 
+  // ✅ Webpack: بهینه‌سازی bundle splitting برای production
   webpack: (config, { dev, isServer }) => {
     // SVGR loader برای import مستقیم SVG
     config.module.rules.push({
@@ -83,6 +107,7 @@ const nextConfig: NextConfig = {
       use: ["@svgr/webpack"],
     });
 
+    // ✅ بهینه‌سازی فقط برای production و client-side
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
@@ -91,12 +116,15 @@ const nextConfig: NextConfig = {
           cacheGroups: {
             default: false,
             vendors: false,
+            // Vendor chunks (کتابخانه‌های خارجی)
             vendor: {
               name: "vendor",
               test: /[\\/]node_modules[\\/]/,
               chunks: "all",
               priority: 20,
+              reuseExistingChunk: true,
             },
+            // Common chunks (کد مشترک بین صفحات)
             common: {
               name: "common",
               minChunks: 2,
@@ -105,21 +133,31 @@ const nextConfig: NextConfig = {
               reuseExistingChunk: true,
               enforce: true,
             },
+            // Library chunks (کتابخانه‌های پر استفاده)
             lib: {
               test: /[\\/]node_modules[\\/](@tanstack|@radix-ui|lucide-react)[\\/]/,
               name: "lib",
               chunks: "all",
               priority: 30,
+              reuseExistingChunk: true,
+            },
+            // TipTap chunks (اگر استفاده می‌شود)
+            tiptap: {
+              test: /[\\/]node_modules[\\/]@tiptap[\\/]/,
+              name: "tiptap",
+              chunks: "all",
+              priority: 25,
+              reuseExistingChunk: true,
             },
           },
         },
+        // ✅ Deterministic module IDs برای cache بهتر
         moduleIds: "deterministic",
+        // ✅ Runtime chunk جداگانه برای cache بهتر
         runtimeChunk: {
           name: "runtime",
         },
       };
-
-      config.optimization.minimizer = [...config.optimization.minimizer];
     }
 
     return config;

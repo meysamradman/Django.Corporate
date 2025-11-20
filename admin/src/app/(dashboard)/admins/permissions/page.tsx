@@ -54,7 +54,12 @@ export default function PermissionsManagementPage() {
     
     permissionGroups.forEach((group: PermissionGroup) => {
       if (group.permissions && Array.isArray(group.permissions)) {
-        groups[group.resource] = group.permissions;
+        // Ensure each permission has the is_standalone property
+        const permissionsWithStandalone = group.permissions.map(perm => ({
+          ...perm,
+          is_standalone: perm.is_standalone || false
+        }));
+        groups[group.resource] = permissionsWithStandalone;
       }
     });
 
@@ -295,6 +300,52 @@ export default function PermissionsManagementPage() {
                           const hasPermission = roleHasPermission(selectedRole, permission.id);
                           const isModified = modifiedPermissions.has(permission.id);
                           
+                          // If this is a standalone permission, show it with a special style
+                          if (permission.is_standalone) {
+                            return (
+                              <div
+                                key={permission.id}
+                                className={`p-4 rounded-lg border-2 transition-all ${
+                                  isModified ? 'border-yellow-1 bg-yellow' : 'border-purple-1 bg-purple/5'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-2 space-x-reverse">
+                                  <Checkbox
+                                    id={`permission-${permission.id}`}
+                                    checked={hasPermission}
+                                    onCheckedChange={() => togglePermission(permission.id)}
+                                    disabled={selectedRole.is_protected && !checkUserPermission("admin.roles.manage")}
+                                  />
+                                  <label 
+                                    htmlFor={`permission-${permission.id}`}
+                                    className="flex-1 cursor-pointer"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-medium">
+                                        {permission.action}
+                                      </span>
+                                      <Badge 
+                                        variant="outline" 
+                                        className="text-xs bg-purple text-purple-2 border-purple-1"
+                                      >
+                                        دسترسی کلی
+                                      </Badge>
+                                    </div>
+                                    {permission.description && (
+                                      <p className="text-xs text-font-s mt-1">
+                                        {permission.description}
+                                      </p>
+                                    )}
+                                    <div className="text-xs text-font-s mt-2 italic">
+                                      این ماژول فقط یک دسترسی کلی دارد
+                                    </div>
+                                  </label>
+                                </div>
+                              </div>
+                            );
+                          }
+                          
+                          // Regular permission display
                           return (
                             <div
                               key={permission.id}

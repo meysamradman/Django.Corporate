@@ -9,6 +9,7 @@ export interface Permission {
   resource: string;
   action: string;
   description?: string;
+  is_standalone?: boolean;
 }
 
 // Permission Category for grouping

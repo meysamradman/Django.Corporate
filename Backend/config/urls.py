@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
@@ -8,7 +7,6 @@ from src.portfolio.views.admin.portfolio_export_view import PortfolioExportView
 from src.blog.views.admin.blog_export_view import BlogExportView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/core/', include('src.core.urls', namespace='core')),
     path('api/', include('src.user.urls')),
@@ -41,6 +39,3 @@ if settings.DEBUG:
         urlpatterns.append(path('__debug__/', include('debug_toolbar.urls')))
     except ImportError:
         pass
-
-admin.site.site_header = 'Webtalik Admin'
-admin.site.site_title = 'Webtalik'

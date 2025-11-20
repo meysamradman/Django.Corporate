@@ -236,11 +236,8 @@ export default function PanelSettingsForm() {
                         type="submit" 
                         permission="panel.manage"
                         disabled={isSubmitting || !hasChanges}
-                        className="min-w-[120px]"
-                        showDenyToast={true}
-                        denyMessage="شما دسترسی لازم برای مدیریت تنظیمات پنل را ندارید"
                     >
-                        <Save className="w-4 h-4 me-2" />
+                        <Save className="w-4 h-4" />
                         {isSubmitting ? "در حال ذخیره..." : "ذخیره تغییرات"}
                     </ProtectedButton>
                 </div>

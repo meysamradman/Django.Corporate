@@ -294,7 +294,7 @@ export function AccountTab({
                         titleExtra={
                             !editMode && (
                                 <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-                                    <Edit2 className="w-4 h-4 me-2" />
+                                    <Edit2 className="w-4 h-4" />
                                     ویرایش
                                 </Button>
                             )

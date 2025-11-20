@@ -60,3 +60,55 @@ export function useCanManagePages() {
   const { canManagePages } = useUIPermissions();
   return canManagePages;
 }
+
+// Media - Type-specific shortcuts
+export function useCanUploadImage() {
+  const { canUploadImage } = useUIPermissions();
+  return canUploadImage;
+}
+
+export function useCanUploadVideo() {
+  const { canUploadVideo } = useUIPermissions();
+  return canUploadVideo;
+}
+
+export function useCanUploadAudio() {
+  const { canUploadAudio } = useUIPermissions();
+  return canUploadAudio;
+}
+
+export function useCanUploadDocument() {
+  const { canUploadDocument } = useUIPermissions();
+  return canUploadDocument;
+}
+
+// Statistics - Granular shortcuts
+export function useCanViewDashboardStats() {
+  const { canViewDashboardStats } = useUIPermissions();
+  return canViewDashboardStats;
+}
+
+export function useCanViewUsersStats() {
+  const { canViewUsersStats } = useUIPermissions();
+  return canViewUsersStats;
+}
+
+export function useCanViewAdminsStats() {
+  const { canViewAdminsStats } = useUIPermissions();
+  return canViewAdminsStats;
+}
+
+export function useCanViewContentStats() {
+  const { canViewContentStats } = useUIPermissions();
+  return canViewContentStats;
+}
+
+export function useCanExportStats() {
+  const { canExportStats } = useUIPermissions();
+  return canExportStats;
+}
+
+export function useCanManageStatistics() {
+  const { canManageStatistics } = useUIPermissions();
+  return canManageStatistics;
+}

@@ -307,7 +307,6 @@ export const useMenuData = () => {
                 return {
                     visible: true,
                     state: "limited" as const,
-                    badge: { label: access.limitedLabel || "محدود", tone: "info" as BadgeTone },
                 };
             }
             return { visible: hideIfNoAccess ? hasFallbackRead : true };
@@ -318,7 +317,6 @@ export const useMenuData = () => {
                 return {
                     visible: true,
                     state: "limited" as const,
-                    badge: { label: access.limitedLabel || "محدود", tone: "info" as BadgeTone },
                 };
             }
             if (hideIfNoAccess) {
@@ -327,7 +325,6 @@ export const useMenuData = () => {
             return {
                 visible: true,
                 state: "locked" as const,
-                badge: { label: "بدون دسترسی", tone: "muted" as BadgeTone },
                 disabled: true
             };
         }
@@ -339,7 +336,6 @@ export const useMenuData = () => {
             return {
                 visible: true,
                 state: "locked" as const,
-                badge: { label: "نیاز به دسترسی", tone: "muted" as BadgeTone },
                 disabled: true
             };
         }
@@ -348,7 +344,6 @@ export const useMenuData = () => {
             return {
                 visible: true,
                 state: "readOnly" as const,
-                badge: { label: access.readOnlyLabel || "فقط مشاهده", tone: "warning" as BadgeTone }
             };
         }
 
@@ -405,7 +400,6 @@ export const useMenuData = () => {
                 ?.filter(child => !child.isTitle)
                 .length ?? 0;
 
-            let badge = result.badge;
             let state = result.state;
 
             if (
@@ -415,18 +409,11 @@ export const useMenuData = () => {
                 !state
             ) {
                 state = "limited";
-                if (!badge) {
-                    badge = {
-                        label: item.access?.limitedLabel || "محدود",
-                        tone: "info"
-                    };
-                }
             }
 
             return {
                 ...item,
                 items: filteredChildItems,
-                badge,
                 state,
                 disabled: result.disabled ?? item.disabled
             };

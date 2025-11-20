@@ -23,7 +23,7 @@ from .admin_permission import (
     require_admin_roles,
     AdminPermissionCache
 )
-from src.user.permissions.config import BASE_ADMIN_PERMISSIONS, AVAILABLE_MODULES, AVAILABLE_ACTIONS
+from src.user.permissions.config import BASE_ADMIN_PERMISSIONS, AVAILABLE_MODULES, AVAILABLE_ACTIONS, get_permissions_by_module
 from src.user.authorization.role_utils import create_default_admin_roles, get_role_summary
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
 import logging
@@ -52,12 +52,29 @@ class AdminRoleView(viewsets.ViewSet):
             is_active = request.query_params.get('is_active')
             is_system_role = request.query_params.get('is_system_role')
             search = request.query_params.get('search', '').strip()
+            order_by = request.query_params.get('order_by', 'created_at')
+            order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
             
             # Build queryset with optimization for users_count
             from django.db.models import Count
             queryset = AdminRole.objects.annotate(
                 users_count=Count('adminuserrole', filter=models.Q(adminuserrole__is_active=True))
-            ).order_by('level', 'name')
+            )
+            
+            # ✅ FIX: Apply ordering based on query parameter
+            # Default: created_at descending (newest first)
+            # Allowed fields: name, display_name, level, created_at, updated_at, is_active, is_system_role, users_count
+            allowed_order_fields = {
+                'name', 'display_name', 'level', 'created_at', 'updated_at', 
+                'is_active', 'is_system_role', 'users_count'
+            }
+            
+            if order_by in allowed_order_fields:
+                order_prefix = '-' if order_desc else ''
+                queryset = queryset.order_by(f'{order_prefix}{order_by}')
+            else:
+                # Default ordering: newest first (created_at descending)
+                queryset = queryset.order_by('-created_at')
             
             # Apply filters
             if is_active is not None:
@@ -577,38 +594,68 @@ class AdminRoleView(viewsets.ViewSet):
     def permissions(self, request):
         """Get all available permissions grouped by modules - for frontend dropdown"""
         try:
-            # Get all available modules and actions - already imported at top
+            from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
             
-            # Get all available modules and actions
+            # Get all available modules
             modules = AVAILABLE_MODULES
-            actions = AVAILABLE_ACTIONS
             
-            # Build permission groups in the format frontend expects
+            # Build permission groups based on REAL defined permissions
             permission_groups = []
+            # We generate a temporary numeric ID for the frontend state management
+            # This ID is transient and only used for the current session in the UI
             permission_id = 1
             
+            # Get base permission keys to exclude them
+            base_permission_keys = set(BASE_ADMIN_PERMISSIONS.keys())
+            
+            # ✅ OPTIMIZED: Statistics permissions that are actually used (defined once, reused)
+            # Exclude future permissions (financial, export, manage) until they are implemented
+            STATISTICS_USED_PERMISSIONS = {
+                'statistics.users.read',
+                'statistics.admins.read',
+                'statistics.content.read'
+            }
+            
             for module_key, module_info in modules.items():
-                if module_key == 'all':  # Skip 'all' module for individual selection
+                if module_key == 'all':  # Skip 'all' module
+                    continue
+                
+                # Get REAL permissions defined in config.py for this module
+                real_perms = get_permissions_by_module(module_key)
+                
+                if not real_perms:
                     continue
                     
                 permissions_for_module = []
-                for action_key, action_info in actions.items():
-                    if action_key == 'all':  # Skip 'all' action for individual selection
-                        continue
-                        
+                
+                for perm_key, perm_data in real_perms:
+                    # ✅ FIX: Exclude base permissions (dashboard.read, profile.read, profile.update)
+                    # These are automatically granted to all admins and should not be selectable
+                    if perm_key in base_permission_keys:
+                        continue  # Skip base permissions
+                    
+                    # ✅ FIX: For statistics module, only include used permissions
+                    if module_key == 'statistics' and perm_key not in STATISTICS_USED_PERMISSIONS:
+                        continue  # Skip unused statistics permissions
+                    
                     permissions_for_module.append({
                         'id': permission_id,
                         'resource': module_key,
-                        'action': action_key,  # ✅ FIX: Use action_key (lowercase) instead of display_name
-                        'description': f"{action_info['description']} in {module_info['display_name']}"
+                        'action': perm_data['action'],
+                        'display_name': perm_data['display_name'],
+                        'description': perm_data['description'],
+                        'is_standalone': perm_data.get('is_standalone', False),
+                        'requires_superadmin': perm_data.get('requires_superadmin', False),
+                        'original_key': perm_key # Useful for debugging
                     })
                     permission_id += 1
                 
-                permission_groups.append({
-                    'resource': module_key,
-                    'display_name': module_info['display_name'],
-                    'permissions': permissions_for_module
-                })
+                if permissions_for_module:
+                    permission_groups.append({
+                        'resource': module_key,
+                        'display_name': module_info['display_name'],
+                        'permissions': permissions_for_module
+                    })
             
             return APIResponse.success(
                 message="Available permissions retrieved successfully",

@@ -15,6 +15,7 @@ export type PermissionMap = {
 export type PermissionSnapshot = {
   all: PermissionMap
   user: string[]
+  base: string[]  // Base permissions (رایگان برای همه ادمین‌ها)
   isSuper: boolean
 }
 

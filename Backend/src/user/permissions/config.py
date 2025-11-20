@@ -23,19 +23,17 @@ from src.user.messages import ROLE_TEXT
 # =============================================================================
 
 # Base permissions for all admins
+# These permissions are automatically granted to every admin user
+# Only includes truly essential permissions:
+# - View general dashboard (without sensitive data)
+# - View and edit own profile
+# Note: Media is NO LONGER in BASE - must be granted separately per role
 BASE_ADMIN_PERMISSIONS = {
     'dashboard.read': {
         'module': 'statistics',
         'action': 'read',
         'display_name': 'View Dashboard',
-        'description': 'Access the admin dashboard and statistics',
-        'is_base': True,
-    },
-    'media.read': {
-        'module': 'media',
-        'action': 'read',
-        'display_name': 'View Media Library',
-        'description': 'View media items in the library',
+        'description': 'Access the admin dashboard overview (safe, general info)',
         'is_base': True,
     },
     'profile.read': {
@@ -52,62 +50,198 @@ BASE_ADMIN_PERMISSIONS = {
         'description': 'Update own admin profile information',
         'is_base': True,
     },
-    'panel.read': {
-        'module': 'panel',
-        'action': 'read',
-        'display_name': 'View Panel Settings',
-        'description': 'View admin panel settings',
-        'is_base': True,
-    },
-    'pages.read': {
-        'module': 'pages',
-        'action': 'read',
-        'display_name': 'View Static Pages',
-        'description': 'View static pages content (About, Terms)',
-        'is_base': True,
-    },
 }
 
 # All available permissions in the system
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
-    # Panel
+    # Dashboard - در BASE هم هست ولی برای نمایش در all_permissions باید اینجا هم باشه
+    'dashboard.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Dashboard',
+        'description': 'Access the admin dashboard (also in base permissions)',
+    },
+    
+    # Panel - single manage permission (either full panel control or none)
     'panel.manage': {
         'module': 'panel',
         'action': 'manage',
         'display_name': 'Manage Panel Settings',
         'description': 'Allow full access to panel settings (view, update, logo upload)',
+        'is_standalone': True,
+        'requires_superadmin': True,
     },
     
-    # Media
+    # Pages - single manage permission (either full pages control or none)
+    'pages.manage': {
+        'module': 'pages',
+        'action': 'manage',
+        'display_name': 'Manage Static Pages',
+        'description': 'Allow full access to static pages (view, update)',
+        'is_standalone': True,
+        'requires_superadmin': True,
+    },
+    
+    # Media - Granular permissions for better security
+    # None are in BASE - must be granted separately to roles
     'media.read': {
         'module': 'media',
         'action': 'read',
         'display_name': 'View Media Library',
-        'description': 'Allow viewing media items',
+        'description': 'View all media items (images, videos, audio, documents)',
+    },
+    
+    # Upload permissions - for different file types
+    'media.image.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Images',
+        'description': 'Upload image files (jpg, png, webp, svg, gif)',
+    },
+    'media.video.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Videos',
+        'description': 'Upload video files (mp4, webm, mov)',
+    },
+    'media.audio.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Audio',
+        'description': 'Upload audio files (mp3, ogg, aac, m4a)',
+    },
+    'media.document.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Documents',
+        'description': 'Upload PDF and document files',
     },
     'media.upload': {
         'module': 'media',
         'action': 'create',
-        'display_name': 'Upload Media',
-        'description': 'Allow uploading new media files',
+        'display_name': 'Upload All Media Types',
+        'description': 'Upload any type of media file (images, videos, audio, documents)',
+    },
+    
+    # Update permissions
+    'media.image.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Images',
+        'description': 'Edit image metadata (title, alt, description)',
+    },
+    'media.video.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Videos',
+        'description': 'Edit video metadata and cover image',
+    },
+    'media.audio.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Audio',
+        'description': 'Edit audio metadata and cover image',
+    },
+    'media.document.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Documents',
+        'description': 'Edit document metadata and cover image',
     },
     'media.update': {
         'module': 'media',
         'action': 'update',
-        'display_name': 'Edit Media',
-        'description': 'Allow editing media metadata',
+        'display_name': 'Edit All Media Types',
+        'description': 'Edit metadata for any media type',
+    },
+    
+    # Delete permissions - Most sensitive access level
+    'media.image.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Images',
+        'description': 'Delete image files (dangerous - may break content)',
+    },
+    'media.video.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Videos',
+        'description': 'Delete video files (dangerous - may break content)',
+    },
+    'media.audio.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Audio',
+        'description': 'Delete audio files (dangerous - may break content)',
+    },
+    'media.document.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Documents',
+        'description': 'Delete document files (dangerous - may break content)',
     },
     'media.delete': {
         'module': 'media',
         'action': 'delete',
-        'display_name': 'Delete Media',
-        'description': 'Allow deleting media items',
+        'display_name': 'Delete All Media Types',
+        'description': 'Delete any media file (very dangerous - may break content)',
     },
+    
+    # Manage - Full access to all media operations
     'media.manage': {
         'module': 'media',
         'action': 'manage',
-        'display_name': 'Manage Media',
-        'description': 'Allow full access to media library (view, upload, update, delete)',
+        'display_name': 'Manage Media Library',
+        'description': 'Full access to media library (view, upload, update, delete all types)',
+    },
+    
+    # Profile - در BASE هم هست ولی برای نمایش در all_permissions باید اینجا هم باشه
+    'profile.read': {
+        'module': 'admin',
+        'action': 'read',
+        'display_name': 'View Personal Profile',
+        'description': 'View own admin profile (also in base permissions)',
+    },
+    'profile.update': {
+        'module': 'admin',
+        'action': 'update',
+        'display_name': 'Update Personal Profile',
+        'description': 'Update own admin profile (also in base permissions)',
+    },
+    
+    # Admin Management - CRUD permissions for managing admin users
+    'admin.read': {
+        'module': 'admin',
+        'action': 'read',
+        'display_name': 'View Admins',
+        'description': 'Allow viewing admin users list and details',
+    },
+    'admin.create': {
+        'module': 'admin',
+        'action': 'create',
+        'display_name': 'Create Admin',
+        'description': 'Allow creating new admin users',
+        'requires_superadmin': True,  # Only super admins can create admins
+    },
+    'admin.update': {
+        'module': 'admin',
+        'action': 'update',
+        'display_name': 'Update Admin',
+        'description': 'Allow updating admin user information and profiles',
+    },
+    'admin.delete': {
+        'module': 'admin',
+        'action': 'delete',
+        'display_name': 'Delete Admin',
+        'description': 'Allow deleting admin users',
+        'requires_superadmin': True,  # Only super admins can delete admins
+    },
+    'admin.manage': {
+        'module': 'admin',
+        'action': 'manage',
+        'display_name': 'Manage Admins',
+        'description': 'Allow full access to admin management (view, create, update, delete)',
+        'requires_superadmin': True,  # Only super admins can fully manage admins
     },
     
     # Users
@@ -405,6 +539,8 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
         'action': 'manage',
         'display_name': 'Manage Forms',
         'description': 'Allow full access to contact form fields (view, create, update, delete)',
+        'is_standalone': True,
+        'requires_superadmin': True,
     },
     
     # Pages
@@ -413,6 +549,8 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
         'action': 'manage',
         'display_name': 'Manage Pages',
         'description': 'Allow full access to website pages (about, terms) - view and update',
+        'is_standalone': True,
+        'requires_superadmin': True,
     },
     
     # Settings
@@ -421,6 +559,8 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
         'action': 'manage',
         'display_name': 'Manage Settings',
         'description': 'Allow full access to website general settings (view and update)',
+        'is_standalone': True,
+        'requires_superadmin': True,
     },
     
     # AI
@@ -429,6 +569,8 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
         'action': 'manage',
         'display_name': 'Manage AI Settings',
         'description': 'Allow full access to all AI features (chat, content generation, image generation)',
+        'is_standalone': True,
+        'requires_superadmin': True,
     },
     'ai.chat.manage': {
         'module': 'ai',
@@ -449,12 +591,49 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
         'description': 'Allow full access to AI image generation (view, generate, update, delete)',
     },
     
-    # Statistics
-    'statistics.read': {
+    # Statistics - Granular permissions for security and privacy
+    'statistics.dashboard.read': {
         'module': 'statistics',
         'action': 'read',
-        'display_name': 'View Statistics',
-        'description': 'Allow viewing admin dashboard statistics',
+        'display_name': 'View Dashboard Overview',
+        'description': 'View basic dashboard statistics (safe, general info)',
+    },
+    'statistics.users.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Users Statistics',
+        'description': 'View detailed user statistics (sensitive)',
+    },
+    'statistics.admins.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Admins Statistics',
+        'description': 'View admin user statistics (highly sensitive)',
+    },
+    'statistics.content.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Content Statistics',
+        'description': 'View portfolio, blog, media statistics',
+    },
+    'statistics.financial.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Financial Statistics',
+        'description': 'View revenue, sales, financial data (future-proof)',
+    },
+    'statistics.export': {
+        'module': 'statistics',
+        'action': 'export',
+        'display_name': 'Export Statistics',
+        'description': 'Export statistics data to Excel/CSV',
+    },
+    # Manage - Full access to all statistics operations
+    'statistics.manage': {
+        'module': 'statistics',
+        'action': 'manage',
+        'display_name': 'Manage Statistics',
+        'description': 'Full access to all statistics features (view, export)',
     },
 }
 
@@ -630,7 +809,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         'statistics_viewer',
         level=7,
         permissions={
-            'modules': ['statistics', 'analytics'],
+            'modules': ['statistics', 'analytics'],  # statistics برگشت (APP جداگانه آمار)
             'actions': ['read'],
             'restrictions': ['read_only', 'no_user_management']
         },

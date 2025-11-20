@@ -230,7 +230,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                             onClick={() => editMode ? handleCancel() : setEditMode(true)}
                             disabled={isSaving}
                         >
-                            <Edit2 className="w-4 h-4 me-2" />
+                            <Edit2 className="w-4 h-4" />
                             {editMode ? "لغو" : "ویرایش نقش‌ها"}
                         </Button>
                         {editMode && !admin.is_superuser && (
@@ -239,7 +239,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                                 onClick={handleSave}
                                 disabled={isSaving}
                             >
-                                {isSaving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                                 ذخیره
                             </Button>
                         )}

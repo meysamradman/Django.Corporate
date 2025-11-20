@@ -305,7 +305,7 @@ export function AccountTab({
                         titleExtra={
                             <div className="flex gap-2">
                                 <Button variant="outline" size="sm" onClick={() => setEditMode(!editMode)}>
-                                    <Edit2 className="w-4 h-4 me-2" />
+                                    <Edit2 className="w-4 h-4" />
                                     {editMode ? "لغو" : "ویرایش"}
                                 </Button>
                                 {editMode && (

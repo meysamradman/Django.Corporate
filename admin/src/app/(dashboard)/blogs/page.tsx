@@ -14,6 +14,7 @@ import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { getConfirmMessage } from "@/core/messages/message";
 import {
   AlertDialog,
@@ -81,20 +82,8 @@ export default function BlogPage() {
       pageSize: 10,
     };
   });
-  const [sorting, setSorting] = useState<SortingState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const orderBy = urlParams.get('order_by');
-      const orderDesc = urlParams.get('order_desc');
-      if (orderBy) {
-        return [{
-          id: orderBy,
-          desc: orderDesc === 'true',
-        }];
-      }
-    }
-    return [];
-  });
+  // ✅ FIX: Default sorting: created_at descending (newest first)
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -652,10 +641,8 @@ export default function BlogPage() {
             size="sm" 
             permission="blog.create"
             onClick={() => router.push("/blogs/create")}
-            showDenyToast={true}
-            denyMessage="شما دسترسی لازم برای ایجاد بلاگ را ندارید"
           >
-            <Plus className="h-4 w-4 me-2" />
+            <Plus className="h-4 w-4" />
             افزودن بلاگ
           </ProtectedButton>
         </div>

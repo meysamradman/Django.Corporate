@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set, Optional, Any
 from .config import PERMISSIONS
 
 
@@ -11,6 +11,7 @@ class Permission:
     display_name: str
     description: str
     requires_superadmin: bool = False
+    is_standalone: bool = False
 
 
 class PermissionRegistry:
@@ -51,6 +52,7 @@ class PermissionRegistry:
                     "display_name": perm.display_name,
                     "description": perm.description,
                     "requires_superadmin": perm.requires_superadmin,
+                    "is_standalone": perm.is_standalone,
                 }
                 for perm_id, perm in cls._permissions.items()
             },
@@ -59,7 +61,7 @@ class PermissionRegistry:
 
 
 # Centralized, single-source permission definitions
-# همه permission‌ها از permissions_config.py خوانده می‌شوند
+# All permissions are loaded from permissions_config.py
 
 # Register all permissions from config
 for perm_id, perm_data in PERMISSIONS.items():
@@ -70,4 +72,5 @@ for perm_id, perm_data in PERMISSIONS.items():
         display_name=perm_data['display_name'],
         description=perm_data['description'],
         requires_superadmin=perm_data.get('requires_superadmin', False),
+        is_standalone=perm_data.get('is_standalone', False),
     ))

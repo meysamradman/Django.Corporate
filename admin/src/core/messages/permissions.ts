@@ -5,11 +5,12 @@ export const PERMISSION_TRANSLATIONS = {
   // Resource translations
   resources: {
     'All Modules': 'تمام ماژول‌ها',
-    'User Management': 'مدیریت کاربران',
-    'Admin Management': 'مدیریت ادمین‌ها',
-    'Media Management': 'مدیریت رسانه',
-    'Portfolio Management': 'مدیریت نمونه کار',
-    'Blog Management': 'مدیریت وبلاگ',
+    'User Management': 'کاربران',
+    'Admin Management': 'ادمین‌ها',
+    'Media Management': 'رسانه',
+    'Media Library': 'رسانه',
+    'Portfolio Management': 'نمونه کار',
+    'Blog Management': 'وبلاگ',
     'Content Taxonomies': 'دسته‌بندی، برچسب و گزینه‌های وبلاگ/نمونه‌کار',
     'Category Management': 'دسته‌بندی، برچسب و گزینه‌های وبلاگ/نمونه‌کار',
     'Blog Categories': 'دسته‌بندی‌های وبلاگ',
@@ -23,10 +24,10 @@ export const PERMISSION_TRANSLATIONS = {
     'Panel Settings': 'تنظیمات پنل ادمین',
     'System Settings': 'تنظیمات سیستم',
     'AI Tools': 'ابزارهای هوش مصنوعی',
-    'Email Center': 'مرکز ایمیل',
+    'Email Center': 'ایمیل',
     'Forms Builder': 'سازنده فرم‌ها',
     'Pages Management': 'مدیریت صفحات',
-    'Statistics Center': 'داشبورد و آمار',
+    'Statistics Center': 'آمار',
     'User Profile': 'پروفایل کاربر',
     'Admin Roles': 'نقش‌های ادمین',
     'Settings': 'تنظیمات',
@@ -93,6 +94,14 @@ export const PERMISSION_TRANSLATIONS = {
 
   // Description translations
   descriptions: {
+    // Statistics permissions
+    'View Dashboard Overview': 'مشاهده داشبورد کلی',
+    'View Users Statistics': 'مشاهده آمار کاربران',
+    'View Admins Statistics': 'مشاهده آمار ادمین‌ها',
+    'View Content Statistics': 'مشاهده آمار محتوا',
+    'View Financial Statistics': 'مشاهده آمار مالی',
+    'Export Statistics': 'خروجی آمار',
+    'Manage Statistics': 'مدیریت آمار',
     // Complete phrases
     'Can view admin users': 'امکان مشاهده کاربران ادمین',
     'Can manage admin users': 'امکان مدیریت کاربران ادمین',
