@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useRole, useBasePermissions } from "@/core/permissions/hooks/useRoles";
+import { useRole, useBasePermissions, usePermissions } from "@/core/permissions/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
@@ -10,6 +10,7 @@ import { Separator } from "@/components/elements/Separator";
 import { ArrowLeft, Edit, Shield, ShieldCheck, Users, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import Link from "next/link";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 
 export default function RoleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -18,6 +19,23 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
 
   const { data: role, isLoading, error } = useRole(roleId);
   const { data: basePermissions } = useBasePermissions();
+  const { data: permissions } = usePermissions();
+
+  // Match permissions with display names from API
+  const permissionDisplayNames = useMemo(() => {
+    if (!permissions || !Array.isArray(permissions)) return {} as Record<string, string>;
+    
+    const displayMap: Record<string, string> = {};
+    
+    permissions.forEach((group: any) => {
+      group.permissions?.forEach((perm: any) => {
+        const permKey = perm.original_key || `${perm.resource}.${perm.action}`;
+        displayMap[permKey] = perm.display_name;
+      });
+    });
+    
+    return displayMap;
+  }, [permissions]);
 
   if (isLoading) {
     return (
@@ -166,7 +184,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
               <h4 className="font-semibold text-sm mb-3 text-blue-1">🟢 دسترسی‌های پایه (همه ادمین‌ها):</h4>
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {basePermissions ? (
+                  {basePermissions && Array.isArray(basePermissions) && basePermissions.length > 0 ? (
                     basePermissions.map((basePerm: any) => (
                       <Badge key={basePerm.id} variant="default">
                         {basePerm.display_name}
@@ -186,88 +204,142 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             
             {/* Role-specific Permissions */}
-            {role.permissions && Object.keys(role.permissions).length > 0 ? (
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm mb-3 text-green-1">🎯 دسترسی‌های اختصاصی این نقش:</h4>
+            {(() => {
+              // ✅ NEW: Support specific_permissions format (new format)
+              if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions) && role.permissions.specific_permissions.length > 0) {
+                const specificPerms = role.permissions.specific_permissions;
                 
-                {/* Modules */}
-                {role.permissions.modules && role.permissions.modules.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm mb-2">ماژول‌ها:</h5>
+                const matchedPermissions = specificPerms.map((perm: any) => {
+                  // Try multiple key formats to find the display name
+                  const permKey = perm.permission_key || `${perm.module}.${perm.action}`;
+                  const moduleActionKey = `${perm.module}.${perm.action}`;
+                  
+                  // Try to find display_name using different key formats
+                  let displayName = permissionDisplayNames[permKey] || 
+                                   permissionDisplayNames[moduleActionKey] ||
+                                   permissionDisplayNames[perm.permission_key || ''];
+                  
+                  // If we found display_name from API, use it; otherwise construct a readable name
+                  const finalDisplayName = displayName || `${perm.module}.${perm.action}`;
+                  
+                  return {
+                    key: permKey,
+                    displayName: finalDisplayName,
+                    module: perm.module,
+                    action: perm.action,
+                    originalKey: perm.permission_key,
+                  };
+                });
+                
+                return (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-sm mb-3 text-green-1">🎯 دسترسی‌های اختصاصی این نقش:</h4>
                     <div className="flex flex-wrap gap-2">
-                      {role.permissions.modules.map((module, index) => (
-                        <Badge key={index} variant="outline">
-                          {module === 'all' ? 'همه ماژول‌ها' : 
-                           module === 'users' ? 'کاربران' :
-                           module === 'media' ? 'رسانه' :
-                           module === 'portfolio' ? 'نمونه کار' :
-                           module === 'blog' ? 'بلاگ' :
-                           module === 'categories' ? 'دسته‌بندی' :
-                           module === 'analytics' ? 'آمار' : module}
-                        </Badge>
-                      ))}
+                      {matchedPermissions.map((perm, index) => {
+                        // Try to translate using description type (like in form components)
+                        const translated = getPermissionTranslation(perm.displayName, "description");
+                        // If translation found, use it; otherwise try resource type; otherwise use original
+                        const finalText = translated || getPermissionTranslation(perm.displayName, "resource") || perm.displayName;
+                        
+                        return (
+                          <Badge key={index} variant="outline">
+                            {finalText}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
-                
-                {/* Actions */}
-                {role.permissions.actions && role.permissions.actions.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm mb-2">عملیات:</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {role.permissions.actions.map((action, index) => (
-                        <Badge key={index} variant="outline">
-                          {action === 'all' ? 'همه عملیات' :
-                           action === 'create' ? 'ایجاد' :
-                           action === 'read' ? 'مشاهده' :
-                           action === 'update' ? 'ویرایش' :
-                           action === 'delete' ? 'حذف' :
-                           action === 'export' ? 'خروجی' : action}
-                        </Badge>
-                      ))}
-                    </div>
+                );
+              }
+              
+              // ✅ OLD FORMAT: modules/actions (backward compatibility)
+              if (role.permissions && Object.keys(role.permissions).length > 0) {
+                return (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-sm mb-3 text-green-1">🎯 دسترسی‌های اختصاصی این نقش:</h4>
+                    
+                    {/* Modules */}
+                    {role.permissions.modules && Array.isArray(role.permissions.modules) && role.permissions.modules.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">ماژول‌ها:</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {role.permissions.modules.map((module: string, index: number) => (
+                            <Badge key={index} variant="outline">
+                              {module === 'all' ? 'همه ماژول‌ها' : 
+                               module === 'users' ? 'کاربران' :
+                               module === 'media' ? 'رسانه' :
+                               module === 'portfolio' ? 'نمونه کار' :
+                               module === 'blog' ? 'بلاگ' :
+                               module === 'categories' ? 'دسته‌بندی' :
+                               module === 'analytics' ? 'آمار' : module}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Actions */}
+                    {role.permissions.actions && Array.isArray(role.permissions.actions) && role.permissions.actions.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">عملیات:</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {role.permissions.actions.map((action: string, index: number) => (
+                            <Badge key={index} variant="outline">
+                              {action === 'all' ? 'همه عملیات' :
+                               action === 'create' ? 'ایجاد' :
+                               action === 'read' ? 'مشاهده' :
+                               action === 'update' ? 'ویرایش' :
+                               action === 'delete' ? 'حذف' :
+                               action === 'export' ? 'خروجی' : action}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Special Permissions */}
+                    {role.permissions.special && Array.isArray(role.permissions.special) && role.permissions.special.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">دسترسی‌های ویژه:</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {role.permissions.special.map((special: string, index: number) => (
+                            <Badge key={index} variant="default">
+                              {special === 'user_management' ? 'مدیریت کاربران' :
+                               special === 'system_settings' ? 'تنظیمات سیستم' : special}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Restrictions */}
+                    {role.permissions.restrictions && Array.isArray(role.permissions.restrictions) && role.permissions.restrictions.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">محدودیت‌ها:</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {role.permissions.restrictions.map((restriction: string, index: number) => (
+                            <Badge key={index} variant="red">
+                              {restriction === 'no_user_management' ? 'بدون مدیریت کاربران' :
+                               restriction === 'no_admin_users' ? 'بدون دسترسی ادمین‌ها' :
+                               restriction === 'no_delete' ? 'بدون حذف' :
+                               restriction === 'read_only' ? 'فقط خواندنی' :
+                               restriction === 'limited_fields' ? 'فیلدهای محدود' :
+                               restriction === 'no_sensitive_data' ? 'بدون داده حساس' : restriction}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                
-                {/* Special Permissions */}
-                {role.permissions.special && role.permissions.special.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm mb-2">دسترسی‌های ویژه:</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {role.permissions.special.map((special, index) => (
-                        <Badge key={index} variant="default">
-                          {special === 'user_management' ? 'مدیریت کاربران' :
-                           special === 'system_settings' ? 'تنظیمات سیستم' : special}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Restrictions */}
-                {role.permissions.restrictions && role.permissions.restrictions.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-sm mb-2">محدودیت‌ها:</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {role.permissions.restrictions.map((restriction, index) => (
-                        <Badge key={index} variant="destructive">
-                          {restriction === 'no_user_management' ? 'بدون مدیریت کاربران' :
-                           restriction === 'no_admin_users' ? 'بدون دسترسی ادمین‌ها' :
-                           restriction === 'no_delete' ? 'بدون حذف' :
-                           restriction === 'read_only' ? 'فقط خواندنی' :
-                           restriction === 'limited_fields' ? 'فیلدهای محدود' :
-                           restriction === 'no_sensitive_data' ? 'بدون داده حساس' : restriction}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-font-s">
-                <p>فقط دسترسی‌های پایه تخصیص داده شده است</p>
-              </div>
-            )}
+                );
+              }
+              
+              return (
+                <div className="text-center py-4 text-font-s">
+                  <p>فقط دسترسی‌های پایه تخصیص داده شده است</p>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

@@ -112,7 +112,25 @@ export const PERMISSION_TRANSLATIONS = {
     'Allow full access to chatbot settings and FAQs': 'دسترسی کامل به تنظیمات چت‌بات و سوالات متداول',
     // Ticket permissions
     'Manage Tickets': 'مدیریت تیکت',
+    'View Tickets': 'مشاهده تیکت‌ها',
     'Allow full access to ticket management and responses': 'دسترسی کامل به مدیریت تیکت‌ها و پاسخ‌ها',
+    // Email permissions
+    'View Email Messages': 'مشاهده پیام‌های ایمیل',
+    'Manage Email': 'مدیریت ایمیل',
+    // Forms permissions
+    'Manage Forms': 'مدیریت فرم‌ها',
+    // Portfolio permissions
+    'View Portfolios': 'مشاهده نمونه کار',
+    'View Portfolio': 'مشاهده نمونه کار',
+    // Blog permissions
+    'View Blogs': 'مشاهده وبلاگ',
+    'View Blog': 'مشاهده وبلاگ',
+    // Media permissions
+    'View Media Library': 'مشاهده رسانه',
+    'View Media': 'مشاهده رسانه',
+    // User permissions
+    'View Users': 'مشاهده کاربران',
+    'View User': 'مشاهده کاربران',
     // Statistics permissions
     'View Dashboard Overview': 'مشاهده داشبورد کلی',
     'View Users Statistics': 'مشاهده آمار کاربران',

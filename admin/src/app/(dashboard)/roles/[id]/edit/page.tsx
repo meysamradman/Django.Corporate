@@ -7,53 +7,29 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useRole, useUpdateRole, usePermissions, useBasePermissions } from "@/core/permissions/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Checkbox } from "@/components/elements/Checkbox";
-import { Badge } from "@/components/elements/Badge";
 import {
   ArrowLeft,
   Save,
   Loader2,
-  Shield,
-  Users,
-  Image,
-  FileText,
-  Settings,
-  BarChart3,
   ShieldCheck,
-  LayoutPanelLeft,
-  BookOpenText,
-  FolderTree,
-  Tags,
-  Component,
-  Tag,
-  ListTree,
-  ListChecks,
-  PieChart,
-  Sparkles,
-  Mail,
-  SquarePen,
-  BookOpenCheck,
   AlertCircle,
-  LayoutDashboard,
-  User,
-  MessageSquare,
-  Ticket
 } from "lucide-react";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/elements/Table";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
 import { extractFieldErrors, hasFieldErrors, showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 import { msg } from "@/core/messages/message";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
+import {
+  StandardPermissionsTable,
+  PermissionWarningAlert,
+  StatisticsPermissionsCard,
+  AIPermissionsCard,
+  ManagementPermissionsCard,
+  RoleBasicInfoForm,
+} from "@/components/roles/form";
+import { getResourceIcon } from "@/components/roles/form/utils";
 
 // ✅ OPTIMIZED: Statistics permissions that are actually used (defined once, reused)
 // ترتیب مهمه: در RTL از راست به چپ نمایش داده میشه (معکوس آرایه)
@@ -83,35 +59,7 @@ const roleSchema = z.object({
 
 type RoleFormData = z.infer<typeof roleSchema>;
 
-// Get icon based on resource name
-const getResourceIcon = (resourceKey: string) => {
-    const resourceIconMap: Record<string, React.ReactElement> = {
-      dashboard: <LayoutDashboard className="h-4 w-4 text-blue-600" />,
-      users: <Users className="h-4 w-4 text-blue-600" />,
-      admin: <ShieldCheck className="h-4 w-4 text-purple-600" />,
-      media: <Image className="h-4 w-4 text-pink-600" />,
-      portfolio: <LayoutPanelLeft className="h-4 w-4 text-indigo-600" />,
-      blog: <BookOpenText className="h-4 w-4 text-green-600" />,
-      blog_categories: <FolderTree className="h-4 w-4 text-emerald-600" />,
-      blog_tags: <Tags className="h-4 w-4 text-teal-600" />,
-      portfolio_categories: <Component className="h-4 w-4 text-cyan-600" />,
-      portfolio_tags: <Tag className="h-4 w-4 text-sky-600" />,
-      portfolio_options: <ListTree className="h-4 w-4 text-violet-600" />,
-      portfolio_option_values: <ListChecks className="h-4 w-4 text-fuchsia-600" />,
-      analytics: <BarChart3 className="h-4 w-4 text-amber-600" />,
-      statistics: <PieChart className="h-4 w-4 text-orange-600" />,
-      panel: <Settings className="h-4 w-4 text-slate-600" />,
-      settings: <Settings className="h-4 w-4 text-gray-600" />,
-      ai: <Sparkles className="h-4 w-4 text-yellow-600" />,
-      chatbot: <MessageSquare className="h-4 w-4 text-cyan-600" />,
-      email: <Mail className="h-4 w-4 text-red-600" />,
-      ticket: <Ticket className="h-4 w-4 text-blue-600" />,
-      forms: <SquarePen className="h-4 w-4 text-lime-600" />,
-      pages: <BookOpenCheck className="h-4 w-4 text-rose-600" />
-    };
-    
-    return resourceIconMap[resourceKey] || <Shield className="h-4 w-4" />;
-};
+// getResourceIcon is now imported from utils
 
 export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -126,6 +74,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
 
+  const form = useForm<RoleFormData>({
+    resolver: zodResolver(roleSchema),
+  });
+
   const {
     register,
     handleSubmit,
@@ -133,9 +85,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     reset,
     setError,
     setValue,
-  } = useForm<RoleFormData>({
-    resolver: zodResolver(roleSchema),
-  });
+  } = form;
 
   // Set form data when role is loaded
   useEffect(() => {
@@ -639,443 +589,82 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               <div className="space-y-8">
                 
                 {/* 🔥 Smart Warning Alert */}
-                {logicalPermissionErrors.length > 0 && (
-                  <div className="rounded-lg border border-amber-1 bg-amber p-4 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-amber-0 rounded-full shrink-0 border border-amber-1">
-                        <AlertCircle className="h-5 w-5 text-amber-2" />
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="font-medium text-amber-2">توجه: دسترسی‌های ناقص شناسایی شد</h4>
-                        <p className="text-sm text-font-s leading-relaxed">
-                          شما برای برخی ماژول‌ها دسترسی عملیاتی (ایجاد، ویرایش یا حذف) داده‌اید، اما دسترسی <strong>«مشاهده»</strong> را فعال نکرده‌اید.
-                          <br />
-                          کاربران بدون دسترسی مشاهده، معمولاً نمی‌توانند وارد بخش مربوطه شوند تا عملیاتی انجام دهند.
-                        </p>
-                        <div className="pt-2 flex flex-wrap gap-2">
-                          {logicalPermissionErrors.map(resourceKey => {
-                            const resource = standardResources.find((r: any) => r.resource === resourceKey);
-                            return (
-                              <span key={resourceKey} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-0 text-amber-2 border border-amber-1">
-                                {resource ? getPermissionTranslation(resource.display_name, 'resource') : resourceKey}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <PermissionWarningAlert
+                  logicalPermissionErrors={logicalPermissionErrors}
+                  standardResources={standardResources}
+                  getResourceIcon={getResourceIcon}
+                />
 
                 {/* Standard Resources Table */}
-                {standardResources.length > 0 && (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            onCheckedChange={(checked) => {
-                              const permissionIds = standardResources.flatMap(
-                                (resource: any) => resource.permissions.map((p: any) => p.id)
-                              );
-                              
+                <StandardPermissionsTable
+                  resources={standardResources}
+                  selectedPermissions={selectedPermissions}
+                  isSuperAdmin={isSuperAdmin}
+                  logicalPermissionErrors={logicalPermissionErrors}
+                  onTogglePermission={togglePermission}
+                  onToggleAllResourcePermissions={toggleAllResourcePermissions}
+                  onToggleAllStandardPermissions={(checked, permissionIds) => {
                               const newSelected = checked
                                 ? [...selectedPermissions, ...permissionIds.filter(id => !selectedPermissions.includes(id))]
                                 : selectedPermissions.filter(id => !permissionIds.includes(id));
-                                
                               setSelectedPermissions(newSelected);
                               setValue("permission_ids", newSelected, { shouldValidate: true });
                             }}
-                          />
-                        </TableHead>
-                        <TableHead>منبع</TableHead>
-                        <TableHead className="text-center">مشاهده</TableHead>
-                        <TableHead className="text-center">ایجاد</TableHead>
-                        <TableHead className="text-center">ویرایش</TableHead>
-                        <TableHead className="text-center">حذف</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {standardResources.map((resource: any) => (
-                          <TableRow key={resource.resource}>
-                            <TableCell>
-                              <Checkbox
-                                checked={areAllResourcePermissionsSelected(resource.permissions)}
-                                onCheckedChange={() => toggleAllResourcePermissions(resource.permissions)}
-                              />
-                            </TableCell>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              {getResourceIcon(resource.resource)}
-                              {getPermissionTranslation(resource.display_name, 'resource')}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center relative">
-                            <div className="flex justify-center relative group">
-                              <div className="relative">
-                                <Checkbox
-                                  checked={isPermissionSelected(
-                                    getActionPermission(resource.permissions, 'view')?.id
-                                  )}
-                                  disabled={!isSuperAdmin && getActionPermission(resource.permissions, 'view')?.requires_superadmin}
-                                  onCheckedChange={() => {
-                                    const perm = getActionPermission(resource.permissions, 'view');
-                                    if (perm && (isSuperAdmin || !perm.requires_superadmin)) {
-                                      togglePermission(perm.id);
-                                    }
-                                  }}
-                                  className={logicalPermissionErrors.includes(resource.resource) ? "border-amber-1 data-[state=unchecked]:bg-amber" : ""}
-                                />
-                                {logicalPermissionErrors.includes(resource.resource) && (
-                                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 pointer-events-none">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-1 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-1 border-2 border-white"></span>
-                                  </span>
-                                )}
-                              </div>
-                              {getActionPermission(resource.permissions, 'view')?.requires_superadmin && (
-                                <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center relative group">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'create')?.id
-                                )}
-                                disabled={!isSuperAdmin && getActionPermission(resource.permissions, 'create')?.requires_superadmin}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'create');
-                                  if (perm && (isSuperAdmin || !perm.requires_superadmin)) {
-                                    togglePermission(perm.id);
-                                  }
-                                }}
-                              />
-                              {getActionPermission(resource.permissions, 'create')?.requires_superadmin && (
-                                <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center relative group">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'edit')?.id
-                                )}
-                                disabled={!isSuperAdmin && getActionPermission(resource.permissions, 'edit')?.requires_superadmin}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'edit');
-                                  if (perm && (isSuperAdmin || !perm.requires_superadmin)) {
-                                    togglePermission(perm.id);
-                                  }
-                                }}
-                              />
-                              {getActionPermission(resource.permissions, 'edit')?.requires_superadmin && (
-                                <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center relative group">
-                              <Checkbox
-                                checked={isPermissionSelected(
-                                  getActionPermission(resource.permissions, 'delete')?.id
-                                )}
-                                disabled={!isSuperAdmin && getActionPermission(resource.permissions, 'delete')?.requires_superadmin}
-                                onCheckedChange={() => {
-                                  const perm = getActionPermission(resource.permissions, 'delete');
-                                  if (perm && (isSuperAdmin || !perm.requires_superadmin)) {
-                                    togglePermission(perm.id);
-                                  }
-                                }}
-                              />
-                              {getActionPermission(resource.permissions, 'delete')?.requires_superadmin && (
-                                <div className="absolute -top-2 -right-3 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                )}
+                  isPermissionSelected={isPermissionSelected}
+                  areAllResourcePermissionsSelected={areAllResourcePermissionsSelected}
+                  getActionPermission={getActionPermission}
+                  getResourceIcon={getResourceIcon}
+                />
 
                 {/* Statistics Permissions - Separate Card */}
                 {statisticsResources.length > 0 && statisticsResources[0]?.permissions?.length > 0 && (
-                  <Card className="border-2 border-dashed border-blue-0 bg-blue">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-blue-1/10">
-                            <PieChart className="h-5 w-5 text-blue-1" />
-                          </div>
-                          <div>
-                            <CardTitle>{getPermissionTranslation('Statistics Center', 'resource')}</CardTitle>
-                            <p className="text-sm text-font-s mt-1">
-                              {PERMISSION_TRANSLATIONS.cardDescriptions.statistics}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            checked={(() => {
-                              const statsPermIds = statisticsResources[0].permissions
-                                .filter((p: any) => STATISTICS_USED_PERMISSIONS.includes(p.original_key))
-                                .map((p: any) => p.id);
-                              return statsPermIds.every((id: number) => isPermissionSelected(id));
-                            })()}
-                            onCheckedChange={(checked) => {
-                              const statsPermIds = statisticsResources[0].permissions
-                                .filter((p: any) => STATISTICS_USED_PERMISSIONS.includes(p.original_key))
-                                .map((p: any) => p.id);
-                              
+                  <StatisticsPermissionsCard
+                    permissions={statisticsResources[0].permissions}
+                    selectedPermissions={selectedPermissions}
+                    isSuperAdmin={isSuperAdmin}
+                    statisticsUsedPermissions={STATISTICS_USED_PERMISSIONS}
+                    onTogglePermission={togglePermission}
+                    onToggleAllStatistics={(checked, statsPermIds) => {
                               const newSelected = checked
                                 ? [...selectedPermissions, ...statsPermIds.filter((id: number) => !selectedPermissions.includes(id))]
                                 : selectedPermissions.filter((id: number) => !statsPermIds.includes(id));
-                                
                               setSelectedPermissions(newSelected);
                               setValue("permission_ids", newSelected, { shouldValidate: true });
                             }}
-                          />
-                          <div className="text-sm text-font-s">
-                            {statisticsResources[0].permissions.filter((p: any) => 
-                              isPermissionSelected(p.id)
-                            ).length} / {statisticsResources[0].permissions.filter((p: any) => 
-                              STATISTICS_USED_PERMISSIONS.includes(p.original_key)
-                            ).length}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {statisticsResources[0].permissions
-                          .filter((perm: any) => {
-                            // فقط permissions هایی که واقعاً استفاده می‌شوند را نمایش بده
-                            return STATISTICS_USED_PERMISSIONS.includes(perm.original_key);
-                          })
-                          .sort((a: any, b: any) => {
-                            // ترتیب بر اساس آرایه STATISTICS_USED_PERMISSIONS
-                            return STATISTICS_USED_PERMISSIONS.indexOf(a.original_key) - STATISTICS_USED_PERMISSIONS.indexOf(b.original_key);
-                          })
-                          .map((perm: any) => {
-                          const isSelected = isPermissionSelected(perm.id);
-
-                          return (
-                            <div 
-                              key={perm.id}
-                              onClick={() => {
-                                if (perm.requires_superadmin && !isSuperAdmin) return;
-                                togglePermission(perm.id);
-                              }}
-                              className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 ${perm.requires_superadmin && !isSuperAdmin ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-105'} ${isSelected ? 'border-blue-1 bg-blue-0' : 'border-br bg-card hover:border-blue-0'}`}
-                            >
-                              <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-blue-1/20' : 'bg-bg group-hover:bg-blue-0/50'}`}>
-                                {getResourceIcon('statistics')}
-                              </div>
-                              <span className={`text-center text-sm font-medium leading-tight ${isSelected ? 'text-blue-1' : 'text-font-p'}`}>
-                                {getPermissionTranslation(perm.display_name, 'description')}
-                              </span>
-                              {perm.requires_superadmin && (
-                                <div className="absolute top-2 right-2 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                              {isSelected && (
-                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-1 rounded-full flex items-center justify-center">
-                                  <svg className="w-3 h-3 text-wt" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
+                    isPermissionSelected={isPermissionSelected}
+                    getResourceIcon={getResourceIcon}
+                  />
                 )}
 
                 {/* AI Permissions - Separate Card */}
                 {aiResources.length > 0 && aiResources[0]?.permissions?.length > 0 && (
-                  <Card className="border-2 border-dashed border-yellow-500/20 bg-yellow-500/5">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-yellow-500/10">
-                            <Sparkles className="h-5 w-5 text-yellow-600" />
-                          </div>
-                          <div>
-                            <CardTitle>{getPermissionTranslation('AI Tools', 'resource')}</CardTitle>
-                            <p className="text-sm text-font-s mt-1">
-                              {PERMISSION_TRANSLATIONS.cardDescriptions.ai}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            checked={(() => {
-                              const aiPermIds = aiResources[0].permissions
-                                .filter((p: any) => AI_USED_PERMISSIONS.includes(p.original_key))
-                                .map((p: any) => p.id);
-                              return aiPermIds.every((id: number) => isPermissionSelected(id));
-                            })()}
-                            onCheckedChange={(checked) => {
-                              const aiPermIds = aiResources[0].permissions
-                                .filter((p: any) => AI_USED_PERMISSIONS.includes(p.original_key))
-                                .map((p: any) => p.id);
-                              
+                  <AIPermissionsCard
+                    permissions={aiResources[0].permissions}
+                    selectedPermissions={selectedPermissions}
+                    isSuperAdmin={isSuperAdmin}
+                    aiUsedPermissions={AI_USED_PERMISSIONS}
+                    onTogglePermission={togglePermission}
+                    onToggleAllAI={(checked, aiPermIds) => {
                               const newSelected = checked
                                 ? [...selectedPermissions, ...aiPermIds.filter((id: number) => !selectedPermissions.includes(id))]
                                 : selectedPermissions.filter((id: number) => !aiPermIds.includes(id));
-                                
                               setSelectedPermissions(newSelected);
                               setValue("permission_ids", newSelected, { shouldValidate: true });
                             }}
-                          />
-                          <div className="text-sm text-font-s">
-                            {aiResources[0].permissions.filter((p: any) => 
-                              isPermissionSelected(p.id)
-                            ).length} / {aiResources[0].permissions.filter((p: any) => 
-                              AI_USED_PERMISSIONS.includes(p.original_key)
-                            ).length}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {aiResources[0].permissions
-                          .filter((perm: any) => {
-                            // فقط permissions هایی که واقعاً استفاده می‌شوند را نمایش بده
-                            return AI_USED_PERMISSIONS.includes(perm.original_key);
-                          })
-                          .sort((a: any, b: any) => {
-                            // ترتیب بر اساس آرایه AI_USED_PERMISSIONS
-                            return AI_USED_PERMISSIONS.indexOf(a.original_key) - AI_USED_PERMISSIONS.indexOf(b.original_key);
-                          })
-                          .map((perm: any) => {
-                          const isSelected = isPermissionSelected(perm.id);
-
-                          return (
-                            <div 
-                              key={perm.id}
-                              onClick={() => {
-                                if (perm.requires_superadmin && !isSuperAdmin) return;
-                                togglePermission(perm.id);
-                              }}
-                              className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 ${perm.requires_superadmin && !isSuperAdmin ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-105'} ${isSelected ? 'border-yellow-600 bg-yellow-500/10' : 'border-br bg-card hover:border-yellow-500/20'}`}
-                            >
-                              <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-yellow-500/20' : 'bg-bg group-hover:bg-yellow-500/10'}`}>
-                                {getResourceIcon('ai')}
-                              </div>
-                              <span className={`text-center text-sm font-medium leading-tight ${isSelected ? 'text-yellow-600' : 'text-font-p'}`}>
-                                {getPermissionTranslation(perm.display_name, 'description')}
-                              </span>
-                              {perm.requires_superadmin && (
-                                <div className="absolute top-2 right-2 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                              {isSelected && (
-                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-600 rounded-full flex items-center justify-center">
-                                  <svg className="w-3 h-3 text-wt" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
+                    isPermissionSelected={isPermissionSelected}
+                    getResourceIcon={getResourceIcon}
+                  />
                 )}
 
                 {/* Management-Only Modules */}
-                {manageOnlyResources.length > 0 && (
-                  <Card className="border-2 border-dashed border-blue-0 bg-blue">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-blue-1/10">
-                            <Settings className="h-5 w-5 text-blue-1" />
-                          </div>
-                          <div>
-                            <CardTitle>{getPermissionTranslation('Settings', 'resource')}</CardTitle>
-                            <p className="text-sm text-font-s mt-1">
-                              {PERMISSION_TRANSLATIONS.cardDescriptions.management}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-sm text-font-s">
-                          {manageOnlyResources.filter((r: any) => {
-                            // ✅ FIX: Find manage permission more reliably
-                            const perm = r.permissions.find((p: any) => 
-                              p.action?.toLowerCase() === 'manage' || p.is_standalone
-                            ) || r.permissions[0];
-                            return perm && perm.id && isPermissionSelected(perm.id);
-                          }).length} / {manageOnlyResources.length}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {manageOnlyResources.map((resource: any) => {
-                          // ✅ FIX: Find manage permission more reliably
-                          const managePerm = resource.permissions.find((p: any) => 
-                            p.action?.toLowerCase() === 'manage' || p.is_standalone
-                          ) || resource.permissions[0];
-                          
-                          if (!managePerm || !managePerm.id) return null;
-                          
-                          const isSelected = isPermissionSelected(managePerm.id);
-
-                          return (
-                            <div 
-                              key={`${resource.resource}-${managePerm.id}`}
-                              onClick={() => {
-                                if (managePerm.requires_superadmin && !isSuperAdmin) return;
-                                togglePermission(managePerm.id);
-                              }}
-                              className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 ${managePerm.requires_superadmin && !isSuperAdmin ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-105'} ${isSelected ? 'border-blue-1 bg-blue-0' : 'border-br bg-card hover:border-blue-0'}`}
-                            >
-                              <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-blue-1/20' : 'bg-bg group-hover:bg-blue-0/50'}`}>
-                                {getResourceIcon(resource.resource)}
-                              </div>
-                              <span className={`text-center text-sm font-medium leading-tight ${isSelected ? 'text-blue-1' : 'text-font-p'}`}>
-                                {getPermissionTranslation(resource.display_name, 'resource')}
-                              </span>
-                              {managePerm.requires_superadmin && (
-                                <div className="absolute top-2 right-2 text-amber-500" title="نیازمند دسترسی سوپر ادمین">
-                                  <Shield className="h-3 w-3" />
-                                </div>
-                              )}
-                              {isSelected && (
-                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-1 rounded-full flex items-center justify-center">
-                                  <svg className="w-3 h-3 text-wt" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <ManagementPermissionsCard
+                  resources={manageOnlyResources}
+                  selectedPermissions={selectedPermissions}
+                  isSuperAdmin={isSuperAdmin}
+                  onTogglePermission={togglePermission}
+                  isPermissionSelected={isPermissionSelected}
+                  getResourceIcon={getResourceIcon}
+                />
                 
                 {selectedPermissions.length > 0 && (
                   <div className="p-3 bg-bg/50 rounded-lg">
@@ -1101,58 +690,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         </CardWithIcon>
 
         {/* Basic Info */}
-        <CardWithIcon
-          icon={User}
-          title="اطلاعات پایه"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          className="hover:shadow-lg transition-all duration-300"
-        >
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <FormFieldInput
-                label="نام"
-                id="name"
-                required
-                error={errors.name?.message}
-                placeholder="نام نقش را وارد کنید"
-                {...register("name")}
-              />
-
-              <FormFieldTextarea
-                label="توضیحات"
-                id="description"
-                error={errors.description?.message}
-                placeholder="توضیحات نقش را وارد کنید (حداکثر ۳۰۰ کاراکتر)"
-                rows={3}
-                maxLength={300}
-                {...register("description")}
-              />
-
-              <div className="flex gap-4 justify-end">
-                <Button
-                  type="submit"
-                  disabled={updateRoleMutation.isPending}
-                  className="flex items-center gap-2"
-                >
-                  {updateRoleMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  بروزرسانی
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={updateRoleMutation.isPending}
-                >
-                  لغو
-                </Button>
-              </div>
-            </form>
-        </CardWithIcon>
+        <RoleBasicInfoForm
+          form={form}
+          onSubmit={onSubmit}
+          isSubmitting={updateRoleMutation.isPending}
+        />
       </div>
     </div>
   );
