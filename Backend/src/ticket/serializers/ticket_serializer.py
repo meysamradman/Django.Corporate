@@ -1,0 +1,85 @@
+from rest_framework import serializers
+from src.ticket.models.ticket import Ticket
+from src.ticket.models.ticket_message import TicketMessage
+from src.user.serializers.user.user_public_serializer import UserPublicSerializer
+from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
+
+
+class TicketListSerializer(serializers.ModelSerializer):
+    user = UserPublicSerializer(read_only=True)
+    assigned_admin = AdminProfileSerializer(read_only=True)
+    messages_count = serializers.SerializerMethodField()
+    unread_messages_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Ticket
+        fields = [
+            'id',
+            'public_id',
+            'subject',
+            'status',
+            'priority',
+            'user',
+            'assigned_admin',
+            'last_replied_at',
+            'created_at',
+            'updated_at',
+            'messages_count',
+            'unread_messages_count',
+        ]
+    
+    def get_messages_count(self, obj):
+        return obj.messages.count()
+    
+    def get_unread_messages_count(self, obj):
+        return obj.messages.filter(is_read=False).count()
+
+
+class TicketDetailSerializer(serializers.ModelSerializer):
+    user = UserPublicSerializer(read_only=True)
+    assigned_admin = AdminProfileSerializer(read_only=True)
+    messages = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Ticket
+        fields = [
+            'id',
+            'public_id',
+            'subject',
+            'description',
+            'status',
+            'priority',
+            'user',
+            'assigned_admin',
+            'last_replied_at',
+            'created_at',
+            'updated_at',
+            'is_active',
+            'messages',
+        ]
+    
+    def get_messages(self, obj):
+        from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer
+        messages = obj.messages.all().order_by('created_at')
+        return TicketMessageSerializer(messages, many=True).data
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = [
+            'id',
+            'public_id',
+            'subject',
+            'description',
+            'status',
+            'priority',
+            'user',
+            'assigned_admin',
+            'last_replied_at',
+            'created_at',
+            'updated_at',
+            'is_active',
+        ]
+        read_only_fields = ['id', 'public_id', 'created_at', 'updated_at', 'last_replied_at']
+

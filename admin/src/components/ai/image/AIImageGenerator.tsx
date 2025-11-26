@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/route';
@@ -12,6 +12,7 @@ import { msg } from '@/core/messages/message';
 import { ImageInputForm } from './ImageInputForm';
 import { GeneratedImageDisplay } from './GeneratedImageDisplay';
 import { EmptyProvidersCard } from './EmptyProvidersCard';
+import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIImageGeneratorProps {
     onImageGenerated?: (media: Media) => void;
@@ -21,6 +22,7 @@ interface AIImageGeneratorProps {
 }
 
 export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNavigateToSettings, compact = false }: AIImageGeneratorProps) {
+    const { user } = useAuth();
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>('');
@@ -31,10 +33,29 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
     const [generating, setGenerating] = useState(false);
     const [generatedMedia, setGeneratedMedia] = useState<Media | null>(null);
     const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+    const providersFetched = useRef(false); // ✅ CRITICAL: Prevent double fetch
 
     useEffect(() => {
-        fetchAvailableProviders();
-    }, []);
+        // ✅ CRITICAL: Only fetch providers if user has ai.manage permission
+        // ✅ CRITICAL: Prevent double fetch with ref
+        if (user && !providersFetched.current) {
+            // Check if user has ai.manage, any ai.* permission, or "all" permission
+            const hasAIPermission = user?.permissions?.some((p: string) => 
+                p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
+            );
+            
+            if (hasAIPermission) {
+                providersFetched.current = true;
+                fetchAvailableProviders();
+            } else {
+                // If no AI permission, stop loading
+                setLoadingProviders(false);
+            }
+        } else if (!user) {
+            // If user not loaded yet, keep loading
+            setLoadingProviders(true);
+        }
+    }, [user]);
 
     const fetchAvailableProviders = async () => {
         try {

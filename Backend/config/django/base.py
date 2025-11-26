@@ -36,6 +36,8 @@ LOCAL_APPS = [
     'src.portfolio.apps.PortfolioConfig',
     'src.media.apps.MediaConfig',
     'src.ai.apps.AiConfig',
+    'src.chatbot.apps.ChatbotConfig',
+    'src.ticket.apps.TicketConfig',
     'src.email.apps.EmailConfig',
     'src.statistics.apps.StatisticsConfig',
     'src.panel.apps.PanelConfig',

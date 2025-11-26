@@ -17,9 +17,6 @@ import { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tabl
 type FetchDataFn<TData, TApiFilters extends BaseApiFilterParams> = (
   filters: TApiFilters,
   options?: { 
-    cache?: RequestCache; 
-    revalidate?: number | false;
-    tags?: string[];
     cookieHeader?: string;
   }
 ) => Promise<unknown>;

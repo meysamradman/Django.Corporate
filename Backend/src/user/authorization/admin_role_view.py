@@ -194,11 +194,23 @@ class AdminRoleView(viewsets.ViewSet):
             with transaction.atomic():
                 updated_role = serializer.save()
                 
-                # Update permissions cache for all users with this role
+                # ✅ Update permissions cache for all users with this role
+                # update_permissions_cache() already clears Redis cache internally
                 user_roles = AdminUserRole.objects.filter(role=role, is_active=True)
                 for user_role in user_roles:
                     user_role.update_permissions_cache()
+                    # ✅ Additional comprehensive cache clearing to ensure all cache keys are cleared
+                    from src.user.permissions.validator import PermissionValidator
+                    from src.user.permissions.helpers import PermissionHelper
+                    from django.core.cache import cache
+                    
                     AdminPermissionCache.clear_user_cache(user_role.user_id)
+                    PermissionValidator.clear_user_cache(user_role.user_id)
+                    PermissionHelper.clear_user_cache(user_role.user_id)
+                    
+                    # ✅ Also clear admin profile cache explicitly
+                    cache.delete(f'admin_profile_{user_role.user_id}_super')
+                    cache.delete(f'admin_profile_{user_role.user_id}_regular')
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["admin_role_updated_successfully"],
@@ -322,8 +334,19 @@ class AdminRoleView(viewsets.ViewSet):
                         logger.error(f"Error assigning role {role.id} ({role.name}): {type(e).__name__}: {e}")
                         raise Exception(ROLE_ERRORS["error_assigning_role"].format(role_name=role.display_name, role_id=role.id, error=str(e)))
                 
-                # Clear user's permission cache
+                # ✅ Clear user's permission cache comprehensively
+                # Signals will also clear cache, but we do it here too for immediate effect
+                from src.user.permissions.validator import PermissionValidator
+                from src.user.permissions.helpers import PermissionHelper
+                
                 AdminPermissionCache.clear_user_cache(user_id)
+                PermissionValidator.clear_user_cache(user_id)
+                PermissionHelper.clear_user_cache(user_id)
+                
+                # ✅ Also clear admin profile cache explicitly
+                from django.core.cache import cache
+                cache.delete(f'admin_profile_{user_id}_super')
+                cache.delete(f'admin_profile_{user_id}_regular')
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["role_assigned_successfully"],
@@ -362,27 +385,46 @@ class AdminRoleView(viewsets.ViewSet):
     def remove_role(self, request, pk=None):
         """Remove role from admin user (Super Admin only)"""
         try:
+            # ✅ DETAILED LOGGING
+            logger.info(f"🔴 [REMOVE_ROLE] Request received: user_id={request.query_params.get('user_id')}, role_id={pk}, method={request.method}")
+            logger.info(f"🔴 [REMOVE_ROLE] Request user: {request.user.id} ({request.user.email}), is_superuser={request.user.is_superuser}, is_admin_full={getattr(request.user, 'is_admin_full', False)}")
+            logger.info(f"🔴 [REMOVE_ROLE] View action: {getattr(self, 'action', None)}")
+            
             # pk is role_id, get user_id from query params
             user_id = request.query_params.get('user_id')
             
             if not user_id:
+                logger.error(f"❌ [REMOVE_ROLE] Missing user_id parameter")
                 return APIResponse.error(
                     message=ROLE_ERRORS["user_id_parameter_required"],
                     status_code=400
                 )
             
+            logger.info(f"🔴 [REMOVE_ROLE] Looking for assignment: user_id={user_id}, role_id={pk}")
             assignment = AdminUserRole.objects.get(
                 user_id=user_id,
                 role_id=pk,
                 is_active=True
             )
+            logger.info(f"✅ [REMOVE_ROLE] Found assignment: {assignment.id}")
             
             with transaction.atomic():
                 assignment.is_active = False
                 assignment.save()
                 
-                # Clear user's permission cache
+                # ✅ Clear user's permission cache comprehensively
+                # Signals will also clear cache, but we do it here too for immediate effect
+                from src.user.permissions.validator import PermissionValidator
+                from src.user.permissions.helpers import PermissionHelper
+                
                 AdminPermissionCache.clear_user_cache(int(user_id))
+                PermissionValidator.clear_user_cache(int(user_id))
+                PermissionHelper.clear_user_cache(int(user_id))
+                
+                # ✅ Also clear admin profile cache explicitly
+                from django.core.cache import cache
+                cache.delete(f'admin_profile_{user_id}_super')
+                cache.delete(f'admin_profile_{user_id}_regular')
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["role_removed_from_user_successfully"],
@@ -609,8 +651,9 @@ class AdminRoleView(viewsets.ViewSet):
             base_permission_keys = set(BASE_ADMIN_PERMISSIONS.keys())
             
             # ✅ OPTIMIZED: Statistics permissions that are actually used (defined once, reused)
-            # Exclude future permissions (financial, export, manage) until they are implemented
+            # Exclude future permissions (financial, export) until they are implemented
             STATISTICS_USED_PERMISSIONS = {
+                'statistics.manage',  # Full access to statistics
                 'statistics.users.read',
                 'statistics.admins.read',
                 'statistics.content.read'

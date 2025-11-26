@@ -154,7 +154,10 @@ class AdminUserRole(BaseModel):
         return f"{self.user} - {self.role}"
     
     def update_permissions_cache(self):
-        """Update permissions cache from role permissions"""
+        """
+        ✅ به‌روزرسانی permissions cache در database و پاک کردن Redis cache
+        برای اطمینان از consistency بین database و Redis
+        """
         # ✅ FIX: Ensure permissions is always a valid dict
         role_permissions = self.role.permissions if self.role.permissions else {}
         self.permissions_cache = role_permissions
@@ -162,10 +165,14 @@ class AdminUserRole(BaseModel):
         # Save without calling clean() again to avoid re-validation
         super(AdminUserRole, self).save(update_fields=['permissions_cache', 'last_cache_update'])
         
-        # Clear Redis cache
-        from django.core.cache import cache
-        cache_key = f"admin_permissions_{self.user_id}"
-        cache.delete(cache_key)
+        # ✅ Clear all Redis cache for this user using comprehensive methods
+        from src.user.authorization.admin_permission import AdminPermissionCache
+        from src.user.permissions.validator import PermissionValidator
+        from src.user.permissions.helpers import PermissionHelper
+        
+        AdminPermissionCache.clear_user_cache(self.user_id)
+        PermissionValidator.clear_user_cache(self.user_id)
+        PermissionHelper.clear_user_cache(self.user_id)
     
     @property
     def is_expired(self):
@@ -187,31 +194,50 @@ def validate_admin_user_role(sender, instance, **kwargs):
         )
 
 
-# Cache invalidation signals
+# ✅ Cache invalidation signals - پاک کردن کامل cache از Redis
 @receiver([post_save, post_delete], sender=AdminUserRole)
 def clear_admin_user_cache(sender, instance, **kwargs):
-    """Clear admin user permission cache on role changes"""
-    cache.delete_many([
-        f'admin_permissions_{instance.user_id}',
-        f'admin_roles_{instance.user_id}',
-        f'admin_info_{instance.user_id}'
-    ])
+    """
+    ✅ پاک کردن کامل تمام cache های مربوط به کاربر از Redis
+    وقتی role assignment تغییر می‌کنه (create, update, delete)
+    """
+    from src.user.authorization.admin_permission import AdminPermissionCache
+    from src.user.permissions.validator import PermissionValidator
+    from src.user.permissions.helpers import PermissionHelper
+    
+    user_id = instance.user_id
+    
+    # Clear using comprehensive cache clearing methods
+    AdminPermissionCache.clear_user_cache(user_id)
+    PermissionValidator.clear_user_cache(user_id)
+    PermissionHelper.clear_user_cache(user_id)
+    
+    # Also clear admin profile cache
+    cache.delete(f'admin_profile_{user_id}_super')
+    cache.delete(f'admin_profile_{user_id}_regular')
 
 @receiver([post_save, post_delete], sender=AdminRole)
 def clear_admin_role_cache(sender, instance, **kwargs):
-    """Clear role cache when role permissions change"""
-    # Clear all admin user caches that have this role
-    user_roles = AdminUserRole.objects.filter(role=instance, is_active=True)
-    cache_keys = []
-    for user_role in user_roles:
-        cache_keys.extend([
-            f'admin_permissions_{user_role.user_id}',
-            f'admin_roles_{user_role.user_id}',
-            f'admin_info_{user_role.user_id}'
-        ])
+    """
+    ✅ پاک کردن کامل cache تمام کاربرانی که این role رو دارند
+    وقتی role permissions تغییر می‌کنه (update, delete)
+    """
+    from src.user.authorization.admin_permission import AdminPermissionCache
+    from src.user.permissions.validator import PermissionValidator
+    from src.user.permissions.helpers import PermissionHelper
     
-    if cache_keys:
-        cache.delete_many(cache_keys)
+    # Clear all admin user caches that have this role
+    user_roles = AdminUserRole.objects.filter(role=instance, is_active=True).values_list('user_id', flat=True).distinct()
+    
+    for user_id in user_roles:
+        # Clear using comprehensive cache clearing methods
+        AdminPermissionCache.clear_user_cache(user_id)
+        PermissionValidator.clear_user_cache(user_id)
+        PermissionHelper.clear_user_cache(user_id)
+        
+        # Also clear admin profile cache
+        cache.delete(f'admin_profile_{user_id}_super')
+        cache.delete(f'admin_profile_{user_id}_regular')
 
 
 # Legacy models for backward compatibility (will be deprecated)

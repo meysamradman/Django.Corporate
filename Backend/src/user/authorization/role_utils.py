@@ -80,11 +80,11 @@ def create_default_admin_roles(force_update=False, verbose=True):
                     role.save()
                     
                     updated_count += 1
-                    result = f'🔄 Updated: {role.display_name}'
+                    result = f'[Updated]: {role.display_name}'
                     results.append(result)
                 else:
                     skipped_count += 1
-                    result = f'⚠️  Skipped: {role.display_name} (already exists)'
+                    result = f'[Skipped]: {role.display_name} (already exists)'
                     results.append(result)
                         
             except AdminRole.DoesNotExist:
@@ -100,11 +100,11 @@ def create_default_admin_roles(force_update=False, verbose=True):
                 )
                 
                 created_count += 1
-                result = f'✅ Created: {role.display_name}'
+                result = f'[Created]: {role.display_name}'
                 results.append(result)
                     
             except Exception as e:
-                error_msg = f'❌ Error with role {role_name}: {str(e)}'
+                error_msg = f'[Error] with role {role_name}: {str(e)}'
                 results.append(error_msg)
                 logger.error(error_msg)
 

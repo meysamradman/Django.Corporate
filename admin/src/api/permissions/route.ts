@@ -24,7 +24,8 @@ export type PermissionMapResponse = {
 }
 
 export const permissionApi = {
-  async getMap(options?: { cache?: RequestCache; revalidate?: number | false }) {
+  async getMap(options?: {}) {
+    // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
     const res = await fetchApi.get<PermissionMapResponse>('/admin/permissions/map/', options)
     return res.data
   },

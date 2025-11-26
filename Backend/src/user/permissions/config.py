@@ -17,6 +17,17 @@ from dataclasses import dataclass
 
 from src.user.messages import ROLE_TEXT
 
+# Import modular permissions
+from .modules.base import BASE_PERMISSIONS
+from .modules.panel import PANEL_PERMISSIONS
+from .modules.media import MEDIA_PERMISSIONS
+from .modules.users import USERS_PERMISSIONS
+from .modules.content import CONTENT_PERMISSIONS
+from .modules.communication import COMMUNICATION_PERMISSIONS
+from .modules.ai import AI_PERMISSIONS
+from .modules.statistics import STATISTICS_PERMISSIONS
+from .modules.management import MANAGEMENT_PERMISSIONS
+
 
 # =============================================================================
 # PART 1: PERMISSIONS CONFIGURATION
@@ -53,588 +64,19 @@ BASE_ADMIN_PERMISSIONS = {
 }
 
 # All available permissions in the system
+# Merged from modular files for better organization
+# ✅ BASE_ADMIN_PERMISSIONS هم اضافه می‌شود تا در لیست کامل permissions باشد
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
-    # Dashboard - در BASE هم هست ولی برای نمایش در all_permissions باید اینجا هم باشه
-    'dashboard.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Dashboard',
-        'description': 'Access the admin dashboard (also in base permissions)',
-    },
-    
-    # Panel - single manage permission (either full panel control or none)
-    'panel.manage': {
-        'module': 'panel',
-        'action': 'manage',
-        'display_name': 'Manage Panel Settings',
-        'description': 'Allow full access to panel settings (view, update, logo upload)',
-        'is_standalone': True,
-        'requires_superadmin': True,
-    },
-    
-    # Pages - single manage permission (either full pages control or none)
-    'pages.manage': {
-        'module': 'pages',
-        'action': 'manage',
-        'display_name': 'Manage Static Pages',
-        'description': 'Allow full access to static pages (view, update)',
-        'is_standalone': True,
-        'requires_superadmin': True,
-    },
-    
-    # Media - Granular permissions for better security
-    # None are in BASE - must be granted separately to roles
-    'media.read': {
-        'module': 'media',
-        'action': 'read',
-        'display_name': 'View Media Library',
-        'description': 'View all media items (images, videos, audio, documents)',
-    },
-    
-    # Upload permissions - for different file types
-    'media.image.upload': {
-        'module': 'media',
-        'action': 'create',
-        'display_name': 'Upload Images',
-        'description': 'Upload image files (jpg, png, webp, svg, gif)',
-    },
-    'media.video.upload': {
-        'module': 'media',
-        'action': 'create',
-        'display_name': 'Upload Videos',
-        'description': 'Upload video files (mp4, webm, mov)',
-    },
-    'media.audio.upload': {
-        'module': 'media',
-        'action': 'create',
-        'display_name': 'Upload Audio',
-        'description': 'Upload audio files (mp3, ogg, aac, m4a)',
-    },
-    'media.document.upload': {
-        'module': 'media',
-        'action': 'create',
-        'display_name': 'Upload Documents',
-        'description': 'Upload PDF and document files',
-    },
-    'media.upload': {
-        'module': 'media',
-        'action': 'create',
-        'display_name': 'Upload All Media Types',
-        'description': 'Upload any type of media file (images, videos, audio, documents)',
-    },
-    
-    # Update permissions
-    'media.image.update': {
-        'module': 'media',
-        'action': 'update',
-        'display_name': 'Edit Images',
-        'description': 'Edit image metadata (title, alt, description)',
-    },
-    'media.video.update': {
-        'module': 'media',
-        'action': 'update',
-        'display_name': 'Edit Videos',
-        'description': 'Edit video metadata and cover image',
-    },
-    'media.audio.update': {
-        'module': 'media',
-        'action': 'update',
-        'display_name': 'Edit Audio',
-        'description': 'Edit audio metadata and cover image',
-    },
-    'media.document.update': {
-        'module': 'media',
-        'action': 'update',
-        'display_name': 'Edit Documents',
-        'description': 'Edit document metadata and cover image',
-    },
-    'media.update': {
-        'module': 'media',
-        'action': 'update',
-        'display_name': 'Edit All Media Types',
-        'description': 'Edit metadata for any media type',
-    },
-    
-    # Delete permissions - Most sensitive access level
-    'media.image.delete': {
-        'module': 'media',
-        'action': 'delete',
-        'display_name': 'Delete Images',
-        'description': 'Delete image files (dangerous - may break content)',
-    },
-    'media.video.delete': {
-        'module': 'media',
-        'action': 'delete',
-        'display_name': 'Delete Videos',
-        'description': 'Delete video files (dangerous - may break content)',
-    },
-    'media.audio.delete': {
-        'module': 'media',
-        'action': 'delete',
-        'display_name': 'Delete Audio',
-        'description': 'Delete audio files (dangerous - may break content)',
-    },
-    'media.document.delete': {
-        'module': 'media',
-        'action': 'delete',
-        'display_name': 'Delete Documents',
-        'description': 'Delete document files (dangerous - may break content)',
-    },
-    'media.delete': {
-        'module': 'media',
-        'action': 'delete',
-        'display_name': 'Delete All Media Types',
-        'description': 'Delete any media file (very dangerous - may break content)',
-    },
-    
-    # Manage - Full access to all media operations
-    'media.manage': {
-        'module': 'media',
-        'action': 'manage',
-        'display_name': 'Manage Media Library',
-        'description': 'Full access to media library (view, upload, update, delete all types)',
-    },
-    
-    # Profile - در BASE هم هست ولی برای نمایش در all_permissions باید اینجا هم باشه
-    'profile.read': {
-        'module': 'admin',
-        'action': 'read',
-        'display_name': 'View Personal Profile',
-        'description': 'View own admin profile (also in base permissions)',
-    },
-    'profile.update': {
-        'module': 'admin',
-        'action': 'update',
-        'display_name': 'Update Personal Profile',
-        'description': 'Update own admin profile (also in base permissions)',
-    },
-    
-    # Admin Management - CRUD permissions for managing admin users
-    'admin.read': {
-        'module': 'admin',
-        'action': 'read',
-        'display_name': 'View Admins',
-        'description': 'Allow viewing admin users list and details',
-    },
-    'admin.create': {
-        'module': 'admin',
-        'action': 'create',
-        'display_name': 'Create Admin',
-        'description': 'Allow creating new admin users',
-        'requires_superadmin': True,  # Only super admins can create admins
-    },
-    'admin.update': {
-        'module': 'admin',
-        'action': 'update',
-        'display_name': 'Update Admin',
-        'description': 'Allow updating admin user information and profiles',
-    },
-    'admin.delete': {
-        'module': 'admin',
-        'action': 'delete',
-        'display_name': 'Delete Admin',
-        'description': 'Allow deleting admin users',
-        'requires_superadmin': True,  # Only super admins can delete admins
-    },
-    'admin.manage': {
-        'module': 'admin',
-        'action': 'manage',
-        'display_name': 'Manage Admins',
-        'description': 'Allow full access to admin management (view, create, update, delete)',
-        'requires_superadmin': True,  # Only super admins can fully manage admins
-    },
-    
-    # Users
-    'users.read': {
-        'module': 'users',
-        'action': 'read',
-        'display_name': 'View Users',
-        'description': 'Allow viewing regular users list and details',
-    },
-    'users.create': {
-        'module': 'users',
-        'action': 'create',
-        'display_name': 'Create User',
-        'description': 'Allow creating new regular users',
-    },
-    'users.update': {
-        'module': 'users',
-        'action': 'update',
-        'display_name': 'Update User',
-        'description': 'Allow updating regular user information and profiles',
-    },
-    'users.delete': {
-        'module': 'users',
-        'action': 'delete',
-        'display_name': 'Delete User',
-        'description': 'Allow deleting regular users',
-        'requires_superadmin': True,
-    },
-    'users.manage': {
-        'module': 'users',
-        'action': 'manage',
-        'display_name': 'Manage Users',
-        'description': 'Allow full access to user management (view, create, update, delete)',
-    },
-    
-    # Blog
-    'blog.read': {
-        'module': 'blog',
-        'action': 'read',
-        'display_name': 'View Blogs',
-        'description': 'Allow viewing blog posts list and details',
-    },
-    'blog.create': {
-        'module': 'blog',
-        'action': 'create',
-        'display_name': 'Create Blog',
-        'description': 'Allow creating new blog posts',
-    },
-    'blog.update': {
-        'module': 'blog',
-        'action': 'update',
-        'display_name': 'Update Blog',
-        'description': 'Allow updating blog posts',
-    },
-    'blog.delete': {
-        'module': 'blog',
-        'action': 'delete',
-        'display_name': 'Delete Blog',
-        'description': 'Allow deleting blog posts',
-    },
-    'blog.manage': {
-        'module': 'blog',
-        'action': 'manage',
-        'display_name': 'Manage Blogs',
-        'description': 'Allow full access to blog posts (view, create, update, delete)',
-    },
-    
-    # Blog Categories
-    'blog.category.read': {
-        'module': 'blog',
-        'action': 'read',
-        'display_name': 'View Blog Categories',
-        'description': 'Allow viewing blog categories',
-    },
-    'blog.category.create': {
-        'module': 'blog',
-        'action': 'create',
-        'display_name': 'Create Blog Category',
-        'description': 'Allow creating blog categories',
-    },
-    'blog.category.update': {
-        'module': 'blog',
-        'action': 'update',
-        'display_name': 'Update Blog Category',
-        'description': 'Allow updating blog categories',
-    },
-    'blog.category.delete': {
-        'module': 'blog',
-        'action': 'delete',
-        'display_name': 'Delete Blog Category',
-        'description': 'Allow deleting blog categories',
-    },
-    'blog.category.manage': {
-        'module': 'blog',
-        'action': 'manage',
-        'display_name': 'Manage Blog Categories',
-        'description': 'Allow full access to blog categories (view, create, update, delete)',
-    },
-    
-    # Blog Tags
-    'blog.tag.read': {
-        'module': 'blog',
-        'action': 'read',
-        'display_name': 'View Blog Tags',
-        'description': 'Allow viewing blog tags',
-    },
-    'blog.tag.create': {
-        'module': 'blog',
-        'action': 'create',
-        'display_name': 'Create Blog Tag',
-        'description': 'Allow creating blog tags',
-    },
-    'blog.tag.update': {
-        'module': 'blog',
-        'action': 'update',
-        'display_name': 'Update Blog Tag',
-        'description': 'Allow updating blog tags',
-    },
-    'blog.tag.delete': {
-        'module': 'blog',
-        'action': 'delete',
-        'display_name': 'Delete Blog Tag',
-        'description': 'Allow deleting blog tags',
-    },
-    'blog.tag.manage': {
-        'module': 'blog',
-        'action': 'manage',
-        'display_name': 'Manage Blog Tags',
-        'description': 'Allow full access to blog tags (view, create, update, delete)',
-    },
-    
-    # Portfolio
-    'portfolio.read': {
-        'module': 'portfolio',
-        'action': 'read',
-        'display_name': 'View Portfolios',
-        'description': 'Allow viewing portfolio items list and details',
-    },
-    'portfolio.create': {
-        'module': 'portfolio',
-        'action': 'create',
-        'display_name': 'Create Portfolio',
-        'description': 'Allow creating new portfolio items',
-    },
-    'portfolio.update': {
-        'module': 'portfolio',
-        'action': 'update',
-        'display_name': 'Update Portfolio',
-        'description': 'Allow updating portfolio items',
-    },
-    'portfolio.delete': {
-        'module': 'portfolio',
-        'action': 'delete',
-        'display_name': 'Delete Portfolio',
-        'description': 'Allow deleting portfolio items',
-    },
-    'portfolio.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolios',
-        'description': 'Allow full access to portfolio items (view, create, update, delete)',
-    },
-    
-    # Portfolio Categories
-    'portfolio.category.read': {
-        'module': 'portfolio',
-        'action': 'read',
-        'display_name': 'View Portfolio Categories',
-        'description': 'Allow viewing portfolio categories',
-    },
-    'portfolio.category.create': {
-        'module': 'portfolio',
-        'action': 'create',
-        'display_name': 'Create Portfolio Category',
-        'description': 'Allow creating portfolio categories',
-    },
-    'portfolio.category.update': {
-        'module': 'portfolio',
-        'action': 'update',
-        'display_name': 'Update Portfolio Category',
-        'description': 'Allow updating portfolio categories',
-    },
-    'portfolio.category.delete': {
-        'module': 'portfolio',
-        'action': 'delete',
-        'display_name': 'Delete Portfolio Category',
-        'description': 'Allow deleting portfolio categories',
-    },
-    'portfolio.category.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolio Categories',
-        'description': 'Allow full access to portfolio categories (view, create, update, delete)',
-    },
-    
-    # Portfolio Tags
-    'portfolio.tag.read': {
-        'module': 'portfolio',
-        'action': 'read',
-        'display_name': 'View Portfolio Tags',
-        'description': 'Allow viewing portfolio tags',
-    },
-    'portfolio.tag.create': {
-        'module': 'portfolio',
-        'action': 'create',
-        'display_name': 'Create Portfolio Tag',
-        'description': 'Allow creating portfolio tags',
-    },
-    'portfolio.tag.update': {
-        'module': 'portfolio',
-        'action': 'update',
-        'display_name': 'Update Portfolio Tag',
-        'description': 'Allow updating portfolio tags',
-    },
-    'portfolio.tag.delete': {
-        'module': 'portfolio',
-        'action': 'delete',
-        'display_name': 'Delete Portfolio Tag',
-        'description': 'Allow deleting portfolio tags',
-    },
-    'portfolio.tag.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolio Tags',
-        'description': 'Allow full access to portfolio tags (view, create, update, delete)',
-    },
-    
-    # Portfolio Options
-    'portfolio.option.read': {
-        'module': 'portfolio',
-        'action': 'read',
-        'display_name': 'View Portfolio Options',
-        'description': 'Allow viewing portfolio options',
-    },
-    'portfolio.option.create': {
-        'module': 'portfolio',
-        'action': 'create',
-        'display_name': 'Create Portfolio Option',
-        'description': 'Allow creating portfolio options',
-    },
-    'portfolio.option.update': {
-        'module': 'portfolio',
-        'action': 'update',
-        'display_name': 'Update Portfolio Option',
-        'description': 'Allow updating portfolio options',
-    },
-    'portfolio.option.delete': {
-        'module': 'portfolio',
-        'action': 'delete',
-        'display_name': 'Delete Portfolio Option',
-        'description': 'Allow deleting portfolio options',
-    },
-    'portfolio.option.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolio Options',
-        'description': 'Allow full access to portfolio options (view, create, update, delete)',
-    },
-    
-    # Email
-    'email.read': {
-        'module': 'email',
-        'action': 'read',
-        'display_name': 'View Email Messages',
-        'description': 'Allow viewing email messages, inbox, and statistics',
-    },
-    'email.create': {
-        'module': 'email',
-        'action': 'create',
-        'display_name': 'Create Email Messages',
-        'description': 'Allow creating, sending, and replying to email messages',
-    },
-    'email.update': {
-        'module': 'email',
-        'action': 'update',
-        'display_name': 'Update Email Messages',
-        'description': 'Allow updating, marking as read, and saving drafts for email messages',
-    },
-    'email.delete': {
-        'module': 'email',
-        'action': 'delete',
-        'display_name': 'Delete Email Messages',
-        'description': 'Allow deleting email messages',
-    },
-    'email.manage': {
-        'module': 'email',
-        'action': 'manage',
-        'display_name': 'Manage Email Messages',
-        'description': 'Allow full access to email messages (view, create, update, delete)',
-    },
-    
-    # Forms
-    'forms.manage': {
-        'module': 'forms',
-        'action': 'manage',
-        'display_name': 'Manage Forms',
-        'description': 'Allow full access to contact form fields (view, create, update, delete)',
-        'is_standalone': True,
-        'requires_superadmin': True,
-    },
-    
-    # Pages
-    'pages.manage': {
-        'module': 'pages',
-        'action': 'manage',
-        'display_name': 'Manage Pages',
-        'description': 'Allow full access to website pages (about, terms) - view and update',
-        'is_standalone': True,
-        'requires_superadmin': True,
-    },
-    
-    # Settings
-    'settings.manage': {
-        'module': 'settings',
-        'action': 'manage',
-        'display_name': 'Manage Settings',
-        'description': 'Allow full access to website general settings (view and update)',
-        'is_standalone': True,
-        'requires_superadmin': True,
-    },
-    
-    # AI
-    'ai.manage': {
-        'module': 'ai',
-        'action': 'manage',
-        'display_name': 'Manage AI Settings',
-        'description': 'Allow full access to all AI features (chat, content generation, image generation)',
-        'is_standalone': True,
-        'requires_superadmin': True,
-    },
-    'ai.chat.manage': {
-        'module': 'ai',
-        'action': 'manage',
-        'display_name': 'Manage AI Chat',
-        'description': 'Allow full access to AI chat (view, use, update, delete)',
-    },
-    'ai.content.manage': {
-        'module': 'ai',
-        'action': 'manage',
-        'display_name': 'Manage AI Content Generation',
-        'description': 'Allow full access to AI content generation (view, generate, update, delete)',
-    },
-    'ai.image.manage': {
-        'module': 'ai',
-        'action': 'manage',
-        'display_name': 'Manage AI Image Generation',
-        'description': 'Allow full access to AI image generation (view, generate, update, delete)',
-    },
-    
-    # Statistics - Granular permissions for security and privacy
-    'statistics.dashboard.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Dashboard Overview',
-        'description': 'View basic dashboard statistics (safe, general info)',
-    },
-    'statistics.users.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Users Statistics',
-        'description': 'View detailed user statistics (sensitive)',
-    },
-    'statistics.admins.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Admins Statistics',
-        'description': 'View admin user statistics (highly sensitive)',
-    },
-    'statistics.content.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Content Statistics',
-        'description': 'View portfolio, blog, media statistics',
-    },
-    'statistics.financial.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Financial Statistics',
-        'description': 'View revenue, sales, financial data (future-proof)',
-    },
-    'statistics.export': {
-        'module': 'statistics',
-        'action': 'export',
-        'display_name': 'Export Statistics',
-        'description': 'Export statistics data to Excel/CSV',
-    },
-    # Manage - Full access to all statistics operations
-    'statistics.manage': {
-        'module': 'statistics',
-        'action': 'manage',
-        'display_name': 'Manage Statistics',
-        'description': 'Full access to all statistics features (view, export)',
-    },
+    **BASE_ADMIN_PERMISSIONS,  # Base permissions for all admins
+    **BASE_PERMISSIONS,         # Base module permissions
+    **PANEL_PERMISSIONS,        # Panel and Pages permissions
+    **MEDIA_PERMISSIONS,        # Media library permissions
+    **USERS_PERMISSIONS,        # Admin and User management permissions
+    **CONTENT_PERMISSIONS,       # Blog and Portfolio permissions
+    **COMMUNICATION_PERMISSIONS, # Email and Ticket permissions
+    **AI_PERMISSIONS,           # AI tools permissions
+    **STATISTICS_PERMISSIONS,    # Statistics permissions
+    **MANAGEMENT_PERMISSIONS,    # Forms, Settings, Chatbot permissions
 }
 
 
@@ -756,7 +198,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         level=4,
         permissions={
             'modules': ['forms'],
-            'actions': ['create', 'read', 'update', 'delete', 'manage'],
+            'actions': ['manage'],
             'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
@@ -765,8 +207,17 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         level=4,
         permissions={
             'modules': ['pages'],
-            'actions': ['create', 'read', 'update', 'delete', 'manage'],
+            'actions': ['manage'],
             'restrictions': ['no_blog_access', 'no_portfolio_access']
+        },
+    ),
+    'chatbot_manager': _build_role_config(
+        'chatbot_manager',
+        level=4,
+        permissions={
+            'modules': ['chatbot'],
+            'actions': ['manage'],
+            'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
     'email_manager': _build_role_config(
@@ -774,7 +225,16 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         level=5,
         permissions={
             'modules': ['email'],
-            'actions': ['create', 'read', 'update', 'delete', 'manage'],
+            'actions': ['create', 'read', 'update', 'delete'],
+            'restrictions': ['no_user_management', 'no_system_settings']
+        },
+    ),
+    'ticket_manager': _build_role_config(
+        'ticket_manager',
+        level=5,
+        permissions={
+            'modules': ['ticket'],
+            'actions': ['create', 'read', 'update', 'delete'],
             'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
@@ -783,7 +243,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         level=5,
         permissions={
             'modules': ['ai'],
-            'actions': ['create', 'read', 'update', 'delete', 'manage'],
+            'actions': ['manage'],
             'restrictions': ['no_user_management']
         },
     ),
@@ -809,7 +269,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         'statistics_viewer',
         level=7,
         permissions={
-            'modules': ['statistics', 'analytics'],  # statistics برگشت (APP جداگانه آمار)
+            'modules': ['statistics'],
             'actions': ['read'],
             'restrictions': ['read_only', 'no_user_management']
         },
@@ -831,36 +291,42 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
 # =============================================================================
 
 # Available modules in the system
+# ✅ این شامل همه ماژول‌هایی است که در modules تعریف شده
 AVAILABLE_MODULES = {
     'all': {
         'name': 'all',
         'display_name': 'All Modules',
         'description': 'Access to every module in the system.'
     },
-    'users': {
-        'name': 'users',
-        'display_name': 'User Management',
-        'description': 'Manage website users and their profiles.'
+    'dashboard': {
+        'name': 'dashboard',
+        'display_name': 'Dashboard',
+        'description': 'Main admin dashboard and overview.'
+    },
+    'statistics': {
+        'name': 'statistics',
+        'display_name': 'Statistics Center',
+        'description': 'View KPI dashboards and system metrics.'
     },
     'admin': {
         'name': 'admin',
         'display_name': 'Admin Management',
         'description': 'Manage admin accounts, roles, and privileges.'
     },
-    'portfolio': {
-        'name': 'portfolio',
-        'display_name': 'Portfolio Management',
-        'description': 'Manage portfolio items, projects, and collections.'
-    },
-    'blog': {
-        'name': 'blog',
-        'display_name': 'Blog Management',
-        'description': 'Manage blog posts, drafts, and editorial workflow.'
+    'users': {
+        'name': 'users',
+        'display_name': 'User Management',
+        'description': 'Manage website users and their profiles.'
     },
     'media': {
         'name': 'media',
         'display_name': 'Media Library',
         'description': 'Manage uploads, files, and the media library.'
+    },
+    'blog': {
+        'name': 'blog',
+        'display_name': 'Blog Management',
+        'description': 'Manage blog posts, drafts, and editorial workflow.'
     },
     'blog_categories': {
         'name': 'blog_categories',
@@ -871,6 +337,11 @@ AVAILABLE_MODULES = {
         'name': 'blog_tags',
         'display_name': 'Blog Tags',
         'description': 'Manage blog tags and keywords.'
+    },
+    'portfolio': {
+        'name': 'portfolio',
+        'display_name': 'Portfolio Management',
+        'description': 'Manage portfolio items, projects, and collections.'
     },
     'portfolio_categories': {
         'name': 'portfolio_categories',
@@ -892,30 +363,25 @@ AVAILABLE_MODULES = {
         'display_name': 'Portfolio Option Values',
         'description': 'Manage portfolio option value entries.'
     },
-    'analytics': {
-        'name': 'analytics',
-        'display_name': 'Analytics',
-        'description': 'View analytics data and generate reports.'
+    'email': {
+        'name': 'email',
+        'display_name': 'Email Center',
+        'description': 'Manage outbound emails, templates, and campaigns.'
     },
-    'settings': {
-        'name': 'settings',
-        'display_name': 'System Settings',
-        'description': 'Manage global configuration and security.'
-    },
-    'panel': {
-        'name': 'panel',
-        'display_name': 'Panel Settings',
-        'description': 'Manage admin panel branding and configuration.'
+    'ticket': {
+        'name': 'ticket',
+        'display_name': 'Ticket Management',
+        'description': 'Manage support tickets and customer inquiries.'
     },
     'ai': {
         'name': 'ai',
         'display_name': 'AI Tools',
         'description': 'Access AI assistants, prompts, and automations.'
     },
-    'email': {
-        'name': 'email',
-        'display_name': 'Email Center',
-        'description': 'Manage outbound emails, templates, and campaigns.'
+    'chatbot': {
+        'name': 'chatbot',
+        'display_name': 'Chatbot Management',
+        'description': 'Manage chatbot settings and FAQs.'
     },
     'forms': {
         'name': 'forms',
@@ -927,14 +393,20 @@ AVAILABLE_MODULES = {
         'display_name': 'Pages Management',
         'description': 'Manage static pages, landing content, and metadata.'
     },
-    'statistics': {
-        'name': 'statistics',
-        'display_name': 'Statistics Center',
-        'description': 'View KPI dashboards and system metrics.'
+    'settings': {
+        'name': 'settings',
+        'display_name': 'System Settings',
+        'description': 'Manage global configuration and security.'
+    },
+    'panel': {
+        'name': 'panel',
+        'display_name': 'Panel Settings',
+        'description': 'Manage admin panel branding and configuration.'
     }
 }
 
 # Available actions in the system
+# ✅ این فقط action های پایه است - permission های خاص در PERMISSIONS تعریف می‌شوند
 AVAILABLE_ACTIONS = {
     'all': {
         'name': 'all',

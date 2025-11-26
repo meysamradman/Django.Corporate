@@ -78,11 +78,11 @@ export default function PortfolioViewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="page-title">اطلاعات نمونه کار</h1>
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex-1">
+          <h1 className="page-title text-right">اطلاعات نمونه کار</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button
             variant="outline"
             onClick={async () => {

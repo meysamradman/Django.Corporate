@@ -181,14 +181,25 @@ export function useUserPermissions() {
       if (typeof permission !== 'string') {
         return;
       }
-      const [resource, rawAction] = permission.split('.');
-      if (!resource) {
+      // ✅ Handle sub-permissions like ai.chat.manage, ai.content.manage, etc.
+      const parts = permission.split('.');
+      if (parts.length < 2) {
         return;
       }
-      const normalizedAction = normalizeModuleAction(rawAction);
-      const actionSet = map.get(resource) ?? new Set<ModuleAction>();
-      actionSet.add(normalizedAction);
-      map.set(resource, actionSet);
+      
+      const resource = parts[0];
+      const lastPart = parts[parts.length - 1];
+      
+      // Check if last part is an action (like manage, create, read)
+      const normalizedAction = normalizeModuleAction(lastPart);
+      
+      // If it's a valid action (not just 'read' as default), add it
+      // Also handle cases like ai.manage (direct) or ai.chat.manage (sub-permission)
+      if (normalizedAction && lastPart !== '') {
+        const actionSet = map.get(resource) ?? new Set<ModuleAction>();
+        actionSet.add(normalizedAction);
+        map.set(resource, actionSet);
+      }
     });
     return map;
   }, [permissions]);
@@ -239,18 +250,31 @@ export function useUserPermissions() {
     }
     
     // Check wildcard patterns
-    const [resource, action] = permission.split('.');
-    if (resource) {
-      const resourceWildcard = `${resource}.*`;
-      if (permissions.includes(resourceWildcard)) {
-        return true;
-      }
-      
-      // ✅ FIX: Check manage permission (super permission for resource)
-      // اگر کاربر دسترسی manage داره، یعنی همه کار می‌تونه بکنه
-      if (permissions.includes(`${resource}.manage`) || permissions.includes(`${resource}.admin`)) {
-        return true;
-      }
+    const parts = permission.split('.');
+    if (parts.length < 2) return false;
+    
+    const resource = parts[0];
+    const action = parts[parts.length - 1];
+    
+    // Resource wildcard (resource.*)
+    if (permissions.includes(`${resource}.*`)) {
+      return true;
+    }
+    
+    // Manage/Admin permission (super permission for resource)
+    if (permissions.includes(`${resource}.manage`) || permissions.includes(`${resource}.admin`)) {
+      return true;
+    }
+    
+    // ✅ AI sub-permissions: bidirectional check
+    // ai.chat.manage → ai.manage is true
+    // ai.manage → ai.chat.manage, ai.content.manage, etc. are true
+    if (resource === 'ai' && action === 'manage') {
+      // Check if we have any AI permission (ai.manage or ai.*.manage)
+      const hasAnyAIPermission = permissions.some(perm => 
+        perm.startsWith('ai.') && perm.endsWith('.manage')
+      );
+      return hasAnyAIPermission;
     }
     
     return false;
@@ -263,6 +287,11 @@ export function useUserPermissions() {
 
     const moduleSpecificActions = moduleActionMap.get(resource);
     if (moduleSpecificActions) {
+      // ✅ If user has manage/admin permission, they can do everything (including read)
+      if (moduleSpecificActions.has('manage') || moduleSpecificActions.has('admin')) {
+        return true;
+      }
+      
       if (isReadAction) {
         const hasReadAccess = Array.from(READ_ACTIONS).some(readAction => moduleSpecificActions.has(readAction));
         if (hasReadAccess) {

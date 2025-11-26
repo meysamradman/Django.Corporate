@@ -47,6 +47,11 @@ class BaseProvider(ABC):
         """Chat with AI - override if provider supports chat"""
         raise NotImplementedError("Chat not supported by this provider")
     
+    # Audio generation methods (optional - implement if provider supports TTS)
+    async def text_to_speech(self, text: str, **kwargs) -> BytesIO:
+        """Convert text to speech - override if provider supports TTS"""
+        raise NotImplementedError("Text-to-speech not supported by this provider")
+    
     # Utility methods
     async def download_image(self, url: str) -> BytesIO:
         """Download image from URL"""

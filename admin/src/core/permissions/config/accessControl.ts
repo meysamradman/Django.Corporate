@@ -219,6 +219,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: "admin",
     action: "read",
     description: "Admin List",
+    requireSuperAdmin: true, // ✅ Admin management requires super admin
   }),
   createRule({
     id: "admins-create",
@@ -226,7 +227,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: "admin",
     action: "create",
     description: "Create Admin",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true, // ✅ Admin management requires super admin
   }),
   createRule({
     id: "admins-edit",
@@ -234,8 +235,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: "admin",
     action: "update",
     description: "Edit Admin",
-    // Only super admin or own profile can edit
-    // Own profile bypass logic exists in RoutePermissionGuard
+    requireSuperAdmin: true, // ✅ Admin management requires super admin (own profile bypass handled in RoutePermissionGuard)
   }),
   createRule({
     id: "admins-permissions",
@@ -318,32 +318,70 @@ const aiRoutes: RouteRule[] = [
     id: "ai-chat",
     pattern: /^\/ai\/chat\/?$/,
     module: "ai",
-    action: "read",
+    action: "manage",
     description: "چت هوشمند",
+    // ✅ Requires ai.chat.manage OR ai.manage permission
   }),
   createRule({
     id: "ai-content",
     pattern: /^\/ai\/content\/?$/,
     module: "ai",
-    action: "create",
+    action: "manage",
     description: "تولید محتوا",
+    // ✅ Requires ai.content.manage OR ai.manage permission
   }),
   createRule({
     id: "ai-image",
     pattern: /^\/ai\/image\/?$/,
     module: "ai",
-    action: "create",
+    action: "manage",
     description: "تولید تصویر",
+    // ✅ Requires ai.image.manage OR ai.manage permission
   }),
 ];
 
 const communicationRoutes: RouteRule[] = [
   createRule({
-    id: "email-center",
+    id: "email-list",
     pattern: /^\/email\/?$/,
     module: "email",
     action: "read",
-    description: "مدیریت ایمیل",
+    description: "لیست ایمیل‌ها",
+  }),
+  createRule({
+    id: "email-view",
+    pattern: new RegExp(`^/email/${ID_SEGMENT}/?$`),
+    module: "email",
+    action: "read",
+    description: "مشاهده ایمیل",
+  }),
+  createRule({
+    id: "ticket-list",
+    pattern: /^\/ticket\/?$/,
+    module: "ticket",
+    action: "read",
+    description: "لیست تیکت‌ها",
+  }),
+  createRule({
+    id: "ticket-create",
+    pattern: /^\/ticket\/create\/?$/,
+    module: "ticket",
+    action: "create",
+    description: "ایجاد تیکت",
+  }),
+  createRule({
+    id: "ticket-view",
+    pattern: new RegExp(`^/ticket/${ID_SEGMENT}/?$`),
+    module: "ticket",
+    action: "read",
+    description: "مشاهده تیکت",
+  }),
+  createRule({
+    id: "ticket-edit",
+    pattern: new RegExp(`^/ticket/${ID_SEGMENT}/edit/?$`),
+    module: "ticket",
+    action: "update",
+    description: "ویرایش تیکت",
   }),
 ];
 
@@ -354,15 +392,15 @@ const settingsRoutes: RouteRule[] = [
     module: "panel",
     action: "manage",
     description: "تنظیمات پنل",
-    // استراتژی کلی: یک permission برای همه عملیات (view, update, logo upload)
+    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-ai",
     pattern: /^\/settings\/ai\/?$/,
     module: "ai",
     action: "manage",
-    description: "تنظیمات هوش مصنوعی",
-    // استراتژی کلی: یک permission برای همه عملیات (view, create, update, delete, generate)
+    description: "تنظیمات هوش مصنوعی (API مشترک و شخصی)",
+    // ✅ همه ادمین‌ها با permission می‌توانند (ai.manage)
   }),
   createRule({
     id: "settings-general",
@@ -370,7 +408,7 @@ const settingsRoutes: RouteRule[] = [
     module: "settings",
     action: "manage",
     description: "تنظیمات عمومی",
-    // استراتژی کلی: یک permission برای همه عملیات (view, update)
+    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-form",
@@ -378,7 +416,15 @@ const settingsRoutes: RouteRule[] = [
     module: "forms",
     action: "manage",
     description: "فرم‌ها",
-    // استراتژی کلی: یک permission برای همه عملیات (view, create, update, delete)
+    // ✅ ادمین عادی با permission می‌تواند
+  }),
+  createRule({
+    id: "settings-chatbot",
+    pattern: /^\/settings\/chatbot\/?$/,
+    module: "chatbot",
+    action: "manage",
+    description: "چت‌بات",
+    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-page-about",
@@ -386,7 +432,7 @@ const settingsRoutes: RouteRule[] = [
     module: "pages",
     action: "manage",
     description: "صفحه درباره ما",
-    // استراتژی کلی: یک permission برای همه عملیات (view, update)
+    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-page-terms",
@@ -394,7 +440,7 @@ const settingsRoutes: RouteRule[] = [
     module: "pages",
     action: "manage",
     description: "صفحه قوانین",
-    // استراتژی کلی: یک permission برای همه عملیات (view, update)
+    // ✅ ادمین عادی با permission می‌تواند
   }),
 ];
 

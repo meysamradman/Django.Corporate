@@ -1,0 +1,193 @@
+"use client";
+
+import { CardContent } from '@/components/elements/Card';
+import { Button } from '@/components/elements/Button';
+import { Input } from '@/components/elements/Input';
+import { Label } from '@/components/elements/Label';
+import { Badge } from '@/components/elements/Badge';
+import { Switch } from '@/components/elements/Switch';
+import { Eye, EyeOff, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { Provider, Model } from '../hooks/useAISettings';
+
+interface ProviderCardProps {
+  provider: Provider;
+  isExpanded: boolean;
+  apiKey: string;
+  showApiKey: boolean;
+  useSharedApi: boolean;
+  hasStoredApiKey?: boolean;
+  onToggleApiKeyVisibility: () => void;
+  onApiKeyChange: (value: string) => void;
+  onToggleUseSharedApi: (checked: boolean) => void;
+  onOpenModelSelector: () => void;
+  onSave: () => void;
+  isSaving?: boolean;
+}
+
+// تابع برای mask کردن API key (نمایش امن)
+function maskApiKey(apiKey: string, showFull: boolean = false): string {
+  if (!apiKey || apiKey.trim() === '') return '';
+  
+  // اگر باید کامل نمایش داده شود
+  if (showFull) return apiKey;
+  
+  // اگر API key خیلی کوتاه است، همه را نمایش بده
+  if (apiKey.length <= 8) return '•'.repeat(apiKey.length);
+  
+  // نمایش 4 کاراکتر اول و 4 کاراکتر آخر
+  const prefix = apiKey.substring(0, 4);
+  const suffix = apiKey.substring(apiKey.length - 4);
+  const masked = '•'.repeat(Math.min(8, apiKey.length - 8));
+  
+  return `${prefix}${masked}${suffix}`;
+}
+
+export function ProviderCard({
+  provider,
+  isExpanded,
+  apiKey,
+  showApiKey,
+  useSharedApi,
+  hasStoredApiKey = false,
+  onToggleApiKeyVisibility,
+  onApiKeyChange,
+  onToggleUseSharedApi,
+  onOpenModelSelector,
+  onSave,
+  isSaving = false,
+}: ProviderCardProps) {
+  // نمایش بخشی از API key (4 کاراکتر اول و 4 کاراکتر آخر) + dots در وسط
+  // بهینه: محاسبه یکباره
+  const displayApiKey = hasStoredApiKey && !showApiKey
+    ? (apiKey && apiKey.trim() !== '' && apiKey !== 'stored-api-key-hidden-value-for-display'
+        ? maskApiKey(apiKey, false)
+        : '••••••••••••••••')
+    : apiKey;
+  
+  return (
+    <CardContent className="pt-6 pb-6 space-y-6">
+      {/* API Key Type Selection */}
+      <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
+        <div className="space-y-1 flex-1 pr-4">
+          <Label className="text-base font-medium block">نوع API Key</Label>
+          <p className="text-xs text-font-s mt-1">
+            {useSharedApi 
+              ? 'استفاده از API مشترک (مدیریت شده توسط سوپر ادمین)' 
+              : 'استفاده از API شخصی (فقط برای شما)'}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <Switch
+            checked={useSharedApi}
+            onCheckedChange={onToggleUseSharedApi}
+            disabled={isSaving}
+          />
+          <Badge variant={useSharedApi ? "default" : "gray"} className="min-w-[60px] text-center">
+            {useSharedApi ? 'مشترک' : 'شخصی'}
+          </Badge>
+        </div>
+      </div>
+
+      {/* API Key Input */}
+      <div className="space-y-3">
+        {hasStoredApiKey && (
+          <div className="flex justify-end">
+            <Badge variant="green" className="text-xs flex-shrink-0">
+              ذخیره شده
+            </Badge>
+          </div>
+        )}
+        <div className="relative">
+          <Input
+            id={`api-key-${provider.id}`}
+            type="text"
+            value={displayApiKey}
+            onChange={(e) => {
+              // اگر API key ذخیره شده و در حال نمایش masked است، نباید تغییر کند
+              if (!hasStoredApiKey || showApiKey) {
+                onApiKeyChange(e.target.value);
+              }
+            }}
+            placeholder={hasStoredApiKey ? '' : 'وارد کردن API Key'}
+            className="pr-10 font-mono text-sm"
+            disabled={isSaving || (hasStoredApiKey && !showApiKey)}
+            readOnly={hasStoredApiKey && !showApiKey}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-bg border-0 z-10"
+            onClick={onToggleApiKeyVisibility}
+            disabled={isSaving || !hasStoredApiKey}
+            title={showApiKey ? 'مخفی کردن' : hasStoredApiKey ? 'نمایش API key' : 'API key ذخیره نشده'}
+          >
+            {hasStoredApiKey ? (
+              showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4 opacity-30" />
+            )}
+          </Button>
+        </div>
+        <div className="flex items-start gap-2 mt-2">
+          {hasStoredApiKey && !showApiKey && (
+            <div className="flex items-start gap-2 flex-1 p-3 bg-green/10 border border-green/20 rounded-md">
+              <CheckCircle2 className="h-4 w-4 text-green-1 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-font-s leading-relaxed">
+                <span className="font-medium text-green-1">API key ذخیره شده است.</span> برای مشاهده یا تغییر، روی آیکون <Eye className="h-3 w-3 inline mx-0.5" /> کلیک کنید.
+              </p>
+            </div>
+          )}
+          {hasStoredApiKey && showApiKey && (
+            <p className="text-xs text-font-s text-amber-1">
+              ⚠️ API key در حال نمایش است. بعد از تغییر، دوباره مخفی می‌شود.
+            </p>
+          )}
+          {!hasStoredApiKey && (
+            <p className="text-xs text-font-s">
+              {useSharedApi 
+                ? 'این API key به صورت مشترک استفاده می‌شود' 
+                : 'این API key فقط برای شما ذخیره می‌شود و رمزنگاری می‌گردد'}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Models Section */}
+      {(provider.id === 'openrouter' || provider.id === 'huggingface') ? (
+        <div className="p-4 bg-blue/10 border border-blue-1 rounded-lg">
+          <Button
+            variant="outline"
+            onClick={onOpenModelSelector}
+            className="w-full"
+          >
+            <Sparkles className="w-4 h-4" />
+            انتخاب مدل‌ها
+          </Button>
+        </div>
+      ) : null}
+
+      {/* Save Button */}
+      <div className="pt-6 border-t border-br">
+        <Button 
+          className="w-full gap-2"
+          onClick={onSave}
+          disabled={isSaving || (!hasStoredApiKey && !apiKey.trim())}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              در حال ذخیره...
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-4 w-4" />
+              ذخیره تنظیمات
+            </>
+          )}
+        </Button>
+      </div>
+    </CardContent>
+  );
+}
+

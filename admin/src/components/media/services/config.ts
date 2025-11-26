@@ -19,7 +19,7 @@ export interface UploadSettings {
 
 /**
  * ✅ دریافت تنظیمات آپلود از API بک‌اند
- * این تنظیمات از .env در بک‌اند خوانده می‌شود و برای 1 ساعت cache می‌شود
+ * این تنظیمات از .env در بک‌اند خوانده می‌شود (بدون cache در فرانت)
  * در صورت خطا، از مقادیر پیش‌فرض استفاده می‌شود
  */
 export const getUploadSettings = (): UploadSettings => {
@@ -39,7 +39,7 @@ export const getUploadSettings = (): UploadSettings => {
 
 /**
  * ✅ Hook برای دریافت تنظیمات آپلود از API با React Query
- * این hook تنظیمات را از بک‌اند می‌گیرد و برای 1 ساعت cache می‌کند
+ * این hook تنظیمات را از بک‌اند می‌گیرد (بدون cache - همیشه fresh data)
  */
 export const useUploadSettings = (clearCache: boolean = false) => {
     return useQuery<MediaUploadSettings>({
@@ -62,8 +62,8 @@ export const useUploadSettings = (clearCache: boolean = false) => {
                 };
             }
         },
-        staleTime: clearCache ? 0 : 5 * 60 * 1000, // 5 minutes - کمتر از بک‌اند برای update سریع‌تر
-        gcTime: 2 * 60 * 60 * 1000, // 2 hours
+        staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+        gcTime: 0, // No cache retention
         retry: 2, // Retry 2 times on failure
         retryDelay: 1000, // 1 second delay between retries
         refetchOnWindowFocus: true, // ✅ وقتی کاربر به صفحه برمی‌گردد، refresh کن

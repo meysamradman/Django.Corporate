@@ -8,9 +8,20 @@ AI_SUCCESS = {
     "image_generated": "تصویر با موفقیت تولید شد.",
     "image_generated_and_saved": "تصویر با موفقیت تولید و ذخیره شد.",
     "image_generated_not_saved": "تصویر با موفقیت تولید شد (ذخیره نشده).",
+    "audio_generated": "فایل صوتی با موفقیت تولید شد.",
+    "audio_generated_and_saved": "فایل صوتی با موفقیت تولید و ذخیره شد.",
+    "audio_generated_not_saved": "فایل صوتی با موفقیت تولید شد (ذخیره نشده).",
     "api_key_valid": "API key معتبر است.",
     "content_generated": "محتوای SEO با موفقیت تولید شد.",
     "content_generated_cached": "محتوای SEO از cache بازگردانده شد.",
+    # Admin AI Settings
+    "settings_list_retrieved": "تنظیمات با موفقیت دریافت شد.",
+    "settings_retrieved": "تنظیمات با موفقیت دریافت شد.",
+    "settings_created": "تنظیمات با موفقیت ایجاد شد.",
+    "settings_updated": "تنظیمات با موفقیت به‌روزرسانی شد.",
+    "settings_deleted": "تنظیمات با موفقیت حذف شد.",
+    "usage_reset": "استفاده ماهانه با موفقیت ریست شد.",
+    "statistics_retrieved": "آمار با موفقیت دریافت شد.",
 }
 
 AI_ERRORS = {
@@ -26,6 +37,8 @@ AI_ERRORS = {
     "api_key_decryption_error": "خطا در رمزگشایی API key: {error}",
     "image_generation_failed": "خطا در تولید تصویر: {error}",
     "image_generation_http_error": "خطای HTTP {status_code}: {detail}",
+    "audio_generation_failed": "خطا در تولید فایل صوتی: {error}",
+    "audio_generation_http_error": "خطای HTTP {status_code}: {detail}",
     "prompt_required": "Prompt نمی‌تواند خالی باشد.",
     "prompt_invalid": "Prompt نامعتبر است.",
     "openai_billing_limit": (
@@ -55,5 +68,13 @@ AI_ERRORS = {
     "content_generation_failed": "خطا در تولید محتوا: {error}",
     "topic_required": "موضوع محتوا نمی‌تواند خالی باشد.",
     "invalid_word_count": "تعداد کلمات باید بین 100 تا 2000 باشد.",
+    # Admin AI Settings Errors
+    "settings_not_authorized": "شما به این تنظیمات دسترسی ندارید.",
+    "settings_not_found": "تنظیمات یافت نشد.",
+    "validation_error": "خطا در اعتبارسنجی داده‌ها.",
+    "image_not_authorized": "شما به تولید تصویر دسترسی ندارید.",
+    "content_not_authorized": "شما به تولید محتوا دسترسی ندارید.",
+    "chat_not_authorized": "شما به چت با AI دسترسی ندارید.",
+    "audio_not_authorized": "شما به تولید فایل صوتی دسترسی ندارید.",
 }
 

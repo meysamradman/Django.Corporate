@@ -215,8 +215,17 @@ class AdminManagementService:
                                 user_role.is_active = True
                                 user_role.save()
                             
+                            # ✅ Update permissions cache and clear Redis cache
+                            user_role.update_permissions_cache()
+                            
+                            # Additional comprehensive cache clearing
                             from src.user.permissions.helpers import PermissionHelper
+                            from src.user.authorization.admin_permission import AdminPermissionCache
+                            from src.user.permissions.validator import PermissionValidator
+                            
                             PermissionHelper.clear_user_cache(admin.id)
+                            AdminPermissionCache.clear_user_cache(admin.id)
+                            PermissionValidator.clear_user_cache(admin.id)
                             
                         except AdminRole.DoesNotExist:
                             pass
@@ -235,9 +244,14 @@ class AdminManagementService:
                 if profile_fields_to_update:
                     AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
             
-            # Clear cache for this admin's profile (used in AdminProfileView GET)
-            cache_key = f"admin_profile_{admin.id}_{'super' if admin.is_superuser else 'regular'}"
-            cache.delete(cache_key)
+            # ✅ Clear all cache for this admin (comprehensive cache invalidation)
+            from src.user.authorization.admin_permission import AdminPermissionCache
+            from src.user.permissions.validator import PermissionValidator
+            from src.user.permissions.helpers import PermissionHelper
+            
+            AdminPermissionCache.clear_user_cache(admin.id)
+            PermissionValidator.clear_user_cache(admin.id)
+            PermissionHelper.clear_user_cache(admin.id)
            
             return admin
             

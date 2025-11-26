@@ -1,12 +1,7 @@
 import React from 'react';
-import { AIProviderSettings } from '@/components/settings/AIProviderSettings';
+import AISettingsPage from '@/components/ai/settings/AISettingsPage';
 
-export default function AISettingsPage() {
-    return (
-        <div className="space-y-6">
-            <h1 className="page-title">تنظیمات مدل‌های AI</h1>
-            <AIProviderSettings />
-        </div>
-    );
+export default function AISettingsPageRoute() {
+  return <AISettingsPage />;
 }
 

@@ -12,7 +12,8 @@ export const useAdminProfile = () => {
   return useQuery({
     queryKey: ['admin-profile'],
     queryFn: () => adminApi.getProfile(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
   });
 };
 
@@ -21,7 +22,8 @@ export const usePanelSettings = () => {
   return useQuery({
     queryKey: ['panel-settings'],
     queryFn: () => getPanelSettings(),
-    staleTime: 10 * 60 * 1000, // 10 minutes for settings
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
   });
 };
 

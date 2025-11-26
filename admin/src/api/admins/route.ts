@@ -6,8 +6,7 @@ import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pa
 
 export type UserStatus = 'active' | 'inactive' | 'all';
 
-export const ADMIN_CACHE_TAG = 'admin-list';
-export const USER_CACHE_TAG = 'user-list';
+// ✅ NO CACHE TAGS: Admin panel is CSR only - caching handled by backend Redis
 
 export function createQueryString(params: Record<string, any>, additionalParams?: Record<string, any>): string {
     const queryParams = new URLSearchParams();
@@ -47,9 +46,6 @@ export const SERVER_PAGINATION_CONFIG = {
 export const adminApi = {
 
     getProfile: async (options?: {
-        cache?: RequestCache;
-        revalidate?: number | false;
-        tags?: string[];
         cookieHeader?: string;
     }): Promise<AdminWithProfile> => {
         const response = await fetchApi.get<AdminWithProfile>('/admin/profile/', {
@@ -87,9 +83,6 @@ export const adminApi = {
         userType: UserType,
         filters?: Filter,
         options?: {
-            cache?: RequestCache;
-            revalidate?: number | false;
-            tags?: string[];
             cookieHeader?: string;
         }
     ) => {
@@ -116,7 +109,6 @@ export const adminApi = {
     
 
             const queryString = createQueryString(apiFilters);
-            const cacheTag = userType === 'admin' ? ADMIN_CACHE_TAG : USER_CACHE_TAG;
             
             let endpointUrl = '';
             if (userType === 'admin') {
@@ -125,12 +117,8 @@ export const adminApi = {
                 endpointUrl = `/admin/users-management/?${queryString}`;
             }
             
-    
-
+            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
-                cache: options?.cache,
-                revalidate: options?.revalidate,
-                tags: [cacheTag],
                 cookieHeader: options?.cookieHeader,
             };
 
@@ -209,21 +197,14 @@ export const adminApi = {
     fetchAllUsers: async (
         userType: UserType,
         options?: {
-            cache?: RequestCache;
-            revalidate?: number | false;
-            tags?: string[];
             cookieHeader?: string;
         }
     ) => {
         try {
-            const cacheTag = userType === 'admin' ? ADMIN_CACHE_TAG : USER_CACHE_TAG;
-            
             const endpointUrl = `/admin/management/?no_pagination=true&user_type=${userType}`;
 
+            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
-                cache: options?.cache || 'force-cache',
-                revalidate: options?.revalidate !== undefined ? options.revalidate : 300,
-                tags: [cacheTag],
                 cookieHeader: options?.cookieHeader,
             };
 
@@ -243,8 +224,8 @@ export const adminApi = {
         }
     ): Promise<AdminWithProfile> => {
         try {
+            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
-                cache: 'no-store' as RequestCache,
                 cookieHeader: options?.cookieHeader,
             };
             
@@ -405,7 +386,9 @@ export const adminApi = {
 
     getAdminRoles: async (adminId: number): Promise<any[]> => {
         try {
-            const response = await fetchApi.get<{roles: any[]}>(`/admin/roles/user_roles/?user_id=${adminId}`);
+            // ✅ NO CACHE: Always fetch fresh data - add timestamp to prevent caching
+            const timestamp = Date.now();
+            const response = await fetchApi.get<{roles: any[]}>(`/admin/roles/user_roles/?user_id=${adminId}&_t=${timestamp}`);
             return response.data?.roles || [];
         } catch (error) {
             throw error;
@@ -435,9 +418,6 @@ export const adminApi = {
     getAdminList: async (
         filters: AdminFilter = {},
         options?: {
-            cache?: RequestCache;
-            revalidate?: number | false;
-            tags?: string[];
             cookieHeader?: string;
         }
     ) => {
@@ -449,8 +429,6 @@ export const adminApi = {
     },
 
     getAllAdmins: async (options?: {
-        cache?: RequestCache;
-        revalidate?: number | false;
         cookieHeader?: string;
     }) => {
         return adminApi.fetchAllUsers('admin', options);
@@ -466,9 +444,8 @@ export const adminApi = {
     },
 
     getCurrentAdminManagedProfile: async (): Promise<AdminWithProfile> => {
-        const response = await fetchApi.get<AdminWithProfile>('/admin/management/me/', {
-            cache: 'no-store',
-        });
+        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+        const response = await fetchApi.get<AdminWithProfile>('/admin/management/me/');
         return response.data;
     },
 
@@ -493,11 +470,11 @@ export const adminApi = {
         return adminApi.bulkDeleteUsersByType(adminIds);
     },
 
-    getUserList: async (filters?: UserFilter, options?: { cache?: RequestCache, revalidate?: number | false }) => {
+    getUserList: async (filters?: UserFilter, options?: {}) => {
         return adminApi.fetchUsersList('user', filters, options);
     },
 
-    getAllUsers: async (options?: { cache?: RequestCache, revalidate?: number | false }) => {
+    getAllUsers: async (options?: {}) => {
         return adminApi.fetchAllUsers('user', options);
     },
 

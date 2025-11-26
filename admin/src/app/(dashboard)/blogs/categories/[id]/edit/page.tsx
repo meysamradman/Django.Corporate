@@ -46,7 +46,8 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     queryFn: async () => {
       return await portfolioApi.getCategories({ size: 1000 });
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
   });
 
   // Function to render category with indentation based on level

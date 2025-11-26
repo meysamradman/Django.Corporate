@@ -1,0 +1,121 @@
+"""
+Media Module Permissions
+Granular permissions for better security
+None are in BASE - must be granted separately to roles
+"""
+
+MEDIA_PERMISSIONS = {
+    # Media - Granular permissions for better security
+    # None are in BASE - must be granted separately to roles
+    'media.read': {
+        'module': 'media',
+        'action': 'read',
+        'display_name': 'View Media Library',
+        'description': 'View all media items (images, videos, audio, documents)',
+    },
+    
+    # Upload permissions - for different file types
+    'media.image.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Images',
+        'description': 'Upload image files (jpg, png, webp, svg, gif)',
+    },
+    'media.video.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Videos',
+        'description': 'Upload video files (mp4, webm, mov)',
+    },
+    'media.audio.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Audio',
+        'description': 'Upload audio files (mp3, ogg, aac, m4a)',
+    },
+    'media.document.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload Documents',
+        'description': 'Upload PDF and document files',
+    },
+    'media.upload': {
+        'module': 'media',
+        'action': 'create',
+        'display_name': 'Upload All Media Types',
+        'description': 'Upload any type of media file (images, videos, audio, documents)',
+    },
+    
+    # Update permissions
+    'media.image.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Images',
+        'description': 'Edit image metadata (title, alt, description)',
+    },
+    'media.video.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Videos',
+        'description': 'Edit video metadata and cover image',
+    },
+    'media.audio.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Audio',
+        'description': 'Edit audio metadata and cover image',
+    },
+    'media.document.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit Documents',
+        'description': 'Edit document metadata and cover image',
+    },
+    'media.update': {
+        'module': 'media',
+        'action': 'update',
+        'display_name': 'Edit All Media Types',
+        'description': 'Edit metadata for any media type',
+    },
+    
+    # Delete permissions - Most sensitive access level
+    'media.image.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Images',
+        'description': 'Delete image files (dangerous - may break content)',
+    },
+    'media.video.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Videos',
+        'description': 'Delete video files (dangerous - may break content)',
+    },
+    'media.audio.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Audio',
+        'description': 'Delete audio files (dangerous - may break content)',
+    },
+    'media.document.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete Documents',
+        'description': 'Delete document files (dangerous - may break content)',
+    },
+    'media.delete': {
+        'module': 'media',
+        'action': 'delete',
+        'display_name': 'Delete All Media Types',
+        'description': 'Delete any media file (very dangerous - may break content)',
+    },
+    
+    # Manage - Full access to all media operations
+    'media.manage': {
+        'module': 'media',
+        'action': 'manage',
+        'display_name': 'Manage Media Library',
+        'description': 'Full access to media library (view, upload, update, delete all types)',
+    },
+}
+

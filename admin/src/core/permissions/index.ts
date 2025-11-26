@@ -46,6 +46,7 @@ export {
 
 // Components
 export { PermissionGate } from './components/PermissionGate';
+export { PermissionLocked } from './components/PermissionLocked';
 export { ProtectedButton } from './components/ProtectedButton';
 export { ProtectedLink } from './components/ProtectedLink';
 export { RoutePermissionGuard } from './components/RoutePermissionGuard';

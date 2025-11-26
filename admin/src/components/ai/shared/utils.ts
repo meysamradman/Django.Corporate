@@ -5,6 +5,7 @@ export const getProviderDisplayName = (provider: AvailableProvider): string => {
         'gemini': 'Google Gemini',
         'openai': 'OpenAI GPT',
         'deepseek': 'DeepSeek',
+        'openrouter': 'OpenRouter (60+ Providers)',
         'huggingface': 'Hugging Face',
         'dall-e': 'OpenAI DALL-E',
     };
@@ -14,6 +15,7 @@ export const getProviderDisplayName = (provider: AvailableProvider): string => {
         if (name.includes('gemini')) return 'Google Gemini';
         if (name.includes('openai') || name.includes('gpt') || name.includes('dall-e') || name.includes('dalle')) return 'OpenAI GPT';
         if (name.includes('deepseek')) return 'DeepSeek';
+        if (name.includes('openrouter')) return 'OpenRouter (60+ Providers)';
         if (name.includes('hugging')) return 'Hugging Face';
     }
     
@@ -25,6 +27,7 @@ export const getProviderDescription = (provider: AvailableProvider, type: 'conte
         'gemini': 'مدل هوش مصنوعی Google برای تولید محتوای با کیفیت و SEO',
         'openai': 'مدل پیشرفته OpenAI GPT برای تولید محتوای حرفه‌ای',
         'deepseek': 'مدل DeepSeek برای تولید محتوا با الگوریتم‌های پیشرفته',
+        'openrouter': 'دسترسی به 60+ Provider و 500+ مدل (Claude, GPT, Gemini, و...)',
         'huggingface': 'مدل Hugging Face برای تولید محتوای متنوع و خلاقانه',
     };
     
@@ -32,6 +35,7 @@ export const getProviderDescription = (provider: AvailableProvider, type: 'conte
         'gemini': 'مدل هوش مصنوعی Google برای تولید تصاویر با کیفیت بالا',
         'openai': 'مدل پیشرفته OpenAI برای تولید تصاویر واقع‌گرایانه',
         'deepseek': 'مدل DeepSeek برای تولید تصاویر با الگوریتم‌های پیشرفته',
+        'openrouter': 'دسترسی به مدل‌های تصویر از 60+ Provider (DALL-E, Stable Diffusion, و...)',
         'huggingface': 'مدل Hugging Face برای تولید تصاویر متنوع و خلاقانه',
         'dall-e': 'مدل پیشرفته OpenAI برای تولید تصاویر واقع‌گرایانه',
     };
@@ -40,6 +44,7 @@ export const getProviderDescription = (provider: AvailableProvider, type: 'conte
         'gemini': 'مدل Google Gemini برای چت و گفتگو',
         'openai': 'مدل OpenAI GPT برای چت پیشرفته',
         'deepseek': 'مدل DeepSeek برای چت با الگوریتم‌های پیشرفته',
+        'openrouter': 'دسترسی به 60+ Provider و 500+ مدل چت (Claude, GPT, Gemini, و...)',
     };
     
     const key = provider.provider_name.toLowerCase();
@@ -52,6 +57,7 @@ export const getProviderIcon = (provider: AvailableProvider): string => {
     if (name.includes('gemini')) return '🔵';
     if (name.includes('openai') || name.includes('dall-e') || name.includes('dalle') || name.includes('gpt')) return '🤖';
     if (name.includes('deepseek')) return '🔷';
+    if (name.includes('openrouter')) return '🌐';
     if (name.includes('hugging')) return '🤗';
     return '✨';
 };

@@ -94,9 +94,9 @@ export function DataTableRowActions<TData>({
               }
             }}
             disabled={action.isDisabled}
-            className={action.isDestructive ? "text-destructive" : ""}
+            variant={action.isDestructive ? "destructive" : "default"}
           >
-            {action.icon && action.icon}
+            {action.icon}
             {typeof action.label === 'function' ? action.label(item) : action.label}
           </DropdownMenuItem>
         ))}

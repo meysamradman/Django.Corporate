@@ -26,6 +26,7 @@ export function EmptyProvidersCard({ onNavigateToSettings }: EmptyProvidersCardP
                         <li><strong>Google Gemini</strong> - برای تولید محتوا (رایگان)</li>
                         <li><strong>OpenAI GPT</strong> - برای تولید محتوا (پولی)</li>
                         <li><strong>DeepSeek AI</strong> - برای تولید محتوا (رایگان)</li>
+                        <li><strong>OpenRouter</strong> - دسترسی به 60+ Provider و 500+ مدل (BYOK - رایگان)</li>
                     </ul>
                     <p className="mt-2 text-sm text-font-s">
                         توجه: HuggingFace فقط برای تولید تصویر است و برای محتوا پشتیبانی نمی‌شود.

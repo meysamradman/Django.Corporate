@@ -42,8 +42,8 @@ export const usePermissions = () => {
       const response = await roleApi.getPermissions()
       return response.data
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
   })
 }
 
@@ -55,8 +55,8 @@ export const useBasePermissions = () => {
       const response = await roleApi.getBasePermissions()
       return response.data
     },
-    staleTime: 30 * 60 * 1000, // 30 minutes - longer cache for base permissions
-    gcTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
   })
 }
 
@@ -79,7 +79,8 @@ export const useRole = (id: number) => {
       return response.data
     },
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
   })
 }
 
@@ -88,8 +89,10 @@ export const useCreateRole = () => {
   
   return useMutation({
     mutationFn: roleApi.createRole,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['roles'] })
+      // ✅ CRITICAL: Invalidate permission-map to refresh permissions
+      await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       toast.success('نقش با موفقیت ایجاد شد')
     },
     onError: (error: any) => {
@@ -112,10 +115,14 @@ export const useUpdateRole = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => roleApi.updateRole(id, data),
     onSuccess: async (response, { id }) => {
+      // ✅ Invalidate role-related queries
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['role', id] })
       await queryClient.invalidateQueries({ queryKey: ['permissions'] })
       await queryClient.refetchQueries({ queryKey: ['role', id] })
+      
+      // ✅ CRITICAL: Invalidate permission-map to refresh permissions for all users with this role
+      await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       
       toast.success('نقش با موفقیت بروزرسانی شد')
     },
@@ -137,8 +144,10 @@ export const useDeleteRole = () => {
   
   return useMutation({
     mutationFn: roleApi.deleteRole,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['roles'] })
+      // ✅ CRITICAL: Invalidate permission-map to refresh permissions for users who had this role
+      await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       toast.success('نقش با موفقیت حذف شد')
     },
     onError: (error: any) => {
@@ -160,8 +169,10 @@ export const useBulkDeleteRoles = () => {
   
   return useMutation({
     mutationFn: roleApi.bulkDeleteRoles,
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: ['roles'] })
+      // ✅ CRITICAL: Invalidate permission-map to refresh permissions for users who had these roles
+      await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       if (response?.data?.deleted_count) {
         const successMessage = translateRoleSuccess(
           `Successfully deleted ${response.data.deleted_count} admin roles`
@@ -191,8 +202,10 @@ export const useUpdateRoleStatus = () => {
   return useMutation({
     mutationFn: ({ id, is_active }: { id: number; is_active: boolean }) => 
       roleApi.updateRoleStatus(id, is_active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['roles'] })
+      // ✅ CRITICAL: Invalidate permission-map to refresh permissions when role status changes
+      await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       toast.success('وضعیت نقش با موفقیت تغییر کرد')
     },
     onError: (error: any) => {

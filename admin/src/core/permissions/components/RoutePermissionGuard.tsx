@@ -76,10 +76,36 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
 
         // ✅ FIX: Use hasPermission which checks wildcards, manage, and synonyms
         const permissionString = `${rule.module}.${action}`;
-        const hasAccess =
+        let hasAccess =
             bypassOwnProfile ||
             hasPermission(permissionString) ||
             (rule.module === "admin" && isOwnAdminProfile);
+
+        // ✅ AI-specific permission check: Support sub-permissions
+        if (!hasAccess && rule.module === "ai" && action === "manage") {
+            // Map paths to specific permissions
+            const aiPermissionMap: Record<string, string[]> = {
+                "/ai/chat": ["ai.chat.manage", "ai.manage"],
+                "/ai/content": ["ai.content.manage", "ai.manage"],
+                "/ai/image": ["ai.image.manage", "ai.manage"],
+                "/settings/my-ai": [
+                    "ai.settings.personal.manage",
+                    "ai.chat.manage",
+                    "ai.content.manage",
+                    "ai.image.manage",
+                    "ai.manage"
+                ],
+                "/settings/ai": ["ai.settings.shared.manage", "ai.manage"],
+            };
+            
+            // Find matching path and check permissions
+            for (const [pathPrefix, perms] of Object.entries(aiPermissionMap)) {
+                if (pathname?.startsWith(pathPrefix)) {
+                    hasAccess = perms.some(perm => hasPermission(perm));
+                    break;
+                }
+            }
+        }
 
         if (!hasAccess) {
             return (

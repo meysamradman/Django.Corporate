@@ -21,7 +21,7 @@ export function EmptyProvidersCard({ onNavigateToSettings }: EmptyProvidersCardP
                         </p>
                         <ol className="list-decimal list-inside space-y-1 text-right" dir="rtl">
                             <li>به تب <strong>"تنظیمات AI"</strong> بروید</li>
-                            <li>برای یک مدل AI (مثل <strong>OpenAI DALL-E</strong>) API key وارد کنید</li>
+                            <li>برای یک مدل AI (مثل <strong>OpenAI DALL-E</strong> یا <strong>OpenRouter</strong>) API key وارد کنید</li>
                             <li>API key را <strong>ذخیره</strong> کنید</li>
                             <li>Switch را <strong>فعال</strong> کنید</li>
                         </ol>

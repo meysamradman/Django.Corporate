@@ -59,23 +59,23 @@ export default function SettingsPage() {
                 </TabsList>
 
                 <TabsContent value="general">
-                    <GeneralSettingsForm ref={generalFormRef} />
+                    {activeTab === "general" && <GeneralSettingsForm ref={generalFormRef} />}
                 </TabsContent>
 
                 <TabsContent value="phones">
-                    <ContactPhonesSection />
+                    {activeTab === "phones" && <ContactPhonesSection />}
                 </TabsContent>
 
                 <TabsContent value="mobiles">
-                    <ContactMobilesSection />
+                    {activeTab === "mobiles" && <ContactMobilesSection />}
                 </TabsContent>
 
                 <TabsContent value="emails">
-                    <ContactEmailsSection />
+                    {activeTab === "emails" && <ContactEmailsSection />}
                 </TabsContent>
 
                 <TabsContent value="social">
-                    <SocialMediaSection />
+                    {activeTab === "social" && <SocialMediaSection />}
                 </TabsContent>
             </Tabs>
         </div>

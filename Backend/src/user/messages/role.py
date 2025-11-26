@@ -93,6 +93,16 @@ ROLE_TEXT = {
         "display_name_short": "Email",
         "description": "Manages admin email inbox, templates, and campaigns.",
     },
+    "ticket_manager": {
+        "display_name": "Ticket Manager",
+        "display_name_short": "Ticket",
+        "description": "Manages support tickets, responses, and customer inquiries.",
+    },
+    "chatbot_manager": {
+        "display_name": "Chatbot Manager",
+        "display_name_short": "Chatbot",
+        "description": "Manages chatbot settings, FAQs, and automated responses.",
+    },
     "ai_manager": {
         "display_name": "AI Manager",
         "display_name_short": "AI",

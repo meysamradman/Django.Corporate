@@ -9,11 +9,12 @@ export const usePermissionMap = () => {
   const query = useQuery({
     queryKey: ['permission-map'],
     queryFn: async () => {
-      const res = await permissionApi.getMap({ cache: 'no-store', revalidate: false })
+      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+      const res = await permissionApi.getMap()
       return res
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 0, // Always fetch fresh - no frontend caching
+    gcTime: 0, // No cache retention - backend Redis handles caching
   })
 
   // Normalize data to ensure user_permissions is always an array

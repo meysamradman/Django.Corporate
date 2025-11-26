@@ -8,6 +8,7 @@ import {useAdminStore} from "@/components/layout/Sidebar/stores/sidebarStore";
 import { RoutePermissionGuard } from "@/core/permissions/components/RoutePermissionGuard";
 import { MediaContextProvider } from "@/core/media/MediaContext";
 import { PermissionProvider } from "@/core/permissions/context/PermissionContext";
+import { FloatingAIChat } from "@/components/ai/chat/FloatingAIChat";
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -58,6 +59,8 @@ export default function MainLayout({children}: MainLayoutProps) {
                         </PermissionProvider>
                     </div>
                 </main>
+                {/* Floating AI Chat Widget */}
+                <FloatingAIChat />
             </div>
         </div>
     );

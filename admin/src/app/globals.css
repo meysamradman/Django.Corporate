@@ -213,3 +213,22 @@
 --radius-lg: var(--radius);
 --radius-xl: calc(var(--radius) + 4px);
 }
+
+/* Ripple animation for HelpGuide */
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.4;
+  }
+  100% {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.animate-ripple {
+  animation: ripple 600ms ease-out;
+}

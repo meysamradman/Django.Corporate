@@ -6,8 +6,11 @@ from .config import BASE_ADMIN_PERMISSIONS
 
 
 class PermissionValidator:
-    # Cache برای modules/actions هر کاربر (تا 512 کاربر)
-    _user_modules_cache: Dict[int, Tuple[Set[str], Set[str]]] = {}
+    """
+    ✅ Redis-only caching: تمام cache ها فقط در Redis ذخیره می‌شوند
+    هیچ in-memory cache استفاده نمی‌شود برای consistency و scalability
+    """
+    CACHE_TIMEOUT = 300  # 5 minutes
     
     @staticmethod
     def _get_cache_key(user) -> Optional[int]:
@@ -18,13 +21,30 @@ class PermissionValidator:
     
     @staticmethod
     def clear_user_cache(user_id: Optional[int] = None):
-        """پاک کردن cache (برای وقتی که roles تغییر می‌کنند)"""
+        """
+        ✅ پاک کردن تمام cache های مربوط به کاربر از Redis
+        برای وقتی که roles یا permissions تغییر می‌کنند
+        """
         if user_id:
-            PermissionValidator._user_modules_cache.pop(user_id, None)
-            cache.delete(f"user_permissions_{user_id}")
+            # Clear all permission-related cache keys for this user
+            cache_keys_to_clear = [
+                f"user_permissions_{user_id}",
+                f"user_modules_actions_{user_id}",
+                f"admin_permissions_{user_id}",
+                f"admin_roles_{user_id}",
+                f"admin_info_{user_id}",
+                f"admin_perms_{user_id}",
+                f"admin_simple_perms_{user_id}",
+            ]
+            cache.delete_many(cache_keys_to_clear)
         else:
-            PermissionValidator._user_modules_cache.clear()
-            cache.delete_pattern("user_permissions_*")
+            # Clear all user permission caches
+            try:
+                cache.delete_pattern("user_permissions_*")
+                cache.delete_pattern("user_modules_actions_*")
+            except AttributeError:
+                # If delete_pattern is not available, use clear() as fallback
+                cache.clear()
     
     @staticmethod
     def has_permission(user, permission_id: str, context: Optional[Dict] = None) -> bool:
@@ -244,8 +264,8 @@ class PermissionValidator:
     @staticmethod
     def _get_user_modules_actions(user) -> Tuple[Set[str], Set[str]]:
         """
-        گرفتن modules و actions کاربر با caching برای بهینه‌سازی سرعت
-        فقط برای ادمین‌ها کار می‌کنه
+        ✅ گرفتن modules و actions کاربر با Redis caching
+        فقط برای ادمین‌ها کار می‌کنه - تمام cache ها در Redis ذخیره می‌شوند
         """
         # 🔥 بهینه‌سازی: فقط برای ادمین‌ها query می‌زنیم
         user_type = getattr(user, "user_type", None)
@@ -254,10 +274,16 @@ class PermissionValidator:
             # کاربران معمولی هیچ modules/actions ندارن
             return set(), set()
         
-        # چک کردن cache اول
-        cache_key = PermissionValidator._get_cache_key(user)
-        if cache_key and cache_key in PermissionValidator._user_modules_cache:
-            return PermissionValidator._user_modules_cache[cache_key]
+        # ✅ Redis cache check
+        cache_key_id = PermissionValidator._get_cache_key(user)
+        if cache_key_id:
+            redis_cache_key = f"user_modules_actions_{cache_key_id}"
+            cached_result = cache.get(redis_cache_key)
+            if cached_result is not None:
+                # cached_result is a tuple of (modules_set, actions_set)
+                # Convert back from lists to sets
+                modules_list, actions_list = cached_result
+                return set(modules_list), set(actions_list)
         
         modules: Set[str] = set()
         actions: Set[str] = set()
@@ -271,8 +297,6 @@ class PermissionValidator:
                 user=user, 
                 is_active=True
             ).select_related("role").only("role__permissions", "role__name")
-            
-            role_count = roles_qs.count()
             
             for user_role in roles_qs:
                 role = user_role.role
@@ -320,16 +344,15 @@ class PermissionValidator:
                                     actions.add(action)
                 else:
                     logger.warning(f"Role {role.name} permissions is not a dict: {type(role_perms)}")
-                    
             
-            # ذخیره در cache
-            if cache_key:
-                PermissionValidator._user_modules_cache[cache_key] = (modules, actions)
-                # محدود کردن اندازه cache (حداکثر 512 کاربر)
-                if len(PermissionValidator._user_modules_cache) > 512:
-                    # حذف قدیمی‌ترین entry (FIFO)
-                    oldest_key = next(iter(PermissionValidator._user_modules_cache))
-                    PermissionValidator._user_modules_cache.pop(oldest_key, None)
+            # ✅ ذخیره در Redis cache (convert sets to lists for JSON serialization)
+            if cache_key_id:
+                redis_cache_key = f"user_modules_actions_{cache_key_id}"
+                cache.set(
+                    redis_cache_key, 
+                    (list(modules), list(actions)), 
+                    PermissionValidator.CACHE_TIMEOUT
+                )
                     
         except Exception as e:
             # Log error for debugging but don't crash

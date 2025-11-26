@@ -4,10 +4,10 @@ let clientInstance: QueryClient | null = null;
 
 const defaultQueryOptions = {
   queries: {
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
     retry: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Always refetch for fresh data
     refetchOnReconnect: true,
     refetchInterval: false as const,
   },

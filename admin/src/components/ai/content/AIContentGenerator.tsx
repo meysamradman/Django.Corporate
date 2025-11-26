@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/route';
@@ -11,6 +11,7 @@ import { ContentInputForm } from './ContentInputForm';
 import { SEOInfoCard } from './SEOInfoCard';
 import { ContentDisplay } from './ContentDisplay';
 import { EmptyProvidersCard } from './EmptyProvidersCard';
+import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIContentGeneratorProps {
     onNavigateToSettings?: () => void;
@@ -53,6 +54,7 @@ const sampleContent: AIContentGenerationResponse = {
 };
 
 export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorProps) {
+    const { user } = useAuth();
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>('');
@@ -61,31 +63,60 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const [generatedContent, setGeneratedContent] = useState<AIContentGenerationResponse | null>(null);
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isSample, setIsSample] = useState(false);
+    const providersFetched = useRef(false); // ✅ CRITICAL: Prevent double fetch
 
     useEffect(() => {
-        fetchAvailableProviders();
-    }, []);
-
-    useEffect(() => {
-        if (!loadingProviders && availableProviders.length > 0 && !generatedContent && !isSample) {
-            setGeneratedContent(sampleContent);
-            setIsSample(true);
+        // ✅ CRITICAL: Only fetch providers if user has ai.manage permission
+        // ✅ CRITICAL: Prevent double fetch with ref
+        if (user && !providersFetched.current) {
+            // Check if user has ai.manage, any ai.* permission, or "all" permission
+            const hasAIPermission = user?.permissions?.some((p: string) => 
+                p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
+            );
+            
+            console.log('[AI Content Frontend] User permissions:', user?.permissions);
+            console.log('[AI Content Frontend] Has AI permission:', hasAIPermission);
+            
+            if (hasAIPermission) {
+                console.log('[AI Content Frontend] Fetching available providers...');
+                providersFetched.current = true;
+                fetchAvailableProviders();
+            } else {
+                // If no AI permission, stop loading
+                console.log('[AI Content Frontend] No AI permission, stopping load');
+                setLoadingProviders(false);
+            }
+        } else if (!user) {
+            // If user not loaded yet, keep loading
+            setLoadingProviders(true);
         }
+    }, [user]);
+
+    useEffect(() => {
+        // ✅ REMOVED: Auto-loading sample content
+        // Sample content should only be shown when explicitly requested, not automatically
     }, [loadingProviders, availableProviders.length, generatedContent, isSample]);
 
     const fetchAvailableProviders = async () => {
         try {
+            console.log('[AI Content Frontend] Starting fetchAvailableProviders...');
             setLoadingProviders(true);
             const response = await aiApi.content.getAvailableProviders();
+            
+            console.log('[AI Content Frontend] Response received:', response);
             
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data) 
                     ? response.data 
                     : (response.data as any)?.data || [];
                 
+                console.log('[AI Content Frontend] Providers data:', providersData);
                 setAvailableProviders(providersData);
+            } else {
+                console.error('[AI Content Frontend] Response status not success:', response.metaData);
             }
         } catch (error: any) {
+            console.error('[AI Content Frontend] Error fetching providers:', error);
             // Toast already shown by aiApi
         } finally {
             setLoadingProviders(false);
@@ -169,14 +200,14 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
             />
 
             {generatedContent && (
-                <div className="space-y-4">
-                    {isSample && (
-                        <div className="mb-4 p-4 bg-yellow/10 border border-yellow-1 rounded-lg">
-                            <p className="text-sm text-font-s">
-                                این یک نمونه محتوا است برای نمایش استایل. برای تولید محتوای واقعی، موضوع خود را وارد کرده و دکمه تولید را بزنید.
-                            </p>
-                        </div>
-                    )}
+                    <div className="space-y-4">
+                        {isSample && (
+                            <div className="mb-4 p-4 bg-yellow/10 border border-yellow-1 rounded-lg">
+                                <p className="text-sm text-font-s">
+                                    ⚠️ این یک نمونه آزمایشی است. برای تولید محتوای واقعی، موضوع خود را وارد کرده و دکمه تولید را بزنید.
+                                </p>
+                            </div>
+                        )}
                     <SEOInfoCard
                         content={generatedContent}
                         copiedField={copiedField}

@@ -9,6 +9,7 @@ import {
     Images,
     Sparkles,
     Mail,
+    Ticket,
     type LucideIcon
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
@@ -30,6 +31,7 @@ export interface MenuAccessConfig {
     readOnlyLabel?: string;
     limitedLabel?: string;
     requireSuperAdmin?: boolean;
+    hideForSuperAdmin?: boolean; // Hide this menu item for super admins
     roles?: string[];
 }
 
@@ -125,7 +127,12 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                 title: "رسانه‌ها",
                 icon: Images,
                 url: "/media",
-                // Media library should be visible to all admins (read-only allowed); action controls happen inside the page
+                access: { 
+                    module: "media", 
+                    actions: ["read"],
+                    allowReadOnly: true,
+                    readOnlyLabel: "فقط مشاهده"
+                }
             },
         ]
     },
@@ -138,7 +145,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                 access: { 
                     module: "admin", 
                     actions: ["read", "view"], 
-                    requireSuperAdmin: false,  // Allow non-super admins too
+                    requireSuperAdmin: true,  // ✅ Admin management requires super admin
                     allowReadOnly: true 
                 },
                 items: [
@@ -148,6 +155,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                         access: { 
                             module: "admin", 
                             actions: ["read", "view"], 
+                            requireSuperAdmin: true,  // ✅ Admin management requires super admin
                             allowReadOnly: true 
                         } 
                     },
@@ -198,6 +206,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                     { title: "چت با AI", url: "/ai/chat", access: { module: "ai", allowReadOnly: true } },
                     { title: "تولید محتوا با AI", url: "/ai/content", access: { module: "ai", allowReadOnly: true } },
                     { title: "تولید تصویر با AI", url: "/ai/image", access: { module: "ai", allowReadOnly: true } },
+                    { title: "تولید پادکست با AI", url: "/ai/audio", access: { module: "ai", allowReadOnly: true } },
                 ],
             },
         ]
@@ -216,6 +225,17 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                     readOnlyLabel: "فقط مشاهده"
                 }
             },
+            {
+                title: "تیکت",
+                icon: Ticket,
+                url: "/ticket",
+                access: { 
+                    module: "ticket", 
+                    actions: ["read"],
+                    allowReadOnly: true,
+                    readOnlyLabel: "فقط مشاهده"
+                }
+            },
         ]
     },
     {
@@ -227,9 +247,10 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                 items: [
                     { title: "تنظیمات پنل ادمین", isTitle: true },
                     { title: "تنظیمات پنل", url: "/settings/panel", access: { module: "panel", actions: ["manage"] } },
-                    { title: "تنظیمات مدل‌های AI", url: "/settings/ai", access: { module: "ai", actions: ["manage"] } },
+                    { title: "تنظیمات هوش مصنوعی", url: "/settings/ai", access: { module: "ai", actions: ["manage"] } },
                     { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
                     { title: "تنظیمات عمومی", url: "/settings/general", access: { module: "settings", actions: ["manage"] } },
+                    { title: "چت‌بات", url: "/settings/chatbot", access: { module: "chatbot", actions: ["manage"] } },
                     { title: "فرم‌ها", url: "/settings/form", access: { module: "forms", allowReadOnly: true } },
                     { title: "درباره ما", url: "/settings/page/about", access: { module: "pages", actions: ["manage"] } },
                     { title: "قوانین و مقررات", url: "/settings/page/terms", access: { module: "pages", actions: ["manage"] } },
@@ -253,6 +274,7 @@ export const useMenuData = () => {
         getModuleAccessProfile,
         hasModuleAction,
         hasRole,
+        hasPermission,
         isSuperAdmin
     } = useUserPermissions();
 
@@ -279,6 +301,10 @@ export const useMenuData = () => {
         }
 
         if (access.requireSuperAdmin && !isSuperAdmin) {
+            return { visible: false } as const;
+        }
+
+        if (access.hideForSuperAdmin && isSuperAdmin) {
             return { visible: false } as const;
         }
 

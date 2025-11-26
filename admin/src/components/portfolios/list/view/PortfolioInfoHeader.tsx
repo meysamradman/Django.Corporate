@@ -67,8 +67,8 @@ export function PortfolioInfoHeader({ portfolio }: PortfolioInfoHeaderProps) {
             )}
           </div>
           <div className="flex-1 pt-16 pb-2">
-            <h2>{portfolio.title}</h2>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-font-s mt-3">
+            <h2 className="text-right">{portfolio.title}</h2>
+            <div className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-font-s mt-3">
               {getStatusBadge()}
               {portfolio.is_featured && (
                 <div className="flex items-center gap-2">

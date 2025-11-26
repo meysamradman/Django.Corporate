@@ -15,6 +15,7 @@ from .chat_serializer import (
     AIChatResponseSerializer,
     AIChatMessageSerializer,
 )
+from .audio_generation_serializer import AIAudioGenerationRequestSerializer
 
 __all__ = [
     'AIImageGenerationSerializer',
@@ -25,5 +26,6 @@ __all__ = [
     'AIChatRequestSerializer',
     'AIChatResponseSerializer',
     'AIChatMessageSerializer',
+    'AIAudioGenerationRequestSerializer',
 ]
 

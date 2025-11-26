@@ -128,6 +128,16 @@ class AdminProfileService:
                 
                 profile.save()
                 
+                # ✅ Clear all cache for this admin (comprehensive cache invalidation)
+                from django.core.cache import cache
+                from src.user.authorization.admin_permission import AdminPermissionCache
+                from src.user.permissions.validator import PermissionValidator
+                from src.user.permissions.helpers import PermissionHelper
+                
+                AdminPermissionCache.clear_user_cache(admin.id)
+                PermissionValidator.clear_user_cache(admin.id)
+                PermissionHelper.clear_user_cache(admin.id)
+                
                 if old_media_to_delete:
                     try:
                         old_media_to_delete.delete()
@@ -153,6 +163,17 @@ class AdminProfileService:
             if profile.profile_picture:
                 profile.profile_picture = None
                 profile.save(update_fields=['profile_picture'])
+            
+            # ✅ Clear cache after removing profile picture
+            from django.core.cache import cache
+            from src.user.authorization.admin_permission import AdminPermissionCache
+            from src.user.permissions.validator import PermissionValidator
+            from src.user.permissions.helpers import PermissionHelper
+            
+            AdminPermissionCache.clear_user_cache(admin.id)
+            PermissionValidator.clear_user_cache(admin.id)
+            PermissionHelper.clear_user_cache(admin.id)
+            
             return profile
             
         if hasattr(media_obj, 'media_type') and media_obj.media_type != 'image':
@@ -160,5 +181,15 @@ class AdminProfileService:
             
         profile.profile_picture = media_obj
         profile.save(update_fields=['profile_picture'])
+        
+        # ✅ Clear cache after updating profile picture
+        from django.core.cache import cache
+        from src.user.authorization.admin_permission import AdminPermissionCache
+        from src.user.permissions.validator import PermissionValidator
+        from src.user.permissions.helpers import PermissionHelper
+        
+        AdminPermissionCache.clear_user_cache(admin.id)
+        PermissionValidator.clear_user_cache(admin.id)
+        PermissionHelper.clear_user_cache(admin.id)
                 
         return profile

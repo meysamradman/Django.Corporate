@@ -10,9 +10,6 @@ if (!env.API_BASE_URL) {
 }
 
 type RequestOptions = {
-    cache?: RequestCache;
-    revalidate?: number | false;
-    tags?: string[];
     headers?: Record<string, string>;
     cookieHeader?: string;
     useFetchForErrorHandling?: boolean;
@@ -109,15 +106,8 @@ async function baseFetch<T>(
         }
     }
 
-    if (options?.cache) {
-        fetchOptions.cache = options.cache;
-    }
-    if (options?.revalidate !== undefined || options?.tags) {
-        (fetchOptions as Record<string, unknown>).next = {
-            ...(options.revalidate !== undefined && {revalidate: options.revalidate}),
-            ...(options.tags && {tags: options.tags})
-        };
-    }
+    // ✅ NO CACHE: Admin panel is CSR only - all caching handled by backend Redis
+    fetchOptions.cache = 'no-store';
 
     try {
         let fullUrl = url;

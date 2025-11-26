@@ -12,7 +12,7 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
     )
     
     provider_name = serializers.ChoiceField(
-        choices=['gemini', 'openai', 'deepseek'],  # Added deepseek, removed huggingface due to API limitations
+        choices=['gemini', 'openai', 'deepseek', 'openrouter'],  # Added openrouter for multi-provider support
         default='gemini',
         help_text="مدل AI برای تولید محتوا"
     )

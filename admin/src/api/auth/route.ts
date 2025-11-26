@@ -43,19 +43,14 @@ export const authApi = {
     },
 
     getCurrentAdminUser: async (options?: {
-        cache?: RequestCache,
-        revalidate?: number | false,
         refresh?: boolean
     }): Promise<AdminWithProfile> => {
         let url = '/admin/profile/';
         if (options?.refresh) {
             url += url.includes('?') ? '&refresh=1' : '?refresh=1';
         }
-        const fetchOptions = { ...options };
-        if (fetchOptions) {
-            delete (fetchOptions as any).refresh;
-        }
-        const response = await fetchApi.get<AdminWithProfile>(url, fetchOptions);
+        // ✅ NO CACHE: Admin panel is CSR only - all caching handled by backend Redis
+        const response = await fetchApi.get<AdminWithProfile>(url);
         if (!response.data) {
             throw new Error("API returned success but no admin user data found.");
         }
@@ -65,7 +60,8 @@ export const authApi = {
 
     isAdminAuthenticated: async (): Promise<boolean> => {
         try {
-            const user = await authApi.getCurrentAdminUser({cache: 'no-store', refresh: true});
+            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+            const user = await authApi.getCurrentAdminUser({refresh: true});
             return !!user;
         } catch (error) {
             return false;

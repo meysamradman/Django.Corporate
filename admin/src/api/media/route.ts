@@ -18,7 +18,7 @@ export interface MediaUploadSettings {
   MEDIA_ALLOWED_PDF_EXTENSIONS: string[];
 }
 
-export const MEDIA_CACHE_TAG = 'media';
+// ✅ NO CACHE TAGS: Admin panel is CSR only - caching handled by backend Redis
 
 // Define valid page sizes for the media grid
 export const VALID_MEDIA_PAGE_SIZES = [12, 24, 36, 48];
@@ -31,13 +31,11 @@ export const mediaApi = {
     /**
      * Fetches a list of media items.
      * @param filters Optional filters for the media list.
-     * @param options Optional fetch options (cache, revalidate, cookieHeader).
+     * @param options Optional fetch options (cookieHeader).
      */
     getMediaList: async (
         filters?: MediaFilter,
         options?: {
-            cache?: RequestCache;
-            revalidate?: number | false;
             cookieHeader?: string;
             forceRefresh?: boolean;
         }
@@ -73,23 +71,8 @@ export const mediaApi = {
                 queryParams.append('offset', String(offset));
             }
 
-            let cacheStrategy: RequestCache = 'no-store';
-            let revalidate: number | false = false;
-
-            if (!options?.forceRefresh) {
-                if (!safeFilters?.search && !safeFilters?.date_from && !safeFilters?.date_to) {
-                    cacheStrategy = 'force-cache';
-                    revalidate = 60;
-                } else if (safeFilters?.search) {
-                    cacheStrategy = 'default';
-                    revalidate = 30;
-                }
-            }
-
+            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
-                cache: options?.cache ?? cacheStrategy,
-                revalidate: options?.revalidate ?? revalidate,
-                tags: [MEDIA_CACHE_TAG],
                 cookieHeader: options?.cookieHeader,
             };
 
@@ -159,8 +142,6 @@ export const mediaApi = {
     getMediaDetails: async (
         mediaId: number | string,
         options?: {
-            cache?: RequestCache;
-            revalidate?: number | false;
             cookieHeader?: string;
         }
     ): Promise<ApiResponse<Media>> => { // Return a single Media object
@@ -172,10 +153,8 @@ export const mediaApi = {
                 throw new Error(`Invalid media ID: ${mediaId}`);
             }
             
+            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
-                cache: options?.cache ?? 'no-store',
-                revalidate: options?.revalidate,
-                tags: [`${MEDIA_CACHE_TAG}-${mediaIdNumber}`], // Tag for specific item
                 cookieHeader: options?.cookieHeader,
             };
 
@@ -556,10 +535,8 @@ export const mediaApi = {
             ? '/core/upload-settings/?clear_cache=true'
             : '/core/upload-settings/';
         
-        const response = await fetchApi.get<MediaUploadSettings>(url, {
-            cache: clearCache ? 'no-store' : 'force-cache',
-            revalidate: clearCache ? 0 : 3600, // 1 hour
-        });
+        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+        const response = await fetchApi.get<MediaUploadSettings>(url);
         
         if (!response.data) {
             throw new Error("API returned success but no upload settings data found.");

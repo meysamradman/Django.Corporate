@@ -21,6 +21,7 @@ class AIImageGeneration(BaseModel):
         ('openai', 'OpenAI DALL-E'),
         ('huggingface', 'Hugging Face Stable Diffusion'),
         ('deepseek', 'DeepSeek AI'),
+        ('openrouter', 'OpenRouter (60+ Providers)'),
     ]
     
     provider_name = models.CharField(
@@ -115,11 +116,28 @@ class AIImageGeneration(BaseModel):
     def get_api_key(self) -> str:
         """Get decrypted API key"""
         try:
+            if not self.api_key:
+                print(f"[AIImageGeneration] get_api_key: API key is None or empty for {self.provider_name}")
+                raise ValidationError(AI_ERRORS["api_key_required"])
+            
+            # Log API key preview (encrypted)
+            api_key_preview = self.api_key[:20] + "..." if len(self.api_key) > 20 else self.api_key
+            print(f"[AIImageGeneration] get_api_key: Decrypting API key for {self.provider_name}, encrypted preview: {api_key_preview}")
+            
             key = self._get_encryption_key()
             f = Fernet(key)
             decrypted = f.decrypt(self.api_key.encode())
-            return decrypted.decode()
+            decrypted_key = decrypted.decode()
+            
+            # Log decrypted API key preview (only first few chars for security)
+            decrypted_preview = decrypted_key[:10] + "..." if len(decrypted_key) > 10 else decrypted_key
+            print(f"[AIImageGeneration] get_api_key: Successfully decrypted API key for {self.provider_name}, preview: {decrypted_preview}")
+            
+            return decrypted_key
+        except ValidationError:
+            raise
         except Exception as e:
+            print(f"[AIImageGeneration] get_api_key: Error decrypting API key for {self.provider_name}: {str(e)}")
             raise ValidationError(AI_ERRORS["api_key_decryption_error"].format(error=str(e)))
     
     def activate(self):
@@ -151,6 +169,34 @@ class AIImageGeneration(BaseModel):
         cache.delete(cache_key)
     
     @classmethod
+    def get_active_provider(cls, provider_name: str):
+        """
+        Get active provider with Redis cache for better performance
+        
+        Args:
+            provider_name: Provider name ('gemini', 'openai', etc.)
+        
+        Returns:
+            AIImageGeneration instance or None
+        """
+        from django.core.cache import cache
+        cache_key = f'ai_provider_{provider_name}'
+        provider = cache.get(cache_key)
+        
+        if not provider:
+            try:
+                provider = cls.objects.get(
+                    provider_name=provider_name,
+                    is_active=True
+                )
+                # Cache for 5 minutes (300 seconds)
+                cache.set(cache_key, provider, 300)
+            except cls.DoesNotExist:
+                return None
+        
+        return provider
+    
+    @classmethod
     def get_active_providers(cls):
         """Get list of active providers"""
         return cls.objects.filter(is_active=True)
@@ -158,8 +204,5 @@ class AIImageGeneration(BaseModel):
     @classmethod
     def is_provider_available(cls, provider_name: str) -> bool:
         """Check if specific provider is active"""
-        return cls.objects.filter(
-            provider_name=provider_name,
-            is_active=True
-        ).exists()
+        return cls.get_active_provider(provider_name) is not None
 

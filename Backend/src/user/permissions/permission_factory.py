@@ -18,6 +18,8 @@ MODULE_MAPPINGS = {
     'settings': ['settings'],
     'email': ['email'],
     'ai': ['ai'],
+    'chatbot': ['chatbot'],
+    'ticket': ['ticket'],
     'statistics': ['statistics'],
     'forms': ['forms'],
     'admin': ['admin'],
@@ -28,13 +30,22 @@ MODULE_MAPPINGS = {
 for module_name, related_modules in MODULE_MAPPINGS.items():
     class_name = f"{module_name.capitalize()}ManagerAccess"
     
+    # ✅ FIXED: Create class that checks BOTH module AND manage action
+    def make_init(modules):
+        """Factory function to create __init__ with correct closure"""
+        def __init__(self):
+            RequireModuleAccess.__init__(self, *modules)
+            # ✅ CRITICAL: Set required action to 'manage' for all ManagerAccess classes
+            self.required_action = 'manage'
+        return __init__
+    
     # Create class dynamically
     permission_class = type(
         class_name,
         (RequireModuleAccess,),
         {
-            '__init__': lambda self, modules=list(related_modules): RequireModuleAccess.__init__(self, *modules),
-            '__doc__': f'Permission class for {module_name} module - Auto-generated from registry',
+            '__init__': make_init(list(related_modules)),
+            '__doc__': f'Permission class for {module_name} module - Requires {module_name}.manage permission',
             '__module__': __name__,
         }
     )

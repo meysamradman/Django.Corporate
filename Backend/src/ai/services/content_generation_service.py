@@ -3,7 +3,8 @@ import time
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from src.ai.models.image_generation import AIImageGeneration
-from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider
+from src.ai.models.admin_ai_settings import AdminAISettings
+from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider, OpenRouterProvider
 
 
 class AIContentGenerationService:
@@ -13,32 +14,78 @@ class AIContentGenerationService:
         'gemini': GeminiProvider,
         'openai': OpenAIProvider,
         'deepseek': DeepSeekProvider,
+        'openrouter': OpenRouterProvider,
         # Note: Hugging Face Inference API has limitations for text generation (404 errors)
         # 'huggingface': HuggingFaceProvider,  # Disabled due to API limitations
     }
     
     @classmethod
-    def get_provider(cls, provider_name: str):
-        """Get AI provider instance"""
-        provider_model = AIImageGeneration.objects.filter(
-            provider_name=provider_name,
-            is_active=True
-        ).first()
+    def get_provider(cls, provider_name: str, admin=None):
+        """
+        Get AI provider instance
         
-        if not provider_model:
-            raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
+        Args:
+            provider_name: Provider name ('gemini', 'openai', 'deepseek')
+            admin: Admin user instance (optional) - if provided, uses personal/shared API based on settings
         
+        Returns:
+            Provider instance with appropriate API key
+        """
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
             raise ValueError(f"Provider '{provider_name}' پشتیبانی نمی‌شود.")
         
-        api_key = provider_model.get_api_key()
-        config = provider_model.config or {}
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # ✅ Use admin-specific API key if admin is provided
+        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
+            try:
+                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
+                # Get config from shared provider (configs are same) - ✅ Use cached method
+                provider_model = AIImageGeneration.get_active_provider(provider_name)
+                config = provider_model.config or {} if provider_model else {}
+                
+                # Check which API is being used
+                try:
+                    personal_settings = AdminAISettings.objects.get(
+                        admin=admin,
+                        provider_name=provider_name,
+                        is_active=True
+                    )
+                    if personal_settings.use_shared_api:
+                        logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
+                        print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
+                    else:
+                        logger.info(f"👤 [AI Content Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
+                        print(f"👤 [AI Content Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
+                except AdminAISettings.DoesNotExist:
+                    logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
+                    print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
+            except AdminAISettings.DoesNotExist:
+                # Fallback to shared API - ✅ Use cached method
+                logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
+                print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
+                provider_model = AIImageGeneration.get_active_provider(provider_name)
+                if not provider_model:
+                    raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
+                api_key = provider_model.get_api_key()
+                config = provider_model.config or {}
+        else:
+            # Use shared API (default) - ✅ Use Model's cached method for better performance
+            logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
+            print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
+            provider_model = AIImageGeneration.get_active_provider(provider_name)
+            if not provider_model:
+                raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
+            
+            api_key = provider_model.get_api_key()
+            config = provider_model.config or {}
         
         return provider_class(api_key=api_key, config=config)
     
     @classmethod
-    def generate_content(cls, topic: str, provider_name: str = 'gemini', **kwargs) -> Dict[str, Any]:
+    def generate_content(cls, topic: str, provider_name: str = 'gemini', admin=None, **kwargs) -> Dict[str, Any]:
         """
         Generate SEO-optimized content (without caching)
         
@@ -61,7 +108,7 @@ class AIContentGenerationService:
         start_time = time.time()
         
         try:
-            provider = cls.get_provider(provider_name)
+            provider = cls.get_provider(provider_name, admin=admin)
             
             # Use async generation
             loop = asyncio.new_event_loop()
@@ -99,17 +146,32 @@ class AIContentGenerationService:
                 content_text = seo_data.get('content', '')
                 seo_data['word_count'] = len(content_text.split())
             
-            # Increment provider usage
-            provider_model = AIImageGeneration.objects.get(provider_name=provider_name)
-            provider_model.increment_usage()
-            
-            # Close provider connection
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                loop.run_until_complete(provider.close())
-            finally:
-                loop.close()
+            # Track usage: if admin uses personal API, track on AdminAISettings; otherwise on shared provider
+            if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
+                try:
+                    admin_settings = AdminAISettings.objects.get(
+                        admin=admin,
+                        provider_name=provider_name,
+                        is_active=True
+                    )
+                    # Only track if using personal API (not shared)
+                    if not admin_settings.use_shared_api:
+                        admin_settings.increment_usage()
+                    else:
+                        # Track on shared provider - ✅ Use cached method for consistency
+                        provider_model = AIImageGeneration.get_active_provider(provider_name)
+                        if provider_model:
+                            provider_model.increment_usage()
+                except AdminAISettings.DoesNotExist:
+                    # If no personal settings, track on shared provider - ✅ Use cached method
+                    provider_model = AIImageGeneration.get_active_provider(provider_name)
+                    if provider_model:
+                        provider_model.increment_usage()
+            else:
+                # Track on shared provider - ✅ Use cached method for consistency
+                provider_model = AIImageGeneration.get_active_provider(provider_name)
+                if provider_model:
+                    provider_model.increment_usage()
             
             # Format and return response
             return {
@@ -131,25 +193,68 @@ class AIContentGenerationService:
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
     
     @classmethod
-    def get_available_providers(cls) -> list:
-        """Get list of available content generation providers"""
-        # Filter active providers that support content generation
-        # Note: Hugging Face Inference API has limitations for text generation, so we exclude it
-        providers = AIImageGeneration.objects.filter(
-            provider_name__in=['gemini', 'openai', 'deepseek'],  # Added deepseek, removed huggingface due to API limitations
-            is_active=True
-        ).values('id', 'provider_name')
+    def get_available_providers(cls, admin=None) -> list:
+        """
+        Get list of available content generation providers
+        Returns providers that are either:
+        1. Active in shared settings (AIImageGeneration)
+        2. Active in personal settings (AdminAISettings) for the given admin
+        """
+        import logging
+        logger = logging.getLogger(__name__)
         
-        result = []
-        for provider in providers:
-            result.append({
-                'id': provider['id'],
-                'provider_name': provider['provider_name'],
-                'provider_display': cls._get_provider_display(provider['provider_name']),
-                'can_generate': True
-            })
-        
-        return result
+        try:
+            # Get shared active providers
+            shared_providers = AIImageGeneration.objects.filter(
+                provider_name__in=['gemini', 'openai', 'deepseek', 'openrouter'],
+                is_active=True
+            ).values('id', 'provider_name')
+            
+            logger.info(f"[AI Content] Shared active providers: {list(shared_providers)}")
+            print(f"[AI Content] Shared active providers: {list(shared_providers)}")
+            
+            # Create a set of provider names from shared providers
+            available_provider_names = set(p['provider_name'] for p in shared_providers)
+            
+            # Get personal active providers for this admin (if admin is provided)
+            if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
+                personal_settings = AdminAISettings.objects.filter(
+                    admin=admin,
+                    provider_name__in=['gemini', 'openai', 'deepseek', 'openrouter'],
+                    is_active=True
+                ).values('provider_name')
+                
+                personal_provider_names = set(p['provider_name'] for p in personal_settings)
+                
+                logger.info(f"[AI Content] Personal active providers for {admin}: {personal_provider_names}")
+                print(f"[AI Content] Personal active providers for {admin}: {personal_provider_names}")
+                
+                # Add personal providers to available list (even if not in shared)
+                available_provider_names.update(personal_provider_names)
+            
+            logger.info(f"[AI Content] Combined available provider names: {available_provider_names}")
+            print(f"[AI Content] Combined available provider names: {available_provider_names}")
+            
+            # Build result list
+            result = []
+            for provider_name in available_provider_names:
+                # Try to get shared provider for ID (if exists)
+                shared_provider = next((p for p in shared_providers if p['provider_name'] == provider_name), None)
+                
+                result.append({
+                    'id': shared_provider['id'] if shared_provider else None,  # Use shared provider ID if exists
+                    'provider_name': provider_name,
+                    'provider_display': cls._get_provider_display(provider_name),
+                    'can_generate': True
+                })
+            
+            logger.info(f"[AI Content] Returning {len(result)} providers: {result}")
+            print(f"[AI Content] Returning {len(result)} providers: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"[AI Content] Error in get_available_providers: {str(e)}", exc_info=True)
+            print(f"[AI Content] Error in get_available_providers: {str(e)}")
+            return []
     
     @classmethod
     def _get_provider_display(cls, provider_name: str) -> str:
@@ -158,6 +263,7 @@ class AIContentGenerationService:
             'gemini': 'Google Gemini',
             'openai': 'OpenAI GPT',
             'deepseek': 'DeepSeek AI',
+            'openrouter': 'OpenRouter (60+ Providers)',
             'huggingface': 'Hugging Face',
         }
         return display_names.get(provider_name, provider_name)

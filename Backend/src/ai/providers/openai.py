@@ -333,6 +333,65 @@ Write the content as plain text without special formatting."""
         except Exception as e:
             raise Exception(f"خطا در چت: {str(e)}")
     
+    # Text-to-Speech (TTS) method
+    async def text_to_speech(self, text: str, **kwargs) -> BytesIO:
+        """Convert text to speech using OpenAI TTS API"""
+        url = f"{self.BASE_URL}/audio/speech"
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        # TTS parameters
+        model = kwargs.get('model', 'tts-1')  # tts-1 (fast) or tts-1-hd (high quality)
+        voice = kwargs.get('voice', 'alloy')  # alloy, echo, fable, onyx, nova, shimmer
+        response_format = kwargs.get('response_format', 'mp3')  # mp3, opus, aac, flac
+        speed = kwargs.get('speed', 1.0)  # 0.25 to 4.0
+        
+        payload = {
+            "model": model,
+            "input": text,
+            "voice": voice,
+            "response_format": response_format,
+            "speed": speed,
+        }
+        
+        try:
+            response = await self.client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            
+            # Return audio bytes
+            return BytesIO(response.content)
+            
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+            try:
+                error_data = e.response.json()
+                error_msg = error_data.get('error', {}).get('message', '')
+                
+                if status_code == 429:
+                    if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
+                        raise Exception(
+                            "خطای OpenAI API: اعتبار حساب شما تمام شده است. لطفاً به https://platform.openai.com/account/billing مراجعه کنید."
+                        )
+                    else:
+                        raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                elif status_code == 401:
+                    raise Exception("خطای OpenAI API: API Key نامعتبر است.")
+                elif status_code == 403:
+                    raise Exception("خطای OpenAI API: دسترسی به API محدود شده است.")
+                
+                raise Exception(f"خطای OpenAI API: {error_msg}")
+            except Exception as ex:
+                if 'خطای OpenAI API' in str(ex):
+                    raise ex
+                if status_code == 429:
+                    raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است یا اعتبار حساب تمام شده.")
+                raise Exception(f"خطای HTTP {status_code}")
+        except Exception as e:
+            raise Exception(f"خطا در تولید صدا: {str(e)}")
+    
     def validate_api_key(self) -> bool:
         """Validate API key"""
         try:

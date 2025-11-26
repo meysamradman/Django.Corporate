@@ -24,6 +24,8 @@ export const PERMISSION_TRANSLATIONS = {
     'Panel Settings': 'تنظیمات پنل ادمین',
     'System Settings': 'تنظیمات سیستم',
     'AI Tools': 'ابزارهای هوش مصنوعی',
+    'Chatbot Management': 'مدیریت چت‌بات',
+    'Ticket Management': 'مدیریت تیکت',
     'Email Center': 'ایمیل',
     'Forms Builder': 'سازنده فرم‌ها',
     'Pages Management': 'مدیریت صفحات',
@@ -50,6 +52,8 @@ export const PERMISSION_TRANSLATIONS = {
     'forms_manager': 'مدیر فرم‌ها',
     'pages_manager': 'مدیر صفحات',
     'email_manager': 'مدیر ایمیل',
+    'ticket_manager': 'مدیر تیکت',
+    'chatbot_manager': 'مدیر چت‌بات',
     'ai_manager': 'مدیر AI',
     'settings_manager': 'مدیر تنظیمات سیستم',
     'panel_manager': 'مدیر تنظیمات پنل',
@@ -67,11 +71,20 @@ export const PERMISSION_TRANSLATIONS = {
     'forms_manager': 'مدیریت فرم‌های تماس و فرم‌های سازنده همراه با فیلدها و اعتبارسنجی‌ها.',
     'pages_manager': 'مدیریت صفحات استاتیک مانند درباره ما، قوانین و صفحات لندینگ.',
     'email_manager': 'مدیریت صندوق ورودی، قالب‌ها و کمپین‌های ایمیل پنل ادمین.',
+    'ticket_manager': 'مدیریت تیکت‌های پشتیبانی، پاسخ‌ها و درخواست‌های مشتریان.',
+    'chatbot_manager': 'مدیریت تنظیمات چت‌بات، سوالات متداول و پاسخ‌های خودکار.',
     'ai_manager': 'مدیریت سرویس‌های هوش مصنوعی، پرامپت‌ها و تنظیمات مرتبط.',
     'settings_manager': 'مدیریت تنظیمات کل سیستم و پیکربندی‌های امنیتی.',
     'panel_manager': 'مدیریت ظاهر، برندینگ و تنظیمات رابط کاربری پنل ادمین.',
     'statistics_viewer': 'دسترسی فقط خواندنی به داشبورد آمار و گزارش‌ها.',
     'user_manager': 'مدیریت کاربران وب‌سایت. می‌تواند پروفایل‌ها را مشاهده و ویرایش کند اما دسترسی به ادمین‌ها ندارد.',
+  },
+
+  // Card descriptions for role creation/edit pages
+  cardDescriptions: {
+    'statistics': 'دسترسی به آمارهای مختلف سیستم',
+    'ai': 'دسترسی به امکانات هوش مصنوعی',
+    'management': 'دسترسی مدیریت کلی به تنظیمات و ماژول‌های سیستم',
   },
 
   // Action translations
@@ -94,6 +107,12 @@ export const PERMISSION_TRANSLATIONS = {
 
   // Description translations
   descriptions: {
+    // Chatbot permissions
+    'Manage Chatbot': 'مدیریت چت‌بات',
+    'Allow full access to chatbot settings and FAQs': 'دسترسی کامل به تنظیمات چت‌بات و سوالات متداول',
+    // Ticket permissions
+    'Manage Tickets': 'مدیریت تیکت',
+    'Allow full access to ticket management and responses': 'دسترسی کامل به مدیریت تیکت‌ها و پاسخ‌ها',
     // Statistics permissions
     'View Dashboard Overview': 'مشاهده داشبورد کلی',
     'View Users Statistics': 'مشاهده آمار کاربران',
@@ -101,7 +120,18 @@ export const PERMISSION_TRANSLATIONS = {
     'View Content Statistics': 'مشاهده آمار محتوا',
     'View Financial Statistics': 'مشاهده آمار مالی',
     'Export Statistics': 'خروجی آمار',
-    'Manage Statistics': 'مدیریت آمار',
+    'Manage Statistics': 'دسترسی کامل به آمار',
+    // AI permissions
+    'AI Chat': 'چت هوشمند',
+    'Access to AI chat and smart responses': 'دسترسی به چت هوشمند و پاسخ‌های خودکار',
+    'AI Content Generation': 'تولید محتوا با AI',
+    'Access to AI text and content generation': 'دسترسی به تولید متن و محتوا با هوش مصنوعی',
+    'AI Image Generation': 'تولید تصویر با AI',
+    'Access to AI image generation': 'دسترسی به تولید تصویر با هوش مصنوعی',
+    'Full AI Access': 'دسترسی کامل به AI',
+    'Full access to all AI features (chat, content, image)': 'دسترسی کامل به تمام امکانات هوش مصنوعی (چت، محتوا، تصویر)',
+    'Manage Personal API Key': 'مدیریت API شخصی',
+    'Manage personal API Key for exclusive use': 'مدیریت کلید API شخصی برای استفاده اختصاصی',
     // Complete phrases
     'Can view admin users': 'امکان مشاهده کاربران ادمین',
     'Can manage admin users': 'امکان مدیریت کاربران ادمین',

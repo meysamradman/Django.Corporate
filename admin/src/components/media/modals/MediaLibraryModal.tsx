@@ -135,10 +135,8 @@ export function MediaLibraryModal({
     };
 
     try {
-      // ✅ کش برای performance، اما بعد از آپلود force refresh
+      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
-        cache: 'no-store',
-        revalidate: 0,
         forceRefresh: true
       } : undefined);
       

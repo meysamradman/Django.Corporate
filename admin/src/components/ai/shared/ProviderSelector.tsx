@@ -42,9 +42,7 @@ export function ProviderSelector({
         );
     }
 
-    if (providers.length === 0) {
-        return null;
-    }
+    if (!providers.length) return null;
 
     // Compact mode - استفاده از Select dropdown
     if (compact) {
@@ -79,33 +77,26 @@ export function ProviderSelector({
                     <div
                         key={provider.id}
                         onClick={() => onSelectProvider(provider.provider_name)}
-                        className={`
-                            relative p-4 rounded-lg border-2 cursor-pointer transition-all
-                            ${isSelected 
+                        className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            isSelected 
                                 ? 'border-primary bg-primary/5 shadow-md' 
                                 : 'hover:border-primary/50 hover:shadow-sm bg-card'
-                            }
-                        `}
+                        }`}
                     >
-                        <ArrowRight className={`
-                            absolute top-3 left-3 w-4 h-4 transition-opacity
-                            ${isSelected ? 'opacity-100 text-primary' : 'opacity-30'}
-                        `} />
+                        <ArrowRight className={`absolute top-3 left-3 w-4 h-4 transition-opacity ${
+                            isSelected ? 'opacity-100 text-primary' : 'opacity-30'
+                        }`} />
                         
                         <div className="flex items-start gap-3 mb-3">
-                            <div className={`
-                                flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl
-                                bg-gradient-to-br from-primary/10 to-primary/5
-                                ${isSelected ? 'scale-110 ring-2 ring-primary/30' : ''}
-                                transition-all duration-200
-                            `}>
+                            <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br from-primary/10 to-primary/5 transition-all duration-200 ${
+                                isSelected ? 'scale-110 ring-2 ring-primary/30' : ''
+                            }`}>
                                 {getProviderIcon(provider)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className={`
-                                    font-semibold text-sm mb-1
-                                    ${isSelected ? 'text-primary' : 'text-foreground'}
-                                `}>
+                                <h3 className={`font-semibold text-sm mb-1 ${
+                                    isSelected ? 'text-primary' : 'text-font-p'
+                                }`}>
                                     {getProviderDisplayName(provider)}
                                 </h3>
                                 <p className="text-xs text-font-s line-clamp-2">
@@ -114,11 +105,10 @@ export function ProviderSelector({
                             </div>
                         </div>
                         
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                            <div className={`
-                                flex items-center gap-2 text-xs
-                                ${isSelected ? 'text-primary font-medium' : 'text-font-s'}
-                            `}>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-br">
+                            <div className={`flex items-center gap-2 text-xs ${
+                                isSelected ? 'text-primary font-medium' : 'text-font-s'
+                            }`}>
                                 {isSelected ? (
                                     <>
                                         <Check className="w-3 h-3" />
@@ -129,7 +119,7 @@ export function ProviderSelector({
                                 )}
                             </div>
                             {isSelected && (
-                                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                <div className="w-2 h-2 bg-primary rounded-full" />
                             )}
                         </div>
                     </div>

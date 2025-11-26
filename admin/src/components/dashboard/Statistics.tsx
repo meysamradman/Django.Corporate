@@ -9,73 +9,119 @@ import {
 } from "lucide-react";
 import { useStatistics } from "@/components/dashboard/hooks/useStatistics";
 import { StatCard } from "@/components/dashboard/StatCard";
-import React from "react";
+import React, { useMemo } from "react";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { AccessDenied } from "@/core/permissions/components/AccessDenied";
+import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
+
+interface StatCardConfig {
+  id: string;
+  icon: React.ElementType;
+  title: string;
+  statKey: keyof { total_users: number; total_admins: number; total_portfolios: number; total_posts: number; total_media: number };
+  permission: string | string[];
+  requireAll?: boolean;
+  lockedMessage: string;
+  iconColorClass: string;
+  bgColorClass: string;
+  borderColorClass: string;
+}
+
+const STAT_CARDS_CONFIG: StatCardConfig[] = [
+  {
+    id: 'users',
+    icon: Users,
+    title: 'کل کاربران',
+    statKey: 'total_users',
+    permission: 'statistics.users.read',
+    lockedMessage: 'دسترسی به آمار کاربران',
+    iconColorClass: 'stroke-blue-1',
+    bgColorClass: 'bg-blue',
+    borderColorClass: 'border-b-blue-1',
+  },
+  {
+    id: 'admins',
+    icon: ShieldUser,
+    title: 'کل ادمین‌ها',
+    statKey: 'total_admins',
+    permission: 'statistics.admins.read',
+    lockedMessage: 'دسترسی به آمار ادمین‌ها',
+    iconColorClass: 'stroke-emerald-1',
+    bgColorClass: 'bg-emerald',
+    borderColorClass: 'border-b-emerald-1',
+  },
+  {
+    id: 'portfolios',
+    icon: LayoutList,
+    title: 'کل نمونه کارها',
+    statKey: 'total_portfolios',
+    permission: ['statistics.content.read', 'portfolio.read'],
+    requireAll: true,
+    lockedMessage: 'دسترسی به آمار نمونه کارها',
+    iconColorClass: 'stroke-amber-1',
+    bgColorClass: 'bg-amber',
+    borderColorClass: 'border-b-amber-1',
+  },
+  {
+    id: 'blogs',
+    icon: FileText,
+    title: 'کل بلاگ‌ها',
+    statKey: 'total_posts',
+    permission: ['statistics.content.read', 'blog.read'],
+    requireAll: true,
+    lockedMessage: 'دسترسی به آمار بلاگ‌ها',
+    iconColorClass: 'stroke-indigo-1',
+    bgColorClass: 'bg-indigo',
+    borderColorClass: 'border-b-indigo-1',
+  },
+  {
+    id: 'media',
+    icon: Image,
+    title: 'کل رسانه‌ها',
+    statKey: 'total_media',
+    permission: ['statistics.content.read', 'media.read'],
+    requireAll: true,
+    lockedMessage: 'دسترسی به آمار رسانه‌ها',
+    iconColorClass: 'stroke-purple-1',
+    bgColorClass: 'bg-purple',
+    borderColorClass: 'border-b-purple-1',
+  },
+];
 
 export const Statistics: React.FC = () => {
   const { hasPermission, isLoading: permissionLoading } = usePermission();
   const { data: stats, isLoading, error } = useStatistics();
 
-  // ✅ چک کردن دسترسی به داشبورد (dashboard.read یک base permission است)
-  // اما اگر کاربر هیچ دسترسی به آمار نداشته باشد، AccessDenied نمایش می‌دهیم
-  const hasAnyStatisticsPermission = 
+  // ✅ چک کردن دسترسی به داشبورد
+  const hasAnyStatisticsPermission = useMemo(() => 
     hasPermission('statistics.users.read') ||
     hasPermission('statistics.admins.read') ||
     hasPermission('statistics.content.read') ||
-    hasPermission('statistics.dashboard.read');
+    hasPermission('statistics.dashboard.read'),
+    [hasPermission]
+  );
+
+  // Render loading cards
+  const renderLoadingCards = () => (
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {STAT_CARDS_CONFIG.map((config) => (
+        <StatCard
+          key={config.id}
+          icon={config.icon}
+          title={config.title}
+          value={0}
+          iconColorClass={config.iconColorClass}
+          bgColorClass={config.bgColorClass}
+          borderColorClass={config.borderColorClass}
+          loading={true}
+        />
+      ))}
+    </div>
+  );
 
   // اگر در حال بارگذاری permissions است، loading نمایش بده
   if (permissionLoading) {
-    return (
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        <StatCard
-          icon={Users}
-          title="کل کاربران"
-          value={0}
-          iconColor="var(--color-sky-500)"
-          bgColor="var(--color-sky-100)"
-          borderColor="var(--color-sky-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={ShieldUser}
-          title="کل ادمین‌ها"
-          value={0}
-          iconColor="var(--color-emerald-500)"
-          bgColor="var(--color-emerald-100)"
-          borderColor="var(--color-emerald-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={LayoutList}
-          title="کل نمونه کارها"
-          value={0}
-          iconColor="var(--color-amber-500)"
-          bgColor="var(--color-amber-100)"
-          borderColor="var(--color-amber-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={FileText}
-          title="کل بلاگ‌ها"
-          value={0}
-          iconColor="var(--color-indigo-500)"
-          bgColor="var(--color-indigo-100)"
-          borderColor="var(--color-indigo-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={Image}
-          title="کل رسانه‌ها"
-          value={0}
-          iconColor="var(--color-purple-500)"
-          bgColor="var(--color-purple-100)"
-          borderColor="var(--color-purple-300)"
-          loading={true}
-        />
-      </div>
-    );
+    return renderLoadingCards();
   }
 
   // ✅ اگر دسترسی به آمار ندارد، AccessDenied نمایش بده
@@ -109,55 +155,7 @@ export const Statistics: React.FC = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        <StatCard
-          icon={Users}
-          title="کل کاربران"
-          value={0}
-          iconColor="var(--color-sky-500)"
-          bgColor="var(--color-sky-100)"
-          borderColor="var(--color-sky-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={ShieldUser}
-          title="کل ادمین‌ها"
-          value={0}
-          iconColor="var(--color-emerald-500)"
-          bgColor="var(--color-emerald-100)"
-          borderColor="var(--color-emerald-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={LayoutList}
-          title="کل نمونه کارها"
-          value={0}
-          iconColor="var(--color-amber-500)"
-          bgColor="var(--color-amber-100)"
-          borderColor="var(--color-amber-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={FileText}
-          title="کل بلاگ‌ها"
-          value={0}
-          iconColor="var(--color-indigo-500)"
-          bgColor="var(--color-indigo-100)"
-          borderColor="var(--color-indigo-300)"
-          loading={true}
-        />
-        <StatCard
-          icon={Image}
-          title="کل رسانه‌ها"
-          value={0}
-          iconColor="var(--color-purple-500)"
-          bgColor="var(--color-purple-100)"
-          borderColor="var(--color-purple-300)"
-          loading={true}
-        />
-      </div>
-    );
+    return renderLoadingCards();
   }
 
   const defaultStats = {
@@ -172,51 +170,27 @@ export const Statistics: React.FC = () => {
 
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      <StatCard
-        icon={Users}
-        title="کل کاربران"
-        value={currentStats.total_users}
-        iconColor="var(--color-sky-500)"
-        bgColor="var(--color-sky-100)"
-        borderColor="var(--color-sky-300)"
-        loading={false}
-      />
-      <StatCard
-        icon={ShieldUser}
-        title="کل ادمین‌ها"
-        value={currentStats.total_admins}
-        iconColor="var(--color-emerald-500)"
-        bgColor="var(--color-emerald-100)"
-        borderColor="var(--color-emerald-300)"
-        loading={false}
-      />
-      <StatCard
-        icon={LayoutList}
-        title="کل نمونه کارها"
-        value={currentStats.total_portfolios}
-        iconColor="var(--color-amber-500)"
-        bgColor="var(--color-amber-100)"
-        borderColor="var(--color-amber-300)"
-        loading={false}
-      />
-      <StatCard
-        icon={FileText}
-        title="کل بلاگ‌ها"
-        value={currentStats.total_posts}
-        iconColor="var(--color-indigo-500)"
-        bgColor="var(--color-indigo-100)"
-        borderColor="var(--color-indigo-300)"
-        loading={false}
-      />
-      <StatCard
-        icon={Image}
-        title="کل رسانه‌ها"
-        value={currentStats.total_media}
-        iconColor="var(--color-purple-500)"
-        bgColor="var(--color-purple-100)"
-        borderColor="var(--color-purple-300)"
-        loading={false}
-      />
+      {STAT_CARDS_CONFIG.map((config) => (
+        <PermissionLocked
+          key={config.id}
+          permission={config.permission}
+          requireAll={config.requireAll}
+          lockedMessage={config.lockedMessage}
+          borderColorClass={config.borderColorClass}
+          iconBgColorClass={config.bgColorClass}
+          iconColorClass={config.iconColorClass}
+        >
+          <StatCard
+            icon={config.icon}
+            title={config.title}
+            value={currentStats[config.statKey]}
+            iconColorClass={config.iconColorClass}
+            bgColorClass={config.bgColorClass}
+            borderColorClass={config.borderColorClass}
+            loading={false}
+          />
+        </PermissionLocked>
+      ))}
     </div>
   );
 };

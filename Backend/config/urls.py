@@ -12,6 +12,8 @@ urlpatterns = [
     path('api/', include('src.user.urls')),
     path('api/', include('src.media.urls')),
     path('api/', include('src.ai.urls')),
+    path('api/', include('src.chatbot.urls')),
+    path('api/', include('src.ticket.urls')),
     path('api/email/', include('src.email.urls')),
     path('api/settings/', include('src.settings.urls')),
     path('api/', include('src.page.urls')),

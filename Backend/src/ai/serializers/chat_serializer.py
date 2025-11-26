@@ -26,7 +26,7 @@ class AIChatRequestSerializer(serializers.Serializer):
     )
     
     provider_name = serializers.ChoiceField(
-        choices=['gemini', 'openai', 'deepseek'],
+        choices=['gemini', 'openai', 'deepseek', 'openrouter'],
         default='deepseek',  # Default to DeepSeek as it's free
         help_text="مدل AI برای چت"
     )

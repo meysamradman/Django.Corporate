@@ -1,0 +1,231 @@
+"""
+Content Module Permissions
+Blog and Portfolio permissions including categories, tags, and options
+"""
+
+CONTENT_PERMISSIONS = {
+    # Blog
+    'blog.read': {
+        'module': 'blog',
+        'action': 'read',
+        'display_name': 'View Blogs',
+        'description': 'Allow viewing blog posts list and details',
+    },
+    'blog.create': {
+        'module': 'blog',
+        'action': 'create',
+        'display_name': 'Create Blog',
+        'description': 'Allow creating new blog posts',
+    },
+    'blog.update': {
+        'module': 'blog',
+        'action': 'update',
+        'display_name': 'Update Blog',
+        'description': 'Allow updating blog posts',
+    },
+    'blog.delete': {
+        'module': 'blog',
+        'action': 'delete',
+        'display_name': 'Delete Blog',
+        'description': 'Allow deleting blog posts',
+    },
+    'blog.manage': {
+        'module': 'blog',
+        'action': 'manage',
+        'display_name': 'Manage Blogs',
+        'description': 'Allow full access to blog posts (view, create, update, delete)',
+    },
+    
+    # Blog Categories
+    'blog.category.read': {
+        'module': 'blog',
+        'action': 'read',
+        'display_name': 'View Blog Categories',
+        'description': 'Allow viewing blog categories',
+    },
+    'blog.category.create': {
+        'module': 'blog',
+        'action': 'create',
+        'display_name': 'Create Blog Category',
+        'description': 'Allow creating blog categories',
+    },
+    'blog.category.update': {
+        'module': 'blog',
+        'action': 'update',
+        'display_name': 'Update Blog Category',
+        'description': 'Allow updating blog categories',
+    },
+    'blog.category.delete': {
+        'module': 'blog',
+        'action': 'delete',
+        'display_name': 'Delete Blog Category',
+        'description': 'Allow deleting blog categories',
+    },
+    'blog.category.manage': {
+        'module': 'blog',
+        'action': 'manage',
+        'display_name': 'Manage Blog Categories',
+        'description': 'Allow full access to blog categories (view, create, update, delete)',
+    },
+    
+    # Blog Tags
+    'blog.tag.read': {
+        'module': 'blog',
+        'action': 'read',
+        'display_name': 'View Blog Tags',
+        'description': 'Allow viewing blog tags',
+    },
+    'blog.tag.create': {
+        'module': 'blog',
+        'action': 'create',
+        'display_name': 'Create Blog Tag',
+        'description': 'Allow creating blog tags',
+    },
+    'blog.tag.update': {
+        'module': 'blog',
+        'action': 'update',
+        'display_name': 'Update Blog Tag',
+        'description': 'Allow updating blog tags',
+    },
+    'blog.tag.delete': {
+        'module': 'blog',
+        'action': 'delete',
+        'display_name': 'Delete Blog Tag',
+        'description': 'Allow deleting blog tags',
+    },
+    'blog.tag.manage': {
+        'module': 'blog',
+        'action': 'manage',
+        'display_name': 'Manage Blog Tags',
+        'description': 'Allow full access to blog tags (view, create, update, delete)',
+    },
+    
+    # Portfolio
+    'portfolio.read': {
+        'module': 'portfolio',
+        'action': 'read',
+        'display_name': 'View Portfolios',
+        'description': 'Allow viewing portfolio items list and details',
+    },
+    'portfolio.create': {
+        'module': 'portfolio',
+        'action': 'create',
+        'display_name': 'Create Portfolio',
+        'description': 'Allow creating new portfolio items',
+    },
+    'portfolio.update': {
+        'module': 'portfolio',
+        'action': 'update',
+        'display_name': 'Update Portfolio',
+        'description': 'Allow updating portfolio items',
+    },
+    'portfolio.delete': {
+        'module': 'portfolio',
+        'action': 'delete',
+        'display_name': 'Delete Portfolio',
+        'description': 'Allow deleting portfolio items',
+    },
+    'portfolio.manage': {
+        'module': 'portfolio',
+        'action': 'manage',
+        'display_name': 'Manage Portfolios',
+        'description': 'Allow full access to portfolio items (view, create, update, delete)',
+    },
+    
+    # Portfolio Categories
+    'portfolio.category.read': {
+        'module': 'portfolio',
+        'action': 'read',
+        'display_name': 'View Portfolio Categories',
+        'description': 'Allow viewing portfolio categories',
+    },
+    'portfolio.category.create': {
+        'module': 'portfolio',
+        'action': 'create',
+        'display_name': 'Create Portfolio Category',
+        'description': 'Allow creating portfolio categories',
+    },
+    'portfolio.category.update': {
+        'module': 'portfolio',
+        'action': 'update',
+        'display_name': 'Update Portfolio Category',
+        'description': 'Allow updating portfolio categories',
+    },
+    'portfolio.category.delete': {
+        'module': 'portfolio',
+        'action': 'delete',
+        'display_name': 'Delete Portfolio Category',
+        'description': 'Allow deleting portfolio categories',
+    },
+    'portfolio.category.manage': {
+        'module': 'portfolio',
+        'action': 'manage',
+        'display_name': 'Manage Portfolio Categories',
+        'description': 'Allow full access to portfolio categories (view, create, update, delete)',
+    },
+    
+    # Portfolio Tags
+    'portfolio.tag.read': {
+        'module': 'portfolio',
+        'action': 'read',
+        'display_name': 'View Portfolio Tags',
+        'description': 'Allow viewing portfolio tags',
+    },
+    'portfolio.tag.create': {
+        'module': 'portfolio',
+        'action': 'create',
+        'display_name': 'Create Portfolio Tag',
+        'description': 'Allow creating portfolio tags',
+    },
+    'portfolio.tag.update': {
+        'module': 'portfolio',
+        'action': 'update',
+        'display_name': 'Update Portfolio Tag',
+        'description': 'Allow updating portfolio tags',
+    },
+    'portfolio.tag.delete': {
+        'module': 'portfolio',
+        'action': 'delete',
+        'display_name': 'Delete Portfolio Tag',
+        'description': 'Allow deleting portfolio tags',
+    },
+    'portfolio.tag.manage': {
+        'module': 'portfolio',
+        'action': 'manage',
+        'display_name': 'Manage Portfolio Tags',
+        'description': 'Allow full access to portfolio tags (view, create, update, delete)',
+    },
+    
+    # Portfolio Options
+    'portfolio.option.read': {
+        'module': 'portfolio',
+        'action': 'read',
+        'display_name': 'View Portfolio Options',
+        'description': 'Allow viewing portfolio options',
+    },
+    'portfolio.option.create': {
+        'module': 'portfolio',
+        'action': 'create',
+        'display_name': 'Create Portfolio Option',
+        'description': 'Allow creating portfolio options',
+    },
+    'portfolio.option.update': {
+        'module': 'portfolio',
+        'action': 'update',
+        'display_name': 'Update Portfolio Option',
+        'description': 'Allow updating portfolio options',
+    },
+    'portfolio.option.delete': {
+        'module': 'portfolio',
+        'action': 'delete',
+        'display_name': 'Delete Portfolio Option',
+        'description': 'Allow deleting portfolio options',
+    },
+    'portfolio.option.manage': {
+        'module': 'portfolio',
+        'action': 'manage',
+        'display_name': 'Manage Portfolio Options',
+        'description': 'Allow full access to portfolio options (view, create, update, delete)',
+    },
+}
+

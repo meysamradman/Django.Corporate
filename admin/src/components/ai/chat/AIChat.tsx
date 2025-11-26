@@ -14,7 +14,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/elements/Avatar';
 import { aiApi } from '@/api/ai/route';
 import { AvailableProvider } from '@/types/ai/ai';
-import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Mic, Paperclip } from 'lucide-react';
+import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Mic, Paperclip, Trash2 } from 'lucide-react';
+import { HelpGuide } from '@/components/elements/HelpGuide';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { msg } from '@/core/messages/message';
@@ -28,17 +29,63 @@ interface ChatMessage {
     timestamp?: number;
 }
 
-export function AIChat() {
+interface AIChatProps {
+    compact?: boolean;
+}
+
+export function AIChat({ compact = false }: AIChatProps = {}) {
     const { user } = useAuth();
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
-    const [selectedProvider, setSelectedProvider] = useState<string>('');
+    const [selectedProvider, setSelectedProvider] = useState<string>(() => {
+        // Load selected provider from localStorage on mount (only in compact mode)
+        if (compact && typeof window !== 'undefined') {
+            const saved = localStorage.getItem('ai_chat_selected_provider');
+            return saved || '';
+        }
+        return '';
+    });
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>(() => {
+        /**
+         * Load messages from localStorage on mount
+         * 
+         * ✅ Only load/save in compact mode (floating widget)
+         * ✅ Full page chat does NOT save to localStorage
+         * 
+         * ✅ Security Notes:
+         * - localStorage is client-side only, not sent to server automatically
+         * - Data is stored per browser/device (not shared across devices)
+         * - No sensitive data (API keys, passwords) stored - only chat messages
+         * - User must be authenticated to use chat (permission check in useEffect)
+         * 
+         * ✅ Performance Notes:
+         * - Limited to last 50 messages (~100KB max)
+         * - Prevents localStorage bloat
+         * - Only saves when user is authenticated
+         * - Auto-cleanup if messages exceed size limit
+         */
+        // Only load from localStorage in compact mode (floating widget)
+        if (compact && typeof window !== 'undefined') {
+            const saved = localStorage.getItem('ai_chat_messages');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // Limit to last 50 messages for performance
+                    return Array.isArray(parsed) ? parsed.slice(-50) : [];
+                } catch {
+                    // Invalid data, clear it
+                    localStorage.removeItem('ai_chat_messages');
+                    return [];
+                }
+            }
+        }
+        return [];
+    });
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const sampleMessagesAdded = useRef(false);
+    const providersFetched = useRef(false); // ✅ CRITICAL: Prevent double fetch
 
     const getAdminDisplayName = () => {
         if (user?.profile?.full_name) return user.profile.full_name;
@@ -66,12 +113,93 @@ export function AIChat() {
     };
 
     useEffect(() => {
-        fetchAvailableProviders();
-    }, []);
+        // ✅ CRITICAL: Only fetch providers if user has ai.manage permission
+        // ✅ CRITICAL: Prevent double fetch with ref
+        if (user && !providersFetched.current) {
+            // Check if user has ai.manage, any ai.* permission, or "all" permission
+            const hasAIPermission = user?.permissions?.some((p: string) => 
+                p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
+            );
+            
+            console.log('[AI Chat Frontend] User permissions:', user?.permissions);
+            console.log('[AI Chat Frontend] Has AI permission:', hasAIPermission);
+            
+            if (hasAIPermission) {
+                console.log('[AI Chat Frontend] Fetching available providers...');
+                providersFetched.current = true;
+                fetchAvailableProviders();
+            } else {
+                // If no AI permission, stop loading
+                console.log('[AI Chat Frontend] No AI permission, stopping load');
+                setLoadingProviders(false);
+            }
+        } else if (!user) {
+            // If user not loaded yet, keep loading
+            setLoadingProviders(true);
+        }
+    }, [user]);
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Save messages to localStorage whenever they change
+    /**
+     * ✅ Security & Performance Optimizations:
+     * 1. Only saves in compact mode (floating widget) - full page does NOT save
+     * 2. Only saves if user is authenticated (user check)
+     * 3. Limits to last 50 messages (~100KB max)
+     * 4. Auto-reduces to 30 messages if exceeds 100KB
+     * 5. Clears localStorage when messages are empty
+     * 6. Prevents localStorage bloat (max browser limit ~5-10MB)
+     * 
+     * Note: localStorage is per-browser, not synced across devices.
+     * For multi-device sync, consider backend storage (future enhancement).
+     */
+    useEffect(() => {
+        // Only save in compact mode (floating widget)
+        if (compact && typeof window !== 'undefined' && user) {
+            if (messages.length > 0) {
+                // Limit to last 50 messages for performance
+                const messagesToSave = messages.slice(-50);
+                const dataToSave = JSON.stringify(messagesToSave);
+                
+                // Check localStorage size (max ~5MB browser limit, we limit to ~100KB for chat)
+                if (dataToSave.length > 100000) {
+                    // If too large, only keep last 30 messages
+                    const limited = messages.slice(-30);
+                    localStorage.setItem('ai_chat_messages', JSON.stringify(limited));
+                } else {
+                    localStorage.setItem('ai_chat_messages', dataToSave);
+                }
+            } else {
+                // Clear localStorage if messages are empty
+                localStorage.removeItem('ai_chat_messages');
+            }
+        } else if (typeof window !== 'undefined' && !user) {
+            // Clear localStorage if user logs out
+            localStorage.removeItem('ai_chat_messages');
+            localStorage.removeItem('ai_chat_selected_provider');
+        }
+    }, [messages, user, compact]);
+
+    // Save selected provider to localStorage whenever it changes
+    // ✅ Security: Only save if user is authenticated and in compact mode
+    useEffect(() => {
+        if (compact && typeof window !== 'undefined' && selectedProvider && user) {
+            localStorage.setItem('ai_chat_selected_provider', selectedProvider);
+        }
+    }, [selectedProvider, user, compact]);
+
+    // Function to clear chat history
+    // ✅ Security: Clear both state and localStorage
+    const handleClearChat = () => {
+        setMessages([]);
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('ai_chat_messages');
+            localStorage.removeItem('ai_chat_selected_provider');
+        }
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,17 +207,24 @@ export function AIChat() {
 
     const fetchAvailableProviders = async () => {
         try {
+            console.log('[AI Chat Frontend] Starting fetchAvailableProviders...');
             setLoadingProviders(true);
             const response = await aiApi.chat.getAvailableProviders();
+            
+            console.log('[AI Chat Frontend] Response received:', response);
             
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data) 
                     ? response.data 
                     : (response.data as any)?.data || [];
                 
+                console.log('[AI Chat Frontend] Providers data:', providersData);
                 setAvailableProviders(providersData);
+            } else {
+                console.error('[AI Chat Frontend] Response status not success:', response.metaData);
             }
         } catch (error: any) {
+            console.error('[AI Chat Frontend] Error fetching providers:', error);
             // Toast already shown by aiApi
         } finally {
             setLoadingProviders(false);
@@ -124,6 +259,8 @@ export function AIChat() {
         try {
             setSending(true);
 
+            // ✅ Performance: Only send last 20 messages to backend (to avoid large payloads)
+            // This prevents huge API requests and reduces token usage
             const conversationHistory = messages
                 .slice(-20)
                 .map(msg => ({
@@ -165,51 +302,23 @@ export function AIChat() {
         }
     };
 
-    useEffect(() => {
-        if (!sampleMessagesAdded.current && !loadingProviders && availableProviders.length > 0 && messages.length === 0) {
-            const sampleMessages: ChatMessage[] = [
-                {
-                    role: 'assistant',
-                    content: 'سلام! من دستیار هوش مصنوعی شما هستم. چطور می‌تونم کمکتون کنم؟',
-                    timestamp: Date.now() - 60000,
-                },
-                {
-                    role: 'user',
-                    content: 'سلام! می‌خواستم بپرسم چطور می‌تونم از این سیستم استفاده کنم؟',
-                    timestamp: Date.now() - 30000,
-                },
-                {
-                    role: 'assistant',
-                    content: 'خیلی خوشحالم که می‌خواید از سیستم استفاده کنید! شما می‌تونید سوالات خودتون رو از من بپرسید و من سعی می‌کنم بهترین پاسخ رو بهتون بدم. همچنین می‌تونید از من برای تولید محتوا، ترجمه، خلاصه‌سازی و کارهای دیگه استفاده کنید.',
-                    timestamp: Date.now() - 10000,
-                },
-            ];
-            setMessages(sampleMessages);
-            sampleMessagesAdded.current = true;
-        }
-    }, [loadingProviders, availableProviders.length, messages.length]);
+    // ✅ Removed: Sample messages - users should start with empty chat
 
-    return (
-        <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
-            <CardWithIcon
-                icon={MessageSquare}
-                title="چت با AI"
-                iconBgColor="bg-pink"
-                iconColor="stroke-pink-2"
-                borderColor="border-b-pink-1"
-                className="flex flex-col h-full overflow-hidden"
-                headerClassName="flex-shrink-0 border-b pb-3"
-                contentClassName="!p-0 flex-1 flex flex-col overflow-hidden"
-                titleExtra={
+    if (compact) {
+        return (
+            <div className="flex flex-col h-full relative">
+                {/* Compact Header */}
+                <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-br bg-bg/50">
                     <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-font-p">چت با AI</h3>
                         {loadingProviders ? (
-                            <Skeleton className="h-10 w-32" />
+                            <Skeleton className="h-8 w-32" />
                         ) : (
                             <Select
                                 value={selectedProvider || undefined}
                                 onValueChange={setSelectedProvider}
                             >
-                                <SelectTrigger className="w-auto min-w-[140px] border-0 bg-bg hover:bg-bg/80 shadow-sm px-4 py-1.5">
+                                <SelectTrigger className="w-auto min-w-[140px] border-0 bg-card hover:bg-bg shadow-sm px-3 py-1.5 h-8 text-xs">
                                     <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -225,7 +334,7 @@ export function AIChat() {
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                    <span>مدل {getProviderDisplayName(provider)}</span>
+                                                    <span>{getProviderDisplayName(provider)}</span>
                                                 </div>
                                             </SelectItem>
                                         ))
@@ -234,9 +343,219 @@ export function AIChat() {
                             </Select>
                         )}
                     </div>
+                    {messages.length > 0 && (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleClearChat}
+                            className="h-7 w-7 border-0 hover:bg-bg text-font-s"
+                            aria-label="پاک کردن چت"
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                    )}
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+                    {/* Info Message about limitations */}
+                    {messages.length > 0 && messages.length <= 5 && (
+                        <div className="mb-3 p-2.5 bg-blue/10 border border-blue-1 rounded-lg">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle className="h-3.5 w-3.5 text-blue-1 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                    <p className="text-xs text-font-s leading-relaxed">
+                                        <strong className="text-blue-2">توجه:</strong> چت‌های شما به صورت موقت در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {messages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center text-font-s">
+                            <Sparkles className="h-8 w-8 mb-3 opacity-50" />
+                            <p className="text-sm font-medium mb-1">{msg.aiUI('startConversation')}</p>
+                            <p className="text-xs">
+                                {msg.aiUI('chatDescription')}
+                            </p>
+                        </div>
+                    ) : (
+                        messages.map((msg, idx) => (
+                            <div
+                                key={idx}
+                                className={`flex items-start gap-2 ${
+                                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                                }`}
+                            >
+                                {msg.role === 'user' && (
+                                    <Avatar className="flex-shrink-0 w-6 h-6 rounded-full">
+                                        {getAdminProfileImageUrl() ? (
+                                            <AvatarImage 
+                                                src={getAdminProfileImageUrl()!} 
+                                                alt={getAdminDisplayName()}
+                                                className="object-cover"
+                                            />
+                                        ) : (
+                                            <AvatarFallback className="bg-gray-2 text-static-w text-[10px] font-medium rounded-full">
+                                                {getAdminInitials()}
+                                            </AvatarFallback>
+                                        )}
+                                    </Avatar>
+                                )}
+                                <div
+                                    className={`max-w-[75%] rounded-lg px-3 py-2 text-xs ${
+                                        msg.role === 'user'
+                                            ? 'bg-card text-font-p border border-br'
+                                            : 'bg-bg text-font-s border border-br'
+                                    }`}
+                                >
+                                    <p className="whitespace-pre-wrap break-words">
+                                        {msg.content}
+                                    </p>
+                                </div>
+                                {msg.role === 'assistant' && (
+                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-bg flex items-center justify-center border border-br">
+                                        <Sparkles className="h-3 w-3 stroke-font-s" />
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                    {sending && (
+                        <div className="flex items-center gap-2 justify-start">
+                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-bg flex items-center justify-center border border-br">
+                                <Sparkles className="h-3 w-3 stroke-font-s" />
+                            </div>
+                            <div className="bg-bg text-font-s rounded-lg px-3 py-2 border border-br">
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                    <span className="text-xs">{msg.aiUI('responding')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input */}
+                <div className="flex-shrink-0 border-t border-br bg-card p-3">
+                    <div className="relative w-full">
+                        <Textarea
+                            ref={textareaRef}
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="پیام خود را بنویسید..."
+                            className="min-h-[44px] max-h-[120px] resize-none w-full border border-br bg-card pr-10 pl-12 rounded-lg text-xs py-2"
+                            disabled={sending || !selectedProvider}
+                        />
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2">
+                            <Button
+                                onClick={handleSend}
+                                disabled={sending || !message.trim() || !selectedProvider}
+                                size="icon"
+                                className="h-7 w-7 bg-primary hover:bg-primary/90 text-static-w rounded-lg"
+                            >
+                                {sending ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                    <Send className="h-3 w-3" />
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                    {/* Info about chat limitations */}
+                    <div className="mt-2 px-1">
+                        <p className="text-[10px] text-font-s text-center leading-relaxed">
+                            💡 چت‌ها موقتاً در مرورگر ذخیره می‌شوند (حداکثر 50 پیام)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
+            <CardWithIcon
+                icon={MessageSquare}
+                title={
+                    <div className="flex items-center gap-2">
+                        <span>چت با AI</span>
+                        <HelpGuide
+                            title="راهنمای چت با AI"
+                            content={`**چطور از چت با AI استفاده کنم؟**
+
+1. ابتدا یک مدل AI را از منوی بالا انتخاب کنید
+2. پیام خود را در کادر پایین تایپ کنید
+3. Enter بزنید یا روی دکمه ارسال کلیک کنید
+4. AI به شما پاسخ خواهد داد
+
+**نکات مهم:**
+• چت‌های این صفحه ذخیره نمی‌شوند
+• برای ذخیره چت‌ها، از ویجت کنار صفحه استفاده کنید
+• می‌توانید تا 20 پیام آخر را در یک مکالمه استفاده کنید`}
+                            variant="badge"
+                            position="bottom"
+                        />
+                    </div>
+                }
+                iconBgColor="bg-pink"
+                iconColor="stroke-pink-2"
+                borderColor="border-b-pink-1"
+                className="flex flex-col h-full overflow-hidden"
+                headerClassName="flex-shrink-0 border-b pb-3"
+                contentClassName="!p-0 flex-1 flex flex-col overflow-hidden"
+                titleExtra={
+                    <div className="flex items-center gap-2">
+                        {loadingProviders ? (
+                            <Skeleton className="h-10 w-32" />
+                        ) : (
+                                <Select
+                                    value={selectedProvider || undefined}
+                                    onValueChange={setSelectedProvider}
+                                >
+                                    <SelectTrigger className="w-auto min-w-[140px] border-0 bg-bg hover:bg-bg/80 shadow-sm px-4 py-1.5">
+                                        <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableProviders.length === 0 ? (
+                                            <div className="p-2 text-sm text-font-s text-center">
+                                                {msg.aiUI('noActiveProviders')}
+                                            </div>
+                                        ) : (
+                                            availableProviders.map((provider) => (
+                                                <SelectItem
+                                                    key={provider.id}
+                                                    value={provider.provider_name}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-lg">{getProviderIcon(provider)}</span>
+                                                        <span>{getProviderDisplayName(provider)}</span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                        )}
+                    </div>
                 }
             >
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
+                        {/* Info Message about limitations */}
+                        {messages.length > 0 && messages.length <= 5 && (
+                            <div className="mb-4 p-3 bg-blue/10 border border-blue-1 rounded-lg">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1">
+                                        <p className="text-sm text-font-s leading-relaxed">
+                                            <strong className="text-blue-2">توجه:</strong> چت‌های شما به صورت موقت در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {messages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center text-font-s">
                                 <Sparkles className="h-12 w-12 mb-4 opacity-50" />
@@ -367,6 +686,22 @@ export function AIChat() {
                         <p className="text-xs text-font-s mt-2 text-center w-full">
                             {msg.aiUI('chatInstructions')}
                         </p>
+                    )}
+                    {/* Info about chat limitations - Only show in floating widget (compact mode) */}
+                    {compact && (
+                        <div className="mt-3 px-1">
+                            <p className="text-xs text-font-s text-center leading-relaxed">
+                                💡 چت‌ها موقتاً در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
+                            </p>
+                        </div>
+                    )}
+                    {/* Info for full page - No storage */}
+                    {!compact && (
+                        <div className="mt-3 px-1">
+                            <p className="text-xs text-font-s text-center leading-relaxed">
+                                ⚠️ چت‌های این صفحه ذخیره نمی‌شوند. برای ذخیره چت‌ها، از ویجت کنار صفحه استفاده کنید.
+                            </p>
+                        </div>
                     )}
                 </div>
             </CardWithIcon>

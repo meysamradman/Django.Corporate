@@ -18,6 +18,7 @@ import { hasPermission } from "@/core/permissions/utils/permissionUtils";
 import { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 import { getPermissionTranslation } from "@/core/messages/permissions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AdvancedSettingsTabProps {
     admin: AdminWithProfile;
@@ -38,7 +39,8 @@ interface BasePermission {
 }
 
 export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
+    const queryClient = useQueryClient();
     const [adminRoles, setAdminRoles] = useState<Role[]>([]);
     const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
     const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
@@ -65,10 +67,21 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         hasPermission(userPermissionsObj, 'admin.manage')
     );
 
-    // Load admin roles and permissions
+    // ✅ Load admin roles and permissions when admin.id changes OR when admin prop updates
+    // This ensures fresh data after refresh or when admin prop changes
     useEffect(() => {
+        // Reset edit mode when admin changes to ensure fresh state
+        setEditMode(false);
         loadAdminData();
     }, [admin.id]);
+    
+    // ✅ Also reload when admin prop changes (e.g., after save/update from parent)
+    useEffect(() => {
+        // Only reload if not in edit mode to avoid losing user's changes
+        if (!editMode) {
+            loadAdminData();
+        }
+    }, [admin]);
 
     const loadAdminData = async () => {
         try {
@@ -79,28 +92,47 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             const rolesData = await roleApi.getAllRoles();
             setAvailableRoles(rolesData);
 
-            // Load admin roles
+            // ✅ Load admin roles - Always fetch fresh data
             const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
             
-            // ✅ FIX: Extract role details from AdminUserRole structure
+            // ✅ CRITICAL FIX: Extract role details from AdminUserRole structure
+            // Backend returns AdminRoleAssignmentSerializer which has nested 'role' object
             const adminRolesData = Array.isArray(adminRolesResponse) 
                 ? adminRolesResponse.map((assignment: any) => {
-                    // AdminUserRole has nested 'role' object
-                    if (assignment.role && typeof assignment.role === 'object') {
-                        return assignment.role; // Return the nested role object
+                    // AdminRoleAssignmentSerializer returns: { id, role: {...}, user, ... }
+                    // We need to extract the nested 'role' object
+                    if (assignment.role && typeof assignment.role === 'object' && assignment.role.id) {
+                        // Return the nested role object with all its properties
+                        return {
+                            id: assignment.role.id,
+                            name: assignment.role.name,
+                            display_name: assignment.role.display_name || assignment.role.name,
+                            description: assignment.role.description,
+                            level: assignment.role.level,
+                            is_system_role: assignment.role.is_system_role,
+                            permissions: assignment.role.permissions,
+                            is_active: assignment.role.is_active
+                        };
                     }
-                    // Fallback: if it's already a role object
-                    return assignment;
-                  })
+                    // Fallback: if it's already a role object (shouldn't happen but just in case)
+                    if (assignment.id && assignment.name) {
+                        return assignment;
+                    }
+                    // If structure is unexpected, log and skip
+                    console.warn('Unexpected role assignment structure:', assignment);
+                    return null;
+                  }).filter((role: any) => role !== null) // Remove null entries
                 : [];
             
             setAdminRoles(adminRolesData);
 
-            // Initialize role assignments
+            // ✅ CRITICAL: Always initialize role assignments from fresh API data
+            // This ensures checkbox states match the actual database state after refresh
             const initialAssignments: RoleAssignment[] = rolesData.map((role: Role) => {
-                // ✅ FIX: Check against extracted role IDs
+                // ✅ FIX: Check against extracted role IDs from fresh API response
+                // Use strict comparison to ensure we match correctly
                 const assigned = adminRolesData.some((adminRole: any) => {
-                    return adminRole.id === role.id;
+                    return adminRole && adminRole.id === role.id;
                 });
                 
                 return {
@@ -109,6 +141,8 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 };
             });
             
+            // ✅ Always update roleAssignments with fresh data
+            // This ensures after refresh, checkboxes show correct state from database
             setRoleAssignments(initialAssignments);
 
             // Load base permissions that all admins have
@@ -131,13 +165,23 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode || !canManagePermissions) return;
         
-        setRoleAssignments(prev => 
-            prev.map(assignment => 
-                assignment.roleId === roleId 
-                    ? { ...assignment, assigned } 
-                    : assignment
-            )
-        );
+        // ✅ FIX: Ensure role exists in assignments and update correctly
+        setRoleAssignments(prev => {
+            // Check if role exists in current assignments
+            const existingAssignment = prev.find(a => a.roleId === roleId);
+            
+            if (existingAssignment) {
+                // ✅ Update existing assignment - ensure we replace it correctly
+                return prev.map(assignment => 
+                    assignment.roleId === roleId 
+                        ? { roleId, assigned } // ✅ Use new values directly
+                        : assignment
+                );
+            } else {
+                // ✅ Add new assignment if role doesn't exist
+                return [...prev, { roleId, assigned }];
+            }
+        });
     };
 
     const handleStatusChange = async (field: 'is_active' | 'is_superuser', value: boolean) => {
@@ -186,9 +230,21 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             // Get current assignments - adminRoles now contains extracted role objects
             const currentAssignedRoleIds = adminRoles.map((role: any) => role.id);
             
+            // ✅ FIX: Get new assigned role IDs from current state (ensure we use the latest state)
             const newAssignedRoleIds = roleAssignments
-                .filter(assignment => assignment.assigned)
+                .filter(assignment => assignment.assigned === true) // ✅ Explicit check for true
                 .map(assignment => assignment.roleId);
+            
+            // ✅ DETAILED LOGGING
+            console.log('📊 [SAVE] Role assignment state:', {
+                currentAssignedRoleIds,
+                newAssignedRoleIds,
+                roleAssignments,
+                adminRoles: adminRoles.map((r: any) => ({ id: r.id, name: r.name })),
+                adminId: admin.id,
+                currentUser: user?.id,
+                isSuperuser: user?.is_superuser
+            });
             
             // Find roles to remove (currently assigned but not selected)
             const rolesToRemove = currentAssignedRoleIds.filter(
@@ -200,29 +256,48 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 (roleId: number) => !currentAssignedRoleIds.includes(roleId)
             );
             
-            // Remove roles
-            for (const roleId of rolesToRemove) {
-                try {
-                    await adminApi.removeRoleFromAdmin(admin.id, roleId);
-                } catch (error) {
-                    // Error silently ignored - user will see if roles weren't removed
-                }
-            }
+            console.log('📊 [SAVE] Changes to apply:', {
+                rolesToRemove,
+                rolesToAdd,
+                totalChanges: rolesToRemove.length + rolesToAdd.length
+            });
             
-            // Add roles with detailed error tracking
-            const assignResults: { success: number[], failed: { id: number, error: string }[] } = {
+            // ✅ Remove roles with error tracking
+            const removeResults: { success: number[], failed: { id: number, error: string }[] } = {
                 success: [],
                 failed: []
             };
             
-            for (const roleId of rolesToAdd) {
+            for (const roleId of rolesToRemove) {
                 try {
-                    await adminApi.assignRoleToAdmin(admin.id, roleId);
-                    assignResults.success.push(roleId);
+                    console.log('🔴 [REMOVE ROLE] Starting removal:', {
+                        adminId: admin.id,
+                        roleId: roleId,
+                        url: `/admin/roles/${roleId}/remove_role/?user_id=${admin.id}`
+                    });
+                    
+                    await adminApi.removeRoleFromAdmin(admin.id, roleId);
+                    
+                    console.log('✅ [REMOVE ROLE] Success:', { roleId });
+                    removeResults.success.push(roleId);
                 } catch (error: any) {
                     // Get role name for better error message
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
+                    
+                    // ✅ DETAILED ERROR LOGGING
+                    console.error('❌ [REMOVE ROLE] Error:', {
+                        roleId,
+                        roleName,
+                        adminId: admin.id,
+                        error: error,
+                        errorMessage: error?.message,
+                        errorResponse: error?.response,
+                        errorData: error?.response?.data,
+                        status: error?.response?.status,
+                        statusText: error?.response?.statusText,
+                        fullError: JSON.stringify(error, null, 2)
+                    });
                     
                     // Extract error message from API response
                     let errorMessage = 'خطای نامشخص';
@@ -230,6 +305,60 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                         errorMessage = JSON.stringify(error.response.data.data.validation_errors);
                     } else if (error?.response?.data?.metaData?.message) {
                         errorMessage = error.response.data.metaData.message;
+                    } else if (error?.response?.data?.message) {
+                        errorMessage = error.response.data.message;
+                    } else if (error?.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    removeResults.failed.push({ id: roleId, error: `${roleName}: ${errorMessage}` });
+                }
+            }
+            
+            // ✅ Add roles with detailed error tracking
+            const assignResults: { success: number[], failed: { id: number, error: string }[] } = {
+                success: [],
+                failed: []
+            };
+            
+            for (const roleId of rolesToAdd) {
+                try {
+                    console.log('🟢 [ASSIGN ROLE] Starting assignment:', {
+                        adminId: admin.id,
+                        roleId: roleId
+                    });
+                    
+                    await adminApi.assignRoleToAdmin(admin.id, roleId);
+                    
+                    console.log('✅ [ASSIGN ROLE] Success:', { roleId });
+                    assignResults.success.push(roleId);
+                } catch (error: any) {
+                    // Get role name for better error message
+                    const failedRole = availableRoles.find(r => r.id === roleId);
+                    const roleName = failedRole?.display_name || `Role ${roleId}`;
+                    
+                    // ✅ DETAILED ERROR LOGGING
+                    console.error('❌ [ASSIGN ROLE] Error:', {
+                        roleId,
+                        roleName,
+                        adminId: admin.id,
+                        error: error,
+                        errorMessage: error?.message,
+                        errorResponse: error?.response,
+                        errorData: error?.response?.data,
+                        status: error?.response?.status,
+                        statusText: error?.response?.statusText,
+                        fullError: JSON.stringify(error, null, 2)
+                    });
+                    
+                    // Extract error message from API response
+                    let errorMessage = 'خطای نامشخص';
+                    if (error?.response?.data?.data?.validation_errors) {
+                        errorMessage = JSON.stringify(error.response.data.data.validation_errors);
+                    } else if (error?.response?.data?.metaData?.message) {
+                        errorMessage = error.response.data.metaData.message;
+                    } else if (error?.response?.data?.message) {
+                        errorMessage = error.response.data.message;
                     } else if (error?.message) {
                         errorMessage = error.message;
                     }
@@ -238,32 +367,63 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 }
             }
             
-            // Show appropriate toast message based on results
-            if (assignResults.failed.length === 0) {
+            // ✅ Check if any operations failed
+            const totalFailed = removeResults.failed.length + assignResults.failed.length;
+            const totalSuccess = removeResults.success.length + assignResults.success.length;
+            
+            // ✅ Show appropriate toast message based on results
+            if (totalFailed === 0 && totalSuccess > 0) {
                 // All successful
                 toast.success(getPermissionTranslation("نقش‌های ادمین با موفقیت به‌روزرسانی شد", 'description'));
-            } else if (assignResults.success.length === 0) {
+            } else if (totalSuccess === 0 && totalFailed > 0) {
                 // All failed
+                const allErrors = [...removeResults.failed, ...assignResults.failed].map(f => f.error);
                 toast.error(
-                    getPermissionTranslation('خطا در تخصیص تمام نقش‌ها', 'description'),
+                    getPermissionTranslation('خطا در به‌روزرسانی نقش‌ها', 'description'),
                     {
-                        description: assignResults.failed.map(f => f.error).join('\n')
+                        description: allErrors.join('\n')
                     }
                 );
-            } else {
+            } else if (totalFailed > 0) {
                 // Partial success
+                const allErrors = [...removeResults.failed, ...assignResults.failed].map(f => f.error);
                 toast.warning(
                     getPermissionTranslation('بعضی نقش‌ها با خطا مواجه شدند', 'description'),
                     {
-                        description: `✅ موفق: ${assignResults.success.length}\n❌ ناموفق: ${assignResults.failed.length}`
+                        description: `✅ موفق: ${totalSuccess}\n❌ ناموفق: ${totalFailed}\n\n${allErrors.join('\n')}`
                     }
                 );
             }
             
-            setEditMode(false);
-            
-            // Reload data to reflect changes (even if some failed)
-            await loadAdminData();
+            // ✅ CRITICAL: Only reload if at least one operation succeeded
+            // This ensures we don't reload stale data if everything failed
+            if (totalSuccess > 0) {
+                // ✅ Exit edit mode first to ensure fresh data load
+                setEditMode(false);
+                
+                // ✅ CRITICAL: Wait a bit for backend to process and clear cache
+                // This ensures we get fresh data from database, not cached data
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // ✅ CRITICAL: Force reload by clearing local state first
+                // This ensures we don't use stale data
+                setAdminRoles([]);
+                setRoleAssignments([]);
+                
+                // ✅ Reload data to reflect changes
+                await loadAdminData();
+                
+                // ✅ CRITICAL: Invalidate permission-map query to refresh permissions in sidebar
+                await queryClient.invalidateQueries({ queryKey: ['permission-map'] });
+                
+                // ✅ CRITICAL: Refresh current user's permissions if editing own profile or if current user's roles changed
+                if (refreshUser && (user?.id === admin.id || rolesToAdd.length > 0 || rolesToRemove.length > 0)) {
+                    await refreshUser();
+                }
+            } else {
+                // If everything failed, stay in edit mode so user can try again
+                // Don't reload to avoid losing their selections
+            }
             
         } catch (error) {
             toast.error(getPermissionTranslation('خطا در ذخیره تغییرات', 'description'));
@@ -431,8 +591,11 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
                                                     id={`role-${role.id}`}
-                                                    checked={roleAssignments.find(a => a.roleId === role.id)?.assigned}
-                                                    onCheckedChange={(checked) => handleRoleAssignmentChange(role.id, !!checked)}
+                                                    checked={roleAssignments.find(a => a.roleId === role.id)?.assigned ?? false}
+                                                    onCheckedChange={(checked) => {
+                                                        // ✅ FIX: Ensure boolean value is passed
+                                                        handleRoleAssignmentChange(role.id, checked === true);
+                                                    }}
                                                     disabled={!editMode || !canManagePermissions || admin.is_superuser}
                                                 />
                                                 <Label htmlFor={`role-${role.id}`}>

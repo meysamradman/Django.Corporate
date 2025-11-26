@@ -31,19 +31,21 @@ class AdminProfileView(APIView):
             if not (user.is_staff or user.is_superuser):
                 return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authorized"), status_code=403)
             
-            # Cache key based on user type
+            # ✅ Cache key based on user type
+            # IMPORTANT: This cache is cleared automatically when roles change via signals
             cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
             force_refresh = (
                 request.query_params.get('refresh') == '1'
                 or request.headers.get('X-Bypass-Cache') == '1'
             )
             
-            # Try to get from cache
+            # ✅ Try to get from cache (cache is cleared by signals when roles change)
             if not force_refresh:
                 cached_data = cache.get(cache_key)
                 if cached_data:
                     cached_data = dict(cached_data)
                     cached_data.pop('csrf_token', None)
+                    # ✅ Cache is valid - return it (signals ensure it's cleared when roles change)
                     return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=cached_data)
             
             # Fetch the User instance with related profile and permissions prefetched
@@ -285,9 +287,14 @@ class AdminProfileView(APIView):
                 if serializer.is_valid():
                     updated_profile = serializer.save()
                     
-                    # Clear cache for this user
-                    cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
-                    cache.delete(cache_key)
+                    # ✅ Clear all cache for this user (comprehensive cache invalidation)
+                    from src.user.authorization.admin_permission import AdminPermissionCache
+                    from src.user.permissions.validator import PermissionValidator
+                    from src.user.permissions.helpers import PermissionHelper
+                    
+                    AdminPermissionCache.clear_user_cache(user.id)
+                    PermissionValidator.clear_user_cache(user.id)
+                    PermissionHelper.clear_user_cache(user.id)
                     
                     # Refresh user and related profile data from database
                     user.refresh_from_db()

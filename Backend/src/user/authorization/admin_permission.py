@@ -70,7 +70,25 @@ class AdminRolePermission(permissions.BasePermission):
         # Get DRF action name from view
         view_action = getattr(view, 'action', None)
         
-        # Map DRF actions to our permission actions
+        # ✅ CRITICAL: Check for custom actions first (assign_role, remove_role, etc.)
+        # These are @action decorators and need special handling
+        if view_action:
+            # Custom actions that require 'update' permission (role management)
+            role_management_actions = ['assign_role', 'remove_role', 'update', 'partial_update']
+            if view_action in role_management_actions:
+                return 'update'
+            
+            # Custom actions that require 'delete' permission
+            delete_actions = ['destroy', 'bulk_delete']
+            if view_action in delete_actions:
+                return 'delete'
+            
+            # Custom actions that require 'create' permission
+            create_actions = ['create']
+            if view_action in create_actions:
+                return 'create'
+        
+        # Map standard DRF actions to our permission actions
         action_map = {
             'list': 'view',
             'retrieve': 'view',
@@ -119,8 +137,16 @@ class AdminRolePermission(permissions.BasePermission):
         try:
             from src.user.models import AdminUserRole
             
+            view_action = getattr(view, 'action', None)
+            view_name = view.__class__.__name__
+            
+            # ✅ DETAILED LOGGING
+            logger.info(f"🔍 [PERMISSION CHECK] User: {user.id} ({user.email}), Method: {method}, View: {view_name}, Action: {view_action}")
+            logger.info(f"🔍 [PERMISSION CHECK] User is_superuser: {user.is_superuser}, is_admin_full: {getattr(user, 'is_admin_full', False)}")
+            
             # ✅ NEW: Use the new action mapping
             required_action = self._calculate_required_action(method, view)
+            logger.info(f"🔍 [PERMISSION CHECK] Required action: {required_action}")
             
             # Get user's active roles with permissions
             user_roles = AdminUserRole.objects.filter(
@@ -128,40 +154,70 @@ class AdminRolePermission(permissions.BasePermission):
                 is_active=True
             ).select_related('role').prefetch_related()
             
+            logger.info(f"🔍 [PERMISSION CHECK] User has {user_roles.count()} active roles")
+            
             # If no roles but is_admin_full, allow for user management operations
             if not user_roles.exists() and user.is_admin_full:
+                logger.info(f"✅ [PERMISSION CHECK] Allowed: User is_admin_full with no roles")
                 return True
             
             # Check each role's permissions
             for user_role in user_roles:
                 permissions = user_role.permissions_cache or user_role.role.permissions
+                logger.info(f"🔍 [PERMISSION CHECK] Checking role: {user_role.role.name}, permissions: {permissions}")
                 
-                if self._role_has_permission(permissions, required_action, method, view):
+                has_perm = self._role_has_permission(permissions, required_action, method, view)
+                logger.info(f"🔍 [PERMISSION CHECK] Role {user_role.role.name} has permission: {has_perm}")
+                
+                if has_perm:
+                    logger.info(f"✅ [PERMISSION CHECK] Allowed: Role {user_role.role.name} has required permission")
                     return True
             
+            logger.warning(f"❌ [PERMISSION CHECK] Denied: No role has required permission")
             return False
             
         except Exception as e:
-            if settings.DEBUG:
-                logger.error(f"Error calculating admin permission for user {user.id}: {e}")
+            logger.error(f"❌ [PERMISSION CHECK] Error calculating admin permission for user {user.id}: {e}", exc_info=True)
             return False
     
     def _role_has_permission(self, permissions: Dict[str, Any], action: str, method: str, view) -> bool:
         """Check if role permissions allow the action"""
         if not isinstance(permissions, dict):
+            logger.warning(f"⚠️ [ROLE_PERMISSION] Permissions is not a dict: {type(permissions)}")
             return False
+        
+        view_name = view.__class__.__name__
+        view_action = getattr(view, 'action', None)
+        
+        # ✅ DETAILED LOGGING
+        logger.info(f"🔍 [ROLE_PERMISSION] Checking: view={view_name}, action={view_action}, required_action={action}, permissions={permissions}")
         
         # Base permissions that every admin inherits
         base_permissions = self._check_base_admin_permissions(action, method, view)
         if base_permissions:
+            logger.info(f"✅ [ROLE_PERMISSION] Allowed via base permissions")
             return True
         
-        # Check actions
+        # ✅ CRITICAL: Check actions
         allowed_actions = permissions.get('actions', [])
-        if 'all' in allowed_actions or action in allowed_actions:
-            return True
+        has_action = 'all' in allowed_actions or action in allowed_actions
+        logger.info(f"🔍 [ROLE_PERMISSION] Allowed actions: {allowed_actions}, Has action '{action}': {has_action}")
         
-        return False
+        # ✅ CRITICAL: Check modules for AdminRoleView (role management)
+        if view_name == 'AdminRoleView':
+            # Role management requires 'admin' module permission
+            allowed_modules = permissions.get('modules', [])
+            has_module = 'all' in allowed_modules or 'admin' in allowed_modules
+            logger.info(f"🔍 [ROLE_PERMISSION] Allowed modules: {allowed_modules}, Has module 'admin': {has_module}")
+            
+            # Both action and module must be allowed
+            result = has_action and has_module
+            logger.info(f"🔍 [ROLE_PERMISSION] Final result (AdminRoleView): {result} (action={has_action}, module={has_module})")
+            return result
+        
+        # For other views, only check actions
+        logger.info(f"🔍 [ROLE_PERMISSION] Final result (other view): {has_action}")
+        return has_action
     
     def _check_base_admin_permissions(self, action: str, method: str, view) -> bool:
         """Set of baseline permissions granted to every admin - using config."""
@@ -172,6 +228,12 @@ class AdminRolePermission(permissions.BasePermission):
         # Media is NO LONGER in base - requires explicit permission
         
         view_name = view.__class__.__name__
+        view_action = getattr(view, 'action', None)
+        
+        # ✅ CRITICAL: Role management actions (assign_role, remove_role) require explicit permission
+        # Don't allow them through base permissions - they need 'user.manage' or 'admin.manage' permission
+        if view_action in ['assign_role', 'remove_role']:
+            return False
         
         # Dashboard/Statistics - only general overview (GET)
         if method.upper() == 'GET' and any(x in view_name for x in ['Statistics', 'Dashboard']):
@@ -257,6 +319,8 @@ class RequireModuleAccess(AdminRolePermission):
     
     def __init__(self, *required_modules):
         self.required_modules = list(required_modules)
+        # ✅ CRITICAL: Allow subclasses to set required_action (e.g., 'manage')
+        self.required_action = getattr(self, 'required_action', None)
         super().__init__()
     
     def _normalize_module_name(self, module: str) -> List[str]:
@@ -295,6 +359,24 @@ class RequireModuleAccess(AdminRolePermission):
         # Allow baseline read-only access
         if self._check_base_admin_permissions(action, method, view):
             return True
+        
+        # ✅ CRITICAL: If this class has a required_action (e.g., 'manage'), use it only for write operations
+        # For read operations (list, retrieve), check 'read' permission
+        # For write operations (create, update, delete), check 'manage' permission
+        if hasattr(self, 'required_action') and self.required_action:
+            # Read actions: read, view (view is returned by _calculate_required_action for list/retrieve)
+            # Also check view_action directly in case it's passed as-is
+            view_action = getattr(view, 'action', None)
+            read_actions = ['read', 'view']
+            read_view_actions = ['list', 'retrieve']
+            
+            # Check if action is a read action OR if view_action is a read action
+            if action in read_actions or (view_action and view_action in read_view_actions):
+                # For read actions, check 'read' permission, not 'manage'
+                action = 'read'
+            else:
+                # For write actions, use the required_action (usually 'manage')
+                action = self.required_action
         
         # ✅ Check specific_permissions format first (precise)
         if 'specific_permissions' in permissions:
@@ -532,34 +614,49 @@ class AdminPermissionCache:
     
     @staticmethod
     def clear_user_cache(user_id: int):
-        """Clear all cached permissions for a specific user"""
+        """
+        ✅ پاک کردن کامل تمام cache های مربوط به کاربر از Redis
+        شامل تمام permission checks, profile data, و role data
+        """
         try:
-            # Clear all permission cache keys for this user
-            cache_pattern = f"admin_perm_{user_id}_*"
-            
-            # Since Django cache doesn't support pattern deletion by default,
-            # we'll clear specific known patterns
+            # Clear all permission-related cache keys for this user
             methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
             
-            # This is a simplified approach - in production you might want to use
-            # Redis directly for pattern-based deletion
+            # Build comprehensive list of cache keys to clear
             cache_keys_to_clear = []
+            
+            # Permission check cache keys (admin_perm_{user_id}_{method}_{view_name})
             for method in methods:
-                # Add common view patterns - you can expand this based on your views
                 cache_keys_to_clear.extend([
                     f"admin_perm_{user_id}_{method}_AdminManagementView",
                     f"admin_perm_{user_id}_{method}_AdminRoleView",
                     f"admin_perm_{user_id}_{method}_AdminPermissionView",
+                    f"admin_perm_{user_id}_{method}_AdminProfileView",
+                    f"admin_perm_{user_id}_{method}_UserManagementView",
                 ])
             
-            cache.delete_many(cache_keys_to_clear)
-            
-            # Also clear user's general permission cache
-            cache.delete_many([
+            # General permission cache keys
+            cache_keys_to_clear.extend([
                 f"admin_permissions_{user_id}",
                 f"admin_roles_{user_id}",
-                f"admin_info_{user_id}"
+                f"admin_info_{user_id}",
+                f"user_permissions_{user_id}",
+                f"user_modules_actions_{user_id}",
+                f"admin_perms_{user_id}",
+                f"admin_simple_perms_{user_id}",
+                f"admin_profile_{user_id}_super",
+                f"admin_profile_{user_id}_regular",
             ])
+            
+            # Clear all keys at once
+            cache.delete_many(cache_keys_to_clear)
+            
+            # Also try to clear pattern-based keys if Redis supports it
+            try:
+                cache.delete_pattern(f"admin_perm_{user_id}_*")
+            except (AttributeError, NotImplementedError):
+                # Pattern deletion not supported, already cleared specific keys above
+                pass
             
         except Exception as e:
             if settings.DEBUG:

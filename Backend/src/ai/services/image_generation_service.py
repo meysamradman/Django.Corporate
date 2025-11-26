@@ -4,14 +4,14 @@ from typing import Optional, Dict, Any
 from io import BytesIO
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.cache import cache
 import tempfile
 import os
 
 from src.ai.models.image_generation import AIImageGeneration
+from src.ai.models.admin_ai_settings import AdminAISettings
 from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
-from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider
+from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, OpenRouterProvider
 from src.ai.messages.messages import AI_ERRORS
 
 
@@ -22,6 +22,7 @@ class AIImageGenerationService:
         'gemini': GeminiProvider,
         'openai': OpenAIProvider,
         'huggingface': HuggingFaceProvider,
+        'openrouter': OpenRouterProvider,
     }
     
     @classmethod
@@ -89,32 +90,51 @@ class AIImageGenerationService:
         cls,
         provider_name: str,
         prompt: str,
+        admin=None,
         **kwargs
     ) -> tuple[BytesIO, dict]:
         """
         Generate image only without saving to database (for better performance)
         
+        Args:
+            provider_name: Provider name
+            prompt: Image description
+            admin: Admin user instance (optional) - if provided, uses personal/shared API based on settings
+            **kwargs: Additional parameters
+        
         Returns:
             tuple: (image_bytes, metadata) - Image and its metadata
         """
-        cache_key = f'ai_provider_{provider_name}'
-        provider_config = cache.get(cache_key)
-        
-        if not provider_config:
+        # ✅ Get appropriate API key (personal/shared based on admin settings)
+        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
-                provider_config = AIImageGeneration.objects.get(
-                    provider_name=provider_name,
-                    is_active=True
-                )
-                cache.set(cache_key, provider_config, 300)
-            except AIImageGeneration.DoesNotExist:
+                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
+                # Get config from shared provider (configs are same) - ✅ Use cached method
+                provider_config = AIImageGeneration.get_active_provider(provider_name)
+                if not provider_config:
+                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+                config = provider_config.config or {}
+            except AdminAISettings.DoesNotExist:
+                # Fallback to shared API - ✅ Use cached method
+                provider_config = AIImageGeneration.get_active_provider(provider_name)
+                if not provider_config:
+                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+                api_key = provider_config.get_api_key()
+                config = provider_config.config or {}
+        else:
+            # Use shared API (default) - ✅ Use Model's cached method for better performance
+            provider_config = AIImageGeneration.get_active_provider(provider_name)
+            if not provider_config:
                 raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+            
+            api_key = provider_config.get_api_key()
+            config = provider_config.config or {}
         
         image_bytes = cls.generate_image(
             provider_name=provider_name,
             prompt=prompt,
-            api_key=provider_config.get_api_key(),
-            config=provider_config.config,
+            api_key=api_key,
+            config=config,
             **kwargs
         )
         
@@ -135,6 +155,7 @@ class AIImageGenerationService:
         title: Optional[str] = None,
         alt_text: Optional[str] = None,
         save_to_db: bool = True,
+        admin=None,
         **kwargs
     ) -> ImageMedia:
         """
@@ -147,34 +168,90 @@ class AIImageGenerationService:
             title: Image title (if not provided, prompt will be used)
             alt_text: Image alt text
             save_to_db: Whether to save to database (default: True)
+            admin: Admin user instance (optional) - if provided, uses personal/shared API based on settings
             **kwargs: Additional parameters
             
         Returns:
             ImageMedia: Saved image
         """
-        cache_key = f'ai_provider_{provider_name}'
-        provider_config = cache.get(cache_key)
+        import logging
+        logger = logging.getLogger(__name__)
         
-        if not provider_config:
+        # ✅ Get appropriate API key (personal/shared based on admin settings)
+        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
-                provider_config = AIImageGeneration.objects.get(
-                    provider_name=provider_name,
-                    is_active=True
-                )
-                cache.set(cache_key, provider_config, 300)
-            except AIImageGeneration.DoesNotExist:
+                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
+                # Get config from shared provider (configs are same) - ✅ Use cached method
+                provider_config = AIImageGeneration.get_active_provider(provider_name)
+                if not provider_config:
+                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+                config = provider_config.config or {}
+                
+                # Check which API is being used
+                try:
+                    personal_settings = AdminAISettings.objects.get(
+                        admin=admin,
+                        provider_name=provider_name,
+                        is_active=True
+                    )
+                    if personal_settings.use_shared_api:
+                        logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
+                        print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
+                    else:
+                        logger.info(f"👤 [AI Image Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
+                        print(f"👤 [AI Image Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
+                except AdminAISettings.DoesNotExist:
+                    logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
+                    print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
+            except AdminAISettings.DoesNotExist:
+                # Fallback to shared API - ✅ Use cached method
+                logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
+                print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
+                provider_config = AIImageGeneration.get_active_provider(provider_name)
+                if not provider_config:
+                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+                api_key = provider_config.get_api_key()
+                config = provider_config.config or {}
+        else:
+            # Use shared API (default) - ✅ Use Model's cached method for better performance
+            logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
+            print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
+            provider_config = AIImageGeneration.get_active_provider(provider_name)
+            if not provider_config:
                 raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+            
+            api_key = provider_config.get_api_key()
+            config = provider_config.config or {}
         
         image_bytes = cls.generate_image(
             provider_name=provider_name,
             prompt=prompt,
-            api_key=provider_config.get_api_key(),
-            config=provider_config.config,
+            api_key=api_key,
+            config=config,
             **kwargs
         )
         
+        # ✅ Track usage: if admin uses personal API, track on AdminAISettings; otherwise on shared provider
+        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
+            try:
+                admin_settings = AdminAISettings.objects.get(
+                    admin=admin,
+                    provider_name=provider_name,
+                    is_active=True
+                )
+                # Only track if using personal API (not shared)
+                if not admin_settings.use_shared_api:
+                    admin_settings.increment_usage()
+            except AdminAISettings.DoesNotExist:
+                # If no personal settings, track on shared provider
+                if 'provider_config' in locals() and provider_config:
+                    provider_config.increment_usage()
+        else:
+            # Track on shared provider
+            if 'provider_config' in locals() and provider_config:
+                provider_config.increment_usage()
+        
         if not save_to_db:
-            provider_config.increment_usage()
             return image_bytes
         
         import time
@@ -195,7 +272,7 @@ class AIImageGenerationService:
             'alt_text': alt_text or prompt[:200],
         })
         
-        provider_config.increment_usage()
+        # Usage already tracked above
         
         return media
     
@@ -216,6 +293,9 @@ class AIImageGenerationService:
             is_valid = provider.validate_api_key()
             return is_valid
         except Exception as e:
+            # Return True on error to prevent blocking (original behavior)
+            # Some providers may not support validation or may have network issues
+            # Better to allow save and let user test manually
             return True
     
     @classmethod

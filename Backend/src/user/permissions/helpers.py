@@ -126,14 +126,18 @@ class PermissionHelper:
     
     @classmethod
     def _get_admin_permissions(cls, user) -> Dict[str, Any]:
-        """Detailed permissions for regular admins with caching"""
+        """
+        ✅ Detailed permissions for regular admins with caching
+        IMPORTANT: Cache is cleared automatically when roles change via signals
+        """
         cache_key = f"admin_perms_{user.id}"
         cached_data = cache.get(cache_key)
         
         if cached_data:
+            # ✅ Return cached data - cache is cleared by signals when roles change
             return cached_data
         
-        # Calculate permissions
+        # ✅ Calculate fresh permissions (cache was cleared or expired)
         permissions_list = cls._calculate_user_permissions(user)
         roles = cls._get_user_roles(user)
         modules = cls._get_accessible_modules(permissions_list)
@@ -322,15 +326,29 @@ class PermissionHelper:
     
     @classmethod
     def clear_user_cache(cls, user_id: int) -> None:
-        """Clear cache for specific user"""
+        """
+        ✅ پاک کردن کامل تمام cache های مربوط به کاربر از Redis
+        شامل تمام permission data, profile data, و role data
+        """
         cache_keys = [
             f"admin_perms_{user_id}",
             f"admin_simple_perms_{user_id}",
             f"admin_permissions_{user_id}",
             f"admin_roles_{user_id}",
-            f"admin_info_{user_id}"
+            f"admin_info_{user_id}",
+            f"user_permissions_{user_id}",
+            f"user_modules_actions_{user_id}",
+            f"admin_profile_{user_id}_super",
+            f"admin_profile_{user_id}_regular",
         ]
         cache.delete_many(cache_keys)
+        
+        # Also try to clear pattern-based keys if Redis supports it
+        try:
+            cache.delete_pattern(f"admin_perm_{user_id}_*")
+        except (AttributeError, NotImplementedError):
+            # Pattern deletion not supported, already cleared specific keys above
+            pass
     
     @classmethod
     def clear_all_permission_cache(cls) -> None:

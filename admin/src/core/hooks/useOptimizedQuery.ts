@@ -15,11 +15,11 @@ export function useOptimizedQuery<T>(
   return useQuery({
     queryKey: key,
     queryFn: () => fetchApi.get<T>(endpoint),
-    staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+    gcTime: 0, // No cache retention
     enabled: options?.enabled ?? true,
     retry: 1,
-    refetchOnWindowFocus: false,
-    // Background refetch برای UX بهتر
+    refetchOnWindowFocus: true, // Always refetch for fresh data
     refetchInterval: options?.refetchInterval || 10 * 60 * 1000, // 10 minutes
   })
 } 

@@ -218,7 +218,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return await csrfManager.refresh();
   }, []);
 
-  const fetchPanelSettings = useCallback(async () => {
+  const fetchPanelSettings = useCallback(async (userPermissions: string[]) => {
+    // ✅ CRITICAL: Only fetch panel settings if user has panel.manage permission
+    if (!userPermissions.includes('panel.manage')) {
+      setPanelSettings(null);
+      return;
+    }
+    
     try {
         const panelData = await getPanelSettings();
 
@@ -236,15 +242,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      // 1. Get user data
-      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true }); 
+      // 1. Get user data - ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+      const userData = await authApi.getCurrentAdminUser({ refresh: true }); 
       if (userData) {
         setUser(serializeUser(userData));
         
         await csrfManager.refresh();
         
-        // 3. Load panel settings in background - موازی
-        fetchPanelSettings().catch(() => {
+        // 3. Load panel settings in background - موازی (ONLY if user has permission)
+        const userPermissions = userData.permissions || [];
+        fetchPanelSettings(userPermissions).catch(() => {
           // Silently handle error - panel settings are not critical
         });
       } else {
@@ -302,7 +309,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         await csrfManager.refresh();
 
-        const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true });
+        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+        const userData = await authApi.getCurrentAdminUser({ refresh: true });
         
         if (!userData) {
           throw new Error('Failed to load user data after login');
@@ -310,7 +318,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         setUser(serializeUser(userData));
 
-        fetchPanelSettings().catch(() => {
+        const userPermissions = userData.permissions || [];
+        fetchPanelSettings(userPermissions).catch(() => {
           // Silently handle error - panel settings are not critical for login
         });
 
@@ -344,7 +353,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       await csrfManager.refresh();
 
-      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true });
+      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+      const userData = await authApi.getCurrentAdminUser({ refresh: true });
       
       if (!userData) {
         throw new Error('Failed to load user data after login');
@@ -352,7 +362,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       setUser(serializeUser(userData));
 
-      fetchPanelSettings().catch(() => {
+      const userPermissions = userData.permissions || [];
+      fetchPanelSettings(userPermissions).catch(() => {
         // Silently handle error - panel settings are not critical
       });
 
@@ -463,12 +474,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshUser = async () => {
     try {
-      const userData = await authApi.getCurrentAdminUser({ cache: 'no-store', refresh: true });
+      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+      const userData = await authApi.getCurrentAdminUser({ refresh: true });
       if (userData) {
         setUser(serializeUser(userData));
         
         await csrfManager.refresh();
-        fetchPanelSettings().catch(() => {
+        const userPermissions = userData.permissions || [];
+        fetchPanelSettings(userPermissions).catch(() => {
           // Silently handle error - panel settings are not critical
         });
       } else {

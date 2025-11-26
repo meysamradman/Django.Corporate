@@ -147,6 +147,7 @@ class AIImageGenerationListSerializer(serializers.ModelSerializer):
     
     has_api_key = serializers.SerializerMethodField()
     can_generate = serializers.SerializerMethodField()
+    config = serializers.SerializerMethodField()
     
     class Meta:
         model = AIImageGeneration
@@ -159,6 +160,7 @@ class AIImageGenerationListSerializer(serializers.ModelSerializer):
             'can_generate',
             'usage_count',
             'last_used_at',
+            'config',  # Include config for OpenRouter model settings
         ]
     
     def get_has_api_key(self, obj) -> bool:
@@ -169,4 +171,12 @@ class AIImageGenerationListSerializer(serializers.ModelSerializer):
         if obj.provider_name == 'gemini':
             return False
         return obj.is_active and bool(obj.api_key)
+    
+    def get_config(self, obj) -> dict:
+        """Get config field, return empty dict if None"""
+        if obj.config is None:
+            return {}
+        if isinstance(obj.config, dict):
+            return obj.config
+        return {}
 

@@ -12,6 +12,7 @@ export interface UIPermissions {
   canManageSettings: boolean;
   canManageAI: boolean;
   canManageForms: boolean;
+  canManageChatbot: boolean;
   
   // CRUD Apps
   canCreateBlog: boolean;
@@ -64,6 +65,7 @@ export interface UIPermissions {
   // Email & AI
   canViewEmail: boolean;
   canViewAI: boolean;
+  canManageTicket: boolean;
 }
 
 export interface PermissionContextValue {
@@ -85,8 +87,9 @@ interface PermissionProviderProps {
 }
 
 /**
- * ✅ Provider که یک‌بار fetch می‌کنه و در Context cache می‌کنه
- * React Query برای cache و invalidation استفاده می‌کنه (5 دقیقه staleTime)
+ * ✅ Provider که permission map رو fetch می‌کنه
+ * ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
+ * همه درخواست‌ها fresh هستند و هیچ کشی در فرانت نیست
  */
 export function PermissionProvider({ children }: PermissionProviderProps) {
   const {
@@ -97,14 +100,14 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
   } = useQuery({
     queryKey: ['permission-map'],
     queryFn: async (): Promise<PermissionMapResponse> => {
-      // Remove cache: 'no-store' - Let React Query handle caching
+      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const res = await permissionApi.getMap();
       return res;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
-    gcTime: 10 * 60 * 1000, // 10 minutes - cache retention
-    refetchOnWindowFocus: false, // Don't refetch on tab focus
-    refetchOnMount: false, // Don't refetch on component mount if data exists
+    staleTime: 0, // Always fetch fresh - no frontend caching
+    gcTime: 0, // No cache retention - backend Redis handles caching
+    refetchOnWindowFocus: true, // Always refetch on focus for fresh data
+    refetchOnMount: true, // Always refetch on mount for fresh data
     retry: 2,
     retryDelay: 1000,
   });
@@ -239,6 +242,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageSettings: check('settings.manage'),
       canManageAI: check('ai.manage'),
       canManageForms: check('forms.manage'),
+      canManageChatbot: check('chatbot.manage'),
       
       // CRUD Apps
       canCreateBlog: check('blog.create'),
@@ -291,6 +295,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       // Email & AI
       canViewEmail: check('email.read') || check('email.view'),
       canViewAI: check('ai.read') || check('ai.view'),
+      canManageTicket: check('ticket.manage'),
     };
   }, [permissionMap, permissionSet]);
 

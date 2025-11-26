@@ -1,0 +1,124 @@
+/**
+ * پیام‌های مربوط به AI
+ * Messages for AI features
+ */
+
+// Helper functions for accessing messages
+export const getAIMessage = (key: keyof typeof AI_MESSAGES): string => {
+  return AI_MESSAGES[key] || key;
+};
+
+export const getAIUIMessage = (key: keyof typeof AI_UI_MESSAGES): string => {
+  return AI_UI_MESSAGES[key] || key;
+};
+
+// Wrapper object for backward compatibility with msg.ai() and msg.aiUI()
+export const aiMsg = {
+  ai: (key: keyof typeof AI_MESSAGES): string => {
+    return AI_MESSAGES[key] || key;
+  },
+  aiUI: (key: keyof typeof AI_UI_MESSAGES): string => {
+    return AI_UI_MESSAGES[key] || key;
+  },
+};
+
+// AI Messages
+export const AI_MESSAGES = {
+  // Validation
+  selectModel: "لطفاً یک مدل AI انتخاب کنید",
+  selectModelWithInstructions: "لطفاً یک مدل AI انتخاب کنید. ابتدا باید در تنظیمات پنل > تنظیمات مدل‌های AI، یک Provider را فعال کنید.",
+  enterTopic: "لطفاً موضوع محتوا را وارد کنید",
+  enterPrompt: "لطفاً توضیحات تصویر را وارد کنید",
+  enterMessage: "لطفاً پیام خود را وارد کنید",
+  enterApiKey: "لطفاً API key را وارد کنید",
+  
+  // Success
+  contentGenerated: "محتوای جدید تولید شد",
+  imageGenerated: "تصویر با موفقیت تولید شد (ذخیره نشده)",
+  imageGeneratedAndSaved: "تصویر با موفقیت تولید و ذخیره شد",
+  imageSaved: "تصویر در دیتابیس ذخیره شد",
+  copied: "کپی شد",
+  chatCleared: "چت پاک شد",
+  operationSuccess: "عملیات با موفقیت انجام شد",
+  
+  // Errors
+  copyError: "خطا در کپی کردن",
+  saveImageError: "خطا در ذخیره تصویر",
+} as const;
+
+// AI UI Messages (برای متن‌های UI مثل labels، placeholders، buttons)
+export const AI_UI_MESSAGES = {
+  // Labels
+  selectModel: "انتخاب مدل AI",
+  imagePrompt: "توضیحات تصویر",
+  contentTopic: "موضوع محتوا",
+  
+  // Placeholders
+  selectModelPlaceholder: "انتخاب مدل",
+  messagePlaceholder: "پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط جدید)",
+  topicPlaceholder: "مثال: راهنمای کامل طراحی وب سایت",
+  promptPlaceholder: "مثال: a beautiful cat, professional photography, high quality...",
+  apiKeyPlaceholder: "API key را وارد کنید",
+  
+  // Buttons
+  generateContent: "تولید محتوای SEO",
+  generatingContent: "در حال تولید محتوا...",
+  generateImage: "تولید تصویر",
+  generatingImage: "در حال تولید تصویر...",
+  save: "ذخیره",
+  cancel: "لغو",
+  selectImage: "انتخاب این تصویر",
+  selectImageDisabled: "انتخاب (ابتدا ذخیره کنید)",
+  newGeneration: "تولید جدید",
+  saveToDatabase: "ذخیره در دیتابیس",
+  editApiKey: "تغییر API Key",
+  enterApiKey: "وارد کردن API Key",
+  goToSettings: "رفتن به تنظیمات",
+  goToAISettings: "رفتن به تنظیمات AI",
+  clearChat: "پاک کردن چت",
+  
+  // Status & Info
+  selected: "انتخاب شده",
+  clickToSelect: "برای انتخاب کلیک کنید",
+  active: "فعال",
+  inactive: "غیرفعال",
+  noApiKey: "بدون API Key",
+  status: "وضعیت:",
+  usageCount: "تعداد استفاده:",
+  times: "بار",
+  notSaved: "(ذخیره نشده)",
+  
+  // Empty States
+  noActiveProviders: "هیچ Provider فعالی یافت نشد",
+  noActiveProvidersForImage: "هیچ مدل AI فعالی برای تولید تصویر وجود ندارد",
+  noActiveModel: "هیچ مدل فعالی یافت نشد",
+  startConversation: "شروع مکالمه",
+  chatDescription: "سوالات خود را از AI بپرسید. پیام‌ها ذخیره نمی‌شوند.",
+  chatInstructions: "برای استفاده از چت، لطفاً یک Provider را در تنظیمات پنل فعال کنید.",
+  chatInstructionsFull: "برای استفاده از چت با AI، ابتدا باید یک Provider (Gemini، OpenAI یا DeepSeek) را در تنظیمات پنل > تنظیمات مدل‌های AI فعال کنید.",
+  imageGenerationInstructions: "برای تولید تصویر با AI، باید:",
+  imageGenerationStep1: "به تب \"تنظیمات AI\" بروید",
+  imageGenerationStep2: "برای یک مدل AI (مثل OpenAI DALL-E) API key وارد کنید",
+  imageGenerationStep3: "API key را ذخیره کنید",
+  imageGenerationStep4: "Switch را فعال کنید",
+  
+  // Tips & Info
+  qualityTipTitle: "💡 نکته برای کیفیت بهتر:",
+  qualityTipDescription: "برای نتیجه بهتر، توضیحات را به انگلیسی بنویسید. مثال: \"a beautiful cat, high quality, detailed\"",
+  qualityTipNote: "سیستم به صورت خودکار کلمات کلیدی کیفیت را اضافه می‌کند.",
+  autoSaveLabel: "ذخیره خودکار در دیتابیس (اگر خالی باشد، فقط نمایش داده می‌شود - سریع‌تر)",
+  
+  // Copy Buttons
+  copyHTML: "کپی HTML",
+  copyText: "کپی متن",
+  copiedHTML: "کپی HTML شد",
+  
+  // Content Labels
+  fullContent: "محتوای کامل",
+  generatedImage: "تصویر تولید شده",
+  responding: "در حال پاسخ...",
+  
+  // Confirmations
+  confirmClearChat: "آیا مطمئن هستید که می‌خواهید تمام پیام‌ها را پاک کنید؟",
+} as const;
+
