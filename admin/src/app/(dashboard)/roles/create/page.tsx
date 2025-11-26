@@ -62,6 +62,7 @@ const AI_USED_PERMISSIONS: readonly string[] = [
   'ai.chat.manage',
   'ai.content.manage',
   'ai.image.manage',
+  'ai.audio.manage',
   'ai.settings.personal.manage'
 ];
 

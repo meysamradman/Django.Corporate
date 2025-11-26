@@ -128,8 +128,10 @@ export const PERMISSION_TRANSLATIONS = {
     'Access to AI text and content generation': 'دسترسی به تولید متن و محتوا با هوش مصنوعی',
     'AI Image Generation': 'تولید تصویر با AI',
     'Access to AI image generation': 'دسترسی به تولید تصویر با هوش مصنوعی',
+    'AI Audio Generation': 'تولید پادکست با AI',
+    'Access to text-to-speech and audio generation with AI': 'دسترسی به تبدیل متن به گفتار و تولید پادکست با هوش مصنوعی',
     'Full AI Access': 'دسترسی کامل به AI',
-    'Full access to all AI features (chat, content, image)': 'دسترسی کامل به تمام امکانات هوش مصنوعی (چت، محتوا، تصویر)',
+    'Full access to all AI features (chat, content, image, audio)': 'دسترسی کامل به تمام امکانات هوش مصنوعی (چت، محتوا، تصویر، پادکست)',
     'Manage Personal API Key': 'مدیریت API شخصی',
     'Manage personal API Key for exclusive use': 'مدیریت کلید API شخصی برای استفاده اختصاصی',
     // Complete phrases

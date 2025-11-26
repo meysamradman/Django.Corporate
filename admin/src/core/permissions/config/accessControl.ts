@@ -338,6 +338,14 @@ const aiRoutes: RouteRule[] = [
     description: "تولید تصویر",
     // ✅ Requires ai.image.manage OR ai.manage permission
   }),
+  createRule({
+    id: "ai-audio",
+    pattern: /^\/ai\/audio\/?$/,
+    module: "ai",
+    action: "manage",
+    description: "تولید پادکست",
+    // ✅ Requires ai.audio.manage OR ai.manage permission
+  }),
 ];
 
 const communicationRoutes: RouteRule[] = [
