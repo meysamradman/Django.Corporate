@@ -95,9 +95,9 @@ export function SEOInfoCard({ content, copiedField, onCopy }: SEOInfoCardProps) 
                     <div className="space-y-2">
                         <Label className="text-sm font-semibold">کلمات کلیدی</Label>
                         <div className="flex flex-wrap gap-2 p-3 bg-bg/50 rounded-lg border">
-                            {content.keywords.map((keyword, index) => (
+                            {content.keywords.map((keyword) => (
                                 <span
-                                    key={index}
+                                    key={keyword}
                                     className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm font-medium border border-primary/20"
                                 >
                                     {keyword}

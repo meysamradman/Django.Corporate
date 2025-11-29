@@ -134,12 +134,14 @@ class OpenRouterProvider(BaseProvider):
             return False
     
     @classmethod
-    def get_available_models(cls, api_key: str, provider_filter: Optional[str] = None, use_cache: bool = True) -> List[Dict[str, Any]]:
+    def get_available_models(cls, api_key: Optional[str] = None, provider_filter: Optional[str] = None, use_cache: bool = True) -> List[Dict[str, Any]]:
         """
         Get list of available models from OpenRouter API with Redis caching
         
+        ✅ داینامیک: همیشه از OpenRouter API می‌گیرد (نه دستی)
+        
         Args:
-            api_key: OpenRouter API key
+            api_key: OpenRouter API key (optional - اگر نباشد، بدون auth امتحان می‌کند)
             provider_filter: Filter by provider (e.g., 'google', 'openai', 'anthropic')
             use_cache: Whether to use Redis cache (default: True)
         
@@ -169,9 +171,15 @@ class OpenRouterProvider(BaseProvider):
         try:
             url = f"{cls.BASE_URL}/models"
             headers = {
-                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             }
+            
+            # ✅ اگر API key داریم، استفاده می‌کنیم، وگرنه بدون auth امتحان می‌کنیم
+            if api_key and api_key.strip():
+                headers["Authorization"] = f"Bearer {api_key}"
+                logger.info(f"[OpenRouter Provider] Fetching models with API key...")
+            else:
+                logger.info(f"[OpenRouter Provider] Fetching models without API key (public endpoint)...")
             
             # Make request to get models list
             import httpx
@@ -224,9 +232,31 @@ class OpenRouterProvider(BaseProvider):
                     print(f"[OpenRouter Provider] Cached {len(models)} models for 6 hours")
                 
                 return models
+        except httpx.HTTPStatusError as e:
+            # اگر خطای 401 یا 403 بود، یعنی نیاز به API key دارد
+            if e.response.status_code in [401, 403]:
+                logger.warning(f"[OpenRouter Provider] API key required (status: {e.response.status_code})")
+                # اگر cache داریم، از cache استفاده کن
+                if use_cache:
+                    cached_models = cache.get(cache_key)
+                    if cached_models:
+                        logger.info(f"[OpenRouter Provider] Using cached models (API key required)")
+                        return cached_models
+                # اگر cache هم نبود، لیست خالی برگردان
+                logger.warning(f"[OpenRouter Provider] No cache available, returning empty list")
+                return []
+            else:
+                logger.error(f"[OpenRouter Provider] HTTP error getting models: {e.response.status_code} - {str(e)}")
+                raise
         except Exception as e:
             logger.error(f"[OpenRouter Provider] Error getting available models: {str(e)}", exc_info=True)
             print(f"[OpenRouter Provider] Error getting available models: {str(e)}")
+            # اگر cache داریم، از cache استفاده کن
+            if use_cache:
+                cached_models = cache.get(cache_key)
+                if cached_models:
+                    logger.info(f"[OpenRouter Provider] Using cached models (error occurred)")
+                    return cached_models
             return []
     
     # Image generation (supports DALL-E models via OpenRouter)

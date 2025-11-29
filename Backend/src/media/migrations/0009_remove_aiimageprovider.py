@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('media', '0008_alter_aiimageprovider_provider_name'),
-        ('ai', '0002_migrate_data_from_media'),  # Ensure data migration is done first
+        # Removed dependency on deleted AI migrations
     ]
 
     operations = [

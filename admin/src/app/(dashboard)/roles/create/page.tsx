@@ -73,9 +73,45 @@ export default function CreateRolePage() {
 
   const togglePermission = (permissionId: number) => {
     setSelectedPermissions(prev => {
-      const newPermissions = prev.includes(permissionId)
-        ? prev.filter(id => id !== permissionId)
-        : [...prev, permissionId];
+      // Find the permission being toggled
+      const allPermissions = permissions?.flatMap((g: any) => g.permissions) || [];
+      const toggledPerm = allPermissions.find((p: any) => p.id === permissionId);
+      const isCurrentlySelected = prev.includes(permissionId);
+      
+      let newPermissions: number[];
+      
+      if ((toggledPerm as any)?.original_key === 'ai.manage') {
+        // ✅ If toggling ai.manage
+        if (isCurrentlySelected) {
+          // Unselecting ai.manage - just remove it
+          newPermissions = prev.filter(id => id !== permissionId);
+        } else {
+          // Selecting ai.manage - remove all other AI permissions first
+          const aiPermissionIds = allPermissions
+            .filter((p: any) => (p as any).original_key?.startsWith('ai.') && (p as any).original_key !== 'ai.manage')
+            .map((p: any) => p.id);
+          newPermissions = [...prev.filter(id => !aiPermissionIds.includes(id)), permissionId];
+        }
+      } else if ((toggledPerm as any)?.original_key?.startsWith('ai.')) {
+        // ✅ If toggling any other AI permission
+        const aiManagePerm = allPermissions.find((p: any) => (p as any).original_key === 'ai.manage');
+        const isAiManageSelected = aiManagePerm && prev.includes((aiManagePerm as any).id);
+        
+        if (isAiManageSelected) {
+          // ai.manage is selected - don't allow toggling other AI permissions
+          return prev;
+        }
+        
+        // Normal toggle for other AI permissions
+        newPermissions = prev.includes(permissionId)
+          ? prev.filter(id => id !== permissionId)
+          : [...prev, permissionId];
+      } else {
+        // Normal toggle for non-AI permissions
+        newPermissions = prev.includes(permissionId)
+          ? prev.filter(id => id !== permissionId)
+          : [...prev, permissionId];
+      }
       
       // Sync با form
       setValue("permission_ids", newPermissions, { shouldValidate: true });
@@ -450,6 +486,7 @@ export default function CreateRolePage() {
                             }}
                     isPermissionSelected={isPermissionSelected}
                     getResourceIcon={getResourceIcon}
+                    allPermissions={permissions?.flatMap((g: any) => g.permissions) || []} // ✅ Pass all permissions for media check
                   />
                 )}
 

@@ -1,121 +1,73 @@
-from rest_framework import viewsets, status
+""" 
+✅ AI Image Generation Views (2025)
+
+Provider Management + Image Generation
+Integrated with dynamic AIProvider system
+"""
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from django.db import transaction
+import time
+import base64
 
-from src.ai.models.image_generation import AIImageGeneration
-from src.ai.serializers.image_generation_serializer import (
-    AIImageGenerationSerializer,
-    AIImageGenerationListSerializer,
-    AIImageGenerationRequestSerializer
-)
+from src.ai.models import AIProvider, AIModel, AdminProviderSettings
+from src.ai.services.state_machine import ModelAccessState
 from src.ai.services.image_generation_service import AIImageGenerationService
-from src.media.serializers.media_serializer import MediaAdminSerializer
+from src.ai.serializers.image_generation_serializer import (
+    AIProviderSerializer,
+    AIProviderListSerializer,
+    AIImageGenerationRequestSerializer,
+)
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses import APIResponse
-from src.user.authorization import AiManagerAccess, SuperAdminOnly  # Auto-generated from factory
+from src.user.authorization import AiManagerAccess, SuperAdminOnly
 from src.user.permissions import PermissionValidator
-from src.ai.providers.capabilities import get_provider_capabilities, supports_feature  # ✅ اضافه شد
 
 
-class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
+class AIImageProviderViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing API keys and AI model settings
-    ⚠️ فقط سوپر ادمین - مدیریت API Keys
+    ✅ Provider Management ViewSet (11 actions)
+    فقط سوپر ادمین - مدیریت API Keys و Providers
     """
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [SuperAdminOnly]  # ✅ فقط سوپر ادمین
-    queryset = AIImageGeneration.objects.all()
-    serializer_class = AIImageGenerationSerializer
+    permission_classes = [SuperAdminOnly]
+    queryset = AIProvider.objects.all()
+    serializer_class = AIProviderSerializer
     lookup_field = 'id'
     
     def get_queryset(self):
-        """Filter queryset"""
-        return AIImageGeneration.objects.all().order_by('-created_at')
+        return AIProvider.objects.all().order_by('sort_order', 'display_name')
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AIProviderListSerializer
+        return AIProviderSerializer
     
     def list(self, request, *args, **kwargs):
         """
-        List all providers from PROVIDER_CHOICES, including ones that don't exist in DB yet.
-        This ensures all providers are shown in the settings page, even if no API key has been set.
+        لیست همه Providers
+        ✅ اگر سوپر ادمین است، همه provider ها را ببین (فعال و غیرفعال)
+        ✅ اگر ادمین معمولی است، فقط provider های فعال را ببین
         """
-        import logging
-        logger = logging.getLogger(__name__)
+        # ✅ اگر سوپر ادمین است، همه provider ها را ببین
+        is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+        if is_super:
+            providers = self.get_queryset()
+        else:
+            # ✅ برای ادمین‌های معمولی: فقط provider های فعال را نمایش بده
+            providers = AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name')
         
-        logger.info(f"[AI Image View] list() called by user: {request.user}")
-        print(f"[AI Image View] list() called by user: {request.user}")
+        serializer = self.get_serializer(providers, many=True)
         
-        try:
-            # Get all providers from DB
-            db_providers = AIImageGeneration.objects.all()
-            db_provider_dict = {p.provider_name: p for p in db_providers}
-            
-            logger.info(f"[AI Image View] Found {len(db_providers)} providers in DB: {[p.provider_name for p in db_providers]}")
-            print(f"[AI Image View] Found {len(db_providers)} providers in DB: {[p.provider_name for p in db_providers]}")
-            logger.info(f"[AI Image View] Provider states: {[(p.provider_name, p.is_active, bool(p.api_key)) for p in db_providers]}")
-            print(f"[AI Image View] Provider states: {[(p.provider_name, p.is_active, bool(p.api_key)) for p in db_providers]}")
-            
-            # Build list of all providers from PROVIDER_CHOICES
-            all_providers_data = []
-            for provider_value, provider_display in AIImageGeneration.PROVIDER_CHOICES:
-                try:
-                    if provider_value in db_provider_dict:
-                        # Provider exists in DB - serialize DB instance
-                        provider = db_provider_dict[provider_value]
-                        serializer = self.get_serializer(provider)
-                        provider_data = serializer.data
-                        # ✅ Ensure config is always a dict
-                        if 'config' not in provider_data or provider_data['config'] is None:
-                            provider_data['config'] = {}
-                        logger.info(f"[AI Image View] Provider {provider_value} from DB: is_active={provider.is_active}, has_api_key={bool(provider.api_key)}")
-                    else:
-                        # Provider doesn't exist in DB - create data manually
-                        provider_data = {
-                            'id': None,
-                            'provider_name': provider_value,
-                            'provider_display': provider_display,
-                            'has_api_key': False,
-                            'is_active': False,
-                            'can_generate': False,
-                            'usage_count': 0,
-                            'last_used_at': None,
-                            'config': {},  # Empty config for new providers
-                        }
-                        logger.info(f"[AI Image View] Provider {provider_value} not in DB, created manually")
-                    
-                    all_providers_data.append(provider_data)
-                except Exception as e:
-                    logger.error(f"[AI Image View] Error serializing provider {provider_value}: {str(e)}", exc_info=True)
-                    print(f"[AI Image View] Error serializing provider {provider_value}: {str(e)}")
-                    # Add fallback data
-                    all_providers_data.append({
-                        'id': None,
-                        'provider_name': provider_value,
-                        'provider_display': provider_display,
-                        'has_api_key': False,
-                        'is_active': False,
-                        'can_generate': False,
-                        'usage_count': 0,
-                        'last_used_at': None,
-                        'config': {},
-                    })
-            
-            logger.info(f"[AI Image View] Returning {len(all_providers_data)} providers")
-            print(f"[AI Image View] Returning {len(all_providers_data)} providers")
-            logger.info(f"[AI Image View] Provider data: {all_providers_data}")
-            print(f"[AI Image View] Provider data: {all_providers_data}")
-            return APIResponse.success(
-                message=AI_SUCCESS.get("providers_list_retrieved", "لیست Provider ها دریافت شد."),
-                data=all_providers_data
-            )
-        except Exception as e:
-            logger.error(f"[AI Image View] Error in list(): {str(e)}", exc_info=True)
-            raise
+        return APIResponse.success(
+            message=AI_SUCCESS.get("providers_list_retrieved", "لیست Provider ها دریافت شد"),
+            data=serializer.data
+        )
     
     def update(self, request, *args, **kwargs):
-        """Update method override - فقط سوپر ادمین"""
-        # SuperAdminOnly permission class already handles this
-        # No need for additional permission check
+        """آپدیت Provider (API key, config, etc.)"""
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
@@ -123,241 +75,270 @@ class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         
-        if getattr(instance, '_prefetched_objects_cache', None):
-            instance._prefetched_objects_cache = {}
         return APIResponse.success(
-            message=AI_SUCCESS["provider_updated"],
+            message=AI_SUCCESS.get("provider_updated", "Provider به‌روزرسانی شد"),
             data=serializer.data
         )
     
     def create(self, request, *args, **kwargs):
-        """Create or update Provider - فقط سوپر ادمین"""
-        # SuperAdminOnly permission class already handles this
-        # No need for additional permission check
-        provider_name = request.data.get('provider_name')
-        if not provider_name:
+        """ایجاد یا آپدیت Provider"""
+        slug = request.data.get('slug')
+        if not slug:
             return APIResponse.error(
-                message=AI_ERRORS["provider_name_required"],
+                message="slug الزامی است",
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
-            provider = AIImageGeneration.objects.get(provider_name=provider_name)
+            provider = AIProvider.objects.get(slug=slug)
             serializer = self.get_serializer(provider, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
             return APIResponse.success(
-                message=AI_SUCCESS["provider_updated"],
+                message=AI_SUCCESS.get("provider_updated", "Provider به‌روزرسانی شد"),
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except AIImageGeneration.DoesNotExist:
+        except AIProvider.DoesNotExist:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return APIResponse.success(
-                message=AI_SUCCESS["provider_created"],
+                message=AI_SUCCESS.get("provider_created", "Provider ایجاد شد"),
                 data=serializer.data,
                 status_code=status.HTTP_201_CREATED
             )
     
-    def get_serializer_class(self):
-        """Use appropriate serializer for different actions"""
-        if self.action == 'list':
-            return AIImageGenerationListSerializer
-        return AIImageGenerationSerializer
-    
     @action(detail=False, methods=['get'], url_path='capabilities')
     def get_capabilities(self, request):
-        """
-        Get capabilities for all providers or a specific provider
+        """دریافت قابلیت‌های Providers"""
+        from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities
         
-        Query params:
-            - provider_name: Optional - specific provider to check
+        provider_slug = request.query_params.get('provider')
         
-        Returns:
-            - All capabilities if no provider specified
-            - Specific provider capabilities if provider_name is provided
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        provider_name = request.query_params.get('provider_name')
-        
-        if provider_name:
-            # Get capabilities for specific provider
-            caps = get_provider_capabilities(provider_name)
+        if provider_slug:
+            caps = get_provider_capabilities(provider_slug)
             return APIResponse.success(
-                message=f"قابلیت‌های {provider_name} دریافت شد",
-                data=caps,
-                status_code=status.HTTP_200_OK
+                message=f"قابلیت‌های {provider_slug} دریافت شد",
+                data=caps
             )
-        else:
-            # Get all capabilities
-            from src.ai.providers.capabilities import PROVIDER_CAPABILITIES
-            return APIResponse.success(
-                message="قابلیت‌های تمام Provider ها دریافت شد",
-                data=PROVIDER_CAPABILITIES,
-                status_code=status.HTTP_200_OK
-            )
+        
+        return APIResponse.success(
+            message="قابلیت‌های تمام Provider ها دریافت شد",
+            data=PROVIDER_CAPABILITIES
+        )
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
-        """
-        Get list of active providers (that have API key and are active)
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        logger.info(f"[AI Image View] available_providers() called by user: {request.user}")
-        print(f"[AI Image View] available_providers() called by user: {request.user}")
-        
+        """لیست Provider های فعال (با permission check)"""
         if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            logger.warning(f"[AI Image View] Permission denied for user: {request.user}")
-            print(f"[AI Image View] Permission denied for user: {request.user}")
             return APIResponse.error(
-                message=AI_ERRORS.get("provider_not_authorized", "You don't have permission to view AI settings"),
+                message=AI_ERRORS.get("provider_not_authorized", "شما دسترسی لازم ندارید"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
-        # Log all providers first
-        all_providers = AIImageGeneration.objects.all().values('id', 'provider_name', 'is_active', 'api_key')
-        logger.info(f"[AI Image View] All providers in DB: {list(all_providers)}")
-        print(f"[AI Image View] All providers in DB: {list(all_providers)}")
+        providers = AIProvider.objects.filter(is_active=True)
+        serializer = AIProviderListSerializer(providers, many=True)
         
-        providers = AIImageGeneration.objects.filter(
-            is_active=True
-        ).exclude(
-            provider_name='gemini'
-        )
-        
-        logger.info(f"[AI Image View] Active providers (excluding gemini): {[(p.id, p.provider_name, p.is_active, bool(p.api_key)) for p in providers]}")
-        print(f"[AI Image View] Active providers (excluding gemini): {[(p.id, p.provider_name, p.is_active, bool(p.api_key)) for p in providers]}")
-        
-        serializer = AIImageGenerationListSerializer(providers, many=True)
-        
-        available_providers = [
-            p for p in serializer.data 
-            if p.get('can_generate', False) is True
+        available = [
+            p for p in serializer.data
+            if p.get('has_shared_api_key') or p.get('allow_personal_keys')
         ]
         
-        logger.info(f"[AI Image View] Returning {len(available_providers)} available providers: {available_providers}")
-        print(f"[AI Image View] Returning {len(available_providers)} available providers: {available_providers}")
-        
         return APIResponse.success(
-            message=AI_SUCCESS["providers_list_retrieved"],
-            data=available_providers
+            message=AI_SUCCESS.get("providers_list_retrieved", "لیست Provider های فعال دریافت شد"),
+            data=available
         )
     
     @action(detail=False, methods=['get'], url_path='openrouter-models')
     def openrouter_models(self, request):
-        """
-        Get list of available OpenRouter models for image generation
-        
-        Query params:
-            - use_cache: Whether to use cache (default: true)
-        
-        Cache:
-            - Cached for 6 hours
-            - Use ?use_cache=false to force fresh data
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        logger.info(f"[AI Image View] openrouter_models called by user: {request.user}")
-        print(f"[AI Image View] openrouter_models called by user: {request.user}")
-        
-        # Check permission
+        """لیست مدل‌های OpenRouter (با cache 6 ساعته)"""
         if not PermissionValidator.has_permission(request.user, 'ai.manage'):
             return APIResponse.error(
-                message="شما دسترسی لازم برای مشاهده مدل‌های OpenRouter را ندارید",
+                message="شما دسترسی لازم ندارید",
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
         try:
             from src.ai.providers.openrouter import OpenRouterProvider
-            from src.ai.models.admin_ai_settings import AdminAISettings
-            from src.ai.models.image_generation import AIImageGeneration
             
-            # Get API key for OpenRouter
+            # Get API key
             try:
-                api_key = AdminAISettings.get_api_key_for_admin(request.user, 'openrouter')
-            except:
-                # Fallback to shared API key
-                shared_provider = AIImageGeneration.get_active_provider('openrouter')
-                if not shared_provider:
-                    return APIResponse.error(
-                        message="OpenRouter فعال نیست یا API Key تنظیم نشده است",
-                        status_code=status.HTTP_400_BAD_REQUEST
-                    )
-                api_key = shared_provider.get_api_key()
+                provider = AIProvider.objects.get(slug='openrouter', is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.error(
+                    message="OpenRouter فعال نیست. لطفاً ابتدا OpenRouter را در تنظیمات AI فعال کنید.",
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
             
-            # Get query params
+            # ✅ بهینه: منطق ساده و واضح برای دریافت API key
+            # ✅ بهینه شده: استفاده از select_related برای جلوگیری از N+1 query
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            settings = AdminProviderSettings.objects.filter(
+                admin=request.user,
+                provider=provider,
+                is_active=True
+            ).select_related('provider').first()
+            
+            api_key = None
+            
+            # Strategy 1: اگر settings وجود دارد
+            if settings:
+                # اول سعی کن از get_api_key() بگیر (طبق use_shared_api)
+                try:
+                    api_key = settings.get_api_key()
+                    logger.info(f"[AI Image API] Using API key from settings (use_shared_api={settings.use_shared_api})")
+                except Exception as e:
+                    logger.warning(f"[AI Image API] get_api_key() failed: {e}")
+                    # اگر use_shared_api=True است اما shared key نیست، personal را چک کن
+                    if settings.use_shared_api:
+                        # shared API key تنظیم نشده، personal را امتحان کن
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+                            logger.info(f"[AI Image API] Fallback: Using personal API key")
+                        else:
+                            logger.warning(f"[AI Image API] Personal API key also empty")
+                    else:
+                        # use_shared_api=False اما personal هم نیست
+                        logger.warning(f"[AI Image API] Personal API key not set")
+            
+            # Strategy 2: اگر هنوز API key نداریم، shared provider را چک کن
+            if not api_key or not api_key.strip():
+                shared_key = provider.get_shared_api_key()
+                if shared_key and shared_key.strip():
+                    api_key = shared_key
+                    logger.info(f"[AI Image API] Using shared provider API key")
+                else:
+                    logger.warning(f"[AI Image API] Shared provider API key also empty")
+            
             use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
             
-            # Get available models from OpenRouter (with cache)
-            # Note: For image generation, we might want to filter by image-capable models
+            # ✅ داینامیک: همیشه از OpenRouter API می‌گیریم (حتی بدون API key)
+            # OpenRouter API ممکن است لیست مدل‌ها را بدون auth هم بدهد
+            final_api_key = api_key if (api_key and api_key.strip()) else None
             models = OpenRouterProvider.get_available_models(
-                api_key, 
-                provider_filter=None,  # Get all models
+                api_key=final_api_key,
+                provider_filter=None,
                 use_cache=use_cache
             )
             
-            # Filter to only image generation models (DALL-E, Flux, Stability, etc.)
+            # Filter image models
             image_models = [
-                m for m in models 
-                if any(keyword in m['id'].lower() for keyword in ['dall-e', 'flux', 'stable', 'midjourney'])
+                m for m in models
+                if any(kw in m['id'].lower() for kw in ['dall-e', 'flux', 'stable', 'midjourney'])
             ]
             
-            logger.info(f"[AI Image View] Found {len(image_models)} image generation models (cache: {use_cache})")
-            print(f"[AI Image View] Found {len(image_models)} image generation models (cache: {use_cache})")
+            return APIResponse.success(
+                message=f"لیست مدل‌های تولید تصویر OpenRouter دریافت شد{' (از کش)' if use_cache else ' (تازه)'}",
+                data=image_models
+            )
+        except Exception as e:
+            return APIResponse.error(
+                message=f"خطا در دریافت لیست مدل‌ها: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'], url_path='huggingface-models')
+    def huggingface_models(self, request):
+        """لیست مدل‌های Hugging Face (با cache 6 ساعته)"""
+        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
+            return APIResponse.error(
+                message="شما دسترسی لازم ندارید",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            from src.ai.providers.huggingface import HuggingFaceProvider
+            
+            # Get API key
+            try:
+                provider = AIProvider.objects.get(slug='huggingface', is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.error(
+                    message="Hugging Face فعال نیست. لطفاً ابتدا Hugging Face را در تنظیمات AI فعال کنید.",
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            settings = AdminProviderSettings.objects.filter(
+                admin=request.user,
+                provider=provider,
+                is_active=True
+            ).first()
+            
+            api_key = None
+            
+            # Strategy 1: اگر settings وجود دارد
+            if settings:
+                try:
+                    api_key = settings.get_api_key()
+                    logger.info(f"[AI Image API] Using HuggingFace API key from settings")
+                except Exception as e:
+                    logger.warning(f"[AI Image API] get_api_key() failed: {e}")
+                    if settings.use_shared_api:
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+                    else:
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+            
+            # Strategy 2: اگر هنوز API key نداریم، shared provider را چک کن
+            if not api_key or not api_key.strip():
+                shared_key = provider.get_shared_api_key()
+                if shared_key and shared_key.strip():
+                    api_key = shared_key
+                    logger.info(f"[AI Image API] Using shared HuggingFace API key")
+            
+            use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
+            task_filter = request.query_params.get('task', None)  # 'text-to-image', 'text-generation', etc.
+            
+            # Get models from Hugging Face API
+            models = HuggingFaceProvider.get_available_models(
+                api_key=api_key if (api_key and api_key.strip()) else None,
+                task_filter=task_filter,
+                use_cache=use_cache
+            )
+            
+            logger.info(f"[AI Image View] Found {len(models)} HuggingFace models")
             
             return APIResponse.success(
-                message="لیست مدل‌های تولید تصویر OpenRouter دریافت شد" + (" (از کش)" if use_cache else " (تازه)"),
-                data=image_models,
+                message="لیست مدل‌های Hugging Face دریافت شد" + (" (از کش)" if use_cache else " (تازه)"),
+                data=models,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
-            logger.error(f"[AI Image View] Error getting OpenRouter models: {str(e)}", exc_info=True)
-            print(f"[AI Image View] Error getting OpenRouter models: {str(e)}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"[AI Image View] Error getting HuggingFace models: {str(e)}", exc_info=True)
             return APIResponse.error(
-                message=f"خطا در دریافت لیست مدل‌های OpenRouter: {str(e)}",
+                message=f"خطا در دریافت لیست مدل‌های Hugging Face: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['post'], url_path='clear-openrouter-cache')
     def clear_openrouter_cache(self, request):
-        """
-        Clear OpenRouter models cache
-        
-        Permission: ai.manage (فقط برای کسانی که دسترسی مدیریت AI دارند)
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # Check permission - فقط کسانی که ai.manage دارند
+        """پاک کردن cache مدل‌های OpenRouter"""
         if not PermissionValidator.has_permission(request.user, 'ai.manage'):
             return APIResponse.error(
-                message="شما دسترسی لازم برای پاک کردن کش مدل‌ها را ندارید",
+                message="شما دسترسی لازم ندارید",
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
         try:
             from src.ai.providers.openrouter import OpenRouterModelCache
-            
-            # Clear all cache
             OpenRouterModelCache.clear_all()
-            message = "کش تمام مدل‌های OpenRouter پاک شد"
-            
-            logger.info(f"[AI Image View] {message}")
-            print(f"[AI Image View] {message}")
             
             return APIResponse.success(
-                message=message,
-                status_code=status.HTTP_200_OK
+                message="کش تمام مدل‌های OpenRouter پاک شد"
             )
         except Exception as e:
-            logger.error(f"[AI Image View] Error clearing cache: {str(e)}", exc_info=True)
             return APIResponse.error(
                 message=f"خطا در پاک کردن کش: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -365,181 +346,231 @@ class AIImageGenerationProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='activate')
     def activate_provider(self, request, pk=None, id=None):
-        """
-        Activate Provider
-        """
+        """فعال‌سازی Provider (با validation API key)"""
         provider = self.get_object()
         
-        if not provider.api_key:
+        if not provider.shared_api_key:
             return APIResponse.error(
-                message=AI_ERRORS["api_key_required"],
+                message=AI_ERRORS.get("api_key_required", "API key الزامی است"),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
-            provider.activate()
+            # Validate API key
+            is_valid = AIImageGenerationService.validate_provider_api_key(
+                provider.slug,
+                provider.get_shared_api_key()
+            )
+            
+            if not is_valid:
+                return APIResponse.error(
+                    message=AI_ERRORS.get("api_key_invalid", "API key نامعتبر است"),
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            provider.is_active = True
+            provider.save(update_fields=['is_active', 'updated_at'])
+            
             serializer = self.get_serializer(provider)
             return APIResponse.success(
-                message=AI_SUCCESS["provider_activated"],
+                message=AI_SUCCESS.get("provider_activated", "Provider فعال شد"),
                 data=serializer.data
             )
         except Exception as e:
-            error_message = str(e)
-            if any(key in error_message for key in ['خطا', 'Provider', 'API key']):
-                return APIResponse.error(
-                    message=error_message,
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
             return APIResponse.error(
-                message=AI_ERRORS["activation_failed"].format(error=error_message),
+                message=AI_ERRORS.get("activation_failed", "فعال‌سازی ناموفق بود").format(error=str(e)),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'], url_path='deactivate')
     def deactivate_provider(self, request, pk=None, id=None):
-        """
-        Deactivate Provider
-        """
+        """غیرفعال‌سازی Provider"""
         provider = self.get_object()
-        provider.deactivate()
+        provider.is_active = False
+        provider.save(update_fields=['is_active', 'updated_at'])
+        
         serializer = self.get_serializer(provider)
         return APIResponse.success(
-            message=AI_SUCCESS["provider_deactivated"],
+            message=AI_SUCCESS.get("provider_deactivated", "Provider غیرفعال شد"),
             data=serializer.data
         )
     
     @action(detail=True, methods=['post'], url_path='validate-api-key')
     def validate_api_key(self, request, pk=None):
-        """
-        Validate API key
-        """
+        """اعتبارسنجی API key"""
         provider = self.get_object()
         
-        if not provider.api_key:
+        if not provider.shared_api_key:
             return APIResponse.error(
-                message=AI_ERRORS["api_key_not_provided"],
+                message=AI_ERRORS.get("api_key_not_provided", "API key وارد نشده است"),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             is_valid = AIImageGenerationService.validate_provider_api_key(
-                provider.provider_name,
-                provider.get_api_key()
+                provider.slug,
+                provider.get_shared_api_key()
             )
             
-            message = AI_SUCCESS["api_key_valid"] if is_valid else AI_ERRORS["api_key_invalid"]
+            message = AI_SUCCESS.get("api_key_valid", "API key معتبر است") if is_valid else AI_ERRORS.get("api_key_invalid", "API key نامعتبر است")
             return APIResponse.success(
                 message=message,
                 data={'valid': is_valid}
             )
         except Exception as e:
-            error_message = str(e)
-            if any(key in error_message for key in ['خطا', 'Provider', 'API key']):
-                return APIResponse.error(
-                    message=error_message,
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
             return APIResponse.error(
-                message=AI_ERRORS["validation_error"].format(error=error_message),
+                message=AI_ERRORS.get("validation_error", "خطا در اعتبارسنجی").format(error=str(e)),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
 
-class AIImageGenerationRequestViewSet(viewsets.ViewSet):
+class AIImageGenerationViewSet(viewsets.ViewSet):
     """
-    ViewSet for generating images with AI
+    ✅ Image Generation ViewSet
+    دسترسی برای AiManager - تولید تصویر
     """
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [AiManagerAccess]
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_image(self, request):
-        """Generate image with AI"""
+        """تولید تصویر با AI"""
         if not PermissionValidator.has_permission(request.user, 'ai.image.manage'):
             return APIResponse.error(
-                message=AI_ERRORS.get("image_not_authorized", "You don't have permission to generate AI images"),
+                message=AI_ERRORS.get("image_not_authorized", "شما دسترسی لازم ندارید"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
-        serializer = AIImageGenerationRequestSerializer(data=request.data)
         
+        serializer = AIImageGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
-                message=AI_ERRORS["prompt_invalid"],
+                message=AI_ERRORS.get("prompt_invalid", "درخواست نامعتبر است"),
                 errors=serializer.errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        validated_data = serializer.validated_data
-        save_to_db = validated_data.get('save_to_db', False)
+        data = serializer.validated_data
+        model_id = data.get('model_id')
+        save_to_db = data.get('save_to_media', True)
         
         try:
+            model = AIModel.objects.select_related('provider').get(id=model_id)
+            
+            # Check access
+            state = ModelAccessState.calculate(model.provider, model, request.user)
+            if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
+                return APIResponse.error(
+                    message="شما به این مدل دسترسی ندارید",
+                    status_code=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Check capability
+            if 'image' not in model.capabilities:
+                return APIResponse.error(
+                    message="این مدل قابلیت تولید تصویر ندارد",
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            start_time = time.time()
+            
             if save_to_db:
                 with transaction.atomic():
                     media = AIImageGenerationService.generate_and_save_to_media(
-                        provider_name=validated_data['provider_name'],
-                        prompt=validated_data['prompt'],
-                        user_id=request.user.id if hasattr(request.user, 'id') else None,
-                        title=validated_data.get('title'),
-                        alt_text=validated_data.get('alt_text'),
-                        size=validated_data.get('size', '1024x1024'),
-                        quality=validated_data.get('quality', 'standard'),
+                        provider_name=model.provider.slug,
+                        prompt=data.get('prompt'),
+                        admin=request.user,
+                        title=data.get('title', data.get('prompt')[:100]),
+                        alt_text=data.get('alt_text', data.get('prompt')[:200]),
                         save_to_db=True,
-                        admin=request.user,  # ✅ Pass admin for personal/shared API selection
+                        size=data.get('size', '1024x1024'),
+                        quality=data.get('quality', 'standard'),
+                        style=data.get('style', 'vivid'),
+                        n=data.get('n', 1)
                     )
                     
                     from src.media.serializers.media_serializer import MediaAdminSerializer
                     media_serializer = MediaAdminSerializer(media)
                     
                     return APIResponse.success(
-                        message=AI_SUCCESS["image_generated_and_saved"],
+                        message=AI_SUCCESS.get("image_generated_and_saved", "تصویر تولید و ذخیره شد"),
                         data={
                             **media_serializer.data,
-                            'saved': True
+                            'saved': True,
+                            'generation_time_ms': int((time.time() - start_time) * 1000)
                         },
                         status_code=status.HTTP_201_CREATED
                     )
             else:
                 image_bytes, metadata = AIImageGenerationService.generate_image_only(
-                    provider_name=validated_data['provider_name'],
-                    prompt=validated_data['prompt'],
-                    size=validated_data.get('size', '1024x1024'),
-                    quality=validated_data.get('quality', 'standard'),
-                    admin=request.user,  # ✅ Pass admin for personal/shared API selection
+                    provider_name=model.provider.slug,
+                    prompt=data.get('prompt'),
+                    admin=request.user,
+                    size=data.get('size', '1024x1024'),
+                    quality=data.get('quality', 'standard'),
+                    style=data.get('style', 'vivid'),
+                    n=data.get('n', 1)
                 )
                 
-                import base64
                 image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
-                image_data_url = f"data:image/png;base64,{image_base64}"
                 
                 return APIResponse.success(
-                    message=AI_SUCCESS["image_generated_not_saved"],
+                    message=AI_SUCCESS.get("image_generated_not_saved", "تصویر تولید شد"),
                     data={
-                        'image_data_url': image_data_url,
-                        'prompt': metadata['prompt'],
-                        'provider_name': metadata['provider_name'],
-                        'filename': metadata['filename'],
-                        'title': validated_data.get('title'),
-                        'alt_text': validated_data.get('alt_text'),
-                        'saved': False
+                        'image_data_url': f"data:image/png;base64,{image_base64}",
+                        'prompt': data.get('prompt'),
+                        'provider': model.provider.display_name,
+                        'model': model.display_name,
+                        'saved': False,
+                        'generation_time_ms': int((time.time() - start_time) * 1000)
                     },
                     status_code=status.HTTP_200_OK
                 )
-            
-        except ValueError as e:
-            error_message = str(e)
-            if any(key in error_message for key in ['خطا', 'Provider', 'API key', 'فعال نیست']):
-                return APIResponse.error(
-                    message=error_message,
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
-            final_message = AI_ERRORS["provider_not_available"].format(provider_name=error_message) if 'Provider' in error_message else AI_ERRORS["image_generation_failed"].format(error=error_message)
+        
+        except AIModel.DoesNotExist:
             return APIResponse.error(
-                message=final_message,
+                message="مدل یافت نشد",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except ValueError as e:
+            return APIResponse.error(
+                message=str(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["image_generation_failed"].format(error=str(e)),
+                message=AI_ERRORS.get("image_generation_failed", "خطا در تولید تصویر").format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
+    
+    @action(detail=False, methods=['get'], url_path='models')
+    def available_models(self, request):
+        """لیست مدل‌های تولید تصویر موجود"""
+        models = AIModel.objects.filter(
+            provider__is_active=True,
+            is_active=True
+        ).select_related('provider')
+        
+        result = []
+        for model in models:
+            if 'image' not in model.capabilities:
+                continue
+            
+            state = ModelAccessState.calculate(model.provider, model, request.user)
+            if state in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
+                result.append({
+                    'id': model.id,
+                    'name': model.display_name,
+                    'provider': model.provider.display_name,
+                    'capabilities': model.capabilities,
+                    'is_free': model.pricing_input is None or model.pricing_input == 0,
+                    'access_source': state.value,
+                    'config': {
+                        'max_size': '1024x1024',
+                        'supported_sizes': ['256x256', '512x512', '1024x1024', '1024x1792', '1792x1024']
+                    }
+                })
+        
+        return APIResponse.success(
+            message="لیست مدل‌های تولید تصویر دریافت شد",
+            data=result
+        )

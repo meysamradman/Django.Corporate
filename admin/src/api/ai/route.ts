@@ -6,7 +6,13 @@ import { Media } from '@/types/shared/media';
 import {
     AIContentGenerationRequest,
     AIContentGenerationResponse,
-    AvailableProvider
+    AvailableProvider,
+    GlobalControlSetting,
+    AIProviderList,
+    AIProviderDetail,
+    AIModelList,
+    AIModelDetail,
+    AdminProviderSettings,
 } from '@/types/ai/ai';
 
 export const aiApi = {
@@ -37,7 +43,10 @@ export const aiApi = {
                 // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
+                if (error?.response?.AppStatusCode !== 404) {
+                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                }
                 throw error;
             }
         },
@@ -130,6 +139,19 @@ export const aiApi = {
         },
 
         /**
+         * دریافت لیست مدل‌های Hugging Face
+         */
+        getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
+            try {
+                const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
+                return await fetchApi.get<any[]>(endpoint);
+            } catch (error: any) {
+                console.error('[AI Image Generation API] Error fetching HuggingFace models:', error);
+                throw error;
+            }
+        },
+
+        /**
          * تولید تصویر با AI
          */
         generateImage: async (data: {
@@ -164,7 +186,10 @@ export const aiApi = {
                 // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
+                if (error?.response?.AppStatusCode !== 404) {
+                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                }
                 throw error;
             }
         },
@@ -200,29 +225,9 @@ export const aiApi = {
     },
 
     /**
-     * Provider Capabilities API
+     * ✅ REMOVED: capabilities API - Use models API instead
+     * Models are managed via /ai/admin/models/ endpoint
      */
-    capabilities: {
-        /**
-         * دریافت قابلیت‌های یک Provider یا همه Provider ها
-         */
-        getCapabilities: async (providerName?: string, featureType?: 'chat' | 'content' | 'image'): Promise<ApiResponse<any>> => {
-            try {
-                const baseEndpoint = featureType 
-                    ? `/admin/ai-${featureType}/capabilities/`
-                    : '/admin/ai-image/capabilities/';  // Default to image
-                
-                const endpoint = providerName 
-                    ? `${baseEndpoint}?provider_name=${providerName}`
-                    : baseEndpoint;
-                
-                return await fetchApi.get<any>(endpoint);
-            } catch (error: any) {
-                console.error('[AI Capabilities API] Error fetching capabilities:', error);
-                throw error;
-            }
-        },
-    },
 
     /**
      * Audio Generation API (Text-to-Speech)
@@ -237,7 +242,10 @@ export const aiApi = {
                 // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
+                if (error?.response?.AppStatusCode !== 404) {
+                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                }
                 throw error;
             }
         },
@@ -278,7 +286,10 @@ export const aiApi = {
                 // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
+                if (error?.response?.AppStatusCode !== 404) {
+                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                }
                 throw error;
             }
         },
@@ -293,6 +304,19 @@ export const aiApi = {
             } catch (error: any) {
                 // Don't show error toast - just log it (models might not be critical)
                 console.error('[AI Chat API] Error fetching OpenRouter models:', error);
+                throw error;
+            }
+        },
+
+        /**
+         * دریافت لیست مدل‌های Hugging Face
+         */
+        getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
+            try {
+                const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
+                return await fetchApi.get<any[]>(endpoint);
+            } catch (error: any) {
+                console.error('[AI Chat API] Error fetching HuggingFace models:', error);
                 throw error;
             }
         },
@@ -337,7 +361,7 @@ export const aiApi = {
          */
         getMySettings: async (): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = '/admin/ai-settings/my-settings/';
+                const endpoint = '/admin/ai-settings/';
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در دریافت تنظیمات شخصی');
@@ -388,7 +412,7 @@ export const aiApi = {
          */
         getGlobalControl: async (): Promise<ApiResponse<{ allow_regular_admins_use_shared_api: boolean }>> => {
             try {
-                const endpoint = '/admin/ai-settings/global-control/';
+                const endpoint = '/admin/ai-settings/global-control/';  // Updated endpoint
                 return await fetchApi.get<{ allow_regular_admins_use_shared_api: boolean }>(endpoint);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در دریافت تنظیمات Global Control');
@@ -407,6 +431,159 @@ export const aiApi = {
                 } as Record<string, unknown>);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در به‌روزرسانی تنظیمات Global Control');
+                throw error;
+            }
+        },
+    },
+    
+    /**
+     * ✅ REMOVED: Global Control API - Backend doesn't have this endpoint yet
+     * When backend implements global_controls endpoint, restore this section
+     */
+
+    /**
+     * ✅ AI Providers API - مدیریت Provider ها (طبق backend)
+     */
+    providers: {
+        /**
+         * دریافت لیست Provider ها
+         */
+        getAll: async (): Promise<ApiResponse<AIProviderList[]>> => {
+            try {
+                const endpoint = '/admin/ai-providers/';
+                return await fetchApi.get<AIProviderList[]>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت لیست Provider ها');
+                throw error;
+            }
+        },
+
+        /**
+         * دریافت جزئیات Provider
+         */
+        getById: async (id: number): Promise<ApiResponse<AIProviderDetail>> => {
+            try {
+                const endpoint = `/admin/ai-providers/${id}/`;
+                return await fetchApi.get<AIProviderDetail>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت اطلاعات Provider');
+                throw error;
+            }
+        },
+
+        /**
+         * آمار Provider ها
+         */
+        getStats: async (): Promise<ApiResponse<{
+            total_providers: number;
+            total_models: number;
+            total_requests: number;
+        }>> => {
+            try {
+                const endpoint = '/admin/ai-providers/stats/';
+                return await fetchApi.get(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت آمار');
+                throw error;
+            }
+        },
+    },
+
+    /**
+     * ✅ AI Models API - مدیریت Model ها (طبق backend)
+     */
+    models: {
+        /**
+         * دریافت لیست Model ها
+         */
+        getAll: async (filters?: {
+            provider?: number;
+            capability?: string;
+            search?: string;
+        }): Promise<ApiResponse<AIModelList[]>> => {
+            try {
+                const params = new URLSearchParams();
+                if (filters?.provider) params.append('provider', filters.provider.toString());
+                if (filters?.capability) params.append('capability', filters.capability);
+                if (filters?.search) params.append('search', filters.search);
+                
+                const endpoint = `/admin/ai-models/${params.toString() ? `?${params.toString()}` : ''}`;
+                return await fetchApi.get<AIModelList[]>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت لیست Model ها');
+                throw error;
+            }
+        },
+
+        /**
+         * دریافت جزئیات Model (با computed fields)
+         */
+        getById: async (id: number): Promise<ApiResponse<AIModelDetail>> => {
+            try {
+                const endpoint = `/admin/ai-models/${id}/`;
+                return await fetchApi.get<AIModelDetail>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت اطلاعات Model');
+                throw error;
+            }
+        },
+
+        /**
+         * دریافت Model ها بر اساس capability
+         */
+        getByCapability: async (capability: string, includeInactive: boolean = true): Promise<ApiResponse<AIModelList[]>> => {
+            try {
+                const endpoint = `/admin/ai-models/by_capability/?capability=${capability}&include_inactive=${includeInactive}`;
+                return await fetchApi.get<AIModelList[]>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت Model ها');
+                throw error;
+            }
+        },
+
+        /**
+         * دریافت Model ها بر اساس provider
+         */
+        getByProvider: async (providerSlug: string, capability?: string): Promise<ApiResponse<AIModelList[]>> => {
+            try {
+                const params = new URLSearchParams({ provider: providerSlug });
+                if (capability) params.append('capability', capability);
+                
+                const endpoint = `/admin/ai-models/by_provider/?${params.toString()}`;
+                return await fetchApi.get<AIModelList[]>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت Model ها');
+                throw error;
+            }
+        },
+
+        /**
+         * به‌روزرسانی Model
+         */
+        update: async (id: number, data: Partial<AIModelList>): Promise<ApiResponse<AIModelDetail>> => {
+            try {
+                const endpoint = `/admin/ai-models/${id}/`;
+                return await fetchApi.patch<AIModelDetail>(endpoint, data as Record<string, unknown>);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در به‌روزرسانی Model');
+                throw error;
+            }
+        },
+    },
+
+    /**
+     * ✅ Admin Provider Settings API - تنظیمات شخصی (طبق backend)
+     */
+    mySettings: {
+        /**
+         * دریافت همه تنظیمات شخصی
+         */
+        getAll: async (): Promise<ApiResponse<AdminProviderSettings[]>> => {
+            try {
+                const endpoint = '/admin/ai-settings/my_settings/';
+                return await fetchApi.get<AdminProviderSettings[]>(endpoint);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در دریافت تنظیمات');
                 throw error;
             }
         },

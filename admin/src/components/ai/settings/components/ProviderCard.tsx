@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { CardContent } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
@@ -16,10 +17,14 @@ interface ProviderCardProps {
   showApiKey: boolean;
   useSharedApi: boolean;
   hasStoredApiKey?: boolean;
+  isSuperAdmin?: boolean;
+  allowNormalAdmins?: boolean;
+  isActive?: boolean;  // ✅ NEW: وضعیت فعال/غیرفعال
   onToggleApiKeyVisibility: () => void;
   onApiKeyChange: (value: string) => void;
   onToggleUseSharedApi: (checked: boolean) => void;
-  onOpenModelSelector: () => void;
+  onToggleGlobalControl?: (allow: boolean) => void;
+  onToggleActive?: (checked: boolean) => void;  // ✅ NEW: تغییر وضعیت
   onSave: () => void;
   isSaving?: boolean;
 }
@@ -49,23 +54,85 @@ export function ProviderCard({
   showApiKey,
   useSharedApi,
   hasStoredApiKey = false,
+  isSuperAdmin = false,
+  allowNormalAdmins = false,
+  isActive = false,  // ✅ NEW
   onToggleApiKeyVisibility,
   onApiKeyChange,
   onToggleUseSharedApi,
-  onOpenModelSelector,
+  onToggleGlobalControl,
+  onToggleActive,  // ✅ NEW
   onSave,
   isSaving = false,
 }: ProviderCardProps) {
-  // نمایش بخشی از API key (4 کاراکتر اول و 4 کاراکتر آخر) + dots در وسط
+  // ✅ نمایش بخشی از API key (4 کاراکتر اول و 4 کاراکتر آخر) + dots در وسط
   // بهینه: محاسبه یکباره
-  const displayApiKey = hasStoredApiKey && !showApiKey
-    ? (apiKey && apiKey.trim() !== '' && apiKey !== 'stored-api-key-hidden-value-for-display'
-        ? maskApiKey(apiKey, false)
-        : '••••••••••••••••')
-    : apiKey;
+  const displayApiKey = useMemo(() => {
+    // ✅ اگر API key ذخیره شده و در حال نمایش masked است
+    if (hasStoredApiKey && !showApiKey) {
+      if (apiKey && apiKey.trim() !== '' && apiKey !== 'stored-api-key-hidden-value-for-display' && apiKey !== '***') {
+        return maskApiKey(apiKey, false);
+      }
+      return '••••••••••••••••';
+    }
+    // ✅ اگر API key در state است، نمایش بده
+    return apiKey || '';
+  }, [hasStoredApiKey, showApiKey, apiKey]);
   
   return (
     <CardContent className="pt-6 pb-6 space-y-6">
+      {/* ✅ Toggle Active - فعال/غیرفعال */}
+      {onToggleActive && (
+        <div className="p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border-2 border-br hover:border-primary/20 transition-all">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <Label className="text-base font-semibold block text-font-p">وضعیت Provider</Label>
+              <p className="text-xs text-font-s mt-1">
+                {isActive 
+                  ? '✅ Provider فعال و آماده استفاده است' 
+                  : '❌ Provider غیرفعال است - برای استفاده فعال کنید'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <Switch
+                checked={isActive}
+                onCheckedChange={onToggleActive}
+                disabled={isSaving}
+              />
+              <Badge variant={isActive ? "green" : "gray"} className="min-w-[70px] text-center">
+                {isActive ? 'فعال' : 'غیرفعال'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NEW: Global Control (فقط برای Super Admin) */}
+      {isSuperAdmin && onToggleGlobalControl && (
+        <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <Label className="text-base font-semibold block text-primary">کنترل دسترسی ادمین‌های معمولی</Label>
+              <p className="text-xs text-font-s mt-1">
+                {allowNormalAdmins 
+                  ? '✅ ادمین‌های معمولی می‌توانند از API مشترک این Provider استفاده کنند' 
+                  : '❌ ادمین‌های معمولی فقط می‌توانند از API شخصی خود استفاده کنند'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <Switch
+                checked={allowNormalAdmins}
+                onCheckedChange={onToggleGlobalControl}
+                disabled={isSaving}
+              />
+              <Badge variant={allowNormalAdmins ? "green" : "red"} className="min-w-[70px] text-center">
+                {allowNormalAdmins ? 'مجاز' : 'غیرمجاز'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* API Key Type Selection */}
       <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
         <div className="space-y-1 flex-1 pr-4">
@@ -81,8 +148,15 @@ export function ProviderCard({
             checked={useSharedApi}
             onCheckedChange={onToggleUseSharedApi}
             disabled={isSaving}
+            className={useSharedApi 
+              ? "data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-gray-400" 
+              : "data-[state=checked]:bg-purple-500 data-[state=unchecked]:bg-gray-400"
+            }
           />
-          <Badge variant={useSharedApi ? "default" : "gray"} className="min-w-[60px] text-center">
+          <Badge 
+            variant={useSharedApi ? "default" : "outline"} 
+            className={`min-w-[60px] text-center ${useSharedApi ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-purple-500/10 text-purple-500 border-purple-500/20'}`}
+          >
             {useSharedApi ? 'مشترک' : 'شخصی'}
           </Badge>
         </div>
@@ -152,20 +226,6 @@ export function ProviderCard({
           )}
         </div>
       </div>
-
-      {/* Models Section */}
-      {(provider.id === 'openrouter' || provider.id === 'huggingface') ? (
-        <div className="p-4 bg-blue/10 border border-blue-1 rounded-lg">
-          <Button
-            variant="outline"
-            onClick={onOpenModelSelector}
-            className="w-full"
-          >
-            <Sparkles className="w-4 h-4" />
-            انتخاب مدل‌ها
-          </Button>
-        </div>
-      ) : null}
 
       {/* Save Button */}
       <div className="pt-6 border-t border-br">

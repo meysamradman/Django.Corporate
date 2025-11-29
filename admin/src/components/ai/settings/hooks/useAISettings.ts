@@ -47,34 +47,34 @@ export const backendToFrontendProviderMap: Record<string, string[]> = Object.ent
 export function useAISettings() {
   const queryClient = useQueryClient();
 
-  // دریافت provider ها از backend
+  // ✅ دریافت provider ها از backend - بدون cache
   const { data: backendProviders, isLoading: isLoadingBackendProviders } = useQuery({
     queryKey: ['ai-backend-providers'],
     queryFn: async () => {
       const response = await aiApi.image.getProviders();
       return response.data || [];
     },
-    staleTime: 0,
+    staleTime: 0, // ✅ بدون cache - همیشه از سرور بگیر
   });
 
-  // دریافت capabilities (مدل‌های واقعی) از backend
-  const { data: capabilitiesData } = useQuery({
-    queryKey: ['ai-capabilities'],
+  // ✅ دریافت models (مدل‌های واقعی) از backend - بدون cache
+  const { data: modelsData } = useQuery({
+    queryKey: ['ai-models'],
     queryFn: async () => {
-      const response = await aiApi.capabilities.getCapabilities(undefined, 'content');
-      return response.data || {};
+      const response = await aiApi.models.getAll();
+      return response.data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 دقیقه cache
+    staleTime: 0, // ✅ بدون cache - همیشه از سرور بگیر
   });
 
-  // دریافت تنظیمات شخصی
+  // ✅ دریافت تنظیمات شخصی - بدون cache
   const { data: personalSettings } = useQuery({
     queryKey: ['ai-personal-settings'],
     queryFn: async () => {
       const response = await aiApi.personalSettings.getMySettings();
       return response.data || [];
     },
-    staleTime: 0,
+    staleTime: 0, // ✅ بدون cache - همیشه از سرور بگیر
   });
 
   // ساخت providers از backend data
@@ -84,46 +84,29 @@ export function useAISettings() {
       const result: Provider[] = [];
       
       backendProviders.forEach((backendProvider: any) => {
-        const backendName = backendProvider.provider_name;
-        const frontendId = backendToFrontendIdMap[backendName] || backendName;
+        // ✅ نمایش همه provider ها (فیلتر حذف شد - فقط جستجو)
+        
+        const backendName = backendProvider.name; // ✅ backend response has 'name' field
+        const backendSlug = backendProvider.slug; // slug for mapping
+        const frontendId = backendToFrontendIdMap[backendName] || backendToFrontendIdMap[backendSlug] || backendSlug;
         const metadata = getProviderMetadata(frontendId);
         
         if (metadata) {
-          // دریافت مدل‌های واقعی از capabilities
-          const providerCaps = capabilitiesData?.[backendName];
-          const models: Model[] = [];
+          // دریافت مدل‌های واقعی از models API
+          const providerModels: Model[] = [];
           
-          if (providerCaps && providerCaps.models) {
-            // برای هر نوع مدل (chat, content, image)
-            const allModels = new Set<string>();
+          if (modelsData && Array.isArray(modelsData)) {
+            // فیلتر کردن models بر اساس provider
+            const filteredModels = modelsData.filter((model: any) => 
+              model.provider === backendProvider.id || 
+              model.provider_name === backendName
+            );
             
-            // مدل‌های chat
-            if (Array.isArray(providerCaps.models.chat)) {
-              providerCaps.models.chat.forEach((modelName: string) => {
-                allModels.add(modelName);
-              });
-            }
-            
-            // مدل‌های content
-            if (Array.isArray(providerCaps.models.content)) {
-              providerCaps.models.content.forEach((modelName: string) => {
-                allModels.add(modelName);
-              });
-            }
-            
-            // مدل‌های image
-            if (Array.isArray(providerCaps.models.image)) {
-              providerCaps.models.image.forEach((modelName: string) => {
-                allModels.add(modelName);
-              });
-            }
-            
-            // تبدیل به Model[]
-            let modelId = 1;
-            allModels.forEach((modelName) => {
-              models.push({
-                id: modelId++,
-                name: modelName,
+            filteredModels.forEach((model: any, index: number) => {
+              // ✅ نمایش همه model ها (فیلتر حذف شد)
+              providerModels.push({
+                id: model.id || index + 1,
+                name: model.model_name || model.name,
                 provider: backendName,
                 price: 'N/A',
                 free: false,
@@ -138,7 +121,7 @@ export function useAISettings() {
             icon: metadata.icon,
             description: metadata.description,
             apiKeyLabel: metadata.apiKeyLabel,
-            models: models,
+            models: providerModels,
             backendProvider: backendProvider,
           });
         }
@@ -147,40 +130,35 @@ export function useAISettings() {
       return result;
     }
     
-    // Fallback: اگر backend data نداریم، از capabilities استفاده کن
+    // Fallback: اگر backend data نداریم، از models استفاده کن
     const fallbackProviders: Provider[] = [];
     
-    if (capabilitiesData) {
-      Object.entries(capabilitiesData).forEach(([backendName, caps]: [string, any]) => {
+    if (modelsData && Array.isArray(modelsData)) {
+      // گروه‌بندی models بر اساس provider
+      const modelsByProvider: Record<string, any[]> = {};
+      
+      modelsData.forEach((model: any) => {
+        const providerName = model.provider_name || 'unknown';
+        if (!modelsByProvider[providerName]) {
+          modelsByProvider[providerName] = [];
+        }
+        modelsByProvider[providerName].push(model);
+      });
+      
+      // ساخت provider برای هر گروه
+      Object.entries(modelsByProvider).forEach(([backendName, models]) => {
         const frontendId = BACKEND_TO_FRONTEND_ID[backendName] || backendName;
         const metadata = getProviderMetadata(frontendId);
         
-        if (metadata && caps && caps.models) {
-          const models: Model[] = [];
-          const allModels = new Set<string>();
-          
-          // جمع‌آوری همه مدل‌ها
-          if (Array.isArray(caps.models.chat)) {
-            caps.models.chat.forEach((m: string) => allModels.add(m));
-          }
-          if (Array.isArray(caps.models.content)) {
-            caps.models.content.forEach((m: string) => allModels.add(m));
-          }
-          if (Array.isArray(caps.models.image)) {
-            caps.models.image.forEach((m: string) => allModels.add(m));
-          }
-          
-          let modelId = 1;
-          allModels.forEach((modelName) => {
-            models.push({
-              id: modelId++,
-              name: modelName,
-              provider: backendName,
-              price: 'N/A',
-              free: false,
-              selected: false,
-            });
-          });
+        if (metadata) {
+          const providerModels: Model[] = models.map((model: any, index: number) => ({
+            id: model.id || index + 1,
+            name: model.model_name || model.name,
+            provider: backendName,
+            price: 'N/A',
+            free: false,
+            selected: false,
+          }));
           
           fallbackProviders.push({
             id: frontendId,
@@ -188,27 +166,28 @@ export function useAISettings() {
             icon: metadata.icon,
             description: metadata.description,
             apiKeyLabel: metadata.apiKeyLabel,
-            models: models,
+            models: providerModels,
           });
         }
       });
     }
   
     return fallbackProviders;
-  }, [backendProviders, capabilitiesData]);
+  }, [backendProviders, modelsData]);
 
   // Map تنظیمات شخصی به provider
   const personalSettingsMap = useMemo(() => {
     const map: Record<string, { id?: number; use_shared_api: boolean; api_key?: string; backend_name?: string; is_active?: boolean }> = {};
     if (personalSettings) {
       personalSettings.forEach((setting: any) => {
-        const backendProviderName = setting.provider_name;
-        // برای هر backend provider name، frontend provider ID های مربوطه رو پیدا کن
-        const frontendIds = backendToFrontendProviderMap[backendProviderName] || [];
+        // ✅ استفاده از provider_slug برای match کردن (بهتر از provider_name)
+        const backendProviderSlug = setting.provider_slug || setting.provider_name;
+        // برای هر backend provider slug/name، frontend provider ID های مربوطه رو پیدا کن
+        const frontendIds = backendToFrontendProviderMap[backendProviderSlug] || [];
         
-        // اگر frontend ID پیدا نشد، از backend name استفاده کن
+        // اگر frontend ID پیدا نشد، از backend slug/name استفاده کن
         if (frontendIds.length === 0) {
-          frontendIds.push(backendProviderName);
+          frontendIds.push(backendProviderSlug);
         }
         
         frontendIds.forEach((frontendId) => {
@@ -216,7 +195,7 @@ export function useAISettings() {
             id: setting.id,
             use_shared_api: setting.use_shared_api ?? true,
             api_key: setting.api_key,
-            backend_name: backendProviderName,
+            backend_name: backendProviderSlug,
             is_active: setting.is_active ?? false,
           };
         });
@@ -254,7 +233,19 @@ export function useAISettings() {
         return await aiApi.personalSettings.saveMySettings(data);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      // ✅ Optimistic Update: فوراً state رو به‌روز کن
+      queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
+        if (!old) return old;
+        return old.map((setting: any) => {
+          if (setting.provider_name === frontendToBackendProviderMap[variables.providerId]) {
+            return { ...setting, use_shared_api: variables.useSharedApi };
+          }
+          return setting;
+        });
+      });
+      
+      // سپس refetch کن (برای اطمینان)
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccessToast('تنظیمات با موفقیت به‌روزرسانی شد');
     },
@@ -273,12 +264,16 @@ export function useAISettings() {
     return setting.use_shared_api ?? true;
   };
 
+  // ✅ REMOVED: Global Control - Backend doesn't have this endpoint yet
+  // When backend implements it, restore these queries
+
   return {
     providers,
     personalSettingsMap,
     isLoadingBackendProviders,
     toggleUseSharedApiMutation,
     getUseSharedApi,
+    // ✅ REMOVED: Global Control exports - not available yet
   };
 }
 

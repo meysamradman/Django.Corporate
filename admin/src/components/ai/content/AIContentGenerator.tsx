@@ -74,16 +74,11 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
             
-            console.log('[AI Content Frontend] User permissions:', user?.permissions);
-            console.log('[AI Content Frontend] Has AI permission:', hasAIPermission);
-            
             if (hasAIPermission) {
-                console.log('[AI Content Frontend] Fetching available providers...');
                 providersFetched.current = true;
                 fetchAvailableProviders();
             } else {
                 // If no AI permission, stop loading
-                console.log('[AI Content Frontend] No AI permission, stopping load');
                 setLoadingProviders(false);
             }
         } else if (!user) {
@@ -99,25 +94,22 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
     const fetchAvailableProviders = async () => {
         try {
-            console.log('[AI Content Frontend] Starting fetchAvailableProviders...');
             setLoadingProviders(true);
             const response = await aiApi.content.getAvailableProviders();
-            
-            console.log('[AI Content Frontend] Response received:', response);
             
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data) 
                     ? response.data 
                     : (response.data as any)?.data || [];
                 
-                console.log('[AI Content Frontend] Providers data:', providersData);
                 setAvailableProviders(providersData);
-            } else {
-                console.error('[AI Content Frontend] Response status not success:', response.metaData);
             }
         } catch (error: any) {
-            console.error('[AI Content Frontend] Error fetching providers:', error);
-            // Toast already shown by aiApi
+            // ✅ اگر 404 بود، فقط providers را خالی بگذار (Toast توسط aiApi نشان داده می‌شود)
+            // ✅ برای سایر خطاها هم Toast توسط aiApi نشان داده می‌شود
+            if (error?.response?.AppStatusCode === 404) {
+                setAvailableProviders([]);
+            }
         } finally {
             setLoadingProviders(false);
         }

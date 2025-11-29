@@ -75,7 +75,7 @@ export function ProviderSelector({
                 const isSelected = selectedProvider === provider.provider_name;
                 return (
                     <div
-                        key={provider.id}
+                        key={provider.provider_name}
                         onClick={() => onSelectProvider(provider.provider_name)}
                         className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             isSelected 

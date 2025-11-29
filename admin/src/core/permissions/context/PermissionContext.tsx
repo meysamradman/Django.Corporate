@@ -10,9 +10,17 @@ export interface UIPermissions {
   canManagePanel: boolean;
   canManagePages: boolean;
   canManageSettings: boolean;
-  canManageAI: boolean;
+  canManageAI: boolean; // Full AI access (دسترسی کامل)
   canManageForms: boolean;
   canManageChatbot: boolean;
+  
+  // AI - Granular permissions (دسترسی‌های جداگانه)
+  canManageAIChat: boolean; // چت با AI
+  canManageAIContent: boolean; // تولید محتوا
+  canManageAIImage: boolean; // تولید عکس
+  canManageAIAudio: boolean; // تولید صدا
+  canManageAISettings: boolean; // تنظیمات شخصی API
+  canManageSharedAISettings: boolean; // تنظیمات مشترک API (Super Admin only)
   
   // CRUD Apps
   canCreateBlog: boolean;
@@ -240,9 +248,17 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManagePanel: check('panel.manage'),
       canManagePages: check('pages.manage'),
       canManageSettings: check('settings.manage'),
-      canManageAI: check('ai.manage'),
+      canManageAI: check('ai.manage'), // Full AI access
       canManageForms: check('forms.manage'),
       canManageChatbot: check('chatbot.manage'),
+      
+      // AI - Granular permissions
+      canManageAIChat: check('ai.chat.manage') || check('ai.manage'),
+      canManageAIContent: check('ai.content.manage') || check('ai.manage'),
+      canManageAIImage: check('ai.image.manage') || check('ai.manage'),
+      canManageAIAudio: check('ai.audio.manage') || check('ai.manage'),
+      canManageAISettings: check('ai.settings.personal.manage') || check('ai.manage'),
+      canManageSharedAISettings: check('ai.settings.shared.manage') || isSuperAdmin,
       
       // CRUD Apps
       canCreateBlog: check('blog.create'),

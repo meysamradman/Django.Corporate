@@ -10,6 +10,7 @@ import {
     Sparkles,
     Mail,
     Ticket,
+    List,
     type LucideIcon
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
@@ -247,7 +248,9 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                 items: [
                     { title: "تنظیمات پنل ادمین", isTitle: true },
                     { title: "تنظیمات پنل", url: "/settings/panel", access: { module: "panel", actions: ["manage"] } },
-                    { title: "تنظیمات هوش مصنوعی", url: "/settings/ai", access: { module: "ai", actions: ["manage"] } },
+                    { title: "تنظیمات هوش مصنوعی", isTitle: true },
+                    { title: "مدیریت Provider ها", url: "/settings/ai", access: { module: "ai", actions: ["manage"] } },
+                    { title: "انتخاب مدل‌ها", url: "/settings/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },
                     { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
                     { title: "تنظیمات عمومی", url: "/settings/general", access: { module: "settings", actions: ["manage"] } },
                     { title: "چت‌بات", url: "/settings/chatbot", access: { module: "chatbot", actions: ["manage"] } },

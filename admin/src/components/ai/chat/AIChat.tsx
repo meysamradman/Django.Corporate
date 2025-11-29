@@ -330,7 +330,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                         availableProviders.map((provider) => (
                                             <SelectItem
                                                 key={provider.id}
-                                                value={provider.provider_name}
+                                                value={provider.provider_name || String(provider.id)}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-lg">{getProviderIcon(provider)}</span>
@@ -527,7 +527,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                             availableProviders.map((provider) => (
                                                 <SelectItem
                                                     key={provider.id}
-                                                    value={provider.provider_name}
+                                                    value={provider.provider_name || String(provider.id)}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-lg">{getProviderIcon(provider)}</span>

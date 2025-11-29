@@ -83,8 +83,12 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                     setSelectedProvider('');
                 }
             }
-        } catch (error) {
-            // Toast already shown by aiApi
+        } catch (error: any) {
+            // ✅ اگر 404 بود، فقط providers را خالی بگذار (Toast توسط aiApi نشان داده نمی‌شود)
+            // ✅ برای سایر خطاها هم Toast توسط aiApi نشان داده می‌شود
+            if (error?.response?.AppStatusCode === 404) {
+                setAvailableProviders([]);
+            }
         } finally {
             setLoadingProviders(false);
         }

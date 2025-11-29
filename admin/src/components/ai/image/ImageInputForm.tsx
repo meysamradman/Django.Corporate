@@ -9,6 +9,7 @@ import { ProviderSelector } from '../shared/ProviderSelector';
 import { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Wand2, Brain, AlertCircle } from 'lucide-react';
 import { msg } from '@/core/messages/message';
+import { useAuth } from '@/core/auth/AuthContext';
 
 interface ImageInputFormProps {
     providers: AvailableProvider[];
@@ -37,6 +38,13 @@ export function ImageInputForm({
     onGenerate,
     compact = false,
 }: ImageInputFormProps) {
+    const { user } = useAuth();
+    
+    // ✅ CRITICAL: چک کردن دسترسی media - اگر نداره checkbox رو disable کن
+    const hasMediaPermission = user?.permissions?.some((p: string) => 
+        p === 'all' || p === 'media.manage' || p.startsWith('media.')
+    ) || false;
+    
     const cardClass = compact 
         ? "border" 
         : "hover:shadow-lg transition-all duration-300 border-b-4 border-b-pink-1";
@@ -98,14 +106,31 @@ export function ImageInputForm({
                     )}
                 </div>
 
-                <div className={`flex items-center gap-1 ${compact ? 'p-2' : 'p-3'} bg-blue border border-blue-1 rounded-lg`}>
+                <div className={`flex items-center gap-1 ${compact ? 'p-2' : 'p-3'} ${
+                    hasMediaPermission 
+                        ? 'bg-blue border border-blue-1' 
+                        : 'bg-gray-50 border border-gray-200 opacity-60'
+                } rounded-lg`}>
                     <Checkbox
                         id="save-to-db"
                         checked={saveToDb}
                         onCheckedChange={(checked) => onSaveToDbChange(checked === true)}
+                        disabled={!hasMediaPermission}
                     />
-                    <Label htmlFor="save-to-db" className={`${compact ? 'text-xs' : 'text-sm'} font-normal cursor-pointer`}>
+                    <Label 
+                        htmlFor="save-to-db" 
+                        className={`${
+                            compact ? 'text-xs' : 'text-sm'
+                        } font-normal ${
+                            hasMediaPermission ? 'cursor-pointer' : 'cursor-not-allowed text-font-s'
+                        }`}
+                    >
                         {compact ? 'ذخیره خودکار' : 'ذخیره خودکار در دیتابیس (اگر خالی باشد، فقط نمایش داده می‌شود - سریع‌تر)'}
+                        {!hasMediaPermission && (
+                            <span className="block text-xs text-red-1 mt-1">
+                                ⚠️ برای ذخیره تصویر، نیاز به دسترسی مدیا دارید
+                            </span>
+                        )}
                     </Label>
                 </div>
 

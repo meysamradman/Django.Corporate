@@ -7,8 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
 import os
 
-from src.ai.models.image_generation import AIImageGeneration
-from src.ai.models.admin_ai_settings import AdminAISettings
+from src.ai.models import AIProvider, AdminProviderSettings
 from src.media.models.media import AudioMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers import OpenAIProvider
@@ -22,6 +21,45 @@ class AIAudioGenerationService:
         'openai': OpenAIProvider,
         # Future: Add other TTS providers here
     }
+    
+    @classmethod
+    def _get_api_key_and_config(cls, provider_name: str, admin=None) -> tuple[str, dict]:
+        """
+        Get API key and config based on new dynamic system
+        
+        Args:
+            provider_name: Provider slug (openai, gemini, etc)
+            admin: Admin user instance
+        
+        Returns:
+            tuple: (api_key, config)
+        """
+        # Get provider
+        try:
+            provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+        except AIProvider.DoesNotExist:
+            raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+        
+        # Check admin settings first (personal API)
+        if admin:
+            try:
+                settings = AdminProviderSettings.objects.get(
+                    admin=admin,
+                    provider=provider,
+                    is_active=True
+                )
+                
+                # If has personal API key and not using shared
+                if not settings.use_shared_api and settings.personal_api_key:
+                    return settings.get_personal_api_key(), provider.config or {}
+            except AdminProviderSettings.DoesNotExist:
+                pass
+        
+        # Use shared API
+        if not provider.shared_api_key:
+            raise ValueError(AI_ERRORS["api_key_required"])
+        
+        return provider.get_shared_api_key(), provider.config or {}
     
     @classmethod
     def get_provider_instance(cls, provider_name: str, api_key: str, config: Optional[Dict] = None):
@@ -103,30 +141,8 @@ class AIAudioGenerationService:
         Returns:
             tuple: (audio_bytes, metadata) - Audio and its metadata
         """
-        # ✅ Get appropriate API key (personal/shared based on admin settings)
-        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-            try:
-                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
-                # Get config from shared provider (configs are same) - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                config = provider_config.config or {}
-            except AdminAISettings.DoesNotExist:
-                # Fallback to shared API - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                api_key = provider_config.get_api_key()
-                config = provider_config.config or {}
-        else:
-            # Use shared API (default) - ✅ Use Model's cached method for better performance
-            provider_config = AIImageGeneration.get_active_provider(provider_name)
-            if not provider_config:
-                raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-            
-            api_key = provider_config.get_api_key()
-            config = provider_config.config or {}
+        # ✅ Get API key using new dynamic system
+        api_key, config = cls._get_api_key_and_config(provider_name, admin)
         
         # ✅ Get TTS defaults from config if available, otherwise use kwargs
         tts_config = config.get('tts', {}) if isinstance(config, dict) else {}
@@ -182,30 +198,8 @@ class AIAudioGenerationService:
         import logging
         logger = logging.getLogger(__name__)
         
-        # ✅ Get appropriate API key (personal/shared based on admin settings)
-        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-            try:
-                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
-                # Get config from shared provider (configs are same) - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                config = provider_config.config or {}
-            except AdminAISettings.DoesNotExist:
-                # Fallback to shared API - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                api_key = provider_config.get_api_key()
-                config = provider_config.config or {}
-        else:
-            # Use shared API (default) - ✅ Use Model's cached method for better performance
-            provider_config = AIImageGeneration.get_active_provider(provider_name)
-            if not provider_config:
-                raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-            
-            api_key = provider_config.get_api_key()
-            config = provider_config.config or {}
+        # ✅ Get API key using new dynamic system
+        api_key, config = cls._get_api_key_and_config(provider_name, admin)
         
         # ✅ Get TTS defaults from config if available, otherwise use kwargs
         tts_config = config.get('tts', {}) if isinstance(config, dict) else {}
@@ -224,25 +218,12 @@ class AIAudioGenerationService:
             **final_kwargs
         )
         
-        # ✅ Track usage: if admin uses personal API, track on AdminAISettings; otherwise on shared provider
-        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-            try:
-                admin_settings = AdminAISettings.objects.get(
-                    admin=admin,
-                    provider_name=provider_name,
-                    is_active=True
-                )
-                # Only track if using personal API (not shared)
-                if not admin_settings.use_shared_api:
-                    admin_settings.increment_usage()
-            except AdminAISettings.DoesNotExist:
-                # If no personal settings, track on shared provider
-                if 'provider_config' in locals() and provider_config:
-                    provider_config.increment_usage()
-        else:
-            # Track on shared provider
-            if 'provider_config' in locals() and provider_config:
-                provider_config.increment_usage()
+        # ✅ Track usage on provider
+        try:
+            provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+            provider.increment_usage()
+        except AIProvider.DoesNotExist:
+            pass
         
         if not save_to_db:
             return audio_bytes
@@ -264,7 +245,4 @@ class AIAudioGenerationService:
             'title': title or text[:100] if len(text) > 100 else text,
         })
         
-        # Usage already tracked above
-        
         return media
-

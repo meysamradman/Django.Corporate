@@ -4,10 +4,21 @@ import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useRole, useBasePermissions, usePermissions } from "@/core/permissions/hooks/useRoles";
 import { Button } from "@/components/elements/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { Separator } from "@/components/elements/Separator";
-import { ArrowLeft, Edit, Shield, ShieldCheck, Users, Calendar } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Edit, 
+  Shield, 
+  ShieldCheck, 
+  Users, 
+  Calendar,
+  Key,
+  CheckCircle2,
+  Info,
+  Sparkles
+} from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import Link from "next/link";
 import { getPermissionTranslation } from "@/core/messages/permissions";
@@ -40,30 +51,32 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.back()}>
-            <ArrowLeft />
-            بازگشت
-          </Button>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-32" />
+          </div>
         </div>
-                           <div className="space-y-4">
-                     <div className="flex items-center gap-4">
-                       <Skeleton className="h-8 w-24" />
-                       <Skeleton className="h-8 w-48" />
-                     </div>
-                     <div className="grid gap-6 md:grid-cols-2">
-                       <div className="space-y-4">
-                         <Skeleton className="h-6 w-32" />
-                         <Skeleton className="h-4 w-full" />
-                         <Skeleton className="h-4 w-3/4" />
-                       </div>
-                       <div className="space-y-4">
-                         <Skeleton className="h-6 w-32" />
-                         <Skeleton className="h-4 w-full" />
-                         <Skeleton className="h-4 w-2/3" />
-                       </div>
-                     </div>
-                   </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-xl" />
+          ))}
+        </div>
+        
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <Skeleton className="h-64 rounded-xl" />
+          </div>
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton className="h-64 rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -87,123 +100,259 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
     );
   }
 
+  // Count permissions for display
+  const basePermsCount = basePermissions && Array.isArray(basePermissions) ? basePermissions.length : 0;
+  const specificPermsCount = role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions) 
+    ? role.permissions.specific_permissions.length 
+    : 0;
+  const totalPermsCount = basePermsCount + specificPermsCount;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="page-title">{role.name}</h1>
+    <div className="space-y-8">
+      {/* Hero Header Section */}
+      <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-0 via-purple-0 to-blue-0 p-8 shadow-lg">
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}
+        ></div>
+        
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`relative p-4 rounded-2xl shadow-lg transform transition-all duration-300 hover:scale-105 ${
+                (role as any).is_protected 
+                  ? "bg-gradient-to-br from-blue-1 to-indigo-1" 
+                  : "bg-gradient-to-br from-gray-1 to-gray-2"
+              }`}>
+                {(role as any).is_protected ? (
+                  <ShieldCheck className="h-8 w-8 text-white" />
+                ) : (
+                  <Shield className="h-8 w-8 text-white" />
+                )}
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-1 rounded-full border-2 border-white animate-pulse"></div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-font-p mb-2">{role.name}</h1>
+                {role.description && (
+                  <p className="text-font-s text-sm max-w-2xl leading-relaxed">{role.description}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              <Badge 
+                variant={role.is_active ? "green" : "gray"} 
+                className="text-sm px-3 py-1.5 font-medium shadow-sm"
+              >
+                {role.is_active ? "✓ فعال" : "✗ غیرفعال"}
+              </Badge>
+              <Badge 
+                variant={(role as any).is_protected ? "blue" : "outline"} 
+                className="text-sm px-3 py-1.5 font-medium shadow-sm"
+              >
+                {(role as any).is_protected ? "🛡️ سیستمی" : "✨ سفارشی"}
+              </Badge>
+              <Badge variant="indigo" className="text-sm px-3 py-1.5 font-medium shadow-sm">
+                🔑 {totalPermsCount} دسترسی
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              بازگشت
+            </Button>
+            <Link href={`/roles/${roleId}/edit`}>
+              <Button className="bg-gradient-to-r from-indigo-1 to-purple-1 hover:from-indigo-2 hover:to-purple-2 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                <Edit className="h-4 w-4" />
+                ویرایش نقش
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Role Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {(role as any).is_protected ? (
-                <ShieldCheck className="h-5 w-5 text-blue-1" />
-              ) : (
-                <Shield className="h-5 w-5 text-gray-1" />
-              )}
-              اطلاعات نقش
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-font-s">نام نقش</label>
-              <p className="text-lg font-semibold">{role.name}</p>
-            </div>
-            
-            {role.description && (
-              <div>
-                <label className="text-sm font-medium text-font-s">توضیحات</label>
-                <p className="text-sm">{role.description}</p>
+      {/* Stats Cards with Creative Design */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-0 to-emerald-0 p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-b-4 border-b-green-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-1/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-green shadow-lg">
+                <ShieldCheck className="h-6 w-6 text-green-2" />
               </div>
-            )}
+              <Badge variant="green" className="text-xs font-bold px-2.5 py-1">
+                {role.is_active ? "فعال" : "غیرفعال"}
+              </Badge>
+            </div>
+            <h3 className="text-lg font-bold text-font-p mb-1">وضعیت نقش</h3>
+            <p className="text-sm text-font-s">نوع: {(role as any).is_protected ? "سیستمی" : "سفارشی"}</p>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-4">
-              <div>
-                <label className="text-sm font-medium text-font-s">وضعیت</label>
-                <div className="mt-1">
-                  {role.is_active ? (
-                    <Badge variant="default">فعال</Badge>
-                  ) : (
-                    <Badge variant="outline">غیرفعال</Badge>
-                  )}
-                </div>
+        <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-0 to-cyan-0 p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-b-4 border-b-blue-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-1/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-blue shadow-lg">
+                <Key className="h-6 w-6 text-blue-2" />
+              </div>
+              <Badge variant="blue" className="text-xs font-bold px-2.5 py-1">
+                {basePermsCount} مورد
+              </Badge>
+            </div>
+            <h3 className="text-lg font-bold text-font-p mb-1">دسترسی‌های پایه</h3>
+            <p className="text-sm text-font-s">برای همه ادمین‌ها</p>
+          </div>
+        </div>
+
+        <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-0 to-pink-0 p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-b-4 border-b-purple-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-1/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-purple shadow-lg">
+                <Sparkles className="h-6 w-6 text-purple-2" />
+              </div>
+              <Badge variant="purple" className="text-xs font-bold px-2.5 py-1">
+                {specificPermsCount} مورد
+              </Badge>
+            </div>
+            <h3 className="text-lg font-bold text-font-p mb-1">دسترسی‌های اختصاصی</h3>
+            <p className="text-sm text-font-s">مختص این نقش</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Role Information - Left Column */}
+        <div className="lg:col-span-1">
+          <CardWithIcon
+            icon={Info}
+            title="اطلاعات نقش"
+            iconBgColor="bg-indigo"
+            iconColor="stroke-indigo-2"
+            borderColor="border-b-indigo-1"
+            className="sticky top-20"
+          >
+            <div className="space-y-6">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-0 to-purple-0 border border-indigo-1/20">
+                <label className="text-xs font-bold text-font-s uppercase tracking-wider mb-2 block">نام نقش</label>
+                <p className="text-xl font-bold text-font-p">{role.name}</p>
               </div>
               
-              <div>
-                <label className="text-sm font-medium text-font-s">نوع</label>
-                <div className="mt-1">
-                  {(role as any).is_protected ? (
-                    <Badge variant="default">سیستمی</Badge>
-                  ) : (
-                    <Badge variant="outline">سفارشی</Badge>
-                  )}
+              {role.description && (
+                <div className="p-4 rounded-xl bg-bg/50 border border-br">
+                  <label className="text-xs font-bold text-font-s uppercase tracking-wider mb-2 block">توضیحات</label>
+                  <p className="text-sm text-font-s leading-relaxed">{role.description}</p>
                 </div>
+              )}
+
+              <div className="space-y-3">
+                <div className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-blue-0/50 to-cyan-0/50 border border-blue-1/20 hover:shadow-md transition-all duration-300">
+                  <div className="p-2.5 rounded-lg bg-blue shadow-sm group-hover:scale-110 transition-transform">
+                    <Calendar className="h-5 w-5 text-blue-2" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-xs font-bold text-font-s uppercase tracking-wider block mb-1">تاریخ ایجاد</label>
+                    <p className="text-sm font-semibold text-font-p">
+                      {new Date(role.created_at).toLocaleDateString('fa-IR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {role.updated_at && (
+                  <div className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-0/50 to-pink-0/50 border border-purple-1/20 hover:shadow-md transition-all duration-300">
+                    <div className="p-2.5 rounded-lg bg-purple shadow-sm group-hover:scale-110 transition-transform">
+                      <Calendar className="h-5 w-5 text-purple-2" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="text-xs font-bold text-font-s uppercase tracking-wider block mb-1">آخرین به‌روزرسانی</label>
+                      <p className="text-sm font-semibold text-font-p">
+                        {new Date(role.updated_at).toLocaleDateString('fa-IR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+          </CardWithIcon>
+        </div>
 
-            <Separator />
-
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-font-s" />
-              <div>
-                <label className="text-sm font-medium text-font-s">تاریخ ایجاد</label>
-                <p className="text-sm">
-                  {new Date(role.created_at).toLocaleDateString('en-US')}
-                </p>
+        {/* Permissions - Right Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Base Permissions */}
+          <CardWithIcon
+            icon={CheckCircle2}
+            title="دسترسی‌های پایه"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
+            titleExtra={
+              <Badge variant="blue" className="text-xs font-bold px-3 py-1 shadow-sm">
+                {basePermsCount} دسترسی
+              </Badge>
+            }
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-font-s leading-relaxed p-3 rounded-lg bg-blue-0/30 border border-blue-1/20">
+                ✨ این دسترسی‌ها به صورت پیش‌فرض به همه ادمین‌ها تعلق دارد و قابل تغییر نیست.
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                {basePermissions && Array.isArray(basePermissions) && basePermissions.length > 0 ? (
+                  basePermissions.map((basePerm: any) => (
+                    <Badge 
+                      key={basePerm.id} 
+                      variant="blue"
+                      className="text-xs font-medium px-3 py-1.5 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                    >
+                      {getPermissionTranslation(basePerm.display_name, "description") || basePerm.display_name}
+                    </Badge>
+                  ))
+                ) : (
+                  // Fallback اگر API در دسترس نباشد
+                  <>
+                    <Badge variant="blue" className="text-xs font-medium px-3 py-1.5 shadow-sm">مشاهده Dashboard</Badge>
+                    <Badge variant="blue" className="text-xs font-medium px-3 py-1.5 shadow-sm">مشاهده Media</Badge>
+                    <Badge variant="blue" className="text-xs font-medium px-3 py-1.5 shadow-sm">ویرایش پروفایل شخصی</Badge>
+                    <Badge variant="blue" className="text-xs font-medium px-3 py-1.5 shadow-sm">مشاهده اطلاعات شخصی</Badge>
+                  </>
+                )}
               </div>
             </div>
+          </CardWithIcon>
 
-            {role.updated_at && (
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-font-s" />
-                <div>
-                  <label className="text-sm font-medium text-font-s">آخرین به‌روزرسانی</label>
-                  <p className="text-sm">
-                    {new Date(role.updated_at).toLocaleDateString('en-US')}
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Permissions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              دسترسی‌ها
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Base Permissions - همیشه نمایش داده می‌شود */}
-            <div className="mb-6">
-              <h4 className="font-semibold text-sm mb-3 text-blue-1">🟢 دسترسی‌های پایه (همه ادمین‌ها):</h4>
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-2">
-                  {basePermissions && Array.isArray(basePermissions) && basePermissions.length > 0 ? (
-                    basePermissions.map((basePerm: any) => (
-                      <Badge key={basePerm.id} variant="default">
-                        {basePerm.display_name}
-                      </Badge>
-                    ))
-                  ) : (
-                    // Fallback اگر API در دسترس نباشد
-                    <>
-                      <Badge variant="default">مشاهده Dashboard</Badge>
-                      <Badge variant="default">مشاهده Media</Badge>
-                      <Badge variant="default">ویرایش پروفایل شخصی</Badge>
-                      <Badge variant="default">مشاهده اطلاعات شخصی</Badge>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Role-specific Permissions */}
+          {/* Role-specific Permissions */}
+          <CardWithIcon
+            icon={Sparkles}
+            title="دسترسی‌های اختصاصی این نقش"
+            iconBgColor="bg-purple"
+            iconColor="stroke-purple-2"
+            borderColor="border-b-purple-1"
+            titleExtra={
+              specificPermsCount > 0 ? (
+                <Badge variant="purple" className="text-xs font-bold px-3 py-1 shadow-sm">
+                  {specificPermsCount} دسترسی
+                </Badge>
+              ) : null
+            }
+          >
             {(() => {
               // ✅ NEW: Support specific_permissions format (new format)
               if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions) && role.permissions.specific_permissions.length > 0) {
@@ -233,8 +382,10 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                 
                 return (
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-sm mb-3 text-green-1">🎯 دسترسی‌های اختصاصی این نقش:</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-sm text-font-s leading-relaxed p-3 rounded-lg bg-purple-0/30 border border-purple-1/20">
+                      🎯 دسترسی‌های اختصاصی که فقط به این نقش تعلق دارد.
+                    </p>
+                    <div className="flex flex-wrap gap-2.5">
                       {matchedPermissions.map((perm, index) => {
                         // Try to translate using description type (like in form components)
                         const translated = getPermissionTranslation(perm.displayName, "description");
@@ -242,7 +393,11 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                         const finalText = translated || getPermissionTranslation(perm.displayName, "resource") || perm.displayName;
                         
                         return (
-                          <Badge key={index} variant="outline">
+                          <Badge 
+                            key={index} 
+                            variant="purple"
+                            className="text-xs font-medium px-3 py-1.5 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                          >
                             {finalText}
                           </Badge>
                         );
@@ -256,15 +411,17 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
               if (role.permissions && Object.keys(role.permissions).length > 0) {
                 return (
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-sm mb-3 text-green-1">🎯 دسترسی‌های اختصاصی این نقش:</h4>
+                    <p className="text-sm text-font-s">
+                      دسترسی‌های اختصاصی که فقط به این نقش تعلق دارد.
+                    </p>
                     
                     {/* Modules */}
                     {role.permissions.modules && Array.isArray(role.permissions.modules) && role.permissions.modules.length > 0 && (
                       <div>
-                        <h5 className="font-medium text-sm mb-2">ماژول‌ها:</h5>
+                        <h5 className="font-medium text-sm mb-2 text-font-p">ماژول‌ها</h5>
                         <div className="flex flex-wrap gap-2">
                           {role.permissions.modules.map((module: string, index: number) => (
-                            <Badge key={index} variant="outline">
+                            <Badge key={index} variant="purple">
                               {module === 'all' ? 'همه ماژول‌ها' : 
                                module === 'users' ? 'کاربران' :
                                module === 'media' ? 'رسانه' :
@@ -281,10 +438,10 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                     {/* Actions */}
                     {role.permissions.actions && Array.isArray(role.permissions.actions) && role.permissions.actions.length > 0 && (
                       <div>
-                        <h5 className="font-medium text-sm mb-2">عملیات:</h5>
+                        <h5 className="font-medium text-sm mb-2 text-font-p">عملیات</h5>
                         <div className="flex flex-wrap gap-2">
                           {role.permissions.actions.map((action: string, index: number) => (
-                            <Badge key={index} variant="outline">
+                            <Badge key={index} variant="purple">
                               {action === 'all' ? 'همه عملیات' :
                                action === 'create' ? 'ایجاد' :
                                action === 'read' ? 'مشاهده' :
@@ -300,10 +457,10 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                     {/* Special Permissions */}
                     {role.permissions.special && Array.isArray(role.permissions.special) && role.permissions.special.length > 0 && (
                       <div>
-                        <h5 className="font-medium text-sm mb-2">دسترسی‌های ویژه:</h5>
+                        <h5 className="font-medium text-sm mb-2 text-font-p">دسترسی‌های ویژه</h5>
                         <div className="flex flex-wrap gap-2">
                           {role.permissions.special.map((special: string, index: number) => (
-                            <Badge key={index} variant="default">
+                            <Badge key={index} variant="purple">
                               {special === 'user_management' ? 'مدیریت کاربران' :
                                special === 'system_settings' ? 'تنظیمات سیستم' : special}
                             </Badge>
@@ -315,7 +472,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                     {/* Restrictions */}
                     {role.permissions.restrictions && Array.isArray(role.permissions.restrictions) && role.permissions.restrictions.length > 0 && (
                       <div>
-                        <h5 className="font-medium text-sm mb-2">محدودیت‌ها:</h5>
+                        <h5 className="font-medium text-sm mb-2 text-font-p">محدودیت‌ها</h5>
                         <div className="flex flex-wrap gap-2">
                           {role.permissions.restrictions.map((restriction: string, index: number) => (
                             <Badge key={index} variant="red">
@@ -335,13 +492,17 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
               }
               
               return (
-                <div className="text-center py-4 text-font-s">
-                  <p>فقط دسترسی‌های پایه تخصیص داده شده است</p>
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-0 to-pink-0 border-4 border-purple-1 mb-6 shadow-lg">
+                    <Shield className="h-10 w-10 text-purple-2" />
+                  </div>
+                  <p className="text-font-p font-semibold text-lg mb-2">فقط دسترسی‌های پایه</p>
+                  <p className="text-sm text-font-s">این نقش هیچ دسترسی اختصاصی ندارد</p>
                 </div>
               );
             })()}
-          </CardContent>
-        </Card>
+          </CardWithIcon>
+        </div>
       </div>
     </div>
   );

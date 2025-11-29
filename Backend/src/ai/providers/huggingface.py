@@ -35,6 +35,105 @@ class HuggingFaceProvider(BaseProvider):
     def get_provider_name(self) -> str:
         return 'huggingface'
     
+    @staticmethod
+    def get_available_models(api_key: Optional[str] = None, task_filter: Optional[str] = None, use_cache: bool = True):
+        """
+        Get list of available Hugging Face models from API
+        
+        Args:
+            api_key: Hugging Face API key (optional - public endpoint works without auth)
+            task_filter: Filter by task ('text-generation', 'text-to-image', 'automatic-speech-recognition', etc.)
+            use_cache: Whether to use cache (default: True)
+        
+        Returns:
+            List of model dictionaries with id, name, task, etc.
+        """
+        import logging
+        from django.core.cache import cache
+        
+        logger = logging.getLogger(__name__)
+        
+        # Cache key
+        cache_key = f'huggingface_models_{task_filter or "all"}'
+        
+        # Try cache first
+        if use_cache:
+            cached_models = cache.get(cache_key)
+            if cached_models is not None:
+                logger.info(f"[HuggingFace Provider] Returning {len(cached_models)} models from cache")
+                return cached_models
+        
+        try:
+            import httpx
+            
+            # Hugging Face API endpoint for listing models
+            # ✅ استفاده از endpoint صحیح با pagination
+            url = "https://huggingface.co/api/models"
+            
+            params = {
+                'sort': 'downloads',
+                'direction': '-1',
+                'limit': 100,  # ✅ کاهش limit برای سرعت بیشتر (100 مدل اول)
+            }
+            
+            if task_filter:
+                params['pipeline_tag'] = task_filter
+            
+            headers = {}
+            if api_key:
+                headers['Authorization'] = f'Bearer {api_key}'
+            
+            # Make request
+            with httpx.Client(timeout=30.0) as client:
+                response = client.get(url, params=params, headers=headers)
+                response.raise_for_status()
+                models_data = response.json()
+            
+            # ✅ Hugging Face API ممکن است لیست یا dict برگرداند
+            if not isinstance(models_data, list):
+                # اگر dict است، احتمالاً paginated response است
+                if isinstance(models_data, dict) and 'data' in models_data:
+                    models_data = models_data['data']
+                else:
+                    logger.warning(f"[HuggingFace Provider] Unexpected response format: {type(models_data)}")
+                    return []
+            
+            # Transform to consistent format
+            models = []
+            for model in models_data:
+                if not isinstance(model, dict):
+                    continue
+                    
+                model_id = model.get('id', '')
+                task = model.get('pipeline_tag', '')
+                
+                # Filter based on task
+                if task_filter:
+                    if task != task_filter:
+                        continue
+                
+                models.append({
+                    'id': model_id,
+                    'name': model.get('modelId', model.get('id', model_id)),
+                    'description': model.get('description', ''),
+                    'task': task,
+                    'downloads': model.get('downloads', 0),
+                    'likes': model.get('likes', 0),
+                    'tags': model.get('tags', []),
+                })
+            
+            # Cache for 6 hours
+            if use_cache:
+                cache.set(cache_key, models, 6 * 60 * 60)  # 6 hours
+            
+            logger.info(f"[HuggingFace Provider] Fetched {len(models)} models from API")
+            return models
+            
+        except Exception as e:
+            logger.error(f"[HuggingFace Provider] Error getting available models: {str(e)}", exc_info=True)
+            # Return empty list on error
+            return []
+    
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
         """
         Generate image with Hugging Face Stable Diffusion (free)

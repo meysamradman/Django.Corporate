@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from src.ai.models.image_generation import AIImageGeneration
+from src.ai.models import AIProvider
 from src.ai.messages.messages import AI_ERRORS
 
 
@@ -72,7 +72,14 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
                 f"Provider '{value}' does not support text-to-speech. Currently only 'openai' is supported."
             )
         
-        if not AIImageGeneration.is_provider_available(value):
+        # Check if provider is active
+        try:
+            provider = AIProvider.objects.get(slug=value, is_active=True)
+            if not provider.shared_api_key:
+                raise serializers.ValidationError(
+                    AI_ERRORS["provider_not_available"].format(provider_name=value)
+                )
+        except AIProvider.DoesNotExist:
             raise serializers.ValidationError(
                 AI_ERRORS["provider_not_available"].format(provider_name=value)
             )

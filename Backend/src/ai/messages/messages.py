@@ -14,6 +14,9 @@ AI_SUCCESS = {
     "api_key_valid": "API key معتبر است.",
     "content_generated": "محتوای SEO با موفقیت تولید شد.",
     "content_generated_cached": "محتوای SEO از cache بازگردانده شد.",
+    "content_saved_to_blog": "محتوا با موفقیت در بلاگ ذخیره شد.",
+    "content_saved_to_portfolio": "محتوا با موفقیت در نمونه‌کار ذخیره شد.",
+    "content_not_saved": "محتوا فقط نمایش داده شد و ذخیره نشد.",
     # Admin AI Settings
     "settings_list_retrieved": "تنظیمات با موفقیت دریافت شد.",
     "settings_retrieved": "تنظیمات با موفقیت دریافت شد.",
@@ -66,6 +69,8 @@ AI_ERRORS = {
     "activation_failed": "خطا در فعال‌سازی Provider: {error}",
     "validation_error": "خطا در اعتبارسنجی: {error}",
     "content_generation_failed": "خطا در تولید محتوا: {error}",
+    "content_save_failed": "خطا در ذخیره محتوا در {destination}: {error}",
+    "destination_not_supported": "مقصد '{destination}' پشتیبانی نمی‌شود.",
     "topic_required": "موضوع محتوا نمی‌تواند خالی باشد.",
     "invalid_word_count": "تعداد کلمات باید بین 100 تا 2000 باشد.",
     # Admin AI Settings Errors

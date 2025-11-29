@@ -1,18 +1,37 @@
 """
-AI Views - ویوهای مربوط به AI
+AI Views - Dynamic System ViewSets (2025)
 """
-from .image_generation_views import AIImageGenerationProviderViewSet, AIImageGenerationRequestViewSet
+# ✅ Core Dynamic System ViewSets
+from .ai_provider_views import (
+    AIProviderViewSet,
+    AIModelViewSet,
+    AdminProviderSettingsViewSet,
+)
+
+# ✅ Unified AI Generation ViewSet
+from .generation_views import AIGenerationViewSet
+
+# ✅ Specialized Generation ViewSets
+from .image_generation_views import (
+    AIImageProviderViewSet,
+    AIImageGenerationViewSet,
+)
 from .content_generation_views import AIContentGenerationViewSet
 from .chat_views import AIChatViewSet
-from .admin_ai_settings_views import AdminAISettingsViewSet
 from .audio_generation_views import AIAudioGenerationRequestViewSet
 
 __all__ = [
-    'AIImageGenerationProviderViewSet',
-    'AIImageGenerationRequestViewSet',
+    # Core dynamic system
+    'AIProviderViewSet',
+    'AIModelViewSet',
+    'AdminProviderSettingsViewSet',
+    # Unified generation
+    'AIGenerationViewSet',
+    # Specialized generation
+    'AIImageProviderViewSet',
+    'AIImageGenerationViewSet',
     'AIContentGenerationViewSet',
     'AIChatViewSet',
-    'AdminAISettingsViewSet',
     'AIAudioGenerationRequestViewSet',
 ]
 

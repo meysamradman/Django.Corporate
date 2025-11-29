@@ -1,8 +1,9 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
-from src.ai.models.image_generation import AIImageGeneration
+from src.ai.models import AIProvider
 from src.ai.serializers.audio_generation_serializer import AIAudioGenerationRequestSerializer
 from src.ai.services.audio_generation_service import AIAudioGenerationService
 from src.media.serializers.media_serializer import MediaAdminSerializer
@@ -18,7 +19,7 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
     ViewSet for generating audio with AI (Text-to-Speech)
     """
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [AiManagerAccess]
+    permission_classes = [IsAuthenticated]  # ✅ Changed to IsAuthenticated - permission check is done in view
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
@@ -36,10 +37,10 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
         
         try:
             # Get all providers that support audio generation (currently only OpenAI)
-            providers = AIImageGeneration.objects.filter(
+            providers = AIProvider.objects.filter(
                 is_active=True,
-                provider_name='openai'  # Only OpenAI supports TTS currently
-            ).select_related()
+                slug='openai'  # Only OpenAI supports TTS currently
+            )
             
             providers_data = []
             for provider in providers:
@@ -49,10 +50,10 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
                 
                 providers_data.append({
                     'id': provider.id,
-                    'provider_name': provider.provider_name,
-                    'display_name': provider.get_provider_name_display(),
+                    'provider_name': provider.slug,
+                    'display_name': provider.display_name,
                     'is_active': provider.is_active,
-                    'can_generate': provider.is_active and provider.has_api_key(),
+                    'can_generate': provider.is_active and bool(provider.shared_api_key),
                     'tts_defaults': {
                         'model': tts_config.get('model', 'tts-1'),
                         'voice': tts_config.get('voice', 'alloy'),

@@ -3,7 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Sparkles, Shield } from "lucide-react";
+import { Sparkles, Shield, Info } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
 
 interface Permission {
@@ -22,6 +22,7 @@ interface AIPermissionsCardProps {
   onToggleAllAI: (checked: boolean, aiPermIds: number[]) => void;
   isPermissionSelected: (permissionId: number | undefined) => boolean;
   getResourceIcon: (resourceKey: string) => React.ReactElement;
+  allPermissions?: any[]; // ✅ اضافه شد - برای چک کردن media permission
 }
 
 export function AIPermissionsCard({
@@ -33,6 +34,7 @@ export function AIPermissionsCard({
   onToggleAllAI,
   isPermissionSelected,
   getResourceIcon,
+  allPermissions = [], // ✅ Default value
 }: AIPermissionsCardProps) {
   if (permissions.length === 0) {
     return null;
@@ -51,6 +53,44 @@ export function AIPermissionsCard({
   const selectedCount = filteredPermissions.filter((p) =>
     isPermissionSelected(p.id)
   ).length;
+
+  // ✅ Check if ai.manage is selected - if yes, disable other AI permissions
+  const aiManagePermission = filteredPermissions.find(
+    (p) => p.original_key === "ai.manage"
+  );
+  const isAiManageSelected = aiManagePermission
+    ? isPermissionSelected(aiManagePermission.id)
+    : false;
+  
+  // ✅ NEW: Check if ai.image.manage is selected
+  const hasImagePermission = filteredPermissions.some(
+    (p) => (p.original_key === "ai.image.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
+  );
+  
+  // ✅ NEW: Check if ai.content.manage is selected
+  const hasContentPermission = filteredPermissions.some(
+    (p) => (p.original_key === "ai.content.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
+  );
+  
+  // ✅ NEW: Check if ai.audio.manage is selected
+  const hasAudioPermission = filteredPermissions.some(
+    (p) => (p.original_key === "ai.audio.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
+  );
+  
+  // ✅ NEW: Check if media permission is selected
+  const hasMediaPermission = allPermissions.some(
+    (p: any) => (p.original_key === "media.manage" || p.resource === "media") && isPermissionSelected(p.id)
+  );
+  
+  // ✅ NEW: Check if blog permission is selected
+  const hasBlogPermission = allPermissions.some(
+    (p: any) => (p.original_key === "blog.manage" || p.resource === "blog") && isPermissionSelected(p.id)
+  );
+  
+  // ✅ NEW: Check if portfolio permission is selected
+  const hasPortfolioPermission = allPermissions.some(
+    (p: any) => (p.original_key === "portfolio.manage" || p.resource === "portfolio") && isPermissionSelected(p.id)
+  );
 
   return (
     <Card className="border-2 border-dashed border-yellow-500/20 bg-yellow-500/5">
@@ -85,6 +125,63 @@ export function AIPermissionsCard({
         </div>
       </CardHeader>
       <CardContent>
+        {/* ✅ Warning 1: AI Content without Blog/Portfolio */}
+        {hasContentPermission && !hasBlogPermission && !hasPortfolioPermission && (
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-600">
+                  ⚠️ توجه: تولید محتوا بدون دسترسی وبلاگ یا نمونه‌کار
+                </p>
+                <p className="text-xs text-amber-600/80 mt-1">
+                  این نقش می‌تواند محتوا تولید کند ولی بدون <strong>دسترسی وبلاگ یا نمونه‌کار</strong>، نمی‌تواند محتوا را در دیتابیس ذخیره کند.
+                  <br />
+                  برای فعال کردن قابلیت ذخیره محتوا، <strong>دسترسی وبلاگ یا نمونه‌کار</strong> را نیز فعال کنید.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* ✅ Warning 2: AI Image without Media */}
+        {hasImagePermission && !hasMediaPermission && (
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-600">
+                  ⚠️ توجه: تولید تصویر بدون دسترسی مدیا
+                </p>
+                <p className="text-xs text-amber-600/80 mt-1">
+                  این نقش می‌تواند تصویر تولید کند ولی بدون <strong>دسترسی مدیا</strong>، نمی‌تواند تصاویر را در دیتابیس ذخیره کند.
+                  <br />
+                  برای فعال کردن قابلیت ذخیره تصاویر، <strong>دسترسی مدیا</strong> را نیز فعال کنید.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* ✅ Warning 3: AI Audio without Media */}
+        {hasAudioPermission && !hasMediaPermission && (
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-600">
+                  ⚠️ توجه: تولید صدا/پادکست بدون دسترسی مدیا
+                </p>
+                <p className="text-xs text-amber-600/80 mt-1">
+                  این نقش می‌تواند فایل صوتی تولید کند ولی بدون <strong>دسترسی مدیا</strong>، نمی‌تواند فایل‌ها را در دیتابیس ذخیره کند.
+                  <br />
+                  برای فعال کردن قابلیت ذخیره فایل‌های صوتی، <strong>دسترسی مدیا</strong> را نیز فعال کنید.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {filteredPermissions
             .sort((a, b) => {
@@ -95,16 +192,24 @@ export function AIPermissionsCard({
             })
             .map((perm) => {
               const isSelected = isPermissionSelected(perm.id);
+              // ✅ Disable if ai.manage is selected and this is not ai.manage
+              const isDisabled =
+                isAiManageSelected &&
+                perm.original_key !== "ai.manage" &&
+                perm.original_key?.startsWith("ai.");
 
               return (
                 <div
                   key={perm.id}
                   onClick={() => {
                     if (perm.requires_superadmin && !isSuperAdmin) return;
+                    if (isDisabled) return; // ✅ Don't allow toggling if disabled
                     onTogglePermission(perm.id);
                   }}
                   className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 ${
                     perm.requires_superadmin && !isSuperAdmin
+                      ? "cursor-not-allowed opacity-50"
+                      : isDisabled
                       ? "cursor-not-allowed opacity-50"
                       : "cursor-pointer hover:scale-105"
                   } ${
@@ -133,6 +238,14 @@ export function AIPermissionsCard({
                     <div
                       className="absolute top-2 right-2 text-amber-500"
                       title="نیازمند دسترسی سوپر ادمین"
+                    >
+                      <Shield className="h-3 w-3" />
+                    </div>
+                  )}
+                  {isDisabled && (
+                    <div
+                      className="absolute top-2 left-2 text-yellow-600"
+                      title="دسترسی کامل AI انتخاب شده است"
                     >
                       <Shield className="h-3 w-3" />
                     </div>

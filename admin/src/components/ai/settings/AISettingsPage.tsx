@@ -9,78 +9,111 @@
  * - انتخاب مدل‌های OpenRouter
  */
 
-import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { Settings, Search, Power } from 'lucide-react';
-import { Card, CardContent } from '@/components/elements/Card';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Settings, Search, List } from 'lucide-react';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader } from '@/components/elements/Card';
+import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/elements/Accordion';
 import { Switch } from '@/components/elements/Switch';
 import { Badge } from '@/components/elements/Badge';
 import { Label } from '@/components/elements/Label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/elements/Dialog';
-import { Button } from '@/components/elements/Button';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { useUserPermissions } from '@/core/permissions';
 import { useAISettings } from './hooks/useAISettings';
-import { AdminAccessSettings } from './components/AdminAccessSettings';
 import { ProviderCard } from './components/ProviderCard';
 import { aiApi } from '@/api/ai/route';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { showSuccessToast, showErrorToast } from '@/core/config/errorHandler';
-import { frontendToBackendProviderMap } from './hooks/useAISettings';
+import { frontendToBackendProviderMap, backendToFrontendIdMap } from './hooks/useAISettings';
+import { useRouter } from 'next/navigation';
 
-// Dynamic import برای OpenRouterModelSelector
-const OpenRouterModelSelectorContent = lazy(() => 
-  import('./OpenRouterModelSelector').then(module => ({ default: module.OpenRouterModelSelectorContent }))
-);
-
-// Dynamic import برای HuggingFaceModelSelector
-const HuggingFaceModelSelectorContent = lazy(() => 
-  import('./HuggingFaceModelSelector').then(module => ({ default: module.HuggingFaceModelSelectorContent }))
-);
 
 export default function AISettingsPage() {
-  const { isSuperAdmin } = useUserPermissions();
+  const router = useRouter();
+  const { isSuperAdmin, hasModuleAction } = useUserPermissions();
+  
+  // ✅ Permission check: همه ادمین‌ها می‌توانند این صفحه را ببینند
+  // اگر سوپر ادمین provider را فعال کند، برای همه ادمین‌ها قابل مشاهده است
+  // فقط برای ایجاد/ویرایش نیاز به ai.manage است
+  const hasAccess = true; // ✅ همه ادمین‌ها می‌توانند provider های فعال را ببینند
   const queryClient = useQueryClient();
   const {
     providers,
     personalSettingsMap,
     isLoadingBackendProviders,
     toggleUseSharedApiMutation,
-    getUseSharedApi,
   } = useAISettings();
 
   const [expandedProviders, setExpandedProviders] = useState<string[]>([]);
-  const [showModelSelector, setShowModelSelector] = useState(false);
-  const [selectedProviderForModels, setSelectedProviderForModels] = useState<string | null>(null);
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showApiKeys, setShowApiKeys] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Load API keys from backend providers and personal settings
-  useEffect(() => {
-    const loadedApiKeys: Record<string, string> = {};
-    
-    // Load from shared providers (for super admin)
-    if (isSuperAdmin) {
-      providers.forEach(provider => {
-        if (provider.backendProvider?.api_key) {
-          loadedApiKeys[provider.id] = provider.backendProvider.api_key;
-        }
-      });
+  // ✅ Load API keys from personal settings (which now includes api_key from serializer)
+  // بهینه شده: استفاده از useMemo برای جلوگیری از re-render های اضافی
+  const loadedApiKeys = useMemo(() => {
+    if (!providers.length) {
+      return {};
     }
     
-    // Load from personal settings
-    Object.entries(personalSettingsMap).forEach(([providerId, setting]) => {
-      if (setting.api_key && !setting.use_shared_api) {
-        loadedApiKeys[providerId] = setting.api_key;
+    const keys: Record<string, string> = {};
+    
+    providers.forEach(provider => {
+      const setting = personalSettingsMap[provider.id];
+      
+      // ✅ از personalSettingsMap استفاده کن که api_key دارد (از serializer جدید)
+      if (setting?.api_key) {
+        const apiKey = setting.api_key;
+        // ✅ فقط اگر API key معتبر است (نه '***' و نه خالی)
+        if (apiKey && apiKey !== '***' && apiKey.trim() !== '') {
+          keys[provider.id] = apiKey;
+        }
       }
     });
     
-    setApiKeys(prev => ({ ...prev, ...loadedApiKeys }));
-  }, [providers, personalSettingsMap, isSuperAdmin]);
+    return keys;
+  }, [providers, personalSettingsMap]);
 
-  // استفاده مستقیم از providers - بدون فیلتر
-  const filteredProviders = providers;
+  // ✅ فقط یکبار API keys را در state set کن (بهینه شده)
+  useEffect(() => {
+    if (Object.keys(loadedApiKeys).length === 0) {
+      return;
+    }
+    
+    setApiKeys(prev => {
+      const updated = { ...prev };
+      let hasChanges = false;
+      
+      // ✅ فقط API key هایی که در state نیستند یا خالی هستند را set کن
+      Object.entries(loadedApiKeys).forEach(([key, value]) => {
+        if (value && value.trim() !== '' && value !== '***') {
+          // ✅ فقط اگر در state نیست یا خالی است، set کن
+          if (!prev[key] || prev[key].trim() === '' || prev[key] === '***') {
+            updated[key] = value;
+            hasChanges = true;
+          }
+        }
+      });
+      
+      // ✅ فقط اگر تغییری وجود دارد، state را update کن
+      return hasChanges ? updated : prev;
+    });
+  }, [loadedApiKeys]);
+
+  // ✅ فیلتر کردن providers بر اساس جستجو
+  const filteredProviders = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return providers;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return providers.filter(provider => 
+      provider.name.toLowerCase().includes(query) ||
+      provider.description.toLowerCase().includes(query) ||
+      provider.id.toLowerCase().includes(query)
+    );
+  }, [providers, searchQuery]);
 
   const handleToggleUseSharedApi = (providerId: string, checked: boolean) => {
     toggleUseSharedApiMutation.mutate({
@@ -89,15 +122,6 @@ export default function AISettingsPage() {
     });
   };
 
-  const handleOpenModelSelector = (providerId: string) => {
-    setSelectedProviderForModels(providerId);
-    setShowModelSelector(true);
-  };
-
-  const handleCloseModelSelector = () => {
-    setShowModelSelector(false);
-    setSelectedProviderForModels(null);
-  };
 
   // Mutation برای ذخیره API key
   const saveApiKeyMutation = useMutation({
@@ -154,16 +178,19 @@ export default function AISettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccessToast('API key با موفقیت ذخیره شد');
-      // بستن باکس بعد از ذخیره موفق
-      setExpandedProviders(prev => prev.filter(id => id !== variables.providerId));
-      // API key را در state نگه دار تا بتواند نمایش داده شود (برای نمایش بخشی از آن)
+      // ✅ API key را در state نگه دار تا بعد از ذخیره نمایش داده شود
       // API key که ذخیره شده در state می‌ماند تا بتوانیم بخشی از آن را نمایش بدهیم
+      setApiKeys(prev => ({
+        ...prev,
+        [variables.providerId]: variables.apiKey  // ✅ نگه داشتن API key در state
+      }));
       // مخفی کردن نمایش API key بعد از ذخیره
       setShowApiKeys(prev => ({
         ...prev,
         [variables.providerId]: false
       }));
-      // API key در state می‌ماند تا بتوانیم بخشی از آن را نمایش بدهیم
+      // بستن باکس بعد از ذخیره موفق (اختیاری - می‌توانیم باز بگذاریم)
+      // setExpandedProviders(prev => prev.filter(id => id !== variables.providerId));
     },
     onError: (error: any) => {
       showErrorToast(error?.message || 'خطا در ذخیره API key');
@@ -172,7 +199,9 @@ export default function AISettingsPage() {
 
   const handleSaveProvider = (providerId: string) => {
     const apiKey = apiKeys[providerId] || '';
-    const useSharedApi = getUseSharedApi(providerId);
+    // استفاده از personalSettingsMap برای گرفتن useSharedApi
+    const setting = personalSettingsMap[providerId];
+    const useSharedApi = setting?.use_shared_api ?? false;
 
     if (!apiKey.trim()) {
       showErrorToast('لطفاً API key را وارد کنید');
@@ -221,23 +250,83 @@ export default function AISettingsPage() {
         return await aiApi.personalSettings.saveMySettings(data);
       }
     },
+    onMutate: async ({ providerId, isActive, useSharedApi }) => {
+      // ✅ Optimistic Update: فوراً state رو به‌روز کن
+      await queryClient.cancelQueries({ queryKey: ['ai-personal-settings'] });
+      await queryClient.cancelQueries({ queryKey: ['ai-backend-providers'] });
+      
+      // Snapshot برای rollback در صورت خطا
+      const previousPersonalSettings = queryClient.getQueryData(['ai-personal-settings']);
+      const previousBackendProviders = queryClient.getQueryData(['ai-backend-providers']);
+      
+      // Optimistic update برای personal settings
+      if (!isSuperAdmin || !useSharedApi) {
+        queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
+          if (!old) return old;
+          const backendProviderName = frontendToBackendProviderMap[providerId];
+          if (!backendProviderName) return old;
+          
+          return old.map((setting: any) => {
+            // ✅ دقیق‌ترین match: اول provider_slug (دقیق‌ترین)، سپس provider_name
+            const matchesSlug = setting.provider_slug === backendProviderName;
+            const matchesName = setting.provider_name === backendProviderName;
+            
+            // فقط اگر دقیقاً match کرد، به‌روزرسانی کن
+            if (matchesSlug || matchesName) {
+              return { ...setting, is_active: isActive };
+            }
+            return setting;
+          });
+        });
+      }
+      
+      // Optimistic update برای backend providers (اگر سوپر ادمین و shared)
+      if (isSuperAdmin && useSharedApi) {
+        queryClient.setQueryData(['ai-backend-providers'], (old: any) => {
+          if (!old) return old;
+          
+          return old.map((provider: any) => {
+            // ✅ دقیق‌ترین match: اول slug، سپس name
+            const frontendIdFromSlug = backendToFrontendIdMap[provider.slug];
+            const frontendIdFromName = backendToFrontendIdMap[provider.name];
+            const matches = frontendIdFromSlug === providerId || frontendIdFromName === providerId;
+            
+            if (matches) {
+              return { ...provider, is_active: isActive };
+            }
+            return provider;
+          });
+        });
+      }
+      
+      return { previousPersonalSettings, previousBackendProviders };
+    },
     onSuccess: () => {
+      // Refetch برای اطمینان از sync با backend
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccessToast('وضعیت با موفقیت تغییر کرد');
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // Rollback در صورت خطا
+      if (context?.previousPersonalSettings) {
+        queryClient.setQueryData(['ai-personal-settings'], context.previousPersonalSettings);
+      }
+      if (context?.previousBackendProviders) {
+        queryClient.setQueryData(['ai-backend-providers'], context.previousBackendProviders);
+      }
       showErrorToast(error?.message || 'خطا در تغییر وضعیت');
     },
   });
 
-  const handleToggleActive = (providerId: string, checked: boolean, useSharedApi: boolean) => {
+  // ✅ بهینه‌سازی: استفاده از useCallback برای جلوگیری از re-render
+  const handleToggleActive = useCallback((providerId: string, checked: boolean, useSharedApi: boolean) => {
     toggleActiveMutation.mutate({
       providerId,
       isActive: checked,
       useSharedApi,
     });
-  };
+  }, [toggleActiveMutation]);
 
   if (isLoadingBackendProviders) {
     return (
@@ -252,21 +341,44 @@ export default function AISettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-3 mb-2">
-          <Settings className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold text-font-p">تنظیمات AI Provider</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <Settings className="w-6 h-6 text-primary" />
+            <h1 className="text-2xl font-bold text-font-p">تنظیمات AI Provider</h1>
+          </div>
+          <Button asChild>
+            <Link href="/settings/ai/models">
+              <List className="w-4 h-4" />
+              انتخاب مدل‌ها
+            </Link>
+          </Button>
         </div>
         <p className="text-font-s text-sm">
           {providers.length} provider
         </p>
       </div>
 
-      {/* Admin Access Settings - فقط برای سوپر ادمین */}
-      {isSuperAdmin && (
-        <AdminAccessSettings isSuperAdmin={isSuperAdmin} />
-      )}
+      {/* Admin Access Settings - REMOVED - Global Control حالا داخل هر provider card هست */}
 
-      {/* Search Bar - REMOVED FOR TESTING */}
+      {/* Search Bar - مثل DataTable در Card */}
+      <Card className="shadow-sm border hover:shadow-lg transition-all duration-300">
+        <CardHeader className="border-b">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
+                <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
+                <Input
+                  type="text"
+                  placeholder="جستجو در Provider ها..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-8 h-8 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Providers List */}
       {filteredProviders.length > 0 ? (
@@ -283,35 +395,17 @@ export default function AISettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProviders.map((provider) => {
               const isExpanded = expandedProviders.includes(provider.id);
-              const useSharedApi = getUseSharedApi(provider.id);
               
-              // دریافت API key بر اساس نوع (مشترک یا شخصی) - بهینه شده
-              let apiKey = '';
-              let hasStoredApiKey = false;
+              // استفاده از personalSettingsMap برای گرفتن useSharedApi
+              const setting = personalSettingsMap[provider.id];
+              const useSharedApi = setting?.use_shared_api ?? false;
               
-              // اول از state بگیر (اگر وجود دارد - یعنی بعد از ذخیره در state مانده)
-              if (apiKeys[provider.id] && apiKeys[provider.id].trim() !== '') {
-                apiKey = apiKeys[provider.id];
-                hasStoredApiKey = true;
-              } else if (useSharedApi && isSuperAdmin) {
-                // از shared provider بگیر
-                const backendProvider = provider.backendProvider;
-                if (backendProvider?.api_key) {
-                  hasStoredApiKey = true;
-                  if (backendProvider.api_key !== '***') {
-                    apiKey = backendProvider.api_key;
-                  }
-                }
-              } else {
-                // از personal settings بگیر
-                const setting = personalSettingsMap[provider.id];
-                if (setting?.api_key) {
-                  hasStoredApiKey = true;
-                  if (setting.api_key !== '***') {
-                    apiKey = setting.api_key;
-                  }
-                }
-              }
+              // ✅ دریافت API key بر اساس نوع (مشترک یا شخصی) - بهینه شده
+              // استفاده از useMemo برای جلوگیری از re-render های اضافی
+              const apiKey = apiKeys[provider.id] || '';
+              const hasStoredApiKey = Boolean(
+                apiKey && apiKey.trim() !== '' && apiKey !== '***'
+              );
               
               const showApiKey = showApiKeys[provider.id] || false;
               
@@ -324,6 +418,35 @@ export default function AISettingsPage() {
                 // از personal settings بگیر
                 const setting = personalSettingsMap[provider.id];
                 isActive = setting?.is_active || false;
+              }
+              
+              // ✅ محاسبه وضعیت دسترسی (برای Badge)
+              let accessStatus = 'no-access';
+              let accessLabel = 'بدون دسترسی';
+              
+              // ✅ فقط اگر فعال باشه، وضعیت دسترسی رو نمایش بده
+              if (isActive) {
+                if (useSharedApi && isSuperAdmin && hasStoredApiKey) {
+                  // ✅ مشترک: فقط اگر super admin است و API key دارد
+                  accessStatus = 'shared';
+                  accessLabel = 'API مشترک';
+                } else if (!useSharedApi && hasStoredApiKey) {
+                  // ✅ شخصی: اگر useSharedApi=false و API key دارد
+                  accessStatus = 'personal';
+                  accessLabel = 'API شخصی';
+                } else if (useSharedApi && !isSuperAdmin && hasStoredApiKey) {
+                  // ✅ اگر useSharedApi=true اما super admin نیست و API key دارد، از personal استفاده می‌کند
+                  accessStatus = 'personal';
+                  accessLabel = 'API شخصی';
+                } else {
+                  // ✅ فقط اگر API key ندارد
+                  accessStatus = 'no-key';
+                  accessLabel = 'نیاز به API Key';
+                }
+              } else {
+                // غیرفعال - فقط یک Badge نمایش می‌دهیم
+                accessStatus = 'disabled';
+                accessLabel = ''; // خالی - چون Badge اول نشون میده
               }
 
               return (
@@ -339,40 +462,33 @@ export default function AISettingsPage() {
                               <p className="text-sm text-font-s">{provider.description}</p>
                             </div>
                           </div>
-                          <Badge variant="outline" className="ml-2">
-                            {provider.models.length} مدل
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      
-                      {/* Toggle Active Button - همیشه دیده می‌شود */}
-                      <div className="px-6 pb-4 border-b border-br">
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-bg/40 to-bg/20 rounded-lg border border-br hover:border-primary/20 transition-all">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`p-1.5 rounded-md ${isActive ? 'bg-green/20' : 'bg-gray/20'}`}>
-                              <Power className={`h-4 w-4 ${isActive ? 'text-green-1' : 'text-font-s'}`} />
-                            </div>
-                            <div>
-                              <Label className="text-sm font-semibold cursor-pointer text-font-p">
-                                وضعیت فعال/غیرفعال
-                              </Label>
-                              <p className="text-xs text-font-s mt-0.5">
-                                {isActive ? 'Provider در دسترس است' : 'Provider غیرفعال است'}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Switch
-                              checked={isActive}
-                              onCheckedChange={(checked) => handleToggleActive(provider.id, checked, useSharedApi)}
-                              disabled={toggleActiveMutation.isPending || saveApiKeyMutation.isPending}
-                            />
-                            <Badge variant={isActive ? "green" : "gray"} className="min-w-[70px] text-center font-medium">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant={isActive ? "green" : "gray"} 
+                              className="text-xs"
+                            >
                               {isActive ? 'فعال' : 'غیرفعال'}
+                            </Badge>
+                            {/* ✅ فقط اگر فعال باشه، Badge دسترسی رو نشون بده */}
+                            {isActive && accessLabel && (
+                              <Badge 
+                                variant={
+                                  accessStatus === 'shared' ? 'default' :
+                                  accessStatus === 'personal' ? 'green' :
+                                  accessStatus === 'no-key' ? 'amber' :
+                                  'gray'
+                                }
+                                className="text-xs"
+                              >
+                                {accessLabel}
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="text-xs">
+                              {provider.models.length} مدل
                             </Badge>
                           </div>
                         </div>
-                      </div>
+                      </AccordionTrigger>
 
                       <AccordionContent>
                         <ProviderCard
@@ -382,7 +498,7 @@ export default function AISettingsPage() {
                           showApiKey={showApiKey}
                           useSharedApi={useSharedApi}
                           hasStoredApiKey={hasStoredApiKey}
-                          isSaving={saveApiKeyMutation.isPending}
+                          isSaving={saveApiKeyMutation.isPending || toggleActiveMutation.isPending}
                           onToggleApiKeyVisibility={() => {
                             setShowApiKeys(prev => ({
                               ...prev,
@@ -396,8 +512,16 @@ export default function AISettingsPage() {
                             }));
                           }}
                           onToggleUseSharedApi={(checked) => handleToggleUseSharedApi(provider.id, checked)}
-                          onOpenModelSelector={() => handleOpenModelSelector(provider.id)}
                           onSave={() => handleSaveProvider(provider.id)}
+                          isSuperAdmin={isSuperAdmin}
+                          isActive={isActive}
+                          onToggleActive={(checked) => {
+                            // ✅ اطمینان از اینکه useSharedApi به‌روز است و جلوگیری از تداخل
+                            if (toggleActiveMutation.isPending) return; // جلوگیری از تداخل
+                            const currentSetting = personalSettingsMap[provider.id];
+                            const currentUseSharedApi = currentSetting?.use_shared_api ?? false;
+                            handleToggleActive(provider.id, checked, currentUseSharedApi);
+                          }}
                         />
                       </AccordionContent>
                     </Card>
@@ -418,52 +542,6 @@ export default function AISettingsPage() {
       )}
 
 
-      {/* OpenRouter Model Selector Modal */}
-      <Dialog open={showModelSelector} onOpenChange={(open) => !open && handleCloseModelSelector()}>
-        <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
-            <DialogTitle className="flex items-center gap-3 text-font-p">
-              <Settings className="w-6 h-6 text-primary" />
-              انتخاب مدل‌ها
-            </DialogTitle>
-            <DialogDescription className="text-font-s">
-              مدل‌های مورد نظر خود را انتخاب کنید
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
-            {selectedProviderForModels && (
-              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                {selectedProviderForModels === 'openrouter' ? (
-                  <OpenRouterModelSelectorContent
-                    providerId={selectedProviderForModels || ''}
-                    providerName={providers.find(p => p.id === selectedProviderForModels)?.name || 'OpenRouter'}
-                    onSave={() => {}}
-                    onSelectionChange={() => {}}
-                  />
-                ) : selectedProviderForModels === 'huggingface' ? (
-                  <HuggingFaceModelSelectorContent
-                    providerId={selectedProviderForModels || ''}
-                    providerName={providers.find(p => p.id === selectedProviderForModels)?.name || 'Hugging Face'}
-                    onSave={() => {}}
-                    onSelectionChange={() => {}}
-                  />
-                ) : null}
-              </Suspense>
-            )}
-          </div>
-
-          <DialogFooter className="px-6 py-4 border-t border-br flex-shrink-0">
-            <Button variant="outline" onClick={handleCloseModelSelector}>
-              بستن
-            </Button>
-            <Button onClick={handleCloseModelSelector}>
-              ذخیره
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
-

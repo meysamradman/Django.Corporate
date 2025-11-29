@@ -46,6 +46,36 @@ export function useCanManageAI() {
   return canManageAI;
 }
 
+export function useCanManageAIChat() {
+  const { canManageAIChat } = useUIPermissions();
+  return canManageAIChat;
+}
+
+export function useCanManageAIContent() {
+  const { canManageAIContent } = useUIPermissions();
+  return canManageAIContent;
+}
+
+export function useCanManageAIImage() {
+  const { canManageAIImage } = useUIPermissions();
+  return canManageAIImage;
+}
+
+export function useCanManageAIAudio() {
+  const { canManageAIAudio } = useUIPermissions();
+  return canManageAIAudio;
+}
+
+export function useCanManageAISettings() {
+  const { canManageAISettings } = useUIPermissions();
+  return canManageAISettings;
+}
+
+export function useCanManageSharedAISettings() {
+  const { canManageSharedAISettings } = useUIPermissions();
+  return canManageSharedAISettings;
+}
+
 export function useCanManageForms() {
   const { canManageForms } = useUIPermissions();
   return canManageForms;

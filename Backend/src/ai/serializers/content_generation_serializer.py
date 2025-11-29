@@ -37,6 +37,19 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         help_text="کلمات کلیدی برای SEO (اختیاری)"
     )
     
+    # ✅ Destination handling - where to save generated content
+    destination = serializers.ChoiceField(
+        choices=['direct', 'blog', 'portfolio'],
+        required=False,
+        default='direct',
+        help_text="مقصد ذخیره‌سازی محتوا: direct (فقط نمایش), blog (ذخیره در بلاگ), portfolio (ذخیره در نمونه‌کار)"
+    )
+    destination_data = serializers.JSONField(
+        required=False,
+        default=dict,
+        help_text="داده‌های اضافی برای مقصد (مثل دسته‌بندی، تگ، وضعیت)"
+    )
+    
 
     
     def validate_topic(self, value):
@@ -55,14 +68,14 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
 class AIContentGenerationResponseSerializer(serializers.Serializer):
     """Serializer for content generation response"""
     
-    title = serializers.CharField()
-    meta_title = serializers.CharField()
-    meta_description = serializers.CharField()
-    slug = serializers.SlugField()
-    h1 = serializers.CharField()
-    content = serializers.CharField(help_text="HTML content with <p>, <h2>, <h3> tags")
-    keywords = serializers.ListField(child=serializers.CharField())
-    word_count = serializers.IntegerField()
-    provider_name = serializers.CharField()
-    generation_time_ms = serializers.IntegerField()
+    # Content data
+    content = serializers.DictField(
+        child=serializers.CharField(),
+        help_text="داده‌های محتوای تولید شده (title, content, meta_title, etc)"
+    )
+    
+    # Destination result
+    destination = serializers.DictField(
+        help_text="نتیجه ذخیره‌سازی در مقصد (saved, destination, id, url, message)"
+    )
 

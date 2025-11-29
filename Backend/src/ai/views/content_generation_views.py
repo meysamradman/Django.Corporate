@@ -138,28 +138,65 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
         
         try:
             from src.ai.providers.openrouter import OpenRouterProvider
-            from src.ai.models.admin_ai_settings import AdminAISettings
-            from src.ai.models.image_generation import AIImageGeneration
+            from src.ai.models import AIProvider, AdminProviderSettings
             
             # Get API key for OpenRouter
             try:
-                api_key = AdminAISettings.get_api_key_for_admin(request.user, 'openrouter')
-            except:
-                # Fallback to shared API key
-                shared_provider = AIImageGeneration.get_active_provider('openrouter')
-                if not shared_provider:
-                    return APIResponse.error(
-                        message="OpenRouter فعال نیست یا API Key تنظیم نشده است",
-                        status_code=status.HTTP_400_BAD_REQUEST
-                    )
-                api_key = shared_provider.get_api_key()
+                provider = AIProvider.objects.get(slug='openrouter', is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.error(
+                    message="OpenRouter فعال نیست. لطفاً ابتدا OpenRouter را در تنظیمات AI فعال کنید.",
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # ✅ بهینه: منطق ساده و واضح برای دریافت API key
+            # ✅ بهینه شده: استفاده از select_related برای جلوگیری از N+1 query
+            settings = AdminProviderSettings.objects.filter(
+                admin=request.user,
+                provider=provider,
+                is_active=True
+            ).select_related('provider').first()
+            
+            api_key = None
+            
+            # Strategy 1: اگر settings وجود دارد
+            if settings:
+                # اول سعی کن از get_api_key() بگیر (طبق use_shared_api)
+                try:
+                    api_key = settings.get_api_key()
+                    logger.info(f"[AI Content API] Using API key from settings (use_shared_api={settings.use_shared_api})")
+                except Exception as e:
+                    logger.warning(f"[AI Content API] get_api_key() failed: {e}")
+                    # اگر use_shared_api=True است اما shared key نیست، personal را چک کن
+                    if settings.use_shared_api:
+                        # shared API key تنظیم نشده، personal را امتحان کن
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+                            logger.info(f"[AI Content API] Fallback: Using personal API key")
+                        else:
+                            logger.warning(f"[AI Content API] Personal API key also empty")
+                    else:
+                        # use_shared_api=False اما personal هم نیست
+                        logger.warning(f"[AI Content API] Personal API key not set")
+            
+            # Strategy 2: اگر هنوز API key نداریم، shared provider را چک کن
+            if not api_key or not api_key.strip():
+                shared_key = provider.get_shared_api_key()
+                if shared_key and shared_key.strip():
+                    api_key = shared_key
+                    logger.info(f"[AI Content API] Using shared provider API key")
+                else:
+                    logger.warning(f"[AI Content API] Shared provider API key also empty")
             
             # Get query params
             use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
             
-            # Get available models from OpenRouter (with cache)
+            # ✅ داینامیک: همیشه از OpenRouter API می‌گیریم (حتی بدون API key)
+            # OpenRouter API ممکن است لیست مدل‌ها را بدون auth هم بدهد
+            final_api_key = api_key if (api_key and api_key.strip()) else None
             models = OpenRouterProvider.get_available_models(
-                api_key, 
+                api_key=final_api_key, 
                 provider_filter=None,  # Get all text generation models
                 use_cache=use_cache
             )
@@ -221,7 +258,12 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_content(self, request):
         """Generate SEO-optimized content"""
-        if not PermissionValidator.has_permission(request.user, 'ai.content.manage'):
+        # Check permission with fallback - allow ai.manage or ai.content.manage
+        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
+        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
+        has_permission = has_content_permission or has_manage_permission
+        
+        if not has_permission:
             return APIResponse.error(
                 message=AI_ERRORS.get("content_not_authorized", "You don't have permission to generate AI content"),
                 status_code=status.HTTP_403_FORBIDDEN
@@ -237,6 +279,10 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
         
         validated_data = serializer.validated_data
         
+        # ✅ Extract destination info
+        destination = validated_data.get('destination', 'direct')
+        destination_data = validated_data.get('destination_data', {})
+        
         try:
             # Generate content
             content_data = AIContentGenerationService.generate_content(
@@ -248,11 +294,38 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 admin=request.user,
             )
             
-            message = AI_SUCCESS["content_generated"]
+            # ✅ Handle destination
+            from src.ai.services.destination_handler import ContentDestinationHandler
+            
+            try:
+                destination_result = ContentDestinationHandler.save_to_destination(
+                    content_data=content_data,
+                    destination=destination,
+                    destination_data=destination_data,
+                    admin=request.user
+                )
+            except ValueError as dest_error:
+                # خطا در ذخیره‌سازی
+                return APIResponse.error(
+                    message=str(dest_error),
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # ✅ مرتب کردن response
+            response_data = {
+                'content': content_data,  # محتوای تولید شده
+                'destination': destination_result,  # نتیجه ذخیره‌سازی
+            }
+            
+            # ✅ Success message based on destination
+            if destination_result['saved']:
+                message = f"{AI_SUCCESS['content_generated']} {destination_result['message']}"
+            else:
+                message = AI_SUCCESS['content_generated']
             
             return APIResponse.success(
                 message=message,
-                data=content_data,  # ✅ مستقیماً content_data رو برمیگردونیم
+                data=response_data,
                 status_code=status.HTTP_200_OK
             )
             

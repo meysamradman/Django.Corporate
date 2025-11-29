@@ -7,8 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
 import os
 
-from src.ai.models.image_generation import AIImageGeneration
-from src.ai.models.admin_ai_settings import AdminAISettings
+from src.ai.models import AIProvider, AdminProviderSettings
 from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, OpenRouterProvider
@@ -97,38 +96,42 @@ class AIImageGenerationService:
         Generate image only without saving to database (for better performance)
         
         Args:
-            provider_name: Provider name
+            provider_name: Provider name (slug)
             prompt: Image description
-            admin: Admin user instance (optional) - if provided, uses personal/shared API based on settings
+            admin: Admin user instance (optional)
             **kwargs: Additional parameters
         
         Returns:
-            tuple: (image_bytes, metadata) - Image and its metadata
+            tuple: (image_bytes, metadata)
         """
-        # ✅ Get appropriate API key (personal/shared based on admin settings)
+        # ✅ Get appropriate API key using new dynamic system
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
+            # Try to get personal settings
             try:
-                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
-                # Get config from shared provider (configs are same) - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                config = provider_config.config or {}
-            except AdminAISettings.DoesNotExist:
-                # Fallback to shared API - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                api_key = provider_config.get_api_key()
-                config = provider_config.config or {}
+                provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+                settings = AdminProviderSettings.objects.filter(
+                    admin=admin,
+                    provider=provider,
+                    is_active=True
+                ).first()
+                
+                if settings:
+                    api_key = settings.get_api_key()  # Uses personal or shared based on use_shared_api
+                else:
+                    # No personal settings, use shared
+                    api_key = provider.get_shared_api_key()
+                
+                config = provider.config or {}
+            except AIProvider.DoesNotExist:
+                raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
         else:
-            # Use shared API (default) - ✅ Use Model's cached method for better performance
-            provider_config = AIImageGeneration.get_active_provider(provider_name)
-            if not provider_config:
-                raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-            
-            api_key = provider_config.get_api_key()
-            config = provider_config.config or {}
+            # Use shared API (default)
+            try:
+                provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+                api_key = provider.get_shared_api_key()
+                config = provider.config or {}
+            except AIProvider.DoesNotExist:
+                raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
         
         image_bytes = cls.generate_image(
             provider_name=provider_name,
@@ -160,69 +163,38 @@ class AIImageGenerationService:
     ) -> ImageMedia:
         """
         Generate image and save to Media Library
-        
-        Args:
-            provider_name: Provider name
-            prompt: Image description
-            user_id: User ID (optional)
-            title: Image title (if not provided, prompt will be used)
-            alt_text: Image alt text
-            save_to_db: Whether to save to database (default: True)
-            admin: Admin user instance (optional) - if provided, uses personal/shared API based on settings
-            **kwargs: Additional parameters
-            
-        Returns:
-            ImageMedia: Saved image
+        Uses new dynamic AI Provider system
         """
         import logging
         logger = logging.getLogger(__name__)
         
-        # ✅ Get appropriate API key (personal/shared based on admin settings)
-        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-            try:
-                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
-                # Get config from shared provider (configs are same) - ✅ Use cached method
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                config = provider_config.config or {}
-                
-                # Check which API is being used
-                try:
-                    personal_settings = AdminAISettings.objects.get(
-                        admin=admin,
-                        provider_name=provider_name,
-                        is_active=True
-                    )
-                    if personal_settings.use_shared_api:
-                        logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
-                        print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
-                    else:
-                        logger.info(f"👤 [AI Image Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
-                        print(f"👤 [AI Image Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
-                except AdminAISettings.DoesNotExist:
-                    logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
-                    print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
-            except AdminAISettings.DoesNotExist:
-                # Fallback to shared API - ✅ Use cached method
-                logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
-                print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
-                provider_config = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_config:
-                    raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-                api_key = provider_config.get_api_key()
-                config = provider_config.config or {}
-        else:
-            # Use shared API (default) - ✅ Use Model's cached method for better performance
-            logger.info(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
-            print(f"🔗 [AI Image Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
-            provider_config = AIImageGeneration.get_active_provider(provider_name)
-            if not provider_config:
-                raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-            
-            api_key = provider_config.get_api_key()
-            config = provider_config.config or {}
+        # ✅ Get provider using new dynamic system
+        try:
+            provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+        except AIProvider.DoesNotExist:
+            raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
         
+        # ✅ Get appropriate API key
+        if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
+            settings = AdminProviderSettings.objects.filter(
+                admin=admin,
+                provider=provider,
+                is_active=True
+            ).first()
+            
+            if settings:
+                api_key = settings.get_api_key()
+                logger.info(f"🔑 Using {'shared' if settings.use_shared_api else 'personal'} API for {provider_name}")
+            else:
+                api_key = provider.get_shared_api_key()
+                logger.info(f"🔗 Using shared API for {provider_name} (no personal settings)")
+        else:
+            api_key = provider.get_shared_api_key()
+            logger.info(f"🔗 Using shared API for {provider_name} (no admin)")
+        
+        config = provider.config or {}
+        
+        # Generate image
         image_bytes = cls.generate_image(
             provider_name=provider_name,
             prompt=prompt,
@@ -231,25 +203,16 @@ class AIImageGenerationService:
             **kwargs
         )
         
-        # ✅ Track usage: if admin uses personal API, track on AdminAISettings; otherwise on shared provider
+        # ✅ Track usage
+        provider.increment_usage()
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-            try:
-                admin_settings = AdminAISettings.objects.get(
-                    admin=admin,
-                    provider_name=provider_name,
-                    is_active=True
-                )
-                # Only track if using personal API (not shared)
-                if not admin_settings.use_shared_api:
-                    admin_settings.increment_usage()
-            except AdminAISettings.DoesNotExist:
-                # If no personal settings, track on shared provider
-                if 'provider_config' in locals() and provider_config:
-                    provider_config.increment_usage()
-        else:
-            # Track on shared provider
-            if 'provider_config' in locals() and provider_config:
-                provider_config.increment_usage()
+            settings = AdminProviderSettings.objects.filter(
+                admin=admin,
+                provider=provider,
+                is_active=True
+            ).first()
+            if settings:
+                settings.increment_usage()
         
         if not save_to_db:
             return image_bytes
@@ -271,8 +234,6 @@ class AIImageGenerationService:
             'title': title or prompt[:100],
             'alt_text': alt_text or prompt[:200],
         })
-        
-        # Usage already tracked above
         
         return media
     
@@ -301,14 +262,15 @@ class AIImageGenerationService:
     @classmethod
     def get_available_providers(cls) -> list:
         """
-        Get list of active providers that can generate images
+        Get list of active providers that support image generation
+        Uses new dynamic AI Provider system
         """
-        providers = AIImageGeneration.get_active_providers().exclude(provider_name='gemini')
-        return list(providers.values(
-            'id',
-            'provider_name',
-            'is_active',
-            'usage_count',
-            'last_used_at'
-        ))
+        providers = AIProvider.objects.filter(
+            is_active=True,
+            models__capabilities__contains='image',
+            models__is_active=True
+        ).distinct().values(
+            'id', 'slug', 'display_name', 'total_requests', 'last_used_at'
+        )
+        return list(providers)
 

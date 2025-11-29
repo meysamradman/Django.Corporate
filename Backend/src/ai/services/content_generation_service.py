@@ -2,8 +2,7 @@ import asyncio
 import time
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
-from src.ai.models.image_generation import AIImageGeneration
-from src.ai.models.admin_ai_settings import AdminAISettings
+from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider, OpenRouterProvider
 
 
@@ -22,11 +21,11 @@ class AIContentGenerationService:
     @classmethod
     def get_provider(cls, provider_name: str, admin=None):
         """
-        Get AI provider instance
+        ✅ Get AI provider instance using new dynamic system
         
         Args:
-            provider_name: Provider name ('gemini', 'openai', 'deepseek')
-            admin: Admin user instance (optional) - if provided, uses personal/shared API based on settings
+            provider_name: Provider slug ('gemini', 'openai', 'deepseek')
+            admin: Admin user instance (optional)
         
         Returns:
             Provider instance with appropriate API key
@@ -38,50 +37,38 @@ class AIContentGenerationService:
         import logging
         logger = logging.getLogger(__name__)
         
-        # ✅ Use admin-specific API key if admin is provided
+        # Get provider from database
+        provider = AIProvider.get_provider_by_slug(provider_name)
+        if not provider:
+            raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
+        
+        # ✅ Determine which API key to use
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
-                api_key = AdminAISettings.get_api_key_for_admin(admin, provider_name)
-                # Get config from shared provider (configs are same) - ✅ Use cached method
-                provider_model = AIImageGeneration.get_active_provider(provider_name)
-                config = provider_model.config or {} if provider_model else {}
+                # Check if admin has personal settings
+                settings = AdminProviderSettings.objects.get(
+                    admin=admin,
+                    provider=provider,
+                    is_active=True
+                )
                 
-                # Check which API is being used
-                try:
-                    personal_settings = AdminAISettings.objects.get(
-                        admin=admin,
-                        provider_name=provider_name,
-                        is_active=True
-                    )
-                    if personal_settings.use_shared_api:
-                        logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
-                        print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (via personal settings - use_shared_api=True)")
-                    else:
-                        logger.info(f"👤 [AI Content Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
-                        print(f"👤 [AI Content Service] ⚡ FINAL DECISION: Using PERSONAL API (use_shared_api=False)")
-                except AdminAISettings.DoesNotExist:
-                    logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
-                    print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no personal settings found)")
-            except AdminAISettings.DoesNotExist:
-                # Fallback to shared API - ✅ Use cached method
-                logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
-                print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (fallback)")
-                provider_model = AIImageGeneration.get_active_provider(provider_name)
-                if not provider_model:
-                    raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
-                api_key = provider_model.get_api_key()
-                config = provider_model.config or {}
+                if settings.use_shared_api:
+                    logger.info(f"🔗 [AI Content Service] Using SHARED API")
+                    api_key = provider.get_shared_api_key()
+                else:
+                    logger.info(f"👤 [AI Content Service] Using PERSONAL API")
+                    api_key = settings.get_personal_api_key()
+                    
+            except AdminProviderSettings.DoesNotExist:
+                # No personal settings → use shared
+                logger.info(f"🔗 [AI Content Service] Using SHARED API (no personal settings)")
+                api_key = provider.get_shared_api_key()
         else:
-            # Use shared API (default) - ✅ Use Model's cached method for better performance
-            logger.info(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
-            print(f"🔗 [AI Content Service] ⚡ FINAL DECISION: Using SHARED API (no admin provided)")
-            provider_model = AIImageGeneration.get_active_provider(provider_name)
-            if not provider_model:
-                raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
-            
-            api_key = provider_model.get_api_key()
-            config = provider_model.config or {}
+            # No admin → use shared
+            logger.info(f"🔗 [AI Content Service] Using SHARED API (no admin)")
+            api_key = provider.get_shared_api_key()
         
+        config = provider.config or {}
         return provider_class(api_key=api_key, config=config)
     
     @classmethod
@@ -146,32 +133,25 @@ class AIContentGenerationService:
                 content_text = seo_data.get('content', '')
                 seo_data['word_count'] = len(content_text.split())
             
-            # Track usage: if admin uses personal API, track on AdminAISettings; otherwise on shared provider
+            # ✅ Track usage
             if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
                 try:
-                    admin_settings = AdminAISettings.objects.get(
+                    settings = AdminProviderSettings.objects.get(
                         admin=admin,
-                        provider_name=provider_name,
+                        provider=provider,
                         is_active=True
                     )
-                    # Only track if using personal API (not shared)
-                    if not admin_settings.use_shared_api:
-                        admin_settings.increment_usage()
+                    # Track based on which API is used
+                    if settings.use_shared_api:
+                        provider.increment_usage()
                     else:
-                        # Track on shared provider - ✅ Use cached method for consistency
-                        provider_model = AIImageGeneration.get_active_provider(provider_name)
-                        if provider_model:
-                            provider_model.increment_usage()
-                except AdminAISettings.DoesNotExist:
-                    # If no personal settings, track on shared provider - ✅ Use cached method
-                    provider_model = AIImageGeneration.get_active_provider(provider_name)
-                    if provider_model:
-                        provider_model.increment_usage()
+                        settings.increment_usage()
+                except AdminProviderSettings.DoesNotExist:
+                    # No settings → track on provider
+                    provider.increment_usage()
             else:
-                # Track on shared provider - ✅ Use cached method for consistency
-                provider_model = AIImageGeneration.get_active_provider(provider_name)
-                if provider_model:
-                    provider_model.increment_usage()
+                # No admin → track on provider
+                provider.increment_usage()
             
             # Format and return response
             return {
@@ -195,65 +175,35 @@ class AIContentGenerationService:
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
         """
-        Get list of available content generation providers
-        Returns providers that are either:
-        1. Active in shared settings (AIImageGeneration)
-        2. Active in personal settings (AdminAISettings) for the given admin
+        ✅ Get list of available content generation providers
+        
+        Returns:
+            List of providers that admin can use
         """
         import logging
         logger = logging.getLogger(__name__)
         
         try:
-            # Get shared active providers
-            shared_providers = AIImageGeneration.objects.filter(
-                provider_name__in=['gemini', 'openai', 'deepseek', 'openrouter'],
-                is_active=True
-            ).values('id', 'provider_name')
+            # Get all active providers
+            providers = AIProvider.get_active_providers()
             
-            logger.info(f"[AI Content] Shared active providers: {list(shared_providers)}")
-            print(f"[AI Content] Shared active providers: {list(shared_providers)}")
-            
-            # Create a set of provider names from shared providers
-            available_provider_names = set(p['provider_name'] for p in shared_providers)
-            
-            # Get personal active providers for this admin (if admin is provided)
-            if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-                personal_settings = AdminAISettings.objects.filter(
-                    admin=admin,
-                    provider_name__in=['gemini', 'openai', 'deepseek', 'openrouter'],
-                    is_active=True
-                ).values('provider_name')
-                
-                personal_provider_names = set(p['provider_name'] for p in personal_settings)
-                
-                logger.info(f"[AI Content] Personal active providers for {admin}: {personal_provider_names}")
-                print(f"[AI Content] Personal active providers for {admin}: {personal_provider_names}")
-                
-                # Add personal providers to available list (even if not in shared)
-                available_provider_names.update(personal_provider_names)
-            
-            logger.info(f"[AI Content] Combined available provider names: {available_provider_names}")
-            print(f"[AI Content] Combined available provider names: {available_provider_names}")
-            
-            # Build result list
             result = []
-            for provider_name in available_provider_names:
-                # Try to get shared provider for ID (if exists)
-                shared_provider = next((p for p in shared_providers if p['provider_name'] == provider_name), None)
+            for provider in providers:
+                # Check if provider is in supported list
+                if provider.slug not in cls.PROVIDER_MAP:
+                    continue
                 
                 result.append({
-                    'id': shared_provider['id'] if shared_provider else None,  # Use shared provider ID if exists
-                    'provider_name': provider_name,
-                    'provider_display': cls._get_provider_display(provider_name),
+                    'id': provider.id,
+                    'provider_name': provider.slug,
+                    'provider_display': provider.display_name,
                     'can_generate': True
                 })
             
-            logger.info(f"[AI Content] Returning {len(result)} providers: {result}")
-            print(f"[AI Content] Returning {len(result)} providers: {result}")
+            logger.info(f"[AI Content] Returning {len(result)} providers")
             return result
         except Exception as e:
-            logger.error(f"[AI Content] Error in get_available_providers: {str(e)}", exc_info=True)
-            print(f"[AI Content] Error in get_available_providers: {str(e)}")
+            logger.error(f"[AI Content] Error: {str(e)}")
             return []
     
     @classmethod
