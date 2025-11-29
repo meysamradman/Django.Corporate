@@ -27,11 +27,17 @@ def populate_providers():
     """اضافه کردن Provider های پرکاربرد"""
     
     # ✅ فقط Provider هایی که واقعاً در بک‌اند استفاده می‌شوند:
-    # - chat_service.py: gemini, openai, deepseek, openrouter
-    # - content_generation_service.py: gemini, openai, deepseek, openrouter
+    # - chat_service.py: gemini, openai, deepseek, openrouter, groq, huggingface
+    # - content_generation_service.py: gemini, openai, deepseek, openrouter, groq, huggingface
     # - image_generation_service.py: gemini, openai, huggingface, openrouter
+    # - audio_generation_service.py: openai (TTS)
     # 
-    # ❌ حذف شده: anthropic, groq (فقط از طریق OpenRouter در دسترس هستند)
+    # ❌ حذف شده: anthropic (فقط از طریق OpenRouter در دسترس است)
+    # 
+    # ✅ مدل‌های داینامیک (از API می‌آیند - نیازی به ذخیره در دیتابیس نیست):
+    # - OpenRouter: مدل‌ها از OpenRouter API می‌آیند (endpoint: /api/admin/ai-chat/openrouter-models/)
+    # - Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
+    # - Hugging Face: مدل‌ها از Hugging Face API می‌آیند
     providers_data = [
         {
             'name': 'OpenAI',
@@ -87,11 +93,23 @@ def populate_providers():
             'display_name': 'Hugging Face',
             'website': 'https://huggingface.co',
             'api_base_url': 'https://api-inference.huggingface.co',
-            'description': 'دسترسی به هزاران مدل Open Source (فقط برای Image Generation)',
+            'description': 'دسترسی به هزاران مدل Open Source (Image, Text, Audio)',
             'allow_personal_keys': True,
-            'allow_shared_for_normal_admins': False,
+            'allow_shared_for_normal_admins': True,
             'is_active': True,
             'sort_order': 5,
+        },
+        {
+            'name': 'Groq',
+            'slug': 'groq',
+            'display_name': 'Groq (Fast & Free)',
+            'website': 'https://groq.com',
+            'api_base_url': 'https://api.groq.com/openai/v1',
+            'description': 'مدل‌های سریع و رایگان (Llama, Mixtral, Gemma)',
+            'allow_personal_keys': True,
+            'allow_shared_for_normal_admins': True,
+            'is_active': True,
+            'sort_order': 6,
         },
     ]
     
@@ -140,6 +158,8 @@ def populate_models():
     ❌ حذف شده (مدل‌ها از API خودشون می‌آیند - نیازی به ذخیره در دیتابیس نیست):
     - OpenRouter: مدل‌ها از OpenRouter API می‌آیند (endpoint: /api/admin/ai-chat/openrouter-models/)
       → در frontend از OpenRouterModelSelector استفاده می‌شود که مستقیماً از API می‌خواند
+    - Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
+      → در frontend از GroqModelSelector استفاده می‌شود که مستقیماً از API می‌خواند
     - Hugging Face: مدل‌ها از config یا Hugging Face API می‌آیند
     """
     
@@ -215,6 +235,9 @@ def populate_models():
         
         # ✅ Anthropic و Groq از طریق OpenRouter در دسترس هستند
         # (مدل‌های آن‌ها در OpenRouter API نمایش داده می‌شوند)
+        # 
+        # ✅ Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
+        # نیازی به ذخیره در دیتابیس نیست - داینامیک از API می‌آید
         
         # Google Models
         {
@@ -270,8 +293,9 @@ def populate_models():
             'sort_order': 2,
         },
         
-        # ✅ Groq از طریق OpenRouter در دسترس است
-        # (مدل‌های آن در OpenRouter API نمایش داده می‌شوند)
+        # ✅ Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
+        # نیازی به ذخیره در دیتابیس نیست - داینامیک از API می‌آید
+        # (مثل OpenRouter)
     ]
     
     created_count = 0

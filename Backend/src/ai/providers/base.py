@@ -77,16 +77,30 @@ class BaseProvider(ABC):
     def __del__(self):
         """Close client when object is deleted"""
         try:
-            if hasattr(self, 'client'):
+            if hasattr(self, 'client') and self.client:
                 import asyncio
                 try:
-                    loop = asyncio.get_event_loop()
-                    if loop.is_running():
-                        loop.create_task(self.client.aclose())
+                    # Try to close the client properly
+                    if asyncio.iscoroutinefunction(self.client.aclose):
+                        # If we're in an async context, schedule the close
+                        try:
+                            loop = asyncio.get_event_loop()
+                            if loop.is_running():
+                                # Schedule for later
+                                asyncio.create_task(self.client.aclose())
+                            else:
+                                loop.run_until_complete(self.client.aclose())
+                        except RuntimeError:
+                            # No event loop, skip
+                            pass
                     else:
-                        loop.run_until_complete(self.client.aclose())
-                except:
+                        # Synchronous close if available
+                        if hasattr(self.client, 'close'):
+                            self.client.close()
+                except Exception:
+                    # Ignore errors during cleanup
                     pass
-        except:
+        except Exception:
+            # Ignore all errors during cleanup
             pass
 

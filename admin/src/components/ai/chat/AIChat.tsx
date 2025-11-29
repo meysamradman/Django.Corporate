@@ -330,11 +330,11 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                         availableProviders.map((provider) => (
                                             <SelectItem
                                                 key={provider.id}
-                                                value={provider.provider_name || String(provider.id)}
+                                                value={provider.slug || provider.provider_name || String(provider.id)}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                    <span>{getProviderDisplayName(provider)}</span>
+                                                    <span>{provider.display_name || getProviderDisplayName(provider)}</span>
                                                 </div>
                                             </SelectItem>
                                         ))
@@ -527,11 +527,11 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                             availableProviders.map((provider) => (
                                                 <SelectItem
                                                     key={provider.id}
-                                                    value={provider.provider_name || String(provider.id)}
+                                                    value={provider.slug || provider.provider_name || String(provider.id)}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                        <span>{getProviderDisplayName(provider)}</span>
+                                                        <span>{provider.display_name || getProviderDisplayName(provider)}</span>
                                                     </div>
                                                 </SelectItem>
                                             ))

@@ -44,7 +44,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'openrouter': {
     name: 'OpenRouter',
     icon: '🌐',
-    description: 'دسترسی به 60+ Provider و 500+ مدل',
+    description: 'مدل OpenRouter',
     apiKeyLabel: 'API Key',
     category: 'popular',
     supportedFeatures: ['chat', 'content', 'image'],
@@ -52,7 +52,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'openai': {
     name: 'OpenAI',
     icon: '🤖',
-    description: 'ChatGPT و DALL-E مستقیم',
+    description: 'مدل OpenAI',
     apiKeyLabel: 'OpenAI API Key',
     category: 'popular',
     supportedFeatures: ['chat', 'content', 'image'],
@@ -60,7 +60,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'gemini': {
     name: 'Google Gemini',
     icon: '🔵',
-    description: 'Gemini مستقیم (1M tokens/min رایگان)',
+    description: 'مدل Gemini',
     apiKeyLabel: 'Google API Key',
     category: 'popular',
     supportedFeatures: ['chat', 'content'],
@@ -70,7 +70,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'deepseek': {
     name: 'DeepSeek',
     icon: '⚡',
-    description: 'DeepSeek AI (سریع و قدرتمند)',
+    description: 'مدل DeepSeek',
     apiKeyLabel: 'DeepSeek API Key',
     category: 'standard',
     supportedFeatures: ['chat', 'content'],
@@ -78,10 +78,18 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'huggingface': {
     name: 'Hugging Face',
     icon: '🤗',
-    description: 'Stable Diffusion برای تولید تصویر',
+    description: 'مدل Hugging Face',
     apiKeyLabel: 'Hugging Face API Key',
     category: 'standard',
     supportedFeatures: ['image'],
+  },
+  'groq': {
+    name: 'Groq',
+    icon: '⚡',
+    description: 'مدل Groq',
+    apiKeyLabel: 'Groq API Key',
+    category: 'standard',
+    supportedFeatures: ['chat', 'content'],
   },
   
   // TODO: اضافه کردن Provider های جدید اینجا (تا 30+)
@@ -196,6 +204,7 @@ export const BACKEND_TO_FRONTEND_ID: Record<string, string> = {
   'deepseek': 'deepseek',
   'gemini': 'gemini',
   'huggingface': 'huggingface',
+  'groq': 'groq',
   // TODO: اضافه کردن mapping های جدید
   // مثال: 'anthropic': 'anthropic',
 };
@@ -209,6 +218,7 @@ export const FRONTEND_TO_BACKEND_NAME: Record<string, string> = {
   'deepseek': 'deepseek',
   'gemini': 'gemini',
   'huggingface': 'huggingface',
+  'groq': 'groq',
   // TODO: اضافه کردن mapping های جدید
   // مثال: 'anthropic': 'anthropic',
 };

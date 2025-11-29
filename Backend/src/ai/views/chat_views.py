@@ -14,14 +14,10 @@ from src.ai.providers.capabilities import get_provider_capabilities, supports_fe
 
 
 class AIChatViewSet(viewsets.ViewSet):
-    """
-    ViewSet for AI Chat - Simple chat without database storage
-    """
     permission_classes = [IsAuthenticated]
     
     @action(detail=False, methods=['post'], url_path='send-message')
     def send_message(self, request):
-        """Send a chat message and get AI response"""
         import logging
         logger = logging.getLogger(__name__)
         
@@ -41,7 +37,7 @@ class AIChatViewSet(viewsets.ViewSet):
             logger.warning(f"[AI Chat View] Permission denied for user: {request.user}")
             print(f"[AI Chat View] Permission denied for user: {request.user}")
             return APIResponse.error(
-                message=AI_ERRORS.get("chat_not_authorized", "You don't have permission to use AI chat"),
+                message=AI_ERRORS["chat_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
@@ -51,7 +47,7 @@ class AIChatViewSet(viewsets.ViewSet):
             logger.warning(f"[AI Chat View] Validation errors: {serializer.errors}")
             print(f"[AI Chat View] Validation errors: {serializer.errors}")
             return APIResponse.error(
-                message="خطا در اعتبارسنجی داده‌ها",
+                message=AI_ERRORS["validation_error"],
                 errors=serializer.errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -93,7 +89,7 @@ class AIChatViewSet(viewsets.ViewSet):
             response_serializer = AIChatResponseSerializer(chat_data)
             
             return APIResponse.success(
-                message="پیام با موفقیت ارسال شد و پاسخ دریافت شد.",
+                message=AI_SUCCESS["message_sent"],
                 data=response_serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -111,8 +107,8 @@ class AIChatViewSet(viewsets.ViewSet):
             print(f"[AI Chat View] Exception: {error_message}")
             import traceback
             print(f"[AI Chat View] Traceback: {traceback.format_exc()}")
-            if 'خطا' not in error_message:
-                error_message = f"خطا در چت: {error_message}"
+            if 'error' not in error_message.lower() and 'خطا' not in error_message:
+                error_message = AI_ERRORS["chat_failed"].format(error=error_message)
             return APIResponse.error(
                 message=error_message,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -120,16 +116,6 @@ class AIChatViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='capabilities')
     def get_capabilities(self, request):
-        """
-        Get capabilities for all providers or a specific provider for Chat
-        
-        Query params:
-            - provider_name: Optional - specific provider to check
-        
-        Returns:
-            - All capabilities if no provider specified
-            - Specific provider capabilities if provider_name is provided
-        """
         import logging
         logger = logging.getLogger(__name__)
         
@@ -141,11 +127,11 @@ class AIChatViewSet(viewsets.ViewSet):
             # Check if provider supports chat
             if not supports_feature(provider_name, 'chat'):
                 return APIResponse.error(
-                    message=f"{provider_name} از قابلیت Chat پشتیبانی نمی‌کند",
+                    message=AI_ERRORS["provider_not_supported"].format(provider_name=provider_name),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             return APIResponse.success(
-                message=f"قابلیت‌های Chat برای {provider_name} دریافت شد",
+                message=AI_SUCCESS["capabilities_retrieved"].format(provider_name=provider_name),
                 data=caps,
                 status_code=status.HTTP_200_OK
             )
@@ -157,14 +143,13 @@ class AIChatViewSet(viewsets.ViewSet):
                 if caps.get('supports_chat', False)
             }
             return APIResponse.success(
-                message="قابلیت‌های Chat تمام Provider ها دریافت شد",
+                message=AI_SUCCESS["all_capabilities_retrieved"],
                 data=chat_providers,
                 status_code=status.HTTP_200_OK
             )
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """Get list of available chat providers"""
         import logging
         logger = logging.getLogger(__name__)
         
@@ -183,7 +168,7 @@ class AIChatViewSet(viewsets.ViewSet):
             logger.warning(f"[AI Chat View] Permission denied for user: {request.user}")
             print(f"[AI Chat View] Permission denied for user: {request.user}")
             return APIResponse.error(
-                message=AI_ERRORS.get("chat_not_authorized", "You don't have permission to view AI chat providers"),
+                message=AI_ERRORS["chat_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -193,30 +178,19 @@ class AIChatViewSet(viewsets.ViewSet):
             logger.info(f"[AI Chat View] Found {len(providers)} providers: {providers}")
             print(f"[AI Chat View] Found {len(providers)} providers: {providers}")
             return APIResponse.success(
-                message="لیست Provider های فعال دریافت شد.",
+                message=AI_SUCCESS["providers_list_retrieved"],
                 data=providers,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
             logger.error(f"[AI Chat View] Error: {str(e)}", exc_info=True)
             return APIResponse.error(
-                message=f"خطا در دریافت لیست Provider ها: {str(e)}",
+                message=AI_ERRORS["providers_list_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['get'], url_path='openrouter-models')
     def openrouter_models(self, request):
-        """
-        Get list of available OpenRouter models
-        
-        Query params:
-            - provider: Filter by provider (e.g., 'google', 'openai', 'anthropic')
-            - use_cache: Whether to use cache (default: true)
-        
-        Cache:
-            - Cached for 6 hours
-            - Use ?use_cache=false to force fresh data
-        """
         import logging
         logger = logging.getLogger(__name__)
         
@@ -230,7 +204,7 @@ class AIChatViewSet(viewsets.ViewSet):
         
         if not has_permission:
             return APIResponse.error(
-                message="شما دسترسی لازم برای مشاهده مدل‌های OpenRouter را ندارید",
+                message=AI_ERRORS["openrouter_permission_denied"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
@@ -243,12 +217,12 @@ class AIChatViewSet(viewsets.ViewSet):
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
             except AIProvider.DoesNotExist:
                 return APIResponse.error(
-                    message="OpenRouter فعال نیست. لطفاً ابتدا OpenRouter را در تنظیمات AI فعال کنید.",
+                    message=AI_ERRORS["openrouter_not_active"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # ✅ بهینه: منطق ساده و واضح برای دریافت API key
-            # ✅ بهینه شده: استفاده از select_related برای جلوگیری از N+1 query
+            # Optimized: Simple and clear logic for getting API key
+            # Optimized: Using select_related to prevent N+1 queries
             settings = AdminProviderSettings.objects.filter(
                 admin=request.user,
                 provider=provider,
@@ -257,17 +231,17 @@ class AIChatViewSet(viewsets.ViewSet):
             
             api_key = None
             
-            # Strategy 1: اگر settings وجود دارد
+            # Strategy 1: If settings exist
             if settings:
-                # اول سعی کن از get_api_key() بگیر (طبق use_shared_api)
+                # First try to get from get_api_key() (based on use_shared_api)
                 try:
                     api_key = settings.get_api_key()
                     logger.info(f"[AI Chat API] Using API key from settings (use_shared_api={settings.use_shared_api})")
                 except Exception as e:
                     logger.warning(f"[AI Chat API] get_api_key() failed: {e}")
-                    # اگر use_shared_api=True است اما shared key نیست، personal را چک کن
+                    # If use_shared_api=True but shared key is not set, check personal
                     if settings.use_shared_api:
-                        # shared API key تنظیم نشده، personal را امتحان کن
+                        # Shared API key not set, try personal
                         personal_key = settings.get_personal_api_key()
                         if personal_key and personal_key.strip():
                             api_key = personal_key
@@ -275,10 +249,10 @@ class AIChatViewSet(viewsets.ViewSet):
                         else:
                             logger.warning(f"[AI Chat API] Personal API key also empty")
                     else:
-                        # use_shared_api=False اما personal هم نیست
+                        # use_shared_api=False but personal is also not set
                         logger.warning(f"[AI Chat API] Personal API key not set")
             
-            # Strategy 2: اگر هنوز API key نداریم، shared provider را چک کن
+            # Strategy 2: If still no API key, check shared provider
             if not api_key or not api_key.strip():
                 shared_key = provider.get_shared_api_key()
                 if shared_key and shared_key.strip():
@@ -291,8 +265,6 @@ class AIChatViewSet(viewsets.ViewSet):
             provider_filter = request.query_params.get('provider', None)  # e.g., 'google', 'openai'
             use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
             
-            # ✅ داینامیک: همیشه از OpenRouter API می‌گیریم (حتی بدون API key)
-            # اگر API key نداریم، بدون auth امتحان می‌کنیم
             models = OpenRouterProvider.get_available_models(
                 api_key=api_key if (api_key and api_key.strip()) else None, 
                 provider_filter=provider_filter,
@@ -302,8 +274,9 @@ class AIChatViewSet(viewsets.ViewSet):
             logger.info(f"[AI Chat View] Found {len(models)} OpenRouter models (cache: {use_cache})")
             print(f"[AI Chat View] Found {len(models)} OpenRouter models (cache: {use_cache})")
             
+            cache_text = " (از کش)" if use_cache else " (تازه)"
             return APIResponse.success(
-                message="لیست مدل‌های OpenRouter دریافت شد" + (" (از کش)" if use_cache else " (تازه)"),
+                message=AI_SUCCESS["openrouter_models_retrieved"].format(from_cache=cache_text),
                 data=models,
                 status_code=status.HTTP_200_OK
             )
@@ -311,28 +284,104 @@ class AIChatViewSet(viewsets.ViewSet):
             logger.error(f"[AI Chat View] Error getting OpenRouter models: {str(e)}", exc_info=True)
             print(f"[AI Chat View] Error getting OpenRouter models: {str(e)}")
             return APIResponse.error(
-                message=f"خطا در دریافت لیست مدل‌های OpenRouter: {str(e)}",
+                message=AI_ERRORS["openrouter_models_error"].format(error=str(e)),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'], url_path='groq-models')
+    def groq_models(self, request):
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"[AI Chat View] groq_models called by user: {request.user}")
+        print(f"[AI Chat View] groq_models called by user: {request.user}")
+        
+        # Check permission
+        has_chat_permission = PermissionValidator.has_permission(request.user, 'ai.chat.manage')
+        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
+        has_permission = has_chat_permission or has_manage_permission
+        
+        if not has_permission:
+            return APIResponse.error(
+                message=AI_ERRORS["groq_permission_denied"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            from src.ai.providers.groq import GroqProvider
+            from src.ai.models import AIProvider, AdminProviderSettings
+            
+            # Get API key for Groq
+            try:
+                provider = AIProvider.objects.get(slug='groq', is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.error(
+                    message=AI_ERRORS["groq_not_active"],
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get API key (personal or shared)
+            settings = AdminProviderSettings.objects.filter(
+                admin=request.user,
+                provider=provider,
+                is_active=True
+            ).select_related('provider').first()
+            
+            api_key = None
+            
+            if settings:
+                try:
+                    api_key = settings.get_api_key()
+                    logger.info(f"[AI Chat API] Using API key from settings (use_shared_api={settings.use_shared_api})")
+                except Exception as e:
+                    logger.warning(f"[AI Chat API] get_api_key() failed: {e}")
+                    if settings.use_shared_api:
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+                            logger.info(f"[AI Chat API] Fallback: Using personal API key")
+            
+            if not api_key or not api_key.strip():
+                shared_key = provider.get_shared_api_key()
+                if shared_key and shared_key.strip():
+                    api_key = shared_key
+                    logger.info(f"[AI Chat API] Using shared provider API key")
+            
+            # Get query params
+            use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
+            
+            # Dynamic: Always get from Groq API (even without API key)
+            models = GroqProvider.get_available_models(
+                api_key=api_key if (api_key and api_key.strip()) else None,
+                use_cache=use_cache
+            )
+            
+            logger.info(f"[AI Chat View] Found {len(models)} Groq models (cache: {use_cache})")
+            print(f"[AI Chat View] Found {len(models)} Groq models (cache: {use_cache})")
+            
+            cache_text = " (از کش)" if use_cache else " (تازه)"
+            return APIResponse.success(
+                message=AI_SUCCESS["groq_models_retrieved"].format(from_cache=cache_text),
+                data=models,
+                status_code=status.HTTP_200_OK
+            )
+        except Exception as e:
+            logger.error(f"[AI Chat View] Error getting Groq models: {str(e)}", exc_info=True)
+            print(f"[AI Chat View] Error getting Groq models: {str(e)}")
+            return APIResponse.error(
+                message=AI_ERRORS["groq_models_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['post'], url_path='clear-openrouter-cache')
     def clear_openrouter_cache(self, request):
-        """
-        Clear OpenRouter models cache (Super Admin only via permission check)
-        
-        Use this when:
-            - OpenRouter adds new models
-            - You want to force refresh the models list
-        
-        Permission: ai.manage (فقط برای کسانی که دسترسی مدیریت AI دارند)
-        """
         import logging
         logger = logging.getLogger(__name__)
         
-        # Check permission - فقط کسانی که ai.manage دارند (معمولاً super admin ها)
+        # Check permission - only those who have ai.manage (usually super admins)
         if not PermissionValidator.has_permission(request.user, 'ai.manage'):
             return APIResponse.error(
-                message="شما دسترسی لازم برای پاک کردن کش مدل‌ها را ندارید",
+                message=AI_ERRORS["cache_clear_permission_denied"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
@@ -343,13 +392,11 @@ class AIChatViewSet(viewsets.ViewSet):
             provider_filter = request.data.get('provider', None)
             
             if provider_filter:
-                # Clear specific provider cache
                 OpenRouterModelCache.clear_provider(provider_filter)
-                message = f"کش مدل‌های OpenRouter برای {provider_filter} پاک شد"
+                message = AI_SUCCESS["provider_cache_cleared"].format(provider=provider_filter)
             else:
-                # Clear all cache
                 OpenRouterModelCache.clear_all()
-                message = "کش تمام مدل‌های OpenRouter پاک شد"
+                message = AI_SUCCESS["cache_cleared"]
             
             logger.info(f"[AI Chat View] {message}")
             print(f"[AI Chat View] {message}")
@@ -361,7 +408,7 @@ class AIChatViewSet(viewsets.ViewSet):
         except Exception as e:
             logger.error(f"[AI Chat View] Error clearing cache: {str(e)}", exc_info=True)
             return APIResponse.error(
-                message=f"خطا در پاک کردن کش: {str(e)}",
+                message=AI_ERRORS["cache_clear_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

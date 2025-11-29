@@ -19,6 +19,8 @@ interface ProviderCardProps {
   hasStoredApiKey?: boolean;
   isSuperAdmin?: boolean;
   allowNormalAdmins?: boolean;
+  hasSharedApi?: boolean;  // ✅ آیا provider API مشترک دارد؟
+  canUseSharedApi?: boolean;  // ✅ آیا می‌تواند از API مشترک استفاده کند؟
   isActive?: boolean;  // ✅ NEW: وضعیت فعال/غیرفعال
   onToggleApiKeyVisibility: () => void;
   onApiKeyChange: (value: string) => void;
@@ -32,18 +34,18 @@ interface ProviderCardProps {
 // تابع برای mask کردن API key (نمایش امن)
 function maskApiKey(apiKey: string, showFull: boolean = false): string {
   if (!apiKey || apiKey.trim() === '') return '';
-  
+
   // اگر باید کامل نمایش داده شود
   if (showFull) return apiKey;
-  
+
   // اگر API key خیلی کوتاه است، همه را نمایش بده
   if (apiKey.length <= 8) return '•'.repeat(apiKey.length);
-  
+
   // نمایش 4 کاراکتر اول و 4 کاراکتر آخر
   const prefix = apiKey.substring(0, 4);
   const suffix = apiKey.substring(apiKey.length - 4);
   const masked = '•'.repeat(Math.min(8, apiKey.length - 8));
-  
+
   return `${prefix}${masked}${suffix}`;
 }
 
@@ -56,6 +58,8 @@ export function ProviderCard({
   hasStoredApiKey = false,
   isSuperAdmin = false,
   allowNormalAdmins = false,
+  hasSharedApi = false,  // ✅ آیا provider API مشترک دارد؟
+  canUseSharedApi: canUseSharedApiProp,  // ✅ از parent می‌آید
   isActive = false,  // ✅ NEW
   onToggleApiKeyVisibility,
   onApiKeyChange,
@@ -65,20 +69,24 @@ export function ProviderCard({
   onSave,
   isSaving = false,
 }: ProviderCardProps) {
-  // ✅ نمایش بخشی از API key (4 کاراکتر اول و 4 کاراکتر آخر) + dots در وسط
-  // بهینه: محاسبه یکباره
-  const displayApiKey = useMemo(() => {
-    // ✅ اگر API key ذخیره شده و در حال نمایش masked است
-    if (hasStoredApiKey && !showApiKey) {
-      if (apiKey && apiKey.trim() !== '' && apiKey !== 'stored-api-key-hidden-value-for-display' && apiKey !== '***') {
-        return maskApiKey(apiKey, false);
-      }
-      return '••••••••••••••••';
-    }
-    // ✅ اگر API key در state است، نمایش بده
-    return apiKey || '';
-  }, [hasStoredApiKey, showApiKey, apiKey]);
-  
+  // ✅ اگر canUseSharedApi از parent پاس داده شده، از آن استفاده کن، در غیر این صورت محاسبه کن
+  const canUseSharedApi = canUseSharedApiProp !== undefined
+    ? canUseSharedApiProp
+    : (isSuperAdmin || (allowNormalAdmins && hasSharedApi));
+
+  // ✅ Debug: برای بررسی مقادیر در ProviderCard (برای همه provider ها)
+  if (!isSuperAdmin) {
+    console.log(`[DEBUG ProviderCard: ${provider.id}]`, JSON.stringify({
+      providerId: provider.id,
+      providerName: provider.name,
+      isSuperAdmin,
+      allowNormalAdmins,
+      hasSharedApi,
+      canUseSharedApiProp,
+      canUseSharedApi
+    }, null, 2));
+  }
+
   return (
     <CardContent className="pt-6 pb-6 space-y-6">
       {/* ✅ Toggle Active - فعال/غیرفعال */}
@@ -88,8 +96,8 @@ export function ProviderCard({
             <div className="space-y-1 flex-1">
               <Label className="text-base font-semibold block text-font-p">وضعیت Provider</Label>
               <p className="text-xs text-font-s mt-1">
-                {isActive 
-                  ? '✅ Provider فعال و آماده استفاده است' 
+                {isActive
+                  ? '✅ Provider فعال و آماده استفاده است'
                   : '❌ Provider غیرفعال است - برای استفاده فعال کنید'}
               </p>
             </div>
@@ -114,8 +122,8 @@ export function ProviderCard({
             <div className="space-y-1 flex-1">
               <Label className="text-base font-semibold block text-primary">کنترل دسترسی ادمین‌های معمولی</Label>
               <p className="text-xs text-font-s mt-1">
-                {allowNormalAdmins 
-                  ? '✅ ادمین‌های معمولی می‌توانند از API مشترک این Provider استفاده کنند' 
+                {allowNormalAdmins
+                  ? '✅ ادمین‌های معمولی می‌توانند از API مشترک این Provider استفاده کنند'
                   : '❌ ادمین‌های معمولی فقط می‌توانند از API شخصی خود استفاده کنند'}
               </p>
             </div>
@@ -133,106 +141,159 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* API Key Type Selection */}
-      <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
-        <div className="space-y-1 flex-1 pr-4">
-          <Label className="text-base font-medium block">نوع API Key</Label>
-          <p className="text-xs text-font-s mt-1">
-            {useSharedApi 
-              ? 'استفاده از API مشترک (مدیریت شده توسط سوپر ادمین)' 
-              : 'استفاده از API شخصی (فقط برای شما)'}
-          </p>
-        </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <Switch
-            checked={useSharedApi}
-            onCheckedChange={onToggleUseSharedApi}
-            disabled={isSaving}
-            className={useSharedApi 
-              ? "data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-gray-400" 
-              : "data-[state=checked]:bg-purple-500 data-[state=unchecked]:bg-gray-400"
-            }
-          />
-          <Badge 
-            variant={useSharedApi ? "default" : "outline"} 
-            className={`min-w-[60px] text-center ${useSharedApi ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-purple-500/10 text-purple-500 border-purple-500/20'}`}
-          >
-            {useSharedApi ? 'مشترک' : 'شخصی'}
-          </Badge>
-        </div>
-      </div>
-
-      {/* API Key Input */}
-      <div className="space-y-3">
-        {hasStoredApiKey && (
-          <div className="flex justify-end">
-            <Badge variant="green" className="text-xs flex-shrink-0">
-              ذخیره شده
+      {/* API Key Type Selection - برای سوپر ادمین یا ادمین معمولی با allowNormalAdmins */}
+      {canUseSharedApi && (
+        <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
+          <div className="space-y-1 flex-1 pr-4">
+            <Label className="text-base font-medium block">نوع API Key</Label>
+            <p className="text-xs text-font-s mt-1">
+              {useSharedApi
+                ? 'استفاده از API مشترک (مدیریت شده توسط سوپر ادمین)'
+                : 'استفاده از API شخصی (فقط برای شما)'}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Switch
+              checked={useSharedApi}
+              onCheckedChange={onToggleUseSharedApi}
+              disabled={isSaving}
+              className={useSharedApi
+                ? "data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-gray-400"
+                : "data-[state=checked]:bg-purple-500 data-[state=unchecked]:bg-gray-400"
+              }
+            />
+            <Badge
+              variant={useSharedApi ? "default" : "outline"}
+              className={`min-w-[60px] text-center ${useSharedApi ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-purple-500/10 text-purple-500 border-purple-500/20'}`}
+            >
+              {useSharedApi ? 'مشترک' : 'شخصی'}
             </Badge>
           </div>
-        )}
-        <div className="relative">
-          <Input
-            id={`api-key-${provider.id}`}
-            type="text"
-            value={displayApiKey}
-            onChange={(e) => {
-              // اگر API key ذخیره شده و در حال نمایش masked است، نباید تغییر کند
-              if (!hasStoredApiKey || showApiKey) {
-                onApiKeyChange(e.target.value);
-              }
-            }}
-            placeholder={hasStoredApiKey ? '' : 'وارد کردن API Key'}
-            className="pr-10 font-mono text-sm"
-            disabled={isSaving || (hasStoredApiKey && !showApiKey)}
-            readOnly={hasStoredApiKey && !showApiKey}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-bg border-0 z-10"
-            onClick={onToggleApiKeyVisibility}
-            disabled={isSaving || !hasStoredApiKey}
-            title={showApiKey ? 'مخفی کردن' : hasStoredApiKey ? 'نمایش API key' : 'API key ذخیره نشده'}
-          >
-            {hasStoredApiKey ? (
-              showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4 opacity-30" />
-            )}
-          </Button>
         </div>
-        <div className="flex items-start gap-2 mt-2">
-          {hasStoredApiKey && !showApiKey && (
-            <div className="flex items-start gap-2 flex-1 p-3 bg-green/10 border border-green/20 rounded-md">
-              <CheckCircle2 className="h-4 w-4 text-green-1 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-font-s leading-relaxed">
-                <span className="font-medium text-green-1">API key ذخیره شده است.</span> برای مشاهده یا تغییر، روی آیکون <Eye className="h-3 w-3 inline mx-0.5" /> کلیک کنید.
-              </p>
+      )}
+
+      {/* برای ادمین معمولی که نمی‌تواند از API مشترک استفاده کند: فقط نمایش Badge "شخصی" */}
+      {!canUseSharedApi && (
+        <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
+          <div className="space-y-1 flex-1 pr-4">
+            <Label className="text-base font-medium block">نوع API Key</Label>
+            <p className="text-xs text-font-s mt-1">
+              استفاده از API شخصی (فقط برای شما)
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Badge
+              variant="outline"
+              className="min-w-[60px] text-center bg-purple-500/10 text-purple-500 border-purple-500/20"
+            >
+              شخصی
+            </Badge>
+          </div>
+        </div>
+      )}
+
+      {/* API Key Input */}
+      {/* ✅ برای سوپر ادمین: همیشه نمایش بده (چه مشترک چه شخصی) */}
+      {/* ✅ برای ادمین معمولی: فقط اگر useSharedApi=false باشد (یعنی از API شخصی استفاده می‌شود) */}
+      {(isSuperAdmin || (!isSuperAdmin && !useSharedApi)) && (
+        <div className="space-y-3">
+          {hasStoredApiKey && (
+            <div className="flex justify-end">
+              <Badge variant="green" className="text-xs flex-shrink-0">
+                ذخیره شده
+              </Badge>
             </div>
           )}
-          {hasStoredApiKey && showApiKey && (
-            <p className="text-xs text-font-s text-amber-1">
-              ⚠️ API key در حال نمایش است. بعد از تغییر، دوباره مخفی می‌شود.
-            </p>
-          )}
-          {!hasStoredApiKey && (
-            <p className="text-xs text-font-s">
-              {useSharedApi 
-                ? 'این API key به صورت مشترک استفاده می‌شود' 
-                : 'این API key فقط برای شما ذخیره می‌شود و رمزنگاری می‌گردد'}
-            </p>
-          )}
+          <div className="relative">
+            <Input
+              id={`api-key-${provider.id}`}
+              name={`api-key-${provider.id}`}
+              type={showApiKey ? "text" : "password"}
+              value={apiKey || ''}
+              onChange={(e) => onApiKeyChange(e.target.value)}
+              placeholder={hasStoredApiKey ? 'API Key ذخیره شده (برای تغییر تایپ کنید)' : 'وارد کردن API Key'}
+              className="pr-10 pl-10 font-mono text-sm"
+              disabled={isSaving}
+              autoComplete="new-password"
+            />
+
+            {/* Eye Icon Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 border-0 shadow-none bg-transparent hover:bg-transparent text-font-s hover:text-font-p z-10"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleApiKeyVisibility();
+              }}
+              disabled={isSaving}
+              title={showApiKey ? 'مخفی کردن' : 'نمایش'}
+            >
+              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+
+            {/* Clear Button - Only show if there is text */}
+            {apiKey && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-8 border-0 shadow-none bg-transparent hover:bg-transparent text-font-s hover:text-red-500 z-10"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onApiKeyChange('');
+                }}
+                disabled={isSaving}
+                title="پاک کردن"
+              >
+                <span className="text-lg font-bold leading-none">&times;</span>
+              </Button>
+            )}
+          </div>
+          <div className="flex items-start gap-2 mt-2">
+            {hasStoredApiKey && !showApiKey && !apiKey && (
+              // This case might not be reachable if we populate apiKey with stored value, 
+              // but if we keep them separate in parent, we might need logic here.
+              // Assuming apiKey prop reflects current input value.
+              null
+            )}
+
+            {hasStoredApiKey && (
+              <div className="flex items-start gap-2 flex-1 p-3 bg-green/10 border border-green/20 rounded-md">
+                <CheckCircle2 className="h-4 w-4 text-green-1 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-font-s leading-relaxed">
+                  <span className="font-medium text-green-1">API key ذخیره شده است.</span>
+                </p>
+              </div>
+            )}
+
+            {!hasStoredApiKey && !useSharedApi && (
+              <p className="text-xs text-font-s">
+                این API key فقط برای شما ذخیره می‌شود و رمزنگاری می‌گردد
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* اگر useSharedApi=true باشد و ادمین معمولی است، پیام نمایش بده */}
+      {useSharedApi && !isSuperAdmin && (
+        <div className="p-3 bg-blue/10 border border-blue/20 rounded-md mb-4">
+          <p className="text-xs text-font-s">
+            ✅ از API مشترک استفاده می‌شود. نیازی به وارد کردن API key نیست.
+          </p>
+        </div>
+      )}
 
       {/* Save Button */}
       <div className="pt-6 border-t border-br">
-        <Button 
+        <Button
           className="w-full gap-2"
           onClick={onSave}
-          disabled={isSaving || (!hasStoredApiKey && !apiKey.trim())}
+          disabled={isSaving || (!hasStoredApiKey && !apiKey?.trim())}
         >
           {isSaving ? (
             <>

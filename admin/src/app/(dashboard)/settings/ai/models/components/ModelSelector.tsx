@@ -13,8 +13,6 @@ import React, { useState, useMemo } from 'react';
 import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Badge } from '@/components/elements/Badge';
-import { Switch } from '@/components/elements/Switch';
-import { Label } from '@/components/elements/Label';
 import { Button } from '@/components/elements/Button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
@@ -255,23 +253,41 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                                 </div>
                                             )}
 
-                                            {/* Toggle Switch */}
-                                            <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                                                <Label htmlFor={`model-${modelId}`} className="text-xs text-font-s">
-                                                    {isOpenRouter ? 'از API' : isActive ? 'فعال' : 'غیرفعال'}
-                                                </Label>
+                                            {/* Toggle Button */}
+                                            <div className="pt-2 border-t border-border/50">
                                                 {isOpenRouter ? (
-                                                    <Badge variant="blue" className="text-xs px-2 py-0.5">
-                                                        API
+                                                    <Badge variant="blue" className="w-full justify-center text-xs py-1.5">
+                                                        از API
                                                     </Badge>
                                                 ) : (
-                                                    <Switch
-                                                        id={`model-${modelId}`}
-                                                        checked={isActive}
-                                                        onCheckedChange={() => handleToggleModel(modelId, isActive, isOpenRouter)}
+                                                    <Button
+                                                        variant={isActive ? "default" : "outline"}
+                                                        size="sm"
+                                                        className={`w-full text-xs h-8 ${
+                                                            isActive 
+                                                                ? 'bg-green-1 hover:bg-green-2 text-white border-green-1' 
+                                                                : 'bg-bg hover:bg-bg-hover text-font-s border-border'
+                                                        }`}
+                                                        onClick={() => handleToggleModel(modelId, isActive, isOpenRouter)}
                                                         disabled={isSaving}
-                                                        className="scale-75"
-                                                    />
+                                                    >
+                                                        {isSaving ? (
+                                                            <span className="flex items-center gap-1">
+                                                                <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                                در حال ذخیره...
+                                                            </span>
+                                                        ) : isActive ? (
+                                                            <span className="flex items-center gap-1">
+                                                                <Check className="w-3 h-3" />
+                                                                فعال
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1">
+                                                                <X className="w-3 h-3" />
+                                                                غیرفعال
+                                                            </span>
+                                                        )}
+                                                    </Button>
                                                 )}
                                             </div>
 

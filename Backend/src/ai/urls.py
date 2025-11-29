@@ -24,6 +24,7 @@ router.register(r'admin/ai-settings', views.AdminProviderSettingsViewSet, basena
 
 # AI Generation - Unified & Specialized
 router.register(r'admin/ai-generate', views.AIGenerationViewSet, basename='ai-generate')
+router.register(r'admin/ai-content', views.AIContentGenerationViewSet, basename='ai-content')
 
 # Image Generation - Provider Management + Generation
 router.register(r'admin/ai-image-providers', views.AIImageProviderViewSet, basename='ai-image-providers')

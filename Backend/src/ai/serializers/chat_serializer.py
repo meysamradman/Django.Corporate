@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 
 class AIChatMessageSerializer(serializers.Serializer):
-    """Serializer for a single chat message in conversation history"""
     
     role = serializers.ChoiceField(
         choices=['user', 'assistant'],
@@ -17,7 +16,6 @@ class AIChatMessageSerializer(serializers.Serializer):
 
 
 class AIChatRequestSerializer(serializers.Serializer):
-    """Serializer for chat request"""
     
     message = serializers.CharField(
         required=True,
@@ -26,7 +24,7 @@ class AIChatRequestSerializer(serializers.Serializer):
     )
     
     provider_name = serializers.ChoiceField(
-        choices=['gemini', 'openai', 'deepseek', 'openrouter'],
+        choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],
         default='deepseek',  # Default to DeepSeek as it's free
         help_text="مدل AI برای چت"
     )
@@ -63,14 +61,12 @@ class AIChatRequestSerializer(serializers.Serializer):
     )
     
     def validate_message(self, value):
-        """Validate message"""
         if not value or not value.strip():
             raise serializers.ValidationError("پیام نمی‌تواند خالی باشد.")
         return value.strip()
 
 
 class AIChatResponseSerializer(serializers.Serializer):
-    """Serializer for chat response"""
     
     message = serializers.CharField()
     reply = serializers.CharField()

@@ -168,7 +168,9 @@ export interface AIContentGenerationResponse {
 
 export interface AvailableProvider {
     id: number;
-    provider_name: string;
+    provider_name?: string;
+    slug?: string;
+    display_name?: string;
     provider_display?: string;
     can_generate?: boolean;
     can_chat?: boolean;

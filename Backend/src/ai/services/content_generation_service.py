@@ -1,35 +1,25 @@
 import asyncio
 import time
+import asyncio
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from src.ai.models import AIProvider, AdminProviderSettings
-from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider, OpenRouterProvider
+from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider, OpenRouterProvider, GroqProvider
 
 
 class AIContentGenerationService:
-    """Service for AI content generation - generates content without caching"""
     
     PROVIDER_MAP = {
         'gemini': GeminiProvider,
         'openai': OpenAIProvider,
         'deepseek': DeepSeekProvider,
         'openrouter': OpenRouterProvider,
-        # Note: Hugging Face Inference API has limitations for text generation (404 errors)
-        # 'huggingface': HuggingFaceProvider,  # Disabled due to API limitations
+        'groq': GroqProvider,
+        'huggingface': HuggingFaceProvider,
     }
     
     @classmethod
     def get_provider(cls, provider_name: str, admin=None):
-        """
-        ✅ Get AI provider instance using new dynamic system
-        
-        Args:
-            provider_name: Provider slug ('gemini', 'openai', 'deepseek')
-            admin: Admin user instance (optional)
-        
-        Returns:
-            Provider instance with appropriate API key
-        """
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
             raise ValueError(f"Provider '{provider_name}' پشتیبانی نمی‌شود.")
@@ -52,41 +42,42 @@ class AIContentGenerationService:
                     is_active=True
                 )
                 
+                admin_id = getattr(admin, 'id', 'unknown')
                 if settings.use_shared_api:
-                    logger.info(f"🔗 [AI Content Service] Using SHARED API")
+                    logger.info(f"✅ [Content Service] Admin {admin_id} using SHARED API for {provider_name} (use_shared_api=True)")
                     api_key = provider.get_shared_api_key()
+                    if not api_key or not api_key.strip():
+                        # Try personal key as fallback
+                        api_key = settings.get_personal_api_key()
+                        if api_key and api_key.strip():
+                            logger.info(f"✅ [Content Service] Fallback: Using personal API key for {provider_name}")
+                        else:
+                            raise ValueError(f"API Key برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
                 else:
-                    logger.info(f"👤 [AI Content Service] Using PERSONAL API")
+                    logger.info(f"✅ [Content Service] Admin {admin_id} using PERSONAL API for {provider_name} (use_shared_api=False)")
                     api_key = settings.get_personal_api_key()
+                    if not api_key or not api_key.strip():
+                        raise ValueError(f"API Key شخصی برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
                     
             except AdminProviderSettings.DoesNotExist:
                 # No personal settings → use shared
-                logger.info(f"🔗 [AI Content Service] Using SHARED API (no personal settings)")
+                admin_id = getattr(admin, 'id', 'unknown') if admin else 'unknown'
+                logger.info(f"✅ [Content Service] Admin {admin_id} using SHARED API for {provider_name} (no personal settings)")
                 api_key = provider.get_shared_api_key()
+                if not api_key or not api_key.strip():
+                    raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
         else:
             # No admin → use shared
-            logger.info(f"🔗 [AI Content Service] Using SHARED API (no admin)")
+            logger.info(f"✅ [Content Service] Using SHARED API for {provider_name} (no admin)")
             api_key = provider.get_shared_api_key()
+            if not api_key or not api_key.strip():
+                raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
         
         config = provider.config or {}
         return provider_class(api_key=api_key, config=config)
     
     @classmethod
     def generate_content(cls, topic: str, provider_name: str = 'gemini', admin=None, **kwargs) -> Dict[str, Any]:
-        """
-        Generate SEO-optimized content (without caching)
-        
-        Args:
-            topic: Content topic/subject
-            provider_name: AI provider ('gemini', 'openai', or 'deepseek')
-            **kwargs: Additional settings:
-                - word_count: Target word count (default: 500)
-                - tone: Content tone (default: 'professional')
-                - keywords: List of keywords (optional)
-        
-        Returns:
-            Dict with SEO-optimized content structure
-        """
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
@@ -174,47 +165,6 @@ class AIContentGenerationService:
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
-        """
-        ✅ Get list of available content generation providers
-        
-        Returns:
-            List of providers that admin can use
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        try:
-            # Get all active providers
-            providers = AIProvider.get_active_providers()
-            
-            result = []
-            for provider in providers:
-                # Check if provider is in supported list
-                if provider.slug not in cls.PROVIDER_MAP:
-                    continue
-                
-                result.append({
-                    'id': provider.id,
-                    'provider_name': provider.slug,
-                    'provider_display': provider.display_name,
-                    'can_generate': True
-                })
-            
-            logger.info(f"[AI Content] Returning {len(result)} providers")
-            return result
-        except Exception as e:
-            logger.error(f"[AI Content] Error: {str(e)}")
-            return []
-    
-    @classmethod
-    def _get_provider_display(cls, provider_name: str) -> str:
-        """Get display name for provider"""
-        display_names = {
-            'gemini': 'Google Gemini',
-            'openai': 'OpenAI GPT',
-            'deepseek': 'DeepSeek AI',
-            'openrouter': 'OpenRouter (60+ Providers)',
-            'huggingface': 'Hugging Face',
-        }
-        return display_names.get(provider_name, provider_name)
+        from src.ai.providers.capabilities import ProviderAvailabilityManager
+        return ProviderAvailabilityManager.get_available_providers('content')
 

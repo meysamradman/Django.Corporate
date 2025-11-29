@@ -1,14 +1,8 @@
-"""
-✅ AI Image Generation Serializers (2025)
-
-Provider Management + Image Generation
-"""
 from rest_framework import serializers
 from src.ai.models import AIProvider, AIModel
 
 
 class AIProviderSerializer(serializers.ModelSerializer):
-    """Serializer برای مدیریت Provider (با API key)"""
     
     has_shared_api_key = serializers.SerializerMethodField()
     
@@ -30,13 +24,12 @@ class AIProviderSerializer(serializers.ModelSerializer):
         return bool(obj.shared_api_key)
     
     def validate(self, attrs):
-        """Validation"""
         api_key = attrs.get('shared_api_key')
         slug = attrs.get('slug') or (self.instance.slug if self.instance else None)
         
-        # اگر API key جدید وارد شده و '***' نیست
+        # If new API key entered and not '***'
         if api_key and api_key != '***' and api_key.strip():
-            # اگر در حالت edit هستیم و API key تغییری نکرده
+            # If in edit mode and API key hasn't changed
             if self.instance and self.instance.shared_api_key and api_key == '***':
                 return attrs
             
@@ -50,13 +43,12 @@ class AIProviderSerializer(serializers.ModelSerializer):
                 if not is_valid:
                     attrs['is_active'] = False
             except Exception:
-                # در صورت خطا، provider رو غیرفعال کن
+                # On error, deactivate provider
                 attrs['is_active'] = False
         
         return attrs
     
     def to_representation(self, instance):
-        """مخفی کردن API key در response"""
         data = super().to_representation(instance)
         if 'shared_api_key' in data:
             data['shared_api_key'] = '***' if instance.shared_api_key else None
@@ -64,7 +56,6 @@ class AIProviderSerializer(serializers.ModelSerializer):
 
 
 class AIProviderListSerializer(serializers.ModelSerializer):
-    """Serializer برای لیست Providers (بدون API key)"""
     
     has_shared_api_key = serializers.SerializerMethodField()
     models_count = serializers.SerializerMethodField()
@@ -91,18 +82,6 @@ class AIProviderListSerializer(serializers.ModelSerializer):
 
 
 class AIImageGenerationRequestSerializer(serializers.Serializer):
-    """
-    Serializer برای درخواست تولید تصویر
-    
-    Example:
-    {
-        "model_id": 5,
-        "prompt": "A beautiful mountain landscape",
-        "size": "1024x1024",
-        "quality": "hd",
-        "save_to_media": true
-    }
-    """
     model_id = serializers.IntegerField(
         required=True,
         help_text="AI Model ID با قابلیت 'image'"

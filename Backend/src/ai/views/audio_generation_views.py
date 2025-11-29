@@ -15,15 +15,11 @@ from src.user.permissions import PermissionValidator
 
 
 class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
-    """
-    ViewSet for generating audio with AI (Text-to-Speech)
-    """
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]  # ✅ Changed to IsAuthenticated - permission check is done in view
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """Get available providers for audio generation"""
         # Check permission with fallback - allow ai.audio.manage or ai.manage
         has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
@@ -36,46 +32,20 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
             )
         
         try:
-            # Get all providers that support audio generation (currently only OpenAI)
-            providers = AIProvider.objects.filter(
-                is_active=True,
-                slug='openai'  # Only OpenAI supports TTS currently
-            )
-            
-            providers_data = []
-            for provider in providers:
-                # Get TTS default settings from config
-                config = provider.config or {}
-                tts_config = config.get('tts', {}) if isinstance(config, dict) else {}
-                
-                providers_data.append({
-                    'id': provider.id,
-                    'provider_name': provider.slug,
-                    'display_name': provider.display_name,
-                    'is_active': provider.is_active,
-                    'can_generate': provider.is_active and bool(provider.shared_api_key),
-                    'tts_defaults': {
-                        'model': tts_config.get('model', 'tts-1'),
-                        'voice': tts_config.get('voice', 'alloy'),
-                        'speed': tts_config.get('speed', 1.0),
-                        'response_format': tts_config.get('response_format', 'mp3'),
-                    }
-                })
-            
+            providers = AIAudioGenerationService.get_available_providers()
             return APIResponse.success(
                 message=AI_SUCCESS.get("providers_list_retrieved", "Providers retrieved successfully"),
-                data=providers_data,
+                data=providers,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
             return APIResponse.error(
-                message=f"خطا در دریافت لیست Provider ها: {str(e)}",
+                message=AI_ERRORS["providers_list_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_audio(self, request):
-        """Generate audio with AI (Text-to-Speech)"""
         # Check permission with fallback - allow ai.audio.manage or ai.manage
         has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')

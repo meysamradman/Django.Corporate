@@ -3,7 +3,6 @@ from src.ai.messages.messages import AI_ERRORS
 
 
 class AIContentGenerationRequestSerializer(serializers.Serializer):
-    """Serializer for content generation request"""
     
     topic = serializers.CharField(
         required=True,
@@ -12,7 +11,7 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
     )
     
     provider_name = serializers.ChoiceField(
-        choices=['gemini', 'openai', 'deepseek', 'openrouter'],  # Added openrouter for multi-provider support
+        choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],  # Added groq and huggingface
         default='gemini',
         help_text="مدل AI برای تولید محتوا"
     )
@@ -53,20 +52,17 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
 
     
     def validate_topic(self, value):
-        """Validate topic"""
         if not value or not value.strip():
             raise serializers.ValidationError(AI_ERRORS["topic_required"])
         return value.strip()
     
     def validate_word_count(self, value):
-        """Validate word count"""
         if value < 100 or value > 2000:
             raise serializers.ValidationError(AI_ERRORS["invalid_word_count"])
         return value
 
 
 class AIContentGenerationResponseSerializer(serializers.Serializer):
-    """Serializer for content generation response"""
     
     # Content data
     content = serializers.DictField(

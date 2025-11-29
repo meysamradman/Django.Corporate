@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from io import BytesIO
 import httpx
 import base64
@@ -67,13 +67,13 @@ class HuggingFaceProvider(BaseProvider):
             import httpx
             
             # Hugging Face API endpoint for listing models
-            # ✅ استفاده از endpoint صحیح با pagination
+            # Use correct endpoint with pagination
             url = "https://huggingface.co/api/models"
             
             params = {
                 'sort': 'downloads',
                 'direction': '-1',
-                'limit': 100,  # ✅ کاهش limit برای سرعت بیشتر (100 مدل اول)
+                'limit': 100,  # Reduce limit for better speed (first 100 models)
             }
             
             if task_filter:
@@ -89,9 +89,9 @@ class HuggingFaceProvider(BaseProvider):
                 response.raise_for_status()
                 models_data = response.json()
             
-            # ✅ Hugging Face API ممکن است لیست یا dict برگرداند
+            # Hugging Face API may return list or dict
             if not isinstance(models_data, list):
-                # اگر dict است، احتمالاً paginated response است
+                # If dict, probably paginated response
                 if isinstance(models_data, dict) and 'data' in models_data:
                     models_data = models_data['data']
                 else:
@@ -490,6 +490,108 @@ Return ONLY the JSON object, nothing else."""
                 raise Exception(f"خطای Hugging Face API: {error_detail}")
         except Exception as e:
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
+    
+    # Chat method
+    async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
+        """Chat with Hugging Face AI models - supports conversation history"""
+        url = f"{self.BASE_URL}/models/{self.content_model}"
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        # Build prompt from conversation history and current message
+        system_message = kwargs.get('system_message') or 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.'
+        
+        # Build full prompt with conversation history
+        full_prompt = system_message + "\n\n"
+        
+        if conversation_history:
+            for msg in conversation_history:
+                role = msg.get('role', 'user')
+                content = msg.get('content', '')
+                if role == 'user':
+                    full_prompt += f"کاربر: {content}\n"
+                elif role == 'assistant':
+                    full_prompt += f"دستیار: {content}\n"
+        
+        # Add current message
+        full_prompt += f"کاربر: {message}\nدستیار:"
+        
+        payload = {
+            "inputs": full_prompt,
+            "parameters": {
+                "max_new_tokens": kwargs.get('max_tokens', 2048),
+                "temperature": kwargs.get('temperature', 0.7),
+                "top_p": 0.9,
+                "return_full_text": False,
+                "do_sample": True,
+            }
+        }
+        
+        try:
+            response = await self.client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Handle different response formats
+            if isinstance(data, list) and len(data) > 0:
+                generated_text = data[0].get('generated_text', '')
+                if generated_text:
+                    # Remove the original prompt if it's included
+                    if full_prompt in generated_text:
+                        generated_text = generated_text.replace(full_prompt, '').strip()
+                    return generated_text.strip()
+            elif isinstance(data, dict):
+                if 'generated_text' in data:
+                    generated_text = data['generated_text']
+                    if full_prompt in generated_text:
+                        generated_text = generated_text.replace(full_prompt, '').strip()
+                    return generated_text.strip()
+            
+            raise Exception("هیچ پاسخی دریافت نشد")
+            
+        except httpx.ReadTimeout:
+            raise Exception(
+                "زمان چت به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
+                "لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+            )
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+            error_msg = ""
+            error_text = ""
+            
+            try:
+                error_data = e.response.json()
+                error_msg = error_data.get('error', '')
+                if not error_msg:
+                    error_msg = error_data.get('message', '')
+            except (json.JSONDecodeError, ValueError, AttributeError):
+                try:
+                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
+                except:
+                    error_text = ""
+            
+            if status_code == 404:
+                raise Exception(
+                    f"خطای Hugging Face API: مدل '{self.content_model}' یافت نشد.\n\n"
+                    f"لطفاً:\n"
+                    f"1. نام مدل را بررسی کنید\n"
+                    f"2. مدل باید در Hugging Face Hub موجود باشد\n"
+                    f"3. می‌توانید مدل را در تنظیمات AI تغییر دهید\n\n"
+                    f"جزئیات خطا: {error_msg or error_text or '404 Not Found'}"
+                )
+            elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
+                raise Exception(
+                    "مدل در حال لود شدن است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+                )
+            else:
+                error_detail = error_msg or error_text or f"HTTP {status_code}"
+                raise Exception(f"خطای Hugging Face API: {error_detail}")
+        except Exception as e:
+            raise Exception(f"خطا در چت: {str(e)}")
     
     def validate_api_key(self) -> bool:
         """Validate API key"""

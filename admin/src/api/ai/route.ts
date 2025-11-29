@@ -71,15 +71,16 @@ export const aiApi = {
         saveProvider: async (data: {
             id?: number;
             provider_name: string;
-            api_key: string;
+            api_key?: string; // ✅ اختیاری - می‌تواند shared_api_key باشد
+            shared_api_key?: string; // ✅ اضافه کردن shared_api_key
             is_active?: boolean;
             config?: any;
         }): Promise<ApiResponse<any>> => {
             try {
-                const endpoint = data.id 
+                const endpoint = data.id
                     ? `/admin/ai-providers/${data.id}/`
                     : '/admin/ai-providers/';
-                
+
                 const method = data.id ? 'patch' : 'post';
                 return await fetchApi[method]<any>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
@@ -385,7 +386,7 @@ export const aiApi = {
                 const endpoint = data.id
                     ? `/admin/ai-settings/${data.id}/`
                     : '/admin/ai-settings/';
-                
+
                 const method = data.id ? 'patch' : 'post';
                 return await fetchApi[method]<any>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
@@ -435,7 +436,7 @@ export const aiApi = {
             }
         },
     },
-    
+
     /**
      * ✅ REMOVED: Global Control API - Backend doesn't have this endpoint yet
      * When backend implements global_controls endpoint, restore this section
@@ -506,7 +507,7 @@ export const aiApi = {
                 if (filters?.provider) params.append('provider', filters.provider.toString());
                 if (filters?.capability) params.append('capability', filters.capability);
                 if (filters?.search) params.append('search', filters.search);
-                
+
                 const endpoint = `/admin/ai-models/${params.toString() ? `?${params.toString()}` : ''}`;
                 return await fetchApi.get<AIModelList[]>(endpoint);
             } catch (error: any) {
@@ -548,7 +549,7 @@ export const aiApi = {
             try {
                 const params = new URLSearchParams({ provider: providerSlug });
                 if (capability) params.append('capability', capability);
-                
+
                 const endpoint = `/admin/ai-models/by_provider/?${params.toString()}`;
                 return await fetchApi.get<AIModelList[]>(endpoint);
             } catch (error: any) {
@@ -566,6 +567,19 @@ export const aiApi = {
                 return await fetchApi.patch<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در به‌روزرسانی Model');
+                throw error;
+            }
+        },
+
+        /**
+         * ایجاد Model جدید
+         */
+        create: async (data: Partial<AIModelList>): Promise<ApiResponse<AIModelDetail>> => {
+            try {
+                const endpoint = '/admin/ai-models/';
+                return await fetchApi.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
+            } catch (error: any) {
+                showErrorToast(error?.message || 'خطا در ایجاد Model');
                 throw error;
             }
         },

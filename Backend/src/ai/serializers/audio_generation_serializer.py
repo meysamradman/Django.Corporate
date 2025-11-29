@@ -4,7 +4,6 @@ from src.ai.messages.messages import AI_ERRORS
 
 
 class AIAudioGenerationRequestSerializer(serializers.Serializer):
-    """Serializer for audio generation request (Text-to-Speech)"""
     
     provider_name = serializers.ChoiceField(
         choices=[('openai', 'OpenAI')],  # Only OpenAI supports TTS currently
@@ -66,7 +65,6 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
     )
     
     def validate_provider_name(self, value):
-        """Validate that provider is active and supports TTS"""
         if value != 'openai':
             raise serializers.ValidationError(
                 f"Provider '{value}' does not support text-to-speech. Currently only 'openai' is supported."
@@ -86,7 +84,6 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
         return value
     
     def validate_text(self, value):
-        """Validate text"""
         if not value or not value.strip():
             raise serializers.ValidationError("Text cannot be empty.")
         

@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation';
 export default function AISettingsPage() {
   const router = useRouter();
   const { isSuperAdmin, hasModuleAction } = useUserPermissions();
-  
+
   // ✅ Permission check: همه ادمین‌ها می‌توانند این صفحه را ببینند
   // اگر سوپر ادمین provider را فعال کند، برای همه ادمین‌ها قابل مشاهده است
   // فقط برای ایجاد/ویرایش نیاز به ai.manage است
@@ -57,12 +57,12 @@ export default function AISettingsPage() {
     if (!providers.length) {
       return {};
     }
-    
+
     const keys: Record<string, string> = {};
-    
+
     providers.forEach(provider => {
       const setting = personalSettingsMap[provider.id];
-      
+
       // ✅ از personalSettingsMap استفاده کن که api_key دارد (از serializer جدید)
       if (setting?.api_key) {
         const apiKey = setting.api_key;
@@ -72,7 +72,7 @@ export default function AISettingsPage() {
         }
       }
     });
-    
+
     return keys;
   }, [providers, personalSettingsMap]);
 
@@ -81,11 +81,11 @@ export default function AISettingsPage() {
     if (Object.keys(loadedApiKeys).length === 0) {
       return;
     }
-    
+
     setApiKeys(prev => {
       const updated = { ...prev };
       let hasChanges = false;
-      
+
       // ✅ فقط API key هایی که در state نیستند یا خالی هستند را set کن
       Object.entries(loadedApiKeys).forEach(([key, value]) => {
         if (value && value.trim() !== '' && value !== '***') {
@@ -96,7 +96,7 @@ export default function AISettingsPage() {
           }
         }
       });
-      
+
       // ✅ فقط اگر تغییری وجود دارد، state را update کن
       return hasChanges ? updated : prev;
     });
@@ -108,7 +108,7 @@ export default function AISettingsPage() {
       return providers;
     }
     const query = searchQuery.toLowerCase().trim();
-    return providers.filter(provider => 
+    return providers.filter(provider =>
       provider.name.toLowerCase().includes(query) ||
       provider.description.toLowerCase().includes(query) ||
       provider.id.toLowerCase().includes(query)
@@ -116,6 +116,8 @@ export default function AISettingsPage() {
   }, [providers, searchQuery]);
 
   const handleToggleUseSharedApi = (providerId: string, checked: boolean) => {
+    // ✅ این تابع برای همه (سوپر ادمین و ادمین معمولی) قابل استفاده است
+    // ✅ چک canUseSharedApi در ProviderCard انجام شده است
     toggleUseSharedApiMutation.mutate({
       providerId,
       useSharedApi: checked,
@@ -135,18 +137,18 @@ export default function AISettingsPage() {
       if (isSuperAdmin && useSharedApi) {
         const backendProvider = providers.find(p => p.id === providerId)?.backendProvider;
         if (backendProvider?.id) {
-          // Update shared provider
+          // Update shared provider - استفاده از shared_api_key به جای api_key
           return await aiApi.image.saveProvider({
             id: backendProvider.id,
             provider_name: backendProviderName,
-            api_key: apiKey,
+            shared_api_key: apiKey, // ✅ تغییر از api_key به shared_api_key
             is_active: true,
           });
         } else {
-          // Create new shared provider
+          // Create new shared provider - استفاده از shared_api_key به جای api_key
           return await aiApi.image.saveProvider({
             provider_name: backendProviderName,
-            api_key: apiKey,
+            shared_api_key: apiKey, // ✅ تغییر از api_key به shared_api_key
             is_active: true,
           });
         }
@@ -155,7 +157,7 @@ export default function AISettingsPage() {
       // در غیر این صورت به Personal Settings ذخیره می‌کنیم
       // (چه useSharedApi=true باشد و چه false - در هر دو حالت به personal settings ذخیره می‌شود)
       const setting = personalSettingsMap[providerId];
-      
+
       const data = {
         provider_name: backendProviderName,
         api_key: apiKey,
@@ -203,7 +205,8 @@ export default function AISettingsPage() {
     const setting = personalSettingsMap[providerId];
     const useSharedApi = setting?.use_shared_api ?? false;
 
-    if (!apiKey.trim()) {
+    // ✅ اگر useSharedApi=true است، نیازی به API key نیست
+    if (!useSharedApi && !apiKey.trim()) {
       showErrorToast('لطفاً API key را وارد کنید');
       return;
     }
@@ -254,23 +257,23 @@ export default function AISettingsPage() {
       // ✅ Optimistic Update: فوراً state رو به‌روز کن
       await queryClient.cancelQueries({ queryKey: ['ai-personal-settings'] });
       await queryClient.cancelQueries({ queryKey: ['ai-backend-providers'] });
-      
+
       // Snapshot برای rollback در صورت خطا
       const previousPersonalSettings = queryClient.getQueryData(['ai-personal-settings']);
       const previousBackendProviders = queryClient.getQueryData(['ai-backend-providers']);
-      
+
       // Optimistic update برای personal settings
       if (!isSuperAdmin || !useSharedApi) {
         queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
           if (!old) return old;
           const backendProviderName = frontendToBackendProviderMap[providerId];
           if (!backendProviderName) return old;
-          
+
           return old.map((setting: any) => {
             // ✅ دقیق‌ترین match: اول provider_slug (دقیق‌ترین)، سپس provider_name
             const matchesSlug = setting.provider_slug === backendProviderName;
             const matchesName = setting.provider_name === backendProviderName;
-            
+
             // فقط اگر دقیقاً match کرد، به‌روزرسانی کن
             if (matchesSlug || matchesName) {
               return { ...setting, is_active: isActive };
@@ -279,18 +282,18 @@ export default function AISettingsPage() {
           });
         });
       }
-      
+
       // Optimistic update برای backend providers (اگر سوپر ادمین و shared)
       if (isSuperAdmin && useSharedApi) {
         queryClient.setQueryData(['ai-backend-providers'], (old: any) => {
           if (!old) return old;
-          
+
           return old.map((provider: any) => {
             // ✅ دقیق‌ترین match: اول slug، سپس name
             const frontendIdFromSlug = backendToFrontendIdMap[provider.slug];
             const frontendIdFromName = backendToFrontendIdMap[provider.name];
             const matches = frontendIdFromSlug === providerId || frontendIdFromName === providerId;
-            
+
             if (matches) {
               return { ...provider, is_active: isActive };
             }
@@ -298,7 +301,7 @@ export default function AISettingsPage() {
           });
         });
       }
-      
+
       return { previousPersonalSettings, previousBackendProviders };
     },
     onSuccess: () => {
@@ -321,12 +324,14 @@ export default function AISettingsPage() {
 
   // ✅ بهینه‌سازی: استفاده از useCallback برای جلوگیری از re-render
   const handleToggleActive = useCallback((providerId: string, checked: boolean, useSharedApi: boolean) => {
+    // ✅ برای ادمین معمولی: همیشه useSharedApi = false
+    const finalUseSharedApi = isSuperAdmin ? useSharedApi : false;
     toggleActiveMutation.mutate({
       providerId,
       isActive: checked,
-      useSharedApi,
+      useSharedApi: finalUseSharedApi,
     });
-  }, [toggleActiveMutation]);
+  }, [toggleActiveMutation, isSuperAdmin]);
 
   if (isLoadingBackendProviders) {
     return (
@@ -369,6 +374,9 @@ export default function AISettingsPage() {
                 <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
                 <Input
                   type="text"
+                  id="search-providers"
+                  name="search_providers"
+                  autoComplete="off"
                   placeholder="جستجو در Provider ها..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -395,20 +403,52 @@ export default function AISettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProviders.map((provider) => {
               const isExpanded = expandedProviders.includes(provider.id);
-              
+
               // استفاده از personalSettingsMap برای گرفتن useSharedApi
               const setting = personalSettingsMap[provider.id];
-              const useSharedApi = setting?.use_shared_api ?? false;
-              
+
+              // ✅ بررسی اینکه آیا ادمین معمولی می‌تواند از API مشترک استفاده کند
+              const backendProvider = provider.backendProvider;
+              const allowNormalAdmins = backendProvider?.allow_shared_for_normal_admins ?? false;
+              // ✅ Backend می‌فرستد: has_shared_api (نه has_shared_api_key)
+              const hasSharedApi = backendProvider?.has_shared_api ?? backendProvider?.has_shared_api_key ?? false;
+
+              // ✅ سوپر ادمین: همیشه می‌تواند Switch را ببیند و از API مشترک استفاده کند
+              // ✅ ادمین معمولی: فقط اگر allowNormalAdmins=true و hasSharedApi=true باشد، می‌تواند Switch را ببیند
+              const canUseSharedApi = isSuperAdmin || (allowNormalAdmins && hasSharedApi);
+
+              // ✅ Debug: برای بررسی مقادیر (برای همه provider ها)
+              if (!isSuperAdmin) {
+                console.log(`[DEBUG Provider: ${provider.id}]`, JSON.stringify({
+                  providerId: provider.id,
+                  providerName: provider.name,
+                  isSuperAdmin,
+                  allowNormalAdmins,
+                  hasSharedApi,
+                  canUseSharedApi,
+                  backendProvider: backendProvider ? {
+                    allow_shared_for_normal_admins: backendProvider.allow_shared_for_normal_admins,
+                    has_shared_api: backendProvider.has_shared_api,
+                    has_shared_api_key: backendProvider.has_shared_api_key,
+                    slug: backendProvider.slug,
+                    name: backendProvider.name,
+                  } : 'null'
+                }, null, 2));
+              }
+
+              // ✅ محاسبه useSharedApi: اگر canUseSharedApi باشد، از setting استفاده کن، در غیر این صورت false
+              // ✅ برای ادمین معمولی که نمی‌تواند از API مشترک استفاده کند، همیشه false
+              const useSharedApi = canUseSharedApi ? (setting?.use_shared_api ?? false) : false;
+
               // ✅ دریافت API key بر اساس نوع (مشترک یا شخصی) - بهینه شده
               // استفاده از useMemo برای جلوگیری از re-render های اضافی
               const apiKey = apiKeys[provider.id] || '';
               const hasStoredApiKey = Boolean(
                 apiKey && apiKey.trim() !== '' && apiKey !== '***'
               );
-              
+
               const showApiKey = showApiKeys[provider.id] || false;
-              
+
               // دریافت وضعیت فعال/غیرفعال
               let isActive = false;
               if (useSharedApi && isSuperAdmin) {
@@ -419,11 +459,11 @@ export default function AISettingsPage() {
                 const setting = personalSettingsMap[provider.id];
                 isActive = setting?.is_active || false;
               }
-              
+
               // ✅ محاسبه وضعیت دسترسی (برای Badge)
               let accessStatus = 'no-access';
               let accessLabel = 'بدون دسترسی';
-              
+
               // ✅ فقط اگر فعال باشه، وضعیت دسترسی رو نمایش بده
               if (isActive) {
                 if (useSharedApi && isSuperAdmin && hasStoredApiKey) {
@@ -463,20 +503,20 @@ export default function AISettingsPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge 
-                              variant={isActive ? "green" : "gray"} 
+                            <Badge
+                              variant={isActive ? "green" : "gray"}
                               className="text-xs"
                             >
                               {isActive ? 'فعال' : 'غیرفعال'}
                             </Badge>
                             {/* ✅ فقط اگر فعال باشه، Badge دسترسی رو نشون بده */}
                             {isActive && accessLabel && (
-                              <Badge 
+                              <Badge
                                 variant={
                                   accessStatus === 'shared' ? 'default' :
-                                  accessStatus === 'personal' ? 'green' :
-                                  accessStatus === 'no-key' ? 'amber' :
-                                  'gray'
+                                    accessStatus === 'personal' ? 'green' :
+                                      accessStatus === 'no-key' ? 'amber' :
+                                        'gray'
                                 }
                                 className="text-xs"
                               >
@@ -499,6 +539,10 @@ export default function AISettingsPage() {
                           useSharedApi={useSharedApi}
                           hasStoredApiKey={hasStoredApiKey}
                           isSaving={saveApiKeyMutation.isPending || toggleActiveMutation.isPending}
+                          isSuperAdmin={isSuperAdmin}
+                          allowNormalAdmins={allowNormalAdmins}
+                          hasSharedApi={hasSharedApi}
+                          canUseSharedApi={canUseSharedApi}
                           onToggleApiKeyVisibility={() => {
                             setShowApiKeys(prev => ({
                               ...prev,
@@ -511,16 +555,19 @@ export default function AISettingsPage() {
                               [provider.id]: value
                             }));
                           }}
-                          onToggleUseSharedApi={(checked) => handleToggleUseSharedApi(provider.id, checked)}
+                          onToggleUseSharedApi={(checked) => {
+                            // ✅ اگر canUseSharedApi باشد، می‌تواند Switch را تغییر دهد
+                            // ✅ این برای سوپر ادمین و ادمین معمولی (با شرایط) کار می‌کند
+                            handleToggleUseSharedApi(provider.id, checked);
+                          }}
                           onSave={() => handleSaveProvider(provider.id)}
-                          isSuperAdmin={isSuperAdmin}
                           isActive={isActive}
                           onToggleActive={(checked) => {
                             // ✅ اطمینان از اینکه useSharedApi به‌روز است و جلوگیری از تداخل
                             if (toggleActiveMutation.isPending) return; // جلوگیری از تداخل
                             const currentSetting = personalSettingsMap[provider.id];
-                            const currentUseSharedApi = currentSetting?.use_shared_api ?? false;
-                            handleToggleActive(provider.id, checked, currentUseSharedApi);
+                            // ✅ استفاده از useSharedApi که قبلاً محاسبه شده
+                            handleToggleActive(provider.id, checked, useSharedApi);
                           }}
                         />
                       </AccordionContent>

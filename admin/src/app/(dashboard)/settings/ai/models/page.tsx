@@ -17,14 +17,15 @@ import { Input } from '@/components/elements/Input';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Button } from '@/components/elements/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/elements/Dialog';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
 import { ModelSelector } from './components/ModelSelector';
 import { OpenRouterModelSelectorContent } from '@/components/ai/settings/OpenRouterModelSelector';
 import { HuggingFaceModelSelectorContent } from '@/components/ai/settings/HuggingFaceModelSelector';
 import { useUserPermissions } from '@/core/permissions';
 import { useRouter } from 'next/navigation';
-import { showErrorToast } from '@/core/config/errorHandler';
+import { showErrorToast, showSuccessToast } from '@/core/config/errorHandler';
+import { toast } from 'sonner';
 
 type Capability = 'chat' | 'content' | 'image' | 'audio';
 
@@ -54,22 +55,22 @@ const CAPABILITY_CONFIG: Record<Capability, { label: string; icon: React.Element
 export default function AIModelsPage() {
     const router = useRouter();
     const { hasModuleAction, isSuperAdmin } = useUserPermissions();
-    
+
     // ✅ Permission check: فقط سوپر ادمین‌ها می‌توانند این صفحه را ببینند
     const hasAccess = isSuperAdmin && hasModuleAction('ai', 'manage');
-    
+
     useEffect(() => {
         if (!hasAccess) {
             showErrorToast('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
             router.push('/settings/ai');
         }
     }, [hasAccess, router]);
-    
+
     const [activeTab, setActiveTab] = useState<Capability>('chat');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [showOpenRouterModal, setShowOpenRouterModal] = useState(false);
     const [showHuggingFaceModal, setShowHuggingFaceModal] = useState(false);
-    
+
     // ✅ اگر دسترسی ندارد، چیزی نمایش نده
     if (!hasAccess) {
         return null;
@@ -84,12 +85,12 @@ export default function AIModelsPage() {
             // ✅ include_inactive=true: نمایش مدل‌های غیرفعال هم (برای admin panel)
             const dbResponse = await aiApi.models.getByCapability(activeTab, true);
             const modelsList = dbResponse.metaData.status === 'success' ? (dbResponse.data || []) : [];
-            
+
             // ✅ لاگ برای دیباگ: ببینیم چه Provider هایی واقعاً در دیتابیس هستند
             const providers = new Set(modelsList.map((m: any) => m.provider_name || m.provider?.name || 'نامشخص'));
             console.log(`[AI Models] Capability: ${activeTab}, Providers in DB:`, Array.from(providers));
             console.log(`[AI Models] Total models: ${modelsList.length}`);
-            
+
             return modelsList;
         },
         staleTime: 5 * 60 * 1000, // 5 minutes
@@ -113,6 +114,114 @@ export default function AIModelsPage() {
             );
         });
     }, [models, searchQuery]);
+
+    const queryClient = useQueryClient();
+    const openRouterSaveRef = React.useRef<(() => void) | undefined>(undefined);
+    const huggingFaceSaveRef = React.useRef<(() => void) | undefined>(undefined);
+
+    // ✅ Handle saving selected models
+    const handleSaveModels = async (selectedModels: any[], providerName: string) => {
+        try {
+            if (selectedModels.length === 0) {
+                return;
+            }
+
+            // Show loading toast
+            const toastId = toast.loading(`در حال ذخیره ${selectedModels.length} مدل...`);
+
+            // Get provider ID map
+            // Note: We need to map provider name (e.g. "OpenRouter") to backend ID
+            // Since we don't have the ID readily available in the modal props, we'll try to find it
+            // from the providers list we fetched earlier or fetch it if needed.
+            // For now, let's assume we can get it from the `providers` list in `useAISettings`
+            // But since we are in `AIModelsPage`, we might not have access to it directly.
+            // A better approach is to fetch providers here or pass it down.
+
+            // Let's fetch providers to find the ID
+            const providersResponse = await aiApi.providers.getAll();
+            const providers = providersResponse.data || [];
+
+            // Find provider ID
+            // Try to match by name or slug
+            const targetProvider = providers.find((p: any) =>
+                p.name.toLowerCase() === providerName.toLowerCase() ||
+                p.slug.toLowerCase() === providerName.toLowerCase() ||
+                p.display_name.toLowerCase() === providerName.toLowerCase()
+            );
+
+            if (!targetProvider) {
+                toast.dismiss(toastId);
+                showErrorToast(`Provider '${providerName}' یافت نشد`);
+                return;
+            }
+
+            // Save each model
+            let createdCount = 0;
+            let updatedCount = 0;
+            let failCount = 0;
+            const errors: string[] = [];
+
+            for (const model of selectedModels) {
+                try {
+                    // Prepare model data for backend
+                    const modelData = {
+                        provider_id: targetProvider.id, // ✅ Send provider_id instead of provider_name
+                        name: model.name,
+                        model_id: model.id, // OpenRouter ID (e.g. google/gemini-pro)
+                        display_name: model.name, // Use name as display name by default
+                        is_active: true,
+                        capabilities: [activeTab], // ✅ Send as array
+                        description: model.description,
+                        // Add pricing if available
+                        pricing_input: model.pricing?.prompt || null,
+                        pricing_output: model.pricing?.completion || null,
+                        context_window: model.context_length || null,
+                    };
+
+                    const response = await aiApi.models.create(modelData);
+
+                    // ✅ Backend now returns updated model if it already existed
+                    // We can't differentiate between create/update from response, so count as success
+                    createdCount++;
+                } catch (error: any) {
+                    console.error(`Failed to save model ${model.name}:`, error);
+                    failCount++;
+
+                    // Collect error messages
+                    const errorMsg = error?.response?.data?.message || error?.message || 'خطای ناشناخته';
+                    errors.push(`${model.name}: ${errorMsg}`);
+                }
+            }
+
+            // Dismiss loading toast
+            toast.dismiss(toastId);
+
+            const totalSuccess = createdCount + updatedCount;
+            if (totalSuccess > 0) {
+                let message = `${totalSuccess} مدل با موفقیت ذخیره شد`;
+                if (updatedCount > 0) {
+                    message += ` (${updatedCount} مدل به‌روزرسانی شد)`;
+                }
+                showSuccessToast(message);
+                // Refresh models list
+                queryClient.invalidateQueries({ queryKey: ['ai-models'] });
+            }
+
+            if (failCount > 0) {
+                showErrorToast(`${failCount} مدل ذخیره نشد`);
+                // Log detailed errors to console
+                console.error('Model save errors:', errors);
+            }
+
+            // Close modals
+            setShowOpenRouterModal(false);
+            setShowHuggingFaceModal(false);
+
+        } catch (error) {
+            console.error('Error saving models:', error);
+            showErrorToast('خطا در ذخیره مدل‌ها');
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -179,87 +288,87 @@ export default function AIModelsPage() {
                                         </div>
                                     </CardTitle>
                                 </CardHeader>
-                            <CardContent>
-                                {/* OpenRouter Card - نمایش در Popup */}
-                                <Card className="mb-6 border-blue-1/30 bg-blue/10">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-blue-0 rounded-lg">
-                                                    <Sparkles className="w-5 h-5 text-blue-1" />
+                                <CardContent>
+                                    {/* OpenRouter Card - نمایش در Popup */}
+                                    <Card className="mb-6 border-blue-1/30 bg-blue/10">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-blue-0 rounded-lg">
+                                                        <Sparkles className="w-5 h-5 text-blue-1" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-font-p">OpenRouter</h3>
+                                                        <p className="text-xs text-font-s mt-0.5">
+                                                            دسترسی به 400+ مدل از 60+ Provider (GPT, Claude, Gemini, Groq, و...)
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-font-p">OpenRouter</h3>
-                                                    <p className="text-xs text-font-s mt-0.5">
-                                                        دسترسی به 400+ مدل از 60+ Provider (GPT, Claude, Gemini, Groq, و...)
-                                                    </p>
-                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowOpenRouterModal(true)}
+                                                    className="gap-2"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                    انتخاب مدل‌های OpenRouter
+                                                </Button>
                                             </div>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowOpenRouterModal(true)}
-                                                className="gap-2"
-                                            >
-                                                <Sparkles className="w-4 h-4" />
-                                                انتخاب مدل‌های OpenRouter
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        </CardContent>
+                                    </Card>
 
-                                {/* Hugging Face Card - نمایش در Popup */}
-                                <Card className="mb-6 border-purple-1/30 bg-purple/10">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-purple-0 rounded-lg">
-                                                    <Sparkles className="w-5 h-5 text-purple-1" />
+                                    {/* Hugging Face Card - نمایش در Popup */}
+                                    <Card className="mb-6 border-purple-1/30 bg-purple/10">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-purple-0 rounded-lg">
+                                                        <Sparkles className="w-5 h-5 text-purple-1" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-font-p">Hugging Face</h3>
+                                                        <p className="text-xs text-font-s mt-0.5">
+                                                            دسترسی به هزاران مدل Open Source (Image, Text, Audio)
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-font-p">Hugging Face</h3>
-                                                    <p className="text-xs text-font-s mt-0.5">
-                                                        دسترسی به هزاران مدل Open Source (Image, Text, Audio)
-                                                    </p>
-                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowHuggingFaceModal(true)}
+                                                    className="gap-2"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                    انتخاب مدل‌های Hugging Face
+                                                </Button>
                                             </div>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowHuggingFaceModal(true)}
-                                                className="gap-2"
-                                            >
-                                                <Sparkles className="w-4 h-4" />
-                                                انتخاب مدل‌های Hugging Face
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        </CardContent>
+                                    </Card>
 
-                                {/* مدل‌های دیتابیس */}
-                                {isLoading ? (
-                                    <div className="space-y-4">
-                                        {[1, 2, 3].map((i) => (
-                                            <Skeleton key={i} className="h-24 w-full" />
-                                        ))}
-                                    </div>
-                                ) : error ? (
-                                    <div className="text-center py-8 text-red-1">
-                                        خطا در دریافت مدل‌ها: {error instanceof Error ? error.message : 'خطای ناشناخته'}
-                                    </div>
-                                ) : filteredModels.length === 0 ? (
-                                    <div className="text-center py-8 text-font-s">
-                                        {searchQuery
-                                            ? 'هیچ مدلی با این جستجو یافت نشد'
-                                            : 'هیچ مدلی برای این capability یافت نشد. برای انتخاب مدل‌های OpenRouter، از دکمه بالا استفاده کنید.'}
-                                    </div>
-                                ) : (
-                                    <ModelSelector
-                                        models={filteredModels}
-                                        capability={key as Capability}
-                                    />
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                    {/* مدل‌های دیتابیس */}
+                                    {isLoading ? (
+                                        <div className="space-y-4">
+                                            {[1, 2, 3].map((i) => (
+                                                <Skeleton key={i} className="h-24 w-full" />
+                                            ))}
+                                        </div>
+                                    ) : error ? (
+                                        <div className="text-center py-8 text-red-1">
+                                            خطا در دریافت مدل‌ها: {error instanceof Error ? error.message : 'خطای ناشناخته'}
+                                        </div>
+                                    ) : filteredModels.length === 0 ? (
+                                        <div className="text-center py-8 text-font-s">
+                                            {searchQuery
+                                                ? 'هیچ مدلی با این جستجو یافت نشد'
+                                                : 'هیچ مدلی برای این capability یافت نشد. برای انتخاب مدل‌های OpenRouter، از دکمه بالا استفاده کنید.'}
+                                        </div>
+                                    ) : (
+                                        <ModelSelector
+                                            models={filteredModels}
+                                            capability={key as Capability}
+                                        />
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
                     );
                 })}
             </Tabs>
@@ -276,17 +385,16 @@ export default function AIModelsPage() {
                             انتخاب مدل‌های مورد نظر از 400+ مدل OpenRouter برای {CAPABILITY_CONFIG[activeTab].description}
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
                         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
                             <OpenRouterModelSelectorContent
                                 providerId="openrouter"
                                 providerName="OpenRouter"
                                 capability={activeTab}
-                                onSave={() => {
-                                    setShowOpenRouterModal(false);
-                                }}
-                                onSelectionChange={() => {}}
+                                onSave={(models) => handleSaveModels(models, 'OpenRouter')}
+                                onSelectionChange={() => { }}
+                                onSaveRef={openRouterSaveRef}
                             />
                         </Suspense>
                     </div>
@@ -295,7 +403,7 @@ export default function AIModelsPage() {
                         <Button variant="outline" onClick={() => setShowOpenRouterModal(false)}>
                             بستن
                         </Button>
-                        <Button onClick={() => setShowOpenRouterModal(false)}>
+                        <Button onClick={() => openRouterSaveRef.current?.()}>
                             ذخیره
                         </Button>
                     </DialogFooter>
@@ -314,17 +422,16 @@ export default function AIModelsPage() {
                             انتخاب مدل‌های مورد نظر از هزاران مدل Hugging Face برای {CAPABILITY_CONFIG[activeTab].description}
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
                         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
                             <HuggingFaceModelSelectorContent
                                 providerId="huggingface"
                                 providerName="Hugging Face"
                                 capability={activeTab}
-                                onSave={(_selectedModels) => {
-                                    setShowHuggingFaceModal(false);
-                                }}
-                                onSelectionChange={() => {}}
+                                onSave={(models) => handleSaveModels(models, 'Hugging Face')}
+                                onSelectionChange={() => { }}
+                                onSaveRef={huggingFaceSaveRef}
                             />
                         </Suspense>
                     </div>
@@ -333,7 +440,7 @@ export default function AIModelsPage() {
                         <Button variant="outline" onClick={() => setShowHuggingFaceModal(false)}>
                             بستن
                         </Button>
-                        <Button onClick={() => setShowHuggingFaceModal(false)}>
+                        <Button onClick={() => huggingFaceSaveRef.current?.()}>
                             ذخیره
                         </Button>
                     </DialogFooter>
@@ -342,4 +449,3 @@ export default function AIModelsPage() {
         </div>
     );
 }
-

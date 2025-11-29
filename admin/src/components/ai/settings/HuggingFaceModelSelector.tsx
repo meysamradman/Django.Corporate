@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
+import {
   Search,
   Grid3x3,
   List,
@@ -26,8 +26,9 @@ import { toast } from '@/components/elements/Sonner';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
 import { Badge } from '@/components/elements/Badge';
-import { Checkbox } from '@/components/elements/Checkbox';
 import { Card, CardContent } from '@/components/elements/Card';
+import { Switch } from '@/components/elements/Switch';
+import { Label } from '@/components/elements/Label';
 import { Spinner } from '@/components/elements/Spinner';
 
 interface Model {
@@ -47,6 +48,7 @@ interface HuggingFaceModelSelectorContentProps {
   onSave: (selectedModels: Model[]) => void;
   onSelectionChange?: (selectedCount: number) => void;
   capability?: 'chat' | 'content' | 'image' | 'audio';
+  onSaveRef?: React.MutableRefObject<(() => void) | undefined>;
 }
 
 const MODELS_PER_PAGE = 24;
@@ -56,7 +58,8 @@ export function HuggingFaceModelSelectorContent({
   providerName,
   onSave,
   onSelectionChange,
-  capability = 'image'
+  capability = 'image',
+  onSaveRef
 }: HuggingFaceModelSelectorContentProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +67,19 @@ export function HuggingFaceModelSelectorContent({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+
+  // ✅ Key برای localStorage (بر اساس provider و capability)
+  const storageKey = `huggingface-selected-models-${capability}`;
+
+  // ✅ Expose save function via ref
+  React.useEffect(() => {
+    if (onSaveRef) {
+      onSaveRef.current = () => {
+        const selected = models.filter(m => selectedModels.has(m.id));
+        onSave(selected);
+      };
+    }
+  }, [models, selectedModels, onSave, onSaveRef]);
 
   useEffect(() => {
     fetchModels();
@@ -95,7 +111,7 @@ export function HuggingFaceModelSelectorContent({
       const response = await aiApi.image.getHuggingFaceModels(task);
       if (response.metaData.status === 'success' && response.data) {
         const modelsData = Array.isArray(response.data) ? response.data : [];
-        setModels(modelsData.map((model: any) => ({
+        const mappedModels = modelsData.map((model: any) => ({
           id: model.id || model.name,
           name: model.name || model.id,
           description: model.description || '',
@@ -104,7 +120,29 @@ export function HuggingFaceModelSelectorContent({
           likes: model.likes || 0,
           tags: model.tags || [],
           selected: false,
-        })));
+        }));
+        setModels(mappedModels);
+        
+        // ✅ Sync مدل‌های انتخاب شده با مدل‌های جدید (فقط مدل‌هایی که هنوز موجود هستند)
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            const savedModels = JSON.parse(saved) as string[];
+            const validModels = savedModels.filter(id => 
+              mappedModels.some(m => m.id === id)
+            );
+            if (validModels.length !== savedModels.length) {
+              // برخی مدل‌ها دیگر موجود نیستند - به‌روزرسانی localStorage
+              localStorage.setItem(storageKey, JSON.stringify(validModels));
+              setSelectedModels(new Set(validModels));
+              console.log(`[HuggingFace] Synced selected models: ${validModels.length} valid out of ${savedModels.length}`);
+            } else {
+              setSelectedModels(new Set(savedModels));
+            }
+          }
+        } catch (error) {
+          console.error('[HuggingFace] Error syncing selected models:', error);
+        }
       }
     } catch (error) {
       console.error('Error fetching HuggingFace models:', error);
@@ -115,7 +153,8 @@ export function HuggingFaceModelSelectorContent({
     }
   };
 
-  const toggleModel = (modelId: string) => {
+  // ✅ بهینه: استفاده از useCallback برای جلوگیری از re-render
+  const toggleModel = React.useCallback((modelId: string) => {
     setSelectedModels(prev => {
       const newSet = new Set(prev);
       if (newSet.has(modelId)) {
@@ -123,17 +162,28 @@ export function HuggingFaceModelSelectorContent({
       } else {
         newSet.add(modelId);
       }
+      
+      // ✅ بهینه: ذخیره در localStorage (فوری برای UX بهتر)
+      // استفاده از setTimeout برای non-blocking
+      setTimeout(() => {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
+        } catch (error) {
+          console.error('[HuggingFace] Error saving to localStorage:', error);
+        }
+      }, 0);
+      
       if (onSelectionChange) {
         onSelectionChange(newSet.size);
       }
       return newSet;
     });
-  };
+  }, [storageKey, onSelectionChange]);
 
   // فیلتر بر اساس capability + جستجو
   const filteredModels = useMemo(() => {
     let filtered = models;
-    
+
     // فیلتر بر اساس جستجو
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -142,9 +192,19 @@ export function HuggingFaceModelSelectorContent({
         return searchableText.includes(query);
       });
     }
-    
-    return filtered;
-  }, [models, searchQuery]);
+
+    // ✅ بهینه: مرتب‌سازی: مدل‌های انتخاب شده در ابتدا
+    // استفاده از stable sort برای حفظ ترتیب مدل‌های غیرفعال
+    const sorted = [...filtered].sort((a, b) => {
+      const aSelected = selectedModels.has(a.id);
+      const bSelected = selectedModels.has(b.id);
+      if (aSelected && !bSelected) return -1; // a اول
+      if (!aSelected && bSelected) return 1;  // b اول
+      // ✅ حفظ ترتیب اصلی برای مدل‌های هم‌گروه
+      return 0;
+    });
+    return sorted;
+  }, [models, searchQuery, selectedModels]);
 
   // Pagination
   const totalPages = Math.ceil(filteredModels.length / MODELS_PER_PAGE);
@@ -170,132 +230,132 @@ export function HuggingFaceModelSelectorContent({
 
   return (
     <div className="space-y-6">
-        {/* Header Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <p className="text-font-s text-sm">
-              {filteredModels.length} مدل موجود • {selectedModels.size} انتخاب شده
-              {totalPages > 1 && ` • صفحه ${currentPage} از ${totalPages}`}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            >
-              {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
-            </Button>
-          </div>
+      {/* Header Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-font-s text-sm">
+            {filteredModels.length} مدل موجود • {selectedModels.size} انتخاب شده
+            {totalPages > 1 && ` • صفحه ${currentPage} از ${totalPages}`}
+          </p>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-          <Input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="جستجو در مدل‌ها..."
-            className="pr-10"
-          />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          >
+            {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
+          </Button>
         </div>
+      </div>
 
-        {/* Models Display */}
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedModels.map((model) => {
-              const isSelected = selectedModels.has(model.id);
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
+        <Input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="جستجو در مدل‌ها..."
+          className="pr-10"
+        />
+      </div>
+
+      {/* Models Display */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedModels.map((model) => {
+            const isSelected = selectedModels.has(model.id);
+            return (
+              <ModelCard
+                key={model.id}
+                model={model}
+                isSelected={isSelected}
+                onToggle={() => toggleModel(model.id)}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {paginatedModels.map((model) => {
+            const isSelected = selectedModels.has(model.id);
+            return (
+              <ModelListItem
+                key={model.id}
+                model={model}
+                isSelected={isSelected}
+                onToggle={() => toggleModel(model.id)}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="gap-1"
+          >
+            <ChevronRight className="w-4 h-4" />
+            قبلی
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
               return (
-                <ModelCard
-                  key={model.id}
-                  model={model}
-                  isSelected={isSelected}
-                  onToggle={() => toggleModel(model.id)}
-                />
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className="min-w-[2.5rem]"
+                >
+                  {pageNum}
+                </Button>
               );
             })}
           </div>
-        ) : (
-          <div className="space-y-2">
-            {paginatedModels.map((model) => {
-              const isSelected = selectedModels.has(model.id);
-              return (
-                <ModelListItem
-                  key={model.id}
-                  model={model}
-                  isSelected={isSelected}
-                  onToggle={() => toggleModel(model.id)}
-                />
-              );
-            })}
-          </div>
-        )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="gap-1"
-            >
-              <ChevronRight className="w-4 h-4" />
-              قبلی
-            </Button>
-            
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(pageNum)}
-                    className="min-w-[2.5rem]"
-                  >
-                    {pageNum}
-                  </Button>
-                );
-              })}
-            </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="gap-1"
-            >
-              بعدی
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="gap-1"
+          >
+            بعدی
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
-        {/* Empty State */}
-        {filteredModels.length === 0 && (
-          <div className="text-center py-12">
-            <Info className="w-12 h-12 mx-auto mb-4 text-font-s" />
-            <p className="text-font-s">
-              {searchQuery ? 'هیچ مدلی با این جستجو یافت نشد' : `هیچ مدل ${capability === 'chat' ? 'چت' : capability === 'image' ? 'تصویر' : 'صدا'} یافت نشد`}
-            </p>
-          </div>
-        )}
+      {/* Empty State */}
+      {filteredModels.length === 0 && (
+        <div className="text-center py-12">
+          <Info className="w-12 h-12 mx-auto mb-4 text-font-s" />
+          <p className="text-font-s">
+            {searchQuery ? 'هیچ مدلی با این جستجو یافت نشد' : `هیچ مدل ${capability === 'chat' ? 'چت' : capability === 'image' ? 'تصویر' : 'صدا'} یافت نشد`}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -303,22 +363,17 @@ export function HuggingFaceModelSelectorContent({
 // Model Card Component
 function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
   return (
-    <Card
-      onClick={onToggle}
-      className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
-        isSelected ? 'border-purple-500 bg-purple-500/10' : ''
-      }`}
-    >
+    <Card className="transition-all duration-300 hover:shadow-lg border-border">
       <CardContent className="pt-6">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h4 className={`font-bold text-base ${isSelected ? 'text-purple-500' : 'text-font-p'}`}>
+              <h4 className="font-bold text-base text-font-p">
                 {model.name}
               </h4>
             </div>
             {model.description && (
-              <p className={`text-sm mb-2 line-clamp-2 ${isSelected ? 'text-purple-500/70' : 'text-font-s'}`}>
+              <p className="text-sm mb-2 line-clamp-2 text-font-s">
                 {model.description}
               </p>
             )}
@@ -328,21 +383,26 @@ function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: 
               </Badge>
             )}
           </div>
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={onToggle}
-            className="pointer-events-none"
-          />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Label htmlFor={`model-${model.id}`} className="text-xs text-font-s">
+              {isSelected ? 'انتخاب شده' : 'انتخاب نشده'}
+            </Label>
+            <Switch
+              id={`model-${model.id}`}
+              checked={isSelected}
+              onCheckedChange={onToggle}
+            />
+          </div>
         </div>
-        
-        <div className={`flex items-center justify-between pt-3 border-t ${isSelected ? 'border-purple-500/20' : 'border-br'}`}>
+
+        <div className="flex items-center justify-between pt-3 border-t border-br">
           {model.downloads !== undefined && (
-            <div className={`text-xs ${isSelected ? 'text-purple-500/60' : 'text-font-s'}`}>
+            <div className="text-xs text-font-s">
               📥 {model.downloads.toLocaleString()}
             </div>
           )}
           {model.likes !== undefined && (
-            <div className={`text-xs ${isSelected ? 'text-purple-500/60' : 'text-font-s'}`}>
+            <div className="text-xs text-font-s">
               ❤️ {model.likes.toLocaleString()}
             </div>
           )}
@@ -355,17 +415,12 @@ function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: 
 // Model List Item Component
 function ModelListItem({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
   return (
-    <Card
-      onClick={onToggle}
-      className={`cursor-pointer transition-all ${
-        isSelected ? 'border-purple-500 bg-purple-500/10' : ''
-      }`}
-    >
+    <Card className="transition-all border-border">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className={`font-semibold ${isSelected ? 'text-purple-500' : 'text-font-p'}`}>
+              <h4 className="font-semibold text-font-p">
                 {model.name}
               </h4>
               {model.task && (
@@ -375,16 +430,21 @@ function ModelListItem({ model, isSelected, onToggle }: { model: Model; isSelect
               )}
             </div>
             {model.description && (
-              <p className={`text-sm line-clamp-1 ${isSelected ? 'text-purple-500/70' : 'text-font-s'}`}>
+              <p className="text-sm line-clamp-1 text-font-s">
                 {model.description}
               </p>
             )}
           </div>
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={onToggle}
-            className="pointer-events-none"
-          />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Label htmlFor={`model-list-${model.id}`} className="text-xs text-font-s">
+              {isSelected ? 'انتخاب شده' : 'انتخاب نشده'}
+            </Label>
+            <Switch
+              id={`model-list-${model.id}`}
+              checked={isSelected}
+              onCheckedChange={onToggle}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

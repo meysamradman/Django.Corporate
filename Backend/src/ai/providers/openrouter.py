@@ -174,7 +174,7 @@ class OpenRouterProvider(BaseProvider):
                 "Content-Type": "application/json",
             }
             
-            # ✅ اگر API key داریم، استفاده می‌کنیم، وگرنه بدون auth امتحان می‌کنیم
+            # If we have API key, use it, otherwise try without auth
             if api_key and api_key.strip():
                 headers["Authorization"] = f"Bearer {api_key}"
                 logger.info(f"[OpenRouter Provider] Fetching models with API key...")
@@ -233,16 +233,16 @@ class OpenRouterProvider(BaseProvider):
                 
                 return models
         except httpx.HTTPStatusError as e:
-            # اگر خطای 401 یا 403 بود، یعنی نیاز به API key دارد
+            # If 401 or 403 error, means API key is required
             if e.response.status_code in [401, 403]:
                 logger.warning(f"[OpenRouter Provider] API key required (status: {e.response.status_code})")
-                # اگر cache داریم، از cache استفاده کن
+                # If we have cache, use cache
                 if use_cache:
                     cached_models = cache.get(cache_key)
                     if cached_models:
                         logger.info(f"[OpenRouter Provider] Using cached models (API key required)")
                         return cached_models
-                # اگر cache هم نبود، لیست خالی برگردان
+                # If no cache, return empty list
                 logger.warning(f"[OpenRouter Provider] No cache available, returning empty list")
                 return []
             else:
@@ -251,7 +251,7 @@ class OpenRouterProvider(BaseProvider):
         except Exception as e:
             logger.error(f"[OpenRouter Provider] Error getting available models: {str(e)}", exc_info=True)
             print(f"[OpenRouter Provider] Error getting available models: {str(e)}")
-            # اگر cache داریم، از cache استفاده کن
+            # If we have cache, use cache
             if use_cache:
                 cached_models = cache.get(cache_key)
                 if cached_models:
@@ -447,12 +447,12 @@ class OpenRouterProvider(BaseProvider):
                 }
             ],
             "temperature": kwargs.get('temperature', 0.7),
-            # ✅ محاسبه max_tokens بر اساس word_count (تقریباً 1.3x برای فارسی + HTML)
+            # Calculate max_tokens based on word_count (approximately 1.3x for Persian + HTML)
             "max_tokens": kwargs.get('max_tokens', int(word_count * 1.5)),
         }
         
-        # ✅ FIX: response_format فقط برای مدل‌های خاص (OpenAI) کار می‌کنه
-        # برخی مدل‌ها مثل Grok این رو ساپورت نمی‌کنن و timeout میشن
+        # FIX: response_format only works for specific models (OpenAI)
+        # Some models like Grok don't support this and timeout
         if 'gpt' in self.content_model.lower() or 'openai' in self.content_model.lower():
             payload["response_format"] = {"type": "json_object"}
         

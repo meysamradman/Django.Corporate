@@ -1,16 +1,9 @@
-"""
-Dynamic AI Provider Serializers - سیستم جدید 2025
-"""
 from rest_framework import serializers
 from src.ai.models import AIProvider, AIModel, AdminProviderSettings
 from src.ai.services.state_machine import ModelAccessState
 
 
 class AIProviderListSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای لیست Providers
-    برای پنل ادمین
-    """
     models_count = serializers.SerializerMethodField()
     has_shared_api = serializers.SerializerMethodField()
     
@@ -25,19 +18,13 @@ class AIProviderListSerializer(serializers.ModelSerializer):
         read_only_fields = ['slug', 'total_requests', 'last_used_at']
     
     def get_models_count(self, obj):
-        """تعداد مدل‌های فعال"""
         return obj.models.filter(is_active=True).count()
     
     def get_has_shared_api(self, obj):
-        """آیا API مشترک داره؟"""
         return bool(obj.shared_api_key)
 
 
 class AIProviderDetailSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای جزئیات Provider
-    فقط برای سوپر ادمین
-    """
     models_count = serializers.SerializerMethodField()
     has_shared_api = serializers.SerializerMethodField()
     shared_api_key_preview = serializers.SerializerMethodField()
@@ -61,7 +48,6 @@ class AIProviderDetailSerializer(serializers.ModelSerializer):
         return bool(obj.shared_api_key)
     
     def get_shared_api_key_preview(self, obj):
-        """نمایش محدود API Key"""
         if obj.shared_api_key:
             decrypted = obj.get_shared_api_key()
             if len(decrypted) > 10:
@@ -71,10 +57,6 @@ class AIProviderDetailSerializer(serializers.ModelSerializer):
 
 
 class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای ایجاد و ویرایش Provider
-    فقط برای سوپر ادمین
-    """
     class Meta:
         model = AIProvider
         fields = [
@@ -84,14 +66,13 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_name(self, value):
-        """بررسی یکتا بودن نام"""
         instance = self.instance
         if instance:
-            # در حالت ویرایش
+            # In edit mode
             if AIProvider.objects.exclude(pk=instance.pk).filter(name=value).exists():
                 raise serializers.ValidationError("این نام قبلاً استفاده شده است")
         else:
-            # در حالت ایجاد
+            # In create mode
             if AIProvider.objects.filter(name=value).exists():
                 raise serializers.ValidationError("این نام قبلاً استفاده شده است")
         return value
@@ -117,7 +98,6 @@ class AIModelListSerializer(serializers.ModelSerializer):
         read_only_fields = ['total_requests', 'last_used_at']
     
     def get_is_free(self, obj):
-        """آیا مدل رایگان است؟"""
         return obj.pricing_input is None or obj.pricing_input == 0
 
 
@@ -154,7 +134,6 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
         return obj.pricing_input is None or obj.pricing_input == 0
     
     def get_access_state(self, obj):
-        """محاسبه state دسترسی برای ادمین فعلی"""
         request = self.context.get('request')
         if request and request.user:
             state = ModelAccessState.calculate(obj.provider, obj, request.user)
@@ -162,21 +141,18 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
         return ModelAccessState.NO_ACCESS.value
     
     def get_api_config(self, obj):
-        """✅ Computed Field: API configuration"""
         request = self.context.get('request')
         if request and request.user:
             return obj.get_api_config(request.user)
         return None
     
     def get_actions(self, obj):
-        """✅ Computed Field: Available actions"""
         request = self.context.get('request')
         if request and request.user:
             return obj.get_actions(request.user)
         return None
     
     def get_usage_info(self, obj):
-        """✅ Computed Field: Usage information"""
         request = self.context.get('request')
         if request and request.user:
             return obj.get_usage_info(request.user)
@@ -184,9 +160,6 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
 
 
 class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای ایجاد و ویرایش مدل AI
-    """
     provider_id = serializers.IntegerField(write_only=True)
     
     class Meta:
@@ -199,7 +172,6 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_provider_id(self, value):
-        """بررسی وجود Provider"""
         try:
             AIProvider.objects.get(pk=value, is_active=True)
         except AIProvider.DoesNotExist:
@@ -208,8 +180,23 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         provider_id = validated_data.pop('provider_id')
-        validated_data['provider_id'] = provider_id
-        return super().create(validated_data)
+        model_id = validated_data.get('model_id')
+        
+        # ✅ Check if model already exists with this provider_id and model_id
+        try:
+            existing_model = AIModel.objects.get(
+                provider_id=provider_id,
+                model_id=model_id
+            )
+            # ✅ Model exists → Update it
+            for key, value in validated_data.items():
+                setattr(existing_model, key, value)
+            existing_model.save()
+            return existing_model
+        except AIModel.DoesNotExist:
+            # ✅ Model doesn't exist → Create new one
+            validated_data['provider_id'] = provider_id
+            return super().create(validated_data)
     
     def update(self, instance, validated_data):
         if 'provider_id' in validated_data:
@@ -218,13 +205,10 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class AdminProviderSettingsSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای تنظیمات شخصی ادمین
-    """
     provider_name = serializers.CharField(source='provider.display_name', read_only=True)
     provider_slug = serializers.CharField(source='provider.slug', read_only=True)
     has_personal_api = serializers.SerializerMethodField()
-    api_key = serializers.SerializerMethodField()  # ✅ اضافه کردن api_key برای نمایش
+    api_key = serializers.SerializerMethodField()  # Add api_key for display
     usage_info = serializers.SerializerMethodField()
     api_config = serializers.SerializerMethodField()
     actions = serializers.SerializerMethodField()
@@ -233,7 +217,7 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
         model = AdminProviderSettings
         fields = [
             'id', 'provider_name', 'provider_slug',
-            'has_personal_api', 'api_key', 'use_shared_api',  # ✅ اضافه کردن api_key
+            'has_personal_api', 'api_key', 'use_shared_api',  # Add api_key
             'monthly_limit', 'monthly_usage', 'usage_info',
             'api_config', 'actions',
             'total_requests', 'last_used_at', 'is_active'
@@ -241,44 +225,36 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
         read_only_fields = ['monthly_usage', 'total_requests', 'last_used_at']
     
     def get_has_personal_api(self, obj):
-        """آیا API شخصی دارد؟"""
         return bool(obj.personal_api_key)
     
     def get_api_key(self, obj):
-        """✅ دریافت API key (decrypted) - فقط برای نمایش در admin panel
-        
-        بهینه شده: استفاده از select_related در queryset برای جلوگیری از N+1 query
-        """
-        # ✅ اگر use_shared_api=True است، از shared provider بگیر
-        # obj.provider از select_related لود شده (N+1 ندارد)
+        # If use_shared_api=True, get from shared provider
+        # obj.provider is loaded from select_related (no N+1)
         if obj.use_shared_api and obj.provider and obj.provider.shared_api_key:
             try:
-                # ✅ get_shared_api_key() فقط decrypt می‌کند (query اضافی ندارد)
+                # get_shared_api_key() only decrypts (no extra query)
                 return obj.provider.get_shared_api_key()
             except Exception:
                 return None
-        # ✅ در غیر این صورت از personal API key بگیر
+        # Otherwise get from personal API key
         elif obj.personal_api_key:
             try:
-                # ✅ get_personal_api_key() فقط decrypt می‌کند (query اضافی ندارد)
+                # get_personal_api_key() only decrypts (no extra query)
                 return obj.get_personal_api_key()
             except Exception:
                 return None
         return None
     
     def get_usage_info(self, obj):
-        """اطلاعات مصرف - از Computed Field"""
         return obj.get_usage_info()
     
     def get_api_config(self, obj):
-        """تنظیمات API - از Computed Field"""
         request = self.context.get('request')
         if request and request.user:
             return obj.get_api_config(request.user)
         return None
     
     def get_actions(self, obj):
-        """اقدامات مجاز - از Computed Field"""
         request = self.context.get('request')
         if request and request.user:
             return obj.get_actions(request.user)
@@ -286,9 +262,6 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
 
 
 class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای ویرایش تنظیمات شخصی
-    """
     provider_id = serializers.IntegerField(write_only=True, required=False)
     provider_name = serializers.CharField(write_only=True, required=False)  # ✅ Accept provider_name from frontend
     api_key = serializers.CharField(write_only=True, required=False, allow_blank=True)  # ✅ Alias for personal_api_key
@@ -304,11 +277,10 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
         }
     
     def validate(self, attrs):
-        """بررسی منطق کلی"""
         # ✅ Map provider_name to provider_id
         if 'provider_name' in attrs and 'provider_id' not in attrs:
             try:
-                # ✅ جستجو با name یا slug
+                # Search by name or slug
                 from django.db.models import Q
                 provider = AIProvider.objects.get(
                     Q(name=attrs['provider_name']) | Q(slug=attrs['provider_name']),
@@ -326,14 +298,13 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
         if 'api_key' in attrs and 'personal_api_key' not in attrs:
             attrs['personal_api_key'] = attrs.pop('api_key')
         
-        # ✅ Soft validation: فقط warning، نه خطا
-        # validation واقعی در زمان استفاده از Model (در generation views) انجام می‌شود
-        # اینجا فقط اجازه می‌دهیم تنظیمات ذخیره شود
+        # Soft validation: only warning, not error
+        # Real validation happens when using Model (in generation views)
+        # Here we just allow settings to be saved
         
         return attrs
     
     def validate_provider_id(self, value):
-        """بررسی وجود Provider"""
         try:
             AIProvider.objects.get(pk=value, is_active=True)
         except AIProvider.DoesNotExist:

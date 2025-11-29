@@ -4,6 +4,7 @@ from .openai import OpenAIProvider
 from .huggingface import HuggingFaceProvider
 from .deepseek import DeepSeekProvider
 from .openrouter import OpenRouterProvider
+from .groq import GroqProvider
 
 __all__ = [
     'BaseProvider',
@@ -12,4 +13,5 @@ __all__ = [
     'HuggingFaceProvider',
     'DeepSeekProvider',
     'OpenRouterProvider',
+    'GroqProvider',
 ]

@@ -1,25 +1,24 @@
 import asyncio
 import time
+import asyncio
 from typing import Dict, Any, Optional, List
 from src.ai.models import AIProvider, AdminProviderSettings
-from src.ai.providers import GeminiProvider, OpenAIProvider, DeepSeekProvider, OpenRouterProvider
+from src.ai.providers import GeminiProvider, OpenAIProvider, DeepSeekProvider, OpenRouterProvider, GroqProvider, HuggingFaceProvider
 
 
 class AIChatService:
-    """Service for AI chat - simple chat without database storage"""
     
     PROVIDER_MAP = {
         'gemini': GeminiProvider,
         'openai': OpenAIProvider,
         'deepseek': DeepSeekProvider,
         'openrouter': OpenRouterProvider,
+        'groq': GroqProvider,
+        'huggingface': HuggingFaceProvider,
     }
     
     @classmethod
     def get_provider(cls, provider_name: str, admin=None):
-        """
-        Get AI provider instance using new dynamic system
-        """
         import logging
         logger = logging.getLogger(__name__)
         
@@ -42,13 +41,45 @@ class AIChatService:
             ).first()
             
             if settings:
-                api_key = settings.get_api_key()
-                logger.info(f"🔑 Using {'shared' if settings.use_shared_api else 'personal'} API for {provider_name}")
+                try:
+                    api_key = settings.get_api_key()
+                    api_type = 'SHARED' if settings.use_shared_api else 'PERSONAL'
+                    admin_id = getattr(admin, 'id', 'unknown')
+                    logger.info(f"✅ [Chat Service] Admin {admin_id} using {api_type} API for {provider_name} (use_shared_api={settings.use_shared_api})")
+                except Exception as e:
+                    # If get_api_key() fails (e.g., shared key not set), try fallback
+                    logger.warning(f"⚠️ [Chat Service] get_api_key() failed: {e}")
+                    if settings.use_shared_api:
+                        # Try personal key as fallback
+                        try:
+                            api_key = settings.get_personal_api_key()
+                            if api_key and api_key.strip():
+                                logger.info(f"✅ [Chat Service] Fallback: Using personal API key for {provider_name}")
+                            else:
+                                # Try shared provider key
+                                api_key = provider.get_shared_api_key()
+                                if not api_key or not api_key.strip():
+                                    raise ValueError(f"API Key برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                        except Exception:
+                            # Final fallback: shared provider key
+                            api_key = provider.get_shared_api_key()
+                            if not api_key or not api_key.strip():
+                                raise ValueError(f"API Key برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                    else:
+                        # use_shared_api=False, so personal key should work
+                        api_key = settings.get_personal_api_key()
+                        if not api_key or not api_key.strip():
+                            raise ValueError(f"API Key شخصی برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
             else:
                 api_key = provider.get_shared_api_key()
-                logger.info(f"🔗 Using shared API for {provider_name} (no personal settings)")
+                if not api_key or not api_key.strip():
+                    raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                admin_id = getattr(admin, 'id', 'unknown') if admin else 'unknown'
+                logger.info(f"✅ [Chat Service] Admin {admin_id} using SHARED API for {provider_name} (no personal settings)")
         else:
             api_key = provider.get_shared_api_key()
+            if not api_key or not api_key.strip():
+                raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
             logger.info(f"🔗 Using shared API for {provider_name} (no admin)")
         
         config = provider.config or {}
@@ -64,21 +95,6 @@ class AIChatService:
         admin=None,
         **kwargs
     ) -> Dict[str, Any]:
-        """
-        Send a chat message and get AI response
-        
-        Args:
-            message: User's message
-            provider_name: AI provider ('gemini' or 'openai')
-            conversation_history: Optional list of previous messages [{'role': 'user'|'assistant', 'content': '...'}, ...]
-            **kwargs: Additional settings:
-                - system_message: Custom system message (optional)
-                - temperature: Temperature for generation (default: 0.7)
-                - max_tokens: Maximum tokens in response (default: 2048)
-        
-        Returns:
-            Dict with AI response and metadata
-        """
         start_time = time.time()
         
         try:
@@ -116,19 +132,8 @@ class AIChatService:
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
-        """
-        Get list of available chat providers using new dynamic system
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # Get providers that support chat capability
-        providers = AIProvider.objects.filter(
-            is_active=True,
-            models__capabilities__contains='chat',
-            models__is_active=True
-        ).distinct().values('id', 'slug', 'display_name')
-        
-        logger.info(f"[AI Chat] Active chat providers: {list(providers)}")
-        return list(providers)
+        from src.ai.providers.capabilities import ProviderAvailabilityManager
+        all_providers = ProviderAvailabilityManager.get_available_providers('chat')
+        # Filter based on PROVIDER_MAP
+        return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_MAP]
 

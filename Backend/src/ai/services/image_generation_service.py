@@ -1,5 +1,6 @@
 import asyncio
 import time
+import asyncio
 from typing import Optional, Dict, Any
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -15,7 +16,6 @@ from src.ai.messages.messages import AI_ERRORS
 
 
 class AIImageGenerationService:
-    """Service for managing AI image generation"""
     
     PROVIDER_CLASSES = {
         'gemini': GeminiProvider,
@@ -26,7 +26,6 @@ class AIImageGenerationService:
     
     @classmethod
     def get_provider_instance(cls, provider_name: str, api_key: str, config: Optional[Dict] = None):
-        """Create provider instance"""
         provider_class = cls.PROVIDER_CLASSES.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
@@ -41,19 +40,7 @@ class AIImageGenerationService:
         config: Optional[Dict] = None,
         **kwargs
     ) -> BytesIO:
-        """
-        Generate image asynchronously
-        
-        Args:
-            provider_name: Provider name (gemini, openai, ...)
-            prompt: Image description
-            api_key: Model API key
-            config: Additional settings
-            **kwargs: Additional parameters (size, quality, ...)
-            
-        Returns:
-            BytesIO: Generated image
-        """
+
         provider = cls.get_provider_instance(provider_name, api_key, config)
         
         try:
@@ -71,9 +58,7 @@ class AIImageGenerationService:
         config: Optional[Dict] = None,
         **kwargs
     ) -> BytesIO:
-        """
-        Generate image (sync wrapper for async)
-        """
+
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -92,21 +77,12 @@ class AIImageGenerationService:
         admin=None,
         **kwargs
     ) -> tuple[BytesIO, dict]:
-        """
-        Generate image only without saving to database (for better performance)
+
+        import logging
+        logger = logging.getLogger(__name__)
         
-        Args:
-            provider_name: Provider name (slug)
-            prompt: Image description
-            admin: Admin user instance (optional)
-            **kwargs: Additional parameters
-        
-        Returns:
-            tuple: (image_bytes, metadata)
-        """
-        # ✅ Get appropriate API key using new dynamic system
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-            # Try to get personal settings
+
             try:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
                 settings = AdminProviderSettings.objects.filter(
@@ -115,17 +91,21 @@ class AIImageGenerationService:
                     is_active=True
                 ).first()
                 
+                admin_id = getattr(admin, 'id', 'unknown')
                 if settings:
-                    api_key = settings.get_api_key()  # Uses personal or shared based on use_shared_api
+                    api_key = settings.get_api_key()
+                    api_type = 'SHARED' if settings.use_shared_api else 'PERSONAL'
+                    logger.info(f"✅ [Image Service] Admin {admin_id} using {api_type} API for {provider_name} (use_shared_api={settings.use_shared_api})")
                 else:
-                    # No personal settings, use shared
+                    
                     api_key = provider.get_shared_api_key()
+                    logger.info(f"✅ [Image Service] Admin {admin_id} using SHARED API for {provider_name} (no personal settings)")
                 
                 config = provider.config or {}
             except AIProvider.DoesNotExist:
                 raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
         else:
-            # Use shared API (default)
+
             try:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
                 api_key = provider.get_shared_api_key()
@@ -161,14 +141,10 @@ class AIImageGenerationService:
         admin=None,
         **kwargs
     ) -> ImageMedia:
-        """
-        Generate image and save to Media Library
-        Uses new dynamic AI Provider system
-        """
+
         import logging
         logger = logging.getLogger(__name__)
         
-        # ✅ Get provider using new dynamic system
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
@@ -194,7 +170,6 @@ class AIImageGenerationService:
         
         config = provider.config or {}
         
-        # Generate image
         image_bytes = cls.generate_image(
             provider_name=provider_name,
             prompt=prompt,
@@ -203,7 +178,6 @@ class AIImageGenerationService:
             **kwargs
         )
         
-        # ✅ Track usage
         provider.increment_usage()
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             settings = AdminProviderSettings.objects.filter(
@@ -239,38 +213,18 @@ class AIImageGenerationService:
     
     @classmethod
     def validate_provider_api_key(cls, provider_name: str, api_key: str) -> bool:
-        """
-        Validate API key
-        
-        Args:
-            provider_name: Provider name
-            api_key: API key to validate
-            
-        Returns:
-            bool: Is API key valid?
-        """
+
         try:
             provider = cls.get_provider_instance(provider_name, api_key)
             is_valid = provider.validate_api_key()
             return is_valid
         except Exception as e:
-            # Return True on error to prevent blocking (original behavior)
-            # Some providers may not support validation or may have network issues
-            # Better to allow save and let user test manually
+
             return True
     
     @classmethod
     def get_available_providers(cls) -> list:
-        """
-        Get list of active providers that support image generation
-        Uses new dynamic AI Provider system
-        """
-        providers = AIProvider.objects.filter(
-            is_active=True,
-            models__capabilities__contains='image',
-            models__is_active=True
-        ).distinct().values(
-            'id', 'slug', 'display_name', 'total_requests', 'last_used_at'
-        )
-        return list(providers)
+        from src.ai.providers.capabilities import ProviderAvailabilityManager
+        all_providers = ProviderAvailabilityManager.get_available_providers('image')
+        return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_CLASSES]
 

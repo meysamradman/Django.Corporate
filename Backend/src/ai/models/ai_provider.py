@@ -1,22 +1,3 @@
-"""
-✅ Dynamic AI Provider System - Scalable for 40+ Models (2025)
-
-Performance Optimizations:
-- Redis Cache with 5min TTL
-- DB Indexes on critical fields
-- Batch queries for multiple models
-- Lazy loading for large datasets
-
-Security:
-- Fernet Encryption for API keys
-- Field-level encryption
-- Secure key storage
-
-Scalability:
-- No code changes needed for new providers
-- JSONField for flexible configuration
-- Supports unlimited models per provider
-"""
 from django.db import models
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -31,25 +12,19 @@ from src.core.models.base import BaseModel
 
 
 # ========================================
-# 🔐 Encryption Mixin (DRY)
+# Encryption Mixin (DRY)
 # ========================================
 
 class EncryptedAPIKeyMixin:
-    """
-    Mixin for encrypting/decrypting API keys
-    استفاده مجدد در چندین مدل بدون تکرار کد
-    """
-    
+
     @staticmethod
     def _get_encryption_key():
-        """Get encryption key from SECRET_KEY"""
         secret = settings.SECRET_KEY.encode()
         key = hashlib.sha256(secret).digest()
         return base64.urlsafe_b64encode(key)
     
     @classmethod
     def encrypt_key(cls, api_key: str) -> str:
-        """Encrypt API key"""
         if not api_key or not api_key.strip():
             return ''
         
@@ -67,7 +42,6 @@ class EncryptedAPIKeyMixin:
     
     @classmethod
     def decrypt_key(cls, encrypted_key: str) -> str:
-        """Decrypt API key"""
         if not encrypted_key:
             raise ValidationError("API key خالی است")
         
@@ -81,30 +55,24 @@ class EncryptedAPIKeyMixin:
 
 
 # ========================================
-# 🔄 Cache Mixin (DRY)
+# Cache Mixin (DRY)
 # ========================================
 
 class CacheMixin:
-    """
-    Mixin for Redis caching
-    استفاده مجدد برای همه مدل‌های AI
-    """
+
     CACHE_TIMEOUT = 300  # 5 minutes
     
     def _get_cache_key(self, suffix=''):
-        """Generate cache key"""
         model_name = self.__class__.__name__.lower()
         pk = getattr(self, 'slug', None) or getattr(self, 'id', 'unknown')
         return f"ai_{model_name}_{pk}{f'_{suffix}' if suffix else ''}"
     
     def clear_cache(self):
-        """Clear this instance cache"""
         cache_key = self._get_cache_key()
         cache.delete(cache_key)
     
     @classmethod
     def clear_all_cache(cls, pattern=''):
-        """Clear all cache for this model"""
         try:
             cache.delete_pattern(f"ai_{cls.__name__.lower()}_*{pattern}*")
         except (AttributeError, NotImplementedError):
@@ -113,18 +81,11 @@ class CacheMixin:
 
 
 # ========================================
-# 📦 AIProvider Model
+# AIProvider Model
 # ========================================
 
 class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
-    """
-    ✅ Dynamic AI Provider - Database-Driven
-    
-    مدیر سیستم می‌تونه از پنل Provider جدید اضافه کنه:
-    - OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Groq, ...
-    - بدون تغییر کد یا Migration
-    """
-    
+
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -228,23 +189,20 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         
         super().save(*args, **kwargs)
         self.clear_cache()
-        self.clear_all_cache('active')  # Clear "active providers" cache
+        self.clear_all_cache('active')
     
     def get_shared_api_key(self) -> str:
-        """Get decrypted shared API key"""
         if not self.shared_api_key:
             return ''
         return self.decrypt_key(self.shared_api_key)
     
     def increment_usage(self):
-        """Increment usage count"""
         self.total_requests += 1
         self.last_used_at = timezone.now()
         self.save(update_fields=['total_requests', 'last_used_at'])
     
     @classmethod
     def get_active_providers(cls):
-        """Get all active providers (cached)"""
         cache_key = "ai_providers_active"
         providers = cache.get(cache_key)
         
@@ -260,7 +218,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_provider_by_slug(cls, slug: str):
-        """Get provider by slug (cached)"""
         cache_key = f"ai_provider_{slug}"
         provider = cache.get(cache_key)
         
@@ -275,18 +232,10 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
 
 
 # ========================================
-# 🤖 AIModel Model
+# AIModel Model
 # ========================================
 
 class AIModel(BaseModel, CacheMixin):
-    """
-    ✅ Dynamic AI Model - Database-Driven
-    
-    هر Provider می‌تونه چندین Model داشته باشه:
-    - OpenAI: gpt-4o, dall-e-3, whisper, tts-1
-    - Anthropic: claude-3-opus, claude-3-sonnet
-    - Google: gemini-pro, gemini-flash
-    """
     
     # Capability choices (extensible)
     CAPABILITY_CHOICES = [
@@ -412,26 +361,15 @@ class AIModel(BaseModel, CacheMixin):
         self.clear_all_cache(f"provider_{self.provider.slug}")
     
     def increment_usage(self):
-        """Increment usage count"""
         self.total_requests += 1
         self.last_used_at = timezone.now()
         self.save(update_fields=['total_requests', 'last_used_at'])
     
     def has_capability(self, capability: str) -> bool:
-        """Check if model has capability"""
         return capability in self.capabilities
     
     def get_api_config(self, admin):
-        """
-        ✅ Computed Field: API configuration for this model/admin
-        
-        Returns:
-            {
-                "current_source": "shared" | "personal" | "none",
-                "shared": {"available": bool, "has_access": bool},
-                "personal": {"available": bool, "configured": bool}
-            }
-        """
+
         from src.ai.services.state_machine import ModelAccessState
         
         state = ModelAccessState.calculate(self.provider, self, admin)
@@ -463,15 +401,7 @@ class AIModel(BaseModel, CacheMixin):
         }
     
     def get_actions(self, admin):
-        """
-        ✅ Computed Field: Actions available for this model/admin
-        
-        Returns:
-            {
-                "can_use": bool,
-                "can_configure": bool
-            }
-        """
+
         from src.ai.services.state_machine import ModelAccessState
         
         state = ModelAccessState.calculate(self.provider, self, admin)
@@ -482,12 +412,7 @@ class AIModel(BaseModel, CacheMixin):
         }
     
     def get_usage_info(self, admin):
-        """
-        ✅ Computed Field: Usage information for this admin
-        
-        Returns:
-            {"current": int, "limit": int}
-        """
+
         if not admin:
             return {"current": 0, "limit": 0}
         
@@ -506,7 +431,7 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_provider(cls, provider_slug: str, capability: str | None = None):
-        """Get models by provider (cached)"""
+
         cache_key = f"ai_models_provider_{provider_slug}_{capability or 'all'}"
         models_list = cache.get(cache_key)
         
@@ -529,15 +454,7 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_active_models_bulk(cls, provider_slugs: list[str]):
-        """
-        ✅ Batch query for multiple providers - Optimized for 40+ models
-        
-        Args:
-            provider_slugs: List of provider slugs
-        
-        Returns:
-            Dict[str, List[AIModel]]: Models grouped by provider slug
-        """
+
         cache_key = f"ai_models_bulk_{'_'.join(sorted(provider_slugs))}"
         result = cache.get(cache_key)
         
@@ -563,25 +480,12 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_capability(cls, capability: str, include_inactive: bool = True):
-        """
-        Get all models with capability (cached)
-        
-        Args:
-            capability: Capability to filter by (chat, content, image, audio, etc.)
-            include_inactive: If True, include inactive models (default: True for admin panel)
-        
-        Note:
-            - 'content' capability returns the same models as 'chat' (both are text generation)
-            - 'audio' capability includes models with 'audio', 'speech_to_text', or 'text_to_speech' capabilities
-        """
-        # ✅ برای "content" همان مدل‌های "chat" را برگردان (هر دو text generation هستند)
+
         if capability == 'content':
             capability = 'chat'
         
-        # ✅ برای "audio" مدل‌هایی با 'audio', 'speech_to_text', یا 'text_to_speech' را برگردان
         audio_capabilities = ['audio', 'speech_to_text', 'text_to_speech'] if capability == 'audio' else None
         
-        # Cache key (برای audio از 'audio' استفاده می‌کنیم نه audio_capabilities)
         cache_key = f"ai_models_capability_{capability}_{'all' if include_inactive else 'active'}"
         models_list = cache.get(cache_key)
         
@@ -590,11 +494,9 @@ class AIModel(BaseModel, CacheMixin):
                 provider__is_active=True
             ).select_related('provider').order_by('provider__sort_order', 'sort_order')
             
-            # ✅ اگر include_inactive=False باشد، فقط مدل‌های فعال را بگیر
             if not include_inactive:
                 query = query.filter(is_active=True)
             
-            # ✅ برای audio، مدل‌هایی با هر یک از audio capabilities را برگردان
             if audio_capabilities:
                 models_list = [m for m in query if any(cap in m.capabilities for cap in audio_capabilities)]
             else:
@@ -606,15 +508,10 @@ class AIModel(BaseModel, CacheMixin):
 
 
 # ========================================
-# ⚙️ AdminProviderSettings Model
+# AdminProviderSettings Model
 # ========================================
 
 class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
-    """
-    ✅ تنظیمات شخصی هر ادمین برای هر Provider
-    
-    جایگزین AdminAISettings - اما Dynamic!
-    """
     
     admin = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -685,90 +582,77 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return f"{admin_name} - {self.provider.display_name}"
     
     def save(self, *args, **kwargs):
-        # Encrypt personal API key
+
         if self.personal_api_key:
             self.personal_api_key = self.encrypt_key(self.personal_api_key)
         
         super().save(*args, **kwargs)
     
     def get_personal_api_key(self) -> str:
-        """Get decrypted personal API key"""
+
         if not self.personal_api_key:
             return ''
         return self.decrypt_key(self.personal_api_key)
     
     def get_api_key(self) -> str:
-        """
-        Get API key based on settings (personal or shared)
+
+        import logging
+        logger = logging.getLogger(__name__)
         
-        Logic:
-        - Super Admin: آزاد (personal یا shared)
-        - Normal Admin with use_shared_api=True: 
-            - Check provider.allow_shared_for_normal_admins
-            - If allowed → shared API
-            - If not → ValidationError
-        - Normal Admin with use_shared_api=False: 
-            - Always personal API
-        """
-        # Check if super admin
         is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
+        admin_id = getattr(self.admin, 'id', 'unknown')
+        provider_name = self.provider.display_name
         
         if self.use_shared_api:
-            # Want to use shared API
             if not is_super:
-                # Normal admin - check permission
                 if not self.provider.allow_shared_for_normal_admins:
+                    logger.error(f"❌ [API Key Selection] Admin {admin_id} cannot use shared API for {provider_name} (not allowed)")
                     raise ValidationError(
                         f"استفاده از API مشترک {self.provider.display_name} برای ادمین‌های معمولی مجاز نیست"
                     )
             
-            # Use shared API
             shared_key = self.provider.get_shared_api_key()
             if not shared_key:
+                logger.error(f"❌ [API Key Selection] Shared API key not set for {provider_name}")
                 raise ValidationError(f"API Key مشترک {self.provider.display_name} تنظیم نشده است")
+            
+            logger.info(f"✅ [API Key Selection] Admin {admin_id} using SHARED API for {provider_name} (use_shared_api=True)")
             return shared_key
         else:
-            # Use personal API
             personal_key = self.get_personal_api_key()
             if not personal_key:
+                logger.error(f"❌ [API Key Selection] Personal API key not set for admin {admin_id}, provider {provider_name}")
                 raise ValidationError("API Key شخصی شما تنظیم نشده است")
+            
+            logger.info(f"✅ [API Key Selection] Admin {admin_id} using PERSONAL API for {provider_name} (use_shared_api=False)")
             return personal_key
     
     def increment_usage(self):
-        """Increment usage count"""
         self.total_requests += 1
         self.monthly_usage += 1
         self.last_used_at = timezone.now()
         self.save(update_fields=['total_requests', 'monthly_usage', 'last_used_at'])
     
     def has_reached_limit(self) -> bool:
-        """Check if monthly limit reached"""
         return self.monthly_usage >= self.monthly_limit
     
     def reset_monthly_usage(self):
-        """Reset monthly usage"""
         self.monthly_usage = 0
         self.save(update_fields=['monthly_usage'])
     
     # ========================================
-    # ✅ Computed Fields (for API Response)
+    # Computed Fields (for API Response)
     # ========================================
     
     def get_usage_info(self):
-        """
-        Usage info برای API response
-        فقط داده خام - بدون درصد
-        """
+
         return {
             "current": self.monthly_usage,
             "limit": self.monthly_limit
         }
     
     def get_api_config(self, admin):
-        """
-        API config برای response
-        محاسبه current_source, shared, personal
-        """
+
         from src.ai.services.state_machine import ModelAccessState
         
         state = ModelAccessState.calculate(self.provider, None, admin)
@@ -790,10 +674,7 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         }
     
     def get_actions(self, admin):
-        """
-        Actions برای UI
-        can_use, can_configure
-        """
+
         from src.ai.services.state_machine import ModelAccessState
         
         state = ModelAccessState.calculate(self.provider, None, admin)
