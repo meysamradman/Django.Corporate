@@ -53,7 +53,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 
   const selectedValues = new Set(column?.getFilterValue() as (string | boolean)[])
   const columnId = column?.id;
-  const defaultPlaceholder = placeholder || "انتخاب کنید...";
+  const defaultPlaceholder = placeholder || title || "انتخاب کنید...";
 
   if (type === 'select') {
     return (

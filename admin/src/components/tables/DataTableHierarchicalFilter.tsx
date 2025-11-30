@@ -38,7 +38,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
   const [open, setOpen] = React.useState(false)
   const [selectedLabel, setSelectedLabel] = React.useState<string>("")
   const filterValue = value === undefined ? undefined : String(value);
-  const defaultPlaceholder = placeholder || "انتخاب کنید...";
+  const defaultPlaceholder = placeholder || title || "انتخاب کنید...";
 
   React.useEffect(() => {
     if (filterValue) {
@@ -150,7 +150,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0">
           <Command>
-            <CommandInput placeholder={defaultPlaceholder ?? "انتخاب کنید..."} className="h-9" />
+            <CommandInput placeholder={defaultPlaceholder ?? title ?? "انتخاب کنید..."} className="h-9" />
             <CommandList className="max-h-[300px] overflow-auto">
               <CommandEmpty>نتیجه‌ای یافت نشد</CommandEmpty>
               <CommandGroup>

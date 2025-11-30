@@ -58,6 +58,6 @@ export const getBlogFilterConfig = (
     title: "دسته‌بندی",
     type: "hierarchical",
     options: categoryOptions, // استفاده از گزینه‌های دسته‌بندی
-    placeholder: "انتخاب دسته‌بندی",
+    placeholder: "دسته‌بندی",
   },
 ];

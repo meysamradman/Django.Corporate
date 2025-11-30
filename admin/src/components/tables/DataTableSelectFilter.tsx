@@ -30,7 +30,7 @@ export function DataTableSelectFilter<TValue extends string | boolean>({
 }: DataTableSelectFilterProps<TValue>) {
 
   const filterValue = value === undefined ? undefined : String(value);
-  const defaultPlaceholder = placeholder || "انتخاب کنید...";
+  const defaultPlaceholder = placeholder || title || "انتخاب کنید...";
 
   const handleValueChange = (newValue: string) => {
     if (newValue === "all") {

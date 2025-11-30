@@ -235,7 +235,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                      key={filter.columnId}
                      title={filter.title}
                      items={filter.options as unknown as CategoryItem[]}
-                     placeholder={filter.placeholder || "انتخاب کنید..."}
+                     placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
                      value={clientFilters[filter.columnId as keyof TClientFilters] as string | number | undefined}
                      onChange={(value) => onFilterChange(filter.columnId, value)}
                    />
@@ -249,7 +249,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                      title={filter.title}
                      value={clientFilters[filter.columnId as keyof TClientFilters] as string || undefined}
                      onChange={(value) => onFilterChange(filter.columnId, value)}
-                     placeholder={filter.placeholder || "انتخاب تاریخ..."}
+                     placeholder={filter.placeholder || filter.title || "تاریخ"}
                    />
                  );
                }
@@ -259,7 +259,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                    key={filter.columnId}
                    title={filter.title}
                    options={filter.options || []}
-                   placeholder={filter.placeholder || "انتخاب کنید..."}
+                   placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
                    value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | undefined}
                    onChange={(value) => onFilterChange(filter.columnId, value)}
                  />

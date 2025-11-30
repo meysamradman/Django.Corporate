@@ -14,9 +14,9 @@ export const getUserFilterConfig = (
 ): FilterConfig[] => [
     {
         columnId: "is_active",
-        title: "وضعیت",
+        title: "فعال",
         options: booleanFilterOptions,
-        placeholder: "وضعیت",
+        placeholder: "فعال",
         type: 'select'
     },
 ];

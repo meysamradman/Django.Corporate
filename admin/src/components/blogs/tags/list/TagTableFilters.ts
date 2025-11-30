@@ -27,11 +27,13 @@ export const getTagFilterConfig = (
     title: "فعال",
     type: "select",
     options: booleanFilterOptions,
+    placeholder: "فعال",
   },
   {
     columnId: "is_public",
     title: "عمومی",
     type: "select",
     options: booleanFilterOptions,
+    placeholder: "عمومی",
   },
 ];

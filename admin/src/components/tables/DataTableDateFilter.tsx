@@ -16,8 +16,9 @@ export function DataTableDateFilter({
   title,
   value,
   onChange,
-  placeholder = "انتخاب تاریخ...",
+  placeholder,
 }: DataTableDateFilterProps) {
+  const defaultPlaceholder = placeholder || title || "تاریخ";
   return (
     <div className="flex items-center gap-2">
       {title && (
@@ -31,7 +32,7 @@ export function DataTableDateFilter({
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           className="h-8 w-36 pl-8"
-          placeholder={placeholder}
+          placeholder={defaultPlaceholder}
         />
         <Calendar className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-font-s" />
       </div>
