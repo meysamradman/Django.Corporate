@@ -53,7 +53,14 @@ export function Breadcrumb() {
                 'email': 'ایمیل',
                 'terms': 'قوانین',
                 'page': 'صفحه',
-                'about': 'درباره'
+                'about': 'درباره',
+                'ticket': 'تیکت',
+                'content': 'تولید محتوا',
+                'audio': 'تولید پادکست',
+                'image': 'تولید تصویر',
+                'chatbot': 'چت بات',
+                'models': 'مدلهای ai',
+                'form': 'فرم'
             };
             
             return segmentMap[normalizedSegment] || 

@@ -1,16 +1,7 @@
 "use client";
 
-/**
- * صفحه انتخاب و مدیریت مدل‌های AI بر اساس Capability
- * 
- * این صفحه برای:
- * - انتخاب مدل‌های خاص برای هر capability (چت، تصویر، صدا)
- * - فعال/غیرفعال کردن مدل‌های خاص
- * - فیلتر بر اساس Provider
- */
-
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
-import { MessageSquare, Image, Music, FileText, Settings, Search, Sparkles } from 'lucide-react';
+import { MessageSquare, Image, Music, FileText, Search, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';
 import { Input } from '@/components/elements/Input';
@@ -227,15 +218,7 @@ export default function AIModelsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Settings className="w-6 h-6" />
-                        انتخاب و مدیریت مدل‌های AI
-                    </h1>
-                    <p className="text-font-s mt-1">
-                        انتخاب مدل‌های مناسب برای هر نوع تولید (چت، محتوا، تصویر، صدا)
-                    </p>
-                </div>
+                <h1 className="page-title">انتخاب و مدیریت مدل‌های AI</h1>
             </div>
 
             {/* Tabs */}

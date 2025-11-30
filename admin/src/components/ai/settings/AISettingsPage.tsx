@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Settings, Search, List } from 'lucide-react';
+import { Search, List } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
@@ -345,22 +345,14 @@ export default function AISettingsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-primary" />
-            <h1 className="text-2xl font-bold text-font-p">تنظیمات AI Provider</h1>
-          </div>
-          <Button asChild>
-            <Link href="/settings/ai/models">
-              <List className="w-4 h-4" />
-              انتخاب مدل‌ها
-            </Link>
-          </Button>
-        </div>
-        <p className="text-font-s text-sm">
-          {providers.length} provider
-        </p>
+      <div className="flex items-center justify-between">
+        <h1 className="page-title">تنظیمات AI Provider</h1>
+        <Button asChild>
+          <Link href="/settings/ai/models">
+            <List className="w-4 h-4" />
+            انتخاب مدل‌ها
+          </Link>
+        </Button>
       </div>
 
       {/* Admin Access Settings - REMOVED - Global Control حالا داخل هر provider card هست */}
