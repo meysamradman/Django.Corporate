@@ -14,6 +14,7 @@ import {
   OnChangeFn,
 } from "@tanstack/react-table"
 import { TablePaginationState } from '@/types/shared/pagination';
+import { cn } from "@/core/utils/cn";
 
 import { Button } from "@/components/elements/Button";
 import ProtectedButton from "@/core/permissions/components/ProtectedButton";
@@ -68,6 +69,7 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   onPrint?: () => void;
   pageSizeOptions?: number[];
   searchValue?: string;
+  customHeaderActions?: React.ReactNode;
 }
 
 export function DataTable<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>>({
@@ -89,6 +91,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   onPrint,
   pageSizeOptions = [10, 20, 30, 50],
   searchValue,
+  customHeaderActions,
 }: DataTableProps<TData, TValue, TClientFilters>) {
 
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(controlledState.columnVisibility ?? {});
@@ -222,6 +225,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
             </div>
 
            <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
+             {customHeaderActions}
              {filterConfig.map((filter) => {
                // برای فیلترهایی که مربوط به ستون جدول هستند
                // بررسی می‌کنیم که ستون وجود دارد
@@ -273,92 +277,119 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
       <CardContent className="p-0">
           <div className="w-full">
             <Table className="w-full">
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow 
-                    key={headerGroup.id}
-                  >
-                    {headerGroup.headers.map((header) => {
-                      return (
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow 
+                      key={headerGroup.id}
+                    >
+                      {headerGroup.headers.map((header) => {
+                        return (
                         <TableHead 
                           key={header.id} 
                           colSpan={header.colSpan}
                           style={{ 
-                            width: header.column.columnDef.size === 60 ? '60px' : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : undefined),
-                            minWidth: header.column.columnDef.size === 60 ? '60px' : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : (header.column.columnDef.minSize || header.getSize())),
-                            maxWidth: header.column.columnDef.maxSize === 60 ? '60px' : undefined,
+                            width: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.size 
+                              ? `${header.column.columnDef.size}px` 
+                              : header.column.columnDef.size === 60 
+                                ? '60px' 
+                                : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : undefined),
+                            minWidth: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.minSize
+                              ? `${header.column.columnDef.minSize}px`
+                              : header.column.columnDef.size === 60 
+                                ? '60px' 
+                                : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : (header.column.columnDef.minSize || header.getSize())),
+                            maxWidth: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.maxSize
+                              ? `${header.column.columnDef.maxSize}px`
+                              : header.column.columnDef.maxSize === 60 
+                                ? '60px' 
+                                : undefined,
                             ...(header.column.id === 'select' && {
                               paddingLeft: '0.5rem',
                               paddingRight: '0.5rem'
                             })
                           }}
-                          className={header.column.id === 'select' ? 'text-center' : 'text-right'}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell 
-                          key={cell.id}
-                          style={{ 
-                            width: cell.column.columnDef.size === 60 ? '60px' : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : undefined),
-                            minWidth: cell.column.columnDef.size === 60 ? '60px' : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : (cell.column.columnDef.minSize || cell.column.getSize())),
-                            maxWidth: cell.column.columnDef.maxSize === 60 ? '60px' : undefined,
-                            ...(cell.column.id === 'select' && {
-                              paddingLeft: '0.5rem',
-                              paddingRight: '0.5rem'
-                            }),
-                            ...(cell.column.id === 'actions' && {
-                              paddingLeft: '1.3rem',
-                              paddingRight: '0.9rem'
-                            })
-                          }}
-                          className={cell.column.id === 'select' ? 'text-center' : undefined}
-                          {...(cell.column.id === 'actions' && {
-                            'data-actions': 'true'
-                          })}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
+                          className={header.column.id === 'select' || header.column.id === 'order' || header.column.id === 'actions' ? 'text-center' : 'text-right'}
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        )
+                      })}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center p-0"
-                    >
-                      {isLoading ? (
-                        <TableLoadingCompact />
-                      ) : (
-                        <div className="py-8 text-font-s">
-                          داده‌ای یافت نشد
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell 
+                            key={cell.id}
+                            style={{ 
+                              width: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.size 
+                                ? `${cell.column.columnDef.size}px` 
+                                : cell.column.columnDef.size === 60 
+                                  ? '60px' 
+                                  : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : undefined),
+                              minWidth: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.minSize
+                                ? `${cell.column.columnDef.minSize}px`
+                                : cell.column.columnDef.size === 60 
+                                  ? '60px' 
+                                  : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : (cell.column.columnDef.minSize || cell.column.getSize())),
+                              maxWidth: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.maxSize
+                                ? `${cell.column.columnDef.maxSize}px`
+                                : cell.column.columnDef.maxSize === 60 
+                                  ? '60px' 
+                                  : undefined,
+                              ...(cell.column.id === 'select' && {
+                                paddingLeft: '0.5rem',
+                                paddingRight: '0.5rem'
+                              }),
+                              ...(cell.column.id === 'actions' && {
+                                paddingLeft: '1.3rem',
+                                paddingRight: '0.9rem'
+                              })
+                            }}
+                            className={cn(
+                              cell.column.id === 'select' || cell.column.id === 'order' || cell.column.id === 'actions' ? 'text-center' : undefined,
+                              (cell.column.id === 'question' || cell.column.id === 'answer') && 'whitespace-normal'
+                            )}
+                            {...(cell.column.id === 'actions' && {
+                              'data-actions': 'true'
+                            })}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center p-0"
+                      >
+                        {isLoading ? (
+                          <TableLoadingCompact />
+                        ) : (
+                          <div className="py-8 text-font-s">
+                            داده‌ای یافت نشد
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
             </Table>
           </div>
       </CardContent>

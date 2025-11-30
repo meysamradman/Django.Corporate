@@ -18,7 +18,7 @@ export function AIChatButton() {
 
   return (
     <div
-      className="relative inline-flex h-10 w-10 items-center justify-center cursor-pointer text-font-p hover:text-foreground transition-colors"
+      className="relative inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer text-font-p hover:text-foreground transition-colors shrink-0"
       aria-label="چت با AI"
       role="button"
       tabIndex={0}

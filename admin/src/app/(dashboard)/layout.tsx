@@ -27,7 +27,7 @@ export default function MainLayout({children}: MainLayoutProps) {
     return (
         <PermissionProvider>
             <AIChatProvider>
-        <div className="flex grow">
+        <div>
             <Sidebar
                 isOpen={sidebarOpen}
                 onToggle={toggleSidebar}
@@ -35,7 +35,7 @@ export default function MainLayout({children}: MainLayoutProps) {
                 onContentToggle={toggleContent}
             />
             <div className={cn(
-                "flex flex-col grow transition-all duration-300",
+                "transition-all duration-300",
                 contentCollapsed ? "lg:mr-14" : "lg:mr-80"
             )}>
                 <Header
@@ -44,10 +44,10 @@ export default function MainLayout({children}: MainLayoutProps) {
                     onContentToggle={toggleContent}
                     hasSubMenu={selectedItemHasSubMenu}
                 />
-                <main className="flex flex-1 m-8">
+                <main className="m-8 min-w-0">
                     <div
                         className={cn(
-                            "grow transition-[max-width] duration-300 ease-in-out",
+                            "w-full max-w-full min-w-0 transition-[max-width] duration-300 ease-in-out",
                             contentCollapsed
                                 ? "max-w-full"
                                 : ""

@@ -6,8 +6,6 @@ import { FAQ } from "@/api/chatbot/route";
 import { DataTable } from "@/components/tables/DataTable";
 import { ColumnDef, SortingState, OnChangeFn } from "@tanstack/react-table";
 import { TablePaginationState } from "@/types/shared/pagination";
-import { Button } from "@/components/elements/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";
@@ -124,27 +122,27 @@ export function FAQManagement() {
     {
       id: "order",
       accessorKey: "order",
-      header: () => <div className="table-header-text">ترتیب</div>,
+      header: () => <div className="table-header-text text-center">ترتیب</div>,
       cell: ({ row }) => (
-        <div className="table-badge-container justify-center">
-          <Badge variant="outline" className="font-mono">
+        <div className="flex items-center justify-center w-full">
+          <Badge variant="outline" className="font-mono text-xs">
             {row.original.order}
           </Badge>
         </div>
       ),
       enableSorting: true,
       enableHiding: true,
-      size: 60,
-      minSize: 60,
-      maxSize: 60,
+      size: 80,
+      minSize: 80,
+      maxSize: 80,
     },
     {
       accessorKey: "question",
       header: () => <div className="table-header-text">سوال</div>,
       cell: ({ row }) => (
-        <div className="table-cell-primary table-cell-wide">
-          <TruncatedText 
-            text={row.original.question} 
+        <div className="table-cell-primary table-cell-wide min-w-0">
+          <TruncatedText
+            text={row.original.question}
             maxLength={50}
           />
         </div>
@@ -152,16 +150,15 @@ export function FAQManagement() {
       enableSorting: true,
       enableHiding: true,
       size: 200,
-      minSize: 200,
-      maxSize: 200,
+      minSize: 150,
     },
     {
       accessorKey: "answer",
       header: () => <div className="table-header-text">پاسخ</div>,
       cell: ({ row }) => (
-        <div className="table-cell-muted table-cell-wide">
-          <TruncatedText 
-            text={row.original.answer} 
+        <div className="table-cell-muted table-cell-wide min-w-0">
+          <TruncatedText
+            text={row.original.answer}
             maxLength={50}
           />
         </div>
@@ -169,8 +166,7 @@ export function FAQManagement() {
       enableSorting: true,
       enableHiding: true,
       size: 200,
-      minSize: 200,
-      maxSize: 200,
+      minSize: 150,
     },
     {
       accessorKey: "keywords",
@@ -200,6 +196,7 @@ export function FAQManagement() {
       },
       enableSorting: false,
       enableHiding: true,
+      size: 180,
       minSize: 150,
     },
     {
@@ -214,13 +211,15 @@ export function FAQManagement() {
       ),
       enableSorting: true,
       enableHiding: true,
-      minSize: 150,
+      size: 120,
+      minSize: 120,
+      maxSize: 120,
     },
     {
       id: "actions",
-      header: () => <div className="w-[60px] text-center"></div>,
+      header: () => <div className="text-center"></div>,
       cell: ({ row }) => (
-        <div className="flex items-center justify-center w-[60px]">
+        <div className="flex items-center justify-center w-full">
           <DataTableRowActions
             row={row}
             actions={[
@@ -243,55 +242,36 @@ export function FAQManagement() {
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 60,
-      minSize: 60,
-      maxSize: 60,
+      size: 80,
+      minSize: 80,
+      maxSize: 80,
     },
   ];
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
     );
   }
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              مدیریت سوالات متداول
-            </CardTitle>
-            <ProtectedButton onClick={handleCreate} permission="chatbot.manage">
+      <div className="space-y-6">
+        {/* Content Area */}
+        {allFAQs.length === 0 ? (
+          <div className="text-center py-12 border border-br rounded-lg bg-card">
+            <MessageSquare className="h-12 w-12 text-font-s mx-auto mb-4" />
+            <p className="text-font-s mb-4">هنوز سوال متداولی اضافه نشده است.</p>
+            <ProtectedButton onClick={handleCreate} permission="chatbot.manage" variant="outline">
               <Plus className="h-4 w-4" />
-              افزودن سوال
+              افزودن اولین سوال
             </ProtectedButton>
           </div>
-        </CardHeader>
-        <CardContent>
-          {allFAQs.length === 0 ? (
-            <div className="text-center py-12">
-              <MessageSquare className="h-12 w-12 text-font-s mx-auto mb-4" />
-              <p className="text-font-s mb-4">هنوز سوال متداولی اضافه نشده است.</p>
-              <ProtectedButton onClick={handleCreate} permission="chatbot.manage" variant="outline">
-                <Plus className="h-4 w-4" />
-                افزودن اولین سوال
-              </ProtectedButton>
-            </div>
-          ) : (
+        ) : (
+          <div className="w-full overflow-hidden md:[&_[data-slot=table-container]]:overflow-visible [&_[data-slot=table-container]]:overflow-x-auto">
             <DataTable
               columns={columns}
               data={paginatedFAQs}
@@ -300,16 +280,22 @@ export function FAQManagement() {
               onPaginationChange={handlePaginationChange}
               onSortingChange={handleSortingChange}
               clientFilters={{}}
-              onFilterChange={() => {}}
+              onFilterChange={() => { }}
               state={{
                 pagination,
                 sorting,
               }}
               pageSizeOptions={[10, 20, 50]}
+              customHeaderActions={
+                <ProtectedButton onClick={handleCreate} permission="chatbot.manage" size="sm">
+                  <Plus className="h-4 w-4" />
+                  افزودن سوال
+                </ProtectedButton>
+              }
             />
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
 
       <FAQDialog
         isOpen={isDialogOpen}
