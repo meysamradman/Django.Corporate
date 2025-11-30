@@ -377,7 +377,7 @@ export default function AISettingsPage() {
                   id="search-providers"
                   name="search_providers"
                   autoComplete="off"
-                  placeholder="جستجو در Provider ها..."
+                  placeholder="جستجو..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pr-8 h-8 text-sm"

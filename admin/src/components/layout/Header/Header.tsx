@@ -8,6 +8,7 @@ import { Button } from "@/components/elements/Button";
 import { Breadcrumb } from "@/components/layout/Breadcrumb/Breadcrumb";
 import { Notifications } from "@/components/layout/Header/Notifications";
 import { DarkMode } from "@/components/theme/DarkMode";
+import { AIChatButton } from "@/components/layout/Header/AIChatButton";
 import { cn } from "@/core/utils/cn";
 
 
@@ -59,6 +60,7 @@ export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSu
 
       {/* Right side: Actions (fixed size) */}
       <div className="flex items-center gap-1 sm:gap-2">
+        <AIChatButton />
         <DarkMode />
         <Notifications />
       </div>

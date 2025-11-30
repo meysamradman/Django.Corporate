@@ -14,7 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { generateSlug } from '@/core/utils/slugUtils';
-import { Tag } from "lucide-react";
+import { Tag, Loader2, Save, List } from "lucide-react";
 
 export default function CreateTagPage() {
   const router = useRouter();
@@ -81,12 +81,19 @@ export default function CreateTagPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       <div className="flex items-center justify-between">
         <h1 className="page-title">ایجاد تگ جدید</h1>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/portfolios/tags")}
+        >
+          <List className="h-4 w-4" />
+          نمایش لیست
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form id="tag-form" onSubmit={handleSubmit}>
         <CardWithIcon
           icon={Tag}
           title="اطلاعات تگ"
@@ -168,16 +175,35 @@ export default function CreateTagPage() {
               >
                 انصراف
               </Button>
-              <Button
-                type="submit"
-                disabled={createTagMutation.isPending}
-              >
-                {createTagMutation.isPending ? "در حال ایجاد..." : "ایجاد تگ"}
-              </Button>
             </div>
             </div>
         </CardWithIcon>
       </form>
+
+      {/* Sticky Save Buttons Footer */}
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+        <Button
+          type="button"
+          onClick={() => {
+            const form = document.getElementById('tag-form') as HTMLFormElement;
+            if (form) form.requestSubmit();
+          }}
+          size="lg"
+          disabled={createTagMutation.isPending}
+        >
+          {createTagMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال ایجاد...
+            </>
+          ) : (
+            <>
+              <Save className="h-5 w-5" />
+              ایجاد تگ
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

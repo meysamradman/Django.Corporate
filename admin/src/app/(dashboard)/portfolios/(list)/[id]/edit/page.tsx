@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
   FileText, Edit2, Image, Search,
-  Loader2, Save
+  Loader2, Save, List
 } from "lucide-react";
 import { Media } from "@/types/shared/media";
 import { Portfolio } from "@/types/portfolio/portfolio";
@@ -342,47 +342,24 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">ویرایش نمونه‌کار</h1>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/portfolios")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
           {!editMode && (
             <Button onClick={() => setEditMode(true)}>
               <Edit2 />
               ویرایش
             </Button>
-          )}
-          {editMode && (
-            <>
-              <Button onClick={handleSaveDraft} variant="outline" disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="animate-spin" />
-                    در حال ذخیره...
-                  </>
-                ) : (
-                  <>
-                    <Save />
-                    ذخیره پیش‌نویس
-                  </>
-                )}
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="animate-spin" />
-                    در حال ذخیره...
-                  </>
-                ) : (
-                  <>
-                    <Save />
-                    ذخیره
-                  </>
-                )}
-              </Button>
-            </>
           )}
         </div>
       </div>
@@ -446,6 +423,47 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
           )}
         </Suspense>
       </Tabs>
+
+      {/* Sticky Save Buttons Footer */}
+      {editMode && (
+        <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+          <Button 
+            onClick={handleSaveDraft} 
+            variant="outline" 
+            size="lg"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                در حال ذخیره...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5" />
+                ذخیره پیش‌نویس
+              </>
+            )}
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            size="lg"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                در حال ذخیره...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5" />
+                ذخیره
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { generateSlug } from '@/core/utils/slugUtils';
+import { Loader2, Save, List } from "lucide-react";
 
 export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -115,12 +116,19 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       <div className="flex items-center justify-between">
         <h1 className="page-title">ویرایش تگ</h1>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/portfolios/tags")}
+        >
+          <List className="h-4 w-4" />
+          نمایش لیست
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form id="tag-edit-form" onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
             <CardTitle>اطلاعات تگ</CardTitle>
@@ -178,24 +186,34 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
               <Label htmlFor="is_public">عمومی</Label>
             </div>
 
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                انصراف
-              </Button>
-              <Button
-                type="submit"
-                disabled={updateTagMutation.isPending}
-              >
-                {updateTagMutation.isPending ? "در حال به‌روزرسانی..." : "به‌روزرسانی تگ"}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </form>
+
+      {/* Sticky Save Buttons Footer */}
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+        <Button
+          type="button"
+          onClick={() => {
+            const form = document.getElementById('tag-edit-form') as HTMLFormElement;
+            if (form) form.requestSubmit();
+          }}
+          size="lg"
+          disabled={updateTagMutation.isPending}
+        >
+          {updateTagMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال به‌روزرسانی...
+            </>
+          ) : (
+            <>
+              <Save className="h-5 w-5" />
+              به‌روزرسانی تگ
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

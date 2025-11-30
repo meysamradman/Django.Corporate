@@ -37,11 +37,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/elements/Select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/elements/DropdownMenu";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { formApi } from "@/api/form/route";
 import { ContactFormField, ContactFormFieldCreate } from "@/types/form/contactForm";
 import { toast } from "@/components/elements/Sonner";
-import { Plus, Edit, Trash2, FileText, Loader2, Globe, Smartphone } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Loader2, Globe, Smartphone, MoreVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Badge } from "@/components/elements/Badge";
 
@@ -288,25 +294,17 @@ export function FormFieldsSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="w-12 text-right"></TableHead>
                                         <TableHead className="text-right">کلید فیلد</TableHead>
                                         <TableHead className="text-right">برچسب</TableHead>
                                         <TableHead className="text-right">نوع</TableHead>
                                         <TableHead className="text-right">پلتفرم</TableHead>
                                         <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-right">عملیات</TableHead>
+                                        <TableHead className="w-[60px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {fields.map((field) => (
                                         <TableRow key={field.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell>
-                                                <div className="flex items-center justify-center">
-                                                    <div className={`p-1.5 rounded-lg ${field.is_active ? 'bg-blue' : 'bg-gray'}`}>
-                                                        <FileText className={`h-4 w-4 ${field.is_active ? 'text-blue-1' : 'text-gray-1'}`} />
-                                                    </div>
-                                                </div>
-                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="font-medium font-mono text-sm">{field.field_key}</span>
                                             </TableCell>
@@ -343,23 +341,39 @@ export function FormFieldsSection() {
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex items-center justify-end gap-2">
+                                                <div className="flex items-center justify-center">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
                                                     <Button
                                                         variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
-                                                        onClick={() => handleOpenDialog(field)}
+                                                                className="flex h-8 w-8 p-0 data-[state=open]:bg-bg"
                                                     >
-                                                        <Edit />
+                                                                <MoreVertical className="h-4 w-4" />
+                                                                <span className="sr-only">باز کردن منو</span>
                                                     </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
-                                                        onClick={() => handleDeleteClick(field.id)}
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="start" className="w-[160px]">
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleOpenDialog(field);
+                                                                }}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                                ویرایش
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteClick(field.id);
+                                                                }}
+                                                                variant="destructive"
                                                     >
-                                                        <Trash2 />
-                                                    </Button>
+                                                                <Trash2 className="h-4 w-4" />
+                                                                حذف
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

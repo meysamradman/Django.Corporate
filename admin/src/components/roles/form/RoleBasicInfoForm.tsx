@@ -13,6 +13,7 @@ interface RoleBasicInfoFormProps<T extends { name: string; description?: string;
   onSubmit: (data: T) => Promise<void>;
   isSubmitting: boolean;
   submitButtonText?: string;
+  hideSubmitButton?: boolean;
 }
 
 export function RoleBasicInfoForm<T extends { name: string; description?: string; permission_ids?: number[] }>({
@@ -20,6 +21,7 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
   onSubmit,
   isSubmitting,
   submitButtonText = "بروزرسانی",
+  hideSubmitButton = false,
 }: RoleBasicInfoFormProps<T>) {
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = form;
@@ -53,24 +55,26 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
           {...register("description")}
         />
 
-        <div className="flex gap-4 justify-end">
-          <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {submitButtonText}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
-            لغو
-          </Button>
-        </div>
+        {!hideSubmitButton && (
+          <div className="flex gap-4 justify-end">
+            <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {submitButtonText}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSubmitting}
+            >
+              لغو
+            </Button>
+          </div>
+        )}
       </form>
     </CardWithIcon>
   );

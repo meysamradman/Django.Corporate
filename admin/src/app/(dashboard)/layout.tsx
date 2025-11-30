@@ -9,6 +9,7 @@ import { RoutePermissionGuard } from "@/core/permissions/components/RoutePermiss
 import { MediaContextProvider } from "@/core/media/MediaContext";
 import { PermissionProvider } from "@/core/permissions/context/PermissionContext";
 import { FloatingAIChat } from "@/components/ai/chat/FloatingAIChat";
+import { AIChatProvider } from "@/components/ai/chat/AIChatContext";
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -24,6 +25,8 @@ export default function MainLayout({children}: MainLayoutProps) {
     } = useAdminStore();
 
     return (
+        <PermissionProvider>
+            <AIChatProvider>
         <div className="flex grow">
             <Sidebar
                 isOpen={sidebarOpen}
@@ -50,18 +53,18 @@ export default function MainLayout({children}: MainLayoutProps) {
                                 : ""
                         )}
                     >
-                        <PermissionProvider>
                             <MediaContextProvider>
                                 <RoutePermissionGuard>
                                     {children}
                                 </RoutePermissionGuard>
                             </MediaContextProvider>
-                        </PermissionProvider>
                     </div>
                 </main>
                 {/* Floating AI Chat Widget */}
                 <FloatingAIChat />
             </div>
         </div>
+            </AIChatProvider>
+        </PermissionProvider>
     );
 }

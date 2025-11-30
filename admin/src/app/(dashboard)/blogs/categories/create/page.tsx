@@ -19,7 +19,7 @@ import { toast } from "@/components/elements/Sonner";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
-import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home } from "lucide-react";
+import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List } from "lucide-react";
 
 export default function CreateCategoryPage() {
   const router = useRouter();
@@ -175,12 +175,19 @@ export default function CreateCategoryPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       <div className="flex items-center justify-between">
         <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/blogs/categories")}
+        >
+          <List className="h-4 w-4" />
+          نمایش لیست
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form id="category-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           {/* Left Column: Form Fields */}
           <div className="lg:col-span-4 space-y-6">
@@ -346,12 +353,6 @@ export default function CreateCategoryPage() {
                   >
                     انصراف
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={createCategoryMutation.isPending}
-                  >
-                    {createCategoryMutation.isPending ? "در حال ایجاد..." : "ایجاد دسته‌بندی"}
-                  </Button>
                 </div>
                 </div>
             </CardWithIcon>
@@ -428,6 +429,31 @@ export default function CreateCategoryPage() {
         showTabs={true}
         context="blog"
       />
+
+      {/* Sticky Save Buttons Footer */}
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+        <Button
+          type="button"
+          onClick={() => {
+            const form = document.getElementById('category-form') as HTMLFormElement;
+            if (form) form.requestSubmit();
+          }}
+          size="lg"
+          disabled={createCategoryMutation.isPending}
+        >
+          {createCategoryMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال ایجاد...
+            </>
+          ) : (
+            <>
+              <Save className="h-5 w-5" />
+              ایجاد دسته‌بندی
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

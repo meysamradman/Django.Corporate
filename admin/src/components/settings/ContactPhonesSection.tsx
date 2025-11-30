@@ -27,6 +27,7 @@ import { ContactPhone } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Phone, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
+import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 
 export function ContactPhonesSection() {
     const [phones, setPhones] = useState<ContactPhone[]>([]);
@@ -167,27 +168,15 @@ export function ContactPhonesSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="w-12 text-right">
-                                            <div className="flex items-center justify-center">
-                                                <Phone className="h-4 w-4 text-green-1" />
-                                            </div>
-                                        </TableHead>
                                         <TableHead className="text-right">شماره تماس</TableHead>
                                         <TableHead className="text-right">برچسب</TableHead>
                                         <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-right">عملیات</TableHead>
+                                        <TableHead className="w-[60px] text-center"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {phones.map((phone) => (
                                         <TableRow key={phone.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell>
-                                                <div className="flex items-center justify-center">
-                                                    <div className="p-1.5 bg-green rounded-lg">
-                                                        <Phone className="h-4 w-4 text-green-1" />
-                                                    </div>
-                                                </div>
-                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="font-medium">{phone.phone_number}</span>
                                             </TableCell>
@@ -199,24 +188,24 @@ export function ContactPhonesSection() {
                                                     {phone.order}
                                                 </span>
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
-                                                        onClick={() => handleOpenDialog(phone)}
-                                                    >
-                                                        <Edit />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
-                                                        onClick={() => handleDeleteClick(phone.id)}
-                                                    >
-                                                        <Trash2 />
-                                                    </Button>
+                                            <TableCell className="w-[60px]">
+                                                <div className="flex items-center justify-center">
+                                                    <DataTableRowActions
+                                                        row={{ original: phone } as any}
+                                                        actions={[
+                                                            {
+                                                                label: "ویرایش",
+                                                                icon: <Edit className="h-4 w-4" />,
+                                                                onClick: () => handleOpenDialog(phone),
+                                                            },
+                                                            {
+                                                                label: "حذف",
+                                                                icon: <Trash2 className="h-4 w-4" />,
+                                                                onClick: () => handleDeleteClick(phone.id),
+                                                                isDestructive: true,
+                                                            },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </TableCell>
                                         </TableRow>

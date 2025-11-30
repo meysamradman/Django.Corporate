@@ -3,7 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
-import { Settings, Phone, Smartphone, Mail, Share2, Save } from "lucide-react";
+import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";
 import {
     GeneralSettingsForm,
     ContactPhonesSection,
@@ -14,24 +14,15 @@ import {
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("general");
-    const generalFormRef = useRef<{ handleSave: () => void }>(null);
+    const generalFormRef = useRef<{ handleSave: () => void; saving: boolean }>(null);
     
     // 🚀 Pre-computed permission flag
     const { canManageSettings } = useUIPermissions();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-28 relative">
             <div className="flex items-center justify-between">
                 <h1 className="page-title">تنظیمات سیستم</h1>
-                {activeTab === "general" && (
-                    <ProtectedButton
-                        onClick={() => generalFormRef.current?.handleSave()}
-                        permission="settings.manage"
-                    >
-                        <Save className="h-4 w-4" />
-                        ذخیره تنظیمات
-                    </ProtectedButton>
-                )}
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -78,6 +69,30 @@ export default function SettingsPage() {
                     {activeTab === "social" && <SocialMediaSection />}
                 </TabsContent>
             </Tabs>
+
+            {/* Sticky Save Buttons Footer */}
+            {activeTab === "general" && canManageSettings && (
+                <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+                    <ProtectedButton
+                        onClick={() => generalFormRef.current?.handleSave()}
+                        permission="settings.manage"
+                        size="lg"
+                        disabled={generalFormRef.current?.saving}
+                    >
+                        {generalFormRef.current?.saving ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                در حال ذخیره...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-5 w-5" />
+                                ذخیره تنظیمات
+                            </>
+                        )}
+                    </ProtectedButton>
+                </div>
+            )}
         </div>
     );
 }

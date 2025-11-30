@@ -15,6 +15,7 @@ import { Save, Loader2, FileText, Image as ImageIcon } from "lucide-react";
 
 export interface GeneralSettingsFormRef {
     handleSave: () => void;
+    saving: boolean;
 }
 
 export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, ref) => {
@@ -109,7 +110,8 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                 return;
             }
             handleSave();
-        }
+        },
+        saving
     }));
 
     if (loading) {

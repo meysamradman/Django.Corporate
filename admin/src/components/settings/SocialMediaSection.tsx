@@ -29,6 +29,7 @@ import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";
 import { Media } from "@/types/shared/media";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
+import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 
 export function SocialMediaSection() {
     const [socialMedias, setSocialMedias] = useState<SocialMedia[]>([]);
@@ -180,36 +181,16 @@ export function SocialMediaSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="w-12 text-right">
-                                            <div className="flex items-center justify-center">
-                                                <Share2 className="h-4 w-4 text-orange-1" />
-                                            </div>
-                                        </TableHead>
                                         <TableHead className="text-right">نام</TableHead>
                                         <TableHead className="text-right">لینک</TableHead>
                                         <TableHead className="w-24 text-right">آیکون</TableHead>
                                         <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-right">عملیات</TableHead>
+                                        <TableHead className="w-[60px] text-center"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {socialMedias.map((socialMedia) => (
                                         <TableRow key={socialMedia.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell>
-                                                <div className="flex items-center justify-center">
-                                                    <div className="p-1.5 bg-orange rounded-lg">
-                                                        {socialMedia.icon_data ? (
-                                                            <img
-                                                                src={socialMedia.icon_data.file_url}
-                                                                alt={socialMedia.name}
-                                                                className="h-4 w-4 object-cover rounded"
-                                                            />
-                                                        ) : (
-                                                            <Share2 className="h-4 w-4 text-orange-1" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="font-medium">{socialMedia.name}</span>
                                             </TableCell>
@@ -237,24 +218,24 @@ export function SocialMediaSection() {
                                                     {socialMedia.order}
                                                 </span>
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
-                                                        onClick={() => handleOpenDialog(socialMedia)}
-                                                    >
-                                                        <Edit />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
-                                                        onClick={() => handleDeleteClick(socialMedia.id)}
-                                                    >
-                                                        <Trash2 />
-                                                    </Button>
+                                            <TableCell className="w-[60px]">
+                                                <div className="flex items-center justify-center">
+                                                    <DataTableRowActions
+                                                        row={{ original: socialMedia } as any}
+                                                        actions={[
+                                                            {
+                                                                label: "ویرایش",
+                                                                icon: <Edit className="h-4 w-4" />,
+                                                                onClick: () => handleOpenDialog(socialMedia),
+                                                            },
+                                                            {
+                                                                label: "حذف",
+                                                                icon: <Trash2 className="h-4 w-4" />,
+                                                                onClick: () => handleDeleteClick(socialMedia.id),
+                                                                isDestructive: true,
+                                                            },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </TableCell>
                                         </TableRow>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useForm, SubmitHandler} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -28,7 +28,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function PanelSettingsForm() {
+export interface PanelSettingsFormRef {
+    isSubmitting: boolean;
+    hasChanges: boolean;
+    handleSubmit: () => void;
+}
+
+const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
     
@@ -124,6 +130,15 @@ export default function PanelSettingsForm() {
                       selectedFavicon !== (panelSettings?.favicon_detail || panelSettings?.favicon || null) || 
                       logoDeleted || faviconDeleted;
 
+    useImperativeHandle(ref, () => ({
+        isSubmitting,
+        hasChanges,
+        handleSubmit: () => {
+            const formElement = document.getElementById('panel-settings-form') as HTMLFormElement;
+            if (formElement) formElement.requestSubmit();
+        }
+    }));
+
     if (isLoadingSettings) {
         return (
             <Card>
@@ -167,7 +182,7 @@ export default function PanelSettingsForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form id="panel-settings-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {brandingCards.map((card) => (
                         <Card
@@ -231,18 +246,12 @@ export default function PanelSettingsForm() {
                         />
                 </CardWithIcon>
 
-                <div className="flex justify-end">
-                    <ProtectedButton 
-                        type="submit" 
-                        permission="panel.manage"
-                        disabled={isSubmitting || !hasChanges}
-                    >
-                        <Save className="w-4 h-4" />
-                        {isSubmitting ? "در حال ذخیره..." : "ذخیره تغییرات"}
-                    </ProtectedButton>
-                </div>
             </form>
         </Form>
     );
-}
+});
+
+PanelSettingsForm.displayName = "PanelSettingsForm";
+
+export default PanelSettingsForm;
 

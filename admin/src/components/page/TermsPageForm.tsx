@@ -126,30 +126,11 @@ export function TermsPageForm() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-28 relative">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="page-title">تنظیمات صفحه قوانین و مقررات</h1>
                 </div>
-                <ProtectedButton 
-                    onClick={handleSave} 
-                    permission="pages.manage"
-                    disabled={saving}
-                    showDenyToast={true}
-                    denyMessage="شما دسترسی لازم برای مدیریت صفحات وب را ندارید"
-                >
-                    {saving ? (
-                        <>
-                            <Loader2 className="animate-spin" />
-                            در حال ذخیره...
-                        </>
-                    ) : (
-                        <>
-                            <Save />
-                            ذخیره تغییرات
-                        </>
-                    )}
-                </ProtectedButton>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -196,6 +177,30 @@ export function TermsPageForm() {
                     />
                 )}
             </Tabs>
+
+            {/* Sticky Save Buttons Footer */}
+            <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+                <ProtectedButton 
+                    onClick={handleSave} 
+                    permission="pages.manage"
+                    size="lg"
+                    disabled={saving}
+                    showDenyToast={true}
+                    denyMessage="شما دسترسی لازم برای مدیریت صفحات وب را ندارید"
+                >
+                    {saving ? (
+                        <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            در حال ذخیره...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="h-5 w-5" />
+                            ذخیره تغییرات
+                        </>
+                    )}
+                </ProtectedButton>
+            </div>
         </div>
     );
 }

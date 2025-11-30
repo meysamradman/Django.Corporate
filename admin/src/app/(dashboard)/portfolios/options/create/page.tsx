@@ -14,7 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug } from '@/core/utils/slugUtils';
-import { Settings } from "lucide-react";
+import { Settings, Loader2, Save, List } from "lucide-react";
 
 export default function CreateOptionPage() {
   const router = useRouter();
@@ -65,12 +65,19 @@ export default function CreateOptionPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       <div className="flex items-center justify-between">
         <h1 className="page-title">ایجاد گزینه جدید</h1>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/portfolios/options")}
+        >
+          <List className="h-4 w-4" />
+          نمایش لیست
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form id="option-form" onSubmit={handleSubmit}>
         <CardWithIcon
           icon={Settings}
           title="اطلاعات گزینه"
@@ -152,16 +159,35 @@ export default function CreateOptionPage() {
               >
                 انصراف
               </Button>
-              <Button
-                type="submit"
-                disabled={createOptionMutation.isPending}
-              >
-                {createOptionMutation.isPending ? "در حال ایجاد..." : "ایجاد گزینه"}
-              </Button>
             </div>
             </div>
         </CardWithIcon>
       </form>
+
+      {/* Sticky Save Buttons Footer */}
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+        <Button
+          type="button"
+          onClick={() => {
+            const form = document.getElementById('option-form') as HTMLFormElement;
+            if (form) form.requestSubmit();
+          }}
+          size="lg"
+          disabled={createOptionMutation.isPending}
+        >
+          {createOptionMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال ایجاد...
+            </>
+          ) : (
+            <>
+              <Save className="h-5 w-5" />
+              ایجاد گزینه
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

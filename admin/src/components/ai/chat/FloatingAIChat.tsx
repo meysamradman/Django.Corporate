@@ -1,74 +1,37 @@
 "use client";
 
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { MessageCircle, X, Minimize2 } from 'lucide-react';
+import { lazy, Suspense } from 'react';
+import { X, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
 import { HelpGuide } from '@/components/elements/HelpGuide';
-import { useAuth } from '@/core/auth/AuthContext';
+import { useAIChat } from './AIChatContext';
+import { useCanManageAIChat } from '@/core/permissions/hooks/useUIPermissions';
 import { cn } from '@/core/utils/cn';
 
 // Lazy load chat component for better performance
 const AIChat = lazy(() => import('./AIChat').then(module => ({ default: module.AIChat })));
 
 export function FloatingAIChat() {
-    const { user } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
-    const [isMinimized, setIsMinimized] = useState(false);
-    const [hasPermission, setHasPermission] = useState(false);
+    const { isOpen, setIsOpen, isMinimized, setIsMinimized } = useAIChat();
+    const canManageAIChat = useCanManageAIChat();
 
-    useEffect(() => {
-        // Check if user has AI chat permission
-        if (user) {
-            const hasChatPermission = user?.permissions?.some((p: string) => 
-                p === 'all' || p === 'ai.manage' || p === 'ai.chat.manage' || p.startsWith('ai.')
-            );
-            setHasPermission(hasChatPermission || false);
-        } else {
-            setHasPermission(false);
-        }
-    }, [user]);
-
-    // Don't render if no permission
-    if (!hasPermission) {
+    if (!canManageAIChat || !isOpen) {
         return null;
     }
 
     return (
-        <>
-            {/* Floating Button */}
-            {!isOpen && (
-                <Button
-                    onClick={() => setIsOpen(true)}
-                    className={cn(
-                        "fixed bottom-6 left-6 z-50",
-                        "h-14 w-14 rounded-full shadow-lg",
-                        "bg-primary hover:bg-primary/90",
-                        "text-static-w border-0",
-                        "transition-all duration-300 ease-in-out",
-                        "hover:scale-110 active:scale-95",
-                        "flex items-center justify-center",
-                        "group"
-                    )}
-                    aria-label="باز کردن چت با AI"
-                >
-                    <MessageCircle className="h-6 w-6 text-static-w group-hover:scale-110 transition-transform" />
-                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-1 rounded-full border-2 border-static-w animate-pulse" />
-                </Button>
+        <div
+            className={cn(
+                "fixed bottom-6 left-6 z-50",
+                "w-96 h-[600px] max-h-[calc(100vh-6rem)]",
+                "bg-card border border-br rounded-lg shadow-2xl",
+                "flex flex-col",
+                "transition-all duration-300 ease-in-out",
+                "animate-in slide-in-from-left-5",
+                isMinimized ? "h-16" : "h-[600px]",
+                "overflow-hidden"
             )}
-
-            {/* Chat Widget */}
-            {isOpen && (
-                <div
-                    className={cn(
-                        "fixed bottom-6 left-6 z-50",
-                        "w-96 h-[600px] max-h-[85vh]",
-                        "bg-card border border-br rounded-lg shadow-2xl",
-                        "flex flex-col",
-                        "transition-all duration-300 ease-in-out",
-                        isMinimized ? "h-16" : "h-[600px]",
-                        "overflow-hidden"
-                    )}
-                >
+        >
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-br bg-bg/50">
                         <div className="flex items-center gap-2">
@@ -136,9 +99,7 @@ export function FloatingAIChat() {
                             </Suspense>
                         </div>
                     )}
-                </div>
-            )}
-        </>
+        </div>
     );
 }
 

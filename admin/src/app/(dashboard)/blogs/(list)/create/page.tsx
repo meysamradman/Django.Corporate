@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
   FileText, Edit2, Image, 
-  Loader2, Save, Search
+  Loader2, Save, Search, List
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/route";
@@ -169,47 +169,24 @@ export default function CreateBlogPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">ایجاد وبلاگ جدید</h1>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/blogs")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
           {!editMode && (
             <Button onClick={() => setEditMode(true)}>
               <Edit2 />
               ویرایش
             </Button>
-          )}
-          {editMode && (
-            <>
-              <Button onClick={handleSaveDraft} variant="outline" disabled={createBlogMutation.isPending}>
-                {createBlogMutation.isPending ? (
-                  <>
-                    <Loader2 className="animate-spin" />
-                    در حال ذخیره...
-                  </>
-                ) : (
-                  <>
-                    <Save />
-                    ذخیره پیش‌نویس
-                  </>
-                )}
-              </Button>
-              <Button onClick={handleSave} disabled={createBlogMutation.isPending}>
-                {createBlogMutation.isPending ? (
-                  <>
-                    <Loader2 className="animate-spin" />
-                    در حال ذخیره...
-                  </>
-                ) : (
-                  <>
-                    <Save />
-                    ذخیره
-                  </>
-                )}
-              </Button>
-            </>
           )}
         </div>
       </div>
@@ -251,6 +228,47 @@ export default function CreateBlogPage() {
           />
         )}
       </Tabs>
+
+      {/* Sticky Save Buttons Footer */}
+      {editMode && (
+        <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+          <Button 
+            onClick={handleSaveDraft} 
+            variant="outline" 
+            size="lg"
+            disabled={createBlogMutation.isPending}
+          >
+            {createBlogMutation.isPending ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                در حال ذخیره...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5" />
+                ذخیره پیش‌نویس
+              </>
+            )}
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            size="lg"
+            disabled={createBlogMutation.isPending}
+          >
+            {createBlogMutation.isPending ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                در حال ذخیره...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5" />
+                ذخیره
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

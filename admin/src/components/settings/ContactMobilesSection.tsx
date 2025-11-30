@@ -27,6 +27,7 @@ import { ContactMobile } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Smartphone, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
+import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 
 export function ContactMobilesSection() {
     const [mobiles, setMobiles] = useState<ContactMobile[]>([]);
@@ -167,27 +168,15 @@ export function ContactMobilesSection() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="w-12 text-right">
-                                            <div className="flex items-center justify-center">
-                                                <Smartphone className="h-4 w-4 text-cyan-600" />
-                                            </div>
-                                        </TableHead>
                                         <TableHead className="text-right">شماره موبایل</TableHead>
                                         <TableHead className="text-right">برچسب</TableHead>
                                         <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-32 text-right">عملیات</TableHead>
+                                        <TableHead className="w-[60px] text-center"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {mobiles.map((mobile) => (
                                         <TableRow key={mobile.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell>
-                                                <div className="flex items-center justify-center">
-                                                    <div className="p-1.5 bg-cyan-100 rounded-lg">
-                                                        <Smartphone className="h-4 w-4 text-cyan-600" />
-                                                    </div>
-                                                </div>
-                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="font-medium">{mobile.mobile_number}</span>
                                             </TableCell>
@@ -199,24 +188,24 @@ export function ContactMobilesSection() {
                                                     {mobile.order}
                                                 </span>
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-primary hover:text-static-w [&_svg]:hover:stroke-primary-foreground"
-                                                        onClick={() => handleOpenDialog(mobile)}
-                                                    >
-                                                        <Edit />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-static-w [&_svg]:hover:!stroke-destructive-foreground"
-                                                        onClick={() => handleDeleteClick(mobile.id)}
-                                                    >
-                                                        <Trash2 />
-                                                    </Button>
+                                            <TableCell className="w-[60px]">
+                                                <div className="flex items-center justify-center">
+                                                    <DataTableRowActions
+                                                        row={{ original: mobile } as any}
+                                                        actions={[
+                                                            {
+                                                                label: "ویرایش",
+                                                                icon: <Edit className="h-4 w-4" />,
+                                                                onClick: () => handleOpenDialog(mobile),
+                                                            },
+                                                            {
+                                                                label: "حذف",
+                                                                icon: <Trash2 className="h-4 w-4" />,
+                                                                onClick: () => handleDeleteClick(mobile.id),
+                                                                isDestructive: true,
+                                                            },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </TableCell>
                                         </TableRow>

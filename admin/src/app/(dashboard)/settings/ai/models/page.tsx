@@ -266,7 +266,7 @@ export default function AIModelsPage() {
                                                 <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
                                                 <Input
                                                     type="text"
-                                                    placeholder={`جستجو در مدل‌های ${config.label}...`}
+                                                    placeholder="جستجو..."
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     className="pr-8 h-8 text-sm"

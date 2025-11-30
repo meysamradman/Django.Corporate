@@ -8,7 +8,11 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   AlertCircle,
   ShieldCheck,
+  Loader2,
+  Save,
+  List,
 } from "lucide-react";
+import { Button } from "@/components/elements/Button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
@@ -384,11 +388,22 @@ export default function CreateRolePage() {
     return errors;
   }, [standardResources, selectedPermissions]);
 
+  const handleFormSubmit = () => {
+    handleSubmit(onSubmit)();
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 relative">
       {/* Header */}
-      <div>
+      <div className="flex items-center justify-between">
         <h1 className="page-title">ایجاد نقش جدید</h1>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/roles")}
+        >
+          <List className="h-4 w-4" />
+          نمایش لیست
+        </Button>
       </div>
 
       {/* Form */}
@@ -529,7 +544,29 @@ export default function CreateRolePage() {
           onSubmit={onSubmit}
           isSubmitting={createRoleMutation.isPending}
           submitButtonText="ایجاد"
+          hideSubmitButton={true}
         />
+      </div>
+
+      {/* Sticky Save Buttons Footer */}
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+        <Button 
+          onClick={handleFormSubmit} 
+          size="lg"
+          disabled={createRoleMutation.isPending}
+        >
+          {createRoleMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال ذخیره...
+            </>
+          ) : (
+            <>
+              <Save className="h-5 w-5" />
+              ایجاد نقش
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );
