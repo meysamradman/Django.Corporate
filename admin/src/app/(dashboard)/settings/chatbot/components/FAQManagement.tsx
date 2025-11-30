@@ -122,53 +122,65 @@ export function FAQManagement() {
 
   const columns: ColumnDef<FAQ>[] = [
     {
+      id: "order",
       accessorKey: "order",
-      header: "ترتیب",
+      header: () => <div className="table-header-text">ترتیب</div>,
       cell: ({ row }) => (
-        <div className="text-center">
+        <div className="table-badge-container justify-center">
           <Badge variant="outline" className="font-mono">
             {row.original.order}
           </Badge>
         </div>
       ),
+      enableSorting: true,
+      enableHiding: true,
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
     },
     {
       accessorKey: "question",
-      header: "سوال",
+      header: () => <div className="table-header-text">سوال</div>,
       cell: ({ row }) => (
-        <div className="max-w-md">
+        <div className="table-cell-primary table-cell-wide">
           <TruncatedText 
             text={row.original.question} 
             maxLength={50}
-            className="font-medium text-font-p"
           />
         </div>
       ),
+      enableSorting: true,
+      enableHiding: true,
+      size: 200,
       minSize: 200,
+      maxSize: 200,
     },
     {
       accessorKey: "answer",
-      header: "پاسخ",
+      header: () => <div className="table-header-text">پاسخ</div>,
       cell: ({ row }) => (
-        <div className="max-w-md">
+        <div className="table-cell-muted table-cell-wide">
           <TruncatedText 
             text={row.original.answer} 
             maxLength={50}
-            className="text-sm text-font-s"
           />
         </div>
       ),
+      enableSorting: true,
+      enableHiding: true,
+      size: 200,
       minSize: 200,
+      maxSize: 200,
     },
     {
       accessorKey: "keywords",
-      header: "کلمات کلیدی",
+      header: () => <div className="table-header-text">کلمات کلیدی</div>,
       cell: ({ row }) => {
         const keywords = row.original.keywords
           ? row.original.keywords.split(",").map((k) => k.trim()).filter(Boolean)
           : [];
         return (
-          <div className="flex flex-wrap gap-1 max-w-xs">
+          <div className="flex flex-wrap gap-1">
             {keywords.length > 0 ? (
               keywords.slice(0, 3).map((keyword, idx) => (
                 <Badge key={idx} variant="outline" className="text-xs">
@@ -186,15 +198,23 @@ export function FAQManagement() {
           </div>
         );
       },
+      enableSorting: false,
+      enableHiding: true,
+      minSize: 150,
     },
     {
       accessorKey: "is_active",
-      header: "وضعیت",
+      header: () => <div className="table-header-text">وضعیت</div>,
       cell: ({ row }) => (
-        <Badge variant={row.original.is_active ? "default" : "outline"}>
-          {row.original.is_active ? "فعال" : "غیرفعال"}
-        </Badge>
+        <div className="table-badge-container">
+          <Badge variant={row.original.is_active ? "green" : "gray"}>
+            {row.original.is_active ? "فعال" : "غیرفعال"}
+          </Badge>
+        </div>
       ),
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 150,
     },
     {
       id: "actions",
