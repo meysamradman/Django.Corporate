@@ -31,8 +31,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         return TicketMessageSerializer
     
     def create(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.create (creating message = replying to ticket)
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.create']):
+        # Replying to tickets requires ticket.manage or ticket.update permission
+        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN

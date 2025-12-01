@@ -11,22 +11,26 @@ import { TicketStatusType, TicketStatusItem } from "./types";
 interface TicketSidebarProps {
   selectedStatus: TicketStatusType | 'all';
   onStatusChange: (status: TicketStatusType | 'all') => void;
-  onCreateClick: () => void;
   statusCounts?: {
     all?: number;
+    all_unread?: number;
     open?: number;
+    open_unread?: number;
     in_progress?: number;
+    in_progress_unread?: number;
     resolved?: number;
+    resolved_unread?: number;
     closed?: number;
+    closed_unread?: number;
   };
 }
 
 const getStatuses = (counts?: TicketSidebarProps['statusCounts']): TicketStatusItem[] => [
-  { id: 'all', label: "همه تیکت‌ها", count: counts?.all },
-  { id: 'open', label: "باز", count: counts?.open },
-  { id: 'in_progress', label: "در حال بررسی", count: counts?.in_progress },
-  { id: 'resolved', label: "حل شده", count: counts?.resolved },
-  { id: 'closed', label: "بسته شده", count: counts?.closed },
+  { id: 'all', label: "همه تیکت‌ها", count: counts?.all, unreadCount: counts?.all_unread },
+  { id: 'open', label: "باز", count: counts?.open, unreadCount: counts?.open_unread },
+  { id: 'in_progress', label: "در حال بررسی", count: counts?.in_progress, unreadCount: counts?.in_progress_unread },
+  { id: 'resolved', label: "حل شده", count: counts?.resolved, unreadCount: counts?.resolved_unread },
+  { id: 'closed', label: "بسته شده", count: counts?.closed, unreadCount: counts?.closed_unread },
 ];
 
 const getStatusIcon = (status: TicketStatusType | 'all') => {
@@ -44,25 +48,11 @@ const getStatusIcon = (status: TicketStatusType | 'all') => {
   }
 };
 
-export function TicketSidebar({ selectedStatus, onStatusChange, onCreateClick, statusCounts }: TicketSidebarProps) {
+export function TicketSidebar({ selectedStatus, onStatusChange, statusCounts }: TicketSidebarProps) {
   const statuses = getStatuses(statusCounts);
 
   return (
     <aside className="w-full flex flex-col h-full overflow-hidden">
-      <div className="p-5 border-b flex-shrink-0">
-        <ProtectedButton
-          permission={['ticket.manage', 'ticket.create']}
-          requireAll={false}
-          variant="default"
-          className="w-full"
-          onClick={onCreateClick}
-          showDenyToast={false}
-        >
-          <Plus className="size-4 ml-2" />
-          <span>ایجاد تیکت</span>
-        </ProtectedButton>
-      </div>
-
       <nav className="flex-1 overflow-y-auto min-h-0">
         {statuses.map((status) => {
           const getStatusColors = (id: TicketStatusType | 'all', isSelected: boolean) => {
@@ -171,7 +161,15 @@ export function TicketSidebar({ selectedStatus, onStatusChange, onCreateClick, s
                   </span>
                   <span className="text-sm font-medium cursor-pointer">{status.label}</span>
                 </div>
-                {status.count !== undefined && status.count > 0 && (
+                {/* Show single badge: unread (red+pulse) if exists, otherwise total count */}
+                {status.unreadCount !== undefined && status.unreadCount > 0 ? (
+                  <Badge
+                    variant="red"
+                    className="text-xs px-2 py-0.5 flex-shrink-0 animate-pulse border-0"
+                  >
+                    {status.unreadCount}
+                  </Badge>
+                ) : status.count !== undefined && status.count > 0 ? (
                   <Badge
                     variant={
                       status.id === 'all' ? "default" :
@@ -184,7 +182,7 @@ export function TicketSidebar({ selectedStatus, onStatusChange, onCreateClick, s
                   >
                     {status.count}
                   </Badge>
-                )}
+                ) : null}
               </div>
             </button>
           );

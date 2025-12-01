@@ -5,6 +5,7 @@ export interface TicketStatusItem {
   id: TicketStatusType | 'all';
   label: string;
   count?: number;
+  unreadCount?: number;
 }
 
 export interface TicketPriorityItem {

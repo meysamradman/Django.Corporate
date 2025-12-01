@@ -56,7 +56,7 @@ class EmailApi {
 
   async getById(id: number | string): Promise<EmailMessage> {
     const response = await fetchApi.get<EmailMessage>(
-      `${this.baseUrl}/${id}/`
+      `${this.baseUrl}${id}/`
     );
 
     if (response.metaData.status !== 'success') {
@@ -81,7 +81,7 @@ class EmailApi {
 
   async update(id: number | string, data: EmailMessageUpdate): Promise<EmailMessage> {
     const response = await fetchApi.patch<EmailMessage>(
-      `${this.baseUrl}/${id}/`,
+      `${this.baseUrl}${id}/`,
       data as unknown as Record<string, unknown>
     );
 
@@ -94,7 +94,7 @@ class EmailApi {
 
   async delete(id: number | string): Promise<void> {
     const response = await fetchApi.delete<void>(
-      `${this.baseUrl}/${id}/`
+      `${this.baseUrl}${id}/`
     );
 
     if (response.metaData.status !== 'success') {
@@ -104,7 +104,7 @@ class EmailApi {
 
   async markAsRead(id: number | string): Promise<EmailMessage> {
     const response = await fetchApi.post<EmailMessage>(
-      `${this.baseUrl}/${id}/mark_as_read/`
+      `${this.baseUrl}${id}/mark_as_read/`
     );
 
     if (response.metaData.status !== 'success') {
@@ -116,7 +116,7 @@ class EmailApi {
 
   async markAsReplied(id: number | string): Promise<EmailMessage> {
     const response = await fetchApi.post<EmailMessage>(
-      `${this.baseUrl}/${id}/mark_as_replied/`
+      `${this.baseUrl}${id}/mark_as_replied/`
     );
 
     if (response.metaData.status !== 'success') {
@@ -128,7 +128,7 @@ class EmailApi {
 
   async toggleStar(id: number | string): Promise<EmailMessage> {
     const response = await fetchApi.post<EmailMessage>(
-      `${this.baseUrl}/${id}/toggle_star/`
+      `${this.baseUrl}${id}/toggle_star/`
     );
 
     if (response.metaData.status !== 'success') {

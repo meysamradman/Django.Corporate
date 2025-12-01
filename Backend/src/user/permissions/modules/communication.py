@@ -36,24 +36,18 @@ COMMUNICATION_PERMISSIONS = {
         'description': 'Full access to email messages (view, send, update, delete)',
     },
     
-    # Ticket - CRUD permissions (like Email)
+    # Ticket - Permissions (users create tickets, admins manage them)
     'ticket.read': {
         'module': 'ticket',
         'action': 'read',
         'display_name': 'View Tickets',
         'description': 'Allow viewing support tickets and messages',
     },
-    'ticket.create': {
-        'module': 'ticket',
-        'action': 'create',
-        'display_name': 'Create Tickets',
-        'description': 'Allow creating and replying to support tickets',
-    },
     'ticket.update': {
         'module': 'ticket',
         'action': 'update',
         'display_name': 'Update Tickets',
-        'description': 'Allow updating ticket status, priority, and assignments',
+        'description': 'Allow updating ticket status, priority, assignments, and replying to tickets',
     },
     'ticket.delete': {
         'module': 'ticket',
@@ -65,7 +59,7 @@ COMMUNICATION_PERMISSIONS = {
         'module': 'ticket',
         'action': 'manage',
         'display_name': 'Manage Tickets',
-        'description': 'Full access to ticket management (view, create, update, delete)',
+        'description': 'Full access to ticket management (view, reply, update, delete)',
     },
 }
 

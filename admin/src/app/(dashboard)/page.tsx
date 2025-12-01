@@ -1,11 +1,7 @@
 "use client";
 
-import { Statistics } from "@/components/dashboard/Statistics";
+import { DashboardMain } from "@/components/dashboard/DashboardMain";
 
 export default function DashboardPage() {
-  return (
-    <div className="space-y-6">
-      <Statistics />
-    </div>
-  );
+  return <DashboardMain />;
 } 

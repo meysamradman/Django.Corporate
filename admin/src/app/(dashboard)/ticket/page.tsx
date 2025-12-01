@@ -2,24 +2,26 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, TicketDetailView, type ReplyTicketData, type CreateTicketData } from "@/components/ticket";
+import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, TicketDetailView, type ReplyTicketData } from "@/components/ticket";
 import { ReplyTicketDialog } from "@/components/ticket/ReplyTicketDialog";
-import { CreateTicketDialog } from "@/components/ticket/CreateTicketDialog";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useCreateTicket, useUpdateTicketStatus, useDeleteTicket } from "@/core/hooks/useTicket";
+import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/core/hooks/useTicket";
 import { Ticket, TicketStatusType, TicketMessage } from "@/types/ticket/ticket";
 import { toast } from "@/components/elements/Sonner";
 
 export default function TicketPage() {
+  const searchParams = useSearchParams();
+  const ticketIdFromUrl = searchParams?.get('ticketId');
+  const queryClient = useQueryClient();
+  
   const [selectedStatus, setSelectedStatus] = useState<TicketStatusType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTickets, setSelectedTickets] = useState<Set<number>>(new Set());
   const [replyOpen, setReplyOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [replyToTicket, setReplyToTicket] = useState<Ticket | null>(null);
-  const [mockTickets, setMockTickets] = useState<Ticket[]>([]);
-  const [mockMessages, setMockMessages] = useState<Record<number, TicketMessage[]>>({});
 
   const { data: ticketsData, isLoading, refetch } = useTicketList({
     page: 1,
@@ -31,11 +33,42 @@ export default function TicketPage() {
   const { data: ticketDetail } = useTicket(selectedTicket?.id || null);
   const { data: ticketMessages } = useTicketMessages(selectedTicket?.id || null);
   const createMessage = useCreateTicketMessage();
-  const createTicket = useCreateTicket();
   const updateStatus = useUpdateTicketStatus();
   const deleteTicket = useDeleteTicket();
+  const markTicketAsRead = useMarkTicketAsRead();
 
-  const tickets = mockTickets.length > 0 ? mockTickets : (ticketsData?.data || []);
+  const tickets = ticketsData?.data || [];
+
+  // Refresh all ticket-related data including notifications
+  const handleRefresh = useCallback(() => {
+    refetch();
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
+    toast.success('داده‌ها به‌روزرسانی شدند');
+  }, [refetch, queryClient]);
+
+  // Mark ticket as read when selected and has unread messages
+  useEffect(() => {
+    if (selectedTicket && selectedTicket.unread_messages_count && selectedTicket.unread_messages_count > 0) {
+      // Mark as read after a small delay to ensure user actually sees it
+      const timer = setTimeout(() => {
+        markTicketAsRead.mutate(selectedTicket.id);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedTicket?.id, selectedTicket?.unread_messages_count]);
+
+  // Auto-select ticket from URL query param (from notification)
+  useEffect(() => {
+    if (ticketIdFromUrl && tickets.length > 0) {
+      const ticket = tickets.find(t => t.id.toString() === ticketIdFromUrl);
+      if (ticket) {
+        setSelectedTicket(ticket);
+        // Clear the URL param after selecting
+        window.history.replaceState({}, '', '/ticket');
+      }
+    }
+  }, [ticketIdFromUrl, tickets]);
 
   const handleStatusChange = useCallback((status: TicketStatusType | 'all') => {
     setSelectedStatus(status);
@@ -76,18 +109,6 @@ export default function TicketPage() {
   }, []);
 
   const handleDeleteTicket = useCallback(async (ticket: Ticket) => {
-    if (mockTickets.length > 0) {
-      setMockTickets(prev => prev.filter(t => t.id !== ticket.id));
-      setMockMessages(prev => {
-        const newMessages = { ...prev };
-        delete newMessages[ticket.id];
-        return newMessages;
-      });
-      setSelectedTicket(null);
-      toast.success("تیکت با موفقیت حذف شد");
-      return;
-    }
-    
     try {
       await deleteTicket.mutateAsync(ticket.id);
       setSelectedTicket(null);
@@ -95,20 +116,9 @@ export default function TicketPage() {
     } catch (error) {
       // Error handled by hook
     }
-  }, [deleteTicket, refetch, mockTickets]);
+  }, [deleteTicket, refetch]);
 
   const handleStatusChangeForTicket = useCallback(async (ticket: Ticket, status: Ticket['status']) => {
-    if (mockTickets.length > 0) {
-      setMockTickets(prev => prev.map(t => 
-        t.id === ticket.id ? { ...t, status } : t
-      ));
-      if (selectedTicket?.id === ticket.id) {
-        setSelectedTicket({ ...selectedTicket, status });
-      }
-      toast.success("وضعیت تیکت با موفقیت به‌روزرسانی شد");
-      return;
-    }
-    
     try {
       await updateStatus.mutateAsync({ id: ticket.id, status });
       refetch();
@@ -118,122 +128,10 @@ export default function TicketPage() {
     } catch (error) {
       // Error handled by hook
     }
-  }, [updateStatus, refetch, selectedTicket, mockTickets]);
-
-  const handleCreateTicket = useCallback(async (data: CreateTicketData) => {
-    if (mockTickets.length > 0) {
-      const newTicket: Ticket = {
-        id: Date.now(),
-        public_id: `ticket-${Date.now()}`,
-        subject: data.subject,
-        description: data.description,
-        status: 'open',
-        priority: data.priority,
-        user: {
-          id: 1,
-          mobile: "09123456789",
-          email: "admin@example.com",
-          full_name: "ادمین",
-        },
-        assigned_admin: null,
-        last_replied_at: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_active: true,
-        messages_count: data.message ? 1 : 0,
-        unread_messages_count: 0,
-      };
-
-      if (data.message) {
-        const newMessage: TicketMessage = {
-          id: Date.now() + 1,
-          public_id: `msg-${Date.now() + 1}`,
-          ticket: newTicket.id,
-          message: data.message,
-          sender_type: 'admin',
-          sender_admin: {
-            id: 1,
-            user: {
-              id: 1,
-              username: 'admin',
-              email: 'admin@example.com',
-            },
-          },
-          is_read: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          attachments: [],
-        };
-
-        setMockMessages(prev => ({
-          ...prev,
-          [newTicket.id]: [newMessage],
-        }));
-      }
-
-      setMockTickets(prev => [newTicket, ...prev]);
-      setCreateOpen(false);
-      toast.success("تیکت با موفقیت ایجاد شد");
-      return;
-    }
-
-    try {
-      await createTicket.mutateAsync(data);
-      setCreateOpen(false);
-      refetch();
-    } catch (error) {
-      // Error handled by hook
-    }
-  }, [createTicket, refetch, mockTickets]);
+  }, [updateStatus, refetch, selectedTicket]);
 
   const handleSendReply = useCallback(async (data: ReplyTicketData) => {
     if (!replyToTicket) return;
-    
-    if (mockTickets.length > 0) {
-      const newMessage: TicketMessage = {
-        id: Date.now(),
-        public_id: `msg-${Date.now()}`,
-        ticket: replyToTicket.id,
-        message: data.message,
-        sender_type: 'admin',
-        sender_admin: {
-          id: 1,
-          user: {
-            id: 1,
-            username: 'admin',
-            email: 'admin@example.com',
-          },
-        },
-        is_read: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        attachments: [],
-      };
-      
-      setMockMessages(prev => ({
-        ...prev,
-        [replyToTicket.id]: [...(prev[replyToTicket.id] || []), newMessage],
-      }));
-      
-      setMockTickets(prev => prev.map(t => 
-        t.id === replyToTicket.id 
-          ? { ...t, last_replied_at: new Date().toISOString(), messages_count: (t.messages_count || 0) + 1 }
-          : t
-      ));
-      
-      if (selectedTicket?.id === replyToTicket.id) {
-        setSelectedTicket({
-          ...selectedTicket,
-          last_replied_at: new Date().toISOString(),
-          messages_count: (selectedTicket.messages_count || 0) + 1,
-        });
-      }
-      
-      setReplyToTicket(null);
-      setReplyOpen(false);
-      toast.success("پیام با موفقیت ارسال شد");
-      return;
-    }
     
     try {
       await createMessage.mutateAsync({
@@ -243,6 +141,7 @@ export default function TicketPage() {
         attachment_ids: data.attachment_ids,
       });
       setReplyToTicket(null);
+      setReplyOpen(false);
       refetch();
       if (selectedTicket?.id === replyToTicket.id) {
         refetch();
@@ -250,305 +149,9 @@ export default function TicketPage() {
     } catch (error) {
       // Error handled by hook
     }
-  }, [replyToTicket, createMessage, refetch, selectedTicket, mockTickets]);
+  }, [replyToTicket, createMessage, refetch, selectedTicket]);
 
-  useEffect(() => {
-    if (true) {
-      const mockTicketsData: Ticket[] = [
-        {
-          id: 1,
-          public_id: "ticket-1",
-          subject: "مشکل در ورود به سیستم",
-          description: "سلام، من نمی‌توانم به حساب کاربری خود وارد شوم. پیام خطا می‌دهد که رمز عبور اشتباه است اما من مطمئنم که رمز درست است. لطفاً کمک کنید.\n\nاین یک متن طولانی است که برای تست اسکرول استفاده می‌شود. ما می‌خواهیم ببینیم که آیا صفحه به درستی اسکرول می‌شود یا نه.",
-          status: "open",
-          priority: "high",
-          user: {
-            id: 1,
-            mobile: "09123456789",
-            email: "ali@example.com",
-            full_name: "علی احمدی",
-          },
-          assigned_admin: null,
-          last_replied_at: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          messages_count: 1,
-          unread_messages_count: 1,
-        },
-        {
-          id: 2,
-          public_id: "ticket-2",
-          subject: "درخواست تغییر اطلاعات پروفایل",
-          description: "می‌خواهم اطلاعات پروفایلم را تغییر دهم اما گزینه ویرایش کار نمی‌کند.",
-          status: "in_progress",
-          priority: "medium",
-          user: {
-            id: 2,
-            mobile: "09123456790",
-            email: "mohammad@example.com",
-            full_name: "محمد رضایی",
-          },
-          assigned_admin: {
-            id: 1,
-            user: {
-              id: 1,
-              username: "admin",
-              email: "admin@example.com",
-            },
-          },
-          last_replied_at: new Date(Date.now() - 3600000).toISOString(),
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          updated_at: new Date(Date.now() - 3600000).toISOString(),
-          is_active: true,
-          messages_count: 3,
-          unread_messages_count: 0,
-        },
-        {
-          id: 3,
-          public_id: "ticket-3",
-          subject: "سوال در مورد محصولات",
-          description: "می‌خواهم اطلاعات بیشتری در مورد محصولات شما بدانم.",
-          status: "resolved",
-          priority: "low",
-          user: {
-            id: 3,
-            mobile: "09123456791",
-            email: "sara@example.com",
-            full_name: "سارا کریمی",
-          },
-          assigned_admin: {
-            id: 1,
-            user: {
-              id: 1,
-              username: "admin",
-              email: "admin@example.com",
-            },
-          },
-          last_replied_at: new Date(Date.now() - 172800000).toISOString(),
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          updated_at: new Date(Date.now() - 172800000).toISOString(),
-          is_active: true,
-          messages_count: 5,
-          unread_messages_count: 0,
-        },
-        {
-          id: 4,
-          public_id: "ticket-4",
-          subject: "مشکل فنی در اپلیکیشن",
-          description: "اپلیکیشن موبایل من crash می‌کند وقتی می‌خواهم عکس آپلود کنم.",
-          status: "open",
-          priority: "urgent",
-          user: {
-            id: 4,
-            mobile: "09123456792",
-            email: "reza@example.com",
-            full_name: "رضا محمودی",
-          },
-          assigned_admin: null,
-          last_replied_at: null,
-          created_at: new Date(Date.now() - 7200000).toISOString(),
-          updated_at: new Date(Date.now() - 7200000).toISOString(),
-          is_active: true,
-          messages_count: 1,
-          unread_messages_count: 1,
-        },
-        {
-          id: 5,
-          public_id: "ticket-5",
-          subject: "درخواست بازگشت وجه",
-          description: "می‌خواهم برای خرید اخیرم درخواست بازگشت وجه بدهم.",
-          status: "closed",
-          priority: "medium",
-          user: {
-            id: 5,
-            mobile: "09123456793",
-            email: "fateme@example.com",
-            full_name: "فاطمه نوری",
-          },
-          assigned_admin: {
-            id: 1,
-            user: {
-              id: 1,
-              username: "admin",
-              email: "admin@example.com",
-            },
-          },
-          last_replied_at: new Date(Date.now() - 259200000).toISOString(),
-          created_at: new Date(Date.now() - 259200000).toISOString(),
-          updated_at: new Date(Date.now() - 259200000).toISOString(),
-          is_active: true,
-          messages_count: 4,
-          unread_messages_count: 0,
-        },
-        {
-          id: 6,
-          public_id: "ticket-6",
-          subject: "سوال در مورد قیمت‌ها",
-          description: "آیا تخفیف خاصی برای خرید عمده وجود دارد؟",
-          status: "in_progress",
-          priority: "low",
-          user: {
-            id: 6,
-            mobile: "09123456794",
-            email: "hasan@example.com",
-            full_name: "حسن علوی",
-          },
-          assigned_admin: {
-            id: 1,
-            user: {
-              id: 1,
-              username: "admin",
-              email: "admin@example.com",
-            },
-          },
-          last_replied_at: new Date(Date.now() - 1800000).toISOString(),
-          created_at: new Date(Date.now() - 432000000).toISOString(),
-          updated_at: new Date(Date.now() - 1800000).toISOString(),
-          is_active: true,
-          messages_count: 2,
-          unread_messages_count: 0,
-        },
-      ];
 
-      const mockMessagesData: Record<number, TicketMessage[]> = {
-        1: [
-          {
-            id: 1,
-            public_id: "msg-1",
-            ticket: 1,
-            message: "سلام، من نمی‌توانم به حساب کاربری خود وارد شوم. پیام خطا می‌دهد که رمز عبور اشتباه است.",
-            sender_type: "user",
-            sender_user: {
-              id: 1,
-              mobile: "09123456789",
-              email: "ali@example.com",
-              full_name: "علی احمدی",
-            },
-            is_read: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            attachments: [],
-          },
-        ],
-        2: [
-          {
-            id: 2,
-            public_id: "msg-2",
-            ticket: 2,
-            message: "می‌خواهم اطلاعات پروفایلم را تغییر دهم اما گزینه ویرایش کار نمی‌کند.",
-            sender_type: "user",
-            sender_user: {
-              id: 2,
-              mobile: "09123456790",
-              email: "mohammad@example.com",
-              full_name: "محمد رضایی",
-            },
-            is_read: true,
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            updated_at: new Date(Date.now() - 86400000).toISOString(),
-            attachments: [],
-          },
-          {
-            id: 3,
-            public_id: "msg-3",
-            ticket: 2,
-            message: "لطفاً صفحه را refresh کنید و دوباره تلاش کنید.",
-            sender_type: "admin",
-            sender_admin: {
-              id: 1,
-              user: {
-                id: 1,
-                username: "admin",
-                email: "admin@example.com",
-              },
-            },
-            is_read: true,
-            created_at: new Date(Date.now() - 82800000).toISOString(),
-            updated_at: new Date(Date.now() - 82800000).toISOString(),
-            attachments: [],
-          },
-          {
-            id: 4,
-            public_id: "msg-4",
-            ticket: 2,
-            message: "ممنون، مشکل حل شد.",
-            sender_type: "user",
-            sender_user: {
-              id: 2,
-              mobile: "09123456790",
-              email: "mohammad@example.com",
-              full_name: "محمد رضایی",
-            },
-            is_read: true,
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-            updated_at: new Date(Date.now() - 3600000).toISOString(),
-            attachments: [],
-          },
-        ],
-        3: [
-          {
-            id: 5,
-            public_id: "msg-5",
-            ticket: 3,
-            message: "می‌خواهم اطلاعات بیشتری در مورد محصولات شما بدانم.",
-            sender_type: "user",
-            sender_user: {
-              id: 3,
-              mobile: "09123456791",
-              email: "sara@example.com",
-              full_name: "سارا کریمی",
-            },
-            is_read: true,
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-            updated_at: new Date(Date.now() - 172800000).toISOString(),
-            attachments: [],
-          },
-          {
-            id: 6,
-            public_id: "msg-6",
-            ticket: 3,
-            message: "حتماً، لطفاً به صفحه محصولات مراجعه کنید.",
-            sender_type: "admin",
-            sender_admin: {
-              id: 1,
-              user: {
-                id: 1,
-                username: "admin",
-                email: "admin@example.com",
-              },
-            },
-            is_read: true,
-            created_at: new Date(Date.now() - 172000000).toISOString(),
-            updated_at: new Date(Date.now() - 172000000).toISOString(),
-            attachments: [],
-          },
-        ],
-        4: [
-          {
-            id: 7,
-            public_id: "msg-7",
-            ticket: 4,
-            message: "اپلیکیشن موبایل من crash می‌کند وقتی می‌خواهم عکس آپلود کنم.",
-            sender_type: "user",
-            sender_user: {
-              id: 4,
-              mobile: "09123456792",
-              email: "reza@example.com",
-              full_name: "رضا محمودی",
-            },
-            is_read: false,
-            created_at: new Date(Date.now() - 7200000).toISOString(),
-            updated_at: new Date(Date.now() - 7200000).toISOString(),
-            attachments: [],
-          },
-        ],
-      };
-
-      setMockTickets(mockTicketsData);
-      setMockMessages(mockMessagesData);
-    }
-  }, []);
 
   const filteredTickets = useMemo(() => {
     let filtered = tickets;
@@ -574,10 +177,15 @@ export default function TicketPage() {
   const statusCounts = useMemo(() => {
     return {
       all: tickets.length,
+      all_unread: tickets.filter(t => t.unread_messages_count && t.unread_messages_count > 0).length,
       open: tickets.filter(t => t.status === 'open').length,
+      open_unread: tickets.filter(t => t.status === 'open' && t.unread_messages_count && t.unread_messages_count > 0).length,
       in_progress: tickets.filter(t => t.status === 'in_progress').length,
+      in_progress_unread: tickets.filter(t => t.status === 'in_progress' && t.unread_messages_count && t.unread_messages_count > 0).length,
       resolved: tickets.filter(t => t.status === 'resolved').length,
+      resolved_unread: tickets.filter(t => t.status === 'resolved' && t.unread_messages_count && t.unread_messages_count > 0).length,
       closed: tickets.filter(t => t.status === 'closed').length,
+      closed_unread: tickets.filter(t => t.status === 'closed' && t.unread_messages_count && t.unread_messages_count > 0).length,
     };
   }, [tickets]);
 
@@ -587,7 +195,6 @@ export default function TicketPage() {
         <TicketSidebar
           selectedStatus={selectedStatus}
           onStatusChange={handleStatusChange}
-          onCreateClick={() => setCreateOpen(true)}
           statusCounts={statusCounts}
         />
       </div>
@@ -598,7 +205,7 @@ export default function TicketPage() {
         {selectedTicket ? (
           <TicketDetailView
             ticket={ticketDetail || selectedTicket}
-            messages={mockTickets.length > 0 ? (mockMessages[selectedTicket.id] || []) : ticketMessages}
+            messages={ticketMessages}
             onReply={handleReplyTicket}
             onDelete={handleDeleteTicket}
             onStatusChange={handleStatusChangeForTicket}
@@ -623,7 +230,7 @@ export default function TicketPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <TicketToolbar onRefresh={() => refetch()} />
+                  <TicketToolbar onRefresh={handleRefresh} />
                 </div>
               </div>
             </div>
@@ -633,17 +240,11 @@ export default function TicketPage() {
               selectedTickets={selectedTickets}
               onSelectTicket={handleSelectTicket}
               onTicketClick={handleTicketClick}
-              loading={mockTickets.length === 0 && isLoading}
+              loading={isLoading}
             />
           </>
         )}
       </div>
-
-      <CreateTicketDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreate={handleCreateTicket}
-      />
 
       <ReplyTicketDialog
         open={replyOpen}

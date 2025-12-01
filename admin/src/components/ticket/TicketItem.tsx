@@ -59,12 +59,17 @@ export function TicketItem({ ticket, isSelected, onSelect, onClick }: TicketItem
     return colors[index];
   };
 
-  const getStatusColor = (status: Ticket['status']) => {
+  const getStatusColor = (status: Ticket['status'], hasUnread: boolean) => {
+    // Only show colored dot for unread tickets
+    if (!hasUnread) {
+      return 'bg-gray-300 dark:bg-gray-600'; // Gray for read tickets
+    }
+    
     switch (status) {
       case 'open':
-        return 'bg-red-1';
+        return 'bg-red-1 animate-pulse';
       case 'in_progress':
-        return 'bg-blue-1';
+        return 'bg-blue-1 animate-pulse';
       case 'resolved':
         return 'bg-green-1';
       case 'closed':
@@ -108,6 +113,7 @@ export function TicketItem({ ticket, isSelected, onSelect, onClick }: TicketItem
 
   const displayName = getDisplayName(ticket.user);
   const avatarText = ticket.user?.full_name || ticket.user?.email || ticket.user?.mobile || "?";
+  const hasUnreadMessages = ticket.unread_messages_count !== undefined && ticket.unread_messages_count > 0;
 
   return (
     <div
@@ -141,10 +147,14 @@ export function TicketItem({ ticket, isSelected, onSelect, onClick }: TicketItem
           <div
             className={cn(
               "size-2 rounded-full shrink-0",
-              getStatusColor(ticket.status)
+              getStatusColor(ticket.status, hasUnreadMessages)
             )}
+            title={hasUnreadMessages ? 'پیام‌های خوانده نشده' : 'همه پیام‌ها خوانده شده'}
           />
-          <span className="font-semibold text-sm text-font-p truncate cursor-pointer">
+          <span className={cn(
+            "font-semibold text-sm truncate cursor-pointer",
+            hasUnreadMessages ? "text-font-p" : "text-font-s"
+          )}>
             {displayName}
           </span>
           <Badge variant={getPriorityColor(ticket.priority) as any} className="text-xs">
@@ -158,9 +168,17 @@ export function TicketItem({ ticket, isSelected, onSelect, onClick }: TicketItem
               <span className="text-xs">{ticket.messages_count}</span>
             </div>
           )}
+          {hasUnreadMessages && (
+            <Badge variant="red" className="text-xs px-1.5 py-0.5">
+              {ticket.unread_messages_count} جدید
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-font-s truncate cursor-pointer">
+          <span className={cn(
+            "text-sm truncate cursor-pointer",
+            hasUnreadMessages ? "text-font-p font-medium" : "text-font-s"
+          )}>
             {ticket.subject}
           </span>
           {ticket.description && (

@@ -166,6 +166,18 @@ class TicketApi {
 
     return response.data;
   }
+
+  async markTicketAsRead(ticketId: number | string): Promise<Ticket> {
+    const response = await fetchApi.post<Ticket>(
+      `${this.baseUrl}${ticketId}/mark_as_read/`
+    );
+
+    if (response.metaData.status !== 'success') {
+      throw new Error(response.metaData.message || 'Error marking ticket as read');
+    }
+
+    return response.data;
+  }
 }
 
 export const ticketApi = new TicketApi();

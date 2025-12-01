@@ -32,13 +32,16 @@ class TicketListSerializer(serializers.ModelSerializer):
         return obj.messages.count()
     
     def get_unread_messages_count(self, obj):
-        return obj.messages.filter(is_read=False).count()
+        # Only count unread messages from users, not from admins
+        return obj.messages.filter(is_read=False, sender_type='user').count()
 
 
 class TicketDetailSerializer(serializers.ModelSerializer):
     user = UserPublicSerializer(read_only=True)
     assigned_admin = AdminProfileSerializer(read_only=True)
     messages = serializers.SerializerMethodField()
+    messages_count = serializers.SerializerMethodField()
+    unread_messages_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Ticket
@@ -56,12 +59,20 @@ class TicketDetailSerializer(serializers.ModelSerializer):
             'updated_at',
             'is_active',
             'messages',
+            'messages_count',
+            'unread_messages_count',
         ]
     
     def get_messages(self, obj):
         from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer
         messages = obj.messages.all().order_by('created_at')
         return TicketMessageSerializer(messages, many=True).data
+    
+    def get_messages_count(self, obj):
+        return obj.messages.count()
+    
+    def get_unread_messages_count(self, obj):
+        return obj.messages.filter(is_read=False, sender_type='user').count()
 
 
 class TicketSerializer(serializers.ModelSerializer):

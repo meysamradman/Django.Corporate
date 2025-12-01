@@ -145,30 +145,37 @@ export function StandardPermissionsTable({
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex justify-center relative group">
-                    <Checkbox
-                      checked={isPermissionSelected(createPerm?.id)}
-                      disabled={
-                        !isSuperAdmin && createPerm?.requires_superadmin
-                      }
-                      onCheckedChange={() => {
-                        if (
-                          createPerm &&
-                          (isSuperAdmin || !createPerm.requires_superadmin)
-                        ) {
-                          onTogglePermission(createPerm.id);
+                  {/* ✅ FIX: Hide "Create" checkbox for ticket (users create tickets, admins only manage) */}
+                  {resource.resource === 'ticket' ? (
+                    <div className="flex justify-center">
+                      <span className="text-sm text-font-s">-</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-center relative group">
+                      <Checkbox
+                        checked={isPermissionSelected(createPerm?.id)}
+                        disabled={
+                          !isSuperAdmin && createPerm?.requires_superadmin
                         }
-                      }}
-                    />
-                    {createPerm?.requires_superadmin && (
-                      <div
-                        className="absolute -top-2 -right-3 text-amber-500"
-                        title="نیازمند دسترسی سوپر ادمین"
-                      >
-                        <Shield className="h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
+                        onCheckedChange={() => {
+                          if (
+                            createPerm &&
+                            (isSuperAdmin || !createPerm.requires_superadmin)
+                          ) {
+                            onTogglePermission(createPerm.id);
+                          }
+                        }}
+                      />
+                      {createPerm?.requires_superadmin && (
+                        <div
+                          className="absolute -top-2 -right-3 text-amber-500"
+                          title="نیازمند دسترسی سوپر ادمین"
+                        >
+                          <Shield className="h-3 w-3" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center relative group">

@@ -20,6 +20,7 @@
     <orderEntry type="jdk" jdkName="Python 3.13 (Backend)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="admin" />
+    <orderEntry type="module" module-name="web" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

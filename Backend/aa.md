@@ -1,85 +1,64 @@
-# AI Image Generation Messages
-AI_SUCCESS = {
-    "provider_created": "Provider AI با موفقیت ایجاد شد.",
-    "provider_updated": "Provider AI با موفقیت به‌روزرسانی شد.",
-    "provider_activated": "Provider با موفقیت فعال شد.",
-    "provider_deactivated": "Provider غیرفعال شد.",
-    "providers_list_retrieved": "لیست Provider های فعال دریافت شد.",
-    "image_generated": "تصویر با موفقیت تولید شد.",
-    "image_generated_and_saved": "تصویر با موفقیت تولید و ذخیره شد.",
-    "image_generated_not_saved": "تصویر با موفقیت تولید شد (ذخیره نشده).",
-    "audio_generated": "فایل صوتی با موفقیت تولید شد.",
-    "audio_generated_and_saved": "فایل صوتی با موفقیت تولید و ذخیره شد.",
-    "audio_generated_not_saved": "فایل صوتی با موفقیت تولید شد (ذخیره نشده).",
-    "api_key_valid": "API key معتبر است.",
-    "content_generated": "محتوای SEO با موفقیت تولید شد.",
-    "content_generated_cached": "محتوای SEO از cache بازگردانده شد.",
-    "content_saved_to_blog": "محتوا با موفقیت در بلاگ ذخیره شد.",
-    "content_saved_to_portfolio": "محتوا با موفقیت در نمونه‌کار ذخیره شد.",
-    "content_not_saved": "محتوا فقط نمایش داده شد و ذخیره نشد.",
-    # Admin AI Settings
-    "settings_list_retrieved": "تنظیمات با موفقیت دریافت شد.",
-    "settings_retrieved": "تنظیمات با موفقیت دریافت شد.",
-    "settings_created": "تنظیمات با موفقیت ایجاد شد.",
-    "settings_updated": "تنظیمات با موفقیت به‌روزرسانی شد.",
-    "settings_deleted": "تنظیمات با موفقیت حذف شد.",
-    "usage_reset": "استفاده ماهانه با موفقیت ریست شد.",
-    "statistics_retrieved": "آمار با موفقیت دریافت شد.",
-}
-
-AI_ERRORS = {
-    "provider_not_found": "Provider AI یافت نشد.",
-    "provider_name_required": "نام Provider الزامی است.",
-    "provider_not_supported": "Provider '{provider_name}' پشتیبانی نمی‌شود.",
-    "provider_not_available": "Provider '{provider_name}' فعال نیست. لطفاً ابتدا API key را وارد کنید.",
-    "provider_not_active": "Provider فعال نیست.",
-    "api_key_required": "ابتدا باید API key وارد شود.",
-    "api_key_not_provided": "API key وارد نشده است.",
-    "api_key_invalid": "API key معتبر نیست.",
-    "api_key_encryption_error": "خطا در رمزنگاری API key: {error}",
-    "api_key_decryption_error": "خطا در رمزگشایی API key: {error}",
-    "image_generation_failed": "خطا در تولید تصویر: {error}",
-    "image_generation_http_error": "خطای HTTP {status_code}: {detail}",
-    "audio_generation_failed": "خطا در تولید فایل صوتی: {error}",
-    "audio_generation_http_error": "خطای HTTP {status_code}: {detail}",
-    "prompt_required": "Prompt نمی‌تواند خالی باشد.",
-    "prompt_invalid": "Prompt نامعتبر است.",
-    "openai_billing_limit": (
-        "حساب OpenAI به حد اعتبار رسیده است.\n\n"
-        "لطفاً:\n"
-        "1. به https://platform.openai.com/account/billing بروید\n"
-        "2. اعتبار حساب خود را افزایش دهید\n"
-        "3. یا محدودیت هزینه (spending limit) را بررسی کنید"
-    ),
-    "openai_invalid_response": "پاسخ نامعتبر از API OpenAI.",
-    "huggingface_model_loading": (
-        "مدل در حال لود شدن است. لطفاً چند ثانیه صبر کنید و دوباره تلاش کنید.\n\n"
-        "Hugging Face باید مدل را برای اولین بار از سرور دانلود کند که ممکن است کمی طول بکشد."
-    ),
-    "gemini_not_implemented": (
-        "Google Gemini API فعلاً قابلیت تولید تصویر را از طریق API مستقیم ندارد.\n\n"
-        "برای تولید تصویر با Google:\n"
-        "1. باید از Google Vertex AI Imagen استفاده کنید\n"
-        "2. نیاز به Google Cloud Project دارید\n"
-        "3. باید Vertex AI API را فعال کنید\n"
-        "4. نیاز به Service Account Authentication دارید\n\n"
-        "لطفاً از OpenAI DALL-E استفاده کنید که با API key ساده کار می‌کند."
-    ),
-    "image_download_failed": "خطا در دانلود تصویر: {error}",
-    "activation_failed": "خطا در فعال‌سازی Provider: {error}",
-    "validation_error": "خطا در اعتبارسنجی: {error}",
-    "content_generation_failed": "خطا در تولید محتوا: {error}",
-    "content_save_failed": "خطا در ذخیره محتوا در {destination}: {error}",
-    "destination_not_supported": "مقصد '{destination}' پشتیبانی نمی‌شود.",
-    "topic_required": "موضوع محتوا نمی‌تواند خالی باشد.",
-    "invalid_word_count": "تعداد کلمات باید بین 100 تا 2000 باشد.",
-    # Admin AI Settings Errors
-    "settings_not_authorized": "شما به این تنظیمات دسترسی ندارید.",
-    "settings_not_found": "تنظیمات یافت نشد.",
-    "validation_error": "خطا در اعتبارسنجی داده‌ها.",
-    "image_not_authorized": "شما به تولید تصویر دسترسی ندارید.",
-    "content_not_authorized": "شما به تولید محتوا دسترسی ندارید.",
-    "chat_not_authorized": "شما به چت با AI دسترسی ندارید.",
-    "audio_not_authorized": "شما به تولید فایل صوتی دسترسی ندارید.",
-}
-
+موارد موجود:
+آمار کلی: کاربران، ادمین‌ها، نمونه‌کارها، بلاگ‌ها، رسانه‌ها
+نمودارهای پایه (داده‌های mock)
+فید فعالیت (hardcoded)
+موارد مفید برای افزودن:
+1. آمار مبتنی بر زمان (Time-based Analytics)
+روند ثبت‌نام کاربران در 7/30/90 روز گذشته
+رشد محتوا (پورتفولیو/بلاگ) در بازه‌های زمانی
+نمودارهای واقعی (اکنون mock هستند)
+2. آمار تیکت‌ها (Ticket Statistics)
+تعداد تیکت‌های باز/بسته/در حال بررسی
+توزیع بر اساس اولویت (low/medium/high/urgent)
+میانگین زمان پاسخ
+تیکت‌های بدون پاسخ
+تیکت‌های اختصاص‌یافته به هر ادمین
+3. آمار ایمیل‌ها (Email Statistics)
+تعداد ایمیل‌های دریافتی بر اساس وضعیت (new/read/replied)
+منبع پیام‌ها (website/mobile_app/email/api)
+میانگین زمان پاسخ
+ایمیل‌های بدون پاسخ
+ایمیل‌های پاسخ‌داده‌شده توسط هر ادمین
+4. آمار فرم‌ها (Form Statistics)
+تعداد کل ارسال‌ها
+ارسال‌های اخیر (7/30 روز)
+آمار بر اساس فیلدهای فرم
+5. آمار محتوا (Content Analytics)
+توزیع محتوا بر اساس وضعیت (published/draft)
+پورتفولیو/بلاگ بر اساس دسته‌بندی
+محتوای محبوب (بر اساس بازدید)
+تگ‌های پراستفاده
+6. آمار رسانه (Media Analytics)
+حجم کل ذخیره‌سازی
+توزیع بر اساس نوع فایل (image/video/audio/document)
+حجم بر اساس نوع
+فایل‌های اخیر آپلودشده
+7. Activity Log (لاگ فعالیت واقعی)
+ثبت عملیات‌های مهم (create/update/delete)
+فید فعالیت از سیگنال‌های Django
+فیلتر بر اساس نوع فعالیت/کاربر/تاریخ
+8. آمار AI (AI Usage Statistics)
+تعداد استفاده از هر قابلیت (chat/image/audio)
+هزینه مصرف API
+مدل‌های پراستفاده
+استفاده توسط کاربر/ادمین
+9. آمار سیستم (System Health)
+حجم دیتابیس
+وضعیت کش
+حجم ذخیره‌سازی فایل‌ها
+لاگ خطاهای اخیر
+10. آمار کاربران پیشرفته
+کاربران فعال در بازه زمانی
+توزیع کاربران بر اساس موقعیت (Province/City)
+نرخ رشد ماهانه
+11. داشبورد تعاملی
+فیلتر تاریخ (7/30/90 روز / انتخاب بازه)
+Export به Excel/PDF
+Refresh دستی
+نمودارهای قابل بزرگ‌نمایی
+12. اعلان‌ها و هشدارها
+تیکت‌های بدون پاسخ بیش از 24 ساعت
+ایمیل‌های جدید
+خطاهای سیستم
+آستانه‌های مصرف (storage/AI)
+کدام موارد را اول پیاده‌سازی کنیم؟ می‌توانم با اضافه کردن Service‌های لازم در بک‌اند و کامپوننت‌های مربوطه در فرانت شروع کنم.

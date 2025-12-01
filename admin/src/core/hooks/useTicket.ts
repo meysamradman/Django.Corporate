@@ -10,10 +10,24 @@ import {
 } from "@/types/ticket/ticket";
 import { toast } from "@/components/elements/Sonner";
 
+export function useTicketStats() {
+  return useQuery({
+    queryKey: ['ticket-stats'],
+    queryFn: async () => {
+      // This will be implemented when we have the stats endpoint
+      return { new_tickets_count: 0, assigned_to_me_count: 0, total_new: 0 };
+    },
+    refetchInterval: 30000, // Auto-refetch every 30 seconds
+    refetchOnWindowFocus: true,
+  });
+}
+
 export function useTicketList(params: TicketListParams = {}) {
   return useQuery({
     queryKey: ['tickets', params],
     queryFn: () => ticketApi.getList(params),
+    refetchInterval: 30000, // Auto-refetch every 30 seconds
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 }
 
@@ -104,8 +118,11 @@ export function useUpdateTicketStatus() {
     mutationFn: ({ id, status }: { id: number | string; status: Ticket['status'] }) => 
       ticketApi.updateStatus(id, status),
     onSuccess: (_, variables) => {
+      // Invalidate all ticket-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
       toast.success("وضعیت تیکت با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
@@ -120,9 +137,12 @@ export function useCreateTicketMessage() {
   return useMutation({
     mutationFn: (data: TicketMessageCreate) => ticketApi.createMessage(data),
     onSuccess: (data) => {
+      // Invalidate all ticket-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['ticket-messages', data.ticket] });
       queryClient.invalidateQueries({ queryKey: ['ticket', data.ticket] });
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
       toast.success("پیام با موفقیت ارسال شد");
     },
     onError: (error: any) => {
@@ -139,9 +159,32 @@ export function useMarkMessageRead() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['ticket-messages', data.ticket] });
       queryClient.invalidateQueries({ queryKey: ['ticket', data.ticket] });
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در علامت‌گذاری پیام");
+      // Silent error - no toast for auto-marking
+      console.error('Error marking message as read:', error);
+    },
+  });
+}
+
+export function useMarkTicketAsRead() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (ticketId: number | string) => ticketApi.markTicketAsRead(ticketId),
+    onSuccess: (data) => {
+      // Invalidate all ticket-related queries for real-time updates
+      queryClient.invalidateQueries({ queryKey: ['ticket-messages', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
+    },
+    onError: (error: any) => {
+      // Silent error - no toast for auto-marking
+      console.error('Error marking ticket as read:', error);
     },
   });
 }

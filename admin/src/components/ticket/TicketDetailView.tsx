@@ -192,7 +192,7 @@ export function TicketDetailView({
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">
                         {message.sender_type === 'admin'
-                          ? message.sender_admin?.user.username || 'ادمین'
+                          ? (message.sender_admin?.user?.username || message.sender_admin?.user?.email || 'ادمین')
                           : getDisplayName(ticket.user)}
                       </span>
                       <Badge variant={message.sender_type === 'admin' ? 'blue' : 'gray'}>
