@@ -31,7 +31,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         return TicketMessageSerializer
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ticket.manage'):
+        # ✅ Support both ticket.manage and ticket.create (creating message = replying to ticket)
+        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.create']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN
@@ -59,7 +60,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ticket.manage'):
+        # ✅ Support both ticket.manage and ticket.update
+        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN
@@ -77,7 +79,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         return response
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ticket.manage'):
+        # ✅ Support both ticket.manage and ticket.delete
+        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.delete']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN
@@ -95,7 +98,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'ticket.manage'):
+        # ✅ Support both ticket.manage and ticket.update (marking as read is an update)
+        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN

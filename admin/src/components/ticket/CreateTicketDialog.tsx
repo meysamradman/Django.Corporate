@@ -57,12 +57,12 @@ export function CreateTicketDialog({
     }
     setCreating(true);
     try {
-      await onCreate({ 
-        subject, 
-        description, 
+      await onCreate({
+        subject,
+        description,
         priority,
         message: message.trim() || undefined,
-        attachment_ids: attachmentIds.length > 0 ? attachmentIds : undefined 
+        attachment_ids: attachmentIds.length > 0 ? attachmentIds : undefined
       });
       onOpenChange(false);
       setSubject("");
@@ -95,7 +95,7 @@ export function CreateTicketDialog({
                 placeholder="موضوع تیکت را وارد کنید..."
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="priority">اولویت</Label>
               <Select value={priority} onValueChange={(value: 'low' | 'medium' | 'high' | 'urgent') => setPriority(value)}>
@@ -145,7 +145,8 @@ export function CreateTicketDialog({
             <ProtectedButton
               variant="outline"
               onClick={() => setMediaLibraryOpen(true)}
-              permission="ticket.manage"
+              permission={['ticket.manage', 'ticket.create']}
+              requireAll={false}
               showDenyToast={false}
             >
               افزودن پیوست
@@ -154,7 +155,8 @@ export function CreateTicketDialog({
               variant="default"
               onClick={handleCreate}
               disabled={!subject.trim() || !description.trim() || creating}
-              permission="ticket.manage"
+              permission={['ticket.manage', 'ticket.create']}
+              requireAll={false}
               showDenyToast={false}
             >
               <Send className="size-4" />

@@ -149,25 +149,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             "context_action": "create" | "update"  # optional
         }
         """
-        # دریافت context از request
-        context_type = request.data.get('context_type', 'media_library')
-        context_action = request.data.get('context_action', 'create')
-        
-        context = {
-            'type': context_type,
-            'action': context_action
-        } if context_type != 'media_library' else None
-        
-        # چک دسترسی (با context)
-        if not PermissionValidator.has_permission(
-            request.user, 
-            'media.upload',
-            context=context
-        ):
-            return APIResponse.error(
-                message=MEDIA_ERRORS["UPLOAD_PERMISSION_DENIED"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         file = request.FILES.get('file') or request.FILES.get('files')
         if not file:
             return APIResponse.error(
@@ -179,6 +160,38 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         from src.media.models.media import detect_media_type_from_extension
         file_ext = file.name.lower().split('.')[-1] if '.' in file.name else ''
         media_type = detect_media_type_from_extension(file_ext)
+        
+        # دریافت context از request
+        context_type = request.data.get('context_type', 'media_library')
+        context_action = request.data.get('context_action', 'create')
+        
+        context = {
+            'type': context_type,
+            'action': context_action
+        } if context_type != 'media_library' else None
+        
+        # ✅ FIX: چک دسترسی - پشتیبانی از هر دو general و type-specific permissions
+        # برای media_library: نیاز به media.upload یا media.{type}.upload
+        # برای portfolio/blog: نیاز به portfolio.create/update یا blog.create/update
+        has_general_upload = PermissionValidator.has_permission(
+            request.user, 
+            'media.upload',
+            context=context
+        )
+        
+        # چک کردن type-specific permission (مثلاً media.image.upload)
+        type_specific_perm = f'media.{media_type}.upload'
+        has_type_specific = PermissionValidator.has_permission(
+            request.user,
+            type_specific_perm,
+            context=context
+        )
+        
+        if not (has_general_upload or has_type_specific):
+            return APIResponse.error(
+                message=MEDIA_ERRORS["UPLOAD_PERMISSION_DENIED"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         
         try:
             cover_image_file = request.FILES.get('cover_image')

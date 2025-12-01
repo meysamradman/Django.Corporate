@@ -22,20 +22,10 @@ from src.form.services.contact_form_field_service import (
     get_active_fields_for_platform,
 )
 from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
-from src.user.authorization.admin_permission import FormsManagerAccess
-from src.user.permissions import PermissionValidator
+from src.user.authorization.admin_permission import RequirePermission
 
 
 class ContactFormFieldViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet برای مدیریت فیلدهای فرم تماس
-    
-    - GET /api/form/fields/ : لیست فیلدها (عمومی برای دریافت فیلدهای فعال)
-    - GET /api/form/fields/{id}/ : جزئیات فیلد
-    - POST /api/form/fields/ : ایجاد فیلد جدید (فقط ادمین)
-    - PATCH /api/form/fields/{id}/ : به‌روزرسانی فیلد (فقط ادمین)
-    - DELETE /api/form/fields/{id}/ : حذف فیلد (فقط ادمین)
-    """
     
     queryset = ContactFormField.objects.all()
     pagination_class = StandardLimitPagination
@@ -57,15 +47,10 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
         """تعیین دسترسی‌ها"""
         if self.action == 'get_fields_for_platform':
             return [AllowAny()]
-        return [FormsManagerAccess()]
+        return [RequirePermission('forms.manage')]
     
     def list(self, request, *args, **kwargs):
         """لیست فیلدها"""
-        if not PermissionValidator.has_permission(request.user, 'forms.manage'):
-            return APIResponse.error(
-                message=FORM_FIELD_ERRORS.get("field_not_authorized", "You don't have permission to view form fields"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             is_active = request.query_params.get('is_active')
             if is_active is not None:
@@ -93,11 +78,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         """دریافت جزئیات فیلد"""
-        if not PermissionValidator.has_permission(request.user, 'forms.manage'):
-            return APIResponse.error(
-                message=FORM_FIELD_ERRORS.get("field_not_authorized", "You don't have permission to view form fields"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -120,11 +100,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """ایجاد فیلد جدید"""
-        if not PermissionValidator.has_permission(request.user, 'forms.manage'):
-            return APIResponse.error(
-                message=FORM_FIELD_ERRORS.get("field_not_authorized", "You don't have permission to create form fields"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
@@ -177,11 +152,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """به‌روزرسانی فیلد"""
-        if not PermissionValidator.has_permission(request.user, 'forms.manage'):
-            return APIResponse.error(
-                message=FORM_FIELD_ERRORS.get("field_not_authorized", "You don't have permission to update form fields"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
@@ -220,11 +190,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         """حذف فیلد"""
-        if not PermissionValidator.has_permission(request.user, 'forms.manage'):
-            return APIResponse.error(
-                message=FORM_FIELD_ERRORS.get("field_not_authorized", "You don't have permission to delete form fields"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             delete_contact_form_field(instance)

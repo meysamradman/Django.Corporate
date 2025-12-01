@@ -95,7 +95,8 @@ export function ReplyTicketDialog({
             <ProtectedButton
               variant="outline"
               onClick={() => setMediaLibraryOpen(true)}
-              permission="ticket.manage"
+              permission={['ticket.manage', 'ticket.create']}
+              requireAll={false}
               showDenyToast={false}
             >
               <Paperclip className="size-4" />
@@ -105,7 +106,8 @@ export function ReplyTicketDialog({
               variant="default"
               onClick={handleSend}
               disabled={!message.trim() || sending}
-              permission="ticket.manage"
+              permission={['ticket.manage', 'ticket.create']}
+              requireAll={false}
               showDenyToast={false}
             >
               <Send className="size-4" />

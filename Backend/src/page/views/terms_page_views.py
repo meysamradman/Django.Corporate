@@ -22,8 +22,7 @@ from src.page.services.terms_page_service import (
 
 # Project messages
 from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
-from src.user.authorization.admin_permission import PagesManagerAccess
-from src.user.permissions import PermissionValidator
+from src.user.authorization.admin_permission import RequirePermission
 
 
 class TermsPageViewSet(viewsets.ModelViewSet):
@@ -31,7 +30,10 @@ class TermsPageViewSet(viewsets.ModelViewSet):
     
     queryset = TermsPage.objects.all()
     serializer_class = TermsPageSerializer
-    permission_classes = [PagesManagerAccess]
+    
+    def get_permissions(self):
+        """تعیین دسترسی‌ها"""
+        return [RequirePermission('pages.manage')]
     
     def get_serializer_class(self):
         """انتخاب serializer مناسب بر اساس action"""
@@ -77,11 +79,6 @@ class TermsPageViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """به‌روزرسانی صفحه قوانین و مقررات"""
-        if not PermissionValidator.has_permission(request.user, 'pages.manage'):
-            return APIResponse.error(
-                message=TERMS_PAGE_ERRORS.get("terms_page_not_authorized", "You don't have permission to update pages"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             serializer = self.get_serializer(data=request.data, partial=kwargs.get('partial', False))
             serializer.is_valid(raise_exception=True)

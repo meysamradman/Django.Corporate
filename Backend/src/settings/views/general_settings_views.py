@@ -9,8 +9,7 @@ from src.settings.services.general_settings_service import (
     update_general_settings,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.authorization.admin_permission import SettingsManagerAccess
-from src.user.permissions import PermissionValidator
+from src.user.authorization.admin_permission import RequirePermission
 
 
 class GeneralSettingsViewSet(viewsets.ModelViewSet):
@@ -18,15 +17,13 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
     
     queryset = GeneralSettings.objects.all()
     serializer_class = GeneralSettingsSerializer
-    permission_classes = [SettingsManagerAccess]
+    
+    def get_permissions(self):
+        """تعیین دسترسی‌ها"""
+        return [RequirePermission('settings.manage')]
     
     def list(self, request, *args, **kwargs):
         """Get general settings (Singleton)"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to view settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings)
@@ -60,11 +57,6 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         """Get general settings by ID"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to view settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings)
@@ -93,11 +85,6 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """Update general settings"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to update settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings, data=request.data, partial=True)

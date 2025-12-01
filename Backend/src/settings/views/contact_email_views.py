@@ -13,8 +13,7 @@ from src.settings.services.contact_email_service import (
     delete_contact_email,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.authorization.admin_permission import SettingsManagerAccess
-from src.user.permissions import PermissionValidator
+from src.user.authorization.admin_permission import RequirePermission
 
 
 class ContactEmailViewSet(viewsets.ModelViewSet):
@@ -22,8 +21,11 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
     
     queryset = ContactEmail.objects.all()
     serializer_class = ContactEmailSerializer
-    permission_classes = [SettingsManagerAccess]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    
+    def get_permissions(self):
+        """تعیین دسترسی‌ها"""
+        return [RequirePermission('settings.manage')]
     filterset_fields = ['is_active']
     search_fields = ['email', 'label']
     ordering_fields = ['order', 'created_at']
@@ -31,11 +33,6 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         """List contact emails"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to view settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         filters = {}
         if 'is_active' in request.query_params:
             filters['is_active'] = request.query_params['is_active'] == 'true'
@@ -55,11 +52,6 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Create new contact email"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to update settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -89,11 +81,6 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """Update contact email"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to update settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -128,11 +115,6 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         """Delete contact email"""
-        if not PermissionValidator.has_permission(request.user, 'settings.manage'):
-            return APIResponse.error(
-                message=SETTINGS_ERRORS.get("settings_not_authorized", "You don't have permission to update settings"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             delete_contact_email(instance)

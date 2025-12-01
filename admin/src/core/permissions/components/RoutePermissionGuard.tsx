@@ -95,7 +95,14 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
                     "ai.image.manage",
                     "ai.manage"
                 ],
-                "/settings/ai": ["ai.settings.shared.manage", "ai.manage"],
+                "/settings/ai": [
+                    "ai.settings.shared.manage",
+                    "ai.manage",
+                    "ai.chat.manage",
+                    "ai.content.manage",
+                    "ai.image.manage",
+                    "ai.audio.manage"
+                ],
             };
             
             // Find matching path and check permissions

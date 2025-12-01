@@ -9,12 +9,15 @@ from src.chatbot.serializers.faq_serializer import FAQSerializer, FAQListSeriali
 from src.chatbot.serializers.settings_serializer import ChatbotSettingsSerializer
 from src.chatbot.services.rule_based_service import RuleBasedChatService
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
-from src.user.permissions import PermissionValidator
+from src.user.authorization.admin_permission import RequirePermission
 
 
 class AdminFAQViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = FAQSerializer
+    
+    def get_permissions(self):
+        """تعیین دسترسی‌ها"""
+        return [RequirePermission('chatbot.manage')]
     
     def get_queryset(self):
         return FAQ.objects.all().order_by('order', '-created_at')
@@ -25,19 +28,9 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
         return FAQSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'chatbot.manage'):
-            return APIResponse.error(
-                message=CHATBOT_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         return super().list(request, *args, **kwargs)
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'chatbot.manage'):
-            return APIResponse.error(
-                message=CHATBOT_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         response = super().create(request, *args, **kwargs)
         RuleBasedChatService.clear_cache()
         if response.status_code == status.HTTP_201_CREATED:
@@ -49,11 +42,6 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
         return response
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'chatbot.manage'):
-            return APIResponse.error(
-                message=CHATBOT_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         response = super().update(request, *args, **kwargs)
         RuleBasedChatService.clear_cache()
         if response.status_code == status.HTTP_200_OK:
@@ -65,11 +53,6 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
         return response
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'chatbot.manage'):
-            return APIResponse.error(
-                message=CHATBOT_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         instance = self.get_object()
         super().destroy(request, *args, **kwargs)
         RuleBasedChatService.clear_cache()
@@ -80,19 +63,16 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
 
 
 class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = ChatbotSettingsSerializer
+    
+    def get_permissions(self):
+        """تعیین دسترسی‌ها"""
+        return [RequirePermission('chatbot.manage')]
     
     def get_queryset(self):
         return ChatbotSettings.objects.all()
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'chatbot.manage'):
-            return APIResponse.error(
-                message=CHATBOT_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         settings = self.get_queryset().first()
         if not settings:
             settings = ChatbotSettings.objects.create()
@@ -105,12 +85,6 @@ class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['put', 'patch'], url_path='update')
     def update_settings(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'chatbot.manage'):
-            return APIResponse.error(
-                message=CHATBOT_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         instance = self.get_queryset().first()
         if not instance:
             instance = ChatbotSettings.objects.create()

@@ -46,14 +46,15 @@ const getStatusIcon = (status: TicketStatusType | 'all') => {
 
 export function TicketSidebar({ selectedStatus, onStatusChange, onCreateClick, statusCounts }: TicketSidebarProps) {
   const statuses = getStatuses(statusCounts);
-  
+
   return (
     <aside className="w-full flex flex-col h-full overflow-hidden">
       <div className="p-5 border-b flex-shrink-0">
         <ProtectedButton
-          permission="ticket.manage"
+          permission={['ticket.manage', 'ticket.create']}
+          requireAll={false}
           variant="default"
-          className="w-full" 
+          className="w-full"
           onClick={onCreateClick}
           showDenyToast={false}
         >
@@ -174,10 +175,10 @@ export function TicketSidebar({ selectedStatus, onStatusChange, onCreateClick, s
                   <Badge
                     variant={
                       status.id === 'all' ? "default" :
-                      status.id === 'open' ? "red" :
-                      status.id === 'in_progress' ? "blue" :
-                      status.id === 'resolved' ? "green" :
-                      status.id === 'closed' ? "gray" : "default"
+                        status.id === 'open' ? "red" :
+                          status.id === 'in_progress' ? "blue" :
+                            status.id === 'resolved' ? "green" :
+                              status.id === 'closed' ? "gray" : "default"
                     }
                     className="text-xs px-2 py-0.5 border-0 flex-shrink-0"
                   >

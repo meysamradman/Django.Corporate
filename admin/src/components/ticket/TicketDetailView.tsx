@@ -117,7 +117,7 @@ export function TicketDetailView({
       <div className="border-b p-4 flex-shrink-0">
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="size-12 shrink-0">
-            <AvatarImage 
+            <AvatarImage
               src={undefined}
               alt={displayName}
               className="object-cover"
@@ -131,13 +131,13 @@ export function TicketDetailView({
               <span className="font-semibold text-lg">{displayName}</span>
               <Badge variant={getStatusColor(ticket.status) as any}>
                 {ticket.status === 'open' ? 'باز' :
-                 ticket.status === 'in_progress' ? 'در حال بررسی' :
-                 ticket.status === 'resolved' ? 'حل شده' : 'بسته شده'}
+                  ticket.status === 'in_progress' ? 'در حال بررسی' :
+                    ticket.status === 'resolved' ? 'حل شده' : 'بسته شده'}
               </Badge>
               <Badge variant={getPriorityColor(ticket.priority) as any}>
                 {ticket.priority === 'urgent' ? 'فوری' :
-                 ticket.priority === 'high' ? 'بالا' :
-                 ticket.priority === 'medium' ? 'متوسط' : 'پایین'}
+                  ticket.priority === 'high' ? 'بالا' :
+                    ticket.priority === 'medium' ? 'متوسط' : 'پایین'}
               </Badge>
             </div>
             <div className="flex items-center gap-4 flex-wrap text-base">
@@ -191,7 +191,7 @@ export function TicketDetailView({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">
-                        {message.sender_type === 'admin' 
+                        {message.sender_type === 'admin'
                           ? message.sender_admin?.user.username || 'ادمین'
                           : getDisplayName(ticket.user)}
                       </span>
@@ -251,23 +251,25 @@ export function TicketDetailView({
             </select>
           )}
           {onReply && ticket.status !== 'closed' && (
-            <ProtectedButton 
-              variant="default" 
-              size="sm" 
+            <ProtectedButton
+              variant="default"
+              size="sm"
               onClick={() => onReply(ticket)}
-              permission="ticket.manage"
+              permission={['ticket.manage', 'ticket.create']}
+              requireAll={false}
               showDenyToast={false}
             >
               <Reply className="size-4" />
               پاسخ
             </ProtectedButton>
           )}
-          <ProtectedButton 
-            variant="destructive" 
-            size="sm" 
+          <ProtectedButton
+            variant="destructive"
+            size="sm"
             onClick={() => onDelete?.(ticket)}
             className="!bg-red-1 hover:!bg-red-2 !text-static-w border-0"
-            permission="ticket.manage"
+            permission={['ticket.manage', 'ticket.delete']}
+            requireAll={false}
             showDenyToast={false}
           >
             <Trash2 className="size-4" />
