@@ -44,6 +44,7 @@ class EmailMessageSerializer(serializers.ModelSerializer):
             'phone',
             'subject',
             'message',
+            'dynamic_fields',
             'status',
             'status_display',
             'source',
@@ -83,7 +84,10 @@ class EmailMessageSerializer(serializers.ModelSerializer):
 
 
 class EmailMessageCreateSerializer(serializers.ModelSerializer):
-    """Serializer برای دریافت پیام جدید از وب‌سایت یا اپلیکیشن"""
+    """
+    Serializer برای دریافت پیام جدید از وب‌سایت یا اپلیکیشن
+    پشتیبانی از فیلدهای دینامیک از فرم‌ساز پنل ادمین
+    """
     
     class Meta:
         model = EmailMessage
@@ -95,7 +99,15 @@ class EmailMessageCreateSerializer(serializers.ModelSerializer):
             'message',
             'source',
             'status',
+            'dynamic_fields',
         ]
+        extra_kwargs = {
+            'name': {'required': False},
+            'email': {'required': False},
+            'phone': {'required': False},
+            'subject': {'required': False},
+            'message': {'required': False},
+        }
     
     def create(self, validated_data):
         # اضافه کردن IP و User Agent از request
@@ -107,6 +119,41 @@ class EmailMessageCreateSerializer(serializers.ModelSerializer):
             # اگر status draft است، created_by را تنظیم کن
             if validated_data.get('status') == 'draft' and request.user.is_authenticated:
                 validated_data['created_by'] = request.user
+            
+            # تنظیم منبع به صورت خودکار بر اساس نحوه ارسال
+            if 'source' not in validated_data:
+                # اگر از پنل ادمین ارسال شده باشد
+                if request.user.is_authenticated and hasattr(request.user, 'has_admin_access') and request.user.has_admin_access():
+                    validated_data['source'] = 'email'  # ایمیل ارسالی از پنل ادمین
+                else:
+                    # اگر از وب‌سایت یا API ارسال شده باشد
+                    validated_data['source'] = 'website'  # پیش‌فرض وب‌سایت
+        
+        # پردازش فیلدهای دینامیک
+        initial_data = self.initial_data if hasattr(self, 'initial_data') else {}
+        dynamic_fields = {}
+        
+        # فیلدهای سیستمی که نباید به dynamic_fields برن
+        system_fields = ['source', 'status']
+        
+        # تمام فیلدهای ارسال شده رو به dynamic_fields اضافه کن
+        for key, value in initial_data.items():
+            if key not in system_fields and value:  # فقط مقادیر خالی نباشن
+                dynamic_fields[key] = value
+        
+        # ذخیره در dynamic_fields
+        if dynamic_fields:
+            validated_data['dynamic_fields'] = dynamic_fields
+        
+        # اگر فیلدهای استاندارد (name, email, subject, message) در داده ارسالی هستن،
+        # اونها رو هم در فیلدهای اصلی مدل ذخیره کن (برای سازگاری با کوئری‌ها)
+        for field in ['name', 'email', 'phone', 'subject', 'message']:
+            if field in initial_data and initial_data.get(field):
+                validated_data[field] = initial_data[field]
+        
+        # تنظیم status پیش‌فرض
+        if 'status' not in validated_data:
+            validated_data['status'] = 'new'
         
         return super().create(validated_data)
     

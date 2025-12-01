@@ -7,9 +7,6 @@ import { formFieldsApi, type FormField } from '@/api/form-fields/route';
 export default function EmailsPage() {
   const [formData, setFormData] = useState<Record<string, any>>({
     source: 'website',
-    // فیلدهای پیش‌فرض بک‌اند (همیشه لازمه)
-    subject: '',
-    message: '',
   });
   const [fields, setFields] = useState<FormField[]>([]);
   const [fieldsLoading, setFieldsLoading] = useState(true);
@@ -18,7 +15,7 @@ export default function EmailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [createdEmail, setCreatedEmail] = useState<any>(null);
 
-  // دریافت فیلدهای فرم از بک‌اند
+  // دریافت فیلدهای فرم از پنل ادمین
   useEffect(() => {
     const fetchFields = async () => {
       try {
@@ -27,17 +24,14 @@ export default function EmailsPage() {
           const sortedFields = response.data.sort((a, b) => a.order - b.order);
           setFields(sortedFields);
           
-          // مقداردهی اولیه formData براساس فیلدها (بدون subject و message)
-          setFormData(prev => {
-            const newData = { ...prev };
-            sortedFields.forEach(field => {
-              // فقط فیلدهایی که subject و message نیستن
-              if (field.field_key !== 'subject' && field.field_key !== 'message') {
-                newData[field.field_key] = '';
-              }
-            });
-            return newData;
+          // مقداردهی اولیه formData براساس فیلدهای پنل ادمین
+          const initialData: Record<string, any> = {
+            source: 'website',
+          };
+          sortedFields.forEach(field => {
+            initialData[field.field_key] = '';
           });
+          setFormData(initialData);
         }
       } catch (err) {
         console.error('Error fetching form fields:', err);
@@ -57,39 +51,20 @@ export default function EmailsPage() {
     setSuccess(null);
 
     try {
-      // ساخت داده برای ارسال به بک‌اند
-      const emailData: Record<string, any> = {
-        source: formData.source || 'website',
-        subject: formData.subject,
-        message: formData.message,
-      };
-
-      // اضافه کردن فیلدهای داینامیک اگر مقدار دارند
-      fields.forEach(field => {
-        const value = formData[field.field_key];
-        if (value !== undefined && value !== '') {
-          emailData[field.field_key] = value;
-        }
-      });
-
-      // ارسال داده‌های فرم به بک‌اند
-      const response = await emailsApi.createEmail(emailData);
+      // ارسال تمام داده‌های فرم به بک‌اند
+      const response = await emailsApi.createEmail(formData);
 
       if (response.success) {
         setSuccess('پیام شما با موفقیت ارسال شد!');
         setCreatedEmail(response.data);
-        // Reset form
-        setFormData({
+        // Reset form - پاک کردن همه فیلدها
+        const resetData: Record<string, any> = {
           source: 'website',
-          subject: '',
-          message: '',
-        });
-        // پاک کردن فیلدهای داینامیک
+        };
         fields.forEach(field => {
-          if (field.field_key !== 'subject' && field.field_key !== 'message') {
-            setFormData(prev => ({ ...prev, [field.field_key]: '' }));
-          }
+          resetData[field.field_key] = '';
         });
+        setFormData(resetData);
       }
     } catch (err: any) {
       setError(err.message || 'خطا در ارسال پیام');
@@ -193,7 +168,7 @@ export default function EmailsPage() {
 
       <div className="bg-white shadow rounded-lg p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* فیلدهای داینامیک از پنل ادمین */}
+          {/* همه فیلدها از پنل ادمین */}
           {fields.map((field) => (
             <div key={field.id}>
               <label 
@@ -206,45 +181,6 @@ export default function EmailsPage() {
               {renderField(field)}
             </div>
           ))}
-
-          {/* فیلدهای ثابت بک‌اند (subject و message) */}
-          <div>
-            <label 
-              htmlFor="subject" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              موضوع <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="subject"
-              name="subject"
-              value={formData.subject || ''}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="مثال: درخواست مشاوره"
-            />
-          </div>
-
-          <div>
-            <label 
-              htmlFor="message" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              پیام <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message || ''}
-              onChange={handleChange}
-              required
-              rows={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="لطفاً پیام خود را اینجا بنویسید..."
-            />
-          </div>
 
           <div className="flex justify-end">
             <button

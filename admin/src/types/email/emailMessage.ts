@@ -1,11 +1,12 @@
 export interface EmailMessage {
   id: number;
   public_id: string;
-  name: string;
-  email: string;
+  name?: string | null;
+  email?: string | null;
   phone?: string | null;
-  subject: string;
-  message: string;
+  subject?: string | null;
+  message?: string | null;
+  dynamic_fields?: Record<string, any>;
   status: 'new' | 'read' | 'replied' | 'archived' | 'draft';
   status_display: string;
   source: 'website' | 'mobile_app' | 'email' | 'api';
@@ -38,11 +39,12 @@ export interface EmailAttachment {
 }
 
 export interface EmailMessageCreate {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   phone?: string;
-  subject: string;
-  message: string;
+  subject?: string;
+  message?: string;
+  dynamic_fields?: Record<string, any>;
   source?: 'website' | 'mobile_app' | 'email' | 'api';
   status?: 'new' | 'draft';
 }

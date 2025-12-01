@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد وضعیت ایمیل:
- * - جدید: red
- * - خوانده شده: blue
- * - پاسخ داده شده: green
- * - پیش‌نویس: orange
- */
 "use client";
 
 import React from "react";
@@ -148,11 +141,13 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-font-s truncate cursor-pointer">
-            {email.subject}
+            {email.subject || 'بدون موضوع'}
           </span>
-          <span className="text-xs text-font-s truncate cursor-pointer">
-            - {email.message.substring(0, 50)}...
-          </span>
+          {email.message && (
+            <span className="text-xs text-font-s truncate cursor-pointer">
+              - {email.message.substring(0, 50)}...
+            </span>
+          )}
         </div>
       </div>
 

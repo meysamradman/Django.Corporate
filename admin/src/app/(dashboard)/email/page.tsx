@@ -25,7 +25,7 @@ export default function EmailPage() {
     try {
       setLoading(true);
       const statusMap: Record<MailboxType, string | undefined> = {
-        inbox: "new",
+        inbox: undefined,  // نمایش همه ایمیل‌ها (new و read)
         draft: "draft",
         starred: "replied",
         spam: "archived",
@@ -145,21 +145,29 @@ export default function EmailPage() {
 
   const handleSendEmail = useCallback(async (data: ComposeEmailData) => {
     try {
-      await emailApi.create({
-        name: data.to.split("@")[0],
-        email: data.to,
-        subject: data.subject,
-        message: data.message,
-        source: "email",
-        status: "new",
-      });
-      toast.success("ایمیل با موفقیت ارسال شد");
+      // اگه ریپلای به ایمیل هست، از endpoint mark_as_replied استفاده کن
+      if (replyToEmail) {
+        await emailApi.markAsReplied(replyToEmail.id, data.message);
+        toast.success("پاسخ با موفقیت ارسال شد");
+      } else {
+        // ایمیل جدید
+        await emailApi.create({
+          name: data.to.split("@")[0],
+          email: data.to,
+          subject: data.subject,
+          message: data.message,
+          source: "email",
+          status: "new",
+        });
+        toast.success("ایمیل با موفقیت ارسال شد");
+      }
       setReplyToEmail(null);
       fetchEmails();
-    } catch (error) {
-      toast.error("خطا در ارسال ایمیل");
+    } catch (error: any) {
+      const errorMessage = error.message || 'خطا در ارسال ایمیل';
+      toast.error(errorMessage);
     }
-  }, [fetchEmails]);
+  }, [fetchEmails, replyToEmail]);
 
   const handleSaveDraft = useCallback(async (data: ComposeEmailData) => {
     try {
@@ -205,60 +213,70 @@ export default function EmailPage() {
   }, [selectedEmail]);
 
   const filteredEmails = useMemo(() => {
-    const isSpam = (e: EmailMessage) => 
-      e.status === 'archived' && (
-        e.subject?.toLowerCase().includes('هرزنامه') || 
-        e.subject?.toLowerCase().includes('spam') || 
-        e.email?.toLowerCase().includes('spam')
-      );
-    
-    const isTrash = (e: EmailMessage) => 
-      e.status === 'archived' && (
-        e.subject?.toLowerCase().includes('حذف') || 
-        e.subject?.toLowerCase().includes('deleted') || 
-        e.email?.toLowerCase().includes('deleted')
-      );
-
     switch (selectedMailbox) {
       case "inbox":
-        return emails.filter(e => e.status === 'new');
-      case "draft":
-        return emails.filter(e => e.status === 'draft' || e.is_draft);
+        // صندوق ورودی: فقط ایمیل‌های دریافتی از کاربران (source=website یا mobile_app)
+        return emails.filter(e => 
+          e.status !== 'draft' && 
+          e.status !== 'archived' &&
+          (e.source === 'website' || e.source === 'mobile_app')  // فقط ایمیل‌های دریافتی
+        );
       case "sent":
-        return emails.filter(e => e.status === 'read' && e.created_by);
+        // ارسال شده: فقط ایمیل‌هایی که از پنل ادمین ارسال شده (source=email)
+        return emails.filter(e => e.source === 'email' && e.status !== 'draft');
+      case "draft":
+        // پیش‌نویس: فقط draft ها
+        return emails.filter(e => e.status === 'draft' || e.is_draft);
       case "starred":
+        // ستاره‌دار: فقط ایمیل‌های ستاره‌دار
         return emails.filter(e => e.is_starred === true);
       case "spam":
-        return emails.filter(isSpam);
+        // هرزنامه: archived با کلمه spam
+        return emails.filter(e => 
+          e.status === 'archived' && (
+            e.subject?.toLowerCase().includes('هرزنامه') || 
+            e.subject?.toLowerCase().includes('spam') || 
+            e.email?.toLowerCase().includes('spam')
+          )
+        );
       case "trash":
-        return emails.filter(isTrash);
+        // سطل زباله: archived با کلمه deleted
+        return emails.filter(e => 
+          e.status === 'archived' && (
+            e.subject?.toLowerCase().includes('حذف') || 
+            e.subject?.toLowerCase().includes('deleted') || 
+            e.email?.toLowerCase().includes('deleted')
+          )
+        );
       default:
         return emails;
     }
   }, [emails, selectedMailbox]);
 
   const mailboxCounts = useMemo(() => {
-    const isSpam = (e: EmailMessage) => 
-      e.status === 'archived' && (
-        e.subject?.toLowerCase().includes('هرزنامه') || 
-        e.subject?.toLowerCase().includes('spam') || 
-        e.email?.toLowerCase().includes('spam')
-      );
-    
-    const isTrash = (e: EmailMessage) => 
-      e.status === 'archived' && (
-        e.subject?.toLowerCase().includes('حذف') || 
-        e.subject?.toLowerCase().includes('deleted') || 
-        e.email?.toLowerCase().includes('deleted')
-      );
-
     return {
-      inbox: emails.filter(e => e.status === 'new').length,
-      sent: emails.filter(e => e.status === 'read' && e.created_by).length,
+      inbox: emails.filter(e => 
+        e.status !== 'draft' && 
+        e.status !== 'archived' &&
+        (e.source === 'website' || e.source === 'mobile_app')
+      ).length,
+      sent: emails.filter(e => e.source === 'email' && e.status !== 'draft').length,
       draft: emails.filter(e => e.status === 'draft' || e.is_draft).length,
       starred: emails.filter(e => e.is_starred === true).length,
-      spam: emails.filter(isSpam).length,
-      trash: emails.filter(isTrash).length,
+      spam: emails.filter(e => 
+        e.status === 'archived' && (
+          e.subject?.toLowerCase().includes('هرزنامه') || 
+          e.subject?.toLowerCase().includes('spam') || 
+          e.email?.toLowerCase().includes('spam')
+        )
+      ).length,
+      trash: emails.filter(e => 
+        e.status === 'archived' && (
+          e.subject?.toLowerCase().includes('حذف') || 
+          e.subject?.toLowerCase().includes('deleted') || 
+          e.email?.toLowerCase().includes('deleted')
+        )
+      ).length,
     };
   }, [emails]);
 

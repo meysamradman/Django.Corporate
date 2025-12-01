@@ -68,7 +68,7 @@ class EmailApi {
 
   async create(data: EmailMessageCreate): Promise<EmailMessage> {
     const response = await fetchApi.post<EmailMessage>(
-      `${this.baseUrl}/`,
+      this.baseUrl,  // حذف اسلش اضافی
       data as unknown as Record<string, unknown>
     );
 
@@ -114,9 +114,10 @@ class EmailApi {
     return response.data;
   }
 
-  async markAsReplied(id: number | string): Promise<EmailMessage> {
+  async markAsReplied(id: number | string, replyMessage: string): Promise<EmailMessage> {
     const response = await fetchApi.post<EmailMessage>(
-      `${this.baseUrl}${id}/mark_as_replied/`
+      `${this.baseUrl}${id}/mark_as_replied/`,
+      { reply_message: replyMessage }
     );
 
     if (response.metaData.status !== 'success') {

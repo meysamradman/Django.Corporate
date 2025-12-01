@@ -90,8 +90,11 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except Exception as e:
+            import traceback
+            traceback.print_exc()  # چاپ خطای دقیق در console
             return APIResponse.error(
                 message=EMAIL_ERRORS['message_create_failed'],
+                errors={'detail': str(e)},
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -212,7 +215,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
     def mark_as_replied(self, request, pk=None):
-        """علامت‌گذاری پیام به عنوان پاسخ داده شده"""
+        """علامت‌گذاری پیام به عنوان پاسخ داده شده + ارسال ایمیل واقعی"""
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
                 message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to reply to email messages"),
@@ -220,14 +223,24 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
         try:
             message = self.get_object()
+            reply_text = request.data.get('reply_message', '')
             
-            if message.status == 'replied':
+            if not reply_text:
                 return APIResponse.error(
-                    message=EMAIL_ERRORS['message_already_replied'],
+                    message="متن پاسخ الزامی است",
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            message.mark_as_replied(request.user)
+            # ارسال ایمیل واقعی به کاربر
+            from src.email.services.email_service import EmailService
+            email_sent = EmailService.send_reply_email(message, reply_text, request.user)
+            
+            if not email_sent:
+                return APIResponse.error(
+                    message="خطا در ارسال ایمیل. پیام ذخیره شد ولی ایمیل ارسال نشد.",
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
             serializer = self.get_serializer(message)
             
             return APIResponse.success(

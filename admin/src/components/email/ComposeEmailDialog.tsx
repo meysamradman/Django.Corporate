@@ -39,12 +39,21 @@ export function ComposeEmailDialog({
   useEffect(() => {
     if (open) {
       if (replyTo) {
-        setTo(replyTo.email);
-        setSubject(replyTo.subject.startsWith("Re:") ? replyTo.subject : `Re: ${replyTo.subject}`);
+        setTo(replyTo.email || '');
+        const replySubject = replyTo.subject || 'بدون موضوع';
+        setSubject(replySubject.startsWith("Re:") ? replySubject : `Re: ${replySubject}`);
+        
+        // برای متن پیام اول dynamic_fields رو چک کن
+        let previousMessage = replyTo.message || '';
+        if (!previousMessage && replyTo.dynamic_fields) {
+          // اگر message خالی بود، از dynamic_fields بگیر
+          previousMessage = replyTo.dynamic_fields.message || '';
+        }
+        
         setMessage(`
 
 --- پیام قبلی ---
-${replyTo.message}
+${previousMessage}
 `);
       } else {
         setTo("");

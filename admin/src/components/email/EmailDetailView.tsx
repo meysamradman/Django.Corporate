@@ -35,7 +35,7 @@ export function EmailDetailView({
 }: EmailDetailViewProps) {
   if (!email) return null;
 
-  const getInitials = (name: string, emailAddr?: string, source?: string) => {
+  const getInitials = (name?: string | null, emailAddr?: string | null, source?: string) => {
     if (name && name.trim()) {
       const words = name.trim().split(" ");
       if (words.length >= 2) {
@@ -65,14 +65,14 @@ export function EmailDetailView({
     return colors[index];
   };
 
-  const getDisplayName = (name: string, emailAddr: string, source: string, sourceDisplay?: string) => {
+  const getDisplayName = (name?: string | null, emailAddr?: string | null, source?: string, sourceDisplay?: string) => {
     if (name && name.trim()) {
       return name;
     }
     if (emailAddr) {
       return emailAddr.split("@")[0];
     }
-    return sourceDisplay || source;
+    return sourceDisplay || source || 'ناشناس';
   };
 
   const getSourceIcon = (source: string) => {
@@ -146,10 +146,12 @@ export function EmailDetailView({
               )}
             </div>
             <div className="flex items-center gap-4 flex-wrap text-base">
-              <div className="flex items-center gap-1.5 text-font-p">
-                <Mail className="size-4 shrink-0" />
-                <span>{email.email}</span>
-              </div>
+              {email.email && (
+                <div className="flex items-center gap-1.5 text-font-p">
+                  <Mail className="size-4 shrink-0" />
+                  <span>{email.email}</span>
+                </div>
+              )}
               {email.phone && (
                 <div className="flex items-center gap-1.5 text-font-p">
                   <Phone className="size-4 shrink-0" />
@@ -165,7 +167,7 @@ export function EmailDetailView({
         </div>
 
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h2 className="text-xl font-bold">{email.subject}</h2>
+          <h2 className="text-xl font-bold">{email.subject || 'بدون موضوع'}</h2>
           <div className="flex items-center gap-1.5 text-base text-font-s">
             <Calendar className="size-4" />
             <span>{formatDate(email.created_at)}</span>
@@ -202,11 +204,30 @@ export function EmailDetailView({
         )}
 
         {/* Message Content */}
-        <div className="mb-4">
-          <div className="prose prose-sm max-w-none">
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">{email.message}</p>
+        {email.message && (
+          <div className="mb-4">
+            <div className="prose prose-sm max-w-none">
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{email.message}</p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Dynamic Fields - نمایش فیلدهای دینامیک */}
+        {email.dynamic_fields && Object.keys(email.dynamic_fields).length > 0 && (
+          <div className="mb-4">
+            <div className="bg-bg/50 rounded-lg p-4">
+              <h3 className="font-semibold text-sm mb-3">اطلاعات فرم:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Object.entries(email.dynamic_fields).map(([key, value]) => (
+                  <div key={key} className="flex flex-col">
+                    <span className="text-xs text-font-s mb-1">{key}:</span>
+                    <span className="text-sm font-medium">{String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Reply Section */}
         {email.reply_message && (

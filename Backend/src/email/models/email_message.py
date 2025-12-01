@@ -27,11 +27,15 @@ class EmailMessage(BaseModel):
     # اطلاعات فرستنده
     name = models.CharField(
         max_length=200,
+        blank=True,
+        null=True,
         verbose_name="نام",
         db_index=True,
         help_text="نام فرستنده پیام"
     )
     email = models.EmailField(
+        blank=True,
+        null=True,
         verbose_name="ایمیل",
         db_index=True,
         validators=[EmailValidator()],
@@ -48,13 +52,25 @@ class EmailMessage(BaseModel):
     # محتوای پیام
     subject = models.CharField(
         max_length=300,
+        blank=True,
+        null=True,
         verbose_name="موضوع",
         db_index=True,
         help_text="موضوع پیام"
     )
     message = models.TextField(
+        blank=True,
+        null=True,
         verbose_name="پیام",
         help_text="متن پیام"
+    )
+    
+    # فیلدهای دینامیک از فرم‌ساز
+    dynamic_fields = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="فیلدهای دینامیک",
+        help_text="فیلدهای ساخته شده در فرم‌ساز پنل ادمین"
     )
     
     # وضعیت
