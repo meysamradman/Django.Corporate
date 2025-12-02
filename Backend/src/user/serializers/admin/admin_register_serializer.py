@@ -9,10 +9,6 @@ from src.user.utils.national_id_validator import validate_national_id_format
 
 
 class AdminRegisterSerializer(serializers.Serializer):
-    """
-    Serializer dedicated to creating admin users inside the admin panel.
-    Note: is_staff=True is enforced automatically; only super admins may set is_superuser.
-    """
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     password = serializers.CharField(required=True, write_only=True, min_length=8)
@@ -48,7 +44,6 @@ class AdminRegisterSerializer(serializers.Serializer):
     role_id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate_mobile(self, value):
-        """Validate mobile number format and enforce uniqueness."""
         if value == "" or value is None:
             return None
             
@@ -63,7 +58,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_email(self, value):
-        """Validate email format and enforce uniqueness."""
         if value == "":
             return None
         if value:
@@ -79,7 +73,6 @@ class AdminRegisterSerializer(serializers.Serializer):
         return value
     
     def validate_password(self, value):
-        """Validate password strength constraints."""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS["auth_password_required"])
         
@@ -91,17 +84,14 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
     
     def validate_birth_date(self, value):
-        """Validate birth date is not set in the future."""
         if value and value > datetime.now().date():
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         return value
     
     def validate_national_id(self, value):
-        """Validate national ID format."""
         return validate_national_id_format(value)
     
     def validate_phone(self, value):
-        """Validate optional phone number."""
         if not value or value.strip() == "":
             return None
         
@@ -112,7 +102,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
     
     def validate_profile_picture_id(self, value):
-        """Ensure referenced profile picture exists."""
         if value is None:
             return value
         
@@ -126,7 +115,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_profile_picture(self, value):
-        """Validate uploaded profile picture via media service."""
         if value is None:
             return value
         
@@ -139,7 +127,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_role_id(self, value):
-        """Validate provided role ID belongs to an active role."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -153,7 +140,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_province_id(self, value):
-        """Validate province ID references an active province."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -168,7 +154,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_city_id(self, value):
-        """Validate city ID references an active city."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -183,7 +168,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate(self, data):
-        """Cross-field validation plus super admin gatekeeping."""
         admin_user = self.context.get('admin_user')
         
         if data.get('is_superuser') is True and not admin_user.is_superuser:
@@ -214,9 +198,6 @@ class AdminRegisterSerializer(serializers.Serializer):
 
 
 class AdminCreateRegularUserSerializer(serializers.Serializer):
-    """
-    Serializer used by admins to create regular users with full profile support.
-    """
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True, min_length=6)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
@@ -238,7 +219,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_profile_picture_id(self, value):
-        """Ensure referenced profile picture exists."""
         if value is None:
             return value
         
@@ -252,7 +232,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_password(self, value):
-        """Validate password requirements for regular users."""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS["auth_password_required"])
         
@@ -262,7 +241,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         return value
 
     def validate_province_id(self, value):
-        """Ensure referenced province exists."""
         if value is None:
             return value
         
@@ -276,7 +254,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_city_id(self, value):
-        """Ensure referenced city exists."""
         if value is None:
             return value
         
@@ -290,11 +267,9 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_profile_picture(self, value):
-        """Validate uploaded profile picture via media service."""
         if value is None:
             return value
         
-        # ✅ استفاده از validator مرکزی media که از settings (env) می‌خواند
         from src.media.utils.validators import validate_image_file
         from django.core.exceptions import ValidationError as DjangoValidationError
         
@@ -302,7 +277,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             validate_image_file(value)
             return value
         except DjangoValidationError as e:
-            # اگر خطای validation از media service باشد، آن را برمی‌گردانیم
             raise serializers.ValidationError(str(e))
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
@@ -319,7 +293,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
     
     def validate_identifier(self, value):
-        """Validate identifier value (email or mobile)."""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         

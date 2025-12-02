@@ -39,13 +39,9 @@ class UserManagementView(UserAuthMixin, APIView):
     # No throttling for admin operations - admins can work freely
 
     def get_permissions(self):
-        """Return permissions required for user-management actions."""
-        # Base permission: user must be admin with users module access
         return [UserManagerAccess()]
 
     def get(self, request, user_id=None):
-        """Return user list or detail depending on request parameters."""
-        # Check read permission
         if not PermissionValidator.has_permission(request.user, 'users.read'):
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_not_authorized"],
@@ -117,7 +113,6 @@ class UserManagementView(UserAuthMixin, APIView):
 
     @staticmethod
     def get_by_public_id(request, public_id=None):
-        """Retrieve user by public_id."""
         try:
             user = UserManagementService.get_user_by_public_id(public_id)
             # Ensure queried user is a regular account
@@ -132,7 +127,6 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def post(self, request, *args, **kwargs):
-        """Handle POST requests for create or bulk-delete operations."""
         bulk_action = kwargs.get('action')
         
         if bulk_action == 'bulk-delete':
@@ -141,8 +135,6 @@ class UserManagementView(UserAuthMixin, APIView):
             return self.create_user_post(request)
 
     def create_user_post(self, request):
-        """Handle creation of a new regular user."""
-        # Check create permission
         if not PermissionValidator.has_permission(request.user, 'users.create'):
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_not_authorized"],
@@ -173,17 +165,9 @@ class UserManagementView(UserAuthMixin, APIView):
                 data=response_serializer.data
             )
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error creating user: {str(e)}")
-            logger.error(f"Exception type: {type(e).__name__}")
-            import traceback
-            logger.error(f"Traceback: {traceback.format_exc()}")
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def bulk_delete_post(self, request):
-        """Handle bulk deletion of regular users."""
-        # Check delete permission
         if not PermissionValidator.has_permission(request.user, 'users.delete'):
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_not_authorized"],
@@ -210,8 +194,6 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def put(self, request, user_id):
-        """Handle updates to a regular user."""
-        # Check update permission
         if not PermissionValidator.has_permission(request.user, 'users.update'):
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_not_authorized"],
@@ -261,8 +243,6 @@ class UserManagementView(UserAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def delete(self, request, user_id):
-        """Delete a regular user."""
-        # Check delete permission
         if not PermissionValidator.has_permission(request.user, 'users.delete'):
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_not_authorized"],

@@ -613,35 +613,31 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
     
     def get_api_key(self) -> str:
 
-        import logging
-        logger = logging.getLogger(__name__)
+        from src.ai.messages.messages import SETTINGS_ERRORS
         
         is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
-        admin_id = getattr(self.admin, 'id', 'unknown')
-        provider_name = self.provider.display_name
         
         if self.use_shared_api:
             if not is_super:
                 if not self.provider.allow_shared_for_normal_admins:
-                    logger.error(f"❌ [API Key Selection] Admin {admin_id} cannot use shared API for {provider_name} (not allowed)")
                     raise ValidationError(
-                        f"استفاده از API مشترک {self.provider.display_name} برای ادمین‌های معمولی مجاز نیست"
+                        SETTINGS_ERRORS["shared_api_not_allowed"].format(provider_name=self.provider.display_name)
                     )
             
             shared_key = self.provider.get_shared_api_key()
             if not shared_key:
-                logger.error(f"❌ [API Key Selection] Shared API key not set for {provider_name}")
-                raise ValidationError(f"API Key مشترک {self.provider.display_name} تنظیم نشده است")
+                raise ValidationError(
+                    SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=self.provider.display_name)
+                )
             
-            logger.info(f"✅ [API Key Selection] Admin {admin_id} using SHARED API for {provider_name} (use_shared_api=True)")
             return shared_key
         else:
             personal_key = self.get_personal_api_key()
             if not personal_key:
-                logger.error(f"❌ [API Key Selection] Personal API key not set for admin {admin_id}, provider {provider_name}")
-                raise ValidationError("API Key شخصی شما تنظیم نشده است")
+                raise ValidationError(
+                    SETTINGS_ERRORS["personal_api_key_not_set"]
+                )
             
-            logger.info(f"✅ [API Key Selection] Admin {admin_id} using PERSONAL API for {provider_name} (use_shared_api=False)")
             return personal_key
     
     def increment_usage(self):

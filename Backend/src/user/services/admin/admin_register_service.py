@@ -277,11 +277,7 @@ class AdminRegisterService:
             
             return media.id
             
-        except Exception as e:
-            # Log the error but don't expose it to the user
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error uploading profile picture for admin {admin_id}: {e}")
+        except Exception:
             return None
 
     @staticmethod

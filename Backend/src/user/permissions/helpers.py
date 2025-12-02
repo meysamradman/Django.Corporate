@@ -1,22 +1,12 @@
-"""
-Centralized Permission Helper - Eliminates code duplication
-Optimized for performance and security - Single source of truth
-"""
 from django.core.cache import cache
 from typing import Dict, List, Set, Any
 from src.user.utils.cache import UserCacheKeys
 
 
 class PermissionHelper:
-    """
-    Centralized helper for all permission-related operations
-    Eliminates code duplication across serializers and views
-    """
     
-    # Cache timeouts
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = 300
     
-    # Module mapping - single source of truth
     MODULE_MAP = {
         'user': 'user_management',
         'media': 'media_management', 
@@ -26,7 +16,6 @@ class PermissionHelper:
         'sessions': 'session_management'
     }
     
-    # Action mapping - single source of truth
     ACTION_MAP = {
         'add': 'create',
         'change': 'update', 
@@ -36,23 +25,15 @@ class PermissionHelper:
     
     @classmethod
     def get_optimized_permissions(cls, user, list_view=False) -> Dict[str, Any]:
-        """
-        Get optimized permissions for any user type
-        list_view=True returns simplified data for lists
-        list_view=False returns detailed data for single user view
-        """
         if not user.is_authenticated or not user.is_active:
             return cls._get_empty_permissions()
         
-        # ✅ REGULAR USER: Simple response (no roles/permissions)
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
             return cls._get_regular_user_permissions(list_view)
         
-        # ✅ SUPERUSER: Ultra-fast minimal response (≤200B)
         if user.is_superuser:
             return cls._get_superuser_permissions(list_view)
         
-        # ✅ REGULAR ADMIN: Smart response based on view type
         if list_view:
             return cls._get_admin_permissions_simple(user)
         else:
@@ -60,7 +41,6 @@ class PermissionHelper:
     
     @classmethod
     def _get_empty_permissions(cls) -> Dict[str, Any]:
-        """Empty permissions for unauthenticated users"""
         return {
             'access_level': 'none',
             'permissions': [],
@@ -76,16 +56,13 @@ class PermissionHelper:
     
     @classmethod
     def _get_regular_user_permissions(cls, list_view=False) -> Dict[str, Any]:
-        """Permissions for regular website users - no roles/admin permissions"""
         if list_view:
-            # Minimal for list view
             return {
                 'access_level': 'user',
                 'roles': [],
                 'permissions_count': 0
             }
         
-        # Full data for detail view
         return {
             'access_level': 'user',
             'permissions': [],
@@ -102,20 +79,17 @@ class PermissionHelper:
     
     @classmethod
     def _get_superuser_permissions(cls, list_view=False) -> Dict[str, Any]:
-        """Optimized response for superusers - static data"""
         if list_view:
-            # Ultra-minimal for list view
             return {
                 'access_level': 'super_admin',
                 'roles': ['super_admin'],
                 'permissions_count': 'unlimited'
             }
         
-        # Full data for detail view
         return {
             'access_level': 'super_admin',
             'permissions': ['all'],
-            'roles': ['super_admin'],  # Fixed: superuser should show as super_admin role
+            'roles': ['super_admin'],
             'modules': ['all'],
             'actions': ['all'],
             'permission_summary': {
@@ -127,19 +101,12 @@ class PermissionHelper:
     
     @classmethod
     def _get_admin_permissions(cls, user) -> Dict[str, Any]:
-        """
-        ✅ Detailed permissions for regular admins with caching
-        IMPORTANT: Cache is cleared automatically when roles change via signals
-        """
-        # ✅ Use standardized cache key from UserCacheKeys
         cache_key = UserCacheKeys.admin_perms(user.id)
         cached_data = cache.get(cache_key)
         
         if cached_data:
-            # ✅ Return cached data - cache is cleared by signals when roles change
             return cached_data
         
-        # ✅ Calculate fresh permissions (cache was cleared or expired)
         permissions_list = cls._calculate_user_permissions(user)
         roles = cls._get_user_roles(user)
         modules = cls._get_accessible_modules(permissions_list)
@@ -159,21 +126,17 @@ class PermissionHelper:
             }
         }
         
-        # Cache for 5 minutes
         cache.set(cache_key, result, cls.CACHE_TIMEOUT)
         return result
         
     @classmethod
     def _get_admin_permissions_simple(cls, user) -> Dict[str, Any]:
-        """Simplified permissions for list view - much faster"""
-        # ✅ Use standardized cache key from UserCacheKeys
         cache_key = UserCacheKeys.admin_simple_perms(user.id)
         cached_data = cache.get(cache_key)
             
         if cached_data:
             return cached_data
             
-        # Get only essential data
         roles = cls._get_user_roles(user)
         permissions_count = cls._count_user_permissions(user)
             
@@ -184,19 +147,16 @@ class PermissionHelper:
             'has_permissions': permissions_count > 0
         }
             
-        # Cache for longer (10 minutes)
         cache.set(cache_key, result, 600)
         return result
         
     @classmethod
     def _count_user_permissions(cls, user) -> int:
-        """Count permissions without loading all data - only from assigned roles"""
         if user.is_superuser:
-            return 999  # Unlimited for superuser
+            return 999
                 
         count = 0
             
-        # Count from ONLY assigned AdminRoles
         if hasattr(user, 'adminuserrole_set'):
             user_role_assignments = user.adminuserrole_set.filter(
                 is_active=True
@@ -205,39 +165,31 @@ class PermissionHelper:
             for user_role in user_role_assignments:
                 role_perms = user_role.role.permissions
                 
-                # ✅ NEW: Check for specific_permissions format first
                 if 'specific_permissions' in role_perms:
                     specific_perms = role_perms.get('specific_permissions', [])
                     if isinstance(specific_perms, list):
-                        # Each item in specific_permissions is one exact permission
                         for perm in specific_perms:
                             if isinstance(perm, dict):
                                 if perm.get('module') == 'all' or perm.get('action') == 'all':
-                                    return 999  # Large number for "all" permissions
+                                    return 999
                         count += len(specific_perms)
                 else:
-                    # Old format: cartesian product
                     role_actions = role_perms.get('actions', [])
                     role_modules = role_perms.get('modules', [])
                     
-                    # Count combinations (module × action) for this specific role
                     if 'all' in role_modules or 'all' in role_actions:
-                        return 999  # Large number for "all" permissions
+                        return 999
                     count += len(role_modules) * len(role_actions)
             
         return count
     
     @classmethod
     def _calculate_user_permissions(cls, user) -> List[str]:
-        """Calculate all permissions for a user - only from assigned roles"""
-        # For superuser, return all permissions
         if user.is_superuser:
             return ['all']
             
-        # For regular admins, get permissions from ONLY assigned AdminRoles
         permissions_set = set()
         
-        # Get permissions from assigned AdminRoles ONLY
         if hasattr(user, 'adminuserrole_set'):
             user_role_assignments = user.adminuserrole_set.filter(
                 is_active=True
@@ -246,7 +198,6 @@ class PermissionHelper:
             for user_role in user_role_assignments:
                 role_perms = user_role.role.permissions
                 
-                # ✅ NEW: Check for specific_permissions format first
                 if 'specific_permissions' in role_perms:
                     specific_perms = role_perms.get('specific_permissions', [])
                     if isinstance(specific_perms, list):
@@ -259,21 +210,17 @@ class PermissionHelper:
                                         return ['all']
                                     permissions_set.add(f"{module}.{action}")
                 else:
-                    # Old format: modules and actions
                     role_modules = role_perms.get('modules', [])
                     role_actions = role_perms.get('actions', [])
                     
-                    # Convert role permissions to permission strings
                     for module in role_modules:
                         for action in role_actions:
                             if module != 'all' and action != 'all':
                                 permissions_set.add(f"{module}.{action}")
         
-        # Also get Django direct permissions (if any)
         for app_label, codename in user.user_permissions.values_list('content_type__app_label', 'codename'):
             permissions_set.add(f"{app_label}.{codename}")
             
-        # Also get Django group permissions (if any)
         for group in user.groups.all(): 
             for app_label, codename in group.permissions.values_list('content_type__app_label', 'codename'):
                 permissions_set.add(f"{app_label}.{codename}")
@@ -282,34 +229,25 @@ class PermissionHelper:
     
     @classmethod
     def _get_user_roles(cls, user) -> List[str]:
-        """Get user's role names - only assigned roles"""
-        # For superuser, return super_admin role only
         if user.is_superuser:
             return ['super_admin']
             
-        # For regular admins, get ONLY their assigned AdminRoles
         assigned_roles = []
         
-        # Check if user has adminuserrole_set (should be available for admin users)
         try:
             if hasattr(user, 'adminuserrole_set'):
-                # Only get active role assignments for this specific user
                 user_role_assignments = user.adminuserrole_set.filter(
                     is_active=True
                 ).select_related('role')
                 
                 assigned_roles = [ur.role.name for ur in user_role_assignments]
-        except Exception as e:
-            # Log error but don't fail
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error getting user roles for user {user.id}: {e}")
+        except Exception:
+            pass
             
         return assigned_roles
     
     @classmethod
     def _get_accessible_modules(cls, permissions: List[str]) -> List[str]:
-        """Extract modules from permissions - optimized"""
         modules = set()
         for perm in permissions:
             if '.' in perm:
@@ -319,7 +257,6 @@ class PermissionHelper:
     
     @classmethod
     def _get_accessible_actions(cls, permissions: List[str]) -> List[str]:
-        """Extract actions from permissions - optimized"""
         actions = set()
         for perm in permissions:
             if '.' in perm:
@@ -329,10 +266,6 @@ class PermissionHelper:
     
     @classmethod
     def clear_user_cache(cls, user_id: int) -> None:
-        """
-        ✅ پاک کردن کامل تمام cache های مربوط به کاربر از Redis
-        شامل تمام permission data, profile data, و role data
-        """
         cache_keys = [
             f"admin_perms_{user_id}",
             f"admin_simple_perms_{user_id}",
@@ -346,24 +279,19 @@ class PermissionHelper:
         ]
         cache.delete_many(cache_keys)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         from src.user.utils.cache import UserCacheManager
         try:
             UserCacheManager.invalidate_permissions(user_id)
         except Exception:
-            # Fallback if pattern deletion not supported
             pass
     
     @classmethod
     def clear_all_permission_cache(cls) -> None:
-        """Clear all permission caches"""
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         from src.user.utils.cache import UserCacheManager
         UserCacheManager.invalidate_permissions()
     
     @classmethod
     def get_permission_categories(cls, permissions: List[str]) -> Dict[str, List[Dict[str, str]]]:
-        """Get permissions organized by categories - for detailed views"""
         categories = {}
         
         for perm in permissions:
@@ -376,15 +304,12 @@ class PermissionHelper:
             if category not in categories:
                 categories[category] = []
             
-            # ✅ Use standardized cache key from UserCacheKeys
             from src.user.utils.cache import UserCacheKeys
             cache_key = UserCacheKeys.permission_display_name(perm)
             display_name = cache.get(cache_key)
             
             if not display_name:
-                # Use codename with spaces (faster than DB query)
                 display_name = " ".join(codename.split('_')).title()
-                # Cache the result for 24 hours
                 cache.set(cache_key, display_name, 86400)
             
             categories[category].append({
@@ -392,7 +317,6 @@ class PermissionHelper:
                 'name': display_name
             })
         
-        # Sort each category's permissions by name
         for category in categories:
             categories[category] = sorted(categories[category], key=lambda x: x['name'])
             

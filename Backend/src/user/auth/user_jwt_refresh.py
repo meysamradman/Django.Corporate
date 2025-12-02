@@ -8,16 +8,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from .user_cookies import UserCookie
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class UserJWTRefreshView(TokenRefreshView):
-    """
-    JWT Token refresh for users (website)
-    Reads refresh token from HttpOnly cookie and sets new tokens back to cookies
-    """
     
     def post(self, request, *args, **kwargs):
         refresh_token_cookie_name = getattr(settings, 'REFRESH_COOKIE_NAME', 'refresh_token')
@@ -44,9 +36,6 @@ class UserJWTRefreshView(TokenRefreshView):
             return response
         except Exception as e:
             error_detail = AUTH_ERRORS.get("auth_invalid_token")
-            # Log the actual exception for debugging
-            logger.error(f"UserJWTRefreshView Validation Error: {e}")
-            # Use standard DRF Response - renderer will format it
             response = Response({
                 "detail": error_detail
             }, status=status.HTTP_401_UNAUTHORIZED)

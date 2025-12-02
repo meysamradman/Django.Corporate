@@ -13,10 +13,6 @@ from src.user.messages.permission import PERMISSION_SUCCESS, PERMISSION_ERRORS
 @permission_classes([IsAuthenticated])
 def get_permission_map(request):
     try:
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # ✅ Use standardized cache key from UserCacheKeys
         from src.user.utils.cache import UserCacheKeys
         cache_key_all_perms = UserCacheKeys.permission_map()
         all_permissions = cache.get(cache_key_all_perms)
@@ -26,7 +22,6 @@ def get_permission_map(request):
         
         user_permissions = PermissionValidator.get_user_permissions(request.user)
         
-        # Get base permissions (همیشه برای همه ادمین‌ها رایگان)
         base_permissions = list(BASE_ADMIN_PERMISSIONS.keys())
         
         return APIResponse.success(
@@ -42,9 +37,6 @@ def get_permission_map(request):
             status_code=status.HTTP_200_OK,
         )
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error getting permission map: {e}", exc_info=True)
         return APIResponse.error(
             message=PERMISSION_ERRORS["permission_map_failed"],
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -82,9 +74,6 @@ def check_permission(request):
             status_code=status.HTTP_200_OK,
         )
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error checking permissions: {e}", exc_info=True)
         return APIResponse.error(
             message=PERMISSION_ERRORS["permission_check_failed"],
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

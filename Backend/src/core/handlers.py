@@ -5,7 +5,6 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework.response import Response
 
 def custom_exception_handler(exc, context):
-    """Optimized exception handler for React admin panel"""
     from src.user.messages import AUTH_ERRORS
     
     response = exception_handler(exc, context)
@@ -19,7 +18,6 @@ def custom_exception_handler(exc, context):
     error_data = getattr(response, 'data', {'detail': error_message})
 
     if isinstance(exc, (TokenError, InvalidToken)):
-
         if 'token_not_valid' in str(error_data) or 'token is expired' in error_message.lower():
             token_expired_msg = AUTH_ERRORS.get("auth_token_expired")
             if token_expired_msg:
@@ -48,7 +46,6 @@ def custom_exception_handler(exc, context):
             error_message = "You are not authorized to perform this action"
     
     elif status_code == status.HTTP_404_NOT_FOUND:
-        # Debug: Log 404 errors for export endpoints
         if context and 'request' in context:
             request = context['request']
             if '/export' in request.path:
@@ -66,11 +63,9 @@ def custom_exception_handler(exc, context):
         else:
             error_message = "Validation error"
 
-    # Return simple data structure - let the renderer handle formatting
-    # This prevents double wrapping of the response
     response.data = {
         "detail": error_message,
-        **error_data  # Include any additional error data
+        **error_data
     }
     
     return response

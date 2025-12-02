@@ -11,28 +11,18 @@ logger = logging.getLogger(__name__)
 
 
 class GroqProvider(BaseProvider):
-    """
-    Provider for Groq API - Fast and free AI models
-    Supports chat and content generation
-    Groq uses OpenAI-compatible API format
-    """
     
     BASE_URL = os.getenv('GROQ_API_BASE_URL', 'https://api.groq.com/openai/v1')
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        # Default models - Groq offers fast models
-        # ✅ Updated: llama-3.1-70b-versatile deprecated, using llama-3.1-8b-instant (fast and reliable)
         self.chat_model = config.get('chat_model', 'llama-3.1-8b-instant') if config else 'llama-3.1-8b-instant'
         self.content_model = config.get('content_model', 'llama-3.1-8b-instant') if config else 'llama-3.1-8b-instant'
-        
-        logger.info(f"[Groq Provider] Initialized with model: {self.chat_model}")
     
     def get_provider_name(self) -> str:
         return 'groq'
     
     def _get_headers(self) -> Dict[str, str]:
-        """Get headers for Groq API requests"""
         if not self.api_key:
             raise ValueError("API key is required for Groq")
         
@@ -42,49 +32,28 @@ class GroqProvider(BaseProvider):
         }
     
     def validate_api_key(self) -> bool:
-        """Validate API key by making a test request"""
         try:
             if not self.api_key or not self.api_key.strip():
                 return False
             
-            # Groq API keys typically start with 'gsk_'
-            if not self.api_key.startswith('gsk_'):
-                logger.warning(f"[Groq Provider] API key doesn't start with 'gsk_': {self.api_key[:20]}...")
-            
-            # Make a simple test request to validate the key
             url = f"{self.BASE_URL}/models"
             headers = self._get_headers()
             
-            # Use sync client for validation with shorter timeout
             with httpx.Client(timeout=5.0) as client:
                 response = client.get(url, headers=headers)
                 return response.status_code == 200
-        except Exception as e:
-            logger.error(f"[Groq Provider] Error validating API key: {str(e)}")
+        except Exception:
             return False
     
     @classmethod
     def get_available_models(cls, api_key: Optional[str] = None, use_cache: bool = True) -> List[Dict[str, Any]]:
-        """
-        Get list of available models from Groq API
-        
-        Args:
-            api_key: Groq API key (optional - if not provided, returns default models)
-            use_cache: Whether to use cache (default: True)
-        
-        Returns:
-            List of available models with their details
-        """
         from django.core.cache import cache
         
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.provider_models('groq', None)
         
-        # Try cache first
         if use_cache:
             cached_models = cache.get(cache_key)
             if cached_models is not None:
-                logger.info(f"[Groq Provider] Returning {len(cached_models)} models from cache")
                 return cached_models
         
         try:
@@ -96,7 +65,6 @@ class GroqProvider(BaseProvider):
             if api_key and api_key.strip():
                 headers["Authorization"] = f"Bearer {api_key}"
             
-            # Make request to get models list
             with httpx.Client(timeout=10.0) as client:
                 response = client.get(url, headers=headers)
                 response.raise_for_status()
@@ -108,7 +76,6 @@ class GroqProvider(BaseProvider):
                         model_id = model.get('id', '')
                         model_name = model.get('name', model_id)
                         
-                        # Only include chat models (exclude deprecated or unavailable)
                         if model.get('object') == 'model':
                             models.append({
                                 'id': model_id,
@@ -118,31 +85,22 @@ class GroqProvider(BaseProvider):
                                 'pricing': model.get('pricing', {}),
                             })
                 
-                # Sort by popularity (context length as proxy)
                 models.sort(key=lambda x: x['context_length'], reverse=True)
                 
-                logger.info(f"[Groq Provider] Fetched {len(models)} models from API")
-                
-                # Cache for 6 hours
                 if use_cache:
-                    cache.set(cache_key, models, 6 * 60 * 60)  # 6 hours
+                    cache.set(cache_key, models, 6 * 60 * 60)
                 
                 return models
         except httpx.HTTPStatusError as e:
             if e.response.status_code in [401, 403]:
-                logger.warning(f"[Groq Provider] API key required (status: {e.response.status_code})")
-                # Return default models if API key is not available
                 return cls._get_default_models()
             else:
-                logger.error(f"[Groq Provider] HTTP error getting models: {e.response.status_code}")
                 return cls._get_default_models()
-        except Exception as e:
-            logger.error(f"[Groq Provider] Error getting available models: {str(e)}", exc_info=True)
+        except Exception:
             return cls._get_default_models()
     
     @staticmethod
     def _get_default_models() -> List[Dict[str, Any]]:
-        """Get default Groq models (when API is not accessible)"""
         return [
             {
                 'id': 'llama-3.3-70b-versatile',
@@ -170,14 +128,10 @@ class GroqProvider(BaseProvider):
             },
         ]
     
-    # Image generation (not supported by Groq)
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        """Generate image with Groq - not supported"""
         raise NotImplementedError("Groq does not support image generation")
     
-    # Content generation
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        """Generate content using Groq"""
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = self._get_headers()
@@ -185,7 +139,7 @@ class GroqProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = f"""لطفاً یک محتوای حرفه‌ای و سئو شده به زبان فارسی بنویسید.
+        full_prompt = f"""Please write a professional and SEO-optimized content in Persian (Farsi) language.
 
 موضوع: {prompt}
 
@@ -247,7 +201,6 @@ class GroqProvider(BaseProvider):
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
-        """Generate SEO-optimized content using Groq"""
         import re
         from django.utils.text import slugify
         
@@ -355,7 +308,6 @@ class GroqProvider(BaseProvider):
     
     # Chat method
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
-        """Chat with Groq AI - supports conversation history"""
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = self._get_headers()

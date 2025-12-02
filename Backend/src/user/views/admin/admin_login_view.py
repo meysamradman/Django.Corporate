@@ -27,7 +27,6 @@ class AdminLoginView(APIView):
     parser_classes = [JSONParser]
 
     def get(self, request):
-        """Return CSRF token for the login form."""
         csrf_token = get_token(request)
         return APIResponse.success(
             message="CSRF token generated successfully",
@@ -35,7 +34,6 @@ class AdminLoginView(APIView):
         )
 
     def post(self, request):
-        """Authenticate admin via mobile/password or OTP."""
         serializer = AdminLoginSerializer(data=request.data)
         
         if not serializer.is_valid():
@@ -101,9 +99,7 @@ class AdminLoginView(APIView):
                                 "base_permissions": BASE_ADMIN_PERMISSIONS_SIMPLE
                             }
                     except Exception as e:
-                        import logging
-                        logger = logging.getLogger(__name__)
-                        logger.error(f"Error getting permissions for admin {admin.id}: {e}", exc_info=True)
+                        pass
                 
                 # Set session cookie
                 response = APIResponse.success(
@@ -112,7 +108,7 @@ class AdminLoginView(APIView):
                         'user_id': admin.id,
                         'is_superuser': admin.is_superuser,
                         'user_type': admin.user_type,
-                        'permissions': permissions_data  # فقط برای ادمین‌ها
+                        'permissions': permissions_data
                     }
                 )
                 

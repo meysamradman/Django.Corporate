@@ -259,7 +259,12 @@ class AIModelViewSet(viewsets.ModelViewSet):
                 if not provider.is_active:
                     return Response({"error": "این Provider غیرفعال است"}, status=403)
             except AIProvider.DoesNotExist:
-                return Response({"error": "Provider یافت نشد"}, status=404)
+                from src.core.responses import APIResponse
+                from src.ai.messages.messages import AI_ERRORS
+                return APIResponse.error(
+                    message=AI_ERRORS.get("provider_not_found", "Provider not found"),
+                    status_code=404
+                )
         
         capability = request.query_params.get('capability')
         models = AIModel.get_models_by_provider(provider_slug, capability)
@@ -288,14 +293,9 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
         return context
     
     def create(self, request, *args, **kwargs):
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"✅ AI Settings CREATE - Request data: {request.data}")
-        
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
-            logger.error(f"❌ Validation Error: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         provider_id = serializer.validated_data.get('provider_id')
@@ -308,14 +308,12 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
             
             if existing:
 
-                logger.info(f"✅ Setting exists - Updating ID {existing.id}")
                 update_serializer = self.get_serializer(
                     existing,
                     data=request.data,
                     partial=True
                 )
                 if not update_serializer.is_valid():
-                    logger.error(f"❌ Update Validation Error: {update_serializer.errors}")
                     return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
                 self.perform_update(update_serializer)

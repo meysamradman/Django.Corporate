@@ -1,5 +1,3 @@
-import logging
-
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.views import APIView
@@ -21,9 +19,6 @@ from src.user.models import User
 from src.user.auth.auth_mixin import UserAuthMixin
 from src.user.authorization import SimpleAdminPermission
 from src.core.pagination.pagination import StandardLimitPagination
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -34,11 +29,9 @@ class AdminManagementView(UserAuthMixin, APIView):
     # No throttling for admin operations - admins can work freely
 
     def get_permissions(self):
-        """Return simple admin permission - just check if user is admin"""
         return [SimpleAdminPermission()]
 
     def get(self, request, admin_id=None, **kwargs):
-        """Fetch admin list or detail depending on the request."""
         try:
             action = kwargs.get('action')
             if action == 'me':
@@ -57,7 +50,6 @@ class AdminManagementView(UserAuthMixin, APIView):
                         data=serializer.data
                     )
                 except Exception as exc:
-                    logger.error(f"Error retrieving admin {admin_id}: {exc}")
                     return APIResponse.error(
                         message=AUTH_ERRORS["error_occurred"],
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -102,7 +94,6 @@ class AdminManagementView(UserAuthMixin, APIView):
         except PermissionDenied:
             return self._forbidden_response()
         except Exception as exc:
-            logger.error(f"AdminManagementView.get error: {exc}")
             return APIResponse.error(
                 message=AUTH_ERRORS["error_occurred"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -110,7 +101,6 @@ class AdminManagementView(UserAuthMixin, APIView):
 
     @staticmethod
     def get_by_public_id(request, public_id=None):
-        """Fetch admin detail based on public identifier."""
         try:
             admin = AdminManagementService.get_admin_detail(public_id)
             serializer = AdminDetailSerializer(admin, context={'request': request})
@@ -125,7 +115,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             )
 
     def post(self, request, *args, **kwargs):
-        """Handle POST requests for single create or bulk delete actions."""
         bulk_action = kwargs.get('action')
         
         if bulk_action == 'bulk-delete':
@@ -134,7 +123,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             return self.create_admin_post(request)
 
     def create_admin_post(self, request):
-        """Handle create admin POST flow."""
         from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
         serializer = AdminRegisterSerializer(data=request.data, context={'admin_user': request.user})
         
@@ -163,7 +151,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             )
 
     def bulk_delete_post(self, request):
-        """Handle bulk delete operation for admins."""
         serializer = BulkDeleteSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
@@ -187,7 +174,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             )
 
     def put(self, request, admin_id, **kwargs):
-        """Handle admin update operations."""
         try:
             is_own_profile = str(admin_id) == str(request.user.id)
             admin = AdminManagementService.get_admin_detail(admin_id)
@@ -229,14 +215,12 @@ class AdminManagementView(UserAuthMixin, APIView):
         except PermissionDenied:
             return self._forbidden_response()
         except Exception as exc:
-            logger.error(f"AdminManagementView.put error: {exc}")
             return APIResponse.error(
                 message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def delete(self, request, admin_id, **kwargs):
-        """Delete an admin profile."""
         try:
             if str(request.user.id) == str(admin_id):
                 return self._forbidden_response(AUTH_ERRORS["admin_cannot_self_delete"])
@@ -257,7 +241,6 @@ class AdminManagementView(UserAuthMixin, APIView):
         except PermissionDenied:
             return self._forbidden_response()
         except Exception as exc:
-            logger.error(f"AdminManagementView.delete error: {exc}")
             return APIResponse.error(
                 message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -283,7 +266,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             return False
 
     def _can_view_other_admins(self, user):
-        """Check if user can view other admins list (read-only access)"""
         # Super admin has full access
         if self._is_super_admin(user):
             return True

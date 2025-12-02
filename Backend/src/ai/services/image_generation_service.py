@@ -95,15 +95,12 @@ class AIImageGenerationService:
                 if settings:
                     api_key = settings.get_api_key()
                     api_type = 'SHARED' if settings.use_shared_api else 'PERSONAL'
-                    logger.info(f"✅ [Image Service] Admin {admin_id} using {api_type} API for {provider_name} (use_shared_api={settings.use_shared_api})")
                 else:
-                    
                     api_key = provider.get_shared_api_key()
-                    logger.info(f"✅ [Image Service] Admin {admin_id} using SHARED API for {provider_name} (no personal settings)")
                 
                 config = provider.config or {}
             except AIProvider.DoesNotExist:
-                raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
+                raise ValueError(f"Provider '{provider_name}' not found or inactive")
         else:
 
             try:
@@ -111,7 +108,7 @@ class AIImageGenerationService:
                 api_key = provider.get_shared_api_key()
                 config = provider.config or {}
             except AIProvider.DoesNotExist:
-                raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
+                raise ValueError(f"Provider '{provider_name}' not found or inactive")
         
         image_bytes = cls.generate_image(
             provider_name=provider_name,
@@ -142,13 +139,10 @@ class AIImageGenerationService:
         **kwargs
     ) -> ImageMedia:
 
-        import logging
-        logger = logging.getLogger(__name__)
-        
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
-            raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است")
+            raise ValueError(f"Provider '{provider_name}' not found or inactive")
         
         # ✅ Get appropriate API key
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
@@ -160,13 +154,10 @@ class AIImageGenerationService:
             
             if settings:
                 api_key = settings.get_api_key()
-                logger.info(f"🔑 Using {'shared' if settings.use_shared_api else 'personal'} API for {provider_name}")
             else:
                 api_key = provider.get_shared_api_key()
-                logger.info(f"🔗 Using shared API for {provider_name} (no personal settings)")
         else:
             api_key = provider.get_shared_api_key()
-            logger.info(f"🔗 Using shared API for {provider_name} (no admin)")
         
         config = provider.config or {}
         

@@ -65,7 +65,6 @@ BASE_ADMIN_PERMISSIONS = {
 
 # All available permissions in the system
 # Merged from modular files for better organization
-# ✅ BASE_ADMIN_PERMISSIONS هم اضافه می‌شود تا در لیست کامل permissions باشد
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
     **BASE_ADMIN_PERMISSIONS,  # Base permissions for all admins
     **BASE_PERMISSIONS,         # Base module permissions
@@ -86,7 +85,6 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
 
 @dataclass
 class RoleConfig:
-    """Configuration for a system role"""
     name: str
     display_name: str
     display_name_short: str
@@ -97,7 +95,6 @@ class RoleConfig:
 
 
 def _get_role_text(role_name: str) -> Dict[str, str]:
-    """Return localized text for a given role name."""
     defaults = {
         'display_name': role_name,
         'display_name_short': role_name,
@@ -117,7 +114,6 @@ def _build_role_config(
     permissions: Dict[str, Any],
     is_system_role: bool = True,
 ) -> RoleConfig:
-    """Helper to create RoleConfig instances using centralized text resources."""
     text = _get_role_text(name)
     return RoleConfig(
         name=name,
@@ -291,7 +287,6 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
 # =============================================================================
 
 # Available modules in the system
-# ✅ این شامل همه ماژول‌هایی است که در modules تعریف شده
 AVAILABLE_MODULES = {
     'all': {
         'name': 'all',
@@ -406,7 +401,6 @@ AVAILABLE_MODULES = {
 }
 
 # Available actions in the system
-# ✅ این فقط action های پایه است - permission های خاص در PERMISSIONS تعریف می‌شوند
 AVAILABLE_ACTIONS = {
     'all': {
         'name': 'all',
@@ -469,22 +463,18 @@ PERMISSION_VALIDATION_RULES = {
 # =============================================================================
 
 def get_all_permissions() -> Dict[str, Dict[str, Any]]:
-    """Get all permissions"""
     return PERMISSIONS.copy()
 
 
 def get_permission(permission_id: str) -> Dict[str, Any] | None:
-    """Get a single permission"""
     return PERMISSIONS.get(permission_id)
 
 
 def get_permissions_by_module(module: str) -> List[Tuple[str, Dict[str, Any]]]:
-    """Get all permissions for a module"""
     return [(pid, p) for pid, p in PERMISSIONS.items() if p['module'] == module]
 
 
 def get_permissions_by_action(action: str) -> List[Tuple[str, Dict[str, Any]]]:
-    """Get all permissions for an action"""
     return [(pid, p) for pid, p in PERMISSIONS.items() if p['action'] == action]
 
 
@@ -493,12 +483,10 @@ def get_permissions_by_action(action: str) -> List[Tuple[str, Dict[str, Any]]]:
 # =============================================================================
 
 def get_role_config(role_name: str) -> Optional[RoleConfig]:
-    """Return the role configuration for a given name"""
     return SYSTEM_ROLES.get(role_name)
 
 
 def get_role_display_name(role_name: str, short: bool = False) -> str:
-    """Return the display label for a role"""
     config = get_role_config(role_name)
     if not config:
         return role_name
@@ -507,28 +495,23 @@ def get_role_display_name(role_name: str, short: bool = False) -> str:
 
 
 def get_default_permissions(role_name: str) -> Dict[str, Any]:
-    """Return the default permission payload for a role"""
     config = get_role_config(role_name)
     return config.default_permissions if config else {}
 
 
 def is_super_admin_role(role_name: str) -> bool:
-    """Check whether the provided role name belongs to the super admin"""
     return role_name == 'super_admin'
 
 
 def get_system_roles() -> List[RoleConfig]:
-    """Return all system roles ordered by their level"""
     return sorted(SYSTEM_ROLES.values(), key=lambda x: x.level)
 
 
 def get_available_roles(current_user_level: int = 10) -> List[RoleConfig]:
-    """Return assignable roles for a user based on their current level"""
     return [role for role in get_system_roles() if role.level > current_user_level]
 
 
 def get_user_role_display_text(user) -> str:
-    """Return a human-readable label for the primary role of the user"""
     if not user:
         return 'No role assigned'
     
@@ -551,19 +534,16 @@ def get_user_role_display_text(user) -> str:
 
 
 def get_module_display_name(module_name: str) -> str:
-    """Return the display label for a module"""
     module_info = AVAILABLE_MODULES.get(module_name, {})
     return module_info.get('display_name', module_name)
 
 
 def get_action_display_name(action_name: str) -> str:
-    """Return the display label for an action"""
     action_info = AVAILABLE_ACTIONS.get(action_name, {})
     return action_info.get('display_name', action_name)
 
 
 def validate_role_permissions(permissions: Dict[str, Any]) -> tuple[bool, List[str]]:
-    """Validate the structure of a permission payload"""
     errors = []
     
     if not isinstance(permissions, dict):

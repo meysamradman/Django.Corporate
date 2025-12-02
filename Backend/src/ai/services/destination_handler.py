@@ -1,11 +1,8 @@
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from django.db import transaction
-import logging
 
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-
-logger = logging.getLogger(__name__)
 
 
 class ContentDestinationHandler:
@@ -79,7 +76,6 @@ class ContentDestinationHandler:
                     tags = BlogTag.objects.filter(id__in=tag_ids, is_active=True)
                     blog.tags.set(tags)
                 
-                logger.info(f"✅ Blog created: {blog.id} - {blog.title}")
                 
                 # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                 from src.blog.utils.cache import BlogCacheManager
@@ -96,7 +92,6 @@ class ContentDestinationHandler:
                 }
         
         except Exception as e:
-            logger.error(f"❌ Error saving to blog: {str(e)}", exc_info=True)
             raise ValueError(AI_ERRORS['content_save_failed'].format(destination='blog', error=str(e)))
     
     @classmethod
@@ -147,7 +142,6 @@ class ContentDestinationHandler:
                     options = PortfolioOption.objects.filter(id__in=option_ids, is_active=True)
                     portfolio.options.set(options)
                 
-                logger.info(f"✅ Portfolio created: {portfolio.id} - {portfolio.title}")
                 
                 # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                 from src.portfolio.utils.cache import PortfolioCacheManager
@@ -164,7 +158,6 @@ class ContentDestinationHandler:
                 }
         
         except Exception as e:
-            logger.error(f"❌ Error saving to portfolio: {str(e)}", exc_info=True)
             raise ValueError(AI_ERRORS['content_save_failed'].format(destination='portfolio', error=str(e)))
     
     @classmethod

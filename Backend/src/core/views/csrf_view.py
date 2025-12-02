@@ -7,16 +7,8 @@ from rest_framework.response import Response
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CSRFTokenView(APIView):
-    """
-    This view sends a response with a CSRF token.
-    It's useful as an explicit endpoint for refreshing CSRF tokens.
-    """
-    permission_classes = [IsAuthenticated]  # Only authenticated users can get a token
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
-        # Get a new CSRF token
         token = get_token(request)
-        
-        # Return the token in a secure way - only in cookies/headers, not in response body
-        # The renderer will automatically format this response
         return Response({"message": "CSRF token is available in cookies"})

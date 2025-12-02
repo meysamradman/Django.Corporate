@@ -1,17 +1,10 @@
-"""
-Base Module Permissions
-Dashboard and Profile permissions (also in BASE_ADMIN_PERMISSIONS)
-"""
-
 BASE_PERMISSIONS = {
-    # Dashboard - در BASE هم هست ولی برای نمایش در all_permissions باید اینجا هم باشه
     'dashboard.read': {
         'module': 'statistics',
         'action': 'read',
         'display_name': 'View Dashboard',
         'description': 'Access the admin dashboard (also in base permissions)',
     },
-    # Profile - در BASE هم هست ولی برای نمایش در all_permissions باید اینجا هم باشه
     'profile.read': {
         'module': 'admin',
         'action': 'read',

@@ -11,7 +11,6 @@ from src.ai.utils.cache import AICacheKeys
 
 
 class HuggingFaceProvider(BaseProvider):
-    """Provider for Hugging Face API (free) - supports both image and content generation"""
     
     BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://router.huggingface.co/hf-inference')
     
@@ -30,7 +29,6 @@ class HuggingFaceProvider(BaseProvider):
         )
     
     def get_timeout(self) -> httpx.Timeout:
-        """Get timeout for HuggingFace requests - longer timeout for model loading"""
         return httpx.Timeout(180.0, connect=10.0, read=180.0)
     
     def get_provider_name(self) -> str:
@@ -38,43 +36,24 @@ class HuggingFaceProvider(BaseProvider):
     
     @staticmethod
     def get_available_models(api_key: Optional[str] = None, task_filter: Optional[str] = None, use_cache: bool = True):
-        """
-        Get list of available Hugging Face models from API
-        
-        Args:
-            api_key: Hugging Face API key (optional - public endpoint works without auth)
-            task_filter: Filter by task ('text-generation', 'text-to-image', 'automatic-speech-recognition', etc.)
-            use_cache: Whether to use cache (default: True)
-        
-        Returns:
-            List of model dictionaries with id, name, task, etc.
-        """
-        import logging
         from django.core.cache import cache
         
-        logger = logging.getLogger(__name__)
-        
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.provider_models('huggingface', task_filter)
         
-        # Try cache first
         if use_cache:
             cached_models = cache.get(cache_key)
             if cached_models is not None:
-                logger.info(f"[HuggingFace Provider] Returning {len(cached_models)} models from cache")
                 return cached_models
         
         try:
             import httpx
             
-            # Hugging Face API endpoint for listing models
-            # Use correct endpoint with pagination
             url = "https://huggingface.co/api/models"
             
             params = {
                 'sort': 'downloads',
                 'direction': '-1',
-                'limit': 100,  # Reduce limit for better speed (first 100 models)
+                'limit': 100,
             }
             
             if task_filter:
@@ -84,22 +63,17 @@ class HuggingFaceProvider(BaseProvider):
             if api_key:
                 headers['Authorization'] = f'Bearer {api_key}'
             
-            # Make request
             with httpx.Client(timeout=30.0) as client:
                 response = client.get(url, params=params, headers=headers)
                 response.raise_for_status()
                 models_data = response.json()
             
-            # Hugging Face API may return list or dict
             if not isinstance(models_data, list):
-                # If dict, probably paginated response
                 if isinstance(models_data, dict) and 'data' in models_data:
                     models_data = models_data['data']
                 else:
-                    logger.warning(f"[HuggingFace Provider] Unexpected response format: {type(models_data)}")
                     return []
             
-            # Transform to consistent format
             models = []
             for model in models_data:
                 if not isinstance(model, dict):
@@ -108,7 +82,6 @@ class HuggingFaceProvider(BaseProvider):
                 model_id = model.get('id', '')
                 task = model.get('pipeline_tag', '')
                 
-                # Filter based on task
                 if task_filter:
                     if task != task_filter:
                         continue
@@ -123,16 +96,12 @@ class HuggingFaceProvider(BaseProvider):
                     'tags': model.get('tags', []),
                 })
             
-            # Cache for 6 hours
             if use_cache:
-                cache.set(cache_key, models, 6 * 60 * 60)  # 6 hours
+                cache.set(cache_key, models, 6 * 60 * 60)
             
-            logger.info(f"[HuggingFace Provider] Fetched {len(models)} models from API")
             return models
             
-        except Exception as e:
-            logger.error(f"[HuggingFace Provider] Error getting available models: {str(e)}", exc_info=True)
-            # Return empty list on error
+        except Exception:
             return []
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
@@ -208,17 +177,9 @@ class HuggingFaceProvider(BaseProvider):
             return BytesIO(response.content)
             
         except httpx.ReadTimeout:
-            raise Exception(
-                "زمان تولید تصویر به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
-                "لطفاً:\n"
-                "1. چند لحظه صبر کنید\n"
-                "2. دوباره تلاش کنید\n"
-                "3. از کیفیت 'standard' به جای 'hd' استفاده کنید"
-            )
+            raise Exception(AI_ERRORS.get("image_generation_timeout", "Image generation timeout"))
         except httpx.TimeoutException:
-            raise Exception(
-                "اتصال به Hugging Face قطع شد. لطفاً دوباره تلاش کنید."
-            )
+            raise Exception(AI_ERRORS.get("connection_timeout", "Connection timeout"))
         except httpx.HTTPStatusError as e:
             try:
                 error_data = e.response.json()
@@ -240,18 +201,11 @@ class HuggingFaceProvider(BaseProvider):
         except Exception as e:
             error_str = str(e)
             if 'ReadTimeout' in error_str or 'timeout' in error_str.lower():
-                raise Exception(
-                    "زمان تولید تصویر به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
-                    "لطفاً:\n"
-                    "1. چند لحظه صبر کنید\n"
-                    "2. دوباره تلاش کنید\n"
-                    "3. از کیفیت 'standard' به جای 'hd' استفاده کنید"
-                )
+                raise Exception(AI_ERRORS.get("image_generation_timeout", "Image generation timeout"))
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=error_str))
     
     # Content generation methods
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        """Generate content using Hugging Face text generation models"""
         # Use new endpoint: https://router.huggingface.co/hf-inference/models/{model_id}
         url = f"{self.BASE_URL}/models/{self.content_model}"
         
@@ -309,13 +263,10 @@ Write the content as plain text without special formatting."""
                         generated_text = generated_text.replace(full_prompt, '').strip()
                     return generated_text.strip()
             
-            raise Exception("هیچ محتوایی تولید نشد")
+            raise Exception(AI_ERRORS.get("content_generation_failed", "No content generated"))
             
         except httpx.ReadTimeout:
-            raise Exception(
-                "زمان تولید محتوا به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
-                "لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-            )
+            raise Exception(AI_ERRORS.get("content_generation_timeout", "Content generation timeout"))
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -333,30 +284,16 @@ Write the content as plain text without special formatting."""
                     error_text = ""
             
             if status_code == 404:
-                raise Exception(
-                    f"خطای Hugging Face API: مدل '{self.content_model}' یافت نشد.\n\n"
-                    f"لطفاً:\n"
-                    f"1. نام مدل را بررسی کنید\n"
-                    f"2. مدل باید در Hugging Face Hub موجود باشد\n"
-                    f"3. می‌توانید مدل را در تنظیمات AI تغییر دهید\n\n"
-                    f"مدل‌های پیشنهادی:\n"
-                    f"- google/flan-t5-large\n"
-                    f"- gpt2\n"
-                    f"- distilgpt2\n\n"
-                    f"جزئیات خطا: {error_msg or error_text or '404 Not Found'}"
-                )
+                raise Exception(AI_ERRORS.get("model_not_found", "Model not found").format(model=self.content_model))
             elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
-                raise Exception(
-                    "مدل در حال لود شدن است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-                )
+                raise Exception(AI_ERRORS.get("huggingface_model_loading", "Model is loading"))
             else:
                 error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(f"خطای Hugging Face API: {error_detail}")
+                raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=error_detail))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
-        """Generate SEO-optimized structured content using Hugging Face"""
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
@@ -423,7 +360,7 @@ Return ONLY the JSON object, nothing else."""
                 generated_text = data.get('generated_text', '')
             
             if not generated_text:
-                raise Exception("هیچ محتوایی تولید نشد")
+                raise Exception(AI_ERRORS.get("content_generation_failed", "No content generated"))
             
             # Remove prompt if included
             if seo_prompt in generated_text:
@@ -446,13 +383,10 @@ Return ONLY the JSON object, nothing else."""
                 if json_match:
                     seo_data = json.loads(json_match.group())
                     return seo_data
-                raise Exception("خطا در تجزیه پاسخ JSON")
+                raise Exception(AI_ERRORS.get("json_parse_error", "JSON parse error"))
             
         except httpx.ReadTimeout:
-            raise Exception(
-                "زمان تولید محتوا به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
-                "لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-            )
+            raise Exception(AI_ERRORS.get("content_generation_timeout", "Content generation timeout"))
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -470,31 +404,17 @@ Return ONLY the JSON object, nothing else."""
                     error_text = ""
             
             if status_code == 404:
-                raise Exception(
-                    f"خطای Hugging Face API: مدل '{self.content_model}' یافت نشد.\n\n"
-                    f"لطفاً:\n"
-                    f"1. نام مدل را بررسی کنید\n"
-                    f"2. مدل باید در Hugging Face Hub موجود باشد\n"
-                    f"3. می‌توانید مدل را در تنظیمات AI تغییر دهید\n\n"
-                    f"مدل‌های پیشنهادی:\n"
-                    f"- google/flan-t5-large\n"
-                    f"- gpt2\n"
-                    f"- distilgpt2\n\n"
-                    f"جزئیات خطا: {error_msg or error_text or '404 Not Found'}"
-                )
+                raise Exception(AI_ERRORS.get("model_not_found", "Model not found").format(model=self.content_model))
             elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
-                raise Exception(
-                    "مدل در حال لود شدن است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-                )
+                raise Exception(AI_ERRORS.get("huggingface_model_loading", "Model is loading"))
             else:
                 error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(f"خطای Hugging Face API: {error_detail}")
+                raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=error_detail))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
     
     # Chat method
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
-        """Chat with Hugging Face AI models - supports conversation history"""
         url = f"{self.BASE_URL}/models/{self.content_model}"
         
         headers = {
@@ -503,7 +423,7 @@ Return ONLY the JSON object, nothing else."""
         }
         
         # Build prompt from conversation history and current message
-        system_message = kwargs.get('system_message') or 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.'
+        system_message = kwargs.get('system_message') or 'You are a helpful AI assistant.'
         
         # Build full prompt with conversation history
         full_prompt = system_message + "\n\n"
@@ -552,13 +472,10 @@ Return ONLY the JSON object, nothing else."""
                         generated_text = generated_text.replace(full_prompt, '').strip()
                     return generated_text.strip()
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(AI_ERRORS.get("chat_failed", "No response received"))
             
         except httpx.ReadTimeout:
-            raise Exception(
-                "زمان چت به پایان رسید. Hugging Face ممکن است مدل را در حال لود کردن باشد.\n\n"
-                "لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-            )
+            raise Exception(AI_ERRORS.get("chat_timeout", "Chat timeout"))
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -576,26 +493,16 @@ Return ONLY the JSON object, nothing else."""
                     error_text = ""
             
             if status_code == 404:
-                raise Exception(
-                    f"خطای Hugging Face API: مدل '{self.content_model}' یافت نشد.\n\n"
-                    f"لطفاً:\n"
-                    f"1. نام مدل را بررسی کنید\n"
-                    f"2. مدل باید در Hugging Face Hub موجود باشد\n"
-                    f"3. می‌توانید مدل را در تنظیمات AI تغییر دهید\n\n"
-                    f"جزئیات خطا: {error_msg or error_text or '404 Not Found'}"
-                )
+                raise Exception(AI_ERRORS.get("model_not_found", "Model not found").format(model=self.content_model))
             elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
-                raise Exception(
-                    "مدل در حال لود شدن است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-                )
+                raise Exception(AI_ERRORS.get("huggingface_model_loading", "Model is loading"))
             else:
                 error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(f"خطای Hugging Face API: {error_detail}")
+                raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=error_detail))
         except Exception as e:
-            raise Exception(f"خطا در چت: {str(e)}")
+            raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=str(e)))
     
     def validate_api_key(self) -> bool:
-        """Validate API key"""
         try:
             url = f"{self.BASE_URL}/models/stabilityai/stable-diffusion-xl-base-1.0"
             headers = {"Authorization": f"Bearer {self.api_key}"}

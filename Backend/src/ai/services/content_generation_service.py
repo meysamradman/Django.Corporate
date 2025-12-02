@@ -22,56 +22,39 @@ class AIContentGenerationService:
     def get_provider(cls, provider_name: str, admin=None):
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
-            raise ValueError(f"Provider '{provider_name}' پشتیبانی نمی‌شود.")
+            raise ValueError(f"Provider '{provider_name}' is not supported")
         
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # Get provider from database
         provider = AIProvider.get_provider_by_slug(provider_name)
         if not provider:
-            raise ValueError(f"Provider '{provider_name}' فعال نیست یا یافت نشد.")
+            raise ValueError(f"Provider '{provider_name}' is not active or not found")
         
-        # ✅ Determine which API key to use
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
-                # Check if admin has personal settings
                 settings = AdminProviderSettings.objects.get(
                     admin=admin,
                     provider=provider,
                     is_active=True
                 )
                 
-                admin_id = getattr(admin, 'id', 'unknown')
                 if settings.use_shared_api:
-                    logger.info(f"✅ [Content Service] Admin {admin_id} using SHARED API for {provider_name} (use_shared_api=True)")
                     api_key = provider.get_shared_api_key()
                     if not api_key or not api_key.strip():
-                        # Try personal key as fallback
                         api_key = settings.get_personal_api_key()
-                        if api_key and api_key.strip():
-                            logger.info(f"✅ [Content Service] Fallback: Using personal API key for {provider_name}")
-                        else:
-                            raise ValueError(f"API Key برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                        if not api_key or not api_key.strip():
+                            raise ValueError(f"API Key for {provider_name} is not set")
                 else:
-                    logger.info(f"✅ [Content Service] Admin {admin_id} using PERSONAL API for {provider_name} (use_shared_api=False)")
                     api_key = settings.get_personal_api_key()
                     if not api_key or not api_key.strip():
-                        raise ValueError(f"API Key شخصی برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                        raise ValueError(f"Personal API Key for {provider_name} is not set")
                     
             except AdminProviderSettings.DoesNotExist:
-                # No personal settings → use shared
-                admin_id = getattr(admin, 'id', 'unknown') if admin else 'unknown'
-                logger.info(f"✅ [Content Service] Admin {admin_id} using SHARED API for {provider_name} (no personal settings)")
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
-                    raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                    raise ValueError(f"Shared API Key for {provider_name} is not set")
         else:
-            # No admin → use shared
-            logger.info(f"✅ [Content Service] Using SHARED API for {provider_name} (no admin)")
             api_key = provider.get_shared_api_key()
             if not api_key or not api_key.strip():
-                raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                raise ValueError(f"Shared API Key for {provider_name} is not set")
         
         config = provider.config or {}
         return provider_class(api_key=api_key, config=config)
@@ -161,7 +144,8 @@ class AIContentGenerationService:
         except ValueError as e:
             raise e
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            from src.ai.messages.messages import AI_ERRORS
+            raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:

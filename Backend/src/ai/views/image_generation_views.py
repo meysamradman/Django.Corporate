@@ -156,11 +156,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Optimized: Simple and clear logic for getting API key
-            # Optimized: Using select_related to prevent N+1 queries
-            import logging
-            logger = logging.getLogger(__name__)
-            
             settings = AdminProviderSettings.objects.filter(
                 admin=request.user,
                 provider=provider,
@@ -169,40 +164,22 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             
             api_key = None
             
-            # Strategy 1: If settings exist
             if settings:
-                # First try to get from get_api_key() (based on use_shared_api)
                 try:
                     api_key = settings.get_api_key()
-                    logger.info(f"[AI Image API] Using API key from settings (use_shared_api={settings.use_shared_api})")
-                except Exception as e:
-                    logger.warning(f"[AI Image API] get_api_key() failed: {e}")
-                    # If use_shared_api=True but shared key is not set, check personal
+                except Exception:
                     if settings.use_shared_api:
-                        # Shared API key not set, try personal
                         personal_key = settings.get_personal_api_key()
                         if personal_key and personal_key.strip():
                             api_key = personal_key
-                            logger.info(f"[AI Image API] Fallback: Using personal API key")
-                        else:
-                            logger.warning(f"[AI Image API] Personal API key also empty")
-                    else:
-                        # use_shared_api=False but personal is also not set
-                        logger.warning(f"[AI Image API] Personal API key not set")
             
-            # Strategy 2: If still no API key, check shared provider
             if not api_key or not api_key.strip():
                 shared_key = provider.get_shared_api_key()
                 if shared_key and shared_key.strip():
                     api_key = shared_key
-                    logger.info(f"[AI Image API] Using shared provider API key")
-                else:
-                    logger.warning(f"[AI Image API] Shared provider API key also empty")
             
             use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
             
-            # Dynamic: Always get from OpenRouter API (even without API key)
-            # OpenRouter API may return model list without auth
             final_api_key = api_key if (api_key and api_key.strip()) else None
             models = OpenRouterProvider.get_available_models(
                 api_key=final_api_key,
@@ -210,14 +187,13 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                 use_cache=use_cache
             )
             
-            # Filter image models
             image_models = [
                 m for m in models
                 if any(kw in m['id'].lower() for kw in ['dall-e', 'flux', 'stable', 'midjourney'])
             ]
             
             return APIResponse.success(
-                message=AI_SUCCESS["openrouter_models_retrieved"].format(from_cache=" (از کش)" if use_cache else " (تازه)"),
+                message=AI_SUCCESS["openrouter_models_retrieved"].format(from_cache=""),
                 data=image_models
             )
         except Exception as e:
@@ -246,9 +222,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            import logging
-            logger = logging.getLogger(__name__)
-            
             settings = AdminProviderSettings.objects.filter(
                 admin=request.user,
                 provider=provider,
@@ -257,13 +230,10 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             
             api_key = None
             
-            # Strategy 1: If settings exist
             if settings:
                 try:
                     api_key = settings.get_api_key()
-                    logger.info(f"[AI Image API] Using HuggingFace API key from settings")
-                except Exception as e:
-                    logger.warning(f"[AI Image API] get_api_key() failed: {e}")
+                except Exception:
                     if settings.use_shared_api:
                         personal_key = settings.get_personal_api_key()
                         if personal_key and personal_key.strip():
@@ -273,34 +243,26 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                         if personal_key and personal_key.strip():
                             api_key = personal_key
             
-            # Strategy 2: If still no API key, check shared provider
             if not api_key or not api_key.strip():
                 shared_key = provider.get_shared_api_key()
                 if shared_key and shared_key.strip():
                     api_key = shared_key
-                    logger.info(f"[AI Image API] Using shared HuggingFace API key")
             
             use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
-            task_filter = request.query_params.get('task', None)  # 'text-to-image', 'text-generation', etc.
+            task_filter = request.query_params.get('task', None)
             
-            # Get models from Hugging Face API
             models = HuggingFaceProvider.get_available_models(
                 api_key=api_key if (api_key and api_key.strip()) else None,
                 task_filter=task_filter,
                 use_cache=use_cache
             )
             
-            logger.info(f"[AI Image View] Found {len(models)} HuggingFace models")
-            
             return APIResponse.success(
-                message=AI_SUCCESS["huggingface_models_retrieved"].format(from_cache=" (از کش)" if use_cache else " (تازه)"),
+                message=AI_SUCCESS["huggingface_models_retrieved"].format(from_cache=""),
                 data=models,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"[AI Image View] Error getting HuggingFace models: {str(e)}", exc_info=True)
             return APIResponse.error(
                 message=AI_ERRORS["huggingface_models_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

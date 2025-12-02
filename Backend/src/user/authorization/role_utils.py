@@ -1,15 +1,6 @@
-"""
-Admin Roles Utility Functions
-Shared utilities for creating and managing admin roles
-These functions can be used by both API endpoints and scripts
-"""
-
 from django.db import transaction, models
 from src.user.models import AdminRole
 from src.user.permissions.config import get_all_role_configs
-import logging
-
-logger = logging.getLogger(__name__)
 
 LEGACY_ROLE_NAMES = {
     'taxonomy_editor',
@@ -19,10 +10,6 @@ LEGACY_ROLE_NAMES = {
 
 
 def _demote_removed_system_roles(valid_role_names: set[str], verbose: bool = True):
-    """
-    Mark legacy system roles (that are no longer in config) as custom roles
-    so they don't appear as system-level entries in the API.
-    """
     demoted = []
     deleted = []
     legacy_roles = AdminRole.objects.filter(
@@ -43,19 +30,6 @@ def _demote_removed_system_roles(valid_role_names: set[str], verbose: bool = Tru
 
 
 def create_default_admin_roles(force_update=False, verbose=True):
-    """
-    Create or update default admin roles with their permissions
-    Uses centralized configuration from permissions.config
-    
-    Args:
-        force_update (bool): Force update existing roles
-        verbose (bool): Print detailed output
-        
-    Returns:
-        dict: Summary of created/updated roles
-    """
-    
-    # Get roles from centralized configuration
     role_configs = get_all_role_configs()
     
     created_count = 0
@@ -106,7 +80,6 @@ def create_default_admin_roles(force_update=False, verbose=True):
             except Exception as e:
                 error_msg = f'[Error] with role {role_name}: {str(e)}'
                 results.append(error_msg)
-                logger.error(error_msg)
 
         demoted_roles, deleted_roles = _demote_removed_system_roles(set(role_configs.keys()), verbose=verbose)
 
@@ -128,28 +101,16 @@ def create_default_admin_roles(force_update=False, verbose=True):
 
 
 def ensure_admin_roles_exist():
-    """
-    Ensure default admin roles exist (create if missing)
-    Used for automatic setup during app initialization
-    """
     try:
-        # Check if any roles exist
         if AdminRole.objects.filter(is_system_role=True).count() == 0:
             result = create_default_admin_roles(force_update=False, verbose=False)
             return result
         return {'created': 0, 'updated': 0, 'skipped': 0, 'message': 'Roles already exist'}
     except Exception as e:
-        logger.error(f'Error ensuring admin roles exist: {e}')
         return {'error': str(e)}
 
 
 def get_role_summary():
-    """
-    Get summary of current admin roles
-    
-    Returns:
-        dict: Role statistics and list
-    """
     try:
         roles = AdminRole.objects.filter(is_active=True).order_by('level')
         system_roles = roles.filter(is_system_role=True)
@@ -172,5 +133,4 @@ def get_role_summary():
             ]
         }
     except Exception as e:
-        logger.error(f'Error getting role summary: {e}')
         return {'error': str(e)}

@@ -163,6 +163,9 @@ SETTINGS_ERRORS = {
     "settings_not_authorized": "شما به این تنظیمات دسترسی ندارید.",
     "settings_not_found": "تنظیمات یافت نشد.",
     "validation_error": "خطا در اعتبارسنجی داده‌ها.",
+    "shared_api_not_allowed": "استفاده از API مشترک {provider_name} برای ادمین‌های معمولی مجاز نیست.",
+    "shared_api_key_not_set": "API Key مشترک {provider_name} تنظیم نشده است.",
+    "personal_api_key_not_set": "API Key شخصی شما تنظیم نشده است.",
 }
 
 # ========================================

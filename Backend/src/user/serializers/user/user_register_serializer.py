@@ -7,13 +7,9 @@ from src.user.utils.national_id_validator import validate_national_id_format
 
 
 class UserRegisterSerializer(serializers.Serializer):
-    """
-    سریالایزر مخصوص ثبت‌نام کاربر معمولی
-    """
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True, min_length=6)
     
-    # فیلدهای پروفایل
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     last_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     birth_date = serializers.DateField(required=False, allow_null=True)
@@ -21,12 +17,10 @@ class UserRegisterSerializer(serializers.Serializer):
     address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
-    # تصویر پروفایل
     profile_picture_id = serializers.IntegerField(required=False, allow_null=True)
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_identifier(self, value):
-        """اعتبارسنجی شناسه (ایمیل یا موبایل)"""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         
@@ -43,7 +37,6 @@ class UserRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_password(self, value):
-        """اعتبارسنجی قدرت رمز عبور"""
         try:
             from src.user.utils.password_validator import validate_register_password
             return validate_register_password(value)
@@ -51,7 +44,6 @@ class UserRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate_profile_picture_id(self, value):
-        """اعتبارسنجی ID تصویر پروفایل"""
         if value is None:
             return value
         
@@ -65,28 +57,23 @@ class UserRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_profile_picture(self, value):
-        """اعتبارسنجی فایل تصویر پروفایل آپلود شده"""
         if value is None:
             return value
         
-        # ✅ استفاده از validator مرکزی media که از settings (env) می‌خواند
         from src.media.utils.validators import validate_image_file
         
         try:
             validate_image_file(value)
             return value
         except DjangoValidationError as e:
-            # اگر خطای validation از media service باشد، آن را برمی‌گردانیم
             raise serializers.ValidationError(str(e))
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_national_id(self, value):
-        """اعتبارسنجی کد ملی"""
         return validate_national_id_format(value)
 
     def validate(self, data):
-        """اعتبارسنجی بین فیلدی"""
         if data.get('profile_picture_id') and data.get('profile_picture'):
             raise serializers.ValidationError({
                 'profile_picture': AUTH_ERRORS.get("auth_validation_error")

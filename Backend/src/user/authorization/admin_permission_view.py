@@ -16,21 +16,11 @@ from .admin_permission import (
 )
 from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AdminPermissionView(viewsets.ViewSet):
-    """
-    ViewSet for managing admin permissions and checking access
-    High-performance implementation for Django 5.2.6
-    Located in authorization module for better organization
-    """
     authentication_classes = [CSRFExemptSessionAuthentication]
     
     def get_permissions(self):
-        """Dynamic permission assignment based on action"""
         permission_map = {
             'check_permission': [require_admin_roles('super_admin', 'user_manager')],
             'user_permissions': [require_admin_roles('super_admin', 'user_manager')],
@@ -47,7 +37,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'])
     def check_permission(self, request):
-        """Check if a user has specific permission"""
         try:
             user_id = request.data.get('user_id')
             required_action = request.data.get('action', 'read')
@@ -103,7 +92,6 @@ class AdminPermissionView(viewsets.ViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
-            logger.error(f"Error checking permission: {e}")
             return APIResponse.error(
                 message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -111,7 +99,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def user_permissions(self, request):
-        """Get all permissions for a user"""
         try:
             user_id = request.query_params.get('user_id')
             
@@ -158,7 +145,6 @@ class AdminPermissionView(viewsets.ViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
-            logger.error(f"Error getting user permissions: {e}")
             return APIResponse.error(
                 message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -166,7 +152,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def available_modules(self, request):
-        """Get list of available modules in the system"""
         try:
             return APIResponse.success(
                 message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
@@ -174,7 +159,6 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
         except Exception as e:
-            logger.error(f"Error getting available modules: {e}")
             return APIResponse.error(
                 message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -182,7 +166,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def available_actions(self, request):
-        """Get list of available actions in the system"""
         try:
             return APIResponse.success(
                 message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
@@ -190,7 +173,6 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
         except Exception as e:
-            logger.error(f"Error getting available actions: {e}")
             return APIResponse.error(
                 message=AUTH_ERRORS.get("error_occurred"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -198,7 +180,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def permission_matrix(self, request):
-        """Get complete permission matrix for all roles (Super Admin only)"""
         try:
             roles = AdminRole.objects.filter(is_active=True).order_by('level')
             
@@ -226,7 +207,6 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
         except Exception as e:
-            logger.error(f"Error getting permission matrix: {e}")
             return APIResponse.error(
                 message="Failed to retrieve permission matrix",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -234,7 +214,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'])
     def clear_cache(self, request):
-        """Clear permission cache (Super Admin only)"""
         try:
             cache_type = request.data.get('cache_type', 'all')
             user_id = request.data.get('user_id')
@@ -256,7 +235,6 @@ class AdminPermissionView(viewsets.ViewSet):
             return APIResponse.success(message=message)
             
         except Exception as e:
-            logger.error(f"Error clearing cache: {e}")
             return APIResponse.error(
                 message="Failed to clear cache",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -264,7 +242,6 @@ class AdminPermissionView(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def system_permissions(self, request):
-        """Get system-wide permission statistics (Super Admin only)"""
         try:
             # Get statistics
             total_roles = AdminRole.objects.filter(is_active=True).count()
@@ -312,14 +289,12 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
         except Exception as e:
-            logger.error(f"Error getting system permissions: {e}")
             return APIResponse.error(
                 message="Failed to retrieve system permissions",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def _check_user_role_permissions(self, user, required_action, required_modules):
-        """Helper method to check user's role-based permissions"""
         try:
             user_roles = AdminUserRole.objects.filter(
                 user=user,
@@ -371,14 +346,9 @@ class AdminPermissionView(viewsets.ViewSet):
                 }
                 
         except Exception as e:
-            logger.error(f"Error checking user role permissions: {e}")
             return False, {'reason': f'Error checking permissions: {str(e)}'}
 
     def can_delete_admin(self, admin_to_delete, current_admin):
-        """
-        Check if current admin can delete another admin
-        Full admins (is_admin_full=True) cannot be deleted
-        """
         # Full admins cannot be deleted
         if admin_to_delete.is_admin_full:
             return False, {

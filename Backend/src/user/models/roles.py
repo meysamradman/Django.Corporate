@@ -176,7 +176,6 @@ class AdminUserRole(BaseModel):
     
     @property
     def is_expired(self):
-        """Check if role assignment is expired"""
         if self.expires_at:
             return timezone.now() > self.expires_at
         return False
@@ -185,8 +184,6 @@ class AdminUserRole(BaseModel):
 # Validation signal for AdminUserRole
 @receiver(pre_save, sender=AdminUserRole)
 def validate_admin_user_role(sender, instance, **kwargs):
-    """Validate role assignment before saving"""
-    # Rule: super_admin role can only be assigned to users with is_superuser=True
     if (instance.role and instance.role.name == 'super_admin' and 
         instance.user and not instance.user.is_superuser):
         raise ValidationError(
@@ -194,7 +191,6 @@ def validate_admin_user_role(sender, instance, **kwargs):
         )
 
 
-# ✅ Cache invalidation signals - پاک کردن کامل cache از Redis
 @receiver([post_save, post_delete], sender=AdminUserRole)
 def clear_admin_user_cache(sender, instance, **kwargs):
     """
@@ -242,7 +238,6 @@ def clear_admin_role_cache(sender, instance, **kwargs):
 
 # Legacy models for backward compatibility (will be deprecated)
 class Role(BaseModel):
-    """Legacy Role model - will be deprecated in favor of AdminRole"""
     name = models.CharField(max_length=255, db_index=True)
     description = models.TextField(null=True, blank=True)
     is_superuser = models.BooleanField(default=False)
@@ -258,7 +253,6 @@ class Role(BaseModel):
 
 
 class CustomPermission(BaseModel):
-    """Legacy Permission model - will be deprecated"""
     name = models.CharField(max_length=255, db_index=True)
     codename = models.CharField(max_length=100, unique=True, db_index=True)
     description = models.TextField(null=True, blank=True)
@@ -274,7 +268,6 @@ class CustomPermission(BaseModel):
 
 
 class UserRole(BaseModel):
-    """Legacy UserRole model - will be deprecated"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, db_index=True)
 
@@ -289,7 +282,6 @@ class UserRole(BaseModel):
 
 
 class RolePermission(BaseModel):
-    """Legacy RolePermission model - will be deprecated"""
     role = models.ForeignKey(Role, on_delete=models.CASCADE, db_index=True)
     permission = models.ForeignKey(CustomPermission, on_delete=models.CASCADE, db_index=True)
 

@@ -19,20 +19,15 @@ class AIChatService:
     
     @classmethod
     def get_provider(cls, provider_name: str, admin=None):
-        import logging
-        logger = logging.getLogger(__name__)
-        
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
-            raise ValueError(f"Provider '{provider_name}' پشتیبانی نمی‌شود.")
+            raise ValueError(f"Provider '{provider_name}' is not supported")
         
-        # ✅ Get provider from database
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
-            raise ValueError(f"Provider '{provider_name}' یافت نشد یا غیرفعال است.")
+            raise ValueError(f"Provider '{provider_name}' not found or inactive")
         
-        # ✅ Get appropriate API key
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             settings = AdminProviderSettings.objects.filter(
                 admin=admin,
@@ -43,44 +38,30 @@ class AIChatService:
             if settings:
                 try:
                     api_key = settings.get_api_key()
-                    api_type = 'SHARED' if settings.use_shared_api else 'PERSONAL'
-                    admin_id = getattr(admin, 'id', 'unknown')
-                    logger.info(f"✅ [Chat Service] Admin {admin_id} using {api_type} API for {provider_name} (use_shared_api={settings.use_shared_api})")
-                except Exception as e:
-                    # If get_api_key() fails (e.g., shared key not set), try fallback
-                    logger.warning(f"⚠️ [Chat Service] get_api_key() failed: {e}")
+                except Exception:
                     if settings.use_shared_api:
-                        # Try personal key as fallback
                         try:
                             api_key = settings.get_personal_api_key()
-                            if api_key and api_key.strip():
-                                logger.info(f"✅ [Chat Service] Fallback: Using personal API key for {provider_name}")
-                            else:
-                                # Try shared provider key
+                            if not api_key or not api_key.strip():
                                 api_key = provider.get_shared_api_key()
                                 if not api_key or not api_key.strip():
-                                    raise ValueError(f"API Key برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                                    raise ValueError(f"API Key for {provider_name} is not set")
                         except Exception:
-                            # Final fallback: shared provider key
                             api_key = provider.get_shared_api_key()
                             if not api_key or not api_key.strip():
-                                raise ValueError(f"API Key برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                                raise ValueError(f"API Key for {provider_name} is not set")
                     else:
-                        # use_shared_api=False, so personal key should work
                         api_key = settings.get_personal_api_key()
                         if not api_key or not api_key.strip():
-                            raise ValueError(f"API Key شخصی برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
+                            raise ValueError(f"Personal API Key for {provider_name} is not set")
             else:
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
-                    raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
-                admin_id = getattr(admin, 'id', 'unknown') if admin else 'unknown'
-                logger.info(f"✅ [Chat Service] Admin {admin_id} using SHARED API for {provider_name} (no personal settings)")
+                    raise ValueError(f"Shared API Key for {provider_name} is not set")
         else:
             api_key = provider.get_shared_api_key()
             if not api_key or not api_key.strip():
-                raise ValueError(f"API Key مشترک برای {provider_name} تنظیم نشده است. لطفاً در تنظیمات AI یک API Key اضافه کنید.")
-            logger.info(f"🔗 Using shared API for {provider_name} (no admin)")
+                raise ValueError(f"Shared API Key for {provider_name} is not set")
         
         config = provider.config or {}
         
@@ -128,7 +109,8 @@ class AIChatService:
             }
             
         except Exception as e:
-            raise Exception(f"خطا در چت: {str(e)}")
+            from src.ai.messages.messages import AI_ERRORS
+            raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=str(e)))
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:

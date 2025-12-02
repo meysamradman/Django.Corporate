@@ -6,23 +6,13 @@ from rest_framework.authentication import BaseAuthentication, SessionAuthenticat
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils import timezone
 from django.conf import settings
-import logging
 
-logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
 class CSRFExemptSessionAuthentication(BaseAuthentication):
-    """
-    Session authentication without CSRF protection for admin API
-    Use only for admin panel APIs where CSRF is handled differently
-    """
     
     def authenticate(self, request):
-        """
-        Authenticate admin user using session with Redis caching
-        """
-        # Get session ID from cookie - only use sessionid (Django's default)
         session_key = request.COOKIES.get('sessionid')
         if not session_key:
             return None
@@ -47,10 +37,9 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
                 return (user, None)
         except User.DoesNotExist:
             pass
-        except Exception as e:
-            logger.error(f"CSRFExemptSessionAuthentication: Error getting user from session: {e}")
+        except Exception:
+            pass
         
-        # Fallback to cache method
         user = self._get_user_from_session(session_key)
         if not user:
             return None
@@ -65,7 +54,6 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
         return (user, None)
     
     def _get_user_from_session(self, session_key):
-        """Get user from session with Redis caching"""
         try:
             # Try cache first
             cache_key = f"admin_session_{session_key}"
@@ -99,13 +87,12 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
             except Session.DoesNotExist:
                 pass
             
-        except Exception as e:
-            logger.error(f"CSRFExemptSessionAuthentication: Session authentication error: {e}")
+        except Exception:
+            pass
         
         return None
     
     def _is_valid_admin_user(self, user):
-        """Verify user is valid admin"""
         is_valid = (
             user and 
             user.is_active and 
@@ -116,26 +103,16 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
         return is_valid
     
     def _update_user_activity(self, user):
-        """Update user's last activity timestamp"""
         try:
-            # Update in cache to avoid frequent DB writes
             cache_key = f"admin_last_activity_{user.id}"
-            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)  # 3 days default
-        except Exception as e:
-            logger.warning(f"CSRFExemptSessionAuthentication: Failed to update user activity: {e}")
+            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+        except Exception:
+            pass
 
 
 class AdminSessionAuthentication(BaseAuthentication):
-    """
-    Session-based authentication for admin panel
-    Uses Redis for session storage and caching
-    """
     
     def authenticate(self, request):
-        """
-        Authenticate admin user using session
-        """
-        # Get session ID from cookie - only use sessionid (Django's default)
         session_key = request.COOKIES.get('sessionid')
         if not session_key:
             return None
@@ -155,7 +132,6 @@ class AdminSessionAuthentication(BaseAuthentication):
         return (user, None)
     
     def _get_user_from_session(self, session_key):
-        """Get user from session with Redis caching"""
         try:
             # Try cache first
             cache_key = f"admin_session_{session_key}"
@@ -185,13 +161,12 @@ class AdminSessionAuthentication(BaseAuthentication):
             except Session.DoesNotExist:
                 pass
             
-        except Exception as e:
-            logger.error(f"AdminSessionAuthentication: Session authentication error: {e}")
+        except Exception:
+            pass
         
         return None
     
     def _is_valid_admin_user(self, user):
-        """Verify user is valid admin"""
         is_valid = (
             user and 
             user.is_active and 
@@ -202,23 +177,17 @@ class AdminSessionAuthentication(BaseAuthentication):
         return is_valid
     
     def _update_user_activity(self, user):
-        """Update user's last activity timestamp"""
         try:
-            # Update in cache to avoid frequent DB writes
             cache_key = f"admin_last_activity_{user.id}"
-            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)  # 3 days default
-        except Exception as e:
-            logger.warning(f"AdminSessionAuthentication: Failed to update user activity: {e}")
+            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+        except Exception:
+            pass
 
 
 class AdminSessionService:
-    """
-    Service for managing admin sessions
-    """
     
     @staticmethod
     def create_session(user, request):
-        """Create session for admin user"""
         if not user.user_type == 'admin':
             raise AuthenticationFailed("Only admin users can use session authentication")
         
@@ -243,7 +212,6 @@ class AdminSessionService:
     
     @staticmethod
     def destroy_session(session_key):
-        """Destroy admin session"""
         try:
             # Clear cache
             cache_key = f"admin_session_{session_key}"
@@ -251,17 +219,15 @@ class AdminSessionService:
             
             # Delete session
             Session.objects.filter(session_key=session_key).delete()
-        except Exception as e:
-            logger.error(f"AdminSessionService: Error destroying session: {e}")
+        except Exception:
+            pass
     
     @staticmethod
     def get_active_sessions_count():
-        """Get count of active admin sessions"""
         try:
             count = Session.objects.filter(
                 expire_date__gt=timezone.now()
             ).count()
             return count
-        except Exception as e:
-            logger.error(f"AdminSessionService: Error getting active sessions count: {e}")
+        except Exception:
             return 0

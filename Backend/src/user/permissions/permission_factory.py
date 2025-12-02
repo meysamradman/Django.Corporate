@@ -1,7 +1,3 @@
-"""
-Permission Class Factory - Auto-generate permission classes from registry
-Automatically creates permission classes from permission registry
-"""
 from typing import Dict, List
 from src.user.authorization.admin_permission import RequireModuleAccess
 from .config import PERMISSIONS
@@ -32,7 +28,6 @@ for module_name, related_modules in MODULE_MAPPINGS.items():
     
     # ✅ FIXED: Create class that checks BOTH module AND manage action
     def make_init(modules):
-        """Factory function to create __init__ with correct closure"""
         def __init__(self):
             RequireModuleAccess.__init__(self, *modules)
             # ✅ CRITICAL: Set required action to 'manage' for all ManagerAccess classes
