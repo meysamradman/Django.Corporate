@@ -93,29 +93,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
       return;
     }
     
-    // ✅ Debug: فقط در development mode لاگ کن
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Media Upload] Processing files:', {
-        filesCount: filesToProcess.length,
-        files: filesToProcess.map(f => ({
-          name: f.name,
-          size: f.size,
-          sizeFormatted: formatBytes(f.size),
-          type: f.type
-        })),
-        uploadSettings: uploadSettings ? {
-          imageLimit: uploadSettings.sizeLimit?.image,
-          imageLimitFormatted: uploadSettings.sizeLimitFormatted?.image,
-          videoLimit: uploadSettings.sizeLimit?.video,
-          videoLimitFormatted: uploadSettings.sizeLimitFormatted?.video,
-          audioLimit: uploadSettings.sizeLimit?.audio,
-          audioLimitFormatted: uploadSettings.sizeLimitFormatted?.audio,
-          documentLimit: uploadSettings.sizeLimit?.document,
-          documentLimitFormatted: uploadSettings.sizeLimitFormatted?.document,
-        } : 'NOT LOADED',
-        isLoadingSettings
-      });
-    }
     
     const errors: string[] = [];
     const validFiles = filesToProcess.filter(file => {
@@ -133,9 +110,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
       const allowedExts = uploadSettings.allowedTypes[category] || [];
       if (!ext || !allowedExts.includes(ext)) {
         errors.push(`فایل "${file.name}": پسوند "${ext}" برای نوع "${category}" مجاز نیست. پسوندهای مجاز: ${allowedExts.join(', ')}`);
-        if (process.env.NODE_ENV === 'development') {
-          console.warn(`[Media Upload] Extension rejected: ${ext} for category ${category}. Allowed: ${allowedExts.join(', ')}`);
-        }
         return false;
       }
       
@@ -150,17 +124,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
         const maxSizeFormatted = uploadSettings.sizeLimitFormatted?.[category] || formatBytes(maxSize);
         const fileSizeFormatted = formatBytes(file.size);
         errors.push(`فایل "${file.name}": حجم فایل (${fileSizeFormatted}) از حد مجاز (${maxSizeFormatted}) بیشتر است`);
-        if (process.env.NODE_ENV === 'development') {
-          console.warn(`[Media Upload] File rejected: ${file.name}`, {
-            fileSize: file.size,
-            fileSizeFormatted,
-            maxSize,
-            maxSizeFormatted,
-            category,
-            exceedsBy: file.size - maxSize,
-            exceedsByFormatted: formatBytes(file.size - maxSize)
-          });
-        }
         return false;
       }
       
@@ -182,16 +145,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
         return false;
       }
       
-      // Warnings - فقط در development
-      if (process.env.NODE_ENV === 'development') {
-        if (file.size < maxSize * 0.01) {
-          console.warn(`[Media Upload] File size very small: ${formatBytes(file.size)}`);
-        }
-        
-        if (file.name.includes(' ')) {
-          console.warn('[Media Upload] File name contains spaces - consider using _ or -');
-        }
-      }
       
       return true;
     });
@@ -213,16 +166,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
       setValidationErrors(errors);
     }
     
-    // ✅ Debug: فقط در development mode لاگ کن
-    if (process.env.NODE_ENV === 'development') {
-      const rejectedCount = filesToProcess.length - validFiles.length;
-      if (rejectedCount > 0) {
-        console.warn(`[Media Upload] Rejected ${rejectedCount} file(s) out of ${filesToProcess.length}`);
-      }
-      if (newFiles.length > 0) {
-        console.log(`[Media Upload] Added ${newFiles.length} valid file(s) to upload queue`);
-      }
-    }
     
     setFiles(prev => [...prev, ...newFiles]);
   }, [uploadSettings, isLoadingSettings]);

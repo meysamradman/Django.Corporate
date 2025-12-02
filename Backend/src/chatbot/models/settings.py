@@ -24,12 +24,10 @@ class ChatbotSettings(BaseModel):
         if not self.pk:
             ChatbotSettings.objects.all().delete()
         super().save(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         ChatbotCacheManager.invalidate_settings()
     
     @classmethod
     def get_settings(cls):
-        # ✅ Use standardized cache key from ChatbotCacheKeys
         cache_key = ChatbotCacheKeys.settings()
         settings = cache.get(cache_key)
         if settings is None:

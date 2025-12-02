@@ -110,48 +110,36 @@ class EmailMessageCreateSerializer(serializers.ModelSerializer):
         }
     
     def create(self, validated_data):
-        # اضافه کردن IP و User Agent از request
         request = self.context.get('request')
         if request:
             validated_data['ip_address'] = self.get_client_ip(request)
             validated_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
             
-            # اگر status draft است، created_by را تنظیم کن
             if validated_data.get('status') == 'draft' and request.user.is_authenticated:
                 validated_data['created_by'] = request.user
             
-            # تنظیم منبع به صورت خودکار بر اساس نحوه ارسال
             if 'source' not in validated_data:
-                # اگر از پنل ادمین ارسال شده باشد
                 if request.user.is_authenticated and hasattr(request.user, 'has_admin_access') and request.user.has_admin_access():
-                    validated_data['source'] = 'email'  # ایمیل ارسالی از پنل ادمین
+                    validated_data['source'] = 'email'
                 else:
-                    # اگر از وب‌سایت یا API ارسال شده باشد
-                    validated_data['source'] = 'website'  # پیش‌فرض وب‌سایت
+                    validated_data['source'] = 'website'
         
-        # پردازش فیلدهای دینامیک
         initial_data = self.initial_data if hasattr(self, 'initial_data') else {}
         dynamic_fields = {}
         
-        # فیلدهای سیستمی که نباید به dynamic_fields برن
         system_fields = ['source', 'status']
         
-        # تمام فیلدهای ارسال شده رو به dynamic_fields اضافه کن
         for key, value in initial_data.items():
-            if key not in system_fields and value:  # فقط مقادیر خالی نباشن
+            if key not in system_fields and value:
                 dynamic_fields[key] = value
         
-        # ذخیره در dynamic_fields
         if dynamic_fields:
             validated_data['dynamic_fields'] = dynamic_fields
         
-        # اگر فیلدهای استاندارد (name, email, subject, message) در داده ارسالی هستن،
-        # اونها رو هم در فیلدهای اصلی مدل ذخیره کن (برای سازگاری با کوئری‌ها)
         for field in ['name', 'email', 'phone', 'subject', 'message']:
             if field in initial_data and initial_data.get(field):
                 validated_data[field] = initial_data[field]
         
-        # تنظیم status پیش‌فرض
         if 'status' not in validated_data:
             validated_data['status'] = 'new'
         

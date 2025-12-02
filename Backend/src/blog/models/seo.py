@@ -53,7 +53,6 @@ class SEOMixin(models.Model):
         if self.meta_title:
             self._cached_meta_title = self.meta_title
         else:
-            # Fallback logic
             for field in ['title', 'name']:
                 if hasattr(self, field):
                     value = getattr(self, field, '')
@@ -72,7 +71,6 @@ class SEOMixin(models.Model):
         if self.meta_description:
             self._cached_meta_description = self.meta_description
         else:
-            # Fallback logic
             for field in ['short_description', 'description']:
                 if hasattr(self, field):
                     value = getattr(self, field, '')
@@ -93,7 +91,6 @@ class SEOMixin(models.Model):
     def get_canonical_url(self):
         if self.canonical_url:
             return self.canonical_url
-        # Fallback to model's public URL
         if hasattr(self, 'get_public_url'):
             return self.get_public_url()
         return ""

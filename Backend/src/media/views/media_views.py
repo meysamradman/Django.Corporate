@@ -19,10 +19,9 @@ from src.user.permissions import PermissionValidator
 from src.user.authorization.admin_permission import MediaManagerAccess
 
 
-# -------------------- ViewSet BY ID --------------------
 class MediaAdminViewSet(viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [MediaManagerAccess]  # فقط ادمین‌ها می‌تونن دسترسی داشته باشن
+    permission_classes = [MediaManagerAccess]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = MediaAdminSerializer
     pagination_class = StandardLimitPagination
@@ -33,14 +32,9 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        # Return a placeholder queryset
-        # The actual implementation is in the list method
         return ImageMedia.objects.none()
 
     def list(self, request, *args, **kwargs):
-        # Base permission: همه ادمین‌ها می‌تونن media رو ببینن (read-only)
-        # فقط برای upload/update/delete نیاز به permission خاص دارن
-        # پس چک نمی‌کنیم media.read رو چون base permission هست
         search_term = request.query_params.get('search') or request.query_params.get('title')
         file_type = request.query_params.get('file_type')
         date_from = request.query_params.get('date_from')
@@ -156,12 +150,10 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        # ✅ استفاده از helper function که از settings (env) می‌خواند
         from src.media.models.media import detect_media_type_from_extension
         file_ext = file.name.lower().split('.')[-1] if '.' in file.name else ''
         media_type = detect_media_type_from_extension(file_ext)
         
-        # دریافت context از request
         context_type = request.data.get('context_type', 'media_library')
         context_action = request.data.get('context_action', 'create')
         
@@ -170,16 +162,12 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             'action': context_action
         } if context_type != 'media_library' else None
         
-        # ✅ FIX: چک دسترسی - پشتیبانی از هر دو general و type-specific permissions
-        # برای media_library: نیاز به media.upload یا media.{type}.upload
-        # برای portfolio/blog: نیاز به portfolio.create/update یا blog.create/update
         has_general_upload = PermissionValidator.has_permission(
             request.user, 
             'media.upload',
             context=context
         )
         
-        # چک کردن type-specific permission (مثلاً media.image.upload)
         type_specific_perm = f'media.{media_type}.upload'
         has_type_specific = PermissionValidator.has_permission(
             request.user,
@@ -233,8 +221,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             )
 
     def retrieve(self, request, *args, **kwargs):
-        # Base permission: همه ادمین‌ها می‌تونن media رو ببینن (read-only)
-        # پس چک نمی‌کنیم media.read رو چون base permission هست
         media_id = kwargs.get("pk")
         media = None
         

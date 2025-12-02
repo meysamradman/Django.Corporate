@@ -147,9 +147,6 @@ class AIAudioGenerationService:
         **kwargs
     ) -> AudioMedia | BytesIO:
 
-        import logging
-        logger = logging.getLogger(__name__)
-
         api_key, config = cls._get_api_key_and_config(provider_name, admin)
 
         tts_config = config.get('tts', {}) if isinstance(config, dict) else {}

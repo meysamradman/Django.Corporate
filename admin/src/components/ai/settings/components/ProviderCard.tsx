@@ -74,14 +74,6 @@ export function ProviderCard({
     ? canUseSharedApiProp
     : (isSuperAdmin || (allowNormalAdmins && hasSharedApi));
 
-  // ✅ Debug: برای بررسی مقادیر در ProviderCard (برای همه provider ها)
-  if (!isSuperAdmin) {
-    console.log(`[DEBUG ProviderCard: ${provider.id}]`, JSON.stringify({
-      providerId: provider.id,
-      providerName: provider.name,
-      isSuperAdmin,
-      allowNormalAdmins,
-      hasSharedApi,
       canUseSharedApiProp,
       canUseSharedApi
     }, null, 2));

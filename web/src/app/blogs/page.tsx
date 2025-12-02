@@ -27,7 +27,6 @@ export default function BlogsPage() {
       }
     } catch (err: any) {
       setError(err.message || 'خطا در بارگذاری بلاگ‌ها');
-      console.error('Error loading blogs:', err);
     } finally {
       setLoading(false);
     }

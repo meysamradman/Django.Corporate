@@ -2,8 +2,6 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings as simple_jwt_settings
 from django.conf import settings
-# Remove APIResponse import since we're using standard DRF Response
-
 from rest_framework import status
 from rest_framework.response import Response
 from .user_cookies import UserCookie
@@ -22,7 +20,6 @@ class UserJWTRefreshView(TokenRefreshView):
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
 
-        # Manually create the serializer with the token from the cookie
         serializer = self.get_serializer(data={'refresh': raw_token})
 
         try:

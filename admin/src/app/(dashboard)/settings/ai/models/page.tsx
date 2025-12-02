@@ -77,10 +77,7 @@ export default function AIModelsPage() {
             const dbResponse = await aiApi.models.getByCapability(activeTab, true);
             const modelsList = dbResponse.metaData.status === 'success' ? (dbResponse.data || []) : [];
 
-            // ✅ لاگ برای دیباگ: ببینیم چه Provider هایی واقعاً در دیتابیس هستند
             const providers = new Set(modelsList.map((m: any) => m.provider_name || m.provider?.name || 'نامشخص'));
-            console.log(`[AI Models] Capability: ${activeTab}, Providers in DB:`, Array.from(providers));
-            console.log(`[AI Models] Total models: ${modelsList.length}`);
 
             return modelsList;
         },
@@ -175,7 +172,6 @@ export default function AIModelsPage() {
                     // We can't differentiate between create/update from response, so count as success
                     createdCount++;
                 } catch (error: any) {
-                    console.error(`Failed to save model ${model.name}:`, error);
                     failCount++;
 
                     // Collect error messages
@@ -200,8 +196,6 @@ export default function AIModelsPage() {
 
             if (failCount > 0) {
                 showErrorToast(`${failCount} مدل ذخیره نشد`);
-                // Log detailed errors to console
-                console.error('Model save errors:', errors);
             }
 
             // Close modals
@@ -209,7 +203,6 @@ export default function AIModelsPage() {
             setShowHuggingFaceModal(false);
 
         } catch (error) {
-            console.error('Error saving models:', error);
             showErrorToast('خطا در ذخیره مدل‌ها');
         }
     };

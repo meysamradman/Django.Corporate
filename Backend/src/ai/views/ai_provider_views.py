@@ -1,17 +1,10 @@
-# Django imports
 from django.db.models import Q, Count
 from src.ai.utils.cache import AICacheManager
-
-# DRF imports
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-
-# Third-party imports
 from django_filters.rest_framework import DjangoFilterBackend
-
-# Local imports
 from src.ai.models import AIProvider, AIModel, AdminProviderSettings
 from src.ai.serializers.ai_provider_serializer import (
     AIProviderListSerializer,
@@ -39,12 +32,10 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         is_super = getattr(self.request.user, 'is_superuser', False) or getattr(self.request.user, 'is_admin_full', False)
         
         if is_super:
-            # Super admin: all providers
             return AIProvider.objects.all().annotate(
                 models_count=Count('models', filter=Q(models__is_active=True))
             )
         else:
-            # Regular admin: only active providers
             return AIProvider.objects.filter(is_active=True).annotate(
                 models_count=Count('models', filter=Q(models__is_active=True))
             )
@@ -122,23 +113,17 @@ class AIProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
-        # Check permission: ai.view or ai.manage
         has_view_permission = PermissionValidator.has_permission(request.user, 'ai.view')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         
         if not (has_view_permission or has_manage_permission):
             raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         
-        # Use get_queryset which does filtering itself
         providers = self.get_queryset()
-        
-        # ✅ Serialize providers
         serializer = AIProviderListSerializer(providers, many=True)
         
-        # Filter providers that have API key (shared or personal)
         available = []
         for p in serializer.data:
-            # If has shared API key or allow_personal_keys, add it
             if p.get('has_shared_api') or p.get('allow_personal_keys'):
                 available.append(p)
         

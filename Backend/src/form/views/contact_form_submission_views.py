@@ -9,26 +9,16 @@ from src.form.messages.messages import FORM_SUBMISSION_SUCCESS, FORM_SUBMISSION_
 
 
 class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet برای ارسال فرم تماس
     
-    فقط POST /api/form/submissions/ : ارسال فرم جدید (عمومی)
-    ارسال‌ها در Email App نمایش داده می‌شوند
-    """
-    
-    # فقط create داریم، نیازی به queryset نیست
     serializer_class = ContactFormSubmissionCreateSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
-        return [AllowAny()]  # ارسال فرم عمومی است
+        return [AllowAny()]
     
     def create(self, request, *args, **kwargs):
-        """ارسال فرم جدید - تبدیل به EmailMessage"""
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        
-        # اضافه کردن IP و User Agent
+
         validated_data = serializer.validated_data.copy()
         validated_data['ip_address'] = self.get_client_ip(request)
         validated_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
@@ -43,7 +33,6 @@ class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             error_msg = str(e)
             if isinstance(e.args[0], dict):
-                # خطاهای اعتبارسنجی فیلدها
                 return APIResponse.error(
                     message=FORM_SUBMISSION_ERRORS['validation_error'],
                     errors=e.args[0],
@@ -63,7 +52,6 @@ class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
     
     @staticmethod
     def get_client_ip(request):
-        """دریافت IP واقعی کاربر"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0].strip()

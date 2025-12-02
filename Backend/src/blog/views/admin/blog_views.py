@@ -239,8 +239,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        # Use serializer.save() which will call the serializer's update method
-        # This ensures categories, tags، و رسانه‌ها به درستی مدیریت شوند
         updated_instance = serializer.save()
         
         # Clear cache to ensure fresh data

@@ -72,18 +72,14 @@ class Ticket(BaseModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.pk:
-            # ✅ Use Cache Manager for standardized cache invalidation
             TicketCacheManager.invalidate_all(ticket_id=self.id)
-        # ✅ Also invalidate dashboard cache (contains ticket counts)
         from src.statistics.utils.cache import StatisticsCacheManager
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         ticket_id = self.id
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         TicketCacheManager.invalidate_all(ticket_id=ticket_id)
-        # ✅ Also invalidate dashboard cache (contains ticket counts)
         from src.statistics.utils.cache import StatisticsCacheManager
         StatisticsCacheManager.invalidate_dashboard()
 

@@ -69,8 +69,6 @@ export const notificationsApi = {
         total,
       };
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      // Return zero counts on error
       return {
         tickets: {
           new_count: 0,

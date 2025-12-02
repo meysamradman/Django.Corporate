@@ -26,25 +26,19 @@ from src.user.authorization.admin_permission import RequirePermission
 
 
 class TermsPageViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing Terms Page (Singleton Pattern)"""
     
     queryset = TermsPage.objects.all()
     serializer_class = TermsPageSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('pages.manage')]
     
     def get_serializer_class(self):
-        """انتخاب serializer مناسب بر اساس action"""
         if self.action in ['update', 'partial_update']:
             return TermsPageUpdateSerializer
         return TermsPageSerializer
     
     def list(self, request, *args, **kwargs):
-        """دریافت صفحه قوانین و مقررات (Singleton)"""
-        # استراتژی کلی: یک permission برای همه عملیات (pages.manage)
-        # RouteGuard چک می‌کند که کاربر pages.manage دارد
         try:
             page = get_terms_page()
             serializer = self.get_serializer(page)
@@ -74,11 +68,9 @@ class TermsPageViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """دریافت صفحه قوانین و مقررات (Singleton)"""
         return self.list(request, *args, **kwargs)
     
     def update(self, request, *args, **kwargs):
-        """به‌روزرسانی صفحه قوانین و مقررات"""
         try:
             serializer = self.get_serializer(data=request.data, partial=kwargs.get('partial', False))
             serializer.is_valid(raise_exception=True)
@@ -115,13 +107,11 @@ class TermsPageViewSet(viewsets.ModelViewSet):
             )
     
     def create(self, request, *args, **kwargs):
-        """ایجاد - استفاده از list برای Singleton"""
         return self.list(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
-        """حذف - غیرفعال برای Singleton"""
         return APIResponse.error(
-            message=TERMS_PAGE_ERRORS.get('terms_page_not_found', 'حذف صفحه قوانین و مقررات امکان‌پذیر نیست'),
+            message=TERMS_PAGE_ERRORS.get('terms_page_not_found', 'Delete not allowed'),
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED
         )
 

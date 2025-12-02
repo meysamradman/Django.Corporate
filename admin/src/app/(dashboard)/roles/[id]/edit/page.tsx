@@ -503,12 +503,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       
       router.push("/roles");
     } catch (error: any) {
-      console.error("Role update error details:", {
-        message: error.message,
-        status: error.status,
-        data: error.data,
-        stack: error.stack
-      });
       
       if (hasFieldErrors(error)) {
         const fieldErrors = extractFieldErrors(error);

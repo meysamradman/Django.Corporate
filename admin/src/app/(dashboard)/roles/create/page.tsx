@@ -208,12 +208,6 @@ export default function CreateRolePage() {
       // انتقال به صفحه لیست
       router.push("/roles");
     } catch (error: any) {
-      console.error("Role creation error:", error);
-      console.error("Error details:", {
-        message: error.message,
-        status: error.status,
-        data: error.data,
-      });
 
       // بررسی خطاهای فیلدها از Django
       if (hasFieldErrors(error)) {

@@ -12,10 +12,6 @@ from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
 
 
-# ========================================
-# Encryption Mixin (DRY)
-# ========================================
-
 class EncryptedAPIKeyMixin:
 
     @staticmethod
@@ -29,7 +25,6 @@ class EncryptedAPIKeyMixin:
         if not api_key or not api_key.strip():
             return ''
         
-        # Already encrypted?
         if api_key.startswith('gAAAAAB'):
             return api_key
         
@@ -55,16 +50,8 @@ class EncryptedAPIKeyMixin:
             raise ValidationError(f"خطا در رمزگشایی API key: {str(e)}")
 
 
-# ========================================
-# Cache Mixin (DRY)
-# ========================================
-
 class CacheMixin:
-    """
-    Cache Mixin for AI models
-    Uses AICacheManager for standardized cache operations
-    """
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = 300
     
     def _get_cache_key(self, suffix=''):
         model_name = self.__class__.__name__.lower()
@@ -72,27 +59,20 @@ class CacheMixin:
         return f"ai_{model_name}_{pk}{f'_{suffix}' if suffix else ''}"
     
     def clear_cache(self):
-        # ✅ Use Cache Manager for standardized cache invalidation
         cache_key = self._get_cache_key()
         cache.delete(cache_key)
         
-        # Also clear related caches if needed
         if hasattr(self, 'provider') and self.provider:
             AICacheManager.invalidate_provider(self.provider.slug)
             AICacheManager.invalidate_models_by_provider(self.provider.slug)
     
     @classmethod
     def clear_all_cache(cls, pattern=''):
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if cls.__name__ == 'AIModel':
             AICacheManager.invalidate_models()
         elif cls.__name__ == 'AIProvider':
             AICacheManager.invalidate_providers()
 
-
-# ========================================
-# AIProvider Model
-# ========================================
 
 class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
 
@@ -130,13 +110,11 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         verbose_name="Description"
     )
     
-    # Shared API Key (encrypted)
     shared_api_key = models.TextField(
         blank=True,
         verbose_name="Shared API Key (Encrypted)"
     )
     
-    # Permissions
     allow_personal_keys = models.BooleanField(
         default=True,
         verbose_name="Allow Personal Keys"
@@ -148,14 +126,12 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         verbose_name="Allow Shared for Normal Admins"
     )
     
-    # Configuration (JSONField for flexibility)
     config = models.JSONField(
         default=dict,
         blank=True,
         verbose_name="Configuration"
     )
     
-    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
         verbose_name="Total Requests"
@@ -189,16 +165,13 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         return self.display_name
     
     def save(self, *args, **kwargs):
-        # Auto-generate slug
         if not self.slug:
             self.slug = slugify(self.name)
         
-        # Encrypt API key
         if self.shared_api_key:
             self.shared_api_key = self.encrypt_key(self.shared_api_key)
         
         super().save(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         if self.slug:
             AICacheManager.invalidate_provider(self.slug)
     
@@ -214,7 +187,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_active_providers(cls):
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.providers_active()
         providers = cache.get(cache_key)
         
@@ -230,7 +202,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_provider_by_slug(cls, slug: str):
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.provider(slug)
         provider = cache.get(cache_key)
         
@@ -244,13 +215,8 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         return provider
 
 
-# ========================================
-# AIModel Model
-# ========================================
-
 class AIModel(BaseModel, CacheMixin):
     
-    # Capability choices (extensible)
     CAPABILITY_CHOICES = [
         ('chat', 'Chat / Text Generation'),
         ('image', 'Image Generation'),
@@ -291,13 +257,11 @@ class AIModel(BaseModel, CacheMixin):
         verbose_name="Description"
     )
     
-    # Capabilities (JSONField for flexibility)
     capabilities = models.JSONField(
         default=list,
         verbose_name="Capabilities"
     )
     
-    # Pricing (optional)
     pricing_input = models.DecimalField(
         max_digits=10,
         decimal_places=6,
@@ -314,7 +278,6 @@ class AIModel(BaseModel, CacheMixin):
         verbose_name="Output Price ($/1M tokens)"
     )
     
-    # Limits
     max_tokens = models.IntegerField(
         null=True,
         blank=True,
@@ -327,14 +290,12 @@ class AIModel(BaseModel, CacheMixin):
         verbose_name="Context Window"
     )
     
-    # Configuration (JSONField for flexibility)
     config = models.JSONField(
         default=dict,
         blank=True,
         verbose_name="Configuration"
     )
     
-    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
         verbose_name="Total Requests"
@@ -370,10 +331,9 @@ class AIModel(BaseModel, CacheMixin):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         if self.provider and self.provider.slug:
             AICacheManager.invalidate_models_by_provider(self.provider.slug)
-            AICacheManager.invalidate_models()  # Also clear capability-based caches
+            AICacheManager.invalidate_models()
     
     def increment_usage(self):
         self.total_requests += 1
@@ -389,7 +349,6 @@ class AIModel(BaseModel, CacheMixin):
         
         state = ModelAccessState.calculate(self.provider, self, admin)
         
-        # Check if admin has personal settings
         has_personal_settings = False
         if admin:
             has_personal_settings = AdminProviderSettings.objects.filter(
@@ -446,7 +405,6 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_provider(cls, provider_slug: str, capability: str | None = None):
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.models_by_provider(provider_slug, capability)
         models_list = cache.get(cache_key)
         
@@ -458,7 +416,6 @@ class AIModel(BaseModel, CacheMixin):
             ).select_related('provider').order_by('sort_order')
             
             if capability:
-                # JSONField filter
                 models_list = [m for m in query if capability in m.capabilities]
             else:
                 models_list = list(query)
@@ -469,19 +426,16 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_active_models_bulk(cls, provider_slugs: list[str]):
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.models_bulk(provider_slugs)
         result = cache.get(cache_key)
         
         if result is None:
-            # Single query for all providers
             models = cls.objects.filter(
                 provider__slug__in=provider_slugs,
                 provider__is_active=True,
                 is_active=True
             ).select_related('provider').order_by('provider__sort_order', 'sort_order')
             
-            # Group by provider
             result = {}
             for model in models:
                 provider_slug = model.provider.slug
@@ -500,7 +454,6 @@ class AIModel(BaseModel, CacheMixin):
         
         audio_capabilities = ['audio', 'speech_to_text', 'text_to_speech'] if capability == 'audio' else None
         
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.models_by_capability(capability, include_inactive)
         models_list = cache.get(cache_key)
         
@@ -522,10 +475,6 @@ class AIModel(BaseModel, CacheMixin):
         return models_list
 
 
-# ========================================
-# AdminProviderSettings Model
-# ========================================
-
 class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
     
     admin = models.ForeignKey(
@@ -544,7 +493,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         verbose_name="Provider"
     )
     
-    # Personal API Key (encrypted)
     personal_api_key = models.TextField(
         blank=True,
         verbose_name="Personal API Key (Encrypted)"
@@ -556,7 +504,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         verbose_name="Use Shared API"
     )
     
-    # Usage Limits
     monthly_limit = models.IntegerField(
         default=1000,
         verbose_name="Monthly Limit"
@@ -567,7 +514,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         verbose_name="Monthly Usage"
     )
     
-    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
         verbose_name="Total Requests"
@@ -601,7 +547,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
             self.personal_api_key = self.encrypt_key(self.personal_api_key)
         
         super().save(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         if self.admin_id:
             AICacheManager.invalidate_admin_settings(self.admin_id)
     
@@ -652,10 +597,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
     def reset_monthly_usage(self):
         self.monthly_usage = 0
         self.save(update_fields=['monthly_usage'])
-    
-    # ========================================
-    # Computed Fields (for API Response)
-    # ========================================
     
     def get_usage_info(self):
 

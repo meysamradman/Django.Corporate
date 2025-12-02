@@ -18,7 +18,6 @@ class MainImageMixin:
         
         if url is None:
             try:
-                # استفاده از prefetched data اگر موجود باشد
                 if hasattr(obj, 'main_image_media') and obj.main_image_media:
                     url = obj.main_image_media[0].media.file.url if obj.main_image_media[0].media else ""
                 else:

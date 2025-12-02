@@ -32,7 +32,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         return TicketMessageSerializer
     
     def create(self, request, *args, **kwargs):
-        # Replying to tickets requires ticket.manage or ticket.update permission
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -50,7 +49,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
             )
         
         message = serializer.save()
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         TicketCacheManager.invalidate_ticket(ticket.id)
         StatisticsCacheManager.invalidate_tickets()
         
@@ -61,7 +59,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.update
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],

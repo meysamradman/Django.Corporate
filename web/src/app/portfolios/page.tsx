@@ -27,7 +27,6 @@ export default function PortfoliosPage() {
       }
     } catch (err: any) {
       setError(err.message || 'خطا در بارگذاری نمونه کارها');
-      console.error('Error loading portfolios:', err);
     } finally {
       setLoading(false);
     }

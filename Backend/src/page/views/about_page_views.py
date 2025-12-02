@@ -1,50 +1,33 @@
-# Third-party (Django, DRF)
 from rest_framework import viewsets, status
 from django.core.exceptions import ValidationError
-
-# Project core
 from src.core.responses.response import APIResponse
-
-# Project models
 from src.page.models import AboutPage
-
-# Project serializers
 from src.page.serializers import (
     AboutPageSerializer,
     AboutPageUpdateSerializer,
 )
-
-# Project services
 from src.page.services.about_page_service import (
     get_about_page,
     update_about_page,
 )
-
-# Project messages
 from src.page.messages.messages import ABOUT_PAGE_SUCCESS, ABOUT_PAGE_ERRORS
 from src.user.authorization.admin_permission import RequirePermission
 
 
 class AboutPageViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing About Page (Singleton Pattern)"""
     
     queryset = AboutPage.objects.all()
     serializer_class = AboutPageSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('pages.manage')]
     
     def get_serializer_class(self):
-        """انتخاب serializer مناسب بر اساس action"""
         if self.action in ['update', 'partial_update']:
             return AboutPageUpdateSerializer
         return AboutPageSerializer
     
     def list(self, request, *args, **kwargs):
-        """دریافت صفحه درباره ما (Singleton)"""
-        # استراتژی کلی: یک permission برای همه عملیات (pages.manage)
-        # RouteGuard چک می‌کند که کاربر pages.manage دارد
         try:
             page = get_about_page()
             serializer = self.get_serializer(page)
@@ -74,11 +57,9 @@ class AboutPageViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """دریافت صفحه درباره ما (Singleton)"""
         return self.list(request, *args, **kwargs)
     
     def update(self, request, *args, **kwargs):
-        """به‌روزرسانی صفحه درباره ما"""
         try:
             serializer = self.get_serializer(data=request.data, partial=kwargs.get('partial', False))
             serializer.is_valid(raise_exception=True)
@@ -115,13 +96,11 @@ class AboutPageViewSet(viewsets.ModelViewSet):
             )
     
     def create(self, request, *args, **kwargs):
-        """ایجاد - استفاده از list برای Singleton"""
         return self.list(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
-        """حذف - غیرفعال برای Singleton"""
         return APIResponse.error(
-            message=ABOUT_PAGE_ERRORS.get('about_page_not_found', 'حذف صفحه درباره ما امکان‌پذیر نیست'),
+            message=ABOUT_PAGE_ERRORS.get('about_page_not_found', 'Delete not allowed'),
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED
         )
 

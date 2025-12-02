@@ -105,30 +105,16 @@ export const ProtectedLink: React.FC<ProtectedLinkProps> = ({
     );
   }
 
-  // If user doesn't have access
   if (!showWhenDenied) {
-    console.log('❌ ProtectedLink hidden:', { permission, href: rest.href });
     return <>{fallback || null}</>;
   }
 
-  console.log('⚠️ ProtectedLink disabled:', { 
-    permission, 
-    href: rest.href, 
-    hasAccess, 
-    isLoading,
-    showDenyToast 
-  });
-
-  // Show disabled content without navigation - CRITICAL: must block all click events
   const handleDisabledClick = (e: React.MouseEvent) => {
-    debugger; // 🛑 متوقف کردن مرورگر برای بررسی
-    console.log('🚫 ProtectedLink blocked:', { permission, href: rest.href });
     e.preventDefault();
     e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation(); // ✅ Stop all event propagation
+    e.nativeEvent.stopImmediatePropagation();
     
     if (showDenyToast) {
-      console.log('🍞 Showing toast:', denyMessage);
       toast.error(denyMessage);
     }
     

@@ -13,13 +13,11 @@ from src.user.authorization.admin_permission import RequirePermission
 
 
 class GeneralSettingsViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing general settings (Singleton Pattern)"""
     
     queryset = GeneralSettings.objects.all()
     serializer_class = GeneralSettingsSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('settings.manage')]
     
     def list(self, request, *args, **kwargs):

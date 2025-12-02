@@ -14,15 +14,12 @@ class HuggingFaceProvider(BaseProvider):
     
     BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://router.huggingface.co/hf-inference')
     
-    # For text generation, we need to use the text-generation task endpoint
     TEXT_GENERATION_TASK = 'text-generation'
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        # Default models
         self.image_model = config.get('image_model', 'stabilityai/stable-diffusion-xl-base-1.0') if config else 'stabilityai/stable-diffusion-xl-base-1.0'
         self.content_model = config.get('content_model', 'gpt2') if config else 'gpt2'
-        # HuggingFace needs longer timeout (up to 3 minutes for first load or HD quality)
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(180.0, connect=10.0, read=180.0),
             limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
@@ -105,9 +102,6 @@ class HuggingFaceProvider(BaseProvider):
             return []
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        """
-        Generate image with Hugging Face Stable Diffusion (free)
-        """
         url = f"{self.BASE_URL}/models/{self.image_model}"
         
         headers = {
@@ -217,19 +211,11 @@ class HuggingFaceProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        # Build prompt for instruction-based models
-        full_prompt = f"""Write a professional SEO-optimized content in Persian (Farsi) language.
-
-Topic: {prompt}
-
-Requirements:
-- Word count: approximately {word_count} words
-- Style: {tone}
-- Content should be SEO optimized
-- Natural keyword usage
-- Logical and readable structure
-
-Write the content as plain text without special formatting."""
+        full_prompt = HUGGINGFACE_ERRORS["content_generation_prompt"].format(
+            topic=prompt,
+            word_count=word_count,
+            tone=tone
+        )
         
         payload = {
             "inputs": full_prompt,

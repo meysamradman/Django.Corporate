@@ -133,8 +133,6 @@ export const aiApi = {
                 const endpoint = `/admin/ai-image-generation/providers/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                // Don't show error toast - just log it (models might not be critical)
-                console.error('[AI Image Generation API] Error fetching OpenRouter models:', error);
                 throw error;
             }
         },
@@ -147,7 +145,6 @@ export const aiApi = {
                 const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                console.error('[AI Image Generation API] Error fetching HuggingFace models:', error);
                 throw error;
             }
         },
@@ -203,8 +200,6 @@ export const aiApi = {
                 const endpoint = `/admin/ai-content-generation/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                // Don't show error toast - just log it (models might not be critical)
-                console.error('[AI Content Generation API] Error fetching OpenRouter models:', error);
                 throw error;
             }
         },
@@ -303,8 +298,6 @@ export const aiApi = {
                 const endpoint = `/admin/ai-chat/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                // Don't show error toast - just log it (models might not be critical)
-                console.error('[AI Chat API] Error fetching OpenRouter models:', error);
                 throw error;
             }
         },
@@ -317,7 +310,6 @@ export const aiApi = {
                 const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                console.error('[AI Chat API] Error fetching HuggingFace models:', error);
                 throw error;
             }
         },

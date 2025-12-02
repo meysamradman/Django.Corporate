@@ -118,8 +118,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     if (assignment.id && assignment.name) {
                         return assignment;
                     }
-                    // If structure is unexpected, log and skip
-                    console.warn('Unexpected role assignment structure:', assignment);
                     return null;
                   }).filter((role: any) => role !== null) // Remove null entries
                 : [];
@@ -235,32 +233,13 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 .filter(assignment => assignment.assigned === true) // ✅ Explicit check for true
                 .map(assignment => assignment.roleId);
             
-            // ✅ DETAILED LOGGING
-            console.log('📊 [SAVE] Role assignment state:', {
-                currentAssignedRoleIds,
-                newAssignedRoleIds,
-                roleAssignments,
-                adminRoles: adminRoles.map((r: any) => ({ id: r.id, name: r.name })),
-                adminId: admin.id,
-                currentUser: user?.id,
-                isSuperuser: user?.is_superuser
-            });
-            
-            // Find roles to remove (currently assigned but not selected)
             const rolesToRemove = currentAssignedRoleIds.filter(
                 (roleId: number) => !newAssignedRoleIds.includes(roleId)
             );
             
-            // Find roles to add (selected but not currently assigned)
             const rolesToAdd = newAssignedRoleIds.filter(
                 (roleId: number) => !currentAssignedRoleIds.includes(roleId)
             );
-            
-            console.log('📊 [SAVE] Changes to apply:', {
-                rolesToRemove,
-                rolesToAdd,
-                totalChanges: rolesToRemove.length + rolesToAdd.length
-            });
             
             // ✅ Remove roles with error tracking
             const removeResults: { success: number[], failed: { id: number, error: string }[] } = {
@@ -270,34 +249,11 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             
             for (const roleId of rolesToRemove) {
                 try {
-                    console.log('🔴 [REMOVE ROLE] Starting removal:', {
-                        adminId: admin.id,
-                        roleId: roleId,
-                        url: `/admin/roles/${roleId}/remove_role/?user_id=${admin.id}`
-                    });
-                    
                     await adminApi.removeRoleFromAdmin(admin.id, roleId);
-                    
-                    console.log('✅ [REMOVE ROLE] Success:', { roleId });
                     removeResults.success.push(roleId);
                 } catch (error: any) {
-                    // Get role name for better error message
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
-                    
-                    // ✅ DETAILED ERROR LOGGING
-                    console.error('❌ [REMOVE ROLE] Error:', {
-                        roleId,
-                        roleName,
-                        adminId: admin.id,
-                        error: error,
-                        errorMessage: error?.message,
-                        errorResponse: error?.response,
-                        errorData: error?.response?.data,
-                        status: error?.response?.status,
-                        statusText: error?.response?.statusText,
-                        fullError: JSON.stringify(error, null, 2)
-                    });
                     
                     // Extract error message from API response
                     let errorMessage = 'خطای نامشخص';
@@ -323,33 +279,11 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             
             for (const roleId of rolesToAdd) {
                 try {
-                    console.log('🟢 [ASSIGN ROLE] Starting assignment:', {
-                        adminId: admin.id,
-                        roleId: roleId
-                    });
-                    
                     await adminApi.assignRoleToAdmin(admin.id, roleId);
-                    
-                    console.log('✅ [ASSIGN ROLE] Success:', { roleId });
                     assignResults.success.push(roleId);
                 } catch (error: any) {
-                    // Get role name for better error message
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
-                    
-                    // ✅ DETAILED ERROR LOGGING
-                    console.error('❌ [ASSIGN ROLE] Error:', {
-                        roleId,
-                        roleName,
-                        adminId: admin.id,
-                        error: error,
-                        errorMessage: error?.message,
-                        errorResponse: error?.response,
-                        errorData: error?.response?.data,
-                        status: error?.response?.status,
-                        statusText: error?.response?.statusText,
-                        fullError: JSON.stringify(error, null, 2)
-                    });
                     
                     // Extract error message from API response
                     let errorMessage = 'خطای نامشخص';

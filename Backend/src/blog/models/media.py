@@ -90,7 +90,6 @@ class BlogVideo(BaseModel):
         indexes = [models.Index(fields=["blog", "order"])]
 
     def get_cover_image(self):
-        """Get cover image: blog-specific or fallback to media default"""
         return self.cover_image if self.cover_image else (self.video.cover_image if self.video else None)
     
     def __str__(self):
@@ -170,7 +169,6 @@ class BlogDocument(BaseModel):
         indexes = [models.Index(fields=["blog", "order"])]
 
     def get_cover_image(self):
-        """Get cover image: blog-specific or fallback to media default"""
         return self.cover_image if self.cover_image else (self.document.cover_image if self.document else None)
     
     def __str__(self):

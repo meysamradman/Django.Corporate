@@ -135,17 +135,14 @@ export function HuggingFaceModelSelectorContent({
               // برخی مدل‌ها دیگر موجود نیستند - به‌روزرسانی localStorage
               localStorage.setItem(storageKey, JSON.stringify(validModels));
               setSelectedModels(new Set(validModels));
-              console.log(`[HuggingFace] Synced selected models: ${validModels.length} valid out of ${savedModels.length}`);
             } else {
               setSelectedModels(new Set(savedModels));
             }
           }
         } catch (error) {
-          console.error('[HuggingFace] Error syncing selected models:', error);
         }
       }
     } catch (error) {
-      console.error('Error fetching HuggingFace models:', error);
       toast.error('خطا در دریافت مدل‌ها');
       setModels([]);
     } finally {
@@ -169,7 +166,6 @@ export function HuggingFaceModelSelectorContent({
         try {
           localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
         } catch (error) {
-          console.error('[HuggingFace] Error saving to localStorage:', error);
         }
       }, 0);
       

@@ -11,15 +11,11 @@ from src.portfolio.services.admin.media_services import PortfolioAdminMediaServi
 from src.portfolio.utils.cache import PortfolioCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 
-logger = logging.getLogger(__name__)
-
-# Cache settings values for performance (module-level cache)
 _MEDIA_LIST_LIMIT = settings.PORTFOLIO_MEDIA_LIST_LIMIT
 _MEDIA_DETAIL_LIMIT = settings.PORTFOLIO_MEDIA_DETAIL_LIMIT
 
 
 class PortfolioMediaAdminSerializer(serializers.Serializer):
-    """Admin serializer for portfolio media"""
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     media_detail = MediaAdminSerializer(read_only=True, source='media')
@@ -29,7 +25,6 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField(read_only=True)
     
     def to_representation(self, instance):
-        """Convert instance to appropriate serializer based on media type"""
         # Serialize media detail once
         if isinstance(instance, PortfolioImage):
             media_detail = MediaAdminSerializer(instance.image, context=self.context).data

@@ -87,7 +87,6 @@ export async function fetchApi<T>(
       data: data as T,
     };
   } catch (error) {
-    console.error('API Error:', error);
     throw error;
   }
 }

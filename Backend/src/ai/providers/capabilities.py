@@ -1,14 +1,13 @@
 
-# Complete capabilities of each Provider
 PROVIDER_CAPABILITIES = {
     'openrouter': {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': False,  # OpenRouter doesn't have TTS
-        'has_dynamic_models': True,  # Models are fetched from API
+        'supports_audio': False,
+        'has_dynamic_models': True,
         'models': {
-            'chat': 'dynamic',  # Fetched from API /openrouter-models
+            'chat': 'dynamic',
             'content': 'dynamic',
             'image': 'dynamic',
             'audio': [],
@@ -24,8 +23,8 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': False,  # Gemini doesn't have TTS
-        'has_dynamic_models': False,  # Models are fixed
+        'supports_audio': False,
+        'has_dynamic_models': False,
         'models': {
             'chat': [
                 'gemini-2.0-flash-exp',
@@ -56,8 +55,8 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': True,  # OpenAI has TTS
-        'has_dynamic_models': False,  # Models are fixed
+        'supports_audio': True,
+        'has_dynamic_models': False,
         'models': {
             'chat': [
                 'gpt-4o',
@@ -92,9 +91,9 @@ PROVIDER_CAPABILITIES = {
     'deepseek': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': False,  # DeepSeek doesn't have image generation
-        'supports_audio': False,  # DeepSeek doesn't have TTS
-        'has_dynamic_models': False,  # Models are fixed
+        'supports_image': False,
+        'supports_audio': False,
+        'has_dynamic_models': False,
         'models': {
             'chat': [
                 'deepseek-chat',
@@ -117,9 +116,9 @@ PROVIDER_CAPABILITIES = {
     'groq': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': False,  # Groq doesn't have image generation
-        'supports_audio': False,  # Groq doesn't have TTS (only Whisper STT)
-        'has_dynamic_models': True,  # Models are fetched from API
+        'supports_image': False,
+        'supports_audio': False,
+        'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',

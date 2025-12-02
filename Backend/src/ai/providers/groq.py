@@ -3,11 +3,9 @@ from io import BytesIO
 import httpx
 import json
 import os
-import logging
 from .base import BaseProvider
 from src.ai.utils.cache import AICacheKeys
-
-logger = logging.getLogger(__name__)
+from src.ai.messages.messages import GROQ_ERRORS, GROQ_PROMPTS
 
 
 class GroqProvider(BaseProvider):
@@ -177,11 +175,11 @@ class GroqProvider(BaseProvider):
                 content = data['choices'][0]['message']['content']
                 return content.strip()
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(GROQ_ERRORS["no_response_received"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = "خطا در تولید محتوا"
+            error_msg = GROQ_ERRORS["content_generation_error"]
             
             try:
                 error_data = e.response.json()
@@ -190,15 +188,15 @@ class GroqProvider(BaseProvider):
                 pass
             
             if status_code == 429:
-                raise Exception("خطای Groq API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                raise Exception(GROQ_ERRORS["rate_limit"])
             elif status_code == 401:
-                raise Exception("خطای Groq API: API Key نامعتبر است.")
+                raise Exception(GROQ_ERRORS["invalid_api_key"])
             elif status_code == 403:
-                raise Exception("خطای Groq API: دسترسی به API محدود شده است.")
+                raise Exception(GROQ_ERRORS["api_access_denied"])
             
-            raise Exception(f"خطای Groq API: {error_msg}")
+            raise Exception(GROQ_ERRORS["api_error"].format(error_msg=error_msg))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(GROQ_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         import re
@@ -208,32 +206,14 @@ class GroqProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = ', '.join(keywords) if keywords else ''
+        keywords_str = ', '.join(keywords) if keywords else 'طبیعی و مرتبط'
         
-        prompt = f"""لطفاً یک محتوای حرفه‌ای و سئو شده به زبان فارسی برای موضوع "{topic}" بنویسید.
-
-ملاحظات:
-- طول محتوا: حدود {word_count} کلمه
-- سبک: {tone}
-- محتوا باید برای SEO بهینه باشد
-- استفاده از کلمات کلیدی: {keywords_str if keywords_str else 'طبیعی و مرتبط'}
-- ساختار منطقی و خوانا
-- محتوا باید شامل تگ‌های HTML <h2> و <h3> باشد
-
-لطفاً پاسخ را به صورت JSON با فرمت زیر برگردانید:
-{{
-    "title": "عنوان اصلی (H1)",
-    "meta_title": "عنوان متا برای SEO (50-60 کاراکتر)",
-    "meta_description": "توضیحات متا برای SEO (150-160 کاراکتر)",
-    "slug": "slug-url-friendly",
-    "h1": "عنوان اصلی",
-    "h2_list": ["عنوان H2 اول", "عنوان H2 دوم", ...],
-    "h3_list": ["عنوان H3 اول", "عنوان H3 دوم", ...],
-    "content": "<p>در دنیای امروز، [موضوع] یکی از مهم‌ترین عوامل موفقیت است. محتوای کامل باید با تگ‌های HTML باشد.</p>\\n\\n<h2>عنوان H2 اول</h2>\\n<p>محتوا مربوط به بخش اول که شامل کلمات کلیدی طبیعی است.</p>\\n\\n<h3>عنوان H3 اول</h3>\\n<p>محتوا مربوط به زیربخش H3 با جزئیات بیشتر.</p>\\n\\n<h2>عنوان H2 دوم</h2>\\n<p>محتوا مربوط به بخش دوم که بهینه شده برای SEO است.</p>",
-    "keywords": ["کلمه کلیدی 1", "کلمه کلیدی 2", ...]
-}}
-
-مهم: حتماً تگ‌های <h2> و <h3> را در داخل فیلد "content" قرار دهید و مطمئن شوید که h2_list و h3_list با تگ‌های موجود در content مطابقت دارند."""
+        prompt = GROQ_PROMPTS["seo_content_generation"].format(
+            topic=topic,
+            word_count=word_count,
+            tone=tone,
+            keywords_str=keywords_str
+        )
         
         url = f"{self.BASE_URL}/chat/completions"
         
@@ -281,11 +261,11 @@ class GroqProvider(BaseProvider):
                 
                 return seo_data
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(GROQ_ERRORS["no_response_received"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = "خطا در تولید محتوا"
+            error_msg = GROQ_ERRORS["content_generation_error"]
             
             try:
                 error_data = e.response.json()
@@ -294,17 +274,17 @@ class GroqProvider(BaseProvider):
                 pass
             
             if status_code == 429:
-                raise Exception("خطای Groq API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                raise Exception(GROQ_ERRORS["rate_limit"])
             elif status_code == 401:
-                raise Exception("خطای Groq API: API Key نامعتبر است.")
+                raise Exception(GROQ_ERRORS["invalid_api_key"])
             elif status_code == 403:
-                raise Exception("خطای Groq API: دسترسی به API محدود شده است.")
+                raise Exception(GROQ_ERRORS["api_access_denied"])
             
-            raise Exception(f"خطای Groq API: {error_msg}")
+            raise Exception(GROQ_ERRORS["api_error"].format(error_msg=error_msg))
         except json.JSONDecodeError as e:
-            raise Exception(f"خطا در تجزیه پاسخ JSON: {str(e)}")
+            raise Exception(GROQ_ERRORS["json_parse_error"].format(error=str(e)))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(GROQ_ERRORS["content_generation_failed"].format(error=str(e)))
     
     # Chat method
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
@@ -347,11 +327,11 @@ class GroqProvider(BaseProvider):
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(GROQ_ERRORS["no_response_received"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = "خطا در چت"
+            error_msg = GROQ_ERRORS["chat_error"].format(error="")
             
             try:
                 error_data = e.response.json()
@@ -360,13 +340,13 @@ class GroqProvider(BaseProvider):
                 pass
             
             if status_code == 429:
-                raise Exception("خطای Groq API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                raise Exception(GROQ_ERRORS["rate_limit"])
             elif status_code == 401:
-                raise Exception("خطای Groq API: API Key نامعتبر است.")
+                raise Exception(GROQ_ERRORS["invalid_api_key"])
             elif status_code == 403:
-                raise Exception("خطای Groq API: دسترسی به API محدود شده است.")
+                raise Exception(GROQ_ERRORS["api_access_denied"])
             
-            raise Exception(f"خطای Groq API: {error_msg}")
+            raise Exception(GROQ_ERRORS["api_error"].format(error_msg=error_msg))
         except Exception as e:
-            raise Exception(f"خطا در چت: {str(e)}")
+            raise Exception(GROQ_ERRORS["chat_error"].format(error=str(e)))
 

@@ -163,8 +163,6 @@ export function useMarkMessageRead() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error: any) => {
-      // Silent error - no toast for auto-marking
-      console.error('Error marking message as read:', error);
     },
   });
 }
@@ -183,8 +181,6 @@ export function useMarkTicketAsRead() {
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
     },
     onError: (error: any) => {
-      // Silent error - no toast for auto-marking
-      console.error('Error marking ticket as read:', error);
     },
   });
 }

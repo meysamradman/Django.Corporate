@@ -48,8 +48,6 @@ export const useUploadSettings = (clearCache: boolean = false) => {
             try {
                 return await mediaApi.getUploadSettings(clearCache);
             } catch (error) {
-                // ✅ Fallback به مقادیر پیش‌فرض در صورت خطا
-                console.warn('Failed to fetch upload settings from API, using defaults:', error);
                 return {
                     MEDIA_IMAGE_SIZE_LIMIT: mediaConfig.sizeLimits.image,
                     MEDIA_VIDEO_SIZE_LIMIT: mediaConfig.sizeLimits.video,

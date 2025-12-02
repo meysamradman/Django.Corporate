@@ -121,16 +121,10 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
             
-            console.log('[AI Chat Frontend] User permissions:', user?.permissions);
-            console.log('[AI Chat Frontend] Has AI permission:', hasAIPermission);
-            
             if (hasAIPermission) {
-                console.log('[AI Chat Frontend] Fetching available providers...');
                 providersFetched.current = true;
                 fetchAvailableProviders();
             } else {
-                // If no AI permission, stop loading
-                console.log('[AI Chat Frontend] No AI permission, stopping load');
                 setLoadingProviders(false);
             }
         } else if (!user) {
@@ -207,25 +201,17 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
 
     const fetchAvailableProviders = async () => {
         try {
-            console.log('[AI Chat Frontend] Starting fetchAvailableProviders...');
             setLoadingProviders(true);
             const response = await aiApi.chat.getAvailableProviders();
-            
-            console.log('[AI Chat Frontend] Response received:', response);
             
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data) 
                     ? response.data 
                     : (response.data as any)?.data || [];
                 
-                console.log('[AI Chat Frontend] Providers data:', providersData);
                 setAvailableProviders(providersData);
-            } else {
-                console.error('[AI Chat Frontend] Response status not success:', response.metaData);
             }
         } catch (error: any) {
-            console.error('[AI Chat Frontend] Error fetching providers:', error);
-            // Toast already shown by aiApi
         } finally {
             setLoadingProviders(false);
         }

@@ -103,11 +103,9 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
-            # نمایش خطاهای validation به صورت واضح
             errors = serializer.errors
-            error_message = "خطا در اعتبارسنجی داده‌ها"
+            error_message = FORM_FIELD_ERRORS.get('validation_error', 'Validation error')
             
-            # اگر خطای field_key وجود دارد، پیام واضح‌تری بده
             if 'field_key' in errors:
                 field_key_error = errors['field_key']
                 if isinstance(field_key_error, list) and len(field_key_error) > 0:

@@ -28,7 +28,6 @@ export default function Home() {
           blogs: blogsRes.pagination?.count || 0,
         });
       } catch (error) {
-        console.error('Error fetching stats:', error);
       } finally {
         setLoading(false);
       }

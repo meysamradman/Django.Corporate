@@ -34,7 +34,6 @@ export default function EmailsPage() {
           setFormData(initialData);
         }
       } catch (err) {
-        console.error('Error fetching form fields:', err);
         setError('خطا در دریافت فیلدهای فرم');
       } finally {
         setFieldsLoading(false);
@@ -68,7 +67,6 @@ export default function EmailsPage() {
       }
     } catch (err: any) {
       setError(err.message || 'خطا در ارسال پیام');
-      console.error('Error creating email:', err);
     } finally {
       setLoading(false);
     }

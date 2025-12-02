@@ -143,10 +143,8 @@ export function OpenRouterModelSelectorContent({
             .filter(Boolean)
         );
         setRegisteredProviders(providerSlugs);
-        console.log('[OpenRouter] Registered providers:', Array.from(providerSlugs));
       }
     } catch (error) {
-      console.warn('[OpenRouter] Failed to fetch registered providers:', error);
       // در صورت خطا، همه را نمایش بده (fallback)
     }
   };
@@ -177,9 +175,7 @@ export function OpenRouterModelSelectorContent({
           architecture: model.architecture || {}
         }));
         setModels(realModels);
-        console.log(`[OpenRouter] Loaded ${realModels.length} models from API`);
         
-        // ✅ Sync مدل‌های انتخاب شده با مدل‌های جدید (فقط مدل‌هایی که هنوز موجود هستند)
         try {
           const saved = localStorage.getItem(storageKey);
           if (saved) {
@@ -188,25 +184,19 @@ export function OpenRouterModelSelectorContent({
               realModels.some(m => m.id === id)
             );
             if (validModels.length !== savedModels.length) {
-              // برخی مدل‌ها دیگر موجود نیستند - به‌روزرسانی localStorage
               localStorage.setItem(storageKey, JSON.stringify(validModels));
               setSelectedModels(new Set(validModels));
-              console.log(`[OpenRouter] Synced selected models: ${validModels.length} valid out of ${savedModels.length}`);
             } else {
               setSelectedModels(new Set(savedModels));
             }
           }
         } catch (error) {
-          console.error('[OpenRouter] Error syncing selected models:', error);
         }
       } else {
-        // ✅ اگر خطا بود، لیست خالی بده (نه mock data)
-        console.error('[OpenRouter] Failed to fetch models:', response);
         toast.error('خطا در دریافت مدل‌ها از OpenRouter');
         setModels([]);
       }
     } catch (error) {
-      console.error('[OpenRouter] Error fetching models:', error);
       toast.error('خطا در دریافت مدل‌ها از OpenRouter');
       // ✅ اگر خطا بود، لیست خالی بده (نه mock data)
       setModels([]);
@@ -258,7 +248,6 @@ export function OpenRouterModelSelectorContent({
         try {
           localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
         } catch (error) {
-          console.error('[OpenRouter] Error saving to localStorage:', error);
         }
       }, 0);
       
@@ -281,9 +270,6 @@ export function OpenRouterModelSelectorContent({
         const modelProvider = extractProvider(model.id || model.name || '').toLowerCase();
         // بررسی اینکه آیا این Provider در دیتابیس ثبت شده است
         const isRegistered = registeredProviders.has(modelProvider);
-        if (!isRegistered) {
-          console.log(`[OpenRouter] Filtered out model ${model.id} - Provider "${modelProvider}" not registered`);
-        }
         return isRegistered;
       });
     }

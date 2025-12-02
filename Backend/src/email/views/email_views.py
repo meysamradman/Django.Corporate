@@ -16,15 +16,6 @@ from src.user.permissions import PermissionValidator
 
 
 class EmailMessageViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet برای مدیریت پیام‌های ایمیل
-    
-    - POST /api/email/messages/ : ایجاد پیام جدید (عمومی)
-    - GET /api/email/messages/ : لیست پیام‌ها (فقط ادمین)
-    - GET /api/email/messages/{id}/ : جزئیات پیام (فقط ادمین)
-    - PATCH /api/email/messages/{id}/ : به‌روزرسانی پیام (فقط ادمین)
-    - DELETE /api/email/messages/{id}/ : حذف پیام (فقط ادمین)
-    """
     
     queryset = EmailMessage.objects.all()
     pagination_class = StandardLimitPagination
@@ -90,8 +81,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except Exception as e:
-            import traceback
-            traceback.print_exc()  # چاپ خطای دقیق در console
             return APIResponse.error(
                 message=EMAIL_ERRORS['message_create_failed'],
                 errors={'detail': str(e)},
@@ -99,7 +88,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """دریافت جزئیات یک پیام"""
         if not PermissionValidator.has_permission(request.user, 'email.read'):
             return APIResponse.error(
                 message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to view email messages"),
@@ -121,7 +109,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        """به‌روزرسانی پیام"""
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
                 message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to update email messages"),
@@ -157,7 +144,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        """حذف پیام"""
         if not PermissionValidator.has_permission(request.user, 'email.delete'):
             return APIResponse.error(
                 message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to delete email messages"),
@@ -184,7 +170,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
     def mark_as_read(self, request, pk=None):
-        """علامت‌گذاری پیام به عنوان خوانده شده"""
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
                 message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to update email messages"),
@@ -215,7 +200,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
     def mark_as_replied(self, request, pk=None):
-        """علامت‌گذاری پیام به عنوان پاسخ داده شده + ارسال ایمیل واقعی"""
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
                 message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to reply to email messages"),
@@ -227,11 +211,10 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             
             if not reply_text:
                 return APIResponse.error(
-                    message="متن پاسخ الزامی است",
+                    message=EMAIL_ERRORS.get('reply_text_required', 'Reply text is required'),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # ارسال ایمیل واقعی به کاربر
             from src.email.services.email_service import EmailService
             email_sent = EmailService.send_reply_email(message, reply_text, request.user)
             

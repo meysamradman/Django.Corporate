@@ -95,7 +95,6 @@ export default function EmailPage() {
         // Invalidate notification count
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       } catch (error) {
-        console.error('Failed to mark email as read:', error);
       }
     }
   }, [queryClient]);

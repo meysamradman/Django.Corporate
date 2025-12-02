@@ -409,24 +409,6 @@ export default function AISettingsPage() {
               // ✅ ادمین معمولی: فقط اگر allowNormalAdmins=true و hasSharedApi=true باشد، می‌تواند Switch را ببیند
               const canUseSharedApi = isSuperAdmin || (allowNormalAdmins && hasSharedApi);
 
-              // ✅ Debug: برای بررسی مقادیر (برای همه provider ها)
-              if (!isSuperAdmin) {
-                console.log(`[DEBUG Provider: ${provider.id}]`, JSON.stringify({
-                  providerId: provider.id,
-                  providerName: provider.name,
-                  isSuperAdmin,
-                  allowNormalAdmins,
-                  hasSharedApi,
-                  canUseSharedApi,
-                  backendProvider: backendProvider ? {
-                    allow_shared_for_normal_admins: backendProvider.allow_shared_for_normal_admins,
-                    has_shared_api: backendProvider.has_shared_api,
-                    has_shared_api_key: backendProvider.has_shared_api_key,
-                    slug: backendProvider.slug,
-                    name: backendProvider.name,
-                  } : 'null'
-                }, null, 2));
-              }
 
               // ✅ محاسبه useSharedApi: اگر canUseSharedApi باشد، از setting استفاده کن، در غیر این صورت false
               // ✅ برای ادمین معمولی که نمی‌تواند از API مشترک استفاده کند، همیشه false

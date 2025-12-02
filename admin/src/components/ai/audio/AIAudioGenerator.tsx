@@ -115,8 +115,6 @@ export function AIAudioGenerator({
                 }
             }
         } catch (error) {
-            // If API fails, enable demo mode
-            console.log('[AI Audio] API not available, enabling demo mode');
             setIsDemoMode(true);
             setAvailableProviders([{
                 id: 1,

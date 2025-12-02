@@ -29,14 +29,11 @@ export default function TicketsPage() {
         ...(formData.message && { message: formData.message }),
       };
 
-      console.log('Sending ticket data:', data);
       const response = await ticketsApi.createTicket(data);
-      console.log('Received response:', response);
 
       if (response.success && response.data) {
         setSuccess('تیکت با موفقیت ایجاد شد!');
         setCreatedTicket(response.data);
-        console.log('Created ticket:', response.data);
         setFormData({
           subject: '',
           description: '',
@@ -54,7 +51,6 @@ export default function TicketsPage() {
       }
       
       setError(errorMessage);
-      console.error('Error creating ticket:', err);
     } finally {
       setLoading(false);
     }

@@ -90,7 +90,6 @@ class PortfolioVideo(BaseModel):
         indexes = [models.Index(fields=["portfolio", "order"])]
 
     def get_cover_image(self):
-        """Get cover image: portfolio-specific or fallback to media default"""
         return self.cover_image if self.cover_image else (self.video.cover_image if self.video else None)
     
     def __str__(self):
@@ -98,7 +97,6 @@ class PortfolioVideo(BaseModel):
 
 
 class PortfolioAudio(BaseModel):
-    """فایل‌های صوتی مربوط به نمونه‌کار"""
 
     portfolio = models.ForeignKey(
         Portfolio,
@@ -173,7 +171,6 @@ class PortfolioDocument(BaseModel):
         indexes = [models.Index(fields=["portfolio", "order"])]
 
     def get_cover_image(self):
-        """Get cover image: portfolio-specific or fallback to media default"""
         return self.cover_image if self.cover_image else (self.document.cover_image if self.document else None)
     
     def __str__(self):

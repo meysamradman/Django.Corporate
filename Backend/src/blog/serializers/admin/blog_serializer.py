@@ -10,15 +10,11 @@ from src.blog.services.admin.media_services import BlogAdminMediaService
 from src.blog.utils.cache import BlogCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 
-logger = logging.getLogger(__name__)
-
-# Cache settings values for performance (module-level cache)
 _MEDIA_LIST_LIMIT = settings.BLOG_MEDIA_LIST_LIMIT
 _MEDIA_DETAIL_LIMIT = settings.BLOG_MEDIA_DETAIL_LIMIT
 
 
 class BlogMediaAdminSerializer(serializers.Serializer):
-    """Admin serializer for blog media"""
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     media_detail = MediaAdminSerializer(read_only=True, source='media')
@@ -28,8 +24,6 @@ class BlogMediaAdminSerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField(read_only=True)
     
     def to_representation(self, instance):
-        """Convert instance to appropriate serializer based on media type"""
-        # Serialize media detail once
         if isinstance(instance, BlogImage):
             media_detail = MediaAdminSerializer(instance.image, context=self.context).data
         elif isinstance(instance, BlogVideo):
@@ -44,28 +38,22 @@ class BlogMediaAdminSerializer(serializers.Serializer):
         else:
             return super().to_representation(instance)
         
-        # Return with both media_detail and media (alias for frontend compatibility)
         result = {
             'id': instance.id,
             'public_id': instance.public_id,
             'media_detail': media_detail,
-            'media': media_detail,  # Alias for frontend compatibility
+            'media': media_detail,
             'order': instance.order,
             'created_at': instance.created_at,
             'updated_at': instance.updated_at,
         }
         
-        # Add is_main_image only for BlogImage
         if isinstance(instance, BlogImage):
             result['is_main_image'] = instance.is_main
         
         return result
     
     def _apply_blog_cover_image(self, instance, media_detail):
-        """
-        Apply blog-specific cover image to media_detail
-        Priority: blog.cover_image > media.cover_image (fallback)
-        """
         if instance.cover_image is not None:
             media_detail['cover_image'] = MediaCoverSerializer(instance.cover_image, context=self.context).data
             media_detail['cover_image_url'] = instance.cover_image.file.url if instance.cover_image.file else None
@@ -77,52 +65,40 @@ class BlogMediaAdminSerializer(serializers.Serializer):
 
 
 class BlogAdminListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for admin listing with SEO status and detailed media counts"""
     main_image = serializers.SerializerMethodField()
     categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
     
-    # Use annotated fields from queryset - no database queries!
     media_count = serializers.IntegerField(source='total_media_count', read_only=True)
     categories_count = serializers.IntegerField(read_only=True)
     tags_count = serializers.IntegerField(read_only=True)
     
     seo_status = serializers.SerializerMethodField()
-    # Add media for display in list view
     media = serializers.SerializerMethodField()
     
     class Meta:
         model = Blog
         fields = [
             'id', 'public_id', 'status', 'title', 'slug',
-            'short_description', 'description', 'is_featured', 'is_public', 'is_active',
+            'short_description', 'description','is_featured', 'is_public', 'is_active',
             'main_image', 'categories_count', 'tags_count', 
             'media_count', 'categories', 'seo_status', 'media',
             'created_at', 'updated_at',
-            # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'robots_meta', 'canonical_url'
         ]
     
     def get_media(self, obj):
-        """Get media for list view - optimized with prefetched data"""
         media_limit = _MEDIA_LIST_LIMIT
         
-        # Use prefetched data if available (from for_admin_listing queryset)
         if hasattr(obj, 'all_images'):
-            # Get prefetched media with limits applied at DB level
             all_images = getattr(obj, 'all_images', [])[:media_limit]
-            # Note: videos, audios, documents are prefetched but not limited in queryset
-            # We'll limit them here to avoid over-fetching
         else:
-            # Fallback to database queries (should not happen with proper queryset)
             all_images = list(obj.images.select_related('image').all()[:media_limit])
         
-        # Get other media types with proper limits
         videos = list(obj.videos.select_related('video', 'video__cover_image').all()[:media_limit])
         audios = list(obj.audios.select_related('audio', 'audio__cover_image').all()[:media_limit])
         documents = list(obj.documents.select_related('document', 'document__cover_image').all()[:media_limit])
         
-        # Prefetch cover_image URLs efficiently (optimized single pass)
         for item in videos:
             if item.video and hasattr(item.video, 'cover_image') and item.video.cover_image:
                 if hasattr(item.video.cover_image, 'file') and item.video.cover_image.file:
@@ -144,27 +120,22 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
                         _ = item.document.cover_image.file.url
                     except:
                         pass
-            # Also ensure document file URL is loaded
             if item.document and hasattr(item.document, 'file') and item.document.file:
                 try:
                     _ = item.document.file.url
                 except:
                     pass
         
-        # Combine and sort (optimized single pass)
         all_media = list(all_images) + videos + audios + documents
         all_media.sort(key=lambda x: (x.order, x.created_at))
         
-        # Serialize with cached serializer instance
         serializer = BlogMediaAdminSerializer(context=self.context)
         return [serializer.to_representation(media) for media in all_media]
 
     def get_main_image(self, obj):
-        """Get main image details using model method with caching"""
         return obj.get_main_image_details()
     
     def get_seo_status(self, obj):
-        """Check SEO completeness status"""
         has_meta_title = bool(obj.meta_title)
         has_meta_description = bool(obj.meta_description)
         has_og_image = bool(obj.og_image)
@@ -178,14 +149,12 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
 
 
 class BlogAdminDetailSerializer(serializers.ModelSerializer):
-    """Full serializer for admin detail/edit with complete SEO support"""
     main_image = serializers.SerializerMethodField()
     categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
     tags = BlogTagAdminSerializer(many=True, read_only=True)
     media = serializers.SerializerMethodField()
-    blog_media = serializers.SerializerMethodField()  # Alias for frontend compatibility
+    blog_media = serializers.SerializerMethodField()
     
-    # SEO computed fields
     seo_data = serializers.SerializerMethodField()
     seo_preview = serializers.SerializerMethodField()
     seo_completeness = serializers.SerializerMethodField()
@@ -197,36 +166,27 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
             'short_description', 'description',
             'is_featured', 'is_public', 'is_active',
             'main_image', 'categories', 'tags', 'media', 'blog_media',
-            # SEO fields from SEOMixin
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
-            # SEO computed fields
             'seo_data', 'seo_preview', 'seo_completeness',
             'created_at', 'updated_at',
         ]
     
     def get_main_image(self, obj):
-        """Get main image details using model method with caching"""
         return obj.get_main_image_details()
     
     def get_media(self, obj):
-        """Get all media for the blog with optimized queries using prefetched data"""
         media_limit = _MEDIA_DETAIL_LIMIT
         
-        # Use prefetched data if available (from for_detail queryset)
         if hasattr(obj, 'all_images'):
-            # Get prefetched media - already properly selected in queryset
             all_images = getattr(obj, 'all_images', [])
-            # Apply limit only if set (0 = unlimited)
             if media_limit > 0:
                 all_images = all_images[:media_limit]
         else:
-            # Fallback to database queries (should not happen with proper queryset)
             images_qs = obj.images.select_related('image').all()
             all_images = list(images_qs[:media_limit]) if media_limit > 0 else list(images_qs)
         
-        # Get other media types using prefetched data when available
         if hasattr(obj, '_prefetched_objects_cache') and 'videos' in obj._prefetched_objects_cache:
             videos = obj._prefetched_objects_cache['videos']
             if media_limit > 0:
@@ -251,16 +211,13 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
             documents_qs = obj.documents.select_related('document', 'document__cover_image', 'cover_image').all()
             documents = list(documents_qs[:media_limit]) if media_limit > 0 else list(documents_qs)
         
-        # Prefetch cover_image URLs efficiently
         self._prefetch_cover_image_urls(videos, 'video')
         self._prefetch_cover_image_urls(audios, 'audio')
         self._prefetch_cover_image_urls(documents, 'document')
         
-        # Combine and sort
         all_media = list(all_images) + list(videos) + list(audios) + list(documents)
         all_media.sort(key=lambda x: (x.order, x.created_at))
         
-        # Serialize
         serializer = BlogMediaAdminSerializer(context=self.context)
         return [serializer.to_representation(media) for media in all_media]
     

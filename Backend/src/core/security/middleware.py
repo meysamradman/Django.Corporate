@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from django.core.cache import cache
 from django.conf import settings
 from rest_framework import status
+from src.user.messages.auth import AUTH_ERRORS
+from src.core.security.captcha.messages.messages import CAPTCHA_ERRORS
 
 
 class SecurityLoggingMiddleware(MiddlewareMixin):
@@ -43,7 +45,6 @@ class RateLimitMiddleware(MiddlewareMixin):
         
         if request.path.endswith('/admin/login/') and request.method == 'POST':
             if self.is_rate_limited(ip, 'admin_login'):
-                from src.user.messages.auth import AUTH_ERRORS
                 return JsonResponse(
                     {'error': AUTH_ERRORS.get('otp_request_limit', 'Too many login attempts. Please try again later.')},
                     status=status.HTTP_429_TOO_MANY_REQUESTS
@@ -51,7 +52,6 @@ class RateLimitMiddleware(MiddlewareMixin):
         
         if '/captcha/' in request.path:
             if self.is_rate_limited(ip, 'captcha'):
-                from src.core.security.captcha.messages.messages import CAPTCHA_ERRORS
                 return JsonResponse(
                     {'error': CAPTCHA_ERRORS.get('captcha_rate_limit', 'Too many CAPTCHA requests. Please try again later.')},
                     status=status.HTTP_429_TOO_MANY_REQUESTS

@@ -11,7 +11,6 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
-# Logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -28,7 +27,7 @@ LOGGING = {
         },
     },
 }
-APPEND_SLASH = False  # Disable automatic slash appending to prevent POST redirect issues
+APPEND_SLASH = False
 LOCAL_APPS = [
     'src.core.apps.CoreConfig',
     'src.user.apps.UserConfig',
@@ -46,7 +45,6 @@ LOCAL_APPS = [
     'src.form.apps.FormConfig',
 ]
 INSTALLED_APPS = [
-     # 'django.contrib.admin',  # ✅ حذف شد - از Next.js برای پنل ادمین استفاده می‌شود
      'django.contrib.auth',
      'django.contrib.contenttypes',
      'django.contrib.sessions',
@@ -58,21 +56,17 @@ INSTALLED_APPS = [
      'rest_framework_simplejwt',
      'rest_framework_simplejwt.token_blacklist',
      'drf_spectacular',
-     'django_redis',  # Redis cache support
-     'django_mailbox',  # برای دریافت ایمیل از IMAP
-     'post_office',  # برای ارسال پیشرفته ایمیل
-     # 'debug_toolbar',
+     'django_redis',
+     'django_mailbox',
+     'post_office',
      *LOCAL_APPS,
 ]
 MIDDLEWARE = [
-     # "debug_toolbar.middleware.DebugToolbarMiddleware",
      'django.middleware.security.SecurityMiddleware',
-     'src.core.security.middleware.SecurityLoggingMiddleware',  # Security logging
-     # 'src.core.security.middleware.RateLimitMiddleware',       # حذف شد - تداخل با DRF throttling
-     'src.core.security.middleware.CSRFExemptAdminMiddleware', # CSRF exemption for admin views
+     'src.core.security.middleware.SecurityLoggingMiddleware',
+     'src.core.security.middleware.CSRFExemptAdminMiddleware',
      'django.contrib.sessions.middleware.SessionMiddleware',
      'corsheaders.middleware.CorsMiddleware',
-     # 'django.middleware.locale.LocaleMiddleware',  # غیرفعال - تک زبانه
      'django.middleware.common.CommonMiddleware',
      'django.middleware.csrf.CsrfViewMiddleware',
      'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -83,9 +77,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
      {
           'BACKEND': 'django.template.backends.django.DjangoTemplates',
-          # 'DIRS': [],
          'DIRS': [
-             # BASE_DIR / 'templates',
              os.path.join(BASE_DIR, 'templates/')
          ],
           'APP_DIRS': True,
@@ -118,10 +110,9 @@ AUTH_PASSWORD_VALIDATORS = [
      },
 ]
 AUTH_USER_MODEL = 'user.User'
-# تک زبانه - فارسی
 LANGUAGE_CODE = 'fa'
 TIME_ZONE = 'Asia/Tehran'
-USE_I18N = False  # غیرفعال کردن internationalization
+USE_I18N = False
 USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
@@ -150,14 +141,13 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',        # Anonymous users: 100 requests per hour
-        'user': '1000/hour',       # Authenticated users: 1000 requests per hour
-        # Admin throttling removed - admins can work freely without limits
-        'admin_login': '3/min',    # Admin login attempts: 3 per minute (only for login security)
-        'user_login': '5/min',     # User login attempts: 5 per minute
-        'captcha': '10/min',       # CAPTCHA requests: 10 per minute
-        'failed_login': '10/hour', # Failed login attempts: 10 per hour
-        'security': '20/hour',     # Security operations: 20 per hour
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'admin_login': '3/min',
+        'user_login': '5/min',
+        'captcha': '10/min',
+        'failed_login': '10/hour',
+        'security': '20/hour',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
@@ -166,22 +156,21 @@ REST_FRAMEWORK = {
         'src.core.responses.APIResponse',
     ]
 }
-# تنظیمات CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # آدرس فرانت‌اند شما
-    "http://localhost:3001",  # آدرس فرانت‌اند شما
-    "http://localhost:3002",  # آدرس فرانت‌اند شما
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
     "http://localhost:3003",
-    "http://localhost:3004",  # آدرس فرانت‌اند شما
-    "http://localhost:3005",  # آدرس فرانت‌اند شما
-    "http://localhost:3006",  # آدرس فرانت‌اند شما
-    "http://localhost:3007",  # آدرس فرانت‌اند شما
+    "http://localhost:3004",
+    "http://localhost:3005",
+    "http://localhost:3006",
+    "http://localhost:3007",
     "http://localhost:3008",
-    "http://localhost:3009",  # آدرس فرانت‌اند شما
-    "http://localhost:30010",  # آدرس فرانت‌اند شما
+    "http://localhost:3009",
+    "http://localhost:30010",
 ]
 
-CORS_ALLOW_CREDENTIALS = True  # مجاز به ارسال کوکی‌ها و اعتبارسنجی‌ها
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'content-type',
     'authorization',
@@ -196,13 +185,12 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# تنظیمات دیگر برای امنیت بیشتر
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
-    "http://localhost:3001",  # آدرس فرانت‌اند شما
-    "http://localhost:3002",  # آدرس فرانت‌اند شما
-    "http://localhost:3004",  # آدرس فرانت‌اند شما
-    "http://localhost:3005",  # آدرس فرانت‌اند شما
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:3004",
+    "http://localhost:3005",
 ]
 
 AUTH_COOKIE_NAME = 'auth_token'
@@ -213,11 +201,9 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = True
-CSRF_EXEMPT_ADMIN_VIEWS = True  # New setting to disable CSRF for admin API endpoints
+CSRF_EXEMPT_ADMIN_VIEWS = True
 
-# Admin Session Settings (Using Django Sessions)
-# SESSION_COOKIE_NAME = 'sessionid'  # Commented out to use custom admin_session_id
-SESSION_COOKIE_AGE = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60  # 3 days default
+SESSION_COOKIE_AGE = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
 
@@ -310,40 +296,26 @@ MELIPAYAMAK_BODY_ID = int(os.getenv('MELIPAYAMAK_BODY_ID'))
 MELIPAYAMAK_API_KEY = os.getenv('MELIPAYAMAK_API_KEY')
 
 MEDIA_FILE_SIZE_LIMITS = {
-    # ⚠️ موقتاً برای تست: همه روی 500KB
-    # TODO: بعد از تست به مقادیر اصلی برگردانید
-    'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 500 * 1024)),      # 500KB (موقت برای تست)
-    'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 500 * 1024)),      # 500KB (موقت برای تست)
-    'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 500 * 1024)),      # 500KB (موقت برای تست)
-    'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 500 * 1024)),          # 500KB (موقت برای تست)
-    # مقادیر اصلی (بعد از تست برگردانید):
-    # 'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 5 * 1024 * 1024)),      # Default: 5MB
-    # 'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)),    # Default: 150MB
-    # 'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20 * 1024 * 1024)),     # Default: 20MB
-    # 'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),         # Default: 10MB
+    'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 500 * 1024)),
+    'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 500 * 1024)),
+    'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 500 * 1024)),
+    'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 500 * 1024)),
 }
 
-# Portfolio Export Settings (from env, with defaults)
-PORTFOLIO_EXPORT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_MAX_ITEMS', default=500)  # Max items when exporting all (Excel/PDF)
-PORTFOLIO_EXPORT_PRINT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', default=2000)  # Max items for print
-PORTFOLIO_EXPORT_PAGE_SIZE = env.int('PORTFOLIO_EXPORT_PAGE_SIZE', default=50)  # Default page size for page export
+PORTFOLIO_EXPORT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_MAX_ITEMS', default=500)
+PORTFOLIO_EXPORT_PRINT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', default=2000)
+PORTFOLIO_EXPORT_PAGE_SIZE = env.int('PORTFOLIO_EXPORT_PAGE_SIZE', default=50)
 PORTFOLIO_EXPORT_RATE_LIMIT = env.int('PORTFOLIO_EXPORT_RATE_LIMIT', default=10)
 PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW = env.int('PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW', default=3600)
 
-# Blog Export Settings (defaults fallback to portfolio values)
 BLOG_EXPORT_MAX_ITEMS = env.int('BLOG_EXPORT_MAX_ITEMS', default=PORTFOLIO_EXPORT_MAX_ITEMS)
 BLOG_EXPORT_RATE_LIMIT = env.int('BLOG_EXPORT_RATE_LIMIT', default=PORTFOLIO_EXPORT_RATE_LIMIT)
 BLOG_EXPORT_RATE_LIMIT_WINDOW = env.int('BLOG_EXPORT_RATE_LIMIT_WINDOW', default=PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW)
 
-# Portfolio Media Settings
-# Limit for media items in list view (for performance)
-PORTFOLIO_MEDIA_LIST_LIMIT = env.int('PORTFOLIO_MEDIA_LIST_LIMIT', default=5)  # Max media items per type in list view
-# Limit for media items in detail view (set to 0 or None for unlimited)
-PORTFOLIO_MEDIA_DETAIL_LIMIT = env.int('PORTFOLIO_MEDIA_DETAIL_LIMIT', default=0)  # 0 = unlimited in detail view
-# Max media items that can be uploaded at once
-PORTFOLIO_MEDIA_UPLOAD_MAX = env.int('PORTFOLIO_MEDIA_UPLOAD_MAX', default=50)  # Max media files per upload
+PORTFOLIO_MEDIA_LIST_LIMIT = env.int('PORTFOLIO_MEDIA_LIST_LIMIT', default=5)
+PORTFOLIO_MEDIA_DETAIL_LIMIT = env.int('PORTFOLIO_MEDIA_DETAIL_LIMIT', default=0)
+PORTFOLIO_MEDIA_UPLOAD_MAX = env.int('PORTFOLIO_MEDIA_UPLOAD_MAX', default=50)
 
-# Blog Media Settings (defaults fallback to portfolio values)
 BLOG_MEDIA_LIST_LIMIT = env.int('BLOG_MEDIA_LIST_LIMIT', default=PORTFOLIO_MEDIA_LIST_LIMIT)
 BLOG_MEDIA_DETAIL_LIMIT = env.int('BLOG_MEDIA_DETAIL_LIMIT', default=PORTFOLIO_MEDIA_DETAIL_LIMIT)
 BLOG_MEDIA_UPLOAD_MAX = env.int('BLOG_MEDIA_UPLOAD_MAX', default=PORTFOLIO_MEDIA_UPLOAD_MAX)
@@ -355,7 +327,6 @@ MEDIA_ALLOWED_EXTENSIONS = {
     'audio': os.getenv('MEDIA_AUDIO_EXTENSIONS', 'mp3,ogg').split(','),
 }
 
-# Email Settings (برای ارسال ایمیل) - از .env خوانده می‌شود
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
@@ -365,20 +336,17 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
-# تنظیمات django-mailbox (برای دریافت ایمیل از IMAP)
 DJANGO_MAILBOX_STORE_ORIGINAL_MESSAGE = True
 DJANGO_MAILBOX_ATTACHMENT_UPLOAD_TO = 'mailbox_attachments/%Y/%m/%d/'
 
-# تنظیمات post_office (برای ارسال پیشرفته ایمیل)
 POST_OFFICE = {
     'BACKENDS': {
         'default': 'django.core.mail.backends.smtp.EmailBackend',
     },
     'DEFAULT_PRIORITY': 'now',
-    'LOG_LEVEL': 1,  # 0 = nothing, 1 = only errors, 2 = everything
+    'LOG_LEVEL': 1,
 }
 
-# تنظیمات لاگینگ برای دیدن خطاها
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
