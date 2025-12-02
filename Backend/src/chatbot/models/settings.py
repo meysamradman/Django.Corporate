@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.cache import cache
 from src.core.models import BaseModel
+from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 
 class ChatbotSettings(BaseModel):
@@ -23,14 +24,17 @@ class ChatbotSettings(BaseModel):
         if not self.pk:
             ChatbotSettings.objects.all().delete()
         super().save(*args, **kwargs)
-        cache.delete('chatbot:settings')
+        # ✅ Use Cache Manager for standardized cache invalidation
+        ChatbotCacheManager.invalidate_settings()
     
     @classmethod
     def get_settings(cls):
-        settings = cache.get('chatbot:settings')
+        # ✅ Use standardized cache key from ChatbotCacheKeys
+        cache_key = ChatbotCacheKeys.settings()
+        settings = cache.get(cache_key)
         if settings is None:
             settings = cls.objects.first()
             if not settings:
                 settings = cls.objects.create()
-            cache.set('chatbot:settings', settings, 3600)
+            cache.set(cache_key, settings, 3600)
         return settings

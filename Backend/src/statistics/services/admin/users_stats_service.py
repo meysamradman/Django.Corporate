@@ -5,6 +5,7 @@ Requires: statistics.users.read permission
 from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManager
 
 User = get_user_model()
 
@@ -14,17 +15,18 @@ class UserStatsService:
     User statistics - Sensitive data
     Counts, active users, new users, etc.
     """
-    CACHE_KEY = 'admin_stats_users'
     CACHE_TIMEOUT = 300  # 5 minutes
     REQUIRED_PERMISSION = 'statistics.users.read'
     
     @classmethod
     def get_stats(cls) -> dict:
         """Get user statistics"""
-        data = cache.get(cls.CACHE_KEY)
+        # ✅ Use standardized cache key from StatisticsCacheKeys
+        cache_key = StatisticsCacheKeys.users()
+        data = cache.get(cache_key)
         if not data:
             data = cls._calculate_stats()
-            cache.set(cls.CACHE_KEY, data, cls.CACHE_TIMEOUT)
+            cache.set(cache_key, data, cls.CACHE_TIMEOUT)
         return data
     
     @classmethod
@@ -43,5 +45,6 @@ class UserStatsService:
     @classmethod
     def clear_cache(cls):
         """Clear user stats cache"""
-        cache.delete(cls.CACHE_KEY)
+        # ✅ Use Cache Manager for standardized cache invalidation
+        StatisticsCacheManager.invalidate_users()
 

@@ -7,6 +7,7 @@ import json
 import re
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS
+from src.ai.utils.cache import AICacheKeys
 
 
 class HuggingFaceProvider(BaseProvider):
@@ -53,8 +54,8 @@ class HuggingFaceProvider(BaseProvider):
         
         logger = logging.getLogger(__name__)
         
-        # Cache key
-        cache_key = f'huggingface_models_{task_filter or "all"}'
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.provider_models('huggingface', task_filter)
         
         # Try cache first
         if use_cache:

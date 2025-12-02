@@ -3,19 +3,20 @@ from typing import Optional, Dict, List
 from django.core.cache import cache
 from src.chatbot.models.faq import FAQ
 from src.chatbot.models.settings import ChatbotSettings
+from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 
 class RuleBasedChatService:
     CACHE_TIMEOUT = 3600
-    FAQ_CACHE_KEY = 'chatbot:faqs:active'
-    SETTINGS_CACHE_KEY = 'chatbot:settings'
     
     @classmethod
     def _get_cached_faqs(cls) -> List[FAQ]:
-        faqs = cache.get(cls.FAQ_CACHE_KEY)
+        # ✅ Use standardized cache key from ChatbotCacheKeys
+        cache_key = ChatbotCacheKeys.faqs_active()
+        faqs = cache.get(cache_key)
         if faqs is None:
             faqs = list(FAQ.objects.filter(is_active=True).order_by('order').only('id', 'question', 'answer', 'keywords', 'patterns'))
-            cache.set(cls.FAQ_CACHE_KEY, faqs, cls.CACHE_TIMEOUT)
+            cache.set(cache_key, faqs, cls.CACHE_TIMEOUT)
         return faqs
     
     @classmethod
@@ -65,5 +66,5 @@ class RuleBasedChatService:
     
     @classmethod
     def clear_cache(cls):
-        cache.delete(cls.FAQ_CACHE_KEY)
-        cache.delete(cls.SETTINGS_CACHE_KEY)
+        # ✅ Use Cache Manager for standardized cache invalidation
+        ChatbotCacheManager.invalidate_all()

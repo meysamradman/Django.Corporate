@@ -4,6 +4,8 @@ from treebeard.mp_tree import MP_Node
 from src.core.models import BaseModel
 from src.blog.models.seo import SEOMixin
 from src.media.models.media import ImageMedia
+from src.blog.utils.cache import CategoryCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 from .managers import BlogCategoryQuerySet
 
 class BlogCategory(MP_Node, BaseModel, SEOMixin):
@@ -57,6 +59,19 @@ class BlogCategory(MP_Node, BaseModel, SEOMixin):
             self.meta_description = self.description[:300]
             
         super().save(*args, **kwargs)
+        
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        CategoryCacheManager.invalidate_all()
+        # Invalidate dashboard stats as category counts affect it
+        StatisticsCacheManager.invalidate_dashboard()
+    
+    def delete(self, *args, **kwargs):
+        """Delete category and invalidate all related cache"""
+        super().delete(*args, **kwargs)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        CategoryCacheManager.invalidate_all()
+        # Invalidate dashboard stats as category counts affect it
+        StatisticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
         """Generate structured data for Category"""

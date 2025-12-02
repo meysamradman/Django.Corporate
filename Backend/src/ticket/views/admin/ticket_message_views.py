@@ -1,11 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from django.core.cache import cache
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket_message import TicketMessage
 from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
+from src.ticket.utils.cache import TicketCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 from src.user.permissions import PermissionValidator
 
 
@@ -49,9 +50,9 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
             )
         
         message = serializer.save()
-        cache.delete(f'ticket:{ticket.id}')
-        cache.delete(f'ticket:{ticket.id}:messages')
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        TicketCacheManager.invalidate_ticket(ticket.id)
+        StatisticsCacheManager.invalidate_tickets()
         
         return APIResponse.success(
             message=TICKET_SUCCESS['message_sent'],
@@ -69,8 +70,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         response = super().update(request, *args, **kwargs)
         if response.status_code == status.HTTP_200_OK:
             message = self.get_object()
-            cache.delete(f'ticket:{message.ticket.id}')
-            cache.delete(f'ticket:{message.ticket.id}:messages')
+            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+            TicketCacheManager.invalidate_ticket_messages(message.ticket.id)
             return APIResponse.success(
                 message=TICKET_SUCCESS['message_updated'],
                 data=response.data,
@@ -88,9 +89,9 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         message = self.get_object()
         ticket_id = message.ticket.id
         super().destroy(request, *args, **kwargs)
-        cache.delete(f'ticket:{ticket_id}')
-        cache.delete(f'ticket:{ticket_id}:messages')
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        TicketCacheManager.invalidate_ticket(ticket_id)
+        StatisticsCacheManager.invalidate_tickets()
         return APIResponse.success(
             message=TICKET_SUCCESS['message_deleted'],
             status_code=status.HTTP_200_OK
@@ -107,7 +108,8 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         message = self.get_object()
         message.is_read = True
         message.save()
-        cache.delete(f'ticket:{message.ticket.id}:messages')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        TicketCacheManager.invalidate_ticket_messages(message.ticket.id)
         return APIResponse.success(
             message=TICKET_SUCCESS['message_updated'],
             data=TicketMessageSerializer(message).data

@@ -9,6 +9,7 @@ import base64
 import hashlib
 
 from src.core.models.base import BaseModel
+from src.ai.utils.cache import AICacheKeys, AICacheManager
 
 
 # ========================================
@@ -59,7 +60,10 @@ class EncryptedAPIKeyMixin:
 # ========================================
 
 class CacheMixin:
-
+    """
+    Cache Mixin for AI models
+    Uses AICacheManager for standardized cache operations
+    """
     CACHE_TIMEOUT = 300  # 5 minutes
     
     def _get_cache_key(self, suffix=''):
@@ -68,16 +72,22 @@ class CacheMixin:
         return f"ai_{model_name}_{pk}{f'_{suffix}' if suffix else ''}"
     
     def clear_cache(self):
+        # ✅ Use Cache Manager for standardized cache invalidation
         cache_key = self._get_cache_key()
         cache.delete(cache_key)
+        
+        # Also clear related caches if needed
+        if hasattr(self, 'provider') and self.provider:
+            AICacheManager.invalidate_provider(self.provider.slug)
+            AICacheManager.invalidate_models_by_provider(self.provider.slug)
     
     @classmethod
     def clear_all_cache(cls, pattern=''):
-        try:
-            cache.delete_pattern(f"ai_{cls.__name__.lower()}_*{pattern}*")
-        except (AttributeError, NotImplementedError):
-            # Fallback if delete_pattern not available
-            pass
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if cls.__name__ == 'AIModel':
+            AICacheManager.invalidate_models()
+        elif cls.__name__ == 'AIProvider':
+            AICacheManager.invalidate_providers()
 
 
 # ========================================
@@ -188,8 +198,9 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
             self.shared_api_key = self.encrypt_key(self.shared_api_key)
         
         super().save(*args, **kwargs)
-        self.clear_cache()
-        self.clear_all_cache('active')
+        # ✅ Use Cache Manager for standardized cache invalidation
+        if self.slug:
+            AICacheManager.invalidate_provider(self.slug)
     
     def get_shared_api_key(self) -> str:
         if not self.shared_api_key:
@@ -203,7 +214,8 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_active_providers(cls):
-        cache_key = "ai_providers_active"
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.providers_active()
         providers = cache.get(cache_key)
         
         if providers is None:
@@ -218,7 +230,8 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_provider_by_slug(cls, slug: str):
-        cache_key = f"ai_provider_{slug}"
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.provider(slug)
         provider = cache.get(cache_key)
         
         if provider is None:
@@ -357,8 +370,10 @@ class AIModel(BaseModel, CacheMixin):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.clear_cache()
-        self.clear_all_cache(f"provider_{self.provider.slug}")
+        # ✅ Use Cache Manager for standardized cache invalidation
+        if self.provider and self.provider.slug:
+            AICacheManager.invalidate_models_by_provider(self.provider.slug)
+            AICacheManager.invalidate_models()  # Also clear capability-based caches
     
     def increment_usage(self):
         self.total_requests += 1
@@ -431,8 +446,8 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_provider(cls, provider_slug: str, capability: str | None = None):
-
-        cache_key = f"ai_models_provider_{provider_slug}_{capability or 'all'}"
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.models_by_provider(provider_slug, capability)
         models_list = cache.get(cache_key)
         
         if models_list is None:
@@ -454,8 +469,8 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_active_models_bulk(cls, provider_slugs: list[str]):
-
-        cache_key = f"ai_models_bulk_{'_'.join(sorted(provider_slugs))}"
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.models_bulk(provider_slugs)
         result = cache.get(cache_key)
         
         if result is None:
@@ -480,13 +495,13 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_capability(cls, capability: str, include_inactive: bool = True):
-
         if capability == 'content':
             capability = 'chat'
         
         audio_capabilities = ['audio', 'speech_to_text', 'text_to_speech'] if capability == 'audio' else None
         
-        cache_key = f"ai_models_capability_{capability}_{'all' if include_inactive else 'active'}"
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.models_by_capability(capability, include_inactive)
         models_list = cache.get(cache_key)
         
         if models_list is None:
@@ -582,11 +597,13 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return f"{admin_name} - {self.provider.display_name}"
     
     def save(self, *args, **kwargs):
-
         if self.personal_api_key:
             self.personal_api_key = self.encrypt_key(self.personal_api_key)
         
         super().save(*args, **kwargs)
+        # ✅ Use Cache Manager for standardized cache invalidation
+        if self.admin_id:
+            AICacheManager.invalidate_admin_settings(self.admin_id)
     
     def get_personal_api_key(self) -> str:
 

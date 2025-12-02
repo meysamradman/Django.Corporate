@@ -4,6 +4,7 @@ Remove code duplication and provide reusable components
 """
 from rest_framework import serializers
 from django.core.cache import cache
+from src.blog.utils.cache import BlogCacheKeys
 
 
 class MainImageMixin:
@@ -11,7 +12,8 @@ class MainImageMixin:
     
     def get_main_image_url(self, obj):
         """Get main image with caching for performance"""
-        cache_key = f"blog_main_image_{obj.id}"
+        # ✅ Use standardized cache key from BlogCacheKeys
+        cache_key = BlogCacheKeys.main_image(obj.id)
         url = cache.get(cache_key)
         
         if url is None:

@@ -3,6 +3,7 @@ from typing import Dict, List, Set, Tuple, Optional
 from django.core.cache import cache
 from .registry import PermissionRegistry, Permission
 from .config import BASE_ADMIN_PERMISSIONS
+from src.user.utils.cache import UserCacheKeys, UserCacheManager
 
 
 class PermissionValidator:
@@ -25,26 +26,8 @@ class PermissionValidator:
         ✅ پاک کردن تمام cache های مربوط به کاربر از Redis
         برای وقتی که roles یا permissions تغییر می‌کنند
         """
-        if user_id:
-            # Clear all permission-related cache keys for this user
-            cache_keys_to_clear = [
-                f"user_permissions_{user_id}",
-                f"user_modules_actions_{user_id}",
-                f"admin_permissions_{user_id}",
-                f"admin_roles_{user_id}",
-                f"admin_info_{user_id}",
-                f"admin_perms_{user_id}",
-                f"admin_simple_perms_{user_id}",
-            ]
-            cache.delete_many(cache_keys_to_clear)
-        else:
-            # Clear all user permission caches
-            try:
-                cache.delete_pattern("user_permissions_*")
-                cache.delete_pattern("user_modules_actions_*")
-            except AttributeError:
-                # If delete_pattern is not available, use clear() as fallback
-                cache.clear()
+        # ✅ Use Cache Manager for standardized cache invalidation
+        UserCacheManager.invalidate_permissions(user_id)
     
     @staticmethod
     def has_permission(user, permission_id: str, context: Optional[Dict] = None) -> bool:
@@ -155,7 +138,8 @@ class PermissionValidator:
         is_superadmin = getattr(user, "is_superuser", False) or getattr(user, "is_admin_full", False)
         
         # 🔥 Redis cache برای get_user_permissions (5 دقیقه)
-        cache_key = f"user_permissions_{user.id}"
+        # ✅ Use standardized cache key from UserCacheKeys
+        cache_key = UserCacheKeys.user_permissions(user.id)
         cached_perms = cache.get(cache_key)
         if cached_perms is not None:
             return cached_perms
@@ -277,7 +261,8 @@ class PermissionValidator:
         # ✅ Redis cache check
         cache_key_id = PermissionValidator._get_cache_key(user)
         if cache_key_id:
-            redis_cache_key = f"user_modules_actions_{cache_key_id}"
+            # ✅ Use standardized cache key from UserCacheKeys
+            redis_cache_key = UserCacheKeys.user_modules_actions(cache_key_id)
             cached_result = cache.get(redis_cache_key)
             if cached_result is not None:
                 # cached_result is a tuple of (modules_set, actions_set)
@@ -346,8 +331,9 @@ class PermissionValidator:
                     logger.warning(f"Role {role.name} permissions is not a dict: {type(role_perms)}")
             
             # ✅ ذخیره در Redis cache (convert sets to lists for JSON serialization)
+            # ✅ Use standardized cache key from UserCacheKeys
             if cache_key_id:
-                redis_cache_key = f"user_modules_actions_{cache_key_id}"
+                redis_cache_key = UserCacheKeys.user_modules_actions(cache_key_id)
                 cache.set(
                     redis_cache_key, 
                     (list(modules), list(actions)), 

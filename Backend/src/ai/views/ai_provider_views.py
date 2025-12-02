@@ -1,6 +1,6 @@
 # Django imports
-from django.core.cache import cache
 from django.db.models import Q, Count
+from src.ai.utils.cache import AICacheManager
 
 # DRF imports
 from rest_framework import viewsets, status, filters
@@ -218,15 +218,15 @@ class AIModelViewSet(viewsets.ModelViewSet):
         if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
             raise PermissionDenied(AI_ERRORS.get('settings_not_authorized', 'فقط سوپر ادمین می‌تواند Model جدید اضافه کند'))
         serializer.save()
-        # Clear cache
-        cache.delete_pattern("ai_models_*")
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        AICacheManager.invalidate_models()
     
     def perform_update(self, serializer):
         if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
             raise PermissionDenied(AI_ERRORS.get('settings_not_authorized', 'فقط سوپر ادمین می‌تواند Model را ویرایش کند'))
         serializer.save()
-        # Clear cache
-        cache.delete_pattern("ai_models_*")
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        AICacheManager.invalidate_models()
     
     @action(detail=False, methods=['get'])
     def by_capability(self, request):

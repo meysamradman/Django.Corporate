@@ -10,7 +10,10 @@ from ...services.admin import (
     DashboardStatsService,
     UserStatsService,
     AdminStatsService,
-    ContentStatsService
+    ContentStatsService,
+    TicketStatsService,
+    EmailStatsService,
+    SystemStatsService
 )
 
 
@@ -28,6 +31,9 @@ class AdminStatisticsViewSet(viewsets.ViewSet):
             'users_stats': [RequirePermission('statistics.users.read')],
             'admins_stats': [RequirePermission('statistics.admins.read')],
             'content_stats': [RequirePermission('statistics.content.read')],
+            'tickets_stats': [RequirePermission('statistics.tickets.read')],
+            'emails_stats': [RequirePermission('statistics.emails.read')],
+            'system_stats': [RequirePermission('statistics.system.read')],
         }
         
         action = getattr(self, 'action', None)
@@ -88,5 +94,56 @@ class AdminStatisticsViewSet(viewsets.ViewSet):
         return APIResponse.success(
             data=data,
             message="Content statistics retrieved successfully"
+        )
+    
+    @action(detail=False, methods=['get'])
+    def tickets_stats(self, request):
+        """
+        GET /api/admin/statistics/tickets_stats/
+        Ticket statistics - Requires statistics.tickets.read
+        Returns: Ticket status counts, priority distribution, unanswered tickets
+        """
+        # Clear cache if requested (for debugging/force refresh)
+        if request.query_params.get('clear_cache', '').lower() == 'true':
+            TicketStatsService.clear_cache()
+        
+        data = TicketStatsService.get_stats()
+        return APIResponse.success(
+            data=data,
+            message="Ticket statistics retrieved successfully"
+        )
+    
+    @action(detail=False, methods=['get'])
+    def emails_stats(self, request):
+        """
+        GET /api/admin/statistics/emails_stats/
+        Email statistics - Requires statistics.emails.read
+        Returns: Email status counts, source distribution, average response time, unanswered emails
+        """
+        # Clear cache if requested (for debugging/force refresh)
+        if request.query_params.get('clear_cache', '').lower() == 'true':
+            EmailStatsService.clear_cache()
+        
+        data = EmailStatsService.get_stats()
+        return APIResponse.success(
+            data=data,
+            message="Email statistics retrieved successfully"
+        )
+    
+    @action(detail=False, methods=['get'])
+    def system_stats(self, request):
+        """
+        GET /api/admin/statistics/system_stats/
+        System statistics - Requires statistics.system.read
+        Returns: Database size, Cache status, Storage usage by type, Recent uploads
+        """
+        # Clear cache if requested (for debugging/force refresh)
+        if request.query_params.get('clear_cache', '').lower() == 'true':
+            SystemStatsService.clear_cache()
+        
+        data = SystemStatsService.get_stats()
+        return APIResponse.success(
+            data=data,
+            message="System statistics retrieved successfully"
         )
 

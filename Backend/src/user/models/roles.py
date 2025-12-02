@@ -212,9 +212,9 @@ def clear_admin_user_cache(sender, instance, **kwargs):
     PermissionValidator.clear_user_cache(user_id)
     PermissionHelper.clear_user_cache(user_id)
     
-    # Also clear admin profile cache
-    cache.delete(f'admin_profile_{user_id}_super')
-    cache.delete(f'admin_profile_{user_id}_regular')
+    # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+    from src.user.utils.cache import UserCacheManager
+    UserCacheManager.invalidate_profile(user_id)
 
 @receiver([post_save, post_delete], sender=AdminRole)
 def clear_admin_role_cache(sender, instance, **kwargs):
@@ -235,9 +235,9 @@ def clear_admin_role_cache(sender, instance, **kwargs):
         PermissionValidator.clear_user_cache(user_id)
         PermissionHelper.clear_user_cache(user_id)
         
-        # Also clear admin profile cache
-        cache.delete(f'admin_profile_{user_id}_super')
-        cache.delete(f'admin_profile_{user_id}_regular')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        from src.user.utils.cache import UserCacheManager
+        UserCacheManager.invalidate_profile(user_id)
 
 
 # Legacy models for backward compatibility (will be deprecated)

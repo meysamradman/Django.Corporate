@@ -1,7 +1,6 @@
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from django.db import transaction
-from django.core.cache import cache
 import logging
 
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
@@ -82,9 +81,9 @@ class ContentDestinationHandler:
                 
                 logger.info(f"✅ Blog created: {blog.id} - {blog.title}")
                 
-                cache.delete_pattern('blog_*')
-                cache.delete(f'blog_detail_{blog.id}')
-                cache.delete(f'blog_slug_{blog.slug}')
+                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+                from src.blog.utils.cache import BlogCacheManager
+                BlogCacheManager.invalidate_blog(blog.id)
                 
                 return {
                     'saved': True,
@@ -150,9 +149,9 @@ class ContentDestinationHandler:
                 
                 logger.info(f"✅ Portfolio created: {portfolio.id} - {portfolio.title}")
                 
-                cache.delete_pattern('portfolio_*')
-                cache.delete(f'portfolio_detail_{portfolio.id}')
-                cache.delete(f'portfolio_slug_{portfolio.slug}')
+                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+                from src.portfolio.utils.cache import PortfolioCacheManager
+                PortfolioCacheManager.invalidate_portfolio(portfolio.id)
                 
                 return {
                     'saved': True,

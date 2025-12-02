@@ -4,6 +4,7 @@ from src.core.models.base import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.models.tag import PortfolioTag
+from src.portfolio.utils.cache import PortfolioCacheKeys, PortfolioCacheManager
 from .managers import PortfolioQuerySet
 
 
@@ -88,7 +89,8 @@ class Portfolio(BaseModel, SEOMixin):
             return None
         
         # Fallback to cache/database query
-        cache_key = f"portfolio_main_image_{self.pk}"
+        # ✅ Use standardized cache key from PortfolioCacheKeys
+        cache_key = PortfolioCacheKeys.main_image(self.pk)
         main_image = cache.get(cache_key)
         
         if main_image is None:
@@ -245,6 +247,14 @@ class Portfolio(BaseModel, SEOMixin):
         
         super().save(*args, **kwargs)
         
-        # Clear related caches using standardized keys
-        from src.portfolio.utils.cache import PortfolioCacheManager
-        PortfolioCacheManager.invalidate_portfolio(self.pk)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if self.pk:
+            PortfolioCacheManager.invalidate_portfolio(self.pk)
+    
+    def delete(self, *args, **kwargs):
+        """Delete portfolio and invalidate all related cache"""
+        portfolio_id = self.pk
+        super().delete(*args, **kwargs)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if portfolio_id:
+            PortfolioCacheManager.invalidate_portfolio(portfolio_id)

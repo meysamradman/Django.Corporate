@@ -2,6 +2,8 @@ from django.db import models
 from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.utils.cache import OptionCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 from .managers import PortfolioOptionQuerySet
 
 
@@ -42,6 +44,22 @@ class PortfolioOption(BaseModel, SEOMixin):
             self.meta_description = self.description[:300]
             
         super().save(*args, **kwargs)
+        
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if self.pk:
+            OptionCacheManager.invalidate_option(self.pk)
+        # Invalidate dashboard stats as option counts affect it
+        StatisticsCacheManager.invalidate_dashboard()
+    
+    def delete(self, *args, **kwargs):
+        """Delete option and invalidate all related cache"""
+        option_id = self.pk
+        super().delete(*args, **kwargs)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if option_id:
+            OptionCacheManager.invalidate_option(option_id)
+        # Invalidate dashboard stats as option counts affect it
+        StatisticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
         """Generate structured data for Option"""

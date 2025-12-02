@@ -1,6 +1,6 @@
 from django.db import models
-from django.core.cache import cache
 from src.core.models import BaseModel
+from src.chatbot.utils.cache import ChatbotCacheManager
 
 
 class FAQ(BaseModel):
@@ -24,8 +24,10 @@ class FAQ(BaseModel):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        cache.delete('chatbot:faqs:active')
+        # ✅ Use Cache Manager for standardized cache invalidation
+        ChatbotCacheManager.invalidate_faqs()
     
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        cache.delete('chatbot:faqs:active')
+        # ✅ Use Cache Manager for standardized cache invalidation
+        ChatbotCacheManager.invalidate_faqs()

@@ -206,4 +206,22 @@ class EmailMessage(BaseModel):
         if not self.created_by:
             self.created_by = admin_user
         self.save(update_fields=['status', 'created_by'])
+    
+    def save(self, *args, **kwargs):
+        """Override save to invalidate cache"""
+        super().save(*args, **kwargs)
+        # ✅ Invalidate email statistics cache when email is saved
+        from src.statistics.utils.cache import StatisticsCacheManager
+        StatisticsCacheManager.invalidate_emails()
+        # ✅ Also invalidate dashboard cache (contains email counts)
+        StatisticsCacheManager.invalidate_dashboard()
+    
+    def delete(self, *args, **kwargs):
+        """Override delete to invalidate cache"""
+        super().delete(*args, **kwargs)
+        # ✅ Invalidate email statistics cache when email is deleted
+        from src.statistics.utils.cache import StatisticsCacheManager
+        StatisticsCacheManager.invalidate_emails()
+        # ✅ Also invalidate dashboard cache (contains email counts)
+        StatisticsCacheManager.invalidate_dashboard()
 

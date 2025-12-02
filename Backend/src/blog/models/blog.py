@@ -4,6 +4,7 @@ from src.core.models.base import BaseModel
 from src.blog.models.seo import SEOMixin
 from src.blog.models.category import BlogCategory
 from src.blog.models.tag import BlogTag
+from src.blog.utils.cache import BlogCacheKeys, BlogCacheManager
 from .managers import BlogQuerySet
 
 
@@ -81,7 +82,8 @@ class Blog(BaseModel, SEOMixin):
             return None
         
         # Fallback to cache/database query
-        cache_key = f"blog_main_image_{self.pk}"
+        # ✅ Use standardized cache key from BlogCacheKeys
+        cache_key = BlogCacheKeys.main_image(self.pk)
         main_image = cache.get(cache_key)
         
         if main_image is None:
@@ -238,6 +240,14 @@ class Blog(BaseModel, SEOMixin):
         
         super().save(*args, **kwargs)
         
-        # Clear related caches using standardized keys
-        from src.blog.utils.cache import BlogCacheManager
-        BlogCacheManager.invalidate_blog(self.pk)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if self.pk:
+            BlogCacheManager.invalidate_blog(self.pk)
+    
+    def delete(self, *args, **kwargs):
+        """Delete blog and invalidate all related cache"""
+        blog_id = self.pk
+        super().delete(*args, **kwargs)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if blog_id:
+            BlogCacheManager.invalidate_blog(blog_id)

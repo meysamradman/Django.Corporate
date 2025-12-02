@@ -32,8 +32,9 @@ class AdminProfileView(APIView):
                 return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authorized"), status_code=403)
             
             # ✅ Cache key based on user type
-            # IMPORTANT: This cache is cleared automatically when roles change via signals
-            cache_key = f"admin_profile_{user.id}_{'super' if user.is_superuser else 'regular'}"
+            # ✅ Use standardized cache key from UserCacheKeys
+            from src.user.utils.cache import UserCacheKeys
+            cache_key = UserCacheKeys.admin_profile(user.id, 'super' if user.is_superuser else 'regular')
             force_refresh = (
                 request.query_params.get('refresh') == '1'
                 or request.headers.get('X-Bypass-Cache') == '1'
@@ -160,7 +161,9 @@ class AdminProfileView(APIView):
                 categories[category] = []
                 
             # Get permission display name from cache if possible
-            cache_key = f"perm_name_{perm}"
+            # ✅ Use standardized cache key from UserCacheKeys
+            from src.user.utils.cache import UserCacheKeys
+            cache_key = UserCacheKeys.permission_display_name(perm)
             display_name = cache.get(cache_key)
             
             if not display_name:

@@ -1,7 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
-from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
 from src.core.responses.response import APIResponse
@@ -9,6 +8,8 @@ from src.ticket.models.ticket import Ticket
 from src.ticket.serializers.ticket_serializer import TicketDetailSerializer
 from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
+from src.ticket.utils.cache import TicketCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 
 
 class PublicTicketViewSet(viewsets.ModelViewSet):
@@ -60,7 +61,8 @@ class PublicTicketViewSet(viewsets.ModelViewSet):
         
         # Always use authenticated user
         ticket = serializer.save(user=request.user, status='open')
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        StatisticsCacheManager.invalidate_tickets()
         
         message_data = request.data.get('message')
         attachment_ids = request.data.get('attachment_ids', [])
@@ -138,9 +140,9 @@ class PublicTicketViewSet(viewsets.ModelViewSet):
         message_serializer.is_valid(raise_exception=True)
         message = message_serializer.save()
         
-        cache.delete(f'ticket:{ticket.id}')
-        cache.delete(f'ticket:{ticket.id}:messages')
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        TicketCacheManager.invalidate_ticket(ticket.id)
+        StatisticsCacheManager.invalidate_tickets()
         
         return APIResponse.success(
             message=TICKET_SUCCESS['message_sent'],

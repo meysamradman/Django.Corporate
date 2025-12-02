@@ -16,7 +16,9 @@ def get_permission_map(request):
         import logging
         logger = logging.getLogger(__name__)
         
-        cache_key_all_perms = "all_permissions_frontend"
+        # ✅ Use standardized cache key from UserCacheKeys
+        from src.user.utils.cache import UserCacheKeys
+        cache_key_all_perms = UserCacheKeys.permission_map()
         all_permissions = cache.get(cache_key_all_perms)
         if all_permissions is None:
             all_permissions = PermissionRegistry.export_for_frontend()

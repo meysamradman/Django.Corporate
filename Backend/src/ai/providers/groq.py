@@ -5,6 +5,7 @@ import json
 import os
 import logging
 from .base import BaseProvider
+from src.ai.utils.cache import AICacheKeys
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,8 @@ class GroqProvider(BaseProvider):
         """
         from django.core.cache import cache
         
-        cache_key = 'groq_models_all'
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.provider_models('groq', None)
         
         # Try cache first
         if use_cache:

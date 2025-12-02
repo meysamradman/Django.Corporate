@@ -2,10 +2,10 @@
 
 import { useAuth } from "@/core/auth/AuthContext";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
-import { useStatistics } from "@/components/dashboard/hooks/useStatistics";
-import { 
-  Calendar, 
-  Clock, 
+import { useStatistics, useSystemStats } from "@/components/dashboard/hooks/useStatistics";
+import {
+  Calendar,
+  Clock,
   TrendingUp,
   Users,
   ShieldUser,
@@ -22,15 +22,22 @@ import {
   ArrowUpRight,
   Activity,
   TrendingDown,
-  Minus
+  Minus,
+  Ticket,
+  FolderTree,
+  Tag,
+  List,
+  HardDrive,
+  Database,
+  Server
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { formatNumber } from "@/core/utils/format";
-import { 
-  AreaChart, 
-  Area, 
-  BarChart, 
+import {
+  AreaChart,
+  Area,
+  BarChart,
   Bar,
   PieChart,
   Pie,
@@ -47,6 +54,7 @@ export const DashboardMain = () => {
   const { user } = useAuth();
   const { hasPermission } = usePermission();
   const { data: stats, isLoading } = useStatistics();
+  const { data: systemStats, isLoading: systemLoading } = useSystemStats();
 
   // دیتای نمودارها (شبیه‌سازی دیتای واقعی)
   const chartData = useMemo(() => {
@@ -83,7 +91,7 @@ export const DashboardMain = () => {
   const { date, time, greeting } = useMemo(() => {
     const now = new Date();
     const hour = now.getHours();
-    
+
     let greetingText = "سلام";
     if (hour >= 5 && hour < 12) greetingText = "صبح بخیر";
     else if (hour >= 12 && hour < 17) greetingText = "ظهر بخیر";
@@ -91,14 +99,14 @@ export const DashboardMain = () => {
     else greetingText = "شب بخیر";
 
     return {
-      date: now.toLocaleDateString('fa-IR', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      date: now.toLocaleDateString('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       }),
-      time: now.toLocaleTimeString('fa-IR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      time: now.toLocaleTimeString('fa-IR', {
+        hour: '2-digit',
+        minute: '2-digit'
       }),
       greeting: greetingText
     };
@@ -134,6 +142,33 @@ export const DashboardMain = () => {
       href: '/portfolios'
     },
     {
+      id: 'portfolio_categories',
+      icon: FolderTree,
+      label: 'دسته‌بندی نمونه کار',
+      value: stats?.total_portfolio_categories || 0,
+      permission: 'portfolio.read',
+      color: 'amber',
+      href: '/portfolios/categories'
+    },
+    {
+      id: 'portfolio_tags',
+      icon: Tag,
+      label: 'تگ‌های نمونه کار',
+      value: stats?.total_portfolio_tags || 0,
+      permission: 'portfolio.read',
+      color: 'amber',
+      href: '/portfolios/tags'
+    },
+    {
+      id: 'portfolio_options',
+      icon: List,
+      label: 'گزینه‌های نمونه کار',
+      value: stats?.total_portfolio_options || 0,
+      permission: 'portfolio.read',
+      color: 'amber',
+      href: '/portfolios/options'
+    },
+    {
       id: 'blogs',
       icon: FileText,
       label: 'بلاگ‌ها',
@@ -143,6 +178,24 @@ export const DashboardMain = () => {
       href: '/blogs'
     },
     {
+      id: 'blog_categories',
+      icon: FolderTree,
+      label: 'دسته‌بندی بلاگ',
+      value: stats?.total_blog_categories || 0,
+      permission: 'blog.read',
+      color: 'indigo',
+      href: '/blogs/categories'
+    },
+    {
+      id: 'blog_tags',
+      icon: Tag,
+      label: 'تگ‌های بلاگ',
+      value: stats?.total_blog_tags || 0,
+      permission: 'blog.read',
+      color: 'indigo',
+      href: '/blogs/tags'
+    },
+    {
       id: 'media',
       icon: Image,
       label: 'رسانه‌ها',
@@ -150,6 +203,69 @@ export const DashboardMain = () => {
       permission: 'media.read',
       color: 'purple',
       href: '/media'
+    },
+    {
+      id: 'emails',
+      icon: Mail,
+      label: 'کل ایمیل‌ها',
+      value: stats?.total_emails || 0,
+      permission: 'statistics.emails.read',
+      color: 'rose',
+      href: '/email/messages'
+    },
+    {
+      id: 'new_emails',
+      icon: Mail,
+      label: 'ایمیل‌های جدید',
+      value: stats?.new_emails || 0,
+      permission: 'statistics.emails.read',
+      color: 'orange',
+      href: '/email/messages?status=new'
+    },
+    {
+      id: 'unanswered_emails',
+      icon: Mail,
+      label: 'بدون پاسخ',
+      value: stats?.unanswered_emails || 0,
+      permission: 'statistics.emails.read',
+      color: 'red',
+      href: '/email/messages?status=unanswered'
+    },
+    {
+      id: 'tickets',
+      icon: Ticket,
+      label: 'کل تیکت‌ها',
+      value: stats?.total_tickets || 0,
+      permission: 'statistics.tickets.read',
+      color: 'cyan',
+      href: '/tickets'
+    },
+    {
+      id: 'open_tickets',
+      icon: Ticket,
+      label: 'تیکت‌های باز',
+      value: stats?.open_tickets || 0,
+      permission: 'statistics.tickets.read',
+      color: 'blue',
+      href: '/tickets?status=open'
+    },
+    {
+      id: 'active_tickets',
+      icon: Ticket,
+      label: 'تیکت‌های فعال',
+      value: stats?.active_tickets || 0,
+      permission: 'statistics.tickets.read',
+      color: 'indigo',
+      href: '/tickets?status=active'
+    },
+    {
+      id: 'unanswered_tickets',
+      icon: Ticket,
+      label: 'تیکت‌های بدون پاسخ',
+      value: stats?.unanswered_tickets || 0,
+      permission: 'statistics.tickets.read',
+      color: 'red',
+      href: '/tickets?status=unanswered'
     }
   ];
 
@@ -245,12 +361,12 @@ export const DashboardMain = () => {
         </div>
       </div>
 
-      {/* آمار کلی با Border رنگی */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* آمار کلی با Border رنگی - دو ردیف */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {statCards.map((card) => {
           if (!hasPermission(card.permission)) return null;
           const Icon = card.icon;
-          
+
           return (
             <Link
               key={card.id}
@@ -311,59 +427,59 @@ export const DashboardMain = () => {
             <AreaChart data={chartData.growthData}>
               <defs>
                 <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorContent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorMedia" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e8" opacity={0.3} />
-              <XAxis 
-                dataKey="day" 
+              <XAxis
+                dataKey="day"
                 tick={{ fill: '#6b6876', fontSize: 12 }}
                 axisLine={{ stroke: '#e8e8e8' }}
               />
-              <YAxis 
+              <YAxis
                 tick={{ fill: '#6b6876', fontSize: 12 }}
                 axisLine={{ stroke: '#e8e8e8' }}
               />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   backgroundColor: '#fff',
                   border: '1px solid #e8e8e8',
                   borderRadius: '8px',
                   fontSize: '12px'
                 }}
               />
-              <Area 
-                type="monotone" 
-                dataKey="کاربران" 
-                stroke="#3B82F6" 
+              <Area
+                type="monotone"
+                dataKey="کاربران"
+                stroke="#3B82F6"
                 strokeWidth={2}
-                fillOpacity={1} 
-                fill="url(#colorUsers)" 
+                fillOpacity={1}
+                fill="url(#colorUsers)"
               />
-              <Area 
-                type="monotone" 
-                dataKey="محتوا" 
-                stroke="#6366F1" 
+              <Area
+                type="monotone"
+                dataKey="محتوا"
+                stroke="#6366F1"
                 strokeWidth={2}
-                fillOpacity={1} 
-                fill="url(#colorContent)" 
+                fillOpacity={1}
+                fill="url(#colorContent)"
               />
-              <Area 
-                type="monotone" 
-                dataKey="رسانه" 
-                stroke="#8B5CF6" 
+              <Area
+                type="monotone"
+                dataKey="رسانه"
+                stroke="#8B5CF6"
                 strokeWidth={2}
-                fillOpacity={1} 
-                fill="url(#colorMedia)" 
+                fillOpacity={1}
+                fill="url(#colorMedia)"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -396,8 +512,8 @@ export const DashboardMain = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ 
+                <Tooltip
+                  contentStyle={{
                     backgroundColor: '#fff',
                     border: '1px solid #e8e8e8',
                     borderRadius: '8px',
@@ -431,7 +547,7 @@ export const DashboardMain = () => {
             {quickActions.map((action) => {
               if (!hasPermission(action.permission)) return null;
               const Icon = action.icon;
-              
+
               return (
                 <Link
                   key={action.id}
@@ -452,7 +568,7 @@ export const DashboardMain = () => {
         <div className="bg-card border border-br rounded-lg p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
-          
+
           <div className="relative">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
@@ -465,7 +581,7 @@ export const DashboardMain = () => {
               {aiFeatures.map((feature) => {
                 if (!hasPermission(feature.permission)) return null;
                 const Icon = feature.icon;
-                
+
                 return (
                   <Link
                     key={feature.id}
@@ -498,102 +614,99 @@ export const DashboardMain = () => {
         </div>
       </div>
 
-      {/* فعالیت‌های اخیر و آمار پیشرفته */}
-      <div className="bg-card border border-br rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Activity className="w-5 h-5 text-primary" />
+      {/* آمار سیستم */}
+      {hasPermission('statistics.system.read') && (
+        <div className="bg-card border border-br rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Server className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-font-p">آمار سیستم</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* حجم دیتابیس */}
+            <div className="p-4 rounded-lg border border-br bg-bg">
+              <div className="flex items-center gap-2 mb-2">
+                <Database className="w-4 h-4 text-blue-1" />
+                <span className="text-sm text-font-s">حجم دیتابیس</span>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold text-font-p">فعالیت‌های اخیر</h2>
-                <p className="text-xs text-font-s">آخرین تغییرات سیستم</p>
+              {systemLoading ? (
+                <div className="h-6 w-20 bg-br animate-pulse rounded" />
+              ) : (
+                <p className="text-lg font-bold text-font-p">
+                  {systemStats?.database?.size_formatted || 'N/A'}
+                </p>
+              )}
+            </div>
+
+            {/* حجم ذخیره‌سازی */}
+            <div className="p-4 rounded-lg border border-br bg-bg">
+              <div className="flex items-center gap-2 mb-2">
+                <HardDrive className="w-4 h-4 text-purple-1" />
+                <span className="text-sm text-font-s">حجم فایل‌ها</span>
+              </div>
+              {systemLoading ? (
+                <div className="h-6 w-20 bg-br animate-pulse rounded" />
+              ) : (
+                <p className="text-lg font-bold text-font-p">
+                  {systemStats?.storage?.total_formatted || '0 B'}
+                </p>
+              )}
+            </div>
+
+            {/* وضعیت کش */}
+            <div className="p-4 rounded-lg border border-br bg-bg">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="w-4 h-4 text-emerald-1" />
+                <span className="text-sm text-font-s">وضعیت کش</span>
+              </div>
+              {systemLoading ? (
+                <div className="h-6 w-20 bg-br animate-pulse rounded" />
+              ) : (
+                <div>
+                  <p className="text-lg font-bold text-font-p">
+                    {systemStats?.cache?.status === 'connected' ? 'متصل' : 'خطا'}
+                  </p>
+                  <p className="text-xs text-font-s mt-1">
+                    {systemStats?.cache?.used_memory_formatted || '0B'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* نرخ Hit */}
+            <div className="p-4 rounded-lg border border-br bg-bg">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-amber-1" />
+                <span className="text-sm text-font-s">نرخ Hit</span>
+              </div>
+              {systemLoading ? (
+                <div className="h-6 w-20 bg-br animate-pulse rounded" />
+              ) : (
+                <p className="text-lg font-bold text-font-p">
+                  {systemStats?.cache?.hit_rate ? `${systemStats.cache.hit_rate.toFixed(1)}%` : '0%'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* حجم بر اساس نوع */}
+          {systemStats?.storage?.by_type && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-font-p mb-3">حجم بر اساس نوع</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries(systemStats.storage.by_type).map(([type, data]) => (
+                  <div key={type} className="p-3 rounded-lg border border-br bg-bg">
+                    <p className="text-xs text-font-s mb-1 capitalize">{type}</p>
+                    <p className="text-sm font-bold text-font-p">{data.formatted}</p>
+                    <p className="text-xs text-font-s mt-1">{data.count} فایل</p>
+                  </div>
+                ))}
               </div>
             </div>
-            <Link href="/activity" className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
-              <span>مشاهده همه</span>
-              <ArrowUpRight className="w-3 h-3" />
-            </Link>
-          </div>
-          
-          <div className="space-y-3">
-            {[
-              { 
-                icon: LayoutList, 
-                title: 'نمونه کار جدید ثبت شد', 
-                desc: 'پروژه طراحی اپلیکیشن موبایل',
-                time: '۵ دقیقه پیش', 
-                color: 'amber',
-                user: 'محمد رضایی'
-              },
-              { 
-                icon: Users, 
-                title: 'کاربر جدید ثبت‌نام کرد', 
-                desc: 'ali.ahmadi@example.com',
-                time: '۱۵ دقیقه پیش', 
-                color: 'blue',
-                user: 'سیستم'
-              },
-              { 
-                icon: FileText, 
-                title: 'مقاله جدید منتشر شد', 
-                desc: 'آموزش Next.js 15',
-                time: '۳۰ دقیقه پیش', 
-                color: 'indigo',
-                user: 'سارا احمدی'
-              },
-              { 
-                icon: Image, 
-                title: 'تصویر جدید آپلود شد', 
-                desc: 'banner-homepage.jpg',
-                time: '۱ ساعت پیش', 
-                color: 'purple',
-                user: 'رضا کریمی'
-              },
-              { 
-                icon: Settings, 
-                title: 'تنظیمات به‌روزرسانی شد', 
-                desc: 'تغییر تنظیمات SEO',
-                time: '۲ ساعت پیش', 
-                color: 'gray',
-                user: 'مدیر سیستم'
-              }
-            ].map((activity, i) => {
-              const Icon = activity.icon;
-              return (
-                <div
-                  key={i}
-                  className="group flex items-start gap-3 p-3 rounded-lg hover:bg-bg transition-all duration-200 cursor-pointer border border-transparent hover:border-br"
-                >
-                  <div className={`flex-shrink-0 p-2.5 rounded-lg bg-${activity.color} group-hover:scale-110 transition-transform`}>
-                    <Icon className={`w-4 h-4 text-${activity.color}-1`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-font-p group-hover:text-primary transition-colors">
-                          {activity.title}
-                        </p>
-                        <p className="text-xs text-font-s mt-0.5 truncate">{activity.desc}</p>
-                      </div>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-font-s opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </div>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-font-s">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{activity.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        <span>{activity.user}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          )}
+
         </div>
+      )}
     </div>
   );
 };

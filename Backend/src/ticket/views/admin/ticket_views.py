@@ -1,11 +1,12 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from django.core.cache import cache
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket import Ticket
 from src.ticket.serializers.ticket_serializer import TicketSerializer, TicketListSerializer, TicketDetailSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
+from src.ticket.utils.cache import TicketCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 from src.user.permissions import PermissionValidator
 
 
@@ -75,7 +76,10 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         response = super().update(request, *args, **kwargs)
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        ticket = self.get_object()
+        TicketCacheManager.invalidate_ticket(ticket.id)
+        StatisticsCacheManager.invalidate_tickets()
         if response.status_code == status.HTTP_200_OK:
             return APIResponse.success(
                 message=TICKET_SUCCESS['ticket_updated'],
@@ -91,8 +95,11 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN
             )
+        ticket_id = self.get_object().id
         response = super().destroy(request, *args, **kwargs)
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        TicketCacheManager.invalidate_ticket(ticket_id)
+        StatisticsCacheManager.invalidate_tickets()
         if response.status_code == status.HTTP_204_NO_CONTENT:
             return APIResponse.success(
                 message=TICKET_SUCCESS['ticket_deleted'],
@@ -123,10 +130,9 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             count = unread_messages.count()
             unread_messages.update(is_read=True)
             
-            # Clear cache
-            cache.delete(f'ticket:{ticket.id}:messages')
-            cache.delete(f'ticket:{ticket.id}')
-            cache.delete('ticket:stats')
+            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+            TicketCacheManager.invalidate_ticket(ticket.id)
+            StatisticsCacheManager.invalidate_tickets()
             
             # Return updated ticket
             serializer = TicketDetailSerializer(ticket)
@@ -173,9 +179,9 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             ticket.status = new_status
             ticket.save(update_fields=['status', 'updated_at'])
             
-            # Clear cache
-            cache.delete(f'ticket:{ticket.id}')
-            cache.delete('ticket:stats')
+            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+            TicketCacheManager.invalidate_ticket(ticket.id)
+            StatisticsCacheManager.invalidate_tickets()
             
             # Return updated ticket
             serializer = TicketDetailSerializer(ticket)

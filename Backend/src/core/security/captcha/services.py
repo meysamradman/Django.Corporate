@@ -5,15 +5,13 @@ import random
 import uuid
 import string
 from typing import Optional, Dict
-from django.core.cache import cache
 from django.conf import settings
+from src.core.security.captcha.cache import CaptchaCacheManager, CaptchaCacheKeys
 import logging
 
 logger = logging.getLogger(__name__)
 
-# CAPTCHA settings - can be moved to Django settings if needed
-CAPTCHA_EXPIRY_SECONDS = getattr(settings, 'CAPTCHA_EXPIRY_SECONDS', 300)  # 5 minutes
-CAPTCHA_REDIS_PREFIX = getattr(settings, 'CAPTCHA_REDIS_PREFIX', "captcha:")
+# CAPTCHA settings
 CAPTCHA_DIGITS = string.digits  # "0123456789"
 CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4)  # Number of digits
 
@@ -39,9 +37,8 @@ class CaptchaService:
             # Generate unique ID
             captcha_id = uuid.uuid4().hex
             
-            # Store in Redis with expiry
-            cache_key = f"{CAPTCHA_REDIS_PREFIX}{captcha_id}"
-            cache.set(cache_key, challenge_digits, CAPTCHA_EXPIRY_SECONDS)
+            # ✅ Use Cache Manager for standardized cache storage
+            CaptchaCacheManager.set_captcha(captcha_id, challenge_digits)
             
             
             return {
@@ -67,19 +64,17 @@ class CaptchaService:
         """
         if not captcha_id or not user_answer:
             return False
-
-        cache_key = f"{CAPTCHA_REDIS_PREFIX}{captcha_id}"
         
         try:
-            # Get stored answer from cache
-            correct_answer = cache.get(cache_key)
+            # ✅ Use Cache Manager for standardized cache operations
+            correct_answer = CaptchaCacheManager.get_captcha(captcha_id)
             
             if correct_answer is None:
                 # CAPTCHA expired or doesn't exist
                 return False
             
             # Delete after use (one-time verification)
-            cache.delete(cache_key)
+            CaptchaCacheManager.delete_captcha(captcha_id)
             
             # Compare answers (strip whitespace)
             return user_answer.strip() == correct_answer

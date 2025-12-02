@@ -1,9 +1,9 @@
 from django.db import models
-from django.core.cache import cache
 from src.core.models import BaseModel
 from src.user.models.user import User
 from src.user.models.admin_profile import AdminProfile
 from .ticket import Ticket
+from src.ticket.utils.cache import TicketCacheManager
 
 SENDER_TYPE_CHOICES = [
     ('user', 'User'),
@@ -65,6 +65,7 @@ class TicketMessage(BaseModel):
             self.ticket.save(update_fields=['last_replied_at'])
         
         if self.ticket_id:
-            cache.delete(f'ticket:{self.ticket.id}:messages')
-            cache.delete(f'ticket:{self.ticket.id}')
+            # ✅ Use Cache Manager for standardized cache invalidation
+            # Invalidate ticket cache and stats (unanswered count changes)
+            TicketCacheManager.invalidate_all(ticket_id=self.ticket.id)
 

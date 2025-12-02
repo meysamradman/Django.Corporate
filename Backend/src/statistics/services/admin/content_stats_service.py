@@ -7,23 +7,25 @@ from django.utils import timezone
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.category import PortfolioCategory
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManager
 
 
 class ContentStatsService:
     """
     Content statistics - Portfolio, blog, media, categories
     """
-    CACHE_KEY = 'admin_stats_content'
     CACHE_TIMEOUT = 300  # 5 minutes
     REQUIRED_PERMISSION = 'statistics.content.read'
     
     @classmethod
     def get_stats(cls) -> dict:
         """Get content statistics"""
-        data = cache.get(cls.CACHE_KEY)
+        # ✅ Use standardized cache key from StatisticsCacheKeys
+        cache_key = StatisticsCacheKeys.content()
+        data = cache.get(cache_key)
         if not data:
             data = cls._calculate_stats()
-            cache.set(cls.CACHE_KEY, data, cls.CACHE_TIMEOUT)
+            cache.set(cache_key, data, cls.CACHE_TIMEOUT)
         return data
     
     @classmethod
@@ -55,5 +57,6 @@ class ContentStatsService:
     @classmethod
     def clear_cache(cls):
         """Clear content stats cache"""
-        cache.delete(cls.CACHE_KEY)
+        # ✅ Use Cache Manager for standardized cache invalidation
+        StatisticsCacheManager.invalidate_content()
 

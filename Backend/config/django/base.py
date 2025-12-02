@@ -256,7 +256,7 @@ REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 REDIS_DB = int(os.getenv('REDIS_DB', 0))
 
-# Cache settings - Redis
+# Cache settings - Redis (Optimized for Performance)
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -266,7 +266,13 @@ CACHES = {
             'CONNECTION_POOL_KWARGS': {
                 'max_connections': 50,
                 'retry_on_timeout': True,
+                'socket_connect_timeout': 5,
+                'socket_timeout': 5,
             },
+            # ✅ Compression for large data (better performance)
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+            # ✅ JSON Serializer (faster than pickle for API data)
+            'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
         },
         'KEY_PREFIX': 'webtalik',
         'VERSION': 1,
@@ -277,6 +283,12 @@ CACHES = {
         'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB + 1}',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,
+                'retry_on_timeout': True,
+                'socket_connect_timeout': 5,
+                'socket_timeout': 5,
+            },
         },
         'TIMEOUT': int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,  # 3 days default
     }

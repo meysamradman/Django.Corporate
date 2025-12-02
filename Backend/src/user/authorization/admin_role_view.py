@@ -208,9 +208,9 @@ class AdminRoleView(viewsets.ViewSet):
                     PermissionValidator.clear_user_cache(user_role.user_id)
                     PermissionHelper.clear_user_cache(user_role.user_id)
                     
-                    # ✅ Also clear admin profile cache explicitly
-                    cache.delete(f'admin_profile_{user_role.user_id}_super')
-                    cache.delete(f'admin_profile_{user_role.user_id}_regular')
+                    # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+                    from src.user.utils.cache import UserCacheManager
+                    UserCacheManager.invalidate_profile(user_role.user_id)
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["admin_role_updated_successfully"],
@@ -343,10 +343,9 @@ class AdminRoleView(viewsets.ViewSet):
                 PermissionValidator.clear_user_cache(user_id)
                 PermissionHelper.clear_user_cache(user_id)
                 
-                # ✅ Also clear admin profile cache explicitly
-                from django.core.cache import cache
-                cache.delete(f'admin_profile_{user_id}_super')
-                cache.delete(f'admin_profile_{user_id}_regular')
+                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+                from src.user.utils.cache import UserCacheManager
+                UserCacheManager.invalidate_profile(user_id)
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["role_assigned_successfully"],
@@ -421,10 +420,9 @@ class AdminRoleView(viewsets.ViewSet):
                 PermissionValidator.clear_user_cache(int(user_id))
                 PermissionHelper.clear_user_cache(int(user_id))
                 
-                # ✅ Also clear admin profile cache explicitly
-                from django.core.cache import cache
-                cache.delete(f'admin_profile_{user_id}_super')
-                cache.delete(f'admin_profile_{user_id}_regular')
+                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+                from src.user.utils.cache import UserCacheManager
+                UserCacheManager.invalidate_profile(user_id)
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["role_removed_from_user_successfully"],

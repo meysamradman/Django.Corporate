@@ -4,6 +4,7 @@ Optimized for performance and security - Single source of truth
 """
 from django.core.cache import cache
 from typing import Dict, List, Set, Any
+from src.user.utils.cache import UserCacheKeys
 
 
 class PermissionHelper:
@@ -130,7 +131,8 @@ class PermissionHelper:
         ✅ Detailed permissions for regular admins with caching
         IMPORTANT: Cache is cleared automatically when roles change via signals
         """
-        cache_key = f"admin_perms_{user.id}"
+        # ✅ Use standardized cache key from UserCacheKeys
+        cache_key = UserCacheKeys.admin_perms(user.id)
         cached_data = cache.get(cache_key)
         
         if cached_data:
@@ -164,7 +166,8 @@ class PermissionHelper:
     @classmethod
     def _get_admin_permissions_simple(cls, user) -> Dict[str, Any]:
         """Simplified permissions for list view - much faster"""
-        cache_key = f"admin_simple_perms_{user.id}"
+        # ✅ Use standardized cache key from UserCacheKeys
+        cache_key = UserCacheKeys.admin_simple_perms(user.id)
         cached_data = cache.get(cache_key)
             
         if cached_data:
@@ -343,18 +346,20 @@ class PermissionHelper:
         ]
         cache.delete_many(cache_keys)
         
-        # Also try to clear pattern-based keys if Redis supports it
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        from src.user.utils.cache import UserCacheManager
         try:
-            cache.delete_pattern(f"admin_perm_{user_id}_*")
-        except (AttributeError, NotImplementedError):
-            # Pattern deletion not supported, already cleared specific keys above
+            UserCacheManager.invalidate_permissions(user_id)
+        except Exception:
+            # Fallback if pattern deletion not supported
             pass
     
     @classmethod
     def clear_all_permission_cache(cls) -> None:
         """Clear all permission caches"""
-        # Use pattern matching if available, otherwise clear specific keys
-        cache.delete_pattern("admin_perms_*")
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        from src.user.utils.cache import UserCacheManager
+        UserCacheManager.invalidate_permissions()
     
     @classmethod
     def get_permission_categories(cls, permissions: List[str]) -> Dict[str, List[Dict[str, str]]]:
@@ -371,8 +376,9 @@ class PermissionHelper:
             if category not in categories:
                 categories[category] = []
             
-            # Get permission display name from cache
-            cache_key = f"perm_name_{perm}"
+            # ✅ Use standardized cache key from UserCacheKeys
+            from src.user.utils.cache import UserCacheKeys
+            cache_key = UserCacheKeys.permission_display_name(perm)
             display_name = cache.get(cache_key)
             
             if not display_name:

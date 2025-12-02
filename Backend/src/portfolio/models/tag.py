@@ -1,6 +1,8 @@
 from django.db import models
 from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
+from src.portfolio.utils.cache import TagCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 from .managers import PortfolioTagQuerySet
 
 class PortfolioTag(BaseModel, SEOMixin):
@@ -40,6 +42,22 @@ class PortfolioTag(BaseModel, SEOMixin):
             self.meta_description = self.description[:300]
             
         super().save(*args, **kwargs)
+        
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if self.pk:
+            TagCacheManager.invalidate_tag(self.pk)
+        # Invalidate dashboard stats as tag counts affect it
+        StatisticsCacheManager.invalidate_dashboard()
+    
+    def delete(self, *args, **kwargs):
+        """Delete tag and invalidate all related cache"""
+        tag_id = self.pk
+        super().delete(*args, **kwargs)
+        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+        if tag_id:
+            TagCacheManager.invalidate_tag(tag_id)
+        # Invalidate dashboard stats as tag counts affect it
+        StatisticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
         """Generate structured data for Tag"""

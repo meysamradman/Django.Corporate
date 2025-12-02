@@ -6,6 +6,7 @@ import {
   ShieldUser,
   Image,
   FileText,
+  Mail,
 } from "lucide-react";
 import { useStatistics } from "@/components/dashboard/hooks/useStatistics";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -18,7 +19,7 @@ interface StatCardConfig {
   id: string;
   icon: React.ElementType;
   title: string;
-  statKey: keyof { total_users: number; total_admins: number; total_portfolios: number; total_posts: number; total_media: number };
+  statKey: keyof { total_users: number; total_admins: number; total_portfolios: number; total_posts: number; total_media: number; total_emails: number; new_emails: number; unanswered_emails: number };
   permission: string | string[];
   requireAll?: boolean;
   lockedMessage: string;
@@ -86,6 +87,39 @@ const STAT_CARDS_CONFIG: StatCardConfig[] = [
     bgColorClass: 'bg-purple',
     borderColorClass: 'border-b-purple-1',
   },
+  {
+    id: 'emails',
+    icon: Mail,
+    title: 'کل ایمیل‌ها',
+    statKey: 'total_emails',
+    permission: 'statistics.emails.read',
+    lockedMessage: 'دسترسی به آمار ایمیل‌ها',
+    iconColorClass: 'text-rose-1',
+    bgColorClass: 'bg-rose',
+    borderColorClass: 'border-b-rose-1',
+  },
+  {
+    id: 'new_emails',
+    icon: Mail,
+    title: 'ایمیل‌های جدید',
+    statKey: 'new_emails',
+    permission: 'statistics.emails.read',
+    lockedMessage: 'دسترسی به آمار ایمیل‌های جدید',
+    iconColorClass: 'text-orange-1',
+    bgColorClass: 'bg-orange',
+    borderColorClass: 'border-b-orange-1',
+  },
+  {
+    id: 'unanswered_emails',
+    icon: Mail,
+    title: 'ایمیل‌های بدون پاسخ',
+    statKey: 'unanswered_emails',
+    permission: 'statistics.emails.read',
+    lockedMessage: 'دسترسی به آمار ایمیل‌های بدون پاسخ',
+    iconColorClass: 'text-red-1',
+    bgColorClass: 'bg-red',
+    borderColorClass: 'border-b-red-1',
+  },
 ];
 
 export const Statistics: React.FC = () => {
@@ -97,13 +131,14 @@ export const Statistics: React.FC = () => {
     hasPermission('statistics.users.read') ||
     hasPermission('statistics.admins.read') ||
     hasPermission('statistics.content.read') ||
+    hasPermission('statistics.emails.read') ||
     hasPermission('statistics.dashboard.read'),
     [hasPermission]
   );
 
   // Render loading cards
   const renderLoadingCards = () => (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-8">
       {STAT_CARDS_CONFIG.map((config) => (
         <StatCard
           key={config.id}
@@ -164,12 +199,15 @@ export const Statistics: React.FC = () => {
     total_users: 0,
     total_media: 0,
     total_posts: 0,
+    total_emails: 0,
+    new_emails: 0,
+    unanswered_emails: 0,
   };
 
   const currentStats = stats || defaultStats;
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-8">
       {STAT_CARDS_CONFIG.map((config) => (
         <PermissionLocked
           key={config.id}

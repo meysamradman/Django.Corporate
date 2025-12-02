@@ -117,8 +117,9 @@ class AdminRolePermission(permissions.BasePermission):
     
     def _check_admin_role_permissions(self, user, method: str, view) -> bool:
         """Check permissions using AdminRole system with Redis caching"""
-        # Generate cache key
-        cache_key = f"admin_perm_{user.id}_{method}_{view.__class__.__name__}"
+        # ✅ Use standardized cache key from UserCacheKeys
+        from src.user.utils.cache import UserCacheKeys
+        cache_key = UserCacheKeys.admin_perm_check(user.id, method, view.__class__.__name__)
         
         # Skip cache for now to ensure fresh permissions
         # cached_result = cache.get(cache_key)
@@ -651,11 +652,12 @@ class AdminPermissionCache:
             # Clear all keys at once
             cache.delete_many(cache_keys_to_clear)
             
-            # Also try to clear pattern-based keys if Redis supports it
+            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+            from src.user.utils.cache import UserCacheManager
             try:
-                cache.delete_pattern(f"admin_perm_{user_id}_*")
-            except (AttributeError, NotImplementedError):
-                # Pattern deletion not supported, already cleared specific keys above
+                UserCacheManager.invalidate_permissions(user_id)
+            except Exception:
+                # Fallback if pattern deletion not supported
                 pass
             
         except Exception as e:

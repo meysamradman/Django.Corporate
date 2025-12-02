@@ -1,8 +1,8 @@
 from django.db import models
-from django.core.cache import cache
 from src.core.models import BaseModel
 from src.user.models.user import User
 from src.user.models.admin_profile import AdminProfile
+from src.ticket.utils.cache import TicketCacheManager
 
 TICKET_STATUS_CHOICES = [
     ('open', 'Open'),
@@ -72,12 +72,18 @@ class Ticket(BaseModel):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.pk:
-            cache.delete(f'ticket:{self.id}')
-            cache.delete('ticket:stats')
+            # ✅ Use Cache Manager for standardized cache invalidation
+            TicketCacheManager.invalidate_all(ticket_id=self.id)
+        # ✅ Also invalidate dashboard cache (contains ticket counts)
+        from src.statistics.utils.cache import StatisticsCacheManager
+        StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         ticket_id = self.id
         super().delete(*args, **kwargs)
-        cache.delete(f'ticket:{ticket_id}')
-        cache.delete('ticket:stats')
+        # ✅ Use Cache Manager for standardized cache invalidation
+        TicketCacheManager.invalidate_all(ticket_id=ticket_id)
+        # ✅ Also invalidate dashboard cache (contains ticket counts)
+        from src.statistics.utils.cache import StatisticsCacheManager
+        StatisticsCacheManager.invalidate_dashboard()
 

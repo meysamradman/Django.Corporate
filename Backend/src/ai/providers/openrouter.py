@@ -7,6 +7,7 @@ import base64
 import logging
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS
+from src.ai.utils.cache import AICacheKeys
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +22,18 @@ class OpenRouterModelCache:
     def clear_all():
         """Clear all OpenRouter models cache"""
         from django.core.cache import cache
+        from src.ai.utils.cache import AICacheManager, AICacheKeys
         try:
-            # Clear all provider filters
+            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
+            AICacheManager.invalidate_models_by_provider('openrouter')
+            # Also clear specific keys for backward compatibility
             cache.delete_many([
-                'openrouter_models_all',
-                'openrouter_models_google',
-                'openrouter_models_openai',
-                'openrouter_models_anthropic',
-                'openrouter_models_meta',
-                'openrouter_models_mistral',
+                AICacheKeys.provider_models('openrouter', 'all'),
+                AICacheKeys.provider_models('openrouter', 'google'),
+                AICacheKeys.provider_models('openrouter', 'openai'),
+                AICacheKeys.provider_models('openrouter', 'anthropic'),
+                AICacheKeys.provider_models('openrouter', 'meta'),
+                AICacheKeys.provider_models('openrouter', 'mistral'),
             ])
             logger.info("[OpenRouter Cache] Cleared all OpenRouter models cache")
             print("[OpenRouter Cache] Cleared all OpenRouter models cache")
@@ -43,7 +47,9 @@ class OpenRouterModelCache:
     def clear_provider(provider_filter: Optional[str] = None):
         """Clear cache for specific provider filter"""
         from django.core.cache import cache
-        cache_key = f'openrouter_models_{provider_filter or "all"}'
+        from src.ai.utils.cache import AICacheKeys
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         cache.delete(cache_key)
         logger.info(f"[OpenRouter Cache] Cleared cache for provider: {provider_filter or 'all'}")
         print(f"[OpenRouter Cache] Cleared cache for provider: {provider_filter or 'all'}")
@@ -154,9 +160,10 @@ class OpenRouterProvider(BaseProvider):
             - Clear cache: Manual via admin or automatic after 6 hours
         """
         from django.core.cache import cache
+        from src.ai.utils.cache import AICacheKeys
         
-        # Generate cache key
-        cache_key = f'openrouter_models_{provider_filter or "all"}'
+        # ✅ Use standardized cache key from AICacheKeys
+        cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         
         # Try to get from cache first
         if use_cache:
