@@ -17,18 +17,17 @@ class Blog(BaseModel, SEOMixin):
     # Core fields with proper indexing
     status = models.CharField(
         choices=STATUS_CHOICES, default='draft', max_length=20,
-        db_index=True  # برای فیلتر کردن
+        db_index=True
     )
-    title = models.CharField(max_length=60, db_index=True)  # برای جستجو
+    title = models.CharField(max_length=60, db_index=True)
     slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     short_description = models.CharField(max_length=300, blank=True)
     description = models.TextField(null=True, blank=True)
     
     # Boolean fields
-    is_featured = models.BooleanField(default=False, db_index=True)  # برای فیلتر
-    is_public = models.BooleanField(default=True, db_index=True)  # برای فیلتر
+    is_featured = models.BooleanField(default=False, db_index=True)
+    is_public = models.BooleanField(default=True, db_index=True)
     
-    # Relations - بدون through برای بهتر شدن performance
     categories = models.ManyToManyField(
         'BlogCategory',
         blank=True,
@@ -149,8 +148,7 @@ class Blog(BaseModel, SEOMixin):
         return None, None
     
     def get_main_image_details(self):
-        """Get main image details for API responses - optimized with prefetch support"""
-        # Try to use prefetched data first (from for_admin_listing or for_detail queryset)
+        
         if hasattr(self, 'all_images'):
             all_images = self.all_images
             # Find main image from prefetched data (O(n) but cached)
@@ -228,26 +226,17 @@ class Blog(BaseModel, SEOMixin):
         if not self.og_description and self.meta_description:
             self.og_description = self.meta_description
         
-        # Only auto-generate canonical_url if it's not already set and we have a slug
-        # And ensure it's a valid URL format (not just a relative path)
         if not self.canonical_url and self.slug:
-            # Let the model's get_absolute_url or get_public_url handle this properly
-            # We need to make sure it's a full URL, not just a relative path
             relative_url = self.get_public_url()
-            # For now, we'll just set it to None to let the SEO mixin handle it properly
-            # In production, you might want to prepend your site's domain
             self.canonical_url = None
         
         super().save(*args, **kwargs)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if self.pk:
             BlogCacheManager.invalidate_blog(self.pk)
     
     def delete(self, *args, **kwargs):
-        """Delete blog and invalidate all related cache"""
         blog_id = self.pk
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if blog_id:
             BlogCacheManager.invalidate_blog(blog_id)

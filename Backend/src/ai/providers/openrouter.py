@@ -4,12 +4,9 @@ import httpx
 import os
 import json
 import base64
-import logging
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.utils.cache import AICacheKeys
-
-logger = logging.getLogger(__name__)
 
 
 class OpenRouterModelCache:

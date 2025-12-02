@@ -4,9 +4,6 @@ import string
 from typing import Optional, Dict
 from django.conf import settings
 from src.core.security.captcha.cache import CaptchaCacheManager, CaptchaCacheKeys
-import logging
-
-logger = logging.getLogger(__name__)
 
 CAPTCHA_DIGITS = string.digits
 CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4)
@@ -26,8 +23,7 @@ class CaptchaService:
                 "digits": challenge_digits
             }
             
-        except Exception as e:
-            logger.error(f"Failed to generate CAPTCHA: {e}")
+        except Exception:
             return None
 
     @classmethod
@@ -44,6 +40,5 @@ class CaptchaService:
             CaptchaCacheManager.delete_captcha(captcha_id)
             return user_answer.strip() == correct_answer
 
-        except Exception as e:
-            logger.error(f"Exception verifying CAPTCHA: {e}")
+        except Exception:
             return False

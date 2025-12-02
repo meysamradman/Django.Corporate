@@ -1,16 +1,12 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from src.core.security.throttling import CaptchaThrottle
-from . import CAPTCHA_ERRORS, CAPTCHA_SUCCESS
+from src.core.responses.response import APIResponse
+from . import CAPTCHA_ERRORS
 from .services import CaptchaService
 from .serializers import CaptchaResponseSerializer, CaptchaVerifySerializer
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CaptchaGenerateView(APIView):
@@ -35,17 +31,22 @@ class CaptchaGenerateView(APIView):
             challenge_data = CaptchaService.generate_digit_captcha()
             
             if not challenge_data:
-                return Response({
-                    "detail": CAPTCHA_ERRORS["captcha_generation_failed"]
-                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                return APIResponse.error(
+                    message=CAPTCHA_ERRORS["captcha_generation_failed"],
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
             
-            return Response(challenge_data, status=status.HTTP_200_OK)
+            return APIResponse.success(
+                message=CAPTCHA_ERRORS.get("captcha_generated", "CAPTCHA generated successfully"),
+                data=challenge_data,
+                status_code=status.HTTP_200_OK
+            )
             
-        except Exception as e:
-            logger.error(f"Error generating CAPTCHA: {e}")
-            return Response({
-                "detail": CAPTCHA_ERRORS["captcha_server_error"]
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            return APIResponse.error(
+                message=CAPTCHA_ERRORS["captcha_server_error"],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class CaptchaVerifyView(APIView):
@@ -67,10 +68,11 @@ class CaptchaVerifyView(APIView):
         serializer = CaptchaVerifySerializer(data=request.data)
         
         if not serializer.is_valid():
-            return Response({
-                "detail": CAPTCHA_ERRORS["captcha_invalid_data"],
-                "errors": serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return APIResponse.error(
+                message=CAPTCHA_ERRORS["captcha_invalid_data"],
+                errors=serializer.errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         
         try:
             captcha_id = serializer.validated_data['captcha_id']
@@ -79,17 +81,20 @@ class CaptchaVerifyView(APIView):
             is_valid = CaptchaService.verify_captcha(captcha_id, user_answer)
             
             if is_valid:
-                return Response({
-                    "verified": True
-                }, status=status.HTTP_200_OK)
+                return APIResponse.success(
+                    message=CAPTCHA_ERRORS.get("captcha_verified", "CAPTCHA verified successfully"),
+                    data={"verified": True},
+                    status_code=status.HTTP_200_OK
+                )
             else:
-                return Response({
-                    "detail": CAPTCHA_ERRORS["captcha_invalid"],
-                    "verified": False
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return APIResponse.error(
+                    message=CAPTCHA_ERRORS["captcha_invalid"],
+                    data={"verified": False},
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
                 
-        except Exception as e:
-            logger.error(f"Error verifying CAPTCHA: {e}")
-            return Response({
-                "detail": CAPTCHA_ERRORS["captcha_server_error"]
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            return APIResponse.error(
+                message=CAPTCHA_ERRORS["captcha_server_error"],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

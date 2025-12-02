@@ -77,10 +77,6 @@ class AIImageGenerationService:
         admin=None,
         **kwargs
     ) -> tuple[BytesIO, dict]:
-
-        import logging
-        logger = logging.getLogger(__name__)
-        
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
 
             try:

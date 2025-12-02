@@ -1,4 +1,3 @@
-import logging
 from django.db import transaction
 from django.db.models import Max, Q
 from django.core.cache import cache
@@ -8,22 +7,11 @@ from src.blog.utils.cache import BlogCacheManager
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.media.services.media_services import MediaAdminService
 
-logger = logging.getLogger(__name__)
-
 
 class BlogAdminMediaService:
-    """
-    Optimized service for blog media operations
-    Addresses N+1 query problems and improves performance
-    """
 
     @staticmethod
     def get_next_media_order(blog_id):
-        """
-        Get the next order number for media items - optimized single query
-        Uses aggregation to get max order from all media types in one query
-        """
-        # Single optimized query with aggregation
         max_order_result = Blog.objects.filter(
             id=blog_id
         ).aggregate(
@@ -33,7 +21,6 @@ class BlogAdminMediaService:
             max_document_order=Max('documents__order')
         )
         
-        # Get maximum efficiently - use max() on tuple for better performance
         max_order = max(
             max_order_result.get('max_image_order') or 0,
             max_order_result.get('max_video_order') or 0,
@@ -45,19 +32,11 @@ class BlogAdminMediaService:
 
     @staticmethod
     def get_media_by_ids(media_ids):
-        """
-        Get all media objects by IDs in optimized single queries per media type
-        Uses only() to fetch only needed fields for better performance
-        """
         if not media_ids:
             return [], [], [], []
         
-        # Convert to list and remove duplicates for better performance
         media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
         
-        # Get all media types in optimized queries (4 queries total instead of 4*N)
-        # Fetch all fields for complete serialization (media_type, mime_type, file_size, etc.)
-        # Note: ImageMedia doesn't have cover_image field, only VideoMedia, AudioMedia, and DocumentMedia have it
         image_medias = list(ImageMedia.objects.filter(id__in=media_ids_list))
         video_medias = list(VideoMedia.objects.filter(id__in=media_ids_list).select_related('cover_image'))
         audio_medias = list(AudioMedia.objects.filter(id__in=media_ids_list).select_related('cover_image'))
@@ -67,10 +46,6 @@ class BlogAdminMediaService:
 
     @staticmethod
     def get_existing_blog_media(blog_id, media_ids):
-        """
-        Get existing blog media associations in optimized single queries
-        Uses values_list for better performance
-        """
         if not media_ids:
             return set(), set(), set(), set()
         
@@ -110,10 +85,6 @@ class BlogAdminMediaService:
 
     @staticmethod
     def add_media_bulk(blog_id, media_files=None, media_ids=None, created_by=None):
-        """
-        Add media to blog in bulk with optimized queries
-        This replaces the original add_media_to_blog method
-        """
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
@@ -131,7 +102,6 @@ class BlogAdminMediaService:
             
             for media_file in media_files:
                 try:
-                    # ✅ تشخیص نوع media از extension با استفاده از settings (env)
                     from src.media.models.media import detect_media_type_from_extension
                     file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
                     media_type = detect_media_type_from_extension(file_ext)
@@ -143,7 +113,6 @@ class BlogAdminMediaService:
                     })
                     uploaded_medias.append((media, media_type))
                 except Exception as e:
-                    logger.error(f"Error uploading media file {media_file.name}: {e}")
                     failed_files.append({
                         'name': media_file.name,
                         'error': str(e)
@@ -266,9 +235,7 @@ class BlogAdminMediaService:
                 elif media_id in document_dict:
                     media_to_create.append(('document', document_dict[media_id]))
                 else:
-                    # Media ID not found
                     failed_ids.append(media_id)
-                    logger.warning(f"Media ID {media_id} not found in any media type for blog {blog_id}")
             
             
             # Create blog media relations if we have any
@@ -378,11 +345,6 @@ class BlogAdminMediaService:
     
     @staticmethod
     def sync_media(blog_id, media_ids, main_image_id=None, media_covers=None):
-        """
-        Sync blog media - remove deleted, add new, update main image and covers
-        Optimized with bulk operations and minimal queries
-        media_covers: dict mapping media_id to cover_image_id {media_id: cover_image_id}
-        """
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
@@ -553,16 +515,11 @@ class BlogAdminMediaService:
     @staticmethod
     def _update_blog_media_covers(blog_id, media_covers, all_current_ids, 
                                        current_video_ids, current_audio_ids, current_document_ids):
-        """
-        Update cover images for blog media (blog-specific covers)
-        Optimized helper method to avoid code duplication
-        """
         for media_id_str, cover_image_id in media_covers.items():
             # Convert key to int (DictField may serialize keys as strings)
             try:
                 media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
             except (ValueError, TypeError):
-                logger.warning(f"Invalid media_id in media_covers: {media_id_str}")
                 continue
             
             # Check if media_id exists in current blog media
@@ -585,9 +542,6 @@ class BlogAdminMediaService:
     
     @staticmethod
     def _update_media_cover(model_class, media_type, blog_id, media_id, cover_image_id, **filter_kwargs):
-        """
-        Helper method to update cover image for a blog media item
-        """
         try:
             blog_media = model_class.objects.filter(
                 blog_id=blog_id,
@@ -601,5 +555,5 @@ class BlogAdminMediaService:
                 else:
                     blog_media.cover_image = None
                 blog_media.save(update_fields=['cover_image'])
-        except Exception as e:
-            logger.error(f"Error updating cover for {media_type} {media_id} in blog {blog_id}: {e}")
+        except Exception:
+            pass

@@ -6,29 +6,24 @@ from src.portfolio.models.portfolio import Portfolio
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
 class PortfolioImage(BaseModel):
-    """تصاویر مربوط به نمونه‌کار (گالری تصاویر)"""
-
     portfolio = models.ForeignKey(
         Portfolio,
         on_delete=models.CASCADE,
         related_name="images",
         db_index=True,
-        verbose_name="Portfolio",
-        help_text="نمونه‌کاری که این تصویر به آن تعلق دارد."
+        verbose_name="Portfolio"
     )
     image = models.ForeignKey(
         ImageMedia,
         on_delete=models.CASCADE,
         related_name="portfolio_links",
         db_index=True,
-        verbose_name="Image File",
-        help_text="فایل تصویر مربوط به نمونه‌کار."
+        verbose_name="Image File"
     )
     is_main = models.BooleanField(
         default=False,
         db_index=True,
-        verbose_name="Main Image",
-        help_text="فقط یک تصویر می‌تواند تصویر اصلی نمونه‌کار باشد."
+        verbose_name="Main Image"
     )
     order = models.PositiveIntegerField(default=0, db_index=True)
 
@@ -43,7 +38,6 @@ class PortfolioImage(BaseModel):
         ]
 
     def clean(self):
-        """فقط یک تصویر اصلی مجاز است"""
         if self.is_main:
             exists = PortfolioImage.objects.filter(
                 portfolio=self.portfolio,
@@ -61,7 +55,6 @@ class PortfolioImage(BaseModel):
 
 
 class PortfolioVideo(BaseModel):
-    """ویدیوهای مربوط به نمونه‌کار"""
 
     portfolio = models.ForeignKey(
         Portfolio,
@@ -83,7 +76,6 @@ class PortfolioVideo(BaseModel):
         blank=True,
         db_index=True,
         verbose_name="Cover Image",
-        help_text="کاور خاص برای این ویدیو در این نمونه‌کار. اگر تنظیم نشود، از کاور ویدیو استفاده می‌شود."
     )
     order = models.PositiveIntegerField(default=0, db_index=True)
     autoplay = models.BooleanField(default=False)
@@ -127,8 +119,7 @@ class PortfolioAudio(BaseModel):
         null=True,
         blank=True,
         db_index=True,
-        verbose_name="Cover Image",
-        help_text="کاور خاص برای این فایل صوتی در این نمونه‌کار. اگر تنظیم نشود، از کاور فایل صوتی استفاده می‌شود."
+        verbose_name="Cover Image"
     )
     order = models.PositiveIntegerField(default=0, db_index=True)
     autoplay = models.BooleanField(default=False)
@@ -142,7 +133,6 @@ class PortfolioAudio(BaseModel):
         indexes = [models.Index(fields=["portfolio", "order"])]
 
     def get_cover_image(self):
-        """Get cover image: portfolio-specific or fallback to media default"""
         return self.cover_image if self.cover_image else (self.audio.cover_image if self.audio else None)
     
     def __str__(self):
@@ -150,7 +140,6 @@ class PortfolioAudio(BaseModel):
 
 
 class PortfolioDocument(BaseModel):
-    """اسناد (PDFها) مربوط به نمونه‌کار"""
 
     portfolio = models.ForeignKey(
         Portfolio,
@@ -172,7 +161,6 @@ class PortfolioDocument(BaseModel):
         blank=True,
         db_index=True,
         verbose_name="Cover Image",
-        help_text="کاور خاص برای این سند در این نمونه‌کار. اگر تنظیم نشود، از کاور سند استفاده می‌شود."
     )
     order = models.PositiveIntegerField(default=0, db_index=True)
     title = models.CharField(max_length=255, blank=True, null=True)

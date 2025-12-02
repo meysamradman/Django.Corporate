@@ -1,7 +1,4 @@
 from django.apps import AppConfig
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CoreConfig(AppConfig):
@@ -18,8 +15,7 @@ class CoreConfig(AppConfig):
             def safe_allow_request(self, request, view):
                 try:
                     return original_allow_request(self, request, view)
-                except (UnicodeDecodeError, ValueError) as e:
-                    logger.warning(f"Corrupted cache data detected in throttling, clearing: {e}")
+                except (UnicodeDecodeError, ValueError):
                     try:
                         cache_key = getattr(self, 'key', None)
                         if not cache_key:
@@ -29,8 +25,7 @@ class CoreConfig(AppConfig):
                     except Exception:
                         pass
                     return True
-                except Exception as e:
-                    logger.error(f"Unexpected error in throttling: {e}")
+                except Exception:
                     return True
             
             AnonRateThrottle.allow_request = safe_allow_request
@@ -40,8 +35,7 @@ class CoreConfig(AppConfig):
             def safe_user_allow_request(self, request, view):
                 try:
                     return original_user_allow_request(self, request, view)
-                except (UnicodeDecodeError, ValueError) as e:
-                    logger.warning(f"Corrupted cache data detected in throttling, clearing: {e}")
+                except (UnicodeDecodeError, ValueError):
                     try:
                         cache_key = getattr(self, 'key', None)
                         if not cache_key:
@@ -51,12 +45,9 @@ class CoreConfig(AppConfig):
                     except Exception:
                         pass
                     return True
-                except Exception as e:
-                    logger.error(f"Unexpected error in throttling: {e}")
+                except Exception:
                     return True
             
             UserRateThrottle.allow_request = safe_user_allow_request
-            
-            logger.info("Core app ready - Throttling error handling patched")
-        except Exception as e:
-            logger.error(f"Error patching throttling classes: {e}")
+        except Exception:
+            pass

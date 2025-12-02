@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from .user_cookies import UserCookie
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
+from src.core.responses.response import APIResponse
 
 class UserJWTRefreshView(TokenRefreshView):
     
@@ -16,44 +17,40 @@ class UserJWTRefreshView(TokenRefreshView):
         raw_token = request.COOKIES.get(refresh_token_cookie_name)
 
         if raw_token is None:
-            # Use standard DRF Response - renderer will format it
-            response = Response({
-                "detail": AUTH_ERRORS.get("auth_invalid_token")
-            }, status=status.HTTP_401_UNAUTHORIZED)
-            return response
+            return APIResponse.error(
+                message=AUTH_ERRORS.get("auth_invalid_token"),
+                status_code=status.HTTP_401_UNAUTHORIZED
+            )
 
         # Manually create the serializer with the token from the cookie
         serializer = self.get_serializer(data={'refresh': raw_token})
 
         try:
             serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            error_detail = AUTH_ERRORS.get("auth_token_expired")
-            # Use standard DRF Response - renderer will format it
-            response = Response({
-                "detail": error_detail
-            }, status=status.HTTP_401_UNAUTHORIZED)
-            return response
-        except Exception as e:
-            error_detail = AUTH_ERRORS.get("auth_invalid_token")
-            response = Response({
-                "detail": error_detail
-            }, status=status.HTTP_401_UNAUTHORIZED)
-            return response
+        except TokenError:
+            return APIResponse.error(
+                message=AUTH_ERRORS.get("auth_token_expired"),
+                status_code=status.HTTP_401_UNAUTHORIZED
+            )
+        except Exception:
+            return APIResponse.error(
+                message=AUTH_ERRORS.get("auth_invalid_token"),
+                status_code=status.HTTP_401_UNAUTHORIZED
+            )
 
-        # Success Case
         validated_data = serializer.validated_data
         access_token = validated_data['access']
         
-        # Prepare response data
         response_data = {'access': access_token}
 
-        # Use standard DRF Response - renderer will format it
-        response = Response(response_data, status=status.HTTP_200_OK)
-
-        # Set cookies for users
         new_refresh_token = validated_data.get('refresh')
         refresh_token_to_set = new_refresh_token if new_refresh_token else raw_token
+
+        response = APIResponse.success(
+            message=AUTH_SUCCESS.get("token_refreshed", "Token refreshed successfully"),
+            data=response_data,
+            status_code=status.HTTP_200_OK
+        )
 
         UserCookie.set_auth_cookies(
             response=response,

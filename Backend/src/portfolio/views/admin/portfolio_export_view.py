@@ -142,11 +142,7 @@ class PortfolioExportView(APIView):
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
-        except Exception as e:
-            import logging
-            import traceback
-            logger = logging.getLogger(__name__)
-            logger.error(f"Export Error: {e}\n{traceback.format_exc()}")
+        except Exception:
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

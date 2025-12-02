@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
 
+from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 from src.portfolio.serializers.public.option_serializer import PortfolioOptionPublicSerializer
 from src.portfolio.services.public.option_services import PortfolioOptionPublicService
@@ -27,8 +27,6 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PortfolioOptionPublicService.get_option_queryset()
 
     def list(self, request, *args, **kwargs):
-        """List options with custom pagination"""
-        # Get base queryset
         queryset = self.filter_queryset(self.get_queryset())
         
         filters = {
@@ -40,41 +38,49 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
         search = request.query_params.get('search')
         service_queryset = PortfolioOptionPublicService.get_option_queryset(filters=filters, search=search)
         
-        # Intersect the service queryset with the DRF filtered queryset
         filtered_ids = list(service_queryset.values_list('id', flat=True))
         queryset = queryset.filter(id__in=filtered_ids)
         
-        # Apply DRF pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = PortfolioOptionPublicSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         
         serializer = PortfolioOptionPublicSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=OPTION_SUCCESS.get('options_list_retrieved', 'Options retrieved successfully'),
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
 
     def retrieve(self, request, *args, **kwargs):
-        """Get option by slug"""
         option = PortfolioOptionPublicService.get_option_by_slug(kwargs.get("slug"))
         if option:
             serializer = self.get_serializer(option)
-            return Response(serializer.data)
-        return Response(
-            {"detail": OPTION_ERRORS["option_not_found"]}, 
-            status=status.HTTP_404_NOT_FOUND
+            return APIResponse.success(
+                message=OPTION_SUCCESS.get('option_retrieved', 'Option retrieved successfully'),
+                data=serializer.data,
+                status_code=status.HTTP_200_OK
+            )
+        return APIResponse.error(
+            message=OPTION_ERRORS["option_not_found"],
+            status_code=status.HTTP_404_NOT_FOUND
         )
 
     @action(detail=False, methods=['get'])
     def by_name(self, request):
-        """Get options by name"""
         name = request.query_params.get('name')
         if not name:
-            return Response(
-                {"detail": "Name parameter is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=OPTION_ERRORS.get('validation_error', 'Name parameter is required'),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         limit = int(request.query_params.get('limit', 10))
         options = PortfolioOptionPublicService.get_options_by_name(name=name, limit=limit)
         serializer = PortfolioOptionPublicSerializer(options, many=True)
-        return Response(serializer.data)
+        return APIResponse.success(
+            message=OPTION_SUCCESS.get('options_by_name_retrieved', 'Options retrieved successfully'),
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )

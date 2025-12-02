@@ -1,4 +1,3 @@
-import logging
 from django.db import transaction
 from django.db.models import Max, Q
 from django.core.cache import cache
@@ -8,14 +7,9 @@ from src.portfolio.utils.cache import PortfolioCacheManager
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.media.services.media_services import MediaAdminService
 
-logger = logging.getLogger(__name__)
 
 
 class PortfolioAdminMediaService:
-    """
-    Optimized service for portfolio media operations
-    Addresses N+1 query problems and improves performance
-    """
 
     @staticmethod
     def get_next_media_order(portfolio_id):
@@ -131,7 +125,6 @@ class PortfolioAdminMediaService:
             
             for media_file in media_files:
                 try:
-                    # ✅ تشخیص نوع media از extension با استفاده از settings (env)
                     from src.media.models.media import detect_media_type_from_extension
                     file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
                     media_type = detect_media_type_from_extension(file_ext)
@@ -143,7 +136,6 @@ class PortfolioAdminMediaService:
                     })
                     uploaded_medias.append((media, media_type))
                 except Exception as e:
-                    logger.error(f"Error uploading media file {media_file.name}: {e}")
                     failed_files.append({
                         'name': media_file.name,
                         'error': str(e)
@@ -266,9 +258,7 @@ class PortfolioAdminMediaService:
                 elif media_id in document_dict:
                     media_to_create.append(('document', document_dict[media_id]))
                 else:
-                    # Media ID not found
                     failed_ids.append(media_id)
-                    logger.warning(f"Media ID {media_id} not found in any media type for portfolio {portfolio_id}")
             
             
             # Create portfolio media relations if we have any
@@ -562,7 +552,6 @@ class PortfolioAdminMediaService:
             try:
                 media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
             except (ValueError, TypeError):
-                logger.warning(f"Invalid media_id in media_covers: {media_id_str}")
                 continue
             
             # Check if media_id exists in current portfolio media
@@ -601,5 +590,5 @@ class PortfolioAdminMediaService:
                 else:
                     portfolio_media.cover_image = None
                 portfolio_media.save(update_fields=['cover_image'])
-        except Exception as e:
-            logger.error(f"Error updating cover for {media_type} {media_id} in portfolio {portfolio_id}: {e}")
+        except Exception:
+            pass

@@ -648,8 +648,5 @@ class BlogPDFExportService:
             return response
         except Exception as e:
             import traceback
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"PDF export error: {e}\n{traceback.format_exc()}")
             raise Exception(BLOG_ERRORS["blog_export_failed"])
     

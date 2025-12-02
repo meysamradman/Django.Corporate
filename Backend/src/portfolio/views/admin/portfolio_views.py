@@ -695,20 +695,23 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             # Use export service
             return PortfolioPDFExportService.export_portfolio_pdf(portfolio)
         except Portfolio.DoesNotExist:
-            return Response(
-                {"detail": "Portfolio not found"},
-                status=status.HTTP_404_NOT_FOUND
+            from src.portfolio.messages.messages import PORTFOLIO_ERRORS
+            from src.core.responses.response import APIResponse
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
             )
-        except ImportError as e:
-            return Response(
-                {"detail": str(e)},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+        except ImportError:
+            from src.portfolio.messages.messages import PORTFOLIO_ERRORS
+            from src.core.responses.response import APIResponse
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_export_failed"],
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
-        except Exception as e:
-            import traceback
-            error_message = str(e)
-            error_traceback = traceback.format_exc()
-            return Response(
-                {"detail": f"PDF export failed: {error_message}", "traceback": error_traceback},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        except Exception:
+            from src.portfolio.messages.messages import PORTFOLIO_ERRORS
+            from src.core.responses.response import APIResponse
+            return APIResponse.error(
+                message=PORTFOLIO_ERRORS["portfolio_export_failed"],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

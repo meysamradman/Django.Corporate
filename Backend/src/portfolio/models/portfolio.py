@@ -17,18 +17,17 @@ class Portfolio(BaseModel, SEOMixin):
     # Core fields with proper indexing
     status = models.CharField(
         choices=STATUS_CHOICES, default='draft', max_length=20,
-        db_index=True  # برای فیلتر کردن
+        db_index=True
     )
-    title = models.CharField(max_length=60, db_index=True)  # برای جستجو
+    title = models.CharField(max_length=60, db_index=True)
     slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     short_description = models.CharField(max_length=300, blank=True)
     description = models.TextField(null=True, blank=True)
     
     # Boolean fields
-    is_featured = models.BooleanField(default=False, db_index=True)  # برای فیلتر
-    is_public = models.BooleanField(default=True, db_index=True)  # برای فیلتر
+    is_featured = models.BooleanField(default=False, db_index=True)
+    is_public = models.BooleanField(default=True, db_index=True)
     
-    # Relations - بدون through برای بهتر شدن performance
     categories = models.ManyToManyField(
         'PortfolioCategory',
         blank=True,
