@@ -4,7 +4,6 @@ from src.email.models.email_attachment import EmailAttachment
 
 
 class EmailAttachmentSerializer(serializers.ModelSerializer):
-    """Serializer برای ضمیمه‌های ایمیل"""
     
     file_size_formatted = serializers.ReadOnlyField()
     
@@ -23,7 +22,6 @@ class EmailAttachmentSerializer(serializers.ModelSerializer):
 
 
 class EmailMessageSerializer(serializers.ModelSerializer):
-    """Serializer برای نمایش پیام‌های ایمیل"""
     
     attachments = EmailAttachmentSerializer(many=True, read_only=True)
     has_attachments = serializers.ReadOnlyField()
@@ -84,10 +82,6 @@ class EmailMessageSerializer(serializers.ModelSerializer):
 
 
 class EmailMessageCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای دریافت پیام جدید از وب‌سایت یا اپلیکیشن
-    پشتیبانی از فیلدهای دینامیک از فرم‌ساز پنل ادمین
-    """
     
     class Meta:
         model = EmailMessage
@@ -147,7 +141,6 @@ class EmailMessageCreateSerializer(serializers.ModelSerializer):
     
     @staticmethod
     def get_client_ip(request):
-        """دریافت IP واقعی کاربر"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0].strip()

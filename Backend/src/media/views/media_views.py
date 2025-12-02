@@ -363,10 +363,9 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        """Bulk delete media files"""
         if not PermissionValidator.has_permission(request.user, 'media.delete'):
             return APIResponse.error(
-                message=MEDIA_ERRORS.get("media_not_authorized", "You don't have permission to delete media"),
+                message=MEDIA_ERRORS.get("media_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         from django.db import transaction
@@ -546,7 +545,6 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def by_type(self, request):
-        """Get media by type"""
         media_type = request.query_params.get('type', 'image')
         is_active = request.query_params.get('is_active', 'true').lower() == 'true'
         

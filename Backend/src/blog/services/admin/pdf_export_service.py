@@ -28,9 +28,7 @@ from src.blog.messages.messages import BLOG_ERRORS
 
 
 class BlogPDFExportService:
-    """Service for exporting single blog to PDF format"""
     
-    # Custom colors
     PRIMARY_COLOR = colors.HexColor('#2563eb')  # Blue
     SECONDARY_COLOR = colors.HexColor('#64748b')  # Slate
     SUCCESS_COLOR = colors.HexColor('#10b981')  # Green
@@ -44,14 +42,12 @@ class BlogPDFExportService:
     
     @staticmethod
     def _register_persian_font():
-        """Register Persian font - فقط IRANSansXV یا فونت سیستم"""
         persian_font_name = 'Helvetica'
         
         try:
             base_dir = getattr(settings, 'BASE_DIR', None)
             
             if base_dir:
-                # Convert BASE_DIR to string if it's Path object (environ.Path or pathlib.Path)
                 if hasattr(base_dir, '__str__'):
                     base_dir = str(base_dir)
                 elif hasattr(base_dir, 'path'):
@@ -67,7 +63,6 @@ class BlogPDFExportService:
         except Exception:
             pass
         
-        # Fallback to system font - فقط Tahoma در Windows
         try:
             system = platform.system()
             if system == 'Windows':
@@ -81,12 +76,10 @@ class BlogPDFExportService:
         except Exception:
             pass
         
-        # اگر هیچ فونتی پیدا نشد، Helvetica پیش‌فرض استفاده می‌شود
         return persian_font_name
     
     @staticmethod
     def _process_persian_text(text):
-        """Process Persian text with arabic_reshaper and bidi if available"""
         try:
             import arabic_reshaper
             from bidi.algorithm import get_display
@@ -97,7 +90,6 @@ class BlogPDFExportService:
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
-        """Create custom styles with Persian font (RTL alignment) and improved design"""
         styles = getSampleStyleSheet()
         
         # Title style with gradient-like effect
@@ -166,7 +158,6 @@ class BlogPDFExportService:
     
     @staticmethod
     def _add_section_header(elements, text, process_persian_text, escape, heading_style):
-        """Add a styled section header"""
         heading_text = process_persian_text(text)
         # Add decorative line
         elements.append(HRFlowable(width="100%", thickness=2, color=BlogPDFExportService.PRIMARY_COLOR, spaceBefore=10, spaceAfter=8))
@@ -182,7 +173,6 @@ class BlogPDFExportService:
     
     @staticmethod
     def _add_image_to_pdf(image_file, max_width=5*inch, max_height=4*inch):
-        """Add image to PDF with size constraints and border"""
         try:
             if not image_file or not hasattr(image_file, 'file'):
                 return None
@@ -213,8 +203,6 @@ class BlogPDFExportService:
     
     @staticmethod
     def _add_basic_info_table(elements, blog, persian_font_name, process_persian_text, escape, heading_style=None, normal_style=None):
-        """Add basic information table to PDF with improved styling"""
-        # تمام متن‌های فارسی تایپ شده دستی
         info_data = [
             [str(blog.id), 'شناسه:'],
             [blog.slug or '-', 'اسلاگ:'],
@@ -260,8 +248,6 @@ class BlogPDFExportService:
     
     @staticmethod
     def _add_seo_table(elements, blog, persian_font_name, process_persian_text, escape, heading_style):
-        """Add SEO information table to PDF with improved styling"""
-        # تمام متن‌های فارسی تایپ شده دستی
         seo_fields = []
         if blog.meta_title:
             seo_fields.append(['عنوان متا:', blog.meta_title])
@@ -308,8 +294,6 @@ class BlogPDFExportService:
     
     @staticmethod
     def _add_media_sections(elements, blog, add_image_func, process_persian_text, escape, heading_style, normal_style):
-        """Add all media sections (images, videos, audios, documents) to PDF with improved design"""
-        # Main image - متن فارسی تایپ شده دستی
         main_image = blog.get_main_image()
         if main_image:
             BlogPDFExportService._add_section_header(
@@ -482,7 +466,6 @@ class BlogPDFExportService:
             
             # Define header and footer functions
             def add_header_footer(canv, doc):
-                """Add header and footer to each page"""
                 try:
                     canv.saveState()
                     # Header with title

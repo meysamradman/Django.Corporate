@@ -50,17 +50,13 @@ class PortfolioTag(BaseModel, SEOMixin):
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
-        """Delete tag and invalidate all related cache"""
         tag_id = self.pk
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if tag_id:
             TagCacheManager.invalidate_tag(tag_id)
-        # Invalidate dashboard stats as tag counts affect it
         StatisticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
-        """Generate structured data for Tag"""
         return {
             "@context": "https://schema.org",
             "@type": "Thing",

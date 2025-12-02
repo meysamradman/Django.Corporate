@@ -15,10 +15,6 @@ from src.core.pagination.pagination import StandardLimitPagination
 
 
 class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet برای استان‌ها - فقط خواندن
-    API های استان برای استفاده در فرم‌ها - با pagination بهینه
-    """
     queryset = Province.objects.filter(is_active=True).order_by('name')
     permission_classes = [IsAuthenticated]
     pagination_class = StandardLimitPagination
@@ -29,7 +25,6 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         return ProvinceSerializer
     
     def get_queryset(self):
-        """بهینه‌سازی query ها با cache"""
         cache_key = 'active_provinces'
         provinces = cache.get(cache_key)
         
@@ -37,13 +32,11 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             provinces = list(Province.objects.filter(is_active=True).order_by('name').values(
                 'id', 'public_id', 'name', 'code'
             ))
-            cache.set(cache_key, provinces, 3600)  # 1 hour cache
+            cache.set(cache_key, provinces, 3600)
         
         return Province.objects.filter(is_active=True).order_by('name')
     
     def list(self, request, *args, **kwargs):
-        """لیست استان‌ها با pagination و cache بهینه"""
-        # برای درخواست‌های pagination شده
         page = request.query_params.get('offset', 0)
         limit = request.query_params.get('limit', 10)
         
@@ -51,11 +44,9 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         cached_response = cache.get(cache_key)
         
         if cached_response:
-            # Return paginated response using DRF's standard pagination response
             paginator = self.pagination_class()
             return paginator.get_paginated_response(cached_response)
         
-        # استفاده از pagination کلاس والد
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
         
@@ -68,13 +59,10 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
                 'results': serializer.data
             }
             
-            # کش کردن نتیجه
-            cache.set(cache_key, paginated_data, 1800)  # 30 minutes cache
+            cache.set(cache_key, paginated_data, 1800)
             
-            # Return paginated response using DRF's standard pagination response
             return self.paginator.get_paginated_response(serializer.data)
         
-        # اگر pagination نباشد
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
             message=AUTH_SUCCESS["location_provinces_retrieved"],
@@ -82,7 +70,6 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        """جزئیات یک استان"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -98,7 +85,6 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['get'])
     def cities(self, request, pk=None):
-        """شهرهای یک استان"""
         province = self.get_object()
         
         cache_key = f'province_{province.id}_cities'
@@ -113,7 +99,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         cities = province.cities.filter(is_active=True).order_by('name')
         serializer = CitySerializer(cities, many=True)
         
-        cache.set(cache_key, serializer.data, 3600)  # 1 hour cache
+        cache.set(cache_key, serializer.data, 3600)
         
         return APIResponse.success(
             message=AUTH_SUCCESS["location_province_cities_retrieved"],
@@ -122,7 +108,6 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def all_for_dropdown(self, request):
-        """تمام استان‌ها بدون pagination برای dropdown"""
         cache_key = 'provinces_dropdown_all'
         cached_response = cache.get(cache_key)
         
@@ -132,13 +117,12 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
                 data=cached_response
             )
         
-        # فقط فیلدهای ضروری برای dropdown
         provinces = Province.objects.filter(is_active=True).order_by('name').values(
             'id', 'name', 'code'
         )
         
         provinces_list = list(provinces)
-        cache.set(cache_key, provinces_list, 7200)  # 2 hours cache
+        cache.set(cache_key, provinces_list, 7200)
         
         return APIResponse.success(
             message=AUTH_SUCCESS["location_provinces_retrieved"],
@@ -147,10 +131,6 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet برای شهرها - فقط خواندن
-    API های شهر برای استفاده در فرم‌ها - با pagination بهینه
-    """
     queryset = City.objects.filter(is_active=True).select_related('province').order_by('province__name', 'name')
     permission_classes = [IsAuthenticated]
     pagination_class = StandardLimitPagination
@@ -161,7 +141,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         return CitySerializer
     
     def get_queryset(self):
-        """فیلتر کردن شهرها بر اساس استان"""
         queryset = super().get_queryset()
         
         province_id = self.request.query_params.get('province_id')
@@ -171,7 +150,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
     
     def retrieve(self, request, *args, **kwargs):
-        """جزئیات یک شهر"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -186,7 +164,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             )
     
     def list(self, request, *args, **kwargs):
-        """لیست شهرها با امکان فیلتر بر اساس استان و pagination بهینه"""
         province_id = request.query_params.get('province_id')
         page = request.query_params.get('offset', 0)
         limit = request.query_params.get('limit', 10)
@@ -196,7 +173,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             cached_response = cache.get(cache_key)
             
             if cached_response:
-                # Return paginated response using DRF's standard pagination response
                 paginator = self.pagination_class()
                 return paginator.get_paginated_response(cached_response)
             
@@ -204,7 +180,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                 province = Province.objects.get(id=province_id, is_active=True)
                 cities_queryset = province.cities.filter(is_active=True).order_by('name')
                 
-                # استفاده از pagination
                 page_obj = self.paginate_queryset(cities_queryset)
                 
                 if page_obj is not None:
@@ -216,13 +191,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                         'results': serializer.data
                     }
                     
-                    # کش کردن نتیجه
-                    cache.set(cache_key, paginated_data, 1800)  # 30 minutes cache
+                    cache.set(cache_key, paginated_data, 1800)
                     
-                    # Return paginated response using DRF's standard pagination response
                     return self.paginator.get_paginated_response(serializer.data)
                 
-                # اگر pagination نباشد
                 serializer = self.get_serializer(cities_queryset, many=True)
                 return APIResponse.success(
                     message=AUTH_SUCCESS["location_province_cities_retrieved"],
@@ -235,12 +207,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                     status_code=status.HTTP_404_NOT_FOUND
                 )
         
-        # تمام شهرها با pagination
         cache_key = f'all_cities_list_{page}_{limit}'
         cached_response = cache.get(cache_key)
         
         if cached_response:
-            # Return paginated response using DRF's standard pagination response
             paginator = self.pagination_class()
             return paginator.get_paginated_response(cached_response)
         
@@ -256,13 +226,10 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                 'results': serializer.data
             }
             
-            # کش کردن نتیجه
-            cache.set(cache_key, paginated_data, 900)  # 15 minutes cache
+            cache.set(cache_key, paginated_data, 900)
             
-            # Return paginated response using DRF's standard pagination response
             return self.paginator.get_paginated_response(serializer.data)
         
-        # اگر pagination نباشد
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
             message=AUTH_SUCCESS["location_cities_retrieved"],
@@ -271,7 +238,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'])
     def for_province_dropdown(self, request):
-        """شهرهای یک استان بدون pagination برای dropdown"""
         province_id = request.query_params.get('province_id')
         
         if not province_id:
@@ -292,13 +258,12 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             province = Province.objects.get(id=province_id, is_active=True)
             
-            # فقط فیلدهای ضروری برای dropdown
             cities = province.cities.filter(is_active=True).order_by('name').values(
                 'id', 'name'
             )
             
             cities_list = list(cities)
-            cache.set(cache_key, cities_list, 7200)  # 2 hours cache
+            cache.set(cache_key, cities_list, 7200)
             
             return APIResponse.success(
                 message=AUTH_SUCCESS["location_province_cities_retrieved"],

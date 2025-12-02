@@ -26,10 +26,9 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     
     def list(self, request, *args, **kwargs):
-        """لیست پیام‌ها"""
         if not PermissionValidator.has_permission(request.user, 'email.read'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to view email messages"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = self.filter_queryset(self.get_queryset())
@@ -52,16 +51,11 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
         return EmailMessageSerializer
     
     def get_permissions(self):
-        """
-        ایجاد پیام: عمومی (AllowAny)
-        سایر عملیات: نیاز به دسترسی مدیریت ایمیل
-        """
         if self.action == 'create':
             return [AllowAny()]
         return [EmailManagerAccess()]
     
     def create(self, request, *args, **kwargs):
-        """دریافت پیام جدید از فرم تماس"""
         serializer = self.get_serializer(data=request.data, context={'request': request})
         
         if not serializer.is_valid():
@@ -90,7 +84,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'email.read'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to view email messages"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -111,7 +105,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to update email messages"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -146,7 +140,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'email.delete'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to delete email messages"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -172,7 +166,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     def mark_as_read(self, request, pk=None):
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to update email messages"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -202,7 +196,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     def mark_as_replied(self, request, pk=None):
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to reply to email messages"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -211,7 +205,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             
             if not reply_text:
                 return APIResponse.error(
-                    message=EMAIL_ERRORS.get('reply_text_required', 'Reply text is required'),
+                    message=EMAIL_ERRORS.get('reply_text_required'),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -220,7 +214,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             
             if not email_sent:
                 return APIResponse.error(
-                    message="خطا در ارسال ایمیل. پیام ذخیره شد ولی ایمیل ارسال نشد.",
+                    message=EMAIL_ERRORS['email_send_failed'],
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
             
@@ -239,10 +233,9 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[EmailManagerAccess])
     def stats(self, request):
-        """آمار پیام‌ها"""
         if not PermissionValidator.has_permission(request.user, 'email.read'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to view email statistics"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -268,10 +261,9 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
     def save_as_draft(self, request, pk=None):
-        """ذخیره پیام به عنوان پیش‌نویس"""
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
-                message=EMAIL_ERRORS.get("message_not_authorized", "You don't have permission to save email drafts"),
+                message=EMAIL_ERRORS.get("message_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
@@ -280,7 +272,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(message)
             
             return APIResponse.success(
-                message="پیش‌نویس با موفقیت ذخیره شد",
+                message=EMAIL_SUCCESS['draft_saved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )

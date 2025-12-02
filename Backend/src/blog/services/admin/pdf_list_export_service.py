@@ -34,9 +34,7 @@ from src.blog.messages.messages import BLOG_ERRORS
 
 
 class BlogPDFListExportService:
-    """Service for exporting blog list to PDF format (table format, similar to Excel)"""
     
-    # Custom colors
     PRIMARY_COLOR = colors.HexColor('#2563eb')  # Blue
     LIGHT_BG = colors.HexColor('#f8fafc')  # Slate 50
     BORDER_COLOR = colors.HexColor('#e2e8f0')  # Slate 200
@@ -45,7 +43,6 @@ class BlogPDFListExportService:
     
     @staticmethod
     def _register_persian_font():
-        """Register Persian font - فقط IRANSansXV یا فونت سیستم"""
         persian_font_name = 'Helvetica'
         
         try:
@@ -84,7 +81,6 @@ class BlogPDFListExportService:
     
     @staticmethod
     def _process_persian_text(text):
-        """Process Persian text with arabic_reshaper and bidi if available"""
         try:
             import arabic_reshaper
             from bidi.algorithm import get_display
@@ -95,7 +91,6 @@ class BlogPDFListExportService:
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
-        """Create custom styles with Persian font (RTL alignment)"""
         styles = getSampleStyleSheet()
         
         heading_style = ParagraphStyle(
@@ -171,7 +166,6 @@ class BlogPDFListExportService:
             
             # Helper function to convert date to Persian
             def convert_to_persian_date(dt):
-                """Convert datetime to Persian date format"""
                 if not dt:
                     return ""
                 try:

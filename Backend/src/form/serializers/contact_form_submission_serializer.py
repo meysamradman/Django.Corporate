@@ -2,32 +2,29 @@ from rest_framework import serializers
 
 
 class ContactFormSubmissionCreateSerializer(serializers.Serializer):
-    """Serializer برای دریافت داده‌های فرم از frontend"""
     
     form_data = serializers.DictField(
-        required=True,
-        help_text="داده‌های فرم به صورت JSON"
+        required=True
     )
     platform = serializers.ChoiceField(
         choices=['website', 'mobile_app'],
-        required=True,
-        help_text="پلتفرم ارسال فرم"
+        required=True
     )
     
     def validate_form_data(self, value):
-        """اعتبارسنجی form_data"""
+        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(value, dict):
-            raise serializers.ValidationError("form_data باید یک دیکشنری باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('form_data_must_be_dict', 'Form data must be a dictionary'))
         
         if not value:
-            raise serializers.ValidationError("form_data نمی‌تواند خالی باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('form_data_empty', 'Form data cannot be empty'))
         
         return value
     
     def validate_platform(self, value):
-        """اعتبارسنجی platform"""
+        from src.form.messages.messages import FORM_FIELD_ERRORS
         valid_platforms = ['website', 'mobile_app']
         if value not in valid_platforms:
-            raise serializers.ValidationError(f"پلتفرم نامعتبر. باید یکی از {valid_platforms} باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('invalid_platform', f'Invalid platform. Must be one of {valid_platforms}'))
         return value
 

@@ -16,21 +16,16 @@ class DeepSeekProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        # Default model: deepseek-chat
         self.chat_model = config.get('chat_model', 'deepseek-chat') if config else 'deepseek-chat'
         self.content_model = config.get('content_model', 'deepseek-chat') if config else 'deepseek-chat'
     
     def get_provider_name(self) -> str:
         return 'deepseek'
     
-    # Image generation (not supported by DeepSeek)
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        """Generate image with DeepSeek - not supported"""
         raise NotImplementedError("DeepSeek does not support image generation")
     
-    # Content generation (using chat API)
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        """Generate content using DeepSeek"""
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = {
@@ -99,7 +94,6 @@ class DeepSeekProvider(BaseProvider):
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
-        """Generate SEO-optimized content using DeepSeek"""
         import re
         from django.utils.text import slugify
         
@@ -148,8 +142,8 @@ class DeepSeekProvider(BaseProvider):
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.7,
-            "max_tokens": word_count * 3,  # More tokens for structured output
-            "response_format": {"type": "json_object"}  # Force JSON output
+            "max_tokens": word_count * 3,
+            "response_format": {"type": "json_object"}
         }
         
         try:
@@ -160,18 +154,15 @@ class DeepSeekProvider(BaseProvider):
             if 'choices' in data and len(data['choices']) > 0:
                 content = data['choices'][0]['message']['content']
                 
-                # Parse JSON response
                 try:
                     seo_data = json.loads(content)
                 except json.JSONDecodeError:
-                    # Try to extract JSON from markdown code blocks
                     json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
                     if json_match:
                         seo_data = json.loads(json_match.group(1))
                     else:
                         raise Exception("پاسخ در فرمت JSON معتبر نیست")
                 
-                # Ensure all required fields
                 if 'slug' not in seo_data or not seo_data['slug']:
                     seo_data['slug'] = slugify(seo_data.get('title', topic))
                 
@@ -204,9 +195,7 @@ class DeepSeekProvider(BaseProvider):
         except Exception as e:
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
     
-    # Chat method
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
-        """Chat with DeepSeek AI - supports conversation history"""
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = {
@@ -214,15 +203,12 @@ class DeepSeekProvider(BaseProvider):
             "Content-Type": "application/json",
         }
         
-        # Build messages array
         messages = []
         
-        # Add system message (optional)
         system_message = kwargs.get('system_message', 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.')
         if system_message:
             messages.append({"role": "system", "content": system_message})
         
-        # Add conversation history if provided
         if conversation_history:
             for msg in conversation_history:
                 role = msg.get('role', 'user')
@@ -230,7 +216,6 @@ class DeepSeekProvider(BaseProvider):
                 if role in ['user', 'assistant']:
                     messages.append({"role": role, "content": content})
         
-        # Add current message
         messages.append({"role": "user", "content": message})
         
         payload = {
@@ -275,7 +260,6 @@ class DeepSeekProvider(BaseProvider):
             raise Exception(f"خطا در چت: {str(e)}")
     
     def validate_api_key(self) -> bool:
-        """Validate API key"""
         try:
             url = f"{self.BASE_URL}/models"
             headers = {"Authorization": f"Bearer {self.api_key}"}

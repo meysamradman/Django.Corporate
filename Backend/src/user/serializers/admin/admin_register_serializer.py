@@ -282,7 +282,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
     def validate_phone(self, value):
-        """Validate optional phone number."""
         if not value or value.strip() == "":
             return None
         

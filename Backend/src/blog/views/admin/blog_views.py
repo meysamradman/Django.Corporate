@@ -38,26 +38,20 @@ from src.user.permissions import PermissionValidator
 
 
 class BlogAdminViewSet(viewsets.ModelViewSet):
-    """
-    Optimized Blog ViewSet for Admin Panel with SEO support
-    """
     permission_classes = [BlogManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']
     ordering_fields = ['created_at', 'updated_at', 'title', 'status']
     ordering = ['-created_at']
-    pagination_class = StandardLimitPagination  # Add DRF pagination
+    pagination_class = StandardLimitPagination
     
     def get_queryset(self):
-        """Optimized queryset based on action"""
         if self.action == 'list':
             return Blog.objects.for_admin_listing()
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            # For retrieve, don't apply filters - just get the blog
             return Blog.objects.for_detail()
         elif self.action == 'export':
-            # For export, we need all relations for Excel and PDF
             return Blog.objects.prefetch_related(
                 'categories',
                 'tags',
@@ -73,10 +67,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             return Blog.objects.all()
     
     def retrieve(self, request, *args, **kwargs):
-        """Override retrieve to ensure proper serializer and queryset - bypass filters"""
         if not PermissionValidator.has_permission(request.user, 'blog.read'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to view blogs"),
+                message=BLOG_ERRORS.get("blog_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = Blog.objects.for_detail()
@@ -96,16 +89,13 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        """Optimized list with better performance"""
         if not PermissionValidator.has_permission(request.user, 'blog.read'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to view blogs"),
+                message=BLOG_ERRORS.get("blog_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
-        # Get base queryset with optimizations
         queryset = self.filter_queryset(self.get_queryset())
         
-        # Apply pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -127,7 +117,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def get_serializer_class(self):
-        """Dynamic serializer selection"""
         if self.action == 'list':
             return BlogAdminListSerializer
         elif self.action == 'create':
@@ -138,20 +127,16 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             return BlogAdminDetailSerializer
     
     def _extract_media_ids(self, request):
-        """Extract and parse media_ids from request (JSON or form-data)"""
         media_ids = []
         
-        # Try request.data first (JSON raw)
         media_ids_value = request.data.get('media_ids')
         
-        # Fallback to request.POST (form-data)
         if not media_ids_value:
             media_ids_value = request.POST.get('media_ids')
         
         if not media_ids_value:
             return []
         
-        # Handle different formats
         if isinstance(media_ids_value, list):
             media_ids = [
                 int(id) for id in media_ids_value 
@@ -160,7 +145,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         elif isinstance(media_ids_value, int):
             media_ids = [media_ids_value]
         elif isinstance(media_ids_value, str):
-            # Try JSON array first
             if media_ids_value.strip().startswith('['):
                 try:
                     parsed = json.loads(media_ids_value)
@@ -169,7 +153,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 except json.JSONDecodeError:
                     pass
             
-            # If not JSON array, try comma-separated string
             if not media_ids:
                 media_ids = [
                     int(id.strip()) for id in media_ids_value.split(',') 
@@ -179,16 +162,14 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         return media_ids
     
     def create(self, request, *args, **kwargs):
-        """Create blog with SEO auto-generation and media handling"""
         if not PermissionValidator.has_permission(request.user, 'blog.create'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to create blogs"),
+                message=BLOG_ERRORS.get("blog_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
-        # Validate upload limit - use settings directly for performance
         upload_max = settings.BLOG_MEDIA_UPLOAD_MAX
         total_media = len(media_ids) + len(media_files)
         if total_media > upload_max:
@@ -228,10 +209,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        """Update blog with SEO handling and media sync"""
         if not PermissionValidator.has_permission(request.user, 'blog.update'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to update blogs"),
+                message=BLOG_ERRORS.get("blog_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         partial = kwargs.pop('partial', False)
@@ -241,13 +221,10 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         
         updated_instance = serializer.save()
         
-        # Clear cache to ensure fresh data
         BlogCacheManager.invalidate_blog(updated_instance.id)
         
-        # Reload from database with all relations prefetched for proper serialization
         updated_instance = Blog.objects.for_detail().get(pk=updated_instance.pk)
         
-        # Return detailed response with fresh data
         detail_serializer = BlogAdminDetailSerializer(updated_instance)
         return APIResponse.success(
             message=BLOG_SUCCESS["blog_updated"],
@@ -256,15 +233,13 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete blog with media cleanup"""
         if not PermissionValidator.has_permission(request.user, 'blog.delete'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized", "You don't have permission to delete blogs"),
+                message=BLOG_ERRORS.get("blog_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()
         
-        # Delete using service (handles media cleanup)
         success = BlogAdminService.delete_blog(instance.id)
         
         if success:
@@ -280,7 +255,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def change_status(self, request, pk=None):
-        """Change blog status"""
         new_status = request.data.get('status')
         
         if not new_status:
@@ -312,7 +286,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
-        """Publish blog with SEO validation"""
         try:
             result = BlogAdminStatusService.publish_blog(pk)
             
@@ -336,7 +309,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        """Bulk delete multiple blogs"""
         blog_ids = request.data.get('ids', [])
         
         if not blog_ids:
@@ -367,7 +339,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def bulk_update_status(self, request):
-        """Bulk status update for multiple blogs"""
         blog_ids = request.data.get('blog_ids', [])
         new_status = request.data.get('status')
         
@@ -393,7 +364,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def bulk_generate_seo(self, request):
-        """Bulk SEO generation for multiple blogs"""
         blog_ids = request.data.get('blog_ids', [])
         
         if not blog_ids:
@@ -418,7 +388,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def generate_seo(self, request, pk=None):
-        """Auto-generate SEO data for single blog"""
         blog = BlogAdminSEOService.auto_generate_seo(pk)
         
         serializer = BlogAdminDetailSerializer(blog)
@@ -430,7 +399,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def validate_seo(self, request, pk=None):
-        """Validate SEO data and get suggestions"""
         validation_result = BlogAdminSEOService.validate_seo_data(pk)
         
         return APIResponse.success(
@@ -441,11 +409,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        """Add media files to blog with optimized performance"""
-        # Require blog.update for adding media to an existing blog
         if not PermissionValidator.has_permission(request.user, 'blog.update'):
             return APIResponse.error(
-                message="شما اجازه افزودن رسانه به بلاگ را ندارید.",
+                message=BLOG_ERRORS.get("blog_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_files = request.FILES.getlist('media_files')
@@ -458,7 +424,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 'non_field_errors': ['At least one of media_ids or media_files must be provided.']
             })
         
-        # Validate upload limit - use settings directly for performance
         upload_max = settings.BLOG_MEDIA_UPLOAD_MAX
         total_media = len(media_ids) + len(media_files)
         if total_media > upload_max:
@@ -482,7 +447,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
-        """Set main image for blog"""
         media_id = request.data.get('media_id')
         
         if not media_id:
@@ -492,19 +456,14 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # First, remove main image flag from any existing main image
             from src.blog.models.media import BlogImage
             BlogImage.objects.filter(blog_id=pk, is_main=True).update(is_main=False)
             
-            # Then set the new main image
-            # Check if this is a BlogImage, BlogVideo, etc.
             blog_image = BlogImage.objects.filter(blog_id=pk, image_id=media_id).first()
             if blog_image:
                 blog_image.is_main = True
                 blog_image.save()
             else:
-                # If not found, we might need to create it or handle differently
-                # For now, let's just call the service method
                 blog_media = BlogAdminService.set_main_image(pk, media_id)
             
             return APIResponse.success(
@@ -519,7 +478,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def seo_report(self, request):
-        """Get comprehensive SEO report"""
         report = BlogAdminService.get_seo_report()
         
         return APIResponse.success(
@@ -530,7 +488,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def statistics(self, request, *args, **kwargs):
-        """Get blog statistics for dashboard"""
         stats = {
             'total': Blog.objects.count(),
             'published': Blog.objects.filter(status='published').count(),
@@ -541,7 +498,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             'without_seo': Blog.objects.missing_seo().count(),
         }
         
-        # Recent blogs
         recent_blogs = Blog.objects.for_admin_listing()[:5]
         recent_serializer = BlogAdminListSerializer(recent_blogs, many=True)
         
@@ -555,7 +511,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_category(self, request, pk=None):
-        """Add a category to a blog"""
         blog = self.get_object()
         category_id = request.data.get('category_id')
         
@@ -585,7 +540,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def remove_category(self, request, pk=None):
-        """Remove a category from a blog"""
         blog = self.get_object()
         category_id = request.data.get('category_id')
         
@@ -615,7 +569,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def bulk_add_tags(self, request, pk=None):
-        """Add multiple tags to a blog"""
         blog = self.get_object()
         tag_ids = request.data.get('tag_ids', [])
         
@@ -641,7 +594,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def bulk_remove_tags(self, request, pk=None):
-        """Remove multiple tags from a blog"""
         blog = self.get_object()
         tag_ids = request.data.get('tag_ids', [])
         
@@ -667,13 +619,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='export-pdf')
     def export_pdf(self, request, pk=None):
-        """Export single blog to PDF
-        
-        Security:
-        - Uses BlogManagerAccess permission class (inherited from ViewSet)
-        - Only authenticated admin users with blog/content manager or super admin roles can access
-        - File is streamed directly without exposing data in response body
-        """
         try:
             blog = Blog.objects.prefetch_related(
                 'categories',
@@ -688,7 +633,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 'og_image'
             ).select_related('og_image').get(pk=pk)
             
-            # Use export service
             return BlogPDFExportService.export_blog_pdf(blog)
         except Blog.DoesNotExist:
             from src.blog.messages.messages import BLOG_ERRORS

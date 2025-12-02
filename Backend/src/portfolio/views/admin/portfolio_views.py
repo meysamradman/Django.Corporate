@@ -38,26 +38,20 @@ from src.user.permissions import PermissionValidator
 
 
 class PortfolioAdminViewSet(viewsets.ModelViewSet):
-    """
-    Optimized Portfolio ViewSet for Admin Panel with SEO support
-    """
     permission_classes = [PortfolioManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']
     ordering_fields = ['created_at', 'updated_at', 'title', 'status']
     ordering = ['-created_at']
-    pagination_class = StandardLimitPagination  # Add DRF pagination
+    pagination_class = StandardLimitPagination
     
     def get_queryset(self):
-        """Optimized queryset based on action"""
         if self.action == 'list':
             return Portfolio.objects.for_admin_listing()
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            # For retrieve, don't apply filters - just get the portfolio
             return Portfolio.objects.for_detail()
         elif self.action == 'export':
-            # For export, we need all relations for Excel and PDF
             return Portfolio.objects.prefetch_related(
                 'categories',
                 'tags',
@@ -74,10 +68,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return Portfolio.objects.all()
     
     def retrieve(self, request, *args, **kwargs):
-        """Override retrieve to ensure proper serializer and queryset - bypass filters"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to view portfolios"),
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = Portfolio.objects.for_detail()
@@ -97,16 +90,13 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        """Optimized list with better performance"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to view portfolios"),
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
-        # Get base queryset with optimizations
         queryset = self.filter_queryset(self.get_queryset())
         
-        # Apply pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -128,7 +118,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def get_serializer_class(self):
-        """Dynamic serializer selection"""
         if self.action == 'list':
             return PortfolioAdminListSerializer
         elif self.action == 'create':
@@ -139,20 +128,16 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return PortfolioAdminDetailSerializer
     
     def _extract_media_ids(self, request):
-        """Extract and parse media_ids from request (JSON or form-data)"""
         media_ids = []
         
-        # Try request.data first (JSON raw)
         media_ids_value = request.data.get('media_ids')
         
-        # Fallback to request.POST (form-data)
         if not media_ids_value:
             media_ids_value = request.POST.get('media_ids')
         
         if not media_ids_value:
             return []
         
-        # Handle different formats
         if isinstance(media_ids_value, list):
             media_ids = [
                 int(id) for id in media_ids_value 
@@ -161,7 +146,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         elif isinstance(media_ids_value, int):
             media_ids = [media_ids_value]
         elif isinstance(media_ids_value, str):
-            # Try JSON array first
             if media_ids_value.strip().startswith('['):
                 try:
                     parsed = json.loads(media_ids_value)
@@ -170,7 +154,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 except json.JSONDecodeError:
                     pass
             
-            # If not JSON array, try comma-separated string
             if not media_ids:
                 media_ids = [
                     int(id.strip()) for id in media_ids_value.split(',') 
@@ -180,10 +163,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         return media_ids
     
     def create(self, request, *args, **kwargs):
-        """Create portfolio with SEO auto-generation and media handling"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.create'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to create portfolios"),
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_ids = self._extract_media_ids(request)
@@ -213,13 +195,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 media_ids=media_ids,
                 created_by=request.user
             )
-            # Refresh portfolio to get updated media relationships
             portfolio.refresh_from_db()
-            # Clear cache to ensure fresh data
             PortfolioCacheManager.invalidate_portfolio(portfolio.id)
         
-        # Return detailed response with refreshed data
-        # Use for_detail queryset to get all relations properly
         portfolio = Portfolio.objects.for_detail().get(id=portfolio.id)
         detail_serializer = PortfolioAdminDetailSerializer(portfolio)
         return APIResponse.success(
@@ -229,10 +207,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        """Update portfolio with SEO handling and media sync"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to update portfolios"),
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         partial = kwargs.pop('partial', False)
@@ -240,17 +217,12 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        # Use serializer.save() which will call the serializer's update method
-        # This ensures categories, tags, options, and media are properly handled
         updated_instance = serializer.save()
         
-        # Clear cache to ensure fresh data
         PortfolioCacheManager.invalidate_portfolio(updated_instance.id)
         
-        # Reload from database with all relations prefetched for proper serialization
         updated_instance = Portfolio.objects.for_detail().get(pk=updated_instance.pk)
         
-        # Return detailed response with fresh data
         detail_serializer = PortfolioAdminDetailSerializer(updated_instance)
         return APIResponse.success(
             message=PORTFOLIO_SUCCESS["portfolio_updated"],
@@ -259,10 +231,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete portfolio with media cleanup"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.delete'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized", "You don't have permission to delete portfolios"),
+                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()
@@ -283,7 +254,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def change_status(self, request, pk=None):
-        """Change portfolio status"""
         new_status = request.data.get('status')
         
         if not new_status:
@@ -315,7 +285,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
-        """Publish portfolio with SEO validation"""
         try:
             result = PortfolioAdminStatusService.publish_portfolio(pk)
             
@@ -339,7 +308,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        """Bulk delete multiple portfolios"""
         portfolio_ids = request.data.get('ids', [])
         
         if not portfolio_ids:
@@ -370,7 +338,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def bulk_update_status(self, request):
-        """Bulk status update for multiple portfolios"""
         portfolio_ids = request.data.get('portfolio_ids', [])
         new_status = request.data.get('status')
         
@@ -396,7 +363,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def bulk_generate_seo(self, request):
-        """Bulk SEO generation for multiple portfolios"""
         portfolio_ids = request.data.get('portfolio_ids', [])
         
         if not portfolio_ids:
@@ -421,7 +387,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def generate_seo(self, request, pk=None):
-        """Auto-generate SEO data for single portfolio"""
         portfolio = PortfolioAdminSEOService.auto_generate_seo(pk)
         
         serializer = PortfolioAdminDetailSerializer(portfolio)
@@ -433,7 +398,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def validate_seo(self, request, pk=None):
-        """Validate SEO data and get suggestions"""
         validation_result = PortfolioAdminSEOService.validate_seo_data(pk)
         
         return APIResponse.success(
@@ -444,7 +408,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        """Add media files to portfolio with optimized performance"""
         # Require portfolio.update for adding media to an existing portfolio
         if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
             return APIResponse.error(
@@ -485,7 +448,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
-        """Set main image for portfolio"""
         media_id = request.data.get('media_id')
         
         if not media_id:
@@ -522,7 +484,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def seo_report(self, request):
-        """Get comprehensive SEO report"""
         report = PortfolioAdminService.get_seo_report()
         
         return APIResponse.success(
@@ -533,7 +494,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def statistics(self, request, *args, **kwargs):
-        """Get portfolio statistics for dashboard"""
         stats = {
             'total': Portfolio.objects.count(),
             'published': Portfolio.objects.filter(status='published').count(),
@@ -558,7 +518,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_category(self, request, pk=None):
-        """Add a category to a portfolio"""
         portfolio = self.get_object()
         category_id = request.data.get('category_id')
         
@@ -588,7 +547,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def remove_category(self, request, pk=None):
-        """Remove a category from a portfolio"""
         portfolio = self.get_object()
         category_id = request.data.get('category_id')
         
@@ -618,7 +576,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def bulk_add_tags(self, request, pk=None):
-        """Add multiple tags to a portfolio"""
         portfolio = self.get_object()
         tag_ids = request.data.get('tag_ids', [])
         
@@ -644,7 +601,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def bulk_remove_tags(self, request, pk=None):
-        """Remove multiple tags from a portfolio"""
         portfolio = self.get_object()
         tag_ids = request.data.get('tag_ids', [])
         

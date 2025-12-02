@@ -9,10 +9,6 @@ from django.utils import timezone
 from django.conf import settings
 from src.core.models.base import BaseModel
 
-# -----------------------------
-# 📦 تنظیمات پایه و ابزارها
-# -----------------------------
-
 MEDIA_TYPE_CHOICES = [
     ('image', 'Image'),
     ('video', 'Video'),
@@ -20,39 +16,25 @@ MEDIA_TYPE_CHOICES = [
     ('pdf', 'PDF'),
 ]
 
-# ✅ اندازه مجاز فایل‌ها از settings (که خودش از env می‌خواند)
 def get_file_size_limit(media_type):
-    """دریافت محدودیت حجم فایل از settings (که از env خوانده می‌شود)"""
     return settings.MEDIA_FILE_SIZE_LIMITS.get(media_type, 10 * 1024 * 1024)
 
-# ✅ پسوندهای مجاز از settings (که خودش از env می‌خواند)
 ALLOWED_EXTENSIONS = settings.MEDIA_ALLOWED_EXTENSIONS
 
-# ✅ Helper function برای تشخیص نوع media از extension (از settings می‌خواند)
 def detect_media_type_from_extension(file_ext):
-    """
-    تشخیص نوع media از پسوند فایل
-    از settings.MEDIA_ALLOWED_EXTENSIONS استفاده می‌کند (که از env می‌خواند)
-    """
     file_ext = file_ext.lower().strip('.') if file_ext else ''
     
-    # بررسی هر نوع media از settings
     for media_type, allowed_exts in ALLOWED_EXTENSIONS.items():
         if file_ext in allowed_exts:
-            # Return media_type as-is (settings uses 'pdf', service uses 'pdf')
             return media_type
     
-    # Default: image اگر تشخیص داده نشد
     return 'image'
 
-# مسیر آپلود داینامیک
 def upload_media_path(instance, filename):
-    """ساخت مسیر آپلود داینامیک بر اساس نوع و تاریخ"""
     name, ext = os.path.splitext(filename)
     ext = ext.lower()
     today = timezone.now().date()
     
-    # Use simpler folder names based on media type (without 'media/' prefix)
     model_name = instance._meta.model_name
     if model_name == 'imagemedia':
         folder_name = 'image'
@@ -63,24 +45,16 @@ def upload_media_path(instance, filename):
     elif model_name == 'documentmedia':
         folder_name = 'document'
     else:
-        # For other media types, remove 'media' from the name
         folder_name = model_name.replace('media', '')
     
-    # Use a UUID for temporary files until the instance is saved
     if instance.pk is None:
-        identifier = str(uuid.uuid4())[:8]  # Short UUID for temp files
+        identifier = str(uuid.uuid4())[:8]
     else:
         identifier = str(instance.pk)
     
-    # Return path without 'media/' prefix since Django's MEDIA_URL already includes it
     return f"{folder_name}/{today.year}/{today.month:02d}/{today.day:02d}/{identifier}{ext}"
 
-# -----------------------------
-# 🧱 کلاس پایه Abstract
-# -----------------------------
-
 class AbstractMedia(BaseModel):
-    """کلاس پایه abstract برای همه‌ی مدیاها"""
 
     file = models.FileField(upload_to=upload_media_path)
     file_size = models.PositiveIntegerField(editable=False, null=True, blank=True)
@@ -98,29 +72,18 @@ class AbstractMedia(BaseModel):
             models.Index(fields=['title']),
         ]
 
-    # -----------------------------
-    # 🧩 Validation
-    # -----------------------------
     def clean(self):
-        # Validation moved to child classes
         super().clean()
 
-    # -----------------------------
-    # 💾 Save
-    # -----------------------------
     def save(self, *args, **kwargs):
         if self.file and (not self.file_size or not self.etag):
             self.file_size = self.file.size
             self.mime_type, _ = mimetypes.guess_type(self.file.name)
-            # ETag سریع برای caching
             unique_str = f"{self.file.name}_{self.file_size}_{time.time()}"
             self.etag = hashlib.md5(unique_str.encode()).hexdigest()
 
         super().save(*args, **kwargs)
 
-    # -----------------------------
-    # 🗑️ Delete
-    # -----------------------------
     def delete(self, *args, **kwargs):
         storage = getattr(self.file, "storage", None)
         name = getattr(self.file, "name", None)
@@ -129,17 +92,11 @@ class AbstractMedia(BaseModel):
             try:
                 storage.delete(name)
             except Exception:
-                pass  # حذف فایل بدون خطای بحرانی
+                pass
 
-    # -----------------------------
-    # 🔗 آدرس فایل
-    # -----------------------------
     def get_absolute_url(self):
         return self.file.url if self.file else None
 
-# -----------------------------
-# 🖼️ مدل پایه برای تصاویر
-# -----------------------------
 class AbstractImageMedia(AbstractMedia):
     file = models.ImageField(upload_to=upload_media_path)
 
@@ -162,9 +119,6 @@ class AbstractImageMedia(AbstractMedia):
         if self.file.size > max_size:
             raise ValidationError(f"Image too large. Max: {max_size / (1024 * 1024):.1f} MB")
 
-# -----------------------------
-# 🎞️ مدل پایه برای ویدیو
-# -----------------------------
 class AbstractVideoMedia(AbstractMedia):
     file = models.FileField(upload_to=upload_media_path)
     duration = models.PositiveIntegerField(null=True, blank=True)
@@ -192,13 +146,9 @@ class AbstractVideoMedia(AbstractMedia):
         if self.file.size > max_size:
             raise ValidationError(f"Video too large. Max: {max_size / (1024 * 1024):.1f} MB")
         
-        # بررسی cover_image برای ویدیوها
         if self.cover_image and not isinstance(self.cover_image, ImageMedia):
             raise ValidationError("Cover must be an ImageMedia instance.")
 
-# -----------------------------
-# 🎧 مدل پایه برای صوت
-# -----------------------------
 class AbstractAudioMedia(AbstractMedia):
     file = models.FileField(upload_to=upload_media_path)
     duration = models.PositiveIntegerField(null=True, blank=True)
@@ -226,13 +176,9 @@ class AbstractAudioMedia(AbstractMedia):
         if self.file.size > max_size:
             raise ValidationError(f"Audio too large. Max: {max_size / (1024 * 1024):.1f} MB")
         
-        # بررسی cover_image برای صوت‌ها
         if self.cover_image and not isinstance(self.cover_image, ImageMedia):
             raise ValidationError("Cover must be an ImageMedia instance.")
 
-# -----------------------------
-# 📄 مدل پایه برای اسناد
-# -----------------------------
 class AbstractDocumentMedia(AbstractMedia):
     file = models.FileField(upload_to=upload_media_path)
     cover_image = models.ForeignKey(
@@ -254,10 +200,6 @@ class AbstractDocumentMedia(AbstractMedia):
         ext = self.file.name.split('.')[-1].lower()
         if ext not in ALLOWED_EXTENSIONS['pdf']:
             raise ValidationError(f"Invalid document extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['pdf'])}")
-
-# -----------------------------
-# 📦 مدل‌های Concrete اصلی
-# -----------------------------
 
 class ImageMedia(AbstractImageMedia):
     class Meta(AbstractImageMedia.Meta):

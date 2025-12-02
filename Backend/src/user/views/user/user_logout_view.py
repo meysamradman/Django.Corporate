@@ -13,20 +13,16 @@ class UserLogoutView(APIView):
 
     def post(self, request):
         try:
-            # دریافت refresh token از کوکی یا هدر
             refresh_token = request.COOKIES.get('refresh_token') or request.data.get('refresh_token')
             
             if refresh_token:
-                # سیاه کردن refresh token
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             
-            # ایجاد پاسخ موفقیت‌آمیز
             response = APIResponse.success(
                 message=AUTH_SUCCESS["auth_logged_out"]
             )
             
-            # پاک کردن کوکی‌ها
             response.delete_cookie('access_token')
             response.delete_cookie('refresh_token')
             

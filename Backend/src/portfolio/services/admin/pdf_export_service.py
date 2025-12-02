@@ -28,7 +28,6 @@ from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
 class PortfolioPDFExportService:
-    """Service for exporting single portfolio to PDF format"""
     
     # Custom colors
     PRIMARY_COLOR = colors.HexColor('#2563eb')  # Blue
@@ -44,7 +43,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _register_persian_font():
-        """Register Persian font - فقط IRANSansXV یا فونت سیستم"""
         persian_font_name = 'Helvetica'
         
         try:
@@ -67,7 +65,6 @@ class PortfolioPDFExportService:
         except Exception:
             pass
         
-        # Fallback to system font - فقط Tahoma در Windows
         try:
             system = platform.system()
             if system == 'Windows':
@@ -81,12 +78,10 @@ class PortfolioPDFExportService:
         except Exception:
             pass
         
-        # اگر هیچ فونتی پیدا نشد، Helvetica پیش‌فرض استفاده می‌شود
         return persian_font_name
     
     @staticmethod
     def _process_persian_text(text):
-        """Process Persian text with arabic_reshaper and bidi if available"""
         try:
             import arabic_reshaper
             from bidi.algorithm import get_display
@@ -97,7 +92,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
-        """Create custom styles with Persian font (RTL alignment) and improved design"""
         styles = getSampleStyleSheet()
         
         # Title style with gradient-like effect
@@ -166,7 +160,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _add_section_header(elements, text, process_persian_text, escape, heading_style):
-        """Add a styled section header"""
         heading_text = process_persian_text(text)
         # Add decorative line
         elements.append(HRFlowable(width="100%", thickness=2, color=PortfolioPDFExportService.PRIMARY_COLOR, spaceBefore=10, spaceAfter=8))
@@ -182,7 +175,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _add_image_to_pdf(image_file, max_width=5*inch, max_height=4*inch):
-        """Add image to PDF with size constraints and border"""
         try:
             if not image_file or not hasattr(image_file, 'file'):
                 return None
@@ -213,8 +205,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _add_basic_info_table(elements, portfolio, persian_font_name, process_persian_text, escape, heading_style=None, normal_style=None):
-        """Add basic information table to PDF with improved styling"""
-        # تمام متن‌های فارسی تایپ شده دستی
         info_data = [
             [str(portfolio.id), 'شناسه:'],
             [portfolio.slug or '-', 'اسلاگ:'],
@@ -260,8 +250,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _add_seo_table(elements, portfolio, persian_font_name, process_persian_text, escape, heading_style):
-        """Add SEO information table to PDF with improved styling"""
-        # تمام متن‌های فارسی تایپ شده دستی
         seo_fields = []
         if portfolio.meta_title:
             seo_fields.append(['عنوان متا:', portfolio.meta_title])
@@ -308,8 +296,6 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _add_media_sections(elements, portfolio, add_image_func, process_persian_text, escape, heading_style, normal_style):
-        """Add all media sections (images, videos, audios, documents) to PDF with improved design"""
-        # Main image - متن فارسی تایپ شده دستی
         main_image = portfolio.get_main_image()
         if main_image:
             PortfolioPDFExportService._add_section_header(
@@ -328,7 +314,6 @@ class PortfolioPDFExportService:
                     ))
                 elements.append(Spacer(1, 0.25*inch))
         
-        # OG image - متن فارسی تایپ شده دستی
         if portfolio.og_image:
             PortfolioPDFExportService._add_section_header(
                 elements, 'تصویر Open Graph', process_persian_text, escape, heading_style
@@ -345,13 +330,11 @@ class PortfolioPDFExportService:
                     ))
                 elements.append(Spacer(1, 0.25*inch))
         
-        # Images gallery - محدود به 10 تصویر برای جلوگیری از PDF سنگین
         all_images = portfolio.images.select_related('image').all()
         total_images = all_images.count()
         images = list(all_images.order_by('order', 'created_at')[:10])
         
         if images:
-            # متن‌های فارسی تایپ شده دستی
             header_text = 'گالری تصاویر'
             if total_images > 10:
                 header_text = f'گالری تصاویر (نمایش 10 از {total_images} تصویر)'
@@ -381,7 +364,6 @@ class PortfolioPDFExportService:
                 ))
             elements.append(Spacer(1, 0.3*inch))
         
-        # Videos - متن فارسی تایپ شده دستی
         videos = portfolio.videos.select_related('video', 'video__cover_image').all().order_by('order', 'created_at')
         if videos.exists():
             PortfolioPDFExportService._add_section_header(
@@ -405,7 +387,6 @@ class PortfolioPDFExportService:
                     elements.append(Spacer(1, 0.2*inch))
             elements.append(Spacer(1, 0.3*inch))
         
-        # Audios - متن فارسی تایپ شده دستی
         audios = portfolio.audios.select_related('audio', 'audio__cover_image').all().order_by('order', 'created_at')
         if audios.exists():
             PortfolioPDFExportService._add_section_header(
@@ -429,7 +410,6 @@ class PortfolioPDFExportService:
                     elements.append(Spacer(1, 0.2*inch))
             elements.append(Spacer(1, 0.3*inch))
         
-        # Documents - متن فارسی تایپ شده دستی
         documents = portfolio.documents.select_related('document', 'document__cover_image').all().order_by('order', 'created_at')
         if documents.exists():
             PortfolioPDFExportService._add_section_header(
@@ -482,7 +462,6 @@ class PortfolioPDFExportService:
             
             # Define header and footer functions
             def add_header_footer(canv, doc):
-                """Add header and footer to each page"""
                 try:
                     canv.saveState()
                     # Header with title
@@ -514,7 +493,6 @@ class PortfolioPDFExportService:
                     
                     canv.restoreState()
                 except Exception as e:
-                    # اگر مشکلی در header/footer پیش آمد، فقط restore کن
                     try:
                         canv.restoreState()
                     except:
@@ -559,7 +537,6 @@ class PortfolioPDFExportService:
                 elements, portfolio, persian_font_name, process_persian_text, escape
             )
             
-            # Add short description - متن فارسی تایپ شده دستی
             if portfolio.short_description:
                 PortfolioPDFExportService._add_section_header(
                     elements, 'توضیحات کوتاه', process_persian_text, escape, pdf_styles['heading']
@@ -574,7 +551,6 @@ class PortfolioPDFExportService:
                 elements.append(desc_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add full description - متن فارسی تایپ شده دستی
             if portfolio.description:
                 PortfolioPDFExportService._add_section_header(
                     elements, 'توضیحات کامل', process_persian_text, escape, pdf_styles['heading']
@@ -590,7 +566,6 @@ class PortfolioPDFExportService:
                 elements.append(desc_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add categories - متن فارسی تایپ شده دستی
             categories = portfolio.categories.all()
             if categories:
                 PortfolioPDFExportService._add_section_header(
@@ -607,7 +582,6 @@ class PortfolioPDFExportService:
                 elements.append(cat_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add tags - متن فارسی تایپ شده دستی
             tags = portfolio.tags.all()
             if tags:
                 PortfolioPDFExportService._add_section_header(
@@ -624,7 +598,6 @@ class PortfolioPDFExportService:
                 elements.append(tag_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add options - متن فارسی تایپ شده دستی
             options = portfolio.options.all()
             if options:
                 PortfolioPDFExportService._add_section_header(

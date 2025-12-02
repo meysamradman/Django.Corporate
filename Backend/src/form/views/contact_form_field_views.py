@@ -36,7 +36,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     ordering = ['order', 'field_key']
     
     def get_serializer_class(self):
-        """انتخاب serializer مناسب"""
         if self.action == 'create':
             return ContactFormFieldCreateSerializer
         elif self.action in ['update', 'partial_update']:
@@ -44,13 +43,11 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
         return ContactFormFieldSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         if self.action == 'get_fields_for_platform':
             return [AllowAny()]
         return [RequirePermission('forms.manage')]
     
     def list(self, request, *args, **kwargs):
-        """لیست فیلدها"""
         try:
             is_active = request.query_params.get('is_active')
             if is_active is not None:
@@ -77,7 +74,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """دریافت جزئیات فیلد"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -99,7 +95,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             )
     
     def create(self, request, *args, **kwargs):
-        """ایجاد فیلد جدید"""
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
@@ -149,7 +144,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        """به‌روزرسانی فیلد"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
@@ -187,7 +181,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        """حذف فیلد"""
         try:
             instance = self.get_object()
             delete_contact_form_field(instance)
@@ -209,10 +202,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def get_fields_for_platform(self, request):
-        """
-        دریافت فیلدهای فعال برای یک پلتفرم خاص
-        GET /api/form/fields/get_fields_for_platform/?platform=website
-        """
         platform = request.query_params.get('platform', 'website')
         
         if platform not in ['website', 'mobile_app']:

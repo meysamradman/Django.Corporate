@@ -6,7 +6,6 @@ from src.form.models import ContactFormField
 
 
 class ContactFormFieldSerializer(serializers.ModelSerializer):
-    """Serializer برای نمایش کامل فیلد فرم"""
     
     class Meta:
         model = ContactFormField
@@ -34,66 +33,63 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
         ]
     
     def validate_field_key(self, value):
-        """اعتبارسنجی field_key"""
+        from src.form.messages.messages import FORM_FIELD_ERRORS
         if value and len(value.strip()) < 2:
-            raise serializers.ValidationError("کلید فیلد باید حداقل 2 کاراکتر باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('field_key_min_length', 'Field key must be at least 2 characters'))
         
-        # بررسی فرمت (فقط حروف انگلیسی، اعداد و underscore)
         if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', value):
-            raise serializers.ValidationError("کلید فیلد باید با حرف یا underscore شروع شود و فقط شامل حروف، اعداد و underscore باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('field_key_invalid_format', 'Field key must start with a letter or underscore and contain only letters, numbers and underscores'))
         
         return value.strip()
     
     def validate_platforms(self, value):
-        """اعتبارسنجی platforms"""
+        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(value, list):
-            raise serializers.ValidationError("platforms باید یک لیست باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('platforms_must_be_list', 'Platforms must be a list'))
         
         valid_platforms = ['website', 'mobile_app']
         for platform in value:
             if platform not in valid_platforms:
-                raise serializers.ValidationError(f"پلتفرم نامعتبر: {platform}. باید یکی از {valid_platforms} باشد")
+                raise serializers.ValidationError(FORM_FIELD_ERRORS.get('invalid_platform', f'Invalid platform: {platform}'))
         
         if not value:
-            raise serializers.ValidationError("حداقل یک پلتفرم باید انتخاب شود")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('at_least_one_platform', 'At least one platform must be selected'))
         
         return value
     
     def validate_options(self, value):
-        """اعتبارسنجی options برای فیلدهای انتخابی"""
+        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not value:
             return value
         
         if not isinstance(value, list):
-            raise serializers.ValidationError("options باید یک لیست باشد")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('options_must_be_list', 'Options must be a list'))
         
         field_type = self.initial_data.get('field_type') or (self.instance.field_type if self.instance else None)
         if field_type in ['select', 'radio']:
             if not value:
-                raise serializers.ValidationError(f"فیلدهای {field_type} باید حداقل یک گزینه داشته باشند")
+                raise serializers.ValidationError(FORM_FIELD_ERRORS.get('options_required', f'{field_type} fields must have at least one option'))
             
             for option in value:
                 if not isinstance(option, dict):
-                    raise serializers.ValidationError("هر گزینه باید یک دیکشنری باشد")
+                    raise serializers.ValidationError(FORM_FIELD_ERRORS.get('option_must_be_dict', 'Each option must be a dictionary'))
                 if 'value' not in option or 'label' not in option:
-                    raise serializers.ValidationError("هر گزینه باید دارای 'value' و 'label' باشد")
+                    raise serializers.ValidationError(FORM_FIELD_ERRORS.get('option_missing_fields', 'Each option must have value and label'))
                 if not option.get('value') or not option.get('label'):
-                    raise serializers.ValidationError("'value' و 'label' نمی‌توانند خالی باشند")
+                    raise serializers.ValidationError(FORM_FIELD_ERRORS.get('option_empty_fields', 'Value and label cannot be empty'))
         
         return value
 
 
 class ContactFormFieldCreateSerializer(ContactFormFieldSerializer):
-    """Serializer برای ایجاد فیلد جدید"""
     
     class Meta(ContactFormFieldSerializer.Meta):
         pass
 
 
 class ContactFormFieldUpdateSerializer(ContactFormFieldSerializer):
-    """Serializer برای به‌روزرسانی فیلد"""
     
-    field_key = serializers.CharField(read_only=True)  # نمی‌توان کلید را تغییر داد
+    field_key = serializers.CharField(read_only=True)
     
     class Meta(ContactFormFieldSerializer.Meta):
         pass

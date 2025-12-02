@@ -243,12 +243,9 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
                         pass
     
     def get_blog_media(self, obj):
-        """Alias for media field - frontend compatibility"""
         return self.get_media(obj)
     
     def get_seo_data(self, obj):
-        """Get comprehensive SEO data using SEOMixin methods with caching"""
-        # Try to get from cache first
         cache_key = BlogCacheKeys.seo_data(obj.pk)
         cached_data = cache.get(cache_key)
         if cached_data:
@@ -263,23 +260,19 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
             'structured_data': obj.generate_structured_data(),
         }
         
-        # Cache for 30 minutes
         cache.set(cache_key, seo_data, 1800)
         return seo_data
     
     def get_seo_preview(self, obj):
-        """SEO preview for admin panel (Google + Facebook) with caching"""
-        # Try to get from cache first
         cache_key = BlogCacheKeys.seo_preview(obj.pk)
         cached_preview = cache.get(cache_key)
         if cached_preview:
             return cached_preview
         
-        # Generate preview data
         preview_data = {
             'google': {
-                'title': obj.get_meta_title()[:60],  # Google limit
-                'description': obj.get_meta_description()[:160],  # Google limit
+                'title': obj.get_meta_title()[:60],
+                'description': obj.get_meta_description()[:160],
                 'url': obj.get_public_url()
             },
             'facebook': {
@@ -289,29 +282,25 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
             }
         }
         
-        # Cache for 30 minutes
         cache.set(cache_key, preview_data, 1800)
         return preview_data
     
     def get_seo_completeness(self, obj):
-        """Calculate SEO completeness percentage with caching"""
-        # Try to get from cache first
         cache_key = BlogCacheKeys.seo_completeness(obj.pk)
         cached_completeness = cache.get(cache_key)
         if cached_completeness:
             return cached_completeness
         
-        """Calculate SEO completeness percentage"""
         checks = [
-            bool(obj.meta_title),                           # Meta title exists
-            bool(obj.meta_description),                     # Meta description exists
-            bool(obj.og_title),                            # OG title exists
-            bool(obj.og_description),                      # OG description exists
-            bool(obj.og_image),                            # OG image exists
-            bool(obj.canonical_url),                       # Canonical URL exists
-            len(obj.title or '') <= 60,                   # Good title length
-            len(obj.get_meta_description()) >= 120,       # Good description length
-            len(obj.get_meta_description()) <= 160,       # Not too long description
+            bool(obj.meta_title),
+            bool(obj.meta_description),
+            bool(obj.og_title),
+            bool(obj.og_description),
+            bool(obj.og_image),
+            bool(obj.canonical_url),
+            len(obj.title or '') <= 60,
+            len(obj.get_meta_description()) >= 120,
+            len(obj.get_meta_description()) <= 160,
         ]
         score = sum(checks)
         completeness_data = {
@@ -320,13 +309,11 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
             'percentage': round((score / len(checks)) * 100, 1)
         }
         
-        # Cache for 30 minutes
         cache.set(cache_key, completeness_data, 1800)
         return completeness_data
 
 
 class BlogAdminCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating blogs with SEO auto-generation"""
     categories_ids = serializers.ListField(
         child=serializers.IntegerField(), 
         write_only=True, 
@@ -385,7 +372,6 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
 
 
 class BlogAdminUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating blogs with SEO handling and media sync"""
     categories_ids = serializers.ListField(
         child=serializers.IntegerField(), 
         write_only=True, 
@@ -421,10 +407,8 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'title', 'slug', 'short_description', 'description',
             'status', 'is_featured', 'is_public', 'is_active',
-            # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            # Relations
             'categories_ids', 'tags_ids', 'media_ids', 'main_image_id', 'media_covers'
         ]
     
@@ -435,7 +419,6 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         main_image_id = validated_data.pop('main_image_id', None)
         media_covers = validated_data.pop('media_covers', None)
         
-        # Auto-generate SEO fields if not provided
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
             
@@ -448,13 +431,11 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         
         instance.save()
         
-        # Update relations
         if categories_ids is not None:
             instance.categories.set(categories_ids)
         if tags_ids is not None:
             instance.tags.set(tags_ids)
         
-        # Sync media (remove deleted, add new, update main image and covers)
         if media_ids is not None:
             BlogAdminMediaService.sync_media(
                 blog_id=instance.id,
@@ -466,7 +447,5 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-# Backward compatibility - rename existing serializer
 class BlogAdminSerializer(BlogAdminDetailSerializer):
-    """Backward compatibility alias for existing code"""
     pass

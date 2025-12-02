@@ -76,19 +76,13 @@ class Portfolio(BaseModel, SEOMixin):
         return f"/portfolio/p/{self.public_id}/"
     
     def get_main_image(self):
-        """Get main image with caching and optimized query"""
-        # First check if we have prefetched data
         if hasattr(self, 'all_images'):
-            # Use prefetched data if available
             all_images = getattr(self, 'all_images', [])
-            # Filter for main image
             main_images = [m for m in all_images if m.is_main]
             if main_images and len(main_images) > 0:
                 return main_images[0].image if main_images[0].image else None
             return None
         
-        # Fallback to cache/database query
-        # ✅ Use standardized cache key from PortfolioCacheKeys
         cache_key = PortfolioCacheKeys.main_image(self.pk)
         main_image = cache.get(cache_key)
         
@@ -122,13 +116,10 @@ class Portfolio(BaseModel, SEOMixin):
         return main_image if main_image else None
     
     def get_main_media(self):
-        """Get main media of any type (image, video cover, audio cover, etc.)"""
-        # Try to get main image first
         main_image = self.get_main_image()
         if main_image:
             return main_image, 'image'
         
-        # Fallback to first video's cover
         try:
             video = self.videos.select_related('video__cover_image').first()
             if video and video.video.cover_image:
@@ -136,7 +127,6 @@ class Portfolio(BaseModel, SEOMixin):
         except Exception:
             pass
         
-        # Fallback to first audio's cover
         try:
             audio = self.audios.select_related('audio__cover_image').first()
             if audio and audio.audio.cover_image:
@@ -144,7 +134,6 @@ class Portfolio(BaseModel, SEOMixin):
         except Exception:
             pass
         
-        # Fallback to first document's cover
         try:
             document = self.documents.select_related('document__cover_image').first()
             if document and document.document.cover_image:
@@ -155,11 +144,8 @@ class Portfolio(BaseModel, SEOMixin):
         return None, None
     
     def get_main_image_details(self):
-        """Get main image details for API responses - optimized with prefetch support"""
-        # Try to use prefetched data first (from for_admin_listing or for_detail queryset)
         if hasattr(self, 'all_images'):
             all_images = self.all_images
-            # Find main image from prefetched data (O(n) but cached)
             for img in all_images:
                 if img.is_main and img.image:
                     main_image = img.image
@@ -209,19 +195,17 @@ class Portfolio(BaseModel, SEOMixin):
                 "dateModified": self.updated_at.isoformat() if self.updated_at else None,
                 "creator": {
                     "@type": "Organization",
-                    "name": "Your Company Name"  # This should come from settings
+                    "name": "Your Company Name"
                 },
                 "keywords": tags,
                 "about": categories
             }
             
-            # Cache for 30 minutes
             cache.set(cache_key, structured_data, 1800)
         
         return structured_data
     
     def save(self, *args, **kwargs):
-        # Auto-generate SEO fields efficiently
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         
@@ -234,26 +218,16 @@ class Portfolio(BaseModel, SEOMixin):
         if not self.og_description and self.meta_description:
             self.og_description = self.meta_description
         
-        # Only auto-generate canonical_url if it's not already set and we have a slug
-        # And ensure it's a valid URL format (not just a relative path)
         if not self.canonical_url and self.slug:
-            # Let the model's get_absolute_url or get_public_url handle this properly
-            # We need to make sure it's a full URL, not just a relative path
-            relative_url = self.get_public_url()
-            # For now, we'll just set it to None to let the SEO mixin handle it properly
-            # In production, you might want to prepend your site's domain
             self.canonical_url = None
         
         super().save(*args, **kwargs)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if self.pk:
             PortfolioCacheManager.invalidate_portfolio(self.pk)
     
     def delete(self, *args, **kwargs):
-        """Delete portfolio and invalidate all related cache"""
         portfolio_id = self.pk
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if portfolio_id:
             PortfolioCacheManager.invalidate_portfolio(portfolio_id)

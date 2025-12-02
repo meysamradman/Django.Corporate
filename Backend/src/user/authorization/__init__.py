@@ -1,11 +1,3 @@
-"""
-User Authorization - DRF Permission Classes and Role Management
-
-Note: All config (PERMISSIONS, SYSTEM_ROLES) moved to src.user.permissions.config
-This module now only contains DRF permission classes and ViewSets
-"""
-
-# DRF Permission classes
 from .admin_permission import (
     AdminRolePermission,
     RequireModuleAccess,
@@ -17,12 +9,10 @@ from .admin_permission import (
     require_module_access
 )
 
-# Import all auto-generated classes from factory
 import src.user.permissions.permission_factory as permission_factory
 for class_name in permission_factory.__all__:
     globals()[class_name] = getattr(permission_factory, class_name)
 
-# Legacy aliases
 try:
     globals()['ContentManagerAccess'] = globals().get('BlogManagerAccess')
     globals()['UserManagerAccess'] = globals().get('UsersManagerAccess')
@@ -33,11 +23,9 @@ try:
 except:
     pass
 
-# ViewSets for admin panel
 from .admin_role_view import AdminRoleView
 from .admin_permission_view import AdminPermissionView
 
-# Import from unified config (backwards compatibility)
 from src.user.permissions.config import (
     SYSTEM_ROLES,
     AVAILABLE_MODULES,
@@ -49,7 +37,6 @@ from src.user.permissions.config import (
     validate_role_permissions
 )
 
-# Legacy import for backward compatibility
 ADMIN_ROLE_PERMISSIONS = SYSTEM_ROLES
 
 from src.user.authorization.role_utils import (

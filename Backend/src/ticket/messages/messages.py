@@ -10,6 +10,7 @@ TICKET_SUCCESS = {
     'attachment_deleted': 'Attachment deleted successfully.',
     'ticket_assigned': 'Ticket assigned successfully.',
     'ticket_status_updated': 'Ticket status updated successfully.',
+    'messages_marked_as_read': 'Messages marked as read successfully.',
 }
 
 TICKET_ERRORS = {
@@ -24,5 +25,8 @@ TICKET_ERRORS = {
     'multiple_media': 'Only one media type can be specified per attachment.',
     'ticket_closed': 'Cannot add messages to a closed ticket.',
     'user_required': 'User is required for public ticket creation.',
+    'status_required': 'Status is required.',
+    'mark_read_failed': 'Error marking ticket as read.',
+    'update_status_failed': 'Error updating ticket status.',
 }
 

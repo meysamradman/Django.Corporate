@@ -3,7 +3,6 @@ from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentM
 
 
 class MediaCoverSerializer(serializers.ModelSerializer):
-    """Serializer for cover image media objects"""
     file_url = serializers.SerializerMethodField()
     
     class Meta:
@@ -20,7 +19,6 @@ class MediaCoverSerializer(serializers.ModelSerializer):
 
 
 class BaseMediaSerializer(serializers.ModelSerializer):
-    """Base serializer for all media types"""
     file_url = serializers.SerializerMethodField()
     media_type = serializers.SerializerMethodField()
     
@@ -37,7 +35,6 @@ class BaseMediaSerializer(serializers.ModelSerializer):
         return None
     
     def get_media_type(self, obj):
-        """Get media type based on instance class"""
         if isinstance(obj, ImageMedia):
             return 'image'
         elif isinstance(obj, VideoMedia):
@@ -50,14 +47,12 @@ class BaseMediaSerializer(serializers.ModelSerializer):
 
 
 class ImageMediaSerializer(BaseMediaSerializer):
-    """Serializer for image media"""
     class Meta(BaseMediaSerializer.Meta):
         model = ImageMedia
         fields = BaseMediaSerializer.Meta.fields
 
 
 class VideoMediaSerializer(BaseMediaSerializer):
-    """Serializer for video media"""
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
     
@@ -73,7 +68,6 @@ class VideoMediaSerializer(BaseMediaSerializer):
 
 
 class AudioMediaSerializer(BaseMediaSerializer):
-    """Serializer for audio media"""
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
     
@@ -89,7 +83,6 @@ class AudioMediaSerializer(BaseMediaSerializer):
 
 
 class DocumentMediaSerializer(BaseMediaSerializer):
-    """Serializer for document media"""
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
     
@@ -110,7 +103,6 @@ class DocumentMediaSerializer(BaseMediaSerializer):
 
 
 class MediaAdminSerializer(serializers.Serializer):
-    """Admin serializer that can handle all media types"""
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     title = serializers.CharField(required=False, allow_blank=True)
@@ -127,7 +119,6 @@ class MediaAdminSerializer(serializers.Serializer):
     media_type = serializers.SerializerMethodField()
     
     def get_media_type(self, obj):
-        """Get media type based on instance class"""
         if isinstance(obj, ImageMedia):
             return 'image'
         elif isinstance(obj, VideoMedia):
@@ -135,7 +126,6 @@ class MediaAdminSerializer(serializers.Serializer):
         elif isinstance(obj, AudioMedia):
             return 'audio'
         elif isinstance(obj, DocumentMedia):
-            # Return 'pdf' for PDF documents for frontend compatibility
             if hasattr(obj, 'mime_type') and obj.mime_type == 'application/pdf':
                 return 'pdf'
             return 'document'
@@ -153,7 +143,6 @@ class MediaAdminSerializer(serializers.Serializer):
         return None
 
     def to_representation(self, instance):
-        """Convert instance to appropriate serializer based on media type"""
         if isinstance(instance, ImageMedia):
             return ImageMediaSerializer(instance, context=self.context).data
         elif isinstance(instance, VideoMedia):
@@ -166,7 +155,6 @@ class MediaAdminSerializer(serializers.Serializer):
 
 
 class MediaPublicSerializer(serializers.Serializer):
-    """Public serializer that can handle all media types"""
     public_id = serializers.UUIDField(read_only=True)
     title = serializers.CharField(required=False, allow_blank=True)
     file_url = serializers.SerializerMethodField()
@@ -178,7 +166,6 @@ class MediaPublicSerializer(serializers.Serializer):
     media_type = serializers.SerializerMethodField()
     
     def get_media_type(self, obj):
-        """Get media type based on instance class"""
         if isinstance(obj, ImageMedia):
             return 'image'
         elif isinstance(obj, VideoMedia):
@@ -201,7 +188,6 @@ class MediaPublicSerializer(serializers.Serializer):
         return None
 
     def to_representation(self, instance):
-        """Convert instance to appropriate serializer based on media type"""
         if isinstance(instance, ImageMedia):
             return ImageMediaSerializer(instance, context=self.context).data
         elif isinstance(instance, VideoMedia):

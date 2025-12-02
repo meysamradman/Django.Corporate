@@ -66,15 +66,11 @@ class BlogCategory(MP_Node, BaseModel, SEOMixin):
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
-        """Delete category and invalidate all related cache"""
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         CategoryCacheManager.invalidate_all()
-        # Invalidate dashboard stats as category counts affect it
         StatisticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
-        """Generate structured data for Category"""
         return {
             "@context": "https://schema.org",
             "@type": "CollectionPage",

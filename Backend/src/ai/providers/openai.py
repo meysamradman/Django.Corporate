@@ -10,22 +10,18 @@ from src.ai.messages.messages import AI_ERRORS
 
 
 class OpenAIProvider(BaseProvider):
-    """Provider for OpenAI API - supports both DALL-E (image) and GPT (content) generation"""
     
     BASE_URL = os.getenv('OPENAI_API_BASE_URL', 'https://api.openai.com/v1')
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        # Default to DALL-E for image, but can be overridden
         self.image_model = config.get('image_model', 'dall-e-3') if config else 'dall-e-3'
         self.content_model = config.get('content_model', 'gpt-4o-mini') if config else 'gpt-4o-mini'
     
     def get_provider_name(self) -> str:
         return 'openai'
     
-    # Image generation (DALL-E)
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        """Generate image with DALL-E"""
         url = f"{self.BASE_URL}/images/generations"
         
         headers = {
@@ -89,9 +85,7 @@ class OpenAIProvider(BaseProvider):
         except Exception as e:
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=str(e)))
     
-    # Content generation (GPT)
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        """Generate content using OpenAI GPT"""
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = {
@@ -147,7 +141,6 @@ Write the content as plain text without special formatting."""
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
-        """Generate SEO-optimized structured content"""
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
@@ -213,7 +206,6 @@ Write the content as plain text without special formatting."""
                     seo_data = json.loads(content_text)
                     return seo_data
                 except json.JSONDecodeError:
-                    # Try to extract JSON
                     json_match = re.search(r'\{.*\}', content_text, re.DOTALL)
                     if json_match:
                         seo_data = json.loads(json_match.group())
@@ -228,7 +220,6 @@ Write the content as plain text without special formatting."""
                 error_data = e.response.json()
                 error_msg = error_data.get('error', {}).get('message', '')
                 
-                # Handle specific error cases
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
                         raise Exception(
@@ -245,10 +236,8 @@ Write the content as plain text without special formatting."""
                 
                 raise Exception(f"خطای OpenAI API: {error_msg}")
             except Exception as ex:
-                # If it's already our custom exception, re-raise it
                 if 'خطای OpenAI API' in str(ex) or 'خطا در تولید محتوا' in str(ex):
                     raise ex
-                # Otherwise, raise generic HTTP error
                 if status_code == 429:
                     raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است یا اعتبار حساب تمام شده. لطفاً چند لحظه صبر کنید یا حساب خود را شارژ کنید.")
                 raise Exception(f"خطای HTTP {status_code}")
@@ -257,9 +246,7 @@ Write the content as plain text without special formatting."""
         except Exception as e:
             raise Exception(f"خطا در تولید محتوا: {str(e)}")
     
-    # Chat method
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
-        """Chat with OpenAI GPT - supports conversation history"""
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = {
@@ -267,15 +254,12 @@ Write the content as plain text without special formatting."""
             "Content-Type": "application/json",
         }
         
-        # Build messages array
         messages = []
         
-        # Add system message (optional)
         system_message = kwargs.get('system_message', 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.')
         if system_message:
             messages.append({"role": "system", "content": system_message})
         
-        # Add conversation history if provided
         if conversation_history:
             for msg in conversation_history:
                 role = msg.get('role', 'user')
@@ -333,9 +317,7 @@ Write the content as plain text without special formatting."""
         except Exception as e:
             raise Exception(f"خطا در چت: {str(e)}")
     
-    # Text-to-Speech (TTS) method
     async def text_to_speech(self, text: str, **kwargs) -> BytesIO:
-        """Convert text to speech using OpenAI TTS API"""
         url = f"{self.BASE_URL}/audio/speech"
         
         headers = {
@@ -393,7 +375,6 @@ Write the content as plain text without special formatting."""
             raise Exception(f"خطا در تولید صدا: {str(e)}")
     
     def validate_api_key(self) -> bool:
-        """Validate API key"""
         try:
             url = f"{self.BASE_URL}/models"
             headers = {"Authorization": f"Bearer {self.api_key}"}

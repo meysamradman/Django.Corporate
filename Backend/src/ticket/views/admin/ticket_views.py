@@ -109,7 +109,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
-        """Mark all unread messages in this ticket as read by admin"""
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -119,7 +118,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         try:
             ticket = self.get_object()
             
-            # Mark all unread messages from users as read
             from src.ticket.models.ticket_message import TicketMessage
             unread_messages = TicketMessage.objects.filter(
                 ticket=ticket,
@@ -130,27 +128,26 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             count = unread_messages.count()
             unread_messages.update(is_read=True)
             
-            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
             TicketCacheManager.invalidate_ticket(ticket.id)
             StatisticsCacheManager.invalidate_tickets()
             
-            # Return updated ticket
             serializer = TicketDetailSerializer(ticket)
             
+            from src.ticket.messages.messages import TICKET_SUCCESS
             return APIResponse.success(
-                message=f"{count} message(s) marked as read",
+                message=TICKET_SUCCESS.get('messages_marked_as_read', f"{count} message(s) marked as read"),
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
+            from src.ticket.messages.messages import TICKET_ERRORS
             return APIResponse.error(
-                message=f"Error marking ticket as read: {str(e)}",
+                message=TICKET_ERRORS.get('mark_read_failed', f"Error marking ticket as read: {str(e)}"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
-        """Update ticket status"""
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -163,27 +160,23 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             
             if not new_status:
                 return APIResponse.error(
-                    message="Status is required",
+                    message=TICKET_ERRORS.get('status_required', 'Status is required'),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Validate status
             valid_statuses = ['open', 'in_progress', 'resolved', 'closed']
             if new_status not in valid_statuses:
                 return APIResponse.error(
-                    message=f"Invalid status. Valid options: {', '.join(valid_statuses)}",
+                    message=TICKET_ERRORS.get('invalid_status', f"Invalid status. Valid options: {', '.join(valid_statuses)}"),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Update status
             ticket.status = new_status
             ticket.save(update_fields=['status', 'updated_at'])
             
-            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
             TicketCacheManager.invalidate_ticket(ticket.id)
             StatisticsCacheManager.invalidate_tickets()
             
-            # Return updated ticket
             serializer = TicketDetailSerializer(ticket)
             
             return APIResponse.success(
@@ -193,13 +186,12 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=f"Error updating ticket status: {str(e)}",
+                message=TICKET_ERRORS.get('update_status_failed', f"Error updating ticket status: {str(e)}"),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
-        """Get ticket statistics for notifications (unread only)"""
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],

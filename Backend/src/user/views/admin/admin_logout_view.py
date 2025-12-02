@@ -13,14 +13,10 @@ from src.user.services.admin.admin_auth_service import AdminAuthService
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminLogoutView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [SimpleAdminPermission]  # فقط ادمین‌ها می‌تونن logout کنن
+    permission_classes = [SimpleAdminPermission]
 
     @staticmethod
     def _delete_cookie_with_settings(response, cookie_type='SESSION'):
-        """
-        Delete cookie using Django settings.
-        cookie_type: 'SESSION' or 'CSRF'
-        """
         if cookie_type == 'SESSION':
             cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
             cookie_path = getattr(settings, 'SESSION_COOKIE_PATH', '/')
@@ -44,16 +40,12 @@ class AdminLogoutView(APIView):
         return response
 
     def post(self, request):
-        """Handle admin logout."""
         try:
-            # Retrieve session key from Django session
             session_key = request.session.session_key
             
             if session_key:
-                # Remove session from database/cache
                 AdminAuthService.logout_admin(session_key)
             
-            # Flush session state
             request.session.flush()
             
             response = APIResponse.success(

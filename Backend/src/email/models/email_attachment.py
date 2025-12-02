@@ -4,16 +4,12 @@ import os
 
 
 def email_attachment_upload_path(instance, filename):
-    """مسیر ذخیره‌سازی ضمیمه‌های ایمیل"""
     from django.utils import timezone
     today = timezone.now().date()
     return f'email_attachments/{today.year}/{today.month:02d}/{today.day:02d}/{filename}'
 
 
 class EmailAttachment(models.Model):
-    """
-    ضمیمه‌های ایمیل
-    """
     message = models.ForeignKey(
         'email.EmailMessage',
         on_delete=models.CASCADE,
@@ -61,7 +57,6 @@ class EmailAttachment(models.Model):
         return self.filename
     
     def save(self, *args, **kwargs):
-        """ذخیره با محاسبه خودکار حجم فایل"""
         if self.file and not self.file_size:
             self.file_size = self.file.size
         if self.file and not self.filename:
@@ -69,7 +64,6 @@ class EmailAttachment(models.Model):
         super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
-        """حذف فایل از storage هنگام حذف رکورد"""
         if self.file:
             if default_storage.exists(self.file.name):
                 default_storage.delete(self.file.name)
@@ -77,7 +71,6 @@ class EmailAttachment(models.Model):
     
     @property
     def file_size_formatted(self):
-        """نمایش حجم فایل با فرمت خوانا"""
         size = self.file_size
         if size < 1024:
             return f"{size} B"

@@ -52,17 +52,13 @@ class PortfolioOption(BaseModel, SEOMixin):
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
-        """Delete option and invalidate all related cache"""
         option_id = self.pk
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if option_id:
             OptionCacheManager.invalidate_option(option_id)
-        # Invalidate dashboard stats as option counts affect it
         StatisticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
-        """Generate structured data for Option"""
         return {
             "@context": "https://schema.org",
             "@type": "Thing",

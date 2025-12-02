@@ -104,39 +104,34 @@ class ContactFormField(BaseModel):
         return f"{self.label} ({self.field_key})"
     
     def clean(self):
-        """اعتبارسنجی فیلد"""
         super().clean()
         
-        # بررسی platforms
+        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(self.platforms, list):
-            raise models.ValidationError("platforms باید یک لیست باشد")
+            raise models.ValidationError(FORM_FIELD_ERRORS.get('platforms_must_be_list', 'Platforms must be a list'))
         
         valid_platforms = ['website', 'mobile_app']
         for platform in self.platforms:
             if platform not in valid_platforms:
-                raise models.ValidationError(f"پلتفرم نامعتبر: {platform}. باید یکی از {valid_platforms} باشد")
+                raise models.ValidationError(FORM_FIELD_ERRORS.get('invalid_platform', f'Invalid platform: {platform}'))
         
-        # بررسی options برای فیلدهای انتخابی
         if self.field_type in ['select', 'radio']:
             if not self.options or not isinstance(self.options, list):
-                raise models.ValidationError(f"فیلدهای {self.field_type} باید گزینه‌هایی داشته باشند")
+                raise models.ValidationError(FORM_FIELD_ERRORS.get('options_required', f'{self.field_type} fields must have options'))
             
             for option in self.options:
                 if not isinstance(option, dict) or 'value' not in option or 'label' not in option:
-                    raise models.ValidationError("هر گزینه باید دارای 'value' و 'label' باشد")
+                    raise models.ValidationError(FORM_FIELD_ERRORS.get('option_missing_fields', 'Each option must have value and label'))
     
     def save(self, *args, **kwargs):
-        """ذخیره با اعتبارسنجی"""
         self.full_clean()
         super().save(*args, **kwargs)
     
     @property
     def is_for_website(self):
-        """بررسی نمایش در وب‌سایت"""
         return 'website' in (self.platforms or [])
     
     @property
     def is_for_mobile_app(self):
-        """بررسی نمایش در اپلیکیشن"""
         return 'mobile_app' in (self.platforms or [])
 

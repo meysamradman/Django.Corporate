@@ -5,9 +5,6 @@ from src.core.models.base import BaseModel
 
 
 class EmailMessage(BaseModel):
-    """
-    پیام‌های تماس از وب‌سایت، اپلیکیشن یا ایمیل مستقیم
-    """
     
     STATUS_CHOICES = [
         ('new', 'جدید'),
@@ -24,7 +21,6 @@ class EmailMessage(BaseModel):
         ('api', 'API'),
     ]
     
-    # اطلاعات فرستنده
     name = models.CharField(
         max_length=200,
         blank=True,
@@ -49,7 +45,6 @@ class EmailMessage(BaseModel):
         help_text="شماره تلفن فرستنده (اختیاری)"
     )
     
-    # محتوای پیام
     subject = models.CharField(
         max_length=300,
         blank=True,
@@ -65,7 +60,6 @@ class EmailMessage(BaseModel):
         help_text="متن پیام"
     )
     
-    # فیلدهای دینامیک از فرم‌ساز
     dynamic_fields = models.JSONField(
         default=dict,
         blank=True,
@@ -73,7 +67,6 @@ class EmailMessage(BaseModel):
         help_text="فیلدهای ساخته شده در فرم‌ساز پنل ادمین"
     )
     
-    # وضعیت
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -83,7 +76,6 @@ class EmailMessage(BaseModel):
         help_text="وضعیت فعلی پیام"
     )
     
-    # منبع
     source = models.CharField(
         max_length=50,
         choices=SOURCE_CHOICES,
@@ -93,7 +85,6 @@ class EmailMessage(BaseModel):
         help_text="منبع ارسال پیام"
     )
     
-    # متادیتا
     ip_address = models.GenericIPAddressField(
         blank=True,
         null=True,
@@ -107,7 +98,6 @@ class EmailMessage(BaseModel):
         help_text="اطلاعات مرورگر یا اپلیکیشن فرستنده"
     )
     
-    # پاسخ
     reply_message = models.TextField(
         blank=True,
         null=True,
@@ -131,7 +121,6 @@ class EmailMessage(BaseModel):
         help_text="ادمینی که پاسخ را ارسال کرده"
     )
     
-    # برای پیش‌نویس‌ها
     created_by = models.ForeignKey(
         'user.User',
         on_delete=models.SET_NULL,
@@ -142,7 +131,6 @@ class EmailMessage(BaseModel):
         help_text="ادمینی که این ایمیل/پیش‌نویس را ایجاد کرده"
     )
     
-    # تاریخ خواندن
     read_at = models.DateTimeField(
         blank=True,
         null=True,
@@ -167,14 +155,12 @@ class EmailMessage(BaseModel):
         return f"{self.name} - {self.subject[:50]}"
     
     def mark_as_read(self):
-        """علامت‌گذاری به عنوان خوانده شده"""
         if self.status == 'new':
             self.status = 'read'
             self.read_at = timezone.now()
             self.save(update_fields=['status', 'read_at'])
     
     def mark_as_replied(self, admin_user):
-        """علامت‌گذاری به عنوان پاسخ داده شده"""
         self.status = 'replied'
         self.replied_at = timezone.now()
         self.replied_by = admin_user
@@ -182,46 +168,35 @@ class EmailMessage(BaseModel):
     
     @property
     def has_attachments(self):
-        """بررسی وجود ضمیمه"""
         return self.attachments.exists()
     
     @property
     def is_new(self):
-        """بررسی جدید بودن پیام"""
         return self.status == 'new'
     
     @property
     def is_replied(self):
-        """بررسی پاسخ داده شده بودن"""
         return self.status == 'replied' and self.reply_message
     
     @property
     def is_draft(self):
-        """بررسی پیش‌نویس بودن"""
         return self.status == 'draft'
     
     def save_as_draft(self, admin_user):
-        """ذخیره به عنوان پیش‌نویس"""
         self.status = 'draft'
         if not self.created_by:
             self.created_by = admin_user
         self.save(update_fields=['status', 'created_by'])
     
     def save(self, *args, **kwargs):
-        """Override save to invalidate cache"""
         super().save(*args, **kwargs)
-        # ✅ Invalidate email statistics cache when email is saved
         from src.statistics.utils.cache import StatisticsCacheManager
         StatisticsCacheManager.invalidate_emails()
-        # ✅ Also invalidate dashboard cache (contains email counts)
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
-        """Override delete to invalidate cache"""
         super().delete(*args, **kwargs)
-        # ✅ Invalidate email statistics cache when email is deleted
         from src.statistics.utils.cache import StatisticsCacheManager
         StatisticsCacheManager.invalidate_emails()
-        # ✅ Also invalidate dashboard cache (contains email counts)
         StatisticsCacheManager.invalidate_dashboard()
 
