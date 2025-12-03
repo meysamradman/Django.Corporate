@@ -9,8 +9,8 @@ class GeneralSettings(BaseModel):
     
     site_name = models.CharField(
         max_length=200,
-        verbose_name="نام سیستم",
-        help_text="نام سیستم یا برند"
+        verbose_name="Site Name",
+        help_text="System or brand name"
     )
     
     enamad_image = models.ForeignKey(
@@ -19,8 +19,8 @@ class GeneralSettings(BaseModel):
         null=True,
         blank=True,
         related_name='enamad_settings',
-        verbose_name="تصویر اینماد",
-        help_text="تصویر نماد اعتماد الکترونیک"
+        verbose_name="Enamad Image",
+        help_text="Electronic trust symbol image"
     )
     
     logo_image = models.ForeignKey(
@@ -29,8 +29,8 @@ class GeneralSettings(BaseModel):
         null=True,
         blank=True,
         related_name='logo_settings',
-        verbose_name="تصویر لوگو",
-        help_text="لوگوی اصلی سیستم"
+        verbose_name="Logo Image",
+        help_text="Main system logo"
     )
     
     favicon_image = models.ForeignKey(
@@ -39,21 +39,21 @@ class GeneralSettings(BaseModel):
         null=True,
         blank=True,
         related_name='favicon_settings',
-        verbose_name="تصویر Favicon",
-        help_text="آیکون نمایش داده شده در تب مرورگر"
+        verbose_name="Favicon Image",
+        help_text="Icon displayed in browser tab"
     )
     
     copyright_text = models.CharField(
         max_length=500,
-        verbose_name="متن کپی رایت",
-        help_text="متن کپی رایت (مثلاً: تمام حقوق محفوظ است © ۱۴۰۴)",
+        verbose_name="Copyright Text",
+        help_text="Copyright text (e.g., All rights reserved © 2024)",
         blank=True
     )
     
     copyright_link = models.URLField(
         max_length=500,
-        verbose_name="لینک کپی رایت",
-        help_text="لینک مربوط به کپی رایت (اختیاری)",
+        verbose_name="Copyright Link",
+        help_text="Copyright related link (optional)",
         blank=True,
         null=True,
         validators=[URLValidator()]
@@ -61,8 +61,8 @@ class GeneralSettings(BaseModel):
     
     class Meta(BaseModel.Meta):
         db_table = 'settings_general'
-        verbose_name = "تنظیمات عمومی"
-        verbose_name_plural = "تنظیمات عمومی"
+        verbose_name = "General Settings"
+        verbose_name_plural = "General Settings"
         ordering = ['-created_at']
     
     def __str__(self):

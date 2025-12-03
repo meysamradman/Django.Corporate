@@ -8,30 +8,30 @@ class ContactEmail(BaseModel):
     
     email = models.EmailField(
         max_length=255,
-        verbose_name="ایمیل",
-        help_text="آدرس ایمیل تماس",
+        verbose_name="Email",
+        help_text="Contact email address",
         validators=[EmailValidator()],
         unique=True
     )
     
     label = models.CharField(
         max_length=100,
-        verbose_name="برچسب",
-        help_text="برچسب برای ایمیل (مثلاً: پشتیبانی، فروش، اطلاعات)",
+        verbose_name="Label",
+        help_text="Label for email (e.g., Support, Sales, Info)",
         blank=True
     )
     
     order = models.PositiveIntegerField(
         default=0,
-        verbose_name="ترتیب نمایش",
-        help_text="ترتیب نمایش در لیست (اعداد کمتر اول نمایش داده می‌شوند)",
+        verbose_name="Display Order",
+        help_text="Display order in list (lower numbers appear first)",
         db_index=True
     )
     
     class Meta(BaseModel.Meta):
         db_table = 'settings_contact_email'
-        verbose_name = "ایمیل تماس"
-        verbose_name_plural = "ایمیل‌های تماس"
+        verbose_name = "Contact Email"
+        verbose_name_plural = "Contact Emails"
         ordering = ['order', '-created_at']
         indexes = [
             models.Index(fields=['is_active', 'order']),

@@ -1,9 +1,7 @@
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.settings import api_settings as simple_jwt_settings
+from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
 from rest_framework import status
-from rest_framework.response import Response
 from .user_cookies import UserCookie
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.core.responses.response import APIResponse

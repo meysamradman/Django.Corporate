@@ -14,30 +14,30 @@ class ContactMobile(BaseModel):
     
     mobile_number = models.CharField(
         max_length=15,
-        verbose_name="شماره موبایل",
-        help_text="شماره موبایل - باید با 09 شروع شود (مثال: 09123456789)",
+        verbose_name="Mobile Number",
+        help_text="Mobile number - must start with 09 (example: 09123456789)",
         validators=[mobile_validator],
         unique=True
     )
     
     label = models.CharField(
         max_length=100,
-        verbose_name="برچسب",
-        help_text="برچسب برای شماره موبایل (مثلاً: پشتیبانی، فروش)",
+        verbose_name="Label",
+        help_text="Label for mobile number (e.g., Support, Sales)",
         blank=True
     )
     
     order = models.PositiveIntegerField(
         default=0,
-        verbose_name="ترتیب نمایش",
-        help_text="ترتیب نمایش در لیست (اعداد کمتر اول نمایش داده می‌شوند)",
+        verbose_name="Display Order",
+        help_text="Display order in list (lower numbers appear first)",
         db_index=True
     )
     
     class Meta(BaseModel.Meta):
         db_table = 'settings_contact_mobile'
-        verbose_name = "شماره موبایل"
-        verbose_name_plural = "شماره‌های موبایل"
+        verbose_name = "Contact Mobile"
+        verbose_name_plural = "Contact Mobiles"
         ordering = ['order', '-created_at']
         indexes = [
             models.Index(fields=['is_active', 'order']),

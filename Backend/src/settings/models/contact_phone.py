@@ -14,29 +14,29 @@ class ContactPhone(BaseModel):
     
     phone_number = models.CharField(
         max_length=20,
-        verbose_name="شماره تماس",
-        help_text="شماره تماس (ثابت) - مثال: 021-12345678",
+        verbose_name="Phone Number",
+        help_text="Phone number (landline) - example: 021-12345678",
         validators=[phone_validator]
     )
     
     label = models.CharField(
         max_length=100,
-        verbose_name="برچسب",
-        help_text="برچسب برای شماره تماس (مثلاً: دفتر مرکزی، پشتیبانی)",
+        verbose_name="Label",
+        help_text="Label for phone number (e.g., Main Office, Support)",
         blank=True
     )
     
     order = models.PositiveIntegerField(
         default=0,
-        verbose_name="ترتیب نمایش",
-        help_text="ترتیب نمایش در لیست (اعداد کمتر اول نمایش داده می‌شوند)",
+        verbose_name="Display Order",
+        help_text="Display order in list (lower numbers appear first)",
         db_index=True
     )
     
     class Meta(BaseModel.Meta):
         db_table = 'settings_contact_phone'
-        verbose_name = "شماره تماس"
-        verbose_name_plural = "شماره‌های تماس"
+        verbose_name = "Contact Phone"
+        verbose_name_plural = "Contact Phones"
         ordering = ['order', '-created_at']
         indexes = [
             models.Index(fields=['is_active', 'order']),
