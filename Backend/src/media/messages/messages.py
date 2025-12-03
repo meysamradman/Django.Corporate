@@ -8,6 +8,7 @@ MEDIA_SUCCESS = {
 }
 
 MEDIA_ERRORS = {
+    "bulk_delete_limit_exceeded": "حداکثر {max_items} آیتم برای حذف دسته‌جمعی مجاز است",
     "media_not_found": "رسانه یافت نشد.",
     "media_create_failed": "ایجاد رسانه ناموفق بود.",
     "media_update_failed": "به‌روزرسانی رسانه ناموفق بود.",

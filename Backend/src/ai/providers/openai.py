@@ -256,7 +256,7 @@ Write the content as plain text without special formatting."""
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception(OPENAI_ERRORS.get('no_response_received', 'No response received'))
+            raise Exception(OPENAI_ERRORS['no_response_received'])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code

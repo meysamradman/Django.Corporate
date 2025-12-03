@@ -3,6 +3,7 @@ from io import BytesIO
 import httpx
 import json
 import os
+from django.core.cache import cache
 from .base import BaseProvider
 from src.ai.utils.cache import AICacheKeys
 from src.ai.messages.messages import GROQ_ERRORS, GROQ_PROMPTS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
@@ -45,8 +46,6 @@ class GroqProvider(BaseProvider):
     
     @classmethod
     def get_available_models(cls, api_key: Optional[str] = None, use_cache: bool = True) -> List[Dict[str, Any]]:
-        from django.core.cache import cache
-        
         cache_key = AICacheKeys.provider_models('groq', None)
         
         if use_cache:

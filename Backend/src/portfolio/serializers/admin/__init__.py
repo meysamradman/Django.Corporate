@@ -33,33 +33,26 @@ from .category_serializer import (
 )
 
 __all__ = [
-    # Portfolio Serializers
-    'PortfolioAdminSerializer',  # Backward compatibility
+    'PortfolioAdminSerializer',
     'PortfolioAdminListSerializer',
     'PortfolioAdminDetailSerializer', 
     'PortfolioAdminCreateSerializer',
     'PortfolioAdminUpdateSerializer',
     'PortfolioMediaSerializer',
-    
-    # Category Serializers
-    'PortfolioCategoryAdminSerializer',  # Backward compatibility
+    'PortfolioCategoryAdminSerializer',
     'PortfolioCategoryAdminListSerializer',
     'PortfolioCategoryAdminDetailSerializer',
     'PortfolioCategoryAdminCreateSerializer',
     'PortfolioCategoryAdminUpdateSerializer',
     'PortfolioCategoryTreeSerializer',
     'PortfolioCategorySimpleAdminSerializer',
-    
-    # Option Serializers
-    'PortfolioOptionAdminSerializer',  # Backward compatibility
+    'PortfolioOptionAdminSerializer',
     'PortfolioOptionAdminListSerializer',
     'PortfolioOptionAdminDetailSerializer',
     'PortfolioOptionAdminCreateSerializer',
     'PortfolioOptionAdminUpdateSerializer',
     'PortfolioOptionSimpleAdminSerializer',
-    
-    # Tag Serializers
-    'PortfolioTagAdminSerializer',  # Backward compatibility
+    'PortfolioTagAdminSerializer',
     'PortfolioTagAdminListSerializer',
     'PortfolioTagAdminDetailSerializer',
     'PortfolioTagAdminCreateSerializer',

@@ -2,8 +2,7 @@ from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
+from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer, AdminProfileUpdateSerializer
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
@@ -12,8 +11,11 @@ from src.core.responses import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from django.http import Http404
 from django.core.exceptions import ValidationError
-from src.user.models import User
+from src.user.models import User, AdminProfile, AdminUserRole
 from src.user.permissions.helpers import PermissionHelper
+from src.user.permissions.validator import PermissionValidator
+from src.user.utils.cache import UserCacheKeys
+from src.user.authorization.admin_permission import AdminPermissionCache
 from django.core.cache import cache
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -27,9 +29,8 @@ class AdminProfileView(APIView):
             user = request.user
             
             if not (user.is_staff or user.is_superuser):
-                return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authorized"), status_code=403)
+                return APIResponse.error(message=AUTH_ERRORS["auth_not_authorized"], status_code=403)
             
-            from src.user.utils.cache import UserCacheKeys
             cache_key = UserCacheKeys.admin_profile(user.id, 'super' if user.is_superuser else 'regular')
             force_refresh = (
                 request.query_params.get('refresh') == '1'
@@ -41,7 +42,7 @@ class AdminProfileView(APIView):
                 if cached_data:
                     cached_data = dict(cached_data)
                     cached_data.pop('csrf_token', None)
-                    return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=cached_data)
+                    return APIResponse.success(message=AUTH_SUCCESS["auth_retrieved_successfully"], data=cached_data)
             
             user = User.objects.select_related(
                 'user_profile',
@@ -67,17 +68,16 @@ class AdminProfileView(APIView):
             cache_ttl = 1800 if user.is_superuser else 300
             cache.set(cache_key, response_data, cache_ttl)
             
-            return APIResponse.success(message=AUTH_SUCCESS.get("auth_retrieved_successfully"), data=response_data)
+            return APIResponse.success(message=AUTH_SUCCESS["auth_retrieved_successfully"], data=response_data)
         except User.DoesNotExist:
             raise Http404(AUTH_ERRORS["auth_user_not_found"])
         except Exception as e:
-            return APIResponse.error(message=AUTH_ERRORS.get("error_occurred"), status_code=500)
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"], status_code=500)
     
     def _get_user_roles_with_permissions(self, user):
         roles = []
         
         try:
-            from src.user.models import AdminUserRole
             admin_roles = AdminUserRole.objects.filter(
                 user=user, 
                 is_active=True
@@ -135,7 +135,6 @@ class AdminProfileView(APIView):
             if category not in categories:
                 categories[category] = []
                 
-            from src.user.utils.cache import UserCacheKeys
             cache_key = UserCacheKeys.permission_display_name(perm)
             display_name = cache.get(cache_key)
             
@@ -194,10 +193,10 @@ class AdminProfileView(APIView):
         user = request.user
         
         if not user.is_authenticated:
-            return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authenticated"), status_code=401)
+            return APIResponse.error(message=AUTH_ERRORS["auth_not_authorized"], status_code=401)
         
         if not (user.is_staff and user.user_type == 'admin' and user.is_admin_active):
-            return APIResponse.error(message=AUTH_ERRORS.get("auth_not_authorized"), status_code=403)
+            return APIResponse.error(message=AUTH_ERRORS["auth_not_authorized"], status_code=403)
         
         allowed_profile_fields = {
             'first_name', 'last_name', 'birth_date', 'profile_picture',
@@ -212,12 +211,9 @@ class AdminProfileView(APIView):
         
         invalid_fields = set(profile_data.keys()) - allowed_profile_fields
         if invalid_fields:
-            return APIResponse.error(message=AUTH_ERRORS.get("auth_validation_error"), status_code=400)
+            return APIResponse.error(message=AUTH_ERRORS["auth_validation_error"], status_code=400)
         
         try:
-            from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
-            from src.user.models import AdminProfile
-            
             admin_profile, created = AdminProfile.objects.get_or_create(
                 admin_user=user,
                 defaults={
@@ -242,10 +238,6 @@ class AdminProfileView(APIView):
                 if serializer.is_valid():
                     updated_profile = serializer.save()
                     
-                    from src.user.authorization.admin_permission import AdminPermissionCache
-                    from src.user.permissions.validator import PermissionValidator
-                    from src.user.permissions.helpers import PermissionHelper
-                    
                     AdminPermissionCache.clear_user_cache(user.id)
                     PermissionValidator.clear_user_cache(user.id)
                     PermissionHelper.clear_user_cache(user.id)
@@ -265,15 +257,14 @@ class AdminProfileView(APIView):
                         'user_permissions'
                     ).get(id=user.id)
                     
-                    from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
                     response_serializer = AdminCompleteProfileSerializer(
                         user, 
                         context={'request': request}
                     )
                     
-                    return APIResponse.success(message=AUTH_SUCCESS.get("user_updated_successfully"), data=response_serializer.data)
+                    return APIResponse.success(message=AUTH_SUCCESS["user_updated_successfully"], data=response_serializer.data)
                 else:
-                    return APIResponse.error(message=AUTH_ERRORS.get("auth_validation_error"), errors=serializer.errors, status_code=400)
+                    return APIResponse.error(message=AUTH_ERRORS["auth_validation_error"], errors=serializer.errors, status_code=400)
             else:
                 user.refresh_from_db()
                 
@@ -286,16 +277,15 @@ class AdminProfileView(APIView):
                     'user_permissions'
                 ).get(id=user.id)
                 
-                from src.user.serializers.admin.admin_profile_serializer import AdminCompleteProfileSerializer
                 response_serializer = AdminCompleteProfileSerializer(
                     user, 
                     context={'request': request}
                 )
                 
-                return APIResponse.success(message=AUTH_SUCCESS.get("auth_created_successfully", "Profile created successfully"), data=response_serializer.data)
+                return APIResponse.success(message=AUTH_SUCCESS["auth_created_successfully"], data=response_serializer.data)
                 
         except Exception as e:
-            return APIResponse.error(message=AUTH_ERRORS.get("error_occurred"), status_code=500)
+            return APIResponse.error(message=AUTH_ERRORS["error_occurred"], status_code=500)
         
     def delete(self, request, *args, **kwargs):
-        return APIResponse.error(message=AUTH_ERRORS.get("method_not_allowed", "Method not allowed"), status_code=405)
+        return APIResponse.error(message=AUTH_ERRORS["auth_not_authorized"], status_code=405)

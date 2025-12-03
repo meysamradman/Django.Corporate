@@ -23,11 +23,15 @@ CHAT_ERRORS = {
     "groq_permission_denied": "شما دسترسی لازم برای مشاهده مدل‌های Groq را ندارید.",
     "cache_clear_permission_denied": "شما دسترسی لازم برای پاک کردن کش مدل‌ها را ندارید.",
     "cache_clear_error": "خطا در پاک کردن کش: {error}",
+    "chat_quota_exceeded": "سهمیه چت تمام شده است.",
+    "chat_rate_limit": "محدودیت نرخ درخواست چت.",
+    "chat_forbidden": "دسترسی به چت ممنوع است.",
 }
 
 CONTENT_SUCCESS = {
     "content_generated": "محتوای SEO با موفقیت تولید شد.",
     "content_generated_cached": "محتوای SEO از cache بازگردانده شد.",
+    "content_generated_and_saved": "محتوای SEO با موفقیت تولید و ذخیره شد.",
     "content_saved_to_blog": "محتوا با موفقیت در بلاگ ذخیره شد.",
     "content_saved_to_portfolio": "محتوا با موفقیت در نمونه‌کار ذخیره شد.",
     "content_not_saved": "محتوا فقط نمایش داده شد و ذخیره نشد.",
@@ -45,6 +49,7 @@ CONTENT_ERRORS = {
     "content_generation_failed": "خطا در تولید محتوا: {error}",
     "content_save_failed": "خطا در ذخیره محتوا در {destination}: {error}",
     "destination_not_supported": "مقصد '{destination}' پشتیبانی نمی‌شود.",
+    "destination_invalid": "مقصد نامعتبر است.",
     "topic_required": "موضوع محتوا نمی‌تواند خالی باشد.",
     "invalid_word_count": "تعداد کلمات باید بین 100 تا 2000 باشد.",
     "provider_not_supported": "Provider '{provider_name}' از قابلیت تولید محتوا پشتیبانی نمی‌کند.",
@@ -115,6 +120,11 @@ IMAGE_ERRORS = {
     "model_not_found": "مدل یافت نشد.",
     "model_access_denied": "شما به این مدل دسترسی ندارید.",
     "model_no_image_capability": "این مدل قابلیت تولید تصویر ندارد.",
+    "model_no_text_capability": "این مدل قابلیت تولید متن ندارد.",
+    "image_generation_timeout": "زمان تولید تصویر به پایان رسید.",
+    "connection_timeout": "زمان اتصال به پایان رسید.",
+    "content_generation_timeout": "زمان تولید محتوا به پایان رسید.",
+    "chat_timeout": "زمان چت به پایان رسید.",
 }
 
 AUDIO_SUCCESS = {
@@ -185,9 +195,11 @@ GEMINI_ERRORS = {
     "chat_rate_limit": "خطای Gemini API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.",
 }
 
-HUGGINGFACE_ERRORS = {
+HUGGINGFACE_PROMPTS = {
     "content_generation_prompt": "Write a professional SEO-optimized content in Persian (Farsi) language.\n\nTopic: {topic}\n\nRequirements:\n- Word count: approximately {word_count} words\n- Style: {tone}\n- Content should be SEO optimized\n- Natural keyword usage\n- Logical and readable structure\n\nWrite the content as plain text without special formatting.",
 }
+
+HUGGINGFACE_ERRORS = {}
 
 GROQ_ERRORS = {
     "no_response_received": "هیچ پاسخی دریافت نشد",
@@ -260,6 +272,7 @@ AI_PROMPTS = {
     **GROQ_PROMPTS,
     **OPENAI_PROMPTS,
     **DEEPSEEK_PROMPTS,
+    **HUGGINGFACE_PROMPTS,
 }
 
 AI_ERRORS = {

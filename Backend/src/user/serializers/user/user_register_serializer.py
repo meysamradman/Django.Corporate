@@ -2,6 +2,10 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.email_validator import validate_email_address
+from src.user.utils.validate_identifier import validate_identifier
+from src.user.utils.password_validator import validate_register_password
+from src.media.models import Media
+from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
 
@@ -22,23 +26,21 @@ class UserRegisterSerializer(serializers.Serializer):
 
     def validate_identifier(self, value):
         if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_identifier_cannot_empty"])
         
         try:
-            from src.user.utils.validate_identifier import validate_identifier
             email, mobile = validate_identifier(value)
             if email:
                 return email
             elif mobile:
                 return mobile
             else:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_error"))
+                raise serializers.ValidationError(AUTH_ERRORS["auth_identifier_error"])
         except Exception as e:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])
 
     def validate_password(self, value):
         try:
-            from src.user.utils.password_validator import validate_register_password
             return validate_register_password(value)
         except Exception as e:
             raise serializers.ValidationError(str(e))
@@ -48,19 +50,16 @@ class UserRegisterSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.media.models import Media
             media = Media.objects.get(id=value, media_type='image')
             return value
         except Media.DoesNotExist:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])
         except Exception as e:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])
 
     def validate_profile_picture(self, value):
         if value is None:
             return value
-        
-        from src.media.utils.validators import validate_image_file
         
         try:
             validate_image_file(value)
@@ -68,7 +67,7 @@ class UserRegisterSerializer(serializers.Serializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError(str(e))
         except Exception as e:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])
 
     def validate_national_id(self, value):
         return validate_national_id_format(value)
@@ -76,7 +75,7 @@ class UserRegisterSerializer(serializers.Serializer):
     def validate(self, data):
         if data.get('profile_picture_id') and data.get('profile_picture'):
             raise serializers.ValidationError({
-                'profile_picture': AUTH_ERRORS.get("auth_validation_error")
+                'profile_picture': AUTH_ERRORS["auth_validation_error"]
             })
         
         return data

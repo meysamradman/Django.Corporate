@@ -5,8 +5,6 @@ from .admin import (
     PortfolioOptionAdminViewSet,
     PortfolioTagAdminViewSet,
 )
-
-# Import Public ViewSets
 from .public import (
     PortfolioPublicViewSet,
     PortfolioCategoryPublicViewSet,
@@ -15,13 +13,10 @@ from .public import (
 )
 
 __all__ = [
-    # Admin ViewSets
     'PortfolioAdminViewSet',
     'PortfolioCategoryAdminViewSet',
     'PortfolioOptionAdminViewSet',
     'PortfolioTagAdminViewSet',
-    
-    # Public ViewSets
     'PortfolioPublicViewSet',
     'PortfolioCategoryPublicViewSet',
     'PortfolioOptionPublicViewSet',

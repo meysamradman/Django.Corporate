@@ -4,43 +4,43 @@ from src.portfolio.models.tag import PortfolioTag
 
 
 class PortfolioTagAdminFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method='filter_search', label='جستجو')
-    is_active = django_filters.BooleanFilter(field_name='is_active', label='وضعیت فعال')
+    search = django_filters.CharFilter(method='filter_search', label='Search')
+    is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
         choices=[
-            ('used', 'استفاده شده'),
-            ('unused', 'استفاده نشده'),
-            ('popular', 'محبوب (بیش از 5 نمونه کار)')
+            ('used', 'Used'),
+            ('unused', 'Unused'),
+            ('popular', 'Popular (More than 5 portfolios)')
         ],
-        label='وضعیت استفاده'
+        label='Usage Status'
     )
     portfolio_count_min = django_filters.NumberFilter(
         method='filter_portfolio_count_min',
-        label='حداقل تعداد نمونه کار'
+        label='Min Portfolio Count'
     )
     portfolio_count_max = django_filters.NumberFilter(
         method='filter_portfolio_count_max',
-        label='حداکثر تعداد نمونه کار'
+        label='Max Portfolio Count'
     )
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
-        label='ایجاد شده بعد از'
+        label='Created After'
     )
     created_before = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='lte',
-        label='ایجاد شده قبل از'
+        label='Created Before'
     )
     name_length = django_filters.ChoiceFilter(
         method='filter_name_length',
         choices=[
-            ('short', 'کوتاه (کمتر از 10 کاراکتر)'),
-            ('medium', 'متوسط (10-20 کاراکتر)'),
-            ('long', 'طولانی (بیش از 20 کاراکتر)')
+            ('short', 'Short (Less than 10 characters)'),
+            ('medium', 'Medium (10-20 characters)'),
+            ('long', 'Long (More than 20 characters)')
         ],
-        label='طول نام'
+        label='Name Length'
     )
     
     class Meta:

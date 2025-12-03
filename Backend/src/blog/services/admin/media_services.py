@@ -4,7 +4,7 @@ from django.core.cache import cache
 from src.blog.models.blog import Blog
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.blog.utils.cache import BlogCacheManager
-from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
 
@@ -99,7 +99,6 @@ class BlogAdminMediaService:
             
             for media_file in media_files:
                 try:
-                    from src.media.models.media import detect_media_type_from_extension
                     file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
                     media_type = detect_media_type_from_extension(file_ext)
                     

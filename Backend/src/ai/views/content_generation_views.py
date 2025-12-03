@@ -1,8 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.utils.translation import gettext_lazy as _
 
 from src.core.responses.response import APIResponse
 from src.ai.services.content_generation_service import AIContentGenerationService
@@ -12,7 +10,11 @@ from src.ai.serializers.content_generation_serializer import (
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.permissions import PermissionValidator
-from src.ai.providers.capabilities import get_provider_capabilities, supports_feature
+from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
+from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
+from src.ai.providers.groq import GroqProvider
+from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.services.destination_handler import ContentDestinationHandler
 
 
 class AIContentGenerationViewSet(viewsets.ViewSet):
@@ -35,7 +37,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_200_OK
             )
         else:
-            from src.ai.providers.capabilities import PROVIDER_CAPABILITIES
             content_providers = {
                 name: caps for name, caps in PROVIDER_CAPABILITIES.items()
                 if caps.get('supports_content', False)
@@ -83,9 +84,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
             )
         
         try:
-            from src.ai.providers.openrouter import OpenRouterProvider
-            from src.ai.models import AIProvider, AdminProviderSettings
-            
             try:
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
             except AIProvider.DoesNotExist:
@@ -149,9 +147,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
             )
         
         try:
-            from src.ai.providers.groq import GroqProvider
-            from src.ai.models import AIProvider, AdminProviderSettings
-            
             try:
                 provider = AIProvider.objects.get(slug='groq', is_active=True)
             except AIProvider.DoesNotExist:
@@ -209,8 +204,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
             )
         
         try:
-            from src.ai.providers.openrouter import OpenRouterModelCache
-            
             OpenRouterModelCache.clear_all()
             message = AI_SUCCESS["cache_cleared"]
             
@@ -259,8 +252,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 admin=request.user,
             )
             
-            from src.ai.services.destination_handler import ContentDestinationHandler
-            
             try:
                 destination_result = ContentDestinationHandler.save_to_destination(
                     content_data=content_data,
@@ -268,9 +259,9 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                     destination_data=destination_data,
                     admin=request.user
                 )
-            except ValueError as dest_error:
+            except ValueError:
                 return APIResponse.error(
-                    message=str(dest_error),
+                    message=AI_ERRORS["destination_invalid"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -280,7 +271,7 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
             }
             
             if destination_result['saved']:
-                message = f"{AI_SUCCESS['content_generated']} {destination_result['message']}"
+                message = AI_SUCCESS['content_generated_and_saved']
             else:
                 message = AI_SUCCESS['content_generated']
             
@@ -290,9 +281,9 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_200_OK
             )
             
-        except ValueError as e:
+        except ValueError:
             return APIResponse.error(
-                message=str(e),
+                message=AI_ERRORS["validation_error"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:

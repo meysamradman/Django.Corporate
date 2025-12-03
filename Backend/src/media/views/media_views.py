@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -11,7 +12,7 @@ from src.core.pagination.pagination import StandardLimitPagination
 from src.core.responses import APIResponse
 from src.media.filters.media_filters import MediaFilter
 from src.media.messages import MEDIA_ERRORS, MEDIA_SUCCESS
-from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoMedia
+from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoMedia, detect_media_type_from_extension
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
@@ -139,7 +140,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        from src.media.models.media import detect_media_type_from_extension
         file_ext = file.name.lower().split('.')[-1] if '.' in file.name else ''
         media_type = detect_media_type_from_extension(file_ext)
         
@@ -198,9 +198,9 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 data=serializer.data,
                 status_code=status.HTTP_201_CREATED
             )
-        except ValidationError as e:
+        except ValidationError:
             return APIResponse.error(
-                message=str(e),
+                message=MEDIA_ERRORS["media_data_invalid"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
@@ -238,7 +238,7 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'media.update'):
             return APIResponse.error(
-                message=MEDIA_ERRORS.get("media_not_authorized", "You don't have permission to update media"),
+                message=MEDIA_ERRORS.get("UPLOAD_PERMISSION_DENIED", MEDIA_ERRORS.get("media_not_found", "Access denied")),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_id = kwargs.get("pk")
@@ -278,9 +278,9 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 message=MEDIA_ERRORS["media_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError as e:
+        except ValidationError:
             return APIResponse.error(
-                message=str(e),
+                message=MEDIA_ERRORS["media_data_invalid"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
@@ -295,7 +295,7 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'media.delete'):
             return APIResponse.error(
-                message=MEDIA_ERRORS.get("media_not_authorized", "You don't have permission to delete media"),
+                message=MEDIA_ERRORS.get("UPLOAD_PERMISSION_DENIED", MEDIA_ERRORS.get("media_not_found", "Access denied")),
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_id = kwargs.get("pk")
@@ -339,9 +339,9 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 message=MEDIA_ERRORS["media_protected"],
                 status_code=status.HTTP_409_CONFLICT
             )
-        except ValidationError as e:
+        except ValidationError:
             return APIResponse.error(
-                message=str(e),
+                message=MEDIA_ERRORS["media_data_invalid"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
@@ -357,7 +357,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
                 message=MEDIA_ERRORS.get("media_not_authorized"),
                 status_code=status.HTTP_403_FORBIDDEN
             )
-        from django.db import transaction
         
         media_data = request.data.get('media_data', [])
         if not media_data:
@@ -375,7 +374,7 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         MAX_BULK_DELETE = 100
         if len(media_data) > MAX_BULK_DELETE:
             return APIResponse.error(
-                message=f"Maximum {MAX_BULK_DELETE} items allowed for bulk delete",
+                message=MEDIA_ERRORS["bulk_delete_limit_exceeded"].format(max_items=MAX_BULK_DELETE),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         

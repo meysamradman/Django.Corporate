@@ -1,8 +1,13 @@
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from rest_framework.exceptions import NotFound
-from src.user.models import User
+from src.user.models import User, AdminProfile
+from src.user.models.location import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models import ImageMedia
+from src.user.authorization.admin_permission import AdminPermissionCache
+from src.user.permissions.validator import PermissionValidator
+from src.user.permissions.helpers import PermissionHelper
 
 
 class AdminProfileService:
@@ -12,7 +17,6 @@ class AdminProfileService:
             profile_instance = getattr(admin, 'admin_profile', None)
 
             if profile_instance is None:
-                from src.user.models import AdminProfile
                 profile, created = AdminProfile.objects.get_or_create(admin_user=admin)
                 return profile
             return profile_instance
@@ -27,7 +31,6 @@ class AdminProfileService:
             return AdminProfileService.get_admin_profile(admin)
 
         try:
-            from src.user.models import AdminProfile
             profile, created = AdminProfile.objects.get_or_create(admin_user=admin)
             
             if profile_picture is None:
@@ -47,10 +50,8 @@ class AdminProfileService:
                         if isinstance(value, int):
                             try:
                                 if field == 'province':
-                                    from src.user.models.location import Province
                                     fk_object = Province.objects.get(id=value)
                                 elif field == 'city':
-                                    from src.user.models.location import City
                                     fk_object = City.objects.get(id=value)
                                 else:
                                     fk_object = value
@@ -76,7 +77,6 @@ class AdminProfileService:
                 
                 if isinstance(profile_picture, int):
                     try:
-                        from src.media.models import ImageMedia
                         profile_picture_obj = ImageMedia.objects.get(id=profile_picture, is_active=True)
                         new_id = profile_picture_obj.id
                     except ImageMedia.DoesNotExist:
@@ -109,17 +109,11 @@ class AdminProfileService:
                 if 'national_id' in fields_actually_updated:
                     national_id = getattr(profile, 'national_id', None)
                     if national_id:
-                        from src.user.models import AdminProfile
                         existing_profile = AdminProfile.objects.filter(national_id=national_id).exclude(id=profile.id).first()
                         if existing_profile:
                             raise ValueError(AUTH_ERRORS.get("national_id_exists"))
                 
                 profile.save()
-                
-                from django.core.cache import cache
-                from src.user.authorization.admin_permission import AdminPermissionCache
-                from src.user.permissions.validator import PermissionValidator
-                from src.user.permissions.helpers import PermissionHelper
                 
                 AdminPermissionCache.clear_user_cache(admin.id)
                 PermissionValidator.clear_user_cache(admin.id)
@@ -146,11 +140,6 @@ class AdminProfileService:
                 profile.profile_picture = None
                 profile.save(update_fields=['profile_picture'])
             
-            from django.core.cache import cache
-            from src.user.authorization.admin_permission import AdminPermissionCache
-            from src.user.permissions.validator import PermissionValidator
-            from src.user.permissions.helpers import PermissionHelper
-            
             AdminPermissionCache.clear_user_cache(admin.id)
             PermissionValidator.clear_user_cache(admin.id)
             PermissionHelper.clear_user_cache(admin.id)
@@ -162,11 +151,6 @@ class AdminProfileService:
             
         profile.profile_picture = media_obj
         profile.save(update_fields=['profile_picture'])
-        
-        from django.core.cache import cache
-        from src.user.authorization.admin_permission import AdminPermissionCache
-        from src.user.permissions.validator import PermissionValidator
-        from src.user.permissions.helpers import PermissionHelper
         
         AdminPermissionCache.clear_user_cache(admin.id)
         PermissionValidator.clear_user_cache(admin.id)

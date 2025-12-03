@@ -219,9 +219,9 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
+        except ValidationError:
             return APIResponse.error(
-                message=str(e),
+                message=FORM_FIELD_ERRORS["validation_error"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:

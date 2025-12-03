@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from src.ticket.models.ticket import Ticket
 from src.ticket.models.ticket_message import TicketMessage
+from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer
 from src.user.serializers.user.user_public_serializer import UserPublicSerializer
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 
@@ -63,7 +64,6 @@ class TicketDetailSerializer(serializers.ModelSerializer):
         ]
     
     def get_messages(self, obj):
-        from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer
         messages = obj.messages.all().order_by('created_at')
         return TicketMessageSerializer(messages, many=True).data
     

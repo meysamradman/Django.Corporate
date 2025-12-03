@@ -5,6 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses import APIResponse
 from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
+from src.user.serializers.admin.admin_management_serializer import AdminDetailSerializer
 from src.user.services.admin.admin_register_service import AdminRegisterService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
@@ -33,7 +34,6 @@ class AdminRegisterView(UserAuthMixin, APIView):
                 admin_user=request.user
             )
             
-            from src.user.serializers.admin.admin_management_serializer import AdminDetailSerializer
             response_serializer = AdminDetailSerializer(admin, context={'request': request})
             return APIResponse.success(
                 message=AUTH_SUCCESS["user_created_successfully"],

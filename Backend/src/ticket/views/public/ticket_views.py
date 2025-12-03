@@ -5,7 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket import Ticket
-from src.ticket.serializers.ticket_serializer import TicketDetailSerializer
+from src.ticket.serializers.ticket_serializer import TicketDetailSerializer, TicketSerializer
 from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
@@ -48,7 +48,6 @@ class PublicTicketViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS
             )
         
-        from src.ticket.serializers.ticket_serializer import TicketSerializer
         serializer = TicketSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         

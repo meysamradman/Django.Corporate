@@ -16,7 +16,7 @@ class UserJWTRefreshView(TokenRefreshView):
 
         if raw_token is None:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("auth_invalid_token"),
+                message=AUTH_ERRORS["auth_invalid_token"],
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
 
@@ -26,12 +26,12 @@ class UserJWTRefreshView(TokenRefreshView):
             serializer.is_valid(raise_exception=True)
         except TokenError:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("auth_token_expired"),
+                message=AUTH_ERRORS["auth_token_expired"],
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
         except Exception:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("auth_invalid_token"),
+                message=AUTH_ERRORS["auth_invalid_token"],
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
 
@@ -44,7 +44,7 @@ class UserJWTRefreshView(TokenRefreshView):
         refresh_token_to_set = new_refresh_token if new_refresh_token else raw_token
 
         response = APIResponse.success(
-            message=AUTH_SUCCESS.get("token_refreshed", "Token refreshed successfully"),
+            message=AUTH_SUCCESS["auth_token_refreshed"],
             data=response_data,
             status_code=status.HTTP_200_OK
         )

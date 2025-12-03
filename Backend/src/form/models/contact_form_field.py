@@ -104,7 +104,7 @@ class ContactFormField(BaseModel):
         
         from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(self.platforms, list):
-            raise models.ValidationError(FORM_FIELD_ERRORS.get('platforms_must_be_list', 'Platforms must be a list'))
+            raise models.ValidationError(FORM_FIELD_ERRORS['platforms_must_be_list'])
         
         valid_platforms = ['website', 'mobile_app']
         for platform in self.platforms:

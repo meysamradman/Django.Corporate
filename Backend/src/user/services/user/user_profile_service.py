@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
-from src.user.models import User
+from src.user.models import User, UserProfile
+from src.user.models.location import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models.media import ImageMedia
 
@@ -12,7 +13,6 @@ class UserProfileService:
             profile_instance = getattr(user, 'user_profile', None)
 
             if profile_instance is None:
-                from src.user.models import UserProfile
                 profile, created = UserProfile.objects.get_or_create(user=user)
                 return profile
             return profile_instance
@@ -27,7 +27,6 @@ class UserProfileService:
             return UserProfileService.get_user_profile(user)
 
         try:
-            from src.user.models import UserProfile
             profile, created = UserProfile.objects.get_or_create(user=user)
             
             profile_picture = profile_data.pop('profile_picture', None)
@@ -45,10 +44,8 @@ class UserProfileService:
                         if isinstance(value, int):
                             try:
                                 if field == 'province':
-                                    from src.user.models.location import Province
                                     fk_object = Province.objects.get(id=value)
                                 elif field == 'city':
-                                    from src.user.models.location import City
                                     fk_object = City.objects.get(id=value)
                                 else:
                                     fk_object = value
@@ -97,7 +94,6 @@ class UserProfileService:
                 if 'national_id' in fields_actually_updated:
                     national_id = getattr(profile, 'national_id', None)
                     if national_id:
-                        from src.user.models import UserProfile
                         existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(id=profile.id).first()
                         if existing_profile:
                             raise ValueError(AUTH_ERRORS.get("national_id_exists"))

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from datetime import datetime
 from src.media.models.media import ImageMedia
+from src.media.utils.validators import validate_image_file
 from src.user.models import UserProfile, Province, City
 from src.user.serializers.location_serializer import ProvinceCompactSerializer, CityCompactSerializer
 from src.user.utils.national_id_validator import validate_national_id_format, validate_national_id
@@ -119,8 +120,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     def validate_profile_picture_file(self, value):
         if value is None:
             return value
-        
-        from src.media.utils.validators import validate_image_file
         
         try:
             validate_image_file(value)

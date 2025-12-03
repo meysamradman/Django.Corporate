@@ -12,6 +12,7 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses import APIResponse
 from src.user.authorization import AiManagerAccess
 from src.user.permissions import PermissionValidator
+import base64
 
 
 class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
@@ -26,14 +27,14 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
         
         if not has_permission:
             return APIResponse.error(
-                message=AI_ERRORS.get("audio_not_authorized", "You don't have permission to access AI audio"),
+                message=AI_ERRORS["audio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
         try:
             providers = AIAudioGenerationService.get_available_providers()
             return APIResponse.success(
-                message=AI_SUCCESS.get("providers_list_retrieved", "Providers retrieved successfully"),
+                message=AI_SUCCESS["providers_list_retrieved"],
                 data=providers,
                 status_code=status.HTTP_200_OK
             )
@@ -51,7 +52,7 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
         
         if not has_permission:
             return APIResponse.error(
-                message=AI_ERRORS.get("audio_not_authorized", "You don't have permission to generate AI audio"),
+                message=AI_ERRORS["audio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
@@ -59,7 +60,7 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
         
         if not serializer.is_valid():
             return APIResponse.error(
-                message=AI_ERRORS.get("prompt_invalid", "Invalid request data"),
+                message=AI_ERRORS["validation_error"],
                 errors=serializer.errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -104,7 +105,6 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
                         admin=request.user,
                     )
                 
-                import base64
                 audio_base64 = base64.b64encode(audio_bytes.getvalue()).decode('utf-8')
                 audio_data_url = f"data:audio/{validated_data.get('response_format', 'mp3')};base64,{audio_base64}"
                 

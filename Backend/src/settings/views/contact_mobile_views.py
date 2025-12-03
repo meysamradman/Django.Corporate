@@ -66,7 +66,7 @@ class ContactMobileViewSet(viewsets.ModelViewSet):
             elif "invalid" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_mobile']
             else:
-                message = SETTINGS_ERRORS.get('mobile_create_failed', SETTINGS_ERRORS['mobile_not_found'])
+                message = SETTINGS_ERRORS['mobile_create_failed']
             
             return APIResponse.error(
                 message=message,
@@ -100,7 +100,7 @@ class ContactMobileViewSet(viewsets.ModelViewSet):
             elif "invalid" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_mobile']
             else:
-                message = SETTINGS_ERRORS.get('mobile_update_failed', SETTINGS_ERRORS['mobile_not_found'])
+                message = SETTINGS_ERRORS['mobile_update_failed']
             
             return APIResponse.error(
                 message=message,
@@ -123,6 +123,6 @@ class ContactMobileViewSet(viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=SETTINGS_ERRORS.get('mobile_delete_failed', SETTINGS_ERRORS['mobile_not_found']),
+                message=SETTINGS_ERRORS['mobile_delete_failed'],
                 status_code=status.HTTP_400_BAD_REQUEST
             )

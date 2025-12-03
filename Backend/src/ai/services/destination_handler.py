@@ -2,7 +2,11 @@ from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from django.db import transaction
 
-from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
+from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS, CONTENT_ERRORS
+from src.blog.models import Blog, BlogCategory, BlogTag
+from src.blog.utils.cache import BlogCacheManager
+from src.portfolio.models import Portfolio, PortfolioCategory, PortfolioTag, PortfolioOption
+from src.portfolio.utils.cache import PortfolioCacheManager
 
 
 class ContentDestinationHandler:
@@ -40,9 +44,6 @@ class ContentDestinationHandler:
         destination_data: Dict[str, Any],
         admin
     ) -> Dict[str, Any]:
-
-        from src.blog.models import Blog, BlogCategory, BlogTag
-        
         try:
             with transaction.atomic():
 
@@ -76,7 +77,6 @@ class ContentDestinationHandler:
                     tags = BlogTag.objects.filter(id__in=tag_ids, is_active=True)
                     blog.tags.set(tags)
                 
-                from src.blog.utils.cache import BlogCacheManager
                 BlogCacheManager.invalidate_blog(blog.id)
                 
                 return {
@@ -99,9 +99,6 @@ class ContentDestinationHandler:
         destination_data: Dict[str, Any],
         admin
     ) -> Dict[str, Any]:
-
-        from src.portfolio.models import Portfolio, PortfolioCategory, PortfolioTag, PortfolioOption
-        
         try:
             with transaction.atomic():
                 base_slug = content_data.get('slug', slugify(content_data['title']))
@@ -139,7 +136,6 @@ class ContentDestinationHandler:
                     options = PortfolioOption.objects.filter(id__in=option_ids, is_active=True)
                     portfolio.options.set(options)
                 
-                from src.portfolio.utils.cache import PortfolioCacheManager
                 PortfolioCacheManager.invalidate_portfolio(portfolio.id)
                 
                 return {
@@ -157,10 +153,8 @@ class ContentDestinationHandler:
     
     @classmethod
     def _save_to_podcast(cls, content_data, destination_data, admin):
-        from src.ai.messages.messages import CONTENT_ERRORS
-        raise NotImplementedError(CONTENT_ERRORS.get("destination_not_supported", "Destination not supported").format(destination="podcast"))
+        raise NotImplementedError(CONTENT_ERRORS["destination_not_supported"].format(destination="podcast"))
     
     @classmethod
     def _save_to_custom(cls, content_data, destination_data, admin):
-        from src.ai.messages.messages import CONTENT_ERRORS
-        raise NotImplementedError(CONTENT_ERRORS.get("destination_not_supported", "Destination not supported").format(destination="custom"))
+        raise NotImplementedError(CONTENT_ERRORS["destination_not_supported"].format(destination="custom"))

@@ -22,6 +22,17 @@ FORM_FIELD_ERRORS = {
     'field_create_error': 'خطا در ایجاد فیلد: {error}',
     'field_update_error': 'خطا در به‌روزرسانی فیلد: {error}',
     'field_delete_error': 'خطا در حذف فیلد: {error}',
+    'platforms_must_be_list': 'Platforms must be a list',
+    'form_data_must_be_dict': 'Form data must be a dictionary',
+    'form_data_empty': 'Form data cannot be empty',
+    'field_key_min_length': 'Field key must be at least 2 characters',
+    'field_key_invalid_format': 'Field key must start with a letter or underscore and contain only letters, numbers and underscores',
+    'at_least_one_platform': 'At least one platform must be selected',
+    'options_must_be_list': 'Options must be a list',
+    'options_required': '{field_type} fields must have at least one option',
+    'option_must_be_dict': 'Each option must be a dictionary',
+    'option_missing_fields': 'Each option must have value and label',
+    'option_empty_fields': 'Value and label cannot be empty',
 }
 
 FORM_SUBMISSION_SUCCESS = {

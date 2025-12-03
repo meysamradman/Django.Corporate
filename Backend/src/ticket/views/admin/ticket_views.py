@@ -128,7 +128,7 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             serializer = TicketDetailSerializer(ticket)
             
             return APIResponse.success(
-                message=TICKET_SUCCESS.get('messages_marked_as_read', f"{count} message(s) marked as read"),
+                message=TICKET_SUCCESS['messages_marked_as_read'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -152,14 +152,14 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             
             if not new_status:
                 return APIResponse.error(
-                    message=TICKET_ERRORS.get('status_required', 'Status is required'),
+                    message=TICKET_ERRORS['status_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
             valid_statuses = ['open', 'in_progress', 'resolved', 'closed']
             if new_status not in valid_statuses:
                 return APIResponse.error(
-                    message=TICKET_ERRORS.get('invalid_status', f"Invalid status. Valid options: {', '.join(valid_statuses)}"),
+                    message=TICKET_ERRORS['invalid_status'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             

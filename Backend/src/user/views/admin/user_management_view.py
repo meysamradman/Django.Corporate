@@ -16,8 +16,9 @@ from src.user.serializers.admin.user_management_serializer import (
 from src.user.serializers.admin.admin_register_serializer import AdminCreateRegularUserSerializer
 from src.user.services.admin.user_management_service import UserManagementService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
-from src.user.models import User
+from src.user.models import User, UserProfile
 from src.user.auth.auth_mixin import UserAuthMixin
+from src.user.services.user.user_register_service import UserRegisterService
 from src.user.authorization import (
     AdminRolePermission,
     UserManagementPermission,
@@ -146,7 +147,6 @@ class UserManagementView(UserAuthMixin, APIView):
             )
             
         try:
-            from src.user.services.user.user_register_service import UserRegisterService
             user = UserRegisterService.register_user_from_serializer(
                 validated_data=serializer.validated_data,
                 admin_user=request.user
@@ -206,7 +206,6 @@ class UserManagementView(UserAuthMixin, APIView):
             profile_data = request.data.get('profile', {})
             national_id = profile_data.get('national_id')
             if national_id:
-                from src.user.models import UserProfile
                 existing_profile = UserProfile.objects.filter(national_id=national_id).exclude(user_id=user_id).first()
                 if existing_profile:
                     return APIResponse.error(

@@ -41,7 +41,7 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         
         return APIResponse.success(
-            message=SETTINGS_SUCCESS.get('phone_list_retrieved', SETTINGS_SUCCESS['phone_created']),
+            message=SETTINGS_SUCCESS['phone_list_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -64,7 +64,7 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
             if "invalid" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_phone']
             else:
-                message = SETTINGS_ERRORS.get('phone_create_failed', SETTINGS_ERRORS['phone_not_found'])
+                message = SETTINGS_ERRORS['phone_create_failed']
             
             return APIResponse.error(
                 message=message,
@@ -96,7 +96,7 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
             if "invalid" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_phone']
             else:
-                message = SETTINGS_ERRORS.get('phone_update_failed', SETTINGS_ERRORS['phone_not_found'])
+                message = SETTINGS_ERRORS['phone_update_failed']
             
             return APIResponse.error(
                 message=message,
@@ -119,6 +119,6 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=SETTINGS_ERRORS.get('phone_delete_failed', SETTINGS_ERRORS['phone_not_found']),
+                message=SETTINGS_ERRORS['phone_delete_failed'],
                 status_code=status.HTTP_400_BAD_REQUEST
             )

@@ -45,7 +45,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             if not user_id:
                 return APIResponse.error(
-                    message=AUTH_ERRORS.get("auth_validation_error"),
+                    message=AUTH_ERRORS["auth_validation_error"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -53,7 +53,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             if not user.is_admin_active:
                 return APIResponse.success(
-                    message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
+                    message=AUTH_SUCCESS["auth_retrieved_successfully"],
                     data={
                         'user_id': user_id,
                         'has_permission': False,
@@ -63,7 +63,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             if user.is_admin_full:
                 return APIResponse.success(
-                    message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
+                    message=AUTH_SUCCESS["auth_retrieved_successfully"],
                     data={
                         'user_id': user_id,
                         'has_permission': True,
@@ -76,7 +76,7 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
             return APIResponse.success(
-                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
+                message=AUTH_SUCCESS["auth_retrieved_successfully"],
                 data={
                     'user_id': user_id,
                     'has_permission': has_permission,
@@ -86,12 +86,12 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except User.DoesNotExist:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("auth_user_not_found"),
+                message=AUTH_ERRORS["auth_user_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("error_occurred"),
+                message=AUTH_ERRORS["error_occurred"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -102,7 +102,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             if not user_id:
                 return APIResponse.error(
-                    message=AUTH_ERRORS.get("auth_validation_error"),
+                    message=AUTH_ERRORS["auth_validation_error"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -123,7 +123,7 @@ class AdminPermissionView(viewsets.ViewSet):
             )
             
             return APIResponse.success(
-                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
+                message=AUTH_SUCCESS["auth_retrieved_successfully"],
                 data={
                     'user_id': user_id,
                     'user_email': user.email,
@@ -137,12 +137,12 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except User.DoesNotExist:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("auth_user_not_found"),
+                message=AUTH_ERRORS["auth_user_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("error_occurred"),
+                message=AUTH_ERRORS["error_occurred"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -150,13 +150,13 @@ class AdminPermissionView(viewsets.ViewSet):
     def available_modules(self, request):
         try:
             return APIResponse.success(
-                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
+                message=AUTH_SUCCESS["auth_retrieved_successfully"],
                 data=AVAILABLE_MODULES
             )
             
         except Exception as e:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("error_occurred"),
+                message=AUTH_ERRORS["error_occurred"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -164,13 +164,13 @@ class AdminPermissionView(viewsets.ViewSet):
     def available_actions(self, request):
         try:
             return APIResponse.success(
-                message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
+                message=AUTH_SUCCESS["auth_retrieved_successfully"],
                 data=AVAILABLE_ACTIONS
             )
             
         except Exception as e:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("error_occurred"),
+                message=AUTH_ERRORS["error_occurred"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

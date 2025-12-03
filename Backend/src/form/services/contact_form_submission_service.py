@@ -5,6 +5,7 @@ from django.db import transaction
 
 from src.form.models import ContactFormField
 from src.form.messages.messages import FORM_SUBMISSION_ERRORS
+from src.email.models.email_message import EmailMessage
 
 
 def validate_form_submission(form_data, platform):
@@ -81,20 +82,20 @@ def create_contact_form_submission(validated_data):
                 email = str(value) if value else ''
             elif field.field_type == 'phone' and not phone:
                 phone = str(value) if value else ''
-            elif field.field_key in ['name', 'نام'] and name == default_name:
+            elif field.field_key == 'name' and name == default_name:
                 name = str(value) if value else default_name
         if name == default_name:
-            name = form_data.get('name', form_data.get('نام', default_name))
+            name = form_data.get('name', default_name)
         if not email:
-            email = form_data.get('email', form_data.get('ایمیل', ''))
+            email = form_data.get('email', '')
         if not phone:
-            phone = form_data.get('phone', form_data.get('تلفن', form_data.get('موبایل', '')))
+            phone = form_data.get('phone', '')
         subject_parts = []
         message_lines = []
         for field in fields:
             field_key = field.field_key
             value = form_data.get(field_key, '')
-            if value and field_key not in ['name', 'نام', 'email', 'ایمیل', 'phone', 'تلفن', 'موبایل']:
+            if value and field_key not in ['name', 'email', 'phone']:
                 if len(subject_parts) < 3:
                     subject_parts.append(f"{field.label}: {str(value)[:50]}")
                 message_lines.append(f"{field.label}: {str(value)}")

@@ -77,7 +77,7 @@ class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(settings)
         return APIResponse.success(
-            message=CHATBOT_SUCCESS.get('settings_retrieved', CHATBOT_SUCCESS.get('settings_updated', '')),
+            message=CHATBOT_SUCCESS['settings_retrieved'],
             data=serializer.data
         )
     

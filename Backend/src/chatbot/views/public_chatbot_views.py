@@ -75,7 +75,7 @@ class PublicChatbotViewSet(viewsets.ViewSet):
             )
         
         return APIResponse.success(
-            message=CHATBOT_SUCCESS.get('settings_retrieved', 'تنظیمات دریافت شد.'),
+            message=CHATBOT_SUCCESS.get('settings_retrieved', 'Settings retrieved successfully.'),
             data={'is_enabled': settings.is_enabled, 'welcome_message': settings.welcome_message},
             status_code=status.HTTP_200_OK
         )

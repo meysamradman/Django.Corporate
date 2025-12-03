@@ -35,25 +35,25 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
     def validate_field_key(self, value):
         from src.form.messages.messages import FORM_FIELD_ERRORS
         if value and len(value.strip()) < 2:
-            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('field_key_min_length', 'Field key must be at least 2 characters'))
+            raise serializers.ValidationError(FORM_FIELD_ERRORS['field_key_min_length'])
         
         if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', value):
-            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('field_key_invalid_format', 'Field key must start with a letter or underscore and contain only letters, numbers and underscores'))
+            raise serializers.ValidationError(FORM_FIELD_ERRORS['field_key_invalid_format'])
         
         return value.strip()
     
     def validate_platforms(self, value):
         from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(value, list):
-            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('platforms_must_be_list', 'Platforms must be a list'))
+            raise serializers.ValidationError(FORM_FIELD_ERRORS['platforms_must_be_list'])
         
         valid_platforms = ['website', 'mobile_app']
         for platform in value:
             if platform not in valid_platforms:
-                raise serializers.ValidationError(FORM_FIELD_ERRORS.get('invalid_platform', f'Invalid platform: {platform}'))
+                raise serializers.ValidationError(FORM_FIELD_ERRORS['invalid_platform'])
         
         if not value:
-            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('at_least_one_platform', 'At least one platform must be selected'))
+            raise serializers.ValidationError(FORM_FIELD_ERRORS['at_least_one_platform'])
         
         return value
     
@@ -63,20 +63,20 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
             return value
         
         if not isinstance(value, list):
-            raise serializers.ValidationError(FORM_FIELD_ERRORS.get('options_must_be_list', 'Options must be a list'))
+            raise serializers.ValidationError(FORM_FIELD_ERRORS['options_must_be_list'])
         
         field_type = self.initial_data.get('field_type') or (self.instance.field_type if self.instance else None)
         if field_type in ['select', 'radio']:
             if not value:
-                raise serializers.ValidationError(FORM_FIELD_ERRORS.get('options_required', f'{field_type} fields must have at least one option'))
+                raise serializers.ValidationError(FORM_FIELD_ERRORS['options_required'].format(field_type=field_type))
             
             for option in value:
                 if not isinstance(option, dict):
-                    raise serializers.ValidationError(FORM_FIELD_ERRORS.get('option_must_be_dict', 'Each option must be a dictionary'))
+                    raise serializers.ValidationError(FORM_FIELD_ERRORS['option_must_be_dict'])
                 if 'value' not in option or 'label' not in option:
-                    raise serializers.ValidationError(FORM_FIELD_ERRORS.get('option_missing_fields', 'Each option must have value and label'))
+                    raise serializers.ValidationError(FORM_FIELD_ERRORS['option_missing_fields'])
                 if not option.get('value') or not option.get('label'):
-                    raise serializers.ValidationError(FORM_FIELD_ERRORS.get('option_empty_fields', 'Value and label cannot be empty'))
+                    raise serializers.ValidationError(FORM_FIELD_ERRORS['option_empty_fields'])
         
         return value
 

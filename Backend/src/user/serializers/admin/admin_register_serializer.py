@@ -1,9 +1,15 @@
 from rest_framework import serializers
 from datetime import datetime
+from django.core.exceptions import ValidationError as DjangoValidationError
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.email_validator import validate_email_address
+from src.user.utils.password_validator import validate_register_password
+from src.user.utils.phone_validator import validate_phone_number_optional
+from src.user.utils.validate_identifier import validate_identifier
 from src.user.models import User, AdminRole
+from src.user.models.location import Province, City
 from src.media.models import ImageMedia
+from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
 
@@ -75,7 +81,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS["auth_password_required"])
         
         try:
-            from src.user.utils.password_validator import validate_register_password
             validate_register_password(value)
             return value
         except Exception as e:
@@ -94,7 +99,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             return None
         
         try:
-            from src.user.utils.phone_validator import validate_phone_number_optional
             return validate_phone_number_optional(value)
         except Exception as e:
             raise serializers.ValidationError(str(e))
@@ -104,7 +108,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.media.models import ImageMedia
             media = ImageMedia.objects.get(id=value)
             return value
         except ImageMedia.DoesNotExist:
@@ -115,8 +118,6 @@ class AdminRegisterSerializer(serializers.Serializer):
     def validate_profile_picture(self, value):
         if value is None:
             return value
-        
-        from src.media.utils.validators import validate_image_file
         
         try:
             validate_image_file(value)
@@ -142,7 +143,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             return None
         
         try:
-            from src.user.models.location import Province
             province_id = int(value)
             Province.objects.get(id=province_id, is_active=True)
             return province_id
@@ -156,7 +156,6 @@ class AdminRegisterSerializer(serializers.Serializer):
             return None
         
         try:
-            from src.user.models.location import City
             city_id = int(value)
             City.objects.get(id=city_id, is_active=True)
             return city_id
@@ -219,7 +218,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.media.models import ImageMedia
             media = ImageMedia.objects.get(id=value)
             return value
         except ImageMedia.DoesNotExist:
@@ -241,7 +239,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.user.models.location import Province
             province = Province.objects.get(id=value, is_active=True)
             return value
         except Province.DoesNotExist:
@@ -254,7 +251,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.user.models.location import City
             city = City.objects.get(id=value, is_active=True)
             return value
         except City.DoesNotExist:
@@ -265,9 +261,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
     def validate_profile_picture(self, value):
         if value is None:
             return value
-        
-        from src.media.utils.validators import validate_image_file
-        from django.core.exceptions import ValidationError as DjangoValidationError
         
         try:
             validate_image_file(value)
@@ -282,7 +275,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             return None
         
         try:
-            from src.user.utils.phone_validator import validate_phone_number_optional
             return validate_phone_number_optional(value)
         except Exception as e:
             raise serializers.ValidationError(str(e))
@@ -292,7 +284,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         
         try:
-            from src.user.utils.validate_identifier import validate_identifier
             email, mobile = validate_identifier(value)
             if email:
                 return email
@@ -318,7 +309,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         identifier = data.get('identifier')
         if identifier:
             try:
-                from src.user.utils.validate_identifier import validate_identifier
                 email, mobile = validate_identifier(identifier)
                 if email:
                     data['email'] = email
@@ -331,7 +321,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'email' in data and data['email']:
             try:
-                from src.user.utils.validate_identifier import validate_identifier
                 email, mobile = validate_identifier(data['email'])
                 if email:
                     data['email'] = email
@@ -346,7 +335,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'phone' in data and data['phone']:
             try:
-                from src.user.utils.phone_validator import validate_phone_number_optional
                 data['phone'] = validate_phone_number_optional(data['phone'])
             except Exception as e:
                 raise serializers.ValidationError({
@@ -361,7 +349,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'province_id' in data and data['province_id']:
             try:
-                from src.user.models.location import Province
                 Province.objects.get(id=data['province_id'], is_active=True)
             except Province.DoesNotExist:
                 raise serializers.ValidationError({
@@ -370,7 +357,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'city_id' in data and data['city_id']:
             try:
-                from src.user.models.location import City
                 City.objects.get(id=data['city_id'], is_active=True)
             except City.DoesNotExist:
                 raise serializers.ValidationError({
@@ -382,7 +368,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'phone' in data and data['phone']:
             try:
-                from src.user.utils.phone_validator import validate_phone_number_optional
                 data['phone'] = validate_phone_number_optional(data['phone'])
             except Exception as e:
                 raise serializers.ValidationError({
@@ -391,7 +376,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'national_id' in data and data['national_id']:
             try:
-                from src.user.utils.national_id_validator import validate_national_id_format
                 data['national_id'] = validate_national_id_format(data['national_id'])
             except Exception as e:
                 raise serializers.ValidationError({
@@ -400,7 +384,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'phone' in data and data['phone']:
             try:
-                from src.user.utils.phone_validator import validate_phone_number_optional
                 data['phone'] = validate_phone_number_optional(data['phone'])
             except Exception as e:
                 raise serializers.ValidationError({
@@ -409,7 +392,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         
         if 'national_id' in data and data['national_id']:
             try:
-                from src.user.utils.national_id_validator import validate_national_id_format
                 data['national_id'] = validate_national_id_format(data['national_id'])
             except Exception as e:
                 raise serializers.ValidationError({

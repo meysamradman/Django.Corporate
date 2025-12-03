@@ -13,6 +13,13 @@ except ImportError:
     JDATETIME_AVAILABLE = False
 
 try:
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    ARABIC_RESHAPER_AVAILABLE = True
+except ImportError:
+    ARABIC_RESHAPER_AVAILABLE = False
+
+try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -75,13 +82,10 @@ class PortfolioPDFListExportService:
     
     @staticmethod
     def _process_persian_text(text):
-        try:
-            import arabic_reshaper
-            from bidi.algorithm import get_display
+        if ARABIC_RESHAPER_AVAILABLE:
             reshaped = arabic_reshaper.reshape(str(text))
             return get_display(reshaped)
-        except ImportError:
-            return str(text)
+        return str(text)
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
@@ -168,7 +172,7 @@ class PortfolioPDFListExportService:
                 process_persian_text(PDF_LABELS['active']),
                 process_persian_text(PDF_LABELS['public']),
                 process_persian_text(PDF_LABELS['featured']),
-                process_persian_text('ID'),
+                process_persian_text(PDF_LABELS['id']),
                 process_persian_text(PDF_LABELS['title'])
             ]
             
@@ -342,6 +346,5 @@ class PortfolioPDFListExportService:
             
             return response
         except Exception as e:
-            import traceback
             raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
 

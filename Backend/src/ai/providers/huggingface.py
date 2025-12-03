@@ -6,7 +6,7 @@ import os
 import json
 import re
 from .base import BaseProvider
-from src.ai.messages.messages import AI_ERRORS
+from src.ai.messages.messages import AI_ERRORS, HUGGINGFACE_PROMPTS
 from src.ai.utils.cache import AICacheKeys
 
 
@@ -33,8 +33,6 @@ class HuggingFaceProvider(BaseProvider):
     
     @staticmethod
     def get_available_models(api_key: Optional[str] = None, task_filter: Optional[str] = None, use_cache: bool = True):
-        from django.core.cache import cache
-        
         cache_key = AICacheKeys.provider_models('huggingface', task_filter)
         
         if use_cache:
@@ -43,7 +41,6 @@ class HuggingFaceProvider(BaseProvider):
                 return cached_models
         
         try:
-            import httpx
             
             url = "https://huggingface.co/api/models"
             
@@ -171,9 +168,9 @@ class HuggingFaceProvider(BaseProvider):
             return BytesIO(response.content)
             
         except httpx.ReadTimeout:
-            raise Exception(AI_ERRORS.get("image_generation_timeout", "Image generation timeout"))
+            raise Exception(AI_ERRORS["image_generation_timeout"])
         except httpx.TimeoutException:
-            raise Exception(AI_ERRORS.get("connection_timeout", "Connection timeout"))
+            raise Exception(AI_ERRORS["connection_timeout"])
         except httpx.HTTPStatusError as e:
             try:
                 error_data = e.response.json()
@@ -195,7 +192,7 @@ class HuggingFaceProvider(BaseProvider):
         except Exception as e:
             error_str = str(e)
             if 'ReadTimeout' in error_str or 'timeout' in error_str.lower():
-                raise Exception(AI_ERRORS.get("image_generation_timeout", "Image generation timeout"))
+                raise Exception(AI_ERRORS["image_generation_timeout"])
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=error_str))
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
@@ -209,7 +206,7 @@ class HuggingFaceProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = HUGGINGFACE_ERRORS["content_generation_prompt"].format(
+        full_prompt = HUGGINGFACE_PROMPTS["content_generation_prompt"].format(
             topic=prompt,
             word_count=word_count,
             tone=tone
@@ -245,10 +242,10 @@ class HuggingFaceProvider(BaseProvider):
                         generated_text = generated_text.replace(full_prompt, '').strip()
                     return generated_text.strip()
             
-            raise Exception(AI_ERRORS.get("content_generation_failed", "No content generated"))
+            raise Exception(AI_ERRORS["content_generation_failed"].format(error="No content generated"))
             
         except httpx.ReadTimeout:
-            raise Exception(AI_ERRORS.get("content_generation_timeout", "Content generation timeout"))
+            raise Exception(AI_ERRORS["content_generation_timeout"])
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -266,14 +263,14 @@ class HuggingFaceProvider(BaseProvider):
                     error_text = ""
             
             if status_code == 404:
-                raise Exception(AI_ERRORS.get("model_not_found", "Model not found").format(model=self.content_model))
+                raise Exception(AI_ERRORS["model_not_found"])
             elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
-                raise Exception(AI_ERRORS.get("huggingface_model_loading", "Model is loading"))
+                raise Exception(AI_ERRORS["huggingface_model_loading"])
             else:
                 error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=error_detail))
+                raise Exception(AI_ERRORS["content_generation_failed"].format(error=error_detail))
         except Exception as e:
-            raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -340,7 +337,7 @@ Return ONLY the JSON object, nothing else."""
                 generated_text = data.get('generated_text', '')
             
             if not generated_text:
-                raise Exception(AI_ERRORS.get("content_generation_failed", "No content generated"))
+                raise Exception(AI_ERRORS["content_generation_failed"].format(error="No content generated"))
             
             if seo_prompt in generated_text:
                 generated_text = generated_text.replace(seo_prompt, '').strip()
@@ -359,10 +356,10 @@ Return ONLY the JSON object, nothing else."""
                 if json_match:
                     seo_data = json.loads(json_match.group())
                     return seo_data
-                raise Exception(AI_ERRORS.get("json_parse_error", "JSON parse error"))
+                raise Exception(AI_ERRORS["json_parse_error"].format(error=""))
             
         except httpx.ReadTimeout:
-            raise Exception(AI_ERRORS.get("content_generation_timeout", "Content generation timeout"))
+            raise Exception(AI_ERRORS["content_generation_timeout"])
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -380,14 +377,14 @@ Return ONLY the JSON object, nothing else."""
                     error_text = ""
             
             if status_code == 404:
-                raise Exception(AI_ERRORS.get("model_not_found", "Model not found").format(model=self.content_model))
+                raise Exception(AI_ERRORS["model_not_found"])
             elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
-                raise Exception(AI_ERRORS.get("huggingface_model_loading", "Model is loading"))
+                raise Exception(AI_ERRORS["huggingface_model_loading"])
             else:
                 error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=error_detail))
+                raise Exception(AI_ERRORS["content_generation_failed"].format(error=error_detail))
         except Exception as e:
-            raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/models/{self.content_model}"
@@ -442,10 +439,10 @@ Return ONLY the JSON object, nothing else."""
                         generated_text = generated_text.replace(full_prompt, '').strip()
                     return generated_text.strip()
             
-            raise Exception(AI_ERRORS.get("chat_failed", "No response received"))
+            raise Exception(AI_ERRORS["chat_failed"].format(error="No response received"))
             
         except httpx.ReadTimeout:
-            raise Exception(AI_ERRORS.get("chat_timeout", "Chat timeout"))
+            raise Exception(AI_ERRORS["chat_timeout"])
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -463,14 +460,14 @@ Return ONLY the JSON object, nothing else."""
                     error_text = ""
             
             if status_code == 404:
-                raise Exception(AI_ERRORS.get("model_not_found", "Model not found").format(model=self.content_model))
+                raise Exception(AI_ERRORS["model_not_found"])
             elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
-                raise Exception(AI_ERRORS.get("huggingface_model_loading", "Model is loading"))
+                raise Exception(AI_ERRORS["huggingface_model_loading"])
             else:
                 error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=error_detail))
+                raise Exception(AI_ERRORS["chat_failed"].format(error=error_detail))
         except Exception as e:
-            raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=str(e)))
+            raise Exception(AI_ERRORS["chat_failed"].format(error=str(e)))
     
     def validate_api_key(self) -> bool:
         try:

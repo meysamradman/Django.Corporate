@@ -1,10 +1,14 @@
+from django.db.models import Q
+from django.core.exceptions import ValidationError
+from rest_framework.exceptions import AuthenticationFailed
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.validate_identifier import validate_identifier
 from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.user.utils.password_validator import validate_register_password
-from src.user.models import User
-from django.core.exceptions import ValidationError
-from rest_framework.exceptions import AuthenticationFailed
+from src.user.models import User, UserProfile
+from src.user.models.location import Province, City
+from src.media.models import ImageMedia
+from src.media.services.media_service import MediaService
 
 
 class UserRegisterService:
@@ -86,11 +90,8 @@ class UserRegisterService:
                 is_active=validated_data.get('is_active', True)
             )
             
-            from src.user.models import UserProfile
-            
             national_id = profile_fields.get('national_id')
             if national_id and national_id.strip():
-                from django.db.models import Q
                 existing_user_profile = UserProfile.objects.filter(
                     national_id=national_id
                 ).first()
@@ -107,7 +108,6 @@ class UserRegisterService:
                 profile_picture_media_id = profile_picture_id
             
             if profile_picture_media_id:
-                from src.media.models import ImageMedia
                 try:
                     profile_picture = ImageMedia.objects.get(id=profile_picture_media_id)
                     profile_data['profile_picture'] = profile_picture
@@ -115,14 +115,12 @@ class UserRegisterService:
                     pass
             
             if province_id:
-                from src.user.models.location import Province
                 try:
                     province = Province.objects.get(id=province_id, is_active=True)
                     profile_data['province'] = province
                 except Province.DoesNotExist:
                     pass
             if city_id:
-                from src.user.models.location import City
                 try:
                     city = City.objects.get(id=city_id, is_active=True)
                     profile_data['city'] = city
@@ -151,8 +149,6 @@ class UserRegisterService:
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, user_id):
         try:
-            from src.media.services.media_service import MediaService
-            
             media = MediaService.upload_file(
                 file=uploaded_file,
                 title=f"User profile picture - user {user_id}",

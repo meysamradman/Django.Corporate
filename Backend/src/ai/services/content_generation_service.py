@@ -23,11 +23,11 @@ class AIContentGenerationService:
     def get_provider(cls, provider_name: str, admin=None):
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
-            raise ValueError(AI_ERRORS.get("provider_not_supported", "Provider not supported").format(provider_name=provider_name))
+            raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
         
         provider = AIProvider.get_provider_by_slug(provider_name)
         if not provider:
-            raise ValueError(AI_ERRORS.get("provider_not_available", "Provider not available").format(provider_name=provider_name))
+            raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
@@ -135,7 +135,7 @@ class AIContentGenerationService:
         except ValueError as e:
             raise e
         except Exception as e:
-            raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:

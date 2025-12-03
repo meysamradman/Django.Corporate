@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Q
+from django.db.models import Q, Count
 from src.blog.models.blog import Blog
 
 
@@ -169,13 +169,11 @@ class BlogAdminFilter(django_filters.FilterSet):
             return queryset.exclude(blog_medias__is_main_image=True).distinct()
     
     def filter_media_count(self, queryset, name, value):
-        from django.db.models import Count
         return queryset.annotate(
             media_count=Count('blog_medias')
         ).filter(media_count=value)
     
     def filter_media_count_gte(self, queryset, name, value):
-        from django.db.models import Count
         return queryset.annotate(
             media_count=Count('blog_medias')
         ).filter(media_count__gte=value)
@@ -241,13 +239,11 @@ class BlogSEOFilter(django_filters.FilterSet):
     
     def filter_duplicate_meta_title(self, queryset, name, value):
         if value:
-            from django.db.models import Count
             duplicate_titles = Blog.objects.values('meta_title').annotate(
                 title_count=Count('meta_title')
             ).filter(title_count__gt=1, meta_title__isnull=False).values_list('meta_title', flat=True)
             return queryset.filter(meta_title__in=duplicate_titles)
         else:
-            from django.db.models import Count
             duplicate_titles = Blog.objects.values('meta_title').annotate(
                 title_count=Count('meta_title')
             ).filter(title_count__gt=1, meta_title__isnull=False).values_list('meta_title', flat=True)

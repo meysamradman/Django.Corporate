@@ -50,7 +50,7 @@ class AdminLoginView(APIView):
             
             if not CaptchaService.verify_captcha(captcha_id, captcha_answer):
                 return APIResponse.error(
-                    message=CAPTCHA_ERRORS.get("captcha_invalid"),
+                    message=CAPTCHA_ERRORS["captcha_invalid"],
                     status_code=400
                 )
             

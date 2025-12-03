@@ -6,6 +6,7 @@ from rest_framework.filters import SearchFilter
 
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
+from src.blog.models.blog import Blog
 from src.blog.messages.messages import BLOG_ERRORS, BLOG_SUCCESS
 from src.blog.serializers.public.blog_serializer import (
     BlogPublicListSerializer,
@@ -26,7 +27,6 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardLimitPagination
 
     def get_queryset(self):
-        from src.blog.models.blog import Blog
         return Blog.objects.published()
     
     def get_serializer_class(self):
@@ -57,7 +57,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
-            message=BLOG_SUCCESS.get('blogs_list_retrieved', 'Blogs retrieved successfully'),
+            message=BLOG_SUCCESS['blogs_list_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -69,7 +69,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if blog:
             serializer = self.get_serializer(blog)
             return APIResponse.success(
-                message=BLOG_SUCCESS.get('blog_retrieved', 'Blog retrieved successfully'),
+                message=BLOG_SUCCESS['blog_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -85,7 +85,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if blog:
             serializer = self.get_serializer(blog)
             return APIResponse.success(
-                message=BLOG_SUCCESS.get('blog_retrieved', 'Blog retrieved successfully'),
+                message=BLOG_SUCCESS['blog_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -101,7 +101,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         blogs = BlogPublicService.get_featured_blogs(limit=limit)
         serializer = BlogPublicListSerializer(blogs, many=True)
         return APIResponse.success(
-            message=BLOG_SUCCESS.get('featured_blogs_retrieved', 'Featured blogs retrieved successfully'),
+            message=BLOG_SUCCESS['featured_blogs_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -119,7 +119,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         related_blogs = BlogPublicService.get_related_blogs(blog, limit=limit)
         serializer = BlogPublicListSerializer(related_blogs, many=True)
         return APIResponse.success(
-            message=BLOG_SUCCESS.get('related_blogs_retrieved', 'Related blogs retrieved successfully'),
+            message=BLOG_SUCCESS['related_blogs_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )

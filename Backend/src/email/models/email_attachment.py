@@ -1,10 +1,10 @@
 from django.db import models
 from django.core.files.storage import default_storage
+from django.utils import timezone
 import os
 
 
 def email_attachment_upload_path(instance, filename):
-    from django.utils import timezone
     today = timezone.now().date()
     return f'email_attachments/{today.year}/{today.month:02d}/{today.day:02d}/{filename}'
 

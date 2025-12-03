@@ -1,6 +1,5 @@
 import asyncio
 import time
-import asyncio
 from typing import Optional, Dict, Any
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -13,6 +12,7 @@ from src.media.models.media import AudioMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers import OpenAIProvider
 from src.ai.messages.messages import AI_ERRORS
+from src.ai.providers.capabilities import ProviderAvailabilityManager
 
 
 class AIAudioGenerationService:
@@ -23,14 +23,11 @@ class AIAudioGenerationService:
     
     @classmethod
     def get_available_providers(cls) -> list:
-        from src.ai.providers.capabilities import ProviderAvailabilityManager
         all_providers = ProviderAvailabilityManager.get_available_providers('audio')
-
         return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_CLASSES]
     
     @classmethod
     def _get_api_key_and_config(cls, provider_name: str, admin=None) -> tuple[str, dict]:
-
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
@@ -70,7 +67,6 @@ class AIAudioGenerationService:
         config: Optional[Dict] = None,
         **kwargs
     ) -> BytesIO:
-
         provider = cls.get_provider_instance(provider_name, api_key, config)
         
         try:
@@ -88,7 +84,6 @@ class AIAudioGenerationService:
         config: Optional[Dict] = None,
         **kwargs
     ) -> BytesIO:
-
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -107,7 +102,6 @@ class AIAudioGenerationService:
         admin=None,
         **kwargs
     ) -> tuple[BytesIO, dict]:
-
         api_key, config = cls._get_api_key_and_config(provider_name, admin)
 
         tts_config = config.get('tts', {}) if isinstance(config, dict) else {}
@@ -145,7 +139,6 @@ class AIAudioGenerationService:
         admin=None,
         **kwargs
     ) -> AudioMedia | BytesIO:
-
         api_key, config = cls._get_api_key_and_config(provider_name, admin)
 
         tts_config = config.get('tts', {}) if isinstance(config, dict) else {}
@@ -173,7 +166,6 @@ class AIAudioGenerationService:
         if not save_to_db:
             return audio_bytes
         
-        import time
         filename = f"ai_generated_{provider_name}_{int(time.time())}.mp3"
         
         audio_file = InMemoryUploadedFile(

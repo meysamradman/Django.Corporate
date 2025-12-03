@@ -4,6 +4,7 @@ from django.core.cache import cache
 from .registry import PermissionRegistry, Permission
 from .config import BASE_ADMIN_PERMISSIONS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
+from src.user.models import AdminUserRole
 
 
 class PermissionValidator:
@@ -99,7 +100,6 @@ class PermissionValidator:
         
         granted = []
         
-        from src.user.models import AdminUserRole
         roles_qs = AdminUserRole.objects.filter(
             user=user, 
             is_active=True
@@ -199,7 +199,6 @@ class PermissionValidator:
         modules: Set[str] = set()
         actions: Set[str] = set()
         try:
-            from src.user.models import AdminUserRole
             roles_qs = AdminUserRole.objects.filter(
                 user=user, 
                 is_active=True

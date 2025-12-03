@@ -128,8 +128,8 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
     def validate_prompt(self, value):
         from src.ai.messages.messages import IMAGE_ERRORS
         if not value or not value.strip():
-            raise serializers.ValidationError(IMAGE_ERRORS.get("prompt_required", "Prompt cannot be empty"))
+            raise serializers.ValidationError(IMAGE_ERRORS["prompt_required"])
         if len(value.strip()) < 3:
-            raise serializers.ValidationError(IMAGE_ERRORS.get("prompt_invalid", "Prompt must be at least 3 characters"))
+            raise serializers.ValidationError(IMAGE_ERRORS["prompt_invalid"])
         return value.strip()
 

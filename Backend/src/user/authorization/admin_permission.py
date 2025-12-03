@@ -5,6 +5,7 @@ from django.conf import settings
 from typing import List, Dict, Any
 from src.user.messages import AUTH_ERRORS
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
+from src.user.permissions.permission_factory import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
 from src.user.permissions import PermissionValidator
@@ -210,7 +211,6 @@ class RequireModuleAccess(AdminRolePermission):
         super().__init__()
     
     def _normalize_module_name(self, module: str) -> List[str]:
-        from src.user.permissions.permission_factory import MODULE_MAPPINGS
         module_mappings = {}
         for base_module, related_modules in MODULE_MAPPINGS.items():
             for variant in related_modules:

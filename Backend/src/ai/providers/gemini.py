@@ -78,16 +78,16 @@ class GeminiProvider(BaseProvider):
                     error_text = ""
             
             if status_code == 403:
-                error_detail = error_msg or error_text or "دسترسی محدود شده است"
+                error_detail = error_msg or error_text or "Access denied"
                 error_lower = error_detail.lower()
                 
                 if 'api key' in error_lower or 'permission' in error_lower or 'forbidden' in error_lower or 'api_key_not_valid' in error_lower or not error_detail or status_code == 403:
-                    error_detail_formatted = error_detail if error_detail != 'دسترسی محدود شده است' else '403 Forbidden'
+                    error_detail_formatted = error_detail if error_detail != 'Access denied' else '403 Forbidden'
                     raise Exception(GEMINI_ERRORS["api_access_denied_detailed"].format(error_detail=error_detail_formatted))
                 else:
                     raise Exception(GEMINI_ERRORS["api_access_denied_simple"].format(error_detail=error_detail))
             elif status_code == 400:
-                error_detail = error_msg or error_text or "درخواست نامعتبر است"
+                error_detail = error_msg or error_text or "Invalid request"
                 raise Exception(GEMINI_ERRORS["invalid_request"].format(error_detail=error_detail))
             elif status_code == 429:
                 raise Exception(GEMINI_ERRORS["rate_limit"])
@@ -108,7 +108,7 @@ class GeminiProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = f"، {', '.join(keywords)}" if keywords else ""
+        keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
         seo_prompt = GEMINI_PROMPTS["seo_content_generation"].format(
             topic=topic,
@@ -177,16 +177,16 @@ class GeminiProvider(BaseProvider):
                     error_text = ""
             
             if status_code == 403:
-                error_detail = error_msg or error_text or "دسترسی محدود شده است"
+                error_detail = error_msg or error_text or "Access denied"
                 error_lower = error_detail.lower()
                 
                 if 'api key' in error_lower or 'permission' in error_lower or 'forbidden' in error_lower or 'api_key_not_valid' in error_lower or not error_detail or status_code == 403:
-                    error_detail_formatted = error_detail if error_detail != 'دسترسی محدود شده است' else '403 Forbidden'
+                    error_detail_formatted = error_detail if error_detail != 'Access denied' else '403 Forbidden'
                     raise Exception(GEMINI_ERRORS["api_access_denied_detailed"].format(error_detail=error_detail_formatted))
                 else:
                     raise Exception(GEMINI_ERRORS["api_access_denied_simple"].format(error_detail=error_detail))
             elif status_code == 400:
-                error_detail = error_msg or error_text or "درخواست نامعتبر است"
+                error_detail = error_msg or error_text or "Invalid request"
                 raise Exception(GEMINI_ERRORS["invalid_request"].format(error_detail=error_detail))
             elif status_code == 429:
                 raise Exception(GEMINI_ERRORS["rate_limit"])

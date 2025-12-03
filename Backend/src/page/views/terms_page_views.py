@@ -81,7 +81,7 @@ class TermsPageViewSet(viewsets.ModelViewSet):
                 message = TERMS_PAGE_ERRORS['validation_error']
                 status_code = status.HTTP_400_BAD_REQUEST
             else:
-                message = TERMS_PAGE_ERRORS.get('terms_page_update_failed', TERMS_PAGE_ERRORS['validation_error'])
+                message = TERMS_PAGE_ERRORS['terms_page_update_failed']
                 status_code = status.HTTP_400_BAD_REQUEST
             
             return APIResponse.error(
@@ -100,7 +100,7 @@ class TermsPageViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return APIResponse.error(
-            message=TERMS_PAGE_ERRORS.get('terms_page_not_found', 'Delete not allowed'),
+            message=TERMS_PAGE_ERRORS['terms_page_not_found'],
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED
         )
 

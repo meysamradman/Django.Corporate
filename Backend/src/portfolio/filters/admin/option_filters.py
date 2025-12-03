@@ -4,37 +4,37 @@ from src.portfolio.models.option import PortfolioOption
 
 
 class PortfolioOptionAdminFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method='filter_search', label='جستجو')
-    is_active = django_filters.BooleanFilter(field_name='is_active', label='وضعیت فعال')
-    is_public = django_filters.BooleanFilter(field_name='is_public', label='وضعیت عمومی')
-    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains', label='نام')
-    name_exact = django_filters.CharFilter(field_name='name', lookup_expr='exact', label='نام دقیق')
+    search = django_filters.CharFilter(method='filter_search', label='Search')
+    is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
+    is_public = django_filters.BooleanFilter(field_name='is_public', label='Public Status')
+    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains', label='Name')
+    name_exact = django_filters.CharFilter(field_name='name', lookup_expr='exact', label='Exact Name')
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
         choices=[
-            ('used', 'استفاده شده'),
-            ('unused', 'استفاده نشده'),
-            ('popular', 'محبوب (بیش از 3 نمونه کار)')
+            ('used', 'Used'),
+            ('unused', 'Unused'),
+            ('popular', 'Popular (More than 3 portfolios)')
         ],
-        label='وضعیت استفاده'
+        label='Usage Status'
     )
     portfolio_count_min = django_filters.NumberFilter(
         method='filter_portfolio_count_min',
-        label='حداقل تعداد نمونه کار'
+        label='Min Portfolio Count'
     )
     portfolio_count_max = django_filters.NumberFilter(
         method='filter_portfolio_count_max',
-        label='حداکثر تعداد نمونه کار'
+        label='Max Portfolio Count'
     )
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
-        label='ایجاد شده بعد از'
+        label='Created After'
     )
     created_before = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='lte',
-        label='ایجاد شده قبل از'
+        label='Created Before'
     )
     
     class Meta:

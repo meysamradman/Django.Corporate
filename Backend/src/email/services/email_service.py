@@ -43,14 +43,14 @@ class EmailService:
             })
             
             text_content = f"""
-{EMAIL_TEXT['greeting']} {recipient_name}،
+{EMAIL_TEXT['greeting']} {recipient_name},
 
 {reply_text}
 
 {EMAIL_TEXT['original_message_label']}
 {original_message or EMAIL_TEXT['original_message_not_found']}
 
-{EMAIL_TEXT['thanks']}،
+{EMAIL_TEXT['thanks']},
 {EMAIL_TEXT['team']} {company_name}
             """
             

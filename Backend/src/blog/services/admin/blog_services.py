@@ -3,10 +3,13 @@ from django.core.paginator import Paginator
 from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
 from src.blog.models.blog import Blog
-from src.blog.utils.cache import BlogCacheManager
+from src.blog.utils.cache import BlogCacheManager, BlogCacheKeys
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.blog.services.admin import BlogAdminMediaService
 
 
 class BlogAdminService:
@@ -123,7 +126,6 @@ class BlogAdminService:
         blog = BlogAdminService.create_blog(validated_data, created_by)
         
         if media_files:
-            from src.blog.services.admin import BlogAdminMediaService
             result = BlogAdminMediaService.add_media_bulk(
                 blog_id=blog.id,
                 media_files=media_files,
@@ -191,7 +193,6 @@ class BlogAdminService:
     
     @staticmethod
     def get_seo_report():
-        from src.blog.utils.cache import BlogCacheKeys
         cache_key = BlogCacheKeys.seo_report()
         cached_report = cache.get(cache_key)
         if cached_report:
@@ -260,8 +261,6 @@ class BlogAdminService:
     
     @staticmethod
     def bulk_delete_blogs(blog_ids):
-        from django.core.exceptions import ValidationError
-        
         if not blog_ids:
             raise ValidationError("Blog IDs required")
         

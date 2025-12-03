@@ -4,55 +4,55 @@ from src.blog.models.category import BlogCategory
 
 
 class BlogCategoryAdminFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method='filter_search', label='جستجو')
-    is_active = django_filters.BooleanFilter(field_name='is_active', label='وضعیت فعال')
-    is_public = django_filters.BooleanFilter(field_name='is_public', label='وضعیت عمومی')
-    level = django_filters.NumberFilter(field_name='depth', label='سطح درخت')
-    level_min = django_filters.NumberFilter(field_name='depth', lookup_expr='gte', label='حداقل سطح')
-    level_max = django_filters.NumberFilter(field_name='depth', lookup_expr='lte', label='حداکثر سطح')
+    search = django_filters.CharFilter(method='filter_search', label='Search')
+    is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
+    is_public = django_filters.BooleanFilter(field_name='is_public', label='Public Status')
+    level = django_filters.NumberFilter(field_name='depth', label='Tree Level')
+    level_min = django_filters.NumberFilter(field_name='depth', lookup_expr='gte', label='Min Level')
+    level_max = django_filters.NumberFilter(field_name='depth', lookup_expr='lte', label='Max Level')
     parent = django_filters.ModelChoiceFilter(
         method='filter_parent',
         queryset=BlogCategory.objects.filter(is_active=True),
-        label='دسته‌بندی والد'
+        label='Parent Category'
     )
-    is_root = django_filters.BooleanFilter(method='filter_root', label='فقط دسته‌های اصلی')
-    has_children = django_filters.BooleanFilter(method='filter_has_children', label='دارای زیردسته')
+    is_root = django_filters.BooleanFilter(method='filter_root', label='Root Categories Only')
+    has_children = django_filters.BooleanFilter(method='filter_has_children', label='Has Children')
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
         choices=[
-            ('used', 'استفاده شده'),
-            ('unused', 'استفاده نشده'),
-            ('popular', 'محبوب (بیش از 5 نمونه کار)')
+            ('used', 'Used'),
+            ('unused', 'Unused'),
+            ('popular', 'Popular (More than 5 blogs)')
         ],
-        label='وضعیت استفاده'
+        label='Usage Status'
     )
     blog_count_min = django_filters.NumberFilter(
         method='filter_blog_count_min',
-        label='حداقل تعداد نمونه کار'
+        label='Min Blog Count'
     )
     blog_count_max = django_filters.NumberFilter(
         method='filter_blog_count_max',
-        label='حداکثر تعداد نمونه کار'
+        label='Max Blog Count'
     )
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
-        label='ایجاد شده بعد از'
+        label='Created After'
     )
     created_before = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='lte',
-        label='ایجاد شده قبل از'
+        label='Created Before'
     )
-    has_image = django_filters.BooleanFilter(method='filter_has_image', label='دارای تصویر')
+    has_image = django_filters.BooleanFilter(method='filter_has_image', label='Has Image')
     seo_status = django_filters.ChoiceFilter(
         method='filter_seo_status',
         choices=[
-            ('complete', 'SEO کامل'),
-            ('incomplete', 'SEO ناقص'),
-            ('missing', 'بدون SEO')
+            ('complete', 'Complete SEO'),
+            ('incomplete', 'Incomplete SEO'),
+            ('missing', 'No SEO')
         ],
-        label='وضعیت SEO'
+        label='SEO Status'
     )
     
     class Meta:

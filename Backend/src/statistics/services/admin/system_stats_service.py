@@ -1,3 +1,4 @@
+import os
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import connection
@@ -150,7 +151,6 @@ class SystemStatsService:
                             'vendor': 'mysql',
                         }
                 elif vendor == 'sqlite':
-                    import os
                     db_path = connection.settings_dict['NAME']
                     if os.path.exists(db_path):
                         size_bytes = os.path.getsize(db_path)

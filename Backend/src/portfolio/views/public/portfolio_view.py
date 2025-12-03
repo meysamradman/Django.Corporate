@@ -6,6 +6,7 @@ from rest_framework.filters import SearchFilter
 
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
+from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS, PORTFOLIO_SUCCESS
 from src.portfolio.serializers.public.portfolio_serializer import (
     PortfolioPublicListSerializer,
@@ -26,7 +27,6 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardLimitPagination
 
     def get_queryset(self):
-        from src.portfolio.models.portfolio import Portfolio
         return Portfolio.objects.published()
     
     def get_serializer_class(self):
@@ -57,7 +57,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
-            message=PORTFOLIO_SUCCESS.get('portfolios_list_retrieved', 'Portfolios retrieved successfully'),
+            message=PORTFOLIO_SUCCESS['portfolios_list_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -69,7 +69,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if portfolio:
             serializer = self.get_serializer(portfolio)
             return APIResponse.success(
-                message=PORTFOLIO_SUCCESS.get('portfolio_retrieved', 'Portfolio retrieved successfully'),
+                message=PORTFOLIO_SUCCESS['portfolio_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -85,7 +85,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if portfolio:
             serializer = self.get_serializer(portfolio)
             return APIResponse.success(
-                message=PORTFOLIO_SUCCESS.get('portfolio_retrieved', 'Portfolio retrieved successfully'),
+                message=PORTFOLIO_SUCCESS['portfolio_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -101,7 +101,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         portfolios = PortfolioPublicService.get_featured_portfolios(limit=limit)
         serializer = PortfolioPublicListSerializer(portfolios, many=True)
         return APIResponse.success(
-            message=PORTFOLIO_SUCCESS.get('featured_portfolios_retrieved', 'Featured portfolios retrieved successfully'),
+            message=PORTFOLIO_SUCCESS['featured_portfolios_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -119,7 +119,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         related_portfolios = PortfolioPublicService.get_related_portfolios(portfolio, limit=limit)
         serializer = PortfolioPublicListSerializer(related_portfolios, many=True)
         return APIResponse.success(
-            message=PORTFOLIO_SUCCESS.get('related_portfolios_retrieved', 'Related portfolios retrieved successfully'),
+            message=PORTFOLIO_SUCCESS['related_portfolios_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )

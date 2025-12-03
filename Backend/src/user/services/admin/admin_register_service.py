@@ -1,17 +1,21 @@
+from django.db.models import Q
+from django.core.exceptions import ValidationError
+from rest_framework.exceptions import AuthenticationFailed
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.user.utils.password_validator import validate_register_password
-from src.user.models import User, AdminProfile
-from django.core.exceptions import ValidationError
-from rest_framework.exceptions import AuthenticationFailed
+from src.user.models import User, AdminProfile, UserProfile, AdminUserRole, AdminRole
+from src.user.models.location import Province, City
+from src.media.models import ImageMedia
+from src.media.services.media_service import MediaService
 
 
 class AdminRegisterService:
     @classmethod
     def register_admin(cls, mobile, password, email=None, admin_user=None):
         if not admin_user:
-            raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise ValidationError(AUTH_ERRORS["auth_validation_error"])
             
         if not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
@@ -108,8 +112,6 @@ class AdminRegisterService:
             
             national_id = profile_fields.get('national_id')
             if national_id and national_id.strip():
-                from src.user.models import UserProfile
-                from django.db.models import Q
                 existing_admin_profile = AdminProfile.objects.filter(
                     national_id=national_id
                 ).first()
@@ -127,7 +129,6 @@ class AdminRegisterService:
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
             if 'province_id' in profile_data:
-                from src.user.models.location import Province
                 try:
                     province = Province.objects.get(id=profile_data['province_id'])
                     profile_data['province'] = province
@@ -136,7 +137,6 @@ class AdminRegisterService:
                     del profile_data['province_id']
             
             if 'city_id' in profile_data:
-                from src.user.models.location import City
                 try:
                     city = City.objects.get(id=profile_data['city_id'])
                     profile_data['city'] = city
@@ -178,8 +178,6 @@ class AdminRegisterService:
             
             national_id = profile_fields.get('national_id')
             if national_id and national_id.strip():
-                from src.user.models import UserProfile
-                from django.db.models import Q
                 existing_admin_profile = AdminProfile.objects.filter(
                     national_id=national_id
                 ).first()
@@ -197,7 +195,6 @@ class AdminRegisterService:
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
             if 'province_id' in profile_data:
-                from src.user.models.location import Province
                 try:
                     province = Province.objects.get(id=profile_data['province_id'])
                     profile_data['province'] = province
@@ -206,7 +203,6 @@ class AdminRegisterService:
                     del profile_data['province_id']
             
             if 'city_id' in profile_data:
-                from src.user.models.location import City
                 try:
                     city = City.objects.get(id=profile_data['city_id'])
                     profile_data['city'] = city
@@ -229,14 +225,13 @@ class AdminRegisterService:
             )
             
         else:
-            raise ValidationError(AUTH_ERRORS.get("auth_email_or_mobile_required"))
+            raise ValidationError(AUTH_ERRORS["auth_email_or_mobile_required"])
 
         validate_register_password(password)
         admin.set_password(password)
         admin.save()
         
         if role_id and admin.user_type == 'admin':
-            from src.user.models import AdminRole, AdminUserRole
             try:
                 role = AdminRole.objects.get(id=role_id, is_active=True)
                 AdminUserRole.objects.create(
@@ -253,8 +248,6 @@ class AdminRegisterService:
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):
         try:
-            from src.media.services.media_service import MediaService
-            
             media = MediaService.upload_file(
                 file=uploaded_file,
                 title=f"Admin profile picture - admin {admin_id}",

@@ -7,6 +7,19 @@ from django.http import HttpResponse
 from django.conf import settings
 
 try:
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    ARABIC_RESHAPER_AVAILABLE = True
+except ImportError:
+    ARABIC_RESHAPER_AVAILABLE = False
+
+try:
+    from PIL import Image as PILImage
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+
+try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -75,13 +88,10 @@ class PortfolioPDFExportService:
     
     @staticmethod
     def _process_persian_text(text):
-        try:
-            import arabic_reshaper
-            from bidi.algorithm import get_display
+        if ARABIC_RESHAPER_AVAILABLE:
             reshaped = arabic_reshaper.reshape(str(text))
             return get_display(reshaped)
-        except ImportError:
-            return str(text)
+        return str(text)
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
@@ -93,7 +103,7 @@ class PortfolioPDFExportService:
             fontSize=28,
             textColor=PortfolioPDFExportService.TEXT_PRIMARY,
             spaceAfter=30,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=32,
             borderPadding=10,
@@ -106,7 +116,7 @@ class PortfolioPDFExportService:
             textColor=PortfolioPDFExportService.PRIMARY_COLOR,
             spaceAfter=12,
             spaceBefore=20,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=20,
             borderWidth=0,
@@ -123,7 +133,7 @@ class PortfolioPDFExportService:
             fontSize=11,
             textColor=PortfolioPDFExportService.TEXT_PRIMARY,
             spaceAfter=10,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=16,
         )
@@ -134,7 +144,7 @@ class PortfolioPDFExportService:
             fontSize=12,
             textColor=PortfolioPDFExportService.TEXT_PRIMARY,
             spaceAfter=16,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=18,
             leftIndent=20,
@@ -173,7 +183,9 @@ class PortfolioPDFExportService:
                     return None
                 return None
             
-            from PIL import Image as PILImage
+            if not PIL_AVAILABLE:
+                return None
+            
             img = PILImage.open(file_path)
             img_width, img_height = img.size
             
@@ -595,6 +607,5 @@ class PortfolioPDFExportService:
             
             return response
         except Exception as e:
-            import traceback
             raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
     

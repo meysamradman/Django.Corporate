@@ -43,7 +43,7 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.tag.read'):
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to view blog tags"),
+                message=TAG_ERRORS["tag_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         filters = {
@@ -88,7 +88,7 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.tag.create'):
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to create blog tags"),
+                message=TAG_ERRORS["tag_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         serializer = self.get_serializer(data=request.data)
@@ -109,7 +109,7 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.tag.read'):
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to view blog tags"),
+                message=TAG_ERRORS["tag_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         tag = BlogTagAdminService.get_tag_by_id(kwargs.get('pk'))

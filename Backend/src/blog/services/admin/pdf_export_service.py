@@ -3,8 +3,22 @@ from datetime import datetime
 from html import escape
 import os
 import platform
+import traceback
 from django.http import HttpResponse
 from django.conf import settings
+
+try:
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    ARABIC_RESHAPER_AVAILABLE = True
+except ImportError:
+    ARABIC_RESHAPER_AVAILABLE = False
+
+try:
+    from PIL import Image as PILImage
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 try:
     from reportlab.lib import colors
@@ -75,13 +89,10 @@ class BlogPDFExportService:
     
     @staticmethod
     def _process_persian_text(text):
-        try:
-            import arabic_reshaper
-            from bidi.algorithm import get_display
+        if ARABIC_RESHAPER_AVAILABLE:
             reshaped = arabic_reshaper.reshape(str(text))
             return get_display(reshaped)
-        except ImportError:
-            return str(text)
+        return str(text)
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
@@ -173,7 +184,9 @@ class BlogPDFExportService:
                     return None
                 return None
             
-            from PIL import Image as PILImage
+            if not PIL_AVAILABLE:
+                return None
+            
             img = PILImage.open(file_path)
             img_width, img_height = img.size
             
@@ -573,6 +586,5 @@ class BlogPDFExportService:
             
             return response
         except Exception as e:
-            import traceback
             raise Exception(BLOG_ERRORS["blog_export_failed"])
     

@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 from django.core.cache import cache
 from django.db.models import Q
 from django.http import HttpResponse
@@ -41,7 +42,6 @@ class BlogExportView(APIView):
         response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type'
     
     def perform_content_negotiation(self, request, force=False):
-        from rest_framework.renderers import JSONRenderer
         return (JSONRenderer(), JSONRenderer().media_type)
     
     def dispatch(self, request, *args, **kwargs):

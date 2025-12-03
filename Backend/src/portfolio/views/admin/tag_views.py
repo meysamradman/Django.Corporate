@@ -43,7 +43,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.tag.read'):
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to view portfolio tags"),
+                message=TAG_ERRORS["tag_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         filters = {
@@ -88,7 +88,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.tag.create'):
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to create portfolio tags"),
+                message=TAG_ERRORS["tag_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         serializer = self.get_serializer(data=request.data)
@@ -109,7 +109,7 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.tag.read'):
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to view portfolio tags"),
+                message=TAG_ERRORS["tag_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         tag = PortfolioTagAdminService.get_tag_by_id(kwargs.get('pk'))

@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.core.cache import cache
 from src.core.responses import APIResponse
+from src.core.messages.messages import CORE_SUCCESS
 
 class UploadSettingsView(APIView):
     permission_classes = [AllowAny]
@@ -17,7 +18,7 @@ class UploadSettingsView(APIView):
         if cached_data:
             return APIResponse.success(
                 data=cached_data,
-                message="Media upload settings retrieved successfully"
+                message=CORE_SUCCESS["upload_settings_retrieved"]
             )
         
         settings_data = {
@@ -35,5 +36,5 @@ class UploadSettingsView(APIView):
         
         return APIResponse.success(
             data=settings_data,
-            message="Media upload settings retrieved successfully"
+            message=CORE_SUCCESS["upload_settings_retrieved"]
         )

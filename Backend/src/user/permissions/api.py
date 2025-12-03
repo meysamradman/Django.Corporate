@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.core.cache import cache
 from src.core.responses.response import APIResponse
+from src.user.utils.cache import UserCacheKeys
 from .registry import PermissionRegistry
 from .validator import PermissionValidator
 from .config import BASE_ADMIN_PERMISSIONS
@@ -13,7 +14,6 @@ from src.user.messages.permission import PERMISSION_SUCCESS, PERMISSION_ERRORS
 @permission_classes([IsAuthenticated])
 def get_permission_map(request):
     try:
-        from src.user.utils.cache import UserCacheKeys
         cache_key_all_perms = UserCacheKeys.permission_map()
         all_permissions = cache.get(cache_key_all_perms)
         if all_permissions is None:

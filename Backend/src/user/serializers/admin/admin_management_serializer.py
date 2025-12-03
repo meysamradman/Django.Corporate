@@ -1,13 +1,17 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from datetime import datetime
+from django.db.models import Q
 from src.user.models import User, AdminRole
 from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
 from src.media.models import ImageMedia
+from src.media.utils.validators import validate_image_file
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
-from django.db.models import Q
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
+from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
+from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
+from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
 
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
@@ -25,10 +29,8 @@ class AdminListSerializer(serializers.ModelSerializer):
     
     def get_profile(self, obj):
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
-            from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
         elif obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
-            from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
             return UserProfileSerializer(obj.user_profile, context=self.context).data
         return None
     
@@ -113,10 +115,8 @@ class AdminDetailSerializer(serializers.ModelSerializer):
     
     def get_profile(self, obj):
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
-            from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
         elif obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
-            from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
             return UserProfileSerializer(obj.user_profile, context=self.context).data
         return None
     
@@ -246,8 +246,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         if value is None:
             return value
         
-        from src.media.utils.validators import validate_image_file
-        
         try:
             validate_image_file(value)
             return value
@@ -259,7 +257,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             return value
         
         try:
-            from src.media.models import ImageMedia
             image_media = ImageMedia.objects.get(id=value, is_active=True)
             return value
         except ImageMedia.DoesNotExist:
@@ -272,7 +269,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             user_id = self.context.get('user_id')
             try:
                 validate_email_address(value)
-                from django.db.models import Q
                 if User.objects.filter(~Q(id=user_id), email=value).exists():
                     raise serializers.ValidationError(AUTH_ERRORS["auth_email_exists"])
             except ValidationError:
@@ -286,7 +282,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             user_id = self.context.get('user_id')
             try:
                 validated_mobile = validate_mobile_number(value)
-                from django.db.models import Q
                 if User.objects.filter(~Q(id=user_id), mobile=validated_mobile).exists():
                     raise serializers.ValidationError(AUTH_ERRORS["auth_mobile_exists"])
                 return validated_mobile
@@ -300,7 +295,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         
         try:
             role_id = int(value)
-            from src.user.models import AdminRole
             AdminRole.objects.get(id=role_id, is_active=True)
             return role_id
         except (ValueError, TypeError):
@@ -320,7 +314,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         
         if user_id:
             try:
-                from src.user.models import User
                 user = User.objects.get(id=user_id)
                 
                 if hasattr(user, 'admin_profile') and user.admin_profile:
@@ -332,7 +325,6 @@ class AdminUpdateSerializer(serializers.Serializer):
                     
                     context_with_user_id = self.context.copy()
                     context_with_user_id['admin_user_id'] = user_id
-                    from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
                     temp_serializer = AdminProfileUpdateSerializer(
                         instance=user.admin_profile,
                         data=profile_data,

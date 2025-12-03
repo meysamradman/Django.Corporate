@@ -21,7 +21,7 @@ class PortfolioExcelExportService:
         workbook = xlsxwriter.Workbook(output, {
             'in_memory': True, 
             'default_date_format': 'yyyy-mm-dd hh:mm:ss',
-            'remove_timezone': True  # Remove timezone from datetime objects for Excel compatibility
+            'remove_timezone': True
         })
         worksheet = workbook.add_worksheet('Portfolios')
         

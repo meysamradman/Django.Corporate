@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -41,7 +42,7 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.read'):
             return APIResponse.error(
-                message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to view portfolio options"),
+                message=OPTION_ERRORS["option_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         filters = {
@@ -86,7 +87,7 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.create'):
             return APIResponse.error(
-                message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to create portfolio options"),
+                message=OPTION_ERRORS["option_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         serializer = self.get_serializer(data=request.data)
@@ -119,7 +120,7 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.read'):
             return APIResponse.error(
-                message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to view portfolio options"),
+                message=OPTION_ERRORS["option_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         option = PortfolioOptionAdminService.get_option_by_id(kwargs.get('pk'))
@@ -287,8 +288,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def grouped(self, request):
-        from collections import defaultdict
-        
         options_by_key = defaultdict(list)
         options = PortfolioOption.objects.with_portfolio_counts().order_by('key', 'value')
         

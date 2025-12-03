@@ -5,12 +5,12 @@ from src.user.serializers.admin import AdminRegisterSerializer
 
 def admin_register_schema(view_func):
     return extend_schema(
-        summary="ثبت‌نام ادمین",
-        description="این API برای ایجاد یک کاربر ادمین جدید استفاده می‌شود.",
+        summary="Admin Registration",
+        description="This API is used to create a new admin user.",
         request=AdminRegisterSerializer,
         responses={
             201: OpenApiResponse(
-                description="پاسخ موفقیت‌آمیز در صورت ثبت‌نام موفق",
+                description="Successful response if registration is successful",
                 examples=[
                     OpenApiExample(
                         name="Successful Response",
@@ -36,7 +36,7 @@ def admin_register_schema(view_func):
                 ]
             ),
             400: OpenApiResponse(
-                description="خطاهای اعتبارسنجی در صورت ارسال داده نامعتبر.",
+                description="Validation errors if invalid data is sent.",
             )
         }
     )(view_func)

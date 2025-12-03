@@ -1,11 +1,18 @@
 from django.db.models import Q, Prefetch
+from django.core.cache import cache
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage
+from src.portfolio.utils.cache import PortfolioCacheKeys
 
 
 class PortfolioPublicService:
     @staticmethod
     def get_portfolio_queryset(filters=None, search=None):
+        cache_key = f"portfolio_public_list:{filters}:{search}"
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
         queryset = Portfolio.objects.filter(
             is_active=True,
             is_public=True
@@ -40,11 +47,18 @@ class PortfolioPublicService:
                 Q(tags__name__icontains=search)
             ).distinct()
         
-        return queryset.order_by('-is_featured', '-created_at')
+        queryset = queryset.order_by('-is_featured', '-created_at')
+        cache.set(cache_key, queryset, 300)
+        return queryset
     
     @staticmethod
     def get_portfolio_by_slug(slug):
-        return Portfolio.objects.filter(
+        cache_key = PortfolioCacheKeys.portfolio(f"public_slug_{slug}")
+        cached_portfolio = cache.get(cache_key)
+        if cached_portfolio is not None:
+            return cached_portfolio
+        
+        portfolio = Portfolio.objects.filter(
             slug=slug,
             is_active=True,
             is_public=True
@@ -59,10 +73,19 @@ class PortfolioPublicService:
             'audios__audio',
             'documents__document'
         ).first()
+        
+        if portfolio:
+            cache.set(cache_key, portfolio, 600)
+        return portfolio
     
     @staticmethod
     def get_portfolio_by_public_id(public_id):
-        return Portfolio.objects.filter(
+        cache_key = PortfolioCacheKeys.portfolio(f"public_id_{public_id}")
+        cached_portfolio = cache.get(cache_key)
+        if cached_portfolio is not None:
+            return cached_portfolio
+        
+        portfolio = Portfolio.objects.filter(
             public_id=public_id,
             is_active=True,
             is_public=True
@@ -77,10 +100,19 @@ class PortfolioPublicService:
             'audios__audio',
             'documents__document'
         ).first()
+        
+        if portfolio:
+            cache.set(cache_key, portfolio, 600)
+        return portfolio
     
     @staticmethod
     def get_featured_portfolios(limit=6):
-        return Portfolio.objects.filter(
+        cache_key = f"portfolio_public_featured_{limit}"
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
+        portfolios = Portfolio.objects.filter(
             is_active=True,
             is_public=True,
             is_featured=True
@@ -95,11 +127,19 @@ class PortfolioPublicService:
                 ).select_related('image')
             )
         ).order_by('-created_at')[:limit]
+        
+        cache.set(cache_key, portfolios, 300)
+        return portfolios
     
     @staticmethod
     def get_related_portfolios(portfolio, limit=4):
+        cache_key = f"portfolio_public_related_{portfolio.id}_{limit}"
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
         category_ids = portfolio.categories.values_list('id', flat=True)
-        return Portfolio.objects.filter(
+        portfolios = Portfolio.objects.filter(
             is_active=True,
             is_public=True,
             categories__id__in=category_ids
@@ -116,3 +156,6 @@ class PortfolioPublicService:
                 ).select_related('image')
             )
         ).distinct().order_by('-created_at')[:limit]
+        
+        cache.set(cache_key, portfolios, 300)
+        return portfolios

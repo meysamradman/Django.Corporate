@@ -271,7 +271,7 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
                 attrs['provider_id'] = provider.id
             except AIProvider.DoesNotExist:
                 raise serializers.ValidationError({
-                    'provider_name': IMAGE_ERRORS.get('provider_not_found_or_inactive', 'Provider not found or inactive')
+                    'provider_name': IMAGE_ERRORS['provider_not_found_or_inactive']
                 })
             attrs.pop('provider_name')
         

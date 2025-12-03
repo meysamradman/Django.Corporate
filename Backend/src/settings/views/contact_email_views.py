@@ -66,7 +66,7 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
             elif "invalid" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_email']
             else:
-                message = SETTINGS_ERRORS.get('email_create_failed', SETTINGS_ERRORS['email_not_found'])
+                message = SETTINGS_ERRORS['email_create_failed']
             
             return APIResponse.error(
                 message=message,
@@ -100,7 +100,7 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
             elif "invalid" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_email']
             else:
-                message = SETTINGS_ERRORS.get('email_update_failed', SETTINGS_ERRORS['email_not_found'])
+                message = SETTINGS_ERRORS['email_update_failed']
             
             return APIResponse.error(
                 message=message,
@@ -123,6 +123,6 @@ class ContactEmailViewSet(viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=SETTINGS_ERRORS.get('email_delete_failed', SETTINGS_ERRORS['email_not_found']),
+                message=SETTINGS_ERRORS['email_delete_failed'],
                 status_code=status.HTTP_400_BAD_REQUEST
             )

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from src.ticket.models.ticket_message import TicketMessage
 from src.ticket.models.ticket_attachment import TicketAttachment
+from src.ticket.messages.messages import TICKET_ERRORS
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.user.serializers.user.user_public_serializer import UserPublicSerializer
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from .ticket_attachment_serializer import TicketAttachmentSerializer
@@ -54,7 +56,7 @@ class TicketMessageCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         sender_type = attrs.get('sender_type')
         if sender_type not in ['user', 'admin']:
-            raise serializers.ValidationError("sender_type must be 'user' or 'admin'")
+            raise serializers.ValidationError(TICKET_ERRORS['invalid_sender_type'])
         return attrs
     
     def create(self, validated_data):
@@ -71,8 +73,6 @@ class TicketMessageCreateSerializer(serializers.ModelSerializer):
         message = TicketMessage.objects.create(**validated_data)
         
         if attachment_ids:
-            from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
-            
             for media_id in attachment_ids:
                 attachment = TicketAttachment(ticket_message=message)
                 

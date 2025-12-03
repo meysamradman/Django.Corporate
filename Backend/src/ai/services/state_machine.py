@@ -1,8 +1,9 @@
 from enum import Enum
 
+from src.ai.models import AdminProviderSettings
+
 
 class ModelAccessState(str, Enum):
-
     AVAILABLE_SHARED = "available_shared"
     AVAILABLE_PERSONAL = "available_personal"
     NO_ACCESS = "no_access"
@@ -10,7 +11,6 @@ class ModelAccessState(str, Enum):
     
     @classmethod
     def calculate(cls, provider, model, admin):
-
         if model and not model.is_active:
             return cls.DISABLED
 
@@ -19,8 +19,6 @@ class ModelAccessState(str, Enum):
         
         if getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False):
             return cls.AVAILABLE_SHARED
-        
-        from src.ai.models import AdminProviderSettings
         
         settings = AdminProviderSettings.objects.filter(
             admin=admin,

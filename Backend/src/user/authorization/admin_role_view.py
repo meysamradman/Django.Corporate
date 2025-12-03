@@ -3,7 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.authentication import SessionAuthentication
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from django.db import transaction, models
+from django.db.models import Count
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -24,6 +26,9 @@ from .admin_permission import (
     AdminPermissionCache
 )
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS, AVAILABLE_MODULES, AVAILABLE_ACTIONS, get_permissions_by_module
+from src.user.permissions.validator import PermissionValidator
+from src.user.permissions.helpers import PermissionHelper
+from src.user.utils.cache import UserCacheManager
 from src.user.authorization.role_utils import create_default_admin_roles, get_role_summary
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
 
@@ -43,7 +48,6 @@ class AdminRoleView(viewsets.ViewSet):
             order_by = request.query_params.get('order_by', 'created_at')
             order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
             
-            from django.db.models import Count
             queryset = AdminRole.objects.annotate(
                 users_count=Count('adminuserrole', filter=models.Q(adminuserrole__is_active=True))
             )
@@ -168,15 +172,10 @@ class AdminRoleView(viewsets.ViewSet):
                 user_roles = AdminUserRole.objects.filter(role=role, is_active=True)
                 for user_role in user_roles:
                     user_role.update_permissions_cache()
-                    from src.user.permissions.validator import PermissionValidator
-                    from src.user.permissions.helpers import PermissionHelper
-                    from django.core.cache import cache
                     
                     AdminPermissionCache.clear_user_cache(user_role.user_id)
                     PermissionValidator.clear_user_cache(user_role.user_id)
                     PermissionHelper.clear_user_cache(user_role.user_id)
-                    
-                    from src.user.utils.cache import UserCacheManager
                     UserCacheManager.invalidate_profile(user_role.user_id)
             
             return APIResponse.success(
@@ -288,14 +287,9 @@ class AdminRoleView(viewsets.ViewSet):
                     except Exception as e:
                         raise Exception(ROLE_ERRORS["error_assigning_role"].format(role_name=role.display_name, role_id=role.id, error=str(e)))
                 
-                from src.user.permissions.validator import PermissionValidator
-                from src.user.permissions.helpers import PermissionHelper
-                
                 AdminPermissionCache.clear_user_cache(user_id)
                 PermissionValidator.clear_user_cache(user_id)
                 PermissionHelper.clear_user_cache(user_id)
-                
-                from src.user.utils.cache import UserCacheManager
                 UserCacheManager.invalidate_profile(user_id)
             
             return APIResponse.success(
@@ -350,14 +344,9 @@ class AdminRoleView(viewsets.ViewSet):
                 assignment.is_active = False
                 assignment.save()
                 
-                from src.user.permissions.validator import PermissionValidator
-                from src.user.permissions.helpers import PermissionHelper
-                
                 AdminPermissionCache.clear_user_cache(int(user_id))
                 PermissionValidator.clear_user_cache(int(user_id))
                 PermissionHelper.clear_user_cache(int(user_id))
-                
-                from src.user.utils.cache import UserCacheManager
                 UserCacheManager.invalidate_profile(user_id)
             
             return APIResponse.success(
@@ -553,8 +542,6 @@ class AdminRoleView(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def permissions(self, request):
         try:
-            from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
-            
             modules = AVAILABLE_MODULES
             
             permission_groups = []

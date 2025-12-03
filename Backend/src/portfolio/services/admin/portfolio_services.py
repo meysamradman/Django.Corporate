@@ -1,10 +1,12 @@
 from django.db.models import Prefetch, Count, Q
 from django.core.paginator import Paginator
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.utils.cache import PortfolioCacheManager
+from src.portfolio.services.admin import PortfolioAdminMediaService
+from src.portfolio.utils.cache import PortfolioCacheManager, PortfolioCacheKeys
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
@@ -124,7 +126,6 @@ class PortfolioAdminService:
         portfolio = PortfolioAdminService.create_portfolio(validated_data, created_by)
         
         if media_files:
-            from src.portfolio.services.admin import PortfolioAdminMediaService
             result = PortfolioAdminMediaService.add_media_bulk(
                 portfolio_id=portfolio.id,
                 media_files=media_files,
@@ -192,7 +193,6 @@ class PortfolioAdminService:
     
     @staticmethod
     def get_seo_report():
-        from src.portfolio.utils.cache import PortfolioCacheKeys
         cache_key = PortfolioCacheKeys.seo_report()
         cached_report = cache.get(cache_key)
         if cached_report:
@@ -261,8 +261,6 @@ class PortfolioAdminService:
     
     @staticmethod
     def bulk_delete_portfolios(portfolio_ids):
-        from django.core.exceptions import ValidationError
-        
         if not portfolio_ids:
             raise ValidationError("Portfolio IDs required")
         

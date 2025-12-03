@@ -13,7 +13,9 @@ from src.user.serializers.admin.admin_management_serializer import (
     AdminFilterSerializer,
     BulkDeleteSerializer
 )
+from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
 from src.user.services.admin.admin_management_service import AdminManagementService
+from src.user.services.admin.admin_register_service import AdminRegisterService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
 from src.user.auth.auth_mixin import UserAuthMixin
@@ -121,7 +123,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             return self.create_admin_post(request)
 
     def create_admin_post(self, request):
-        from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
         serializer = AdminRegisterSerializer(data=request.data, context={'admin_user': request.user})
         
         if not serializer.is_valid():
@@ -131,7 +132,6 @@ class AdminManagementView(UserAuthMixin, APIView):
             )
             
         try:
-            from src.user.services.admin.admin_register_service import AdminRegisterService
             admin = AdminRegisterService.register_admin_from_serializer(
                 validated_data=serializer.validated_data,
                 admin_user=request.user

@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from typing import Dict, List, Set, Any
-from src.user.utils.cache import UserCacheKeys
+from src.user.utils.cache import UserCacheKeys, UserCacheManager
 
 
 class PermissionHelper:
@@ -279,7 +279,6 @@ class PermissionHelper:
         ]
         cache.delete_many(cache_keys)
         
-        from src.user.utils.cache import UserCacheManager
         try:
             UserCacheManager.invalidate_permissions(user_id)
         except Exception:
@@ -287,7 +286,6 @@ class PermissionHelper:
     
     @classmethod
     def clear_all_permission_cache(cls) -> None:
-        from src.user.utils.cache import UserCacheManager
         UserCacheManager.invalidate_permissions()
     
     @classmethod
@@ -304,7 +302,6 @@ class PermissionHelper:
             if category not in categories:
                 categories[category] = []
             
-            from src.user.utils.cache import UserCacheKeys
             cache_key = UserCacheKeys.permission_display_name(perm)
             display_name = cache.get(cache_key)
             

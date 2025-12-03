@@ -58,7 +58,7 @@ class UserManagementService:
             try:
                 user_id = int(user_id)
             except (TypeError, ValueError):
-                raise ValidationError({"user_id": AUTH_ERRORS.get("invalid_user_id_format")})
+                raise ValidationError({"user_id": AUTH_ERRORS["invalid_user_id_format"]})
             
             user = User.objects.select_related('user_profile').get(id=user_id)
             
@@ -160,8 +160,6 @@ class UserManagementService:
 
             if profile_picture_file:
                 try:
-                    from src.media.services.media_service import MediaService
-                    
                     media = MediaService.upload_file(
                         file=profile_picture_file,
                         title=f"User profile picture - user {user.id}",
@@ -221,7 +219,7 @@ class UserManagementService:
     @staticmethod
     def bulk_delete_users(user_ids, admin_user=None):
         if not isinstance(user_ids, list) or not user_ids:
-                raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+                raise ValidationError(AUTH_ERRORS["auth_validation_error"])
 
         if admin_user is not None and not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
@@ -229,7 +227,7 @@ class UserManagementService:
         try:
             user_ids = [int(uid) for uid in user_ids]
         except (ValueError, TypeError):
-            raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise ValidationError(AUTH_ERRORS["auth_validation_error"])
 
         if admin_user is not None and not (admin_user.is_superuser or admin_user.is_admin_full):
             if User.objects.filter(id__in=user_ids, is_staff=True).exists():
@@ -245,6 +243,6 @@ class UserManagementService:
         if deleted_count == 0 and len(user_ids_to_delete) > 0:
             existing_ids = set(User.objects.filter(id__in=user_ids_to_delete).values_list('id', flat=True))
             if not existing_ids and len(user_ids_to_delete) > 0:
-                 raise NotFound(AUTH_ERRORS.get("not_found"))
+                 raise NotFound(AUTH_ERRORS["not_found"])
 
         return deleted_count

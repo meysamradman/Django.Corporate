@@ -10,7 +10,10 @@ from src.ai.serializers.chat_serializer import (
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.permissions import PermissionValidator
-from src.ai.providers.capabilities import get_provider_capabilities, supports_feature
+from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
+from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
+from src.ai.providers.groq import GroqProvider
+from src.ai.models import AIProvider, AdminProviderSettings
 
 
 class AIChatViewSet(viewsets.ViewSet):
@@ -69,7 +72,7 @@ class AIChatViewSet(viewsets.ViewSet):
             
         except ValueError as e:
             return APIResponse.error(
-                message=str(e),
+                message=AI_ERRORS["validation_error"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
@@ -98,7 +101,6 @@ class AIChatViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_200_OK
             )
         else:
-            from src.ai.providers.capabilities import PROVIDER_CAPABILITIES
             chat_providers = {
                 name: caps for name, caps in PROVIDER_CAPABILITIES.items()
                 if caps.get('supports_chat', False)
@@ -146,9 +148,6 @@ class AIChatViewSet(viewsets.ViewSet):
             )
         
         try:
-            from src.ai.providers.openrouter import OpenRouterProvider
-            from src.ai.models import AIProvider, AdminProviderSettings
-            
             try:
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
             except AIProvider.DoesNotExist:
@@ -212,9 +211,6 @@ class AIChatViewSet(viewsets.ViewSet):
             )
         
         try:
-            from src.ai.providers.groq import GroqProvider
-            from src.ai.models import AIProvider, AdminProviderSettings
-            
             try:
                 provider = AIProvider.objects.get(slug='groq', is_active=True)
             except AIProvider.DoesNotExist:
@@ -272,8 +268,6 @@ class AIChatViewSet(viewsets.ViewSet):
             )
         
         try:
-            from src.ai.providers.openrouter import OpenRouterModelCache
-            
             provider_filter = request.data.get('provider', None)
             
             if provider_filter:

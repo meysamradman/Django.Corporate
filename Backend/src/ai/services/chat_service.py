@@ -108,7 +108,7 @@ class AIChatService:
             }
             
         except Exception as e:
-            raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=str(e)))
+            raise Exception(AI_ERRORS["chat_failed"].format(error=str(e)))
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:

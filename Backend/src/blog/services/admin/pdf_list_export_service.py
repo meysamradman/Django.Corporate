@@ -13,6 +13,13 @@ except ImportError:
     JDATETIME_AVAILABLE = False
 
 try:
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    ARABIC_RESHAPER_AVAILABLE = True
+except ImportError:
+    ARABIC_RESHAPER_AVAILABLE = False
+
+try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -75,13 +82,10 @@ class BlogPDFListExportService:
     
     @staticmethod
     def _process_persian_text(text):
-        try:
-            import arabic_reshaper
-            from bidi.algorithm import get_display
+        if ARABIC_RESHAPER_AVAILABLE:
             reshaped = arabic_reshaper.reshape(str(text))
             return get_display(reshaped)
-        except ImportError:
-            return str(text)
+        return str(text)
     
     @staticmethod
     def _create_persian_styles(persian_font_name):
@@ -160,15 +164,15 @@ class BlogPDFListExportService:
                     return dt.strftime("%Y-%m-%d %H:%M:%S")
             
             table_headers = [
-                process_persian_text('وضعیت'),
-                process_persian_text('تاریخ ایجاد'),
-                process_persian_text('تگ‌ها'),
-                process_persian_text('دسته‌بندی‌ها'),
-                process_persian_text('فعال'),
-                process_persian_text('عمومی'),
-                process_persian_text('ویژه'),
-                process_persian_text('ID'),
-                process_persian_text(PDF_LABELS['title'])
+                process_persian_text(PDF_LABELS['status']),
+                process_persian_text(PDF_LABELS['created_at']),
+                process_persian_text('Tags'),
+                process_persian_text('Categories'),
+                process_persian_text(PDF_LABELS['active']),
+                process_persian_text(PDF_LABELS['public']),
+                process_persian_text(PDF_LABELS['featured']),
+                process_persian_text(PDF_LABELS['id']),
+                process_persian_text('Title')
             ]
             
             escaped_headers = [escape(str(header)) for header in table_headers]
@@ -338,6 +342,5 @@ class BlogPDFListExportService:
             
             return response
         except Exception as e:
-            import traceback
             raise Exception(BLOG_ERRORS["blog_export_failed"])
 

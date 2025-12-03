@@ -1,7 +1,6 @@
 import json
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
 from src.core.responses.response import APIResponse
@@ -14,6 +13,7 @@ from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.models.tag import PortfolioTag
+from src.portfolio.models.media import PortfolioImage
 from src.portfolio.serializers.admin import (
     PortfolioAdminListSerializer,
     PortfolioAdminDetailSerializer,
@@ -176,7 +176,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         if total_media > upload_max:
             raise DRFValidationError({
                 'non_field_errors': [
-                    f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
+                    PORTFOLIO_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
                 ]
             })
         
@@ -185,7 +185,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         portfolio = serializer.save()
         
         if media_files or media_ids:
-            from src.portfolio.services.admin import PortfolioAdminMediaService
             PortfolioAdminMediaService.add_media_bulk(
                 portfolio_id=portfolio.id,
                 media_files=media_files,
@@ -424,7 +423,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         if total_media > upload_max:
             raise DRFValidationError({
                 'non_field_errors': [
-                    f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
+                    PORTFOLIO_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
                 ]
             })
         
@@ -451,7 +450,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            from src.portfolio.models.media import PortfolioImage
             PortfolioImage.objects.filter(portfolio_id=pk, is_main=True).update(is_main=False)
             
             portfolio_image = PortfolioImage.objects.filter(portfolio_id=pk, image_id=media_id).first()
@@ -465,9 +463,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 message=PORTFOLIO_SUCCESS["portfolio_main_image_set"],
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=PORTFOLIO_ERRORS["portfolio_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -527,9 +525,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 message=PORTFOLIO_ERRORS["category_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=PORTFOLIO_ERRORS["portfolio_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -556,9 +554,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 message=PORTFOLIO_ERRORS["category_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=PORTFOLIO_ERRORS["portfolio_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -581,9 +579,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 data={'added_count': tags.count()},
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=PORTFOLIO_ERRORS["portfolio_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -606,9 +604,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 data={'removed_count': tags.count()},
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=PORTFOLIO_ERRORS["portfolio_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -631,22 +629,16 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             
             return PortfolioPDFExportService.export_portfolio_pdf(portfolio)
         except Portfolio.DoesNotExist:
-            from src.portfolio.messages.messages import PORTFOLIO_ERRORS
-            from src.core.responses.response import APIResponse
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ImportError:
-            from src.portfolio.messages.messages import PORTFOLIO_ERRORS
-            from src.core.responses.response import APIResponse
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception:
-            from src.portfolio.messages.messages import PORTFOLIO_ERRORS
-            from src.core.responses.response import APIResponse
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

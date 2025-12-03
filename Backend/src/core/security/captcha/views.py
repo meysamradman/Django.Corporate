@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from src.core.security.throttling import CaptchaThrottle
 from src.core.responses.response import APIResponse
-from . import CAPTCHA_ERRORS
+from . import CAPTCHA_SUCCESS, CAPTCHA_ERRORS
 from .services import CaptchaService
 from .serializers import CaptchaResponseSerializer, CaptchaVerifySerializer
 
@@ -37,7 +37,7 @@ class CaptchaGenerateView(APIView):
                 )
             
             return APIResponse.success(
-                message=CAPTCHA_ERRORS.get("captcha_generated", "CAPTCHA generated successfully"),
+                message=CAPTCHA_SUCCESS["captcha_generated"],
                 data=challenge_data,
                 status_code=status.HTTP_200_OK
             )
@@ -82,7 +82,7 @@ class CaptchaVerifyView(APIView):
             
             if is_valid:
                 return APIResponse.success(
-                    message=CAPTCHA_ERRORS.get("captcha_verified", "CAPTCHA verified successfully"),
+                    message=CAPTCHA_SUCCESS["captcha_verified"],
                     data={"verified": True},
                     status_code=status.HTTP_200_OK
                 )

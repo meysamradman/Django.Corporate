@@ -3,6 +3,8 @@ from io import BytesIO
 import httpx
 import json
 import os
+import re
+from django.utils.text import slugify
 from .base import BaseProvider
 from src.ai.messages.messages import DEEPSEEK_PROMPTS, DEEPSEEK_ERRORS, DEEPSEEK_SYSTEM_MESSAGES, AI_SYSTEM_MESSAGES
 
@@ -75,7 +77,7 @@ class DeepSeekProvider(BaseProvider):
                 
                 raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
-                if 'خطای DeepSeek API' in str(ex):
+                if 'DeepSeek API error' in str(ex):
                     raise ex
                 if status_code == 429:
                     raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
@@ -84,9 +86,6 @@ class DeepSeekProvider(BaseProvider):
             raise Exception(DEEPSEEK_ERRORS['content_generation_failed'].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
-        import re
-        from django.utils.text import slugify
-        
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
@@ -97,7 +96,7 @@ class DeepSeekProvider(BaseProvider):
             topic=topic,
             word_count=word_count,
             tone=tone,
-            keywords_str=f"\n- استفاده از کلمات کلیدی: {keywords_str}" if keywords_str else ""
+            keywords_str=f"\n- Keywords: {keywords_str}" if keywords_str else ""
         )
         
         url = f"{self.BASE_URL}/chat/completions"
@@ -157,7 +156,7 @@ class DeepSeekProvider(BaseProvider):
                 
                 raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
-                if 'خطای DeepSeek API' in str(ex):
+                if 'DeepSeek API error' in str(ex):
                     raise ex
                 if status_code == 429:
                     raise Exception(DEEPSEEK_ERRORS['rate_limit_error'])
@@ -223,7 +222,7 @@ class DeepSeekProvider(BaseProvider):
                 
                 raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
-                if 'خطای DeepSeek API' in str(ex):
+                if 'DeepSeek API error' in str(ex):
                     raise ex
                 if status_code == 429:
                     raise Exception(DEEPSEEK_ERRORS['rate_limit_or_error'])

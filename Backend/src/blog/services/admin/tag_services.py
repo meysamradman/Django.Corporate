@@ -1,7 +1,10 @@
 from django.db.models import Count, Q
+from django.db import transaction
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 from src.blog.models.tag import BlogTag
+from src.blog.models.blog import Blog
 from src.blog.utils.cache import TagCacheKeys, TagCacheManager
 from src.blog.messages import TAG_ERRORS
 
@@ -43,7 +46,6 @@ class BlogTagAdminService:
     @staticmethod
     def create_tag(validated_data, created_by=None):
         if not validated_data.get('slug') and validated_data.get('name'):
-            from django.utils.text import slugify
             validated_data['slug'] = slugify(validated_data['name'])
         
         tag = BlogTag.objects.create(**validated_data)
@@ -85,9 +87,6 @@ class BlogTagAdminService:
     
     @staticmethod
     def bulk_delete_tags(tag_ids):
-        from django.db import transaction
-        from src.blog.models.blog import Blog
-        
         tags = BlogTag.objects.filter(id__in=tag_ids)
         
         if not tags.exists():

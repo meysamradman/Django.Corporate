@@ -1,12 +1,16 @@
 from rest_framework import serializers
 from datetime import datetime
+from django.contrib.auth.models import Permission
 from src.media.models.media import ImageMedia
+from src.media.utils.validators import validate_image_file
 from src.user.models import AdminProfile, Province, City, User
 from src.user.serializers.location_serializer import ProvinceCompactSerializer, CityCompactSerializer
 from src.user.utils.national_id_validator import validate_national_id_format, validate_national_id
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
+from src.user.permissions.config import get_role_config, is_super_admin_role
+from src.user.permissions.helpers import PermissionHelper
 
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
@@ -117,7 +121,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
             return value
         
         try:
-            from src.media.utils.validators import validate_image_file
             validate_image_file(value)
             return value
         except ImportError:
@@ -141,7 +144,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
         if 'profile_picture_file' in self.validated_data:
             profile_picture_file = self.validated_data['profile_picture_file']
             if profile_picture_file:
-                from src.media.models.media import ImageMedia
                 new_image = ImageMedia.objects.create(
                     file=profile_picture_file,
                     title=f"Profile Picture for {instance.admin_user.email or instance.admin_user.mobile}",
@@ -199,8 +201,6 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         return user.is_superuser
     
     def get_roles(self, user):
-        from src.user.permissions.config import get_role_config, is_super_admin_role
-        
         if user.is_superuser:
             super_admin_config = get_role_config('super_admin')
             return [{
@@ -249,8 +249,6 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         if not user.is_authenticated or not user.is_active:
             return []
         
-        from django.contrib.auth.models import Permission
-        
         direct_perms = set()
         for app_label, codename in user.user_permissions.values_list('content_type__app_label', 'codename'):
              direct_perms.add(f"{app_label}.{codename}")
@@ -273,7 +271,6 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         
         if instance.user_type == 'admin' or instance.is_staff or instance.is_superuser:
-            from src.user.permissions.helpers import PermissionHelper
             permission_data = PermissionHelper.get_optimized_permissions(instance)
             data.update(permission_data)
         

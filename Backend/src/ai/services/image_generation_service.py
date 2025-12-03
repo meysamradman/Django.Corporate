@@ -40,7 +40,6 @@ class AIImageGenerationService:
         config: Optional[Dict] = None,
         **kwargs
     ) -> BytesIO:
-
         provider = cls.get_provider_instance(provider_name, api_key, config)
         
         try:
@@ -58,7 +57,6 @@ class AIImageGenerationService:
         config: Optional[Dict] = None,
         **kwargs
     ) -> BytesIO:
-
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -78,7 +76,6 @@ class AIImageGenerationService:
         **kwargs
     ) -> tuple[BytesIO, dict]:
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
-
             try:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
                 settings = AdminProviderSettings.objects.filter(
@@ -98,7 +95,6 @@ class AIImageGenerationService:
             except AIProvider.DoesNotExist:
                 raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
         else:
-
             try:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
                 api_key = provider.get_shared_api_key()
@@ -134,7 +130,6 @@ class AIImageGenerationService:
         admin=None,
         **kwargs
     ) -> ImageMedia:
-
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
@@ -198,13 +193,11 @@ class AIImageGenerationService:
     
     @classmethod
     def validate_provider_api_key(cls, provider_name: str, api_key: str) -> bool:
-
         try:
             provider = cls.get_provider_instance(provider_name, api_key)
             is_valid = provider.validate_api_key()
             return is_valid
         except Exception as e:
-
             return True
     
     @classmethod

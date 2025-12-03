@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.db import transaction
 import time
 import base64
@@ -18,6 +17,10 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses import APIResponse
 from src.user.authorization import AiManagerAccess, SuperAdminOnly
 from src.user.permissions import PermissionValidator
+from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities
+from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
+from src.ai.providers.huggingface import HuggingFaceProvider
+from src.media.serializers.media_serializer import MediaAdminSerializer
 
 
 class AIImageProviderViewSet(viewsets.ModelViewSet):
@@ -92,8 +95,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='capabilities')
     def get_capabilities(self, request):
-        from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities
-        
         provider_slug = request.query_params.get('provider')
         
         if provider_slug:
@@ -140,8 +141,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            from src.ai.providers.openrouter import OpenRouterProvider
-            
             try:
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
             except AIProvider.DoesNotExist:
@@ -205,8 +204,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            from src.ai.providers.huggingface import HuggingFaceProvider
-            
             try:
                 provider = AIProvider.objects.get(slug='huggingface', is_active=True)
             except AIProvider.DoesNotExist:
@@ -270,7 +267,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            from src.ai.providers.openrouter import OpenRouterModelCache
             OpenRouterModelCache.clear_all()
             
             return APIResponse.success(
@@ -415,7 +411,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                         n=data.get('n', 1)
                     )
                     
-                    from src.media.serializers.media_serializer import MediaAdminSerializer
                     media_serializer = MediaAdminSerializer(media)
                     
                     return APIResponse.success(
@@ -458,9 +453,9 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                 message=AI_ERRORS["model_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValueError as e:
+        except ValueError:
             return APIResponse.error(
-                message=str(e),
+                message=AI_ERRORS["validation_error"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:

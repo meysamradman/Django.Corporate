@@ -1,5 +1,6 @@
 PORTFOLIO_SUCCESS = {
     "portfolio_list_success": "لیست نمونه کارها با موفقیت دریافت شد.",
+    "portfolios_list_retrieved": "لیست نمونه کارها با موفقیت دریافت شد.",
     "portfolio_created": "نمونه کار با موفقیت ایجاد شد.",
     "portfolio_updated": "نمونه کار با موفقیت به‌روزرسانی شد.",
     "portfolio_deleted": "نمونه کار با موفقیت حذف شد.",
@@ -20,6 +21,8 @@ PORTFOLIO_SUCCESS = {
     "category_removed": "دسته‌بندی با موفقیت حذف شد.",
     "tags_added": "تگ‌ها با موفقیت اضافه شدند.",
     "tags_removed": "تگ‌ها با موفقیت حذف شدند.",
+    "featured_portfolios_retrieved": "نمونه کارهای ویژه با موفقیت دریافت شدند.",
+    "related_portfolios_retrieved": "نمونه کارهای مرتبط با موفقیت دریافت شدند.",
 }
 PORTFOLIO_ERRORS = {
     "portfolio_not_found": "نمونه کار یافت نشد.",
@@ -37,6 +40,7 @@ PORTFOLIO_ERRORS = {
     "category_id_required": "شناسه دسته‌بندی مورد نیاز است.",
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
+    "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
 }
 CATEGORY_SUCCESS = {
     "category_list_success": "لیست دسته‌بندی‌ها با موفقیت دریافت شد.",
@@ -50,6 +54,7 @@ CATEGORY_SUCCESS = {
 }
 CATEGORY_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
+    "category_not_authorized": "شما اجازه دسترسی به دسته‌بندی‌های نمونه کار را ندارید.",
     "category_create_failed": "ایجاد دسته‌بندی ناموفق بود.",
     "category_update_failed": "به‌روزرسانی دسته‌بندی ناموفق بود.",
     "category_delete_failed": "حذف دسته‌بندی ناموفق بود.",
@@ -76,6 +81,7 @@ OPTION_SUCCESS = {
 }
 OPTION_ERRORS = {
     "option_not_found": "گزینه یافت نشد.",
+    "option_not_authorized": "شما اجازه دسترسی به گزینه‌های نمونه کار را ندارید.",
     "option_create_failed": "ایجاد گزینه ناموفق بود.",
     "option_update_failed": "به‌روزرسانی گزینه ناموفق بود.",
     "option_delete_failed": "حذف گزینه ناموفق بود.",
@@ -101,6 +107,7 @@ TAG_SUCCESS = {
 }
 TAG_ERRORS = {
     "tag_not_found": "تگ یافت نشد.",
+    "tag_not_authorized": "شما اجازه دسترسی به تگ‌های نمونه کار را ندارید.",
     "tag_create_failed": "ایجاد تگ ناموفق بود.",
     "tag_update_failed": "به‌روزرسانی تگ ناموفق بود.",
     "tag_delete_failed": "حذف تگ ناموفق بود.",

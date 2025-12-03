@@ -1,5 +1,6 @@
 BLOG_SUCCESS = {
     "blog_list_success": "لیست مقالات با موفقیت دریافت شد.",
+    "blogs_list_retrieved": "لیست مقالات با موفقیت دریافت شد.",
     "blog_created": "مقاله با موفقیت ایجاد شد.",
     "blog_updated": "مقاله با موفقیت به‌روزرسانی شد.",
     "blog_deleted": "مقاله با موفقیت حذف شد.",
@@ -20,6 +21,8 @@ BLOG_SUCCESS = {
     "category_removed": "دسته‌بندی با موفقیت حذف شد.",
     "tags_added": "تگ‌ها با موفقیت اضافه شدند.",
     "tags_removed": "تگ‌ها با موفقیت حذف شدند.",
+    "featured_blogs_retrieved": "مقالات ویژه با موفقیت دریافت شدند.",
+    "related_blogs_retrieved": "مقالات مرتبط با موفقیت دریافت شدند.",
 }
 
 PDF_LABELS = {
@@ -78,6 +81,7 @@ BLOG_ERRORS = {
     "category_id_required": "شناسه دسته‌بندی مورد نیاز است.",
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
+    "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
 }
 
 CATEGORY_SUCCESS = {
@@ -93,6 +97,7 @@ CATEGORY_SUCCESS = {
 
 CATEGORY_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
+    "category_not_authorized": "شما اجازه دسترسی به دسته‌بندی‌های بلاگ را ندارید.",
     "category_create_failed": "ایجاد دسته‌بندی ناموفق بود.",
     "category_update_failed": "به‌روزرسانی دسته‌بندی ناموفق بود.",
     "category_delete_failed": "حذف دسته‌بندی ناموفق بود.",
@@ -122,6 +127,7 @@ TAG_SUCCESS = {
 
 TAG_ERRORS = {
     "tag_not_found": "تگ یافت نشد.",
+    "tag_not_authorized": "شما اجازه دسترسی به تگ‌های بلاگ را ندارید.",
     "tag_create_failed": "ایجاد تگ ناموفق بود.",
     "tag_update_failed": "به‌روزرسانی تگ ناموفق بود.",
     "tag_delete_failed": "حذف تگ ناموفق بود.",

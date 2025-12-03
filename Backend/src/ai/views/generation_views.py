@@ -1,16 +1,18 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.core.cache import cache
+import time
+import base64
 
-from src.ai.models import AIProvider, AIModel, AdminProviderSettings
+from src.ai.models import AIModel
 from src.ai.services.state_machine import ModelAccessState
 from src.ai.services.content_generation_service import AIContentGenerationService
 from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationRequestSerializer,
     AIContentGenerationResponseSerializer
 )
+from src.ai.serializers.image_generation_serializer import AIImageGenerationRequestSerializer
+from src.ai.services.image_generation_service import AIImageGenerationService
 from src.core.responses import APIResponse
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
 
@@ -23,7 +25,7 @@ class AIGenerationViewSet(viewsets.ViewSet):
         serializer = AIContentGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
-                message=AI_ERRORS.get("prompt_invalid", "Invalid request data"),
+                message=AI_ERRORS["validation_error"],
                 errors=serializer.errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -37,13 +39,13 @@ class AIGenerationViewSet(viewsets.ViewSet):
             state = ModelAccessState.calculate(model.provider, model, request.user)
             if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
                 return APIResponse.error(
-                    message=AI_ERRORS.get("model_access_denied", "You don't have access to this model"),
+                    message=AI_ERRORS["model_access_denied"],
                     status_code=status.HTTP_403_FORBIDDEN
                 )
             
             if 'chat' not in model.capabilities and 'text' not in model.capabilities:
                 return APIResponse.error(
-                    message=AI_ERRORS.get("model_no_text_capability", "This model does not support text generation"),
+                    message=AI_ERRORS["model_no_text_capability"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -58,31 +60,28 @@ class AIGenerationViewSet(viewsets.ViewSet):
             model.increment_usage()
             
             return APIResponse.success(
-                message=AI_SUCCESS.get("content_generated", "Content generated successfully"),
+                message=AI_SUCCESS["content_generated"],
                 data=result,
                 status_code=status.HTTP_200_OK
             )
             
         except AIModel.DoesNotExist:
             return APIResponse.error(
-                message=AI_ERRORS.get("model_not_found", "Model not found"),
+                message=AI_ERRORS["model_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)),
+                message=AI_ERRORS["content_generation_failed"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['post'], url_path='image')
     def generate_image(self, request):
-        from src.ai.serializers.image_generation_serializer import AIImageGenerationRequestSerializer
-        from src.ai.services.image_generation_service import AIImageGenerationService
-        
         serializer = AIImageGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
-                message=AI_ERRORS.get("prompt_invalid", "Invalid request data"),
+                message=AI_ERRORS["validation_error"],
                 errors=serializer.errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -96,17 +95,16 @@ class AIGenerationViewSet(viewsets.ViewSet):
             state = ModelAccessState.calculate(model.provider, model, request.user)
             if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
                 return APIResponse.error(
-                    message=AI_ERRORS.get("model_access_denied", "You don't have access to this model"),
+                    message=AI_ERRORS["model_access_denied"],
                     status_code=status.HTTP_403_FORBIDDEN
                 )
             
             if 'image' not in model.capabilities:
                 return APIResponse.error(
-                    message=AI_ERRORS.get("model_no_image_capability", "This model does not support image generation"),
+                    message=AI_ERRORS["model_no_image_capability"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            import time
             start_time = time.time()
             
             if data.get('save_to_media', True):
@@ -141,7 +139,6 @@ class AIGenerationViewSet(viewsets.ViewSet):
                     size=data.get('size', '1024x1024')
                 )
                 
-                import base64
                 image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
                 
                 result = {
@@ -159,26 +156,26 @@ class AIGenerationViewSet(viewsets.ViewSet):
             model.increment_usage()
             
             return APIResponse.success(
-                message=AI_SUCCESS.get("image_generated", "Image generated successfully"),
+                message=AI_SUCCESS["image_generated"],
                 data=result,
                 status_code=status.HTTP_200_OK
             )
             
         except AIModel.DoesNotExist:
             return APIResponse.error(
-                message=AI_ERRORS.get("model_not_found", "Model not found"),
+                message=AI_ERRORS["model_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS.get("image_generation_failed", "Image generation failed").format(error=str(e)),
+                message=AI_ERRORS["image_generation_failed"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['post'], url_path='audio')
     def generate_audio(self, request):
         return APIResponse.error(
-            message=AI_ERRORS.get("not_implemented", "Feature not implemented"),
+            message=AI_ERRORS["audio_generation_failed"].format(error="Feature not implemented"),
             status_code=status.HTTP_501_NOT_IMPLEMENTED
         )
     
@@ -207,7 +204,7 @@ class AIGenerationViewSet(viewsets.ViewSet):
                 })
         
         return APIResponse.success(
-            message=AI_SUCCESS.get("models_retrieved", "Models retrieved successfully"),
+            message=AI_SUCCESS["models_list_retrieved"],
             data=result,
             status_code=status.HTTP_200_OK
         )
@@ -216,7 +213,7 @@ class AIGenerationViewSet(viewsets.ViewSet):
     def available_providers(self, request):
         providers = AIContentGenerationService.get_available_providers(request.user)
         return APIResponse.success(
-            message=AI_SUCCESS.get("providers_list_retrieved", "Providers retrieved successfully"),
+            message=AI_SUCCESS["providers_list_retrieved"],
             data=providers,
             status_code=status.HTTP_200_OK
         )

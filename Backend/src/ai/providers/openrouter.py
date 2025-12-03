@@ -159,7 +159,7 @@ class OpenRouterProvider(BaseProvider):
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
         if not any(img_model in self.image_model.lower() for img_model in ['dall-e', 'stability', 'flux', 'midjourney']):
-            raise NotImplementedError(IMAGE_ERRORS.get("model_no_image_capability", "Model does not support image generation"))
+            raise NotImplementedError(IMAGE_ERRORS["model_no_image_capability"])
         
         url = f"{self.BASE_URL}/chat/completions"
         
@@ -197,12 +197,12 @@ class OpenRouterProvider(BaseProvider):
                     image_url = urls[0]
                     return await self.download_image(image_url)
                 else:
-                    raise Exception(IMAGE_ERRORS.get("model_no_image_capability", "Model does not support image generation"))
+                    raise Exception(IMAGE_ERRORS["model_no_image_capability"])
             
-            raise Exception(IMAGE_ERRORS.get("image_generation_failed", "Image generation failed"))
+            raise Exception(IMAGE_ERRORS["image_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            error_msg = IMAGE_ERRORS.get("image_generation_failed", "Image generation failed")
+            error_msg = IMAGE_ERRORS["image_generation_failed"]
             try:
                 error_data = e.response.json()
                 if 'error' in error_data:
@@ -245,10 +245,10 @@ class OpenRouterProvider(BaseProvider):
             if 'choices' in data and len(data['choices']) > 0:
                 return data['choices'][0]['message']['content'].strip()
             
-            raise Exception(CONTENT_ERRORS.get("content_generation_failed", "Content generation failed"))
+            raise Exception(CONTENT_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            error_msg = CONTENT_ERRORS.get("content_generation_failed", "Content generation failed")
+            error_msg = CONTENT_ERRORS["content_generation_failed"]
             try:
                 error_data = e.response.json()
                 if 'error' in error_data:
@@ -351,12 +351,12 @@ Return output as JSON with the following structure:
                         "slug": slug
                     }
 
-            raise Exception(CONTENT_ERRORS.get("content_generation_failed", "Content generation failed"))
+            raise Exception(CONTENT_ERRORS["content_generation_failed"])
             
         except json.JSONDecodeError as e:
-            raise Exception(CONTENT_ERRORS.get("content_generation_failed", "Content generation failed"))
+            raise Exception(CONTENT_ERRORS["content_generation_failed"])
         except httpx.HTTPStatusError as e:
-            error_msg = CONTENT_ERRORS.get("content_generation_failed", "Content generation failed")
+            error_msg = CONTENT_ERRORS["content_generation_failed"]
             try:
                 error_data = e.response.json()
                 if 'error' in error_data:
@@ -408,11 +408,11 @@ Return output as JSON with the following structure:
             if 'choices' in data and len(data['choices']) > 0:
                 return data['choices'][0]['message']['content'].strip()
             
-            raise Exception(CHAT_ERRORS.get("chat_failed", "Chat failed"))
+            raise Exception(CHAT_ERRORS["chat_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = CHAT_ERRORS.get("chat_failed", "Chat failed")
+            error_msg = CHAT_ERRORS["chat_failed"]
             
             try:
                 error_data = e.response.json()
@@ -424,21 +424,21 @@ Return output as JSON with the following structure:
             if status_code == 401:
                 if 'User not found' in error_msg or 'Unauthorized' in str(e):
                     raise Exception(
-                        CHAT_ERRORS.get("chat_failed", "Invalid API key").format(error="Invalid API key")
+                        CHAT_ERRORS["chat_failed"].format(error="Invalid API key")
                     )
                 else:
                     raise Exception(
-                        CHAT_ERRORS.get("chat_failed", "Chat failed").format(error=error_msg)
+                        CHAT_ERRORS["chat_failed"].format(error=error_msg)
                     )
             elif status_code == 429:
                 if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
                     raise Exception(
-                        CHAT_ERRORS.get("chat_quota_exceeded", "Quota exceeded")
+                        CHAT_ERRORS["chat_quota_exceeded"]
                     )
                 else:
-                    raise Exception(CHAT_ERRORS.get("chat_rate_limit", "Rate limit exceeded"))
+                    raise Exception(CHAT_ERRORS["chat_rate_limit"])
             elif status_code == 403:
-                raise Exception(CHAT_ERRORS.get("chat_forbidden", "Access forbidden"))
+                raise Exception(CHAT_ERRORS["chat_forbidden"])
             
             raise Exception(CHAT_ERRORS["chat_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:

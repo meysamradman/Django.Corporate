@@ -53,7 +53,7 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.category.read'):
             return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to view portfolio categories"),
+                message=CATEGORY_ERRORS["category_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         tree_mode = request.GET.get('tree', '').lower() == 'true'
@@ -90,7 +90,7 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.category.create'):
             return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to create portfolio categories"),
+                message=CATEGORY_ERRORS["category_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         serializer = self.get_serializer(data=request.data)
@@ -111,7 +111,7 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.category.read'):
             return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to view portfolio categories"),
+                message=CATEGORY_ERRORS["category_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         category = PortfolioCategoryAdminService.get_category_by_id(kwargs.get('pk'))

@@ -4,7 +4,7 @@ from django.core.cache import cache
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.utils.cache import PortfolioCacheManager
-from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
 
@@ -100,7 +100,6 @@ class PortfolioAdminMediaService:
             
             for media_file in media_files:
                 try:
-                    from src.media.models.media import detect_media_type_from_extension
                     file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
                     media_type = detect_media_type_from_extension(file_ext)
                     

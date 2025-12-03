@@ -66,7 +66,7 @@ class GeneralSettings(BaseModel):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"تنظیمات عمومی: {self.site_name}"
+        return f"General Settings: {self.site_name}"
     
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -81,7 +81,7 @@ class GeneralSettings(BaseModel):
         settings = cls.objects.first()
         if not settings:
             settings = cls.objects.create(
-                site_name="نام سیستم",
-                copyright_text="تمام حقوق محفوظ است"
+                site_name="System Name",
+                copyright_text="All rights reserved"
             )
         return settings

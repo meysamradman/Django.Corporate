@@ -43,7 +43,7 @@ class AboutPageViewSet(viewsets.ModelViewSet):
                 message = ABOUT_PAGE_ERRORS['about_page_retrieve_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             else:
-                message = ABOUT_PAGE_ERRORS.get('about_page_not_found', ABOUT_PAGE_ERRORS['about_page_retrieve_failed'])
+                message = ABOUT_PAGE_ERRORS['about_page_not_found']
                 status_code = status.HTTP_404_NOT_FOUND
             
             return APIResponse.error(
@@ -81,7 +81,7 @@ class AboutPageViewSet(viewsets.ModelViewSet):
                 message = ABOUT_PAGE_ERRORS['validation_error']
                 status_code = status.HTTP_400_BAD_REQUEST
             else:
-                message = ABOUT_PAGE_ERRORS.get('about_page_update_failed', ABOUT_PAGE_ERRORS['validation_error'])
+                message = ABOUT_PAGE_ERRORS['about_page_update_failed']
                 status_code = status.HTTP_400_BAD_REQUEST
             
             return APIResponse.error(
@@ -100,7 +100,7 @@ class AboutPageViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return APIResponse.error(
-            message=ABOUT_PAGE_ERRORS.get('about_page_not_found', 'Delete not allowed'),
+            message=ABOUT_PAGE_ERRORS['about_page_not_found'],
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED
         )
 

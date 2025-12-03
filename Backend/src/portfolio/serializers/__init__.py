@@ -10,8 +10,6 @@ from .admin import (
     PortfolioOptionAdminSerializer,
     PortfolioTagAdminSerializer,
 )
-
-# Import Public Serializers
 from .public import (
     PortfolioPublicSerializer,
     PortfolioPublicListSerializer,
@@ -23,8 +21,7 @@ from .public import (
 )
 
 __all__ = [
-    # Admin Serializers
-    'PortfolioAdminSerializer',  # Backward compatibility
+    'PortfolioAdminSerializer',
     'PortfolioAdminListSerializer',
     'PortfolioAdminDetailSerializer',
     'PortfolioAdminCreateSerializer',
@@ -33,9 +30,7 @@ __all__ = [
     'PortfolioCategorySimpleAdminSerializer',
     'PortfolioOptionAdminSerializer',
     'PortfolioTagAdminSerializer',
-    
-    # Public Serializers
-    'PortfolioPublicSerializer',  # Backward compatibility
+    'PortfolioPublicSerializer',
     'PortfolioPublicListSerializer',
     'PortfolioPublicDetailSerializer',
     'PortfolioCategoryPublicSerializer',

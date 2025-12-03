@@ -64,7 +64,7 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
             if "invalid" in error_msg.lower() or "url" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_url']
             else:
-                message = SETTINGS_ERRORS.get('social_media_create_failed', SETTINGS_ERRORS['social_media_not_found'])
+                message = SETTINGS_ERRORS['social_media_create_failed']
             
             return APIResponse.error(
                 message=message,
@@ -96,7 +96,7 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
             if "invalid" in error_msg.lower() or "url" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_url']
             else:
-                message = SETTINGS_ERRORS.get('social_media_update_failed', SETTINGS_ERRORS['social_media_not_found'])
+                message = SETTINGS_ERRORS['social_media_update_failed']
             
             return APIResponse.error(
                 message=message,
@@ -119,6 +119,6 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=SETTINGS_ERRORS.get('social_media_delete_failed', SETTINGS_ERRORS['social_media_not_found']),
+                message=SETTINGS_ERRORS['social_media_delete_failed'],
                 status_code=status.HTTP_400_BAD_REQUEST
             )

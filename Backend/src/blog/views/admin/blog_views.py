@@ -1,7 +1,6 @@
 import json
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
 from src.core.responses.response import APIResponse
@@ -14,6 +13,7 @@ from django.conf import settings
 from src.blog.models.blog import Blog
 from src.blog.models.category import BlogCategory
 from src.blog.models.tag import BlogTag
+from src.blog.models.media import BlogImage
 from src.blog.serializers.admin import (
     BlogAdminListSerializer,
     BlogAdminDetailSerializer,
@@ -175,7 +175,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         if total_media > upload_max:
             raise DRFValidationError({
                 'non_field_errors': [
-                    f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
+                    BLOG_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
                 ]
             })
         
@@ -184,7 +184,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         blog = serializer.save()
         
         if media_files or media_ids:
-            from src.blog.services.admin import BlogAdminMediaService
             BlogAdminMediaService.add_media_bulk(
                 blog_id=blog.id,
                 media_files=media_files,
@@ -423,7 +422,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         if total_media > upload_max:
             raise DRFValidationError({
                 'non_field_errors': [
-                    f'Maximum {upload_max} media items allowed per upload. You provided {total_media} items.'
+                    BLOG_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
                 ]
             })
         
@@ -450,7 +449,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            from src.blog.models.media import BlogImage
             BlogImage.objects.filter(blog_id=pk, is_main=True).update(is_main=False)
             
             blog_image = BlogImage.objects.filter(blog_id=pk, image_id=media_id).first()
@@ -464,9 +462,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 message=BLOG_SUCCESS["blog_main_image_set"],
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=BLOG_ERRORS["blog_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -526,9 +524,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 message=BLOG_ERRORS["category_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=BLOG_ERRORS["blog_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -555,9 +553,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 message=BLOG_ERRORS["category_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=BLOG_ERRORS["blog_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -580,9 +578,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 data={'added_count': tags.count()},
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=BLOG_ERRORS["blog_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -605,9 +603,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 data={'removed_count': tags.count()},
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
-                message=str(e),
+                message=BLOG_ERRORS["blog_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -629,22 +627,16 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             
             return BlogPDFExportService.export_blog_pdf(blog)
         except Blog.DoesNotExist:
-            from src.blog.messages.messages import BLOG_ERRORS
-            from src.core.responses.response import APIResponse
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ImportError:
-            from src.blog.messages.messages import BLOG_ERRORS
-            from src.core.responses.response import APIResponse
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_export_failed"],
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception:
-            from src.blog.messages.messages import BLOG_ERRORS
-            from src.core.responses.response import APIResponse
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

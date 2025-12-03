@@ -25,6 +25,7 @@ AUTH_SUCCESS = {
     "location_province_retrieved": "Province retrieved successfully.",
     "location_city_retrieved": "City retrieved successfully.",
     "csrf_token_retrieved": "CSRF token retrieved successfully.",
+    "auth_created_successfully": "Profile created successfully.",
 }
 
 AUTH_ERRORS = {

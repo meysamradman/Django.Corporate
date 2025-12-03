@@ -3,8 +3,13 @@ from django.core.cache import cache
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
 from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_register_password
-from src.user.models import User, AdminProfile
+from src.user.models import User, AdminProfile, AdminUserRole, AdminRole
 from src.media.models import ImageMedia
+from src.media.services.media_service import MediaService
+from src.user.services.admin.admin_profile_service import AdminProfileService
+from src.user.authorization.admin_permission import AdminPermissionCache
+from src.user.permissions.validator import PermissionValidator
+from src.user.permissions.helpers import PermissionHelper
 
 
 class AdminManagementService:
@@ -58,7 +63,7 @@ class AdminManagementService:
             try:
                 admin_id = int(admin_id)
             except (TypeError, ValueError):
-                raise ValidationError({"admin_id": AUTH_ERRORS.get("invalid_user_id_format")})
+                raise ValidationError({"admin_id": AUTH_ERRORS["invalid_user_id_format"]})
             
             admin = User.objects.select_related('admin_profile').get(id=admin_id)
             
@@ -136,8 +141,6 @@ class AdminManagementService:
 
             if profile_picture_file:
                 try:
-                    from src.media.services.media_service import MediaService
-                    
                     media = MediaService.upload_file(
                         file=profile_picture_file,
                         title=f"Admin profile picture - admin {admin.id}",
@@ -165,11 +168,9 @@ class AdminManagementService:
             if role_id_str is not None:
                 try:
                     if role_id_str == '' or role_id_str.lower() == 'none':
-                        from src.user.models import AdminUserRole
                         AdminUserRole.objects.filter(user=admin, is_active=True).update(is_active=False)
                     else:
                         role_id = int(role_id_str)
-                        from src.user.models import AdminRole, AdminUserRole
                         
                         try:
                             role = AdminRole.objects.get(id=role_id, is_active=True)
@@ -194,10 +195,6 @@ class AdminManagementService:
                             
                             user_role.update_permissions_cache()
                             
-                            from src.user.permissions.helpers import PermissionHelper
-                            from src.user.authorization.admin_permission import AdminPermissionCache
-                            from src.user.permissions.validator import PermissionValidator
-                            
                             PermissionHelper.clear_user_cache(admin.id)
                             AdminPermissionCache.clear_user_cache(admin.id)
                             PermissionValidator.clear_user_cache(admin.id)
@@ -210,17 +207,11 @@ class AdminManagementService:
                     pass
 
             if profile_fields_to_update or should_remove_picture:
-                from src.user.services.admin.admin_profile_service import AdminProfileService
-                
                 if should_remove_picture:
                     AdminProfileService.update_profile_image(admin, None)
                 
                 if profile_fields_to_update:
                     AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
-            
-            from src.user.authorization.admin_permission import AdminPermissionCache
-            from src.user.permissions.validator import PermissionValidator
-            from src.user.permissions.helpers import PermissionHelper
             
             AdminPermissionCache.clear_user_cache(admin.id)
             PermissionValidator.clear_user_cache(admin.id)
@@ -245,7 +236,7 @@ class AdminManagementService:
                 raise AuthenticationFailed(AUTH_ERRORS["auth_not_superuser"])
             
             if admin.is_admin_full and admin_user and not admin_user.is_admin_full:
-                raise AuthenticationFailed(AUTH_ERRORS.get("auth_not_authorized"))
+                raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
                 
             admin.delete()
             
@@ -257,7 +248,7 @@ class AdminManagementService:
     @staticmethod
     def bulk_delete_admins(admin_ids, admin_user=None):
         if not isinstance(admin_ids, list) or not admin_ids:
-            raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise ValidationError(AUTH_ERRORS["auth_validation_error"])
 
         if admin_user is not None and not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
@@ -265,7 +256,7 @@ class AdminManagementService:
         try:
             admin_ids = [int(uid) for uid in admin_ids]
         except (ValueError, TypeError):
-            raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise ValidationError(AUTH_ERRORS["auth_validation_error"])
 
         if admin_user is not None and not (admin_user.is_superuser or admin_user.is_admin_full):
             if User.objects.filter(id__in=admin_ids, is_staff=True).exists():
@@ -288,6 +279,6 @@ class AdminManagementService:
         if deleted_count == 0 and len(admin_ids_to_delete) > 0:
             existing_ids = set(User.objects.filter(id__in=admin_ids_to_delete).values_list('id', flat=True))
             if not existing_ids and len(admin_ids_to_delete) > 0:
-                 raise NotFound(AUTH_ERRORS.get("not_found"))
+                 raise NotFound(AUTH_ERRORS["not_found"])
             
         return deleted_count

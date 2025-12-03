@@ -6,8 +6,8 @@ from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 class ChatbotSettings(BaseModel):
     is_enabled = models.BooleanField(default=True, db_index=True, verbose_name="Is Enabled")
-    welcome_message = models.CharField(max_length=500, default="سلام! چطور می‌تونم کمکتون کنم؟", verbose_name="Welcome Message")
-    default_message = models.CharField(max_length=500, default="متأسفانه متوجه نشدم. لطفاً سوال خود را واضح‌تر بپرسید.", verbose_name="Default Message")
+    welcome_message = models.CharField(max_length=500, default="Hello! How can I help you?", verbose_name="Welcome Message")
+    default_message = models.CharField(max_length=500, default="Sorry, I didn't understand. Please ask your question more clearly.", verbose_name="Default Message")
     rate_limit_per_minute = models.IntegerField(default=5, verbose_name="Rate Limit Per Minute")
     
     class Meta:

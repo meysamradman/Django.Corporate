@@ -39,7 +39,7 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
                 message = SETTINGS_ERRORS['settings_retrieve_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             else:
-                message = SETTINGS_ERRORS.get('settings_not_found', SETTINGS_ERRORS['settings_retrieve_failed'])
+                message = SETTINGS_ERRORS['settings_not_found']
                 status_code = status.HTTP_404_NOT_FOUND
             
             return APIResponse.error(
@@ -102,7 +102,7 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
                 message = SETTINGS_ERRORS['settings_retrieve_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             else:
-                message = SETTINGS_ERRORS.get('validation_error', SETTINGS_ERRORS['settings_update_failed'])
+                message = SETTINGS_ERRORS['validation_error']
                 status_code = status.HTTP_400_BAD_REQUEST
             
             return APIResponse.error(

@@ -25,25 +25,20 @@ from .category_serializer import (
 )
 
 __all__ = [
-    # Blog Serializers
-    'BlogAdminSerializer',  # Backward compatibility
+    'BlogAdminSerializer',
     'BlogAdminListSerializer',
     'BlogAdminDetailSerializer', 
     'BlogAdminCreateSerializer',
     'BlogAdminUpdateSerializer',
     'BlogMediaSerializer',
-    
-    # Category Serializers
-    'BlogCategoryAdminSerializer',  # Backward compatibility
+    'BlogCategoryAdminSerializer',
     'BlogCategoryAdminListSerializer',
     'BlogCategoryAdminDetailSerializer',
     'BlogCategoryAdminCreateSerializer',
     'BlogCategoryAdminUpdateSerializer',
     'BlogCategoryTreeSerializer',
     'BlogCategorySimpleAdminSerializer',
-    
-    # Tag Serializers
-    'BlogTagAdminSerializer',  # Backward compatibility
+    'BlogTagAdminSerializer',
     'BlogTagAdminListSerializer',
     'BlogTagAdminDetailSerializer',
     'BlogTagAdminCreateSerializer',

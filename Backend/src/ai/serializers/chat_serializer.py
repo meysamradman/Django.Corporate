@@ -63,7 +63,7 @@ class AIChatRequestSerializer(serializers.Serializer):
     def validate_message(self, value):
         from src.ai.messages.messages import CHAT_ERRORS
         if not value or not value.strip():
-            raise serializers.ValidationError(CHAT_ERRORS.get("validation_error", "Message cannot be empty"))
+            raise serializers.ValidationError(CHAT_ERRORS["validation_error"])
         return value.strip()
 
 
