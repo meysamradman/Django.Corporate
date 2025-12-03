@@ -1,8 +1,9 @@
 import re
 from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
-
 from django.conf import settings
+
+from src.media.messages.messages import MEDIA_ERRORS
 
 ALLOWED_EXTENSIONS = settings.MEDIA_ALLOWED_EXTENSIONS
 
@@ -21,7 +22,7 @@ class FileSizeValidator:
                 break
 
         if not media_type:
-            raise ValidationError("Invalid file type.")
+            raise ValidationError(MEDIA_ERRORS["invalid_file_type"])
 
         max_size = MAX_FILE_SIZES.get(media_type)
         if max_size and data.size > max_size:
@@ -65,11 +66,11 @@ class VideoSafeValidator:
 
                     parser = createParser(value.temporary_file_path())
                     if not parser:
-                        raise ValidationError("Invalid video file format.")
+                        raise ValidationError(MEDIA_ERRORS["invalid_video_format"])
 
                     metadata = extractMetadata(parser)
                     if not metadata.get('duration', 0) > 0:
-                        raise ValidationError("Corrupted video file.")
+                        raise ValidationError(MEDIA_ERRORS["corrupted_video"])
 
                 except ImportError:
                     pass

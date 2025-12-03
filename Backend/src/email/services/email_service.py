@@ -1,15 +1,17 @@
-from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.core.cache import cache
 from django.template.loader import render_to_string
+
+from src.email.messages.messages import EMAIL_TEXT
 from src.email.models.email_message import EmailMessage
-from src.email.messages import EMAIL_TEXT
+from src.email.utils.cache import EmailCacheKeys
 
 
 class EmailService:
     
     @staticmethod
     def send_reply_email(email_message: EmailMessage, reply_text: str, admin_user) -> bool:
-
         try:
             original_message = email_message.message
             if not original_message and email_message.dynamic_fields:
@@ -72,10 +74,18 @@ class EmailService:
     
     @staticmethod
     def get_statistics():
-        return {
+        cache_key = EmailCacheKeys.stats()
+        cached_stats = cache.get(cache_key)
+        if cached_stats is not None:
+            return cached_stats
+        
+        stats = {
             'total': EmailMessage.objects.count(),
             'new': EmailMessage.objects.filter(status='new').count(),
             'read': EmailMessage.objects.filter(status='read').count(),
             'replied': EmailMessage.objects.filter(status='replied').count(),
             'archived': EmailMessage.objects.filter(status='archived').count(),
         }
+        
+        cache.set(cache_key, stats, 300)
+        return stats

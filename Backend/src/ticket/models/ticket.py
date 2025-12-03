@@ -1,8 +1,10 @@
 from django.db import models
+
 from src.core.models import BaseModel
 from src.user.models.user import User
 from src.user.models.admin_profile import AdminProfile
 from src.ticket.utils.cache import TicketCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 
 TICKET_STATUS_CHOICES = [
     ('open', 'Open'),
@@ -73,13 +75,11 @@ class Ticket(BaseModel):
         super().save(*args, **kwargs)
         if self.pk:
             TicketCacheManager.invalidate_all(ticket_id=self.id)
-        from src.statistics.utils.cache import StatisticsCacheManager
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         ticket_id = self.id
         super().delete(*args, **kwargs)
         TicketCacheManager.invalidate_all(ticket_id=ticket_id)
-        from src.statistics.utils.cache import StatisticsCacheManager
         StatisticsCacheManager.invalidate_dashboard()
 

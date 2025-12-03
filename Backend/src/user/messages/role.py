@@ -67,6 +67,13 @@ ROLE_ERRORS = {
     "only_super_admin_can_setup_roles": "Only super admin can setup default roles.",
     "failed_to_setup_default_roles": "Failed to setup default roles.",
     "failed_to_retrieve_roles_summary": "Failed to retrieve roles summary.",
+    "permissions_must_be_json": "Permissions must be a valid JSON object",
+    "specific_permissions_must_be_list": "specific_permissions must be a list",
+    "permission_must_be_dict": "Each permission must be a dict with 'module' and 'action'",
+    "permission_missing_fields": "Each permission must have 'module' and 'action' fields",
+    "modules_must_be_list": "modules must be a list",
+    "actions_must_be_list": "actions must be a list",
+    "level_invalid_range": "Level must be between 1 (highest) and 10 (lowest)",
 }
 
 ROLE_TEXT = {

@@ -54,5 +54,6 @@ FORM_SUBMISSION_ERRORS = {
     'submission_delete_failed': 'حذف ارسال ناموفق بود',
     'validation_error': 'خطا در اعتبارسنجی داده‌های فرم',
     'reply_message_required': 'پیام پاسخ الزامی است',
+    'invalid_platform': 'پلتفرم نامعتبر است',
 }
 

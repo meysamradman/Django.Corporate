@@ -6,12 +6,12 @@ from src.ai.messages.messages import AI_ERRORS
 class AIAudioGenerationRequestSerializer(serializers.Serializer):
     
     provider_name = serializers.ChoiceField(
-        choices=[('openai', 'OpenAI')],  # Only OpenAI supports TTS currently
+        choices=[('openai', 'OpenAI')],
         help_text="AI provider name (currently only 'openai' supports TTS)"
     )
     
     text = serializers.CharField(
-        max_length=4096,  # OpenAI TTS limit
+        max_length=4096,
         help_text="Text to convert to speech"
     )
     
@@ -67,7 +67,7 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
     def validate_provider_name(self, value):
         if value != 'openai':
             raise serializers.ValidationError(
-                f"Provider '{value}' does not support text-to-speech. Currently only 'openai' is supported."
+                AI_ERRORS["provider_tts_not_supported"].format(provider_name=value)
             )
         
         try:
@@ -84,10 +84,10 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
     
     def validate_text(self, value):
         if not value or not value.strip():
-            raise serializers.ValidationError("Text cannot be empty.")
+            raise serializers.ValidationError(AI_ERRORS["text_empty"])
         
         if len(value) > 4096:
-            raise serializers.ValidationError("Text cannot exceed 4096 characters.")
+            raise serializers.ValidationError(AI_ERRORS["text_too_long"])
         
         return value.strip()
 

@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.conf import settings
 from src.core.models.base import BaseModel
-from src.media.messages.messages import MEDIA_ERRORS
 
 MEDIA_TYPE_CHOICES = [
     ('image', 'Image'),
@@ -114,12 +113,12 @@ class AbstractImageMedia(AbstractMedia):
         
         ext = self.file.name.split('.')[-1].lower()
         if ext not in ALLOWED_EXTENSIONS['image']:
-            raise ValidationError(MEDIA_ERRORS['invalid_image_extension'].format(extensions=', '.join(ALLOWED_EXTENSIONS['image'])))
+            raise ValidationError(f"Invalid image extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['image'])}")
         
         max_size = get_file_size_limit('image')
         if self.file.size > max_size:
             max_size_mb = max_size / (1024 * 1024)
-            raise ValidationError(MEDIA_ERRORS['image_too_large'].format(max_size=f"{max_size_mb:.1f}"))
+            raise ValidationError(f"Image too large. Maximum: {max_size_mb:.1f} MB")
 
 class AbstractVideoMedia(AbstractMedia):
     file = models.FileField(upload_to=upload_media_path)
@@ -142,15 +141,15 @@ class AbstractVideoMedia(AbstractMedia):
         
         ext = self.file.name.split('.')[-1].lower()
         if ext not in ALLOWED_EXTENSIONS['video']:
-            raise ValidationError(MEDIA_ERRORS['invalid_video_extension'].format(extensions=', '.join(ALLOWED_EXTENSIONS['video'])))
+            raise ValidationError(f"Invalid video extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['video'])}")
         
         max_size = get_file_size_limit('video')
         if self.file.size > max_size:
             max_size_mb = max_size / (1024 * 1024)
-            raise ValidationError(MEDIA_ERRORS['video_too_large'].format(max_size=f"{max_size_mb:.1f}"))
+            raise ValidationError(f"Video too large. Maximum: {max_size_mb:.1f} MB")
         
         if self.cover_image and not isinstance(self.cover_image, ImageMedia):
-            raise ValidationError(MEDIA_ERRORS['cover_must_be_image'])
+            raise ValidationError("Cover must be an ImageMedia instance.")
 
 class AbstractAudioMedia(AbstractMedia):
     file = models.FileField(upload_to=upload_media_path)
@@ -173,15 +172,15 @@ class AbstractAudioMedia(AbstractMedia):
         
         ext = self.file.name.split('.')[-1].lower()
         if ext not in ALLOWED_EXTENSIONS['audio']:
-            raise ValidationError(MEDIA_ERRORS['invalid_audio_extension'].format(extensions=', '.join(ALLOWED_EXTENSIONS['audio'])))
+            raise ValidationError(f"Invalid audio extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['audio'])}")
         
         max_size = get_file_size_limit('audio')
         if self.file.size > max_size:
             max_size_mb = max_size / (1024 * 1024)
-            raise ValidationError(MEDIA_ERRORS['audio_too_large'].format(max_size=f"{max_size_mb:.1f}"))
+            raise ValidationError(f"Audio too large. Maximum: {max_size_mb:.1f} MB")
         
         if self.cover_image and not isinstance(self.cover_image, ImageMedia):
-            raise ValidationError(MEDIA_ERRORS['cover_must_be_image'])
+            raise ValidationError("Cover must be an ImageMedia instance.")
 
 class AbstractDocumentMedia(AbstractMedia):
     file = models.FileField(upload_to=upload_media_path)
@@ -203,7 +202,7 @@ class AbstractDocumentMedia(AbstractMedia):
         
         ext = self.file.name.split('.')[-1].lower()
         if ext not in ALLOWED_EXTENSIONS['pdf']:
-            raise ValidationError(MEDIA_ERRORS['invalid_document_extension'].format(extensions=', '.join(ALLOWED_EXTENSIONS['pdf'])))
+            raise ValidationError(f"Invalid document extension. Allowed: {', '.join(ALLOWED_EXTENSIONS['pdf'])}")
 
 class ImageMedia(AbstractImageMedia):
     class Meta(AbstractImageMedia.Meta):

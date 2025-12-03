@@ -10,13 +10,13 @@ def validate_phone_number(value):
     cleaned_phone = value.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
     
     if not cleaned_phone.isdigit():
-        raise ValidationError("Phone number must contain digits only.")
+        raise ValidationError(AUTH_ERRORS["phone_digits_only"])
     
     if len(cleaned_phone) < 3:
-        raise ValidationError("Phone number must contain at least 3 digits.")
+        raise ValidationError(AUTH_ERRORS["phone_min_length"])
     
     if len(cleaned_phone) > 15:
-        raise ValidationError("Phone number must not exceed 15 digits.")
+        raise ValidationError(AUTH_ERRORS["phone_max_length"])
     
     return cleaned_phone
 
@@ -39,7 +39,7 @@ def validate_phone_uniqueness(phone, user_id=None, profile_type='user'):
         pass
     
     if user_query.exists():
-        raise ValidationError("This phone number is already used by another user.")
+        raise ValidationError(AUTH_ERRORS["phone_already_used_user"])
     
     admin_query = AdminProfile.objects.filter(phone=phone)
     if user_id and profile_type == 'admin':
@@ -48,7 +48,7 @@ def validate_phone_uniqueness(phone, user_id=None, profile_type='user'):
         pass
     
     if admin_query.exists():
-        raise ValidationError("This phone number is already used by another admin.")
+        raise ValidationError(AUTH_ERRORS["phone_already_used_admin"])
     
     return phone
 

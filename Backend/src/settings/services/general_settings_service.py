@@ -1,15 +1,17 @@
 from django.core.exceptions import ValidationError
 from django.db import OperationalError
+
 from src.settings.models import GeneralSettings
+from src.settings.messages.messages import SETTINGS_ERRORS
 
 
 def get_general_settings():
     try:
         return GeneralSettings.get_settings()
     except OperationalError:
-        raise ValidationError("database_error")
+        raise ValidationError(SETTINGS_ERRORS["settings_database_error"])
     except Exception:
-        raise ValidationError("retrieve_failed")
+        raise ValidationError(SETTINGS_ERRORS["settings_retrieve_failed"])
 
 
 def update_general_settings(validated_data):

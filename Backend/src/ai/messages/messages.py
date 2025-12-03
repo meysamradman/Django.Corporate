@@ -141,6 +141,9 @@ AUDIO_ERRORS = {
     "prompt_invalid": "درخواست نامعتبر است.",
     "provider_not_available": "Provider '{provider_name}' فعال نیست. لطفاً ابتدا API key را وارد کنید.",
     "providers_list_error": "خطا در دریافت لیست Provider ها: {error}",
+    "text_empty": "متن نمی‌تواند خالی باشد.",
+    "text_too_long": "متن نمی‌تواند بیشتر از 4096 کاراکتر باشد.",
+    "provider_tts_not_supported": "Provider '{provider_name}' از قابلیت text-to-speech پشتیبانی نمی‌کند. در حال حاضر فقط 'openai' پشتیبانی می‌شود.",
 }
 
 SETTINGS_SUCCESS = {

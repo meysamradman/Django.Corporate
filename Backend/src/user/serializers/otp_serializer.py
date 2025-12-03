@@ -35,7 +35,7 @@ class VerifyOTPSerializer(serializers.Serializer):
 
     def validate_otp(self, value):
         try:
-            validate_otp(value, None, None)  # Basic format validation
+            validate_otp(value, None, None)
             return value
         except serializers.ValidationError as e:
             raise serializers.ValidationError(str(e)) 

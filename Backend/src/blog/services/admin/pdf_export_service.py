@@ -104,7 +104,7 @@ class BlogPDFExportService:
             fontSize=28,
             textColor=BlogPDFExportService.TEXT_PRIMARY,
             spaceAfter=30,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=32,
             borderPadding=10,
@@ -117,7 +117,7 @@ class BlogPDFExportService:
             textColor=BlogPDFExportService.PRIMARY_COLOR,
             spaceAfter=12,
             spaceBefore=20,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=20,
             borderWidth=0,
@@ -134,7 +134,7 @@ class BlogPDFExportService:
             fontSize=11,
             textColor=BlogPDFExportService.TEXT_PRIMARY,
             spaceAfter=10,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=16,
         )
@@ -145,7 +145,7 @@ class BlogPDFExportService:
             fontSize=12,
             textColor=BlogPDFExportService.TEXT_PRIMARY,
             spaceAfter=16,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=18,
             leftIndent=20,

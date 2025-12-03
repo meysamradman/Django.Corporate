@@ -129,7 +129,7 @@ class MediaAdminSerializer(serializers.Serializer):
             if hasattr(obj, 'mime_type') and obj.mime_type == 'application/pdf':
                 return 'pdf'
             return 'document'
-        return 'file'  # fallback
+        return 'file'
     
     def get_file_url(self, obj):
         if hasattr(obj, 'file') and obj.file:
@@ -174,7 +174,7 @@ class MediaPublicSerializer(serializers.Serializer):
             return 'audio'
         elif isinstance(obj, DocumentMedia):
             return 'document'
-        return 'file'  # fallback
+        return 'file'
     
     def get_file_url(self, obj):
         if hasattr(obj, 'file') and obj.file:

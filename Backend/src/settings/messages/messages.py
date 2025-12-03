@@ -48,4 +48,6 @@ SETTINGS_ERRORS = {
     'invalid_url': 'لینک نامعتبر است',
     'duplicate_mobile': 'شماره موبایل تکراری است',
     'duplicate_email': 'ایمیل تکراری است',
+    'mobile_format_error': 'شماره موبایل باید با 09 یا +989 شروع شود و 11 رقم باشد',
+    'phone_format_error': 'شماره تماس باید شامل اعداد، +، -، () و فاصله باشد',
 }

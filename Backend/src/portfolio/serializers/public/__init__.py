@@ -10,7 +10,7 @@ from .category_serializer import PortfolioCategoryPublicSerializer
 
 
 __all__ = [
-    'PortfolioPublicSerializer',  # Backward compatibility
+    'PortfolioPublicSerializer',
     'PortfolioPublicListSerializer',
     'PortfolioPublicDetailSerializer',
     'PortfolioCategoryPublicSerializer',

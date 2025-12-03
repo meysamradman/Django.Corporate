@@ -10,6 +10,7 @@ from src.blog.utils.cache import BlogCacheManager, BlogCacheKeys
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.blog.services.admin import BlogAdminMediaService
+from src.blog.messages.messages import BLOG_ERRORS
 
 
 class BlogAdminService:
@@ -262,12 +263,12 @@ class BlogAdminService:
     @staticmethod
     def bulk_delete_blogs(blog_ids):
         if not blog_ids:
-            raise ValidationError("Blog IDs required")
+            raise ValidationError(BLOG_ERRORS["blog_ids_required"])
         
         blogs = Blog.objects.filter(id__in=blog_ids)
         
         if not blogs.exists():
-            raise ValidationError("Selected blogs not found")
+            raise ValidationError(BLOG_ERRORS["blogs_not_found"])
         
         with transaction.atomic():
             deleted_count = blogs.count()

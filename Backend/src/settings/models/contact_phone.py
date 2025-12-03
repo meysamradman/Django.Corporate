@@ -6,7 +6,7 @@ from src.core.models.base import BaseModel
 
 phone_validator = RegexValidator(
     regex=r'^[0-9+\-\s()]+$',
-    message="شماره تماس باید شامل اعداد، +، -، () و فاصله باشد"
+    message="Phone number must contain only digits, +, -, (), and spaces."
 )
 
 

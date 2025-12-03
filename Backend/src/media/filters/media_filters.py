@@ -6,5 +6,5 @@ class MediaFilter(django_filters.FilterSet):
     is_active = django_filters.BooleanFilter(field_name="is_active")
 
     class Meta:
-        model = ImageMedia  # This is just a placeholder, we'll handle filtering manually
+        model = ImageMedia
         fields = ['title', 'is_active']

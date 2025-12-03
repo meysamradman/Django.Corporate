@@ -1,3 +1,5 @@
+from src.ai.models import AIProvider
+
 
 PROVIDER_CAPABILITIES = {
     'openrouter': {
@@ -133,11 +135,11 @@ PROVIDER_CAPABILITIES = {
         }
     },
     'huggingface': {
-        'supports_chat': False,  # Hugging Face doesn't have Chat API (limitation)
+        'supports_chat': False,
         'supports_content': False,
-        'supports_image': True,  # Only Image Generation
-        'supports_audio': False,  # HuggingFace has TTS but needs implementation
-        'has_dynamic_models': False,  # Models are fixed
+        'supports_image': True,
+        'supports_audio': False,
+        'has_dynamic_models': False,
         'models': {
             'chat': [],
             'content': [],
@@ -200,7 +202,6 @@ class ProviderAvailabilityManager:
     
     @staticmethod
     def get_available_providers(capability: str, include_api_based: bool = True) -> list:
-        from src.ai.models import AIProvider
         
         PROVIDER_DISPLAY_NAMES = {
             'openai': 'OpenAI (ChatGPT, DALL-E)',

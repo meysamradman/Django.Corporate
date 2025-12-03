@@ -1,7 +1,10 @@
+from django.core.validators import EmailValidator
 from django.db import models
 from django.utils import timezone
-from django.core.validators import EmailValidator
+
 from src.core.models.base import BaseModel
+from src.email.utils.cache import EmailCacheManager
+from src.statistics.utils.cache import StatisticsCacheManager
 
 
 class EmailMessage(BaseModel):
@@ -25,100 +28,74 @@ class EmailMessage(BaseModel):
         max_length=200,
         blank=True,
         null=True,
-        verbose_name="Name",
-        db_index=True,
-        help_text="Sender name"
+        db_index=True
     )
     email = models.EmailField(
         blank=True,
         null=True,
-        verbose_name="Email",
         db_index=True,
-        validators=[EmailValidator()],
-        help_text="Sender email address"
+        validators=[EmailValidator()]
     )
     phone = models.CharField(
         max_length=20,
         blank=True,
-        null=True,
-        verbose_name="Phone",
-        help_text="Sender phone number (optional)"
+        null=True
     )
     
     subject = models.CharField(
         max_length=300,
         blank=True,
         null=True,
-        verbose_name="Subject",
-        db_index=True,
-        help_text="Message subject"
+        db_index=True
     )
     message = models.TextField(
         blank=True,
-        null=True,
-        verbose_name="Message",
-        help_text="Message content"
+        null=True
     )
     
     dynamic_fields = models.JSONField(
         default=dict,
-        blank=True,
-        verbose_name="Dynamic Fields",
-        help_text="Fields created in admin form builder"
+        blank=True
     )
     
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='new',
-        db_index=True,
-        verbose_name="Status",
-        help_text="Current message status"
+        db_index=True
     )
     
     source = models.CharField(
         max_length=50,
         choices=SOURCE_CHOICES,
         default='website',
-        db_index=True,
-        verbose_name="Source",
-        help_text="Message source"
+        db_index=True
     )
     
     ip_address = models.GenericIPAddressField(
         blank=True,
-        null=True,
-        verbose_name="IP Address",
-        help_text="Sender IP address"
+        null=True
     )
     user_agent = models.TextField(
         blank=True,
-        null=True,
-        verbose_name="User Agent",
-        help_text="Browser or application information"
+        null=True
     )
     
     reply_message = models.TextField(
         blank=True,
-        null=True,
-        verbose_name="Reply Message",
-        help_text="Admin reply to this message"
+        null=True
     )
     replied_at = models.DateTimeField(
         blank=True,
         null=True,
-        db_index=True,
-        verbose_name="Replied At",
-        help_text="When reply was sent"
+        db_index=True
     )
     replied_by = models.ForeignKey(
         'user.User',
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='replied_email_messages',
-        verbose_name="Replied By",
-        help_text="Admin who sent the reply"
+        related_name='replied_email_messages'
     )
     
     created_by = models.ForeignKey(
@@ -126,17 +103,13 @@ class EmailMessage(BaseModel):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='created_email_messages',
-        verbose_name="Created By",
-        help_text="Admin who created this email/draft"
+        related_name='created_email_messages'
     )
     
     read_at = models.DateTimeField(
         blank=True,
         null=True,
-        db_index=True,
-        verbose_name="Read At",
-        help_text="When message was read"
+        db_index=True
     )
     
     class Meta:
@@ -190,13 +163,10 @@ class EmailMessage(BaseModel):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        from src.statistics.utils.cache import StatisticsCacheManager
-        StatisticsCacheManager.invalidate_emails()
-        StatisticsCacheManager.invalidate_dashboard()
+        EmailCacheManager.invalidate_all(message_id=self.id)
     
     def delete(self, *args, **kwargs):
+        message_id = self.id
         super().delete(*args, **kwargs)
-        from src.statistics.utils.cache import StatisticsCacheManager
-        StatisticsCacheManager.invalidate_emails()
-        StatisticsCacheManager.invalidate_dashboard()
+        EmailCacheManager.invalidate_all(message_id=message_id)
 

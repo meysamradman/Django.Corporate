@@ -167,10 +167,10 @@ class BlogCategoryAdminService:
             raise BlogCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         if target.is_descendant_of(category):
-            raise ValidationError("Cannot move category to its own descendant")
+            raise ValidationError(CATEGORY_ERRORS["category_move_to_descendant"])
         
         if category.id == target.id:
-            raise ValidationError("Cannot move category to itself")
+            raise ValidationError(CATEGORY_ERRORS["category_move_to_self"])
         
         with transaction.atomic():
             category.move(target, pos=position)
@@ -220,7 +220,7 @@ class BlogCategoryAdminService:
         categories = BlogCategory.objects.filter(id__in=category_ids)
         
         if not categories.exists():
-            raise ValidationError("Selected categories not found")
+            raise ValidationError(CATEGORY_ERRORS["categories_not_found"])
         
         with transaction.atomic():
             all_category_ids = set()

@@ -4,11 +4,13 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.services.admin import PortfolioAdminMediaService
 from src.portfolio.utils.cache import PortfolioCacheManager, PortfolioCacheKeys
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
 class PortfolioAdminService:
@@ -262,12 +264,12 @@ class PortfolioAdminService:
     @staticmethod
     def bulk_delete_portfolios(portfolio_ids):
         if not portfolio_ids:
-            raise ValidationError("Portfolio IDs required")
+            raise ValidationError(PORTFOLIO_ERRORS["portfolio_ids_required"])
         
         portfolios = Portfolio.objects.filter(id__in=portfolio_ids)
         
         if not portfolios.exists():
-            raise ValidationError("Selected portfolios not found")
+            raise ValidationError(PORTFOLIO_ERRORS["portfolios_not_found"])
         
         with transaction.atomic():
             deleted_count = portfolios.count()

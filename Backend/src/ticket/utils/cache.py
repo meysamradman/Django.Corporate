@@ -1,5 +1,7 @@
 from django.core.cache import cache
 
+from src.statistics.utils.cache import StatisticsCacheManager
+
 
 class TicketCacheKeys:
     
@@ -36,7 +38,6 @@ class TicketCacheManager:
     
     @staticmethod
     def invalidate_stats():
-        from src.statistics.utils.cache import StatisticsCacheManager
         cache.delete(TicketCacheKeys.stats())
         StatisticsCacheManager.invalidate_tickets()
     

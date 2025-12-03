@@ -82,6 +82,9 @@ BLOG_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
+    "blog_ids_required": "شناسه مقالات مورد نیاز است.",
+    "blogs_not_found": "مقالات انتخاب‌شده یافت نشدند.",
+    "only_one_main_image": "فقط یک تصویر اصلی برای هر مقاله مجاز است.",
 }
 
 CATEGORY_SUCCESS = {
@@ -112,6 +115,9 @@ CATEGORY_ERRORS = {
     "category_slug_exists": "این نامک قبلاً استفاده شده است.",
     "category_max_depth": "حداکثر عمق درخت 5 سطح است.",
     "category_cannot_be_own_parent": "دسته‌بندی نمی‌تواند والد خودش باشد.",
+    "category_move_to_descendant": "نمی‌توانید دسته‌بندی را به فرزند خودش منتقل کنید.",
+    "category_move_to_self": "نمی‌توانید دسته‌بندی را به خودش منتقل کنید.",
+    "categories_not_found": "دسته‌بندی‌های انتخاب‌شده یافت نشدند.",
 }
 
 TAG_SUCCESS = {

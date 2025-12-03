@@ -1,8 +1,9 @@
 from django.dispatch import receiver
-from django_mailbox.signals import message_received
 from django_mailbox.models import Message
-from src.email.models.email_message import EmailMessage
+from django_mailbox.signals import message_received
+
 from src.email.models.email_attachment import EmailAttachment
+from src.email.models.email_message import EmailMessage
 
 
 @receiver(message_received)

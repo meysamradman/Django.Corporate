@@ -44,13 +44,13 @@ class Blog(BaseModel, SEOMixin):
         verbose_name = "Blog"
         verbose_name_plural = "Blog"
         indexes = [
-            models.Index(fields=['status', 'is_public']),  # Combined index
+            models.Index(fields=['status', 'is_public']),
             models.Index(fields=['title']),
             models.Index(fields=['slug']),
             models.Index(fields=['public_id']),
-            models.Index(fields=['is_featured', 'status']),  # Combined index
-            models.Index(fields=['created_at']),  # For ordering
-            models.Index(fields=['meta_title']),  # SEO search
+            models.Index(fields=['is_featured', 'status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['meta_title']),
         ]
         ordering = ['-created_at']
 
@@ -175,7 +175,7 @@ class Blog(BaseModel, SEOMixin):
                 "dateModified": self.updated_at.isoformat() if self.updated_at else None,
                 "creator": {
                     "@type": "Organization",
-                    "name": "Your Company Name"  # This should come from settings
+                    "name": "Your Company Name"
                 },
                 "keywords": tags,
                 "about": categories

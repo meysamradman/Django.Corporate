@@ -41,6 +41,9 @@ PORTFOLIO_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
+    "portfolio_ids_required": "شناسه نمونه کارها مورد نیاز است.",
+    "portfolios_not_found": "نمونه کارهای انتخاب‌شده یافت نشدند.",
+    "only_one_main_image": "فقط یک تصویر اصلی برای هر نمونه کار مجاز است.",
 }
 CATEGORY_SUCCESS = {
     "category_list_success": "لیست دسته‌بندی‌ها با موفقیت دریافت شد.",

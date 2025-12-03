@@ -77,6 +77,8 @@ AUTH_ERRORS = {
     "location_city_inactive": "City is inactive.",
     "cannot_update_admin_user": "Admin users cannot be updated via regular user management.",
     "cannot_delete_admin_user": "Admin users cannot be deleted via regular user management.",
+    "id_list_empty": "ID list must not be empty.",
+    "ids_must_be_integers": "All IDs must be integers.",
     "national_id_exists": "National ID is already used by another user.",
     "national_id_invalid_format": "National ID format is invalid.",
     "national_id_not_numeric": "National ID must contain only digits.",
@@ -90,4 +92,9 @@ AUTH_ERRORS = {
     "admin_cannot_self_delete": "You cannot delete your own account.",
     "admin_delete_superadmin_required": "Only a super admin can delete admins.",
     "admin_superadmin_delete_forbidden": "Super admins cannot be deleted.",
+    "phone_digits_only": "Phone number must contain digits only.",
+    "phone_min_length": "Phone number must contain at least 3 digits.",
+    "phone_max_length": "Phone number must not exceed 15 digits.",
+    "phone_already_used_user": "This phone number is already used by another user.",
+    "phone_already_used_admin": "This phone number is already used by another admin.",
 }

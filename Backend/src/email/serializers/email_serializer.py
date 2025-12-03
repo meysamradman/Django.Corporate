@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from src.email.models.email_message import EmailMessage
+
 from src.email.models.email_attachment import EmailAttachment
+from src.email.models.email_message import EmailMessage
 
 
 class EmailAttachmentSerializer(serializers.ModelSerializer):

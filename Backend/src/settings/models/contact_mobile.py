@@ -6,7 +6,7 @@ from src.core.models.base import BaseModel
 
 mobile_validator = RegexValidator(
     regex=r'^(09|\+989)[0-9]{9}$',
-    message="شماره موبایل باید با 09 یا +989 شروع شود و 11 رقم باشد"
+    message="Mobile number must start with 09 or +989 and be 11 digits."
 )
 
 

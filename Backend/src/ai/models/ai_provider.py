@@ -10,7 +10,6 @@ import hashlib
 
 from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
-from src.ai.messages.messages import IMAGE_ERRORS, SETTINGS_ERRORS
 from src.ai.services.state_machine import ModelAccessState
 
 
@@ -36,12 +35,12 @@ class EncryptedAPIKeyMixin:
             encrypted = fernet.encrypt(api_key.strip().encode())
             return encrypted.decode()
         except Exception as e:
-            raise ValidationError(IMAGE_ERRORS['api_key_encryption_error'].format(error=str(e)))
+            raise ValidationError(f"API key encryption error: {str(e)}")
     
     @classmethod
     def decrypt_key(cls, encrypted_key: str) -> str:
         if not encrypted_key:
-            raise ValidationError(IMAGE_ERRORS['api_key_required'])
+            raise ValidationError("API key is required.")
         
         try:
             key = cls._get_encryption_key()
@@ -49,7 +48,7 @@ class EncryptedAPIKeyMixin:
             decrypted = fernet.decrypt(encrypted_key.encode())
             return decrypted.decode()
         except Exception as e:
-            raise ValidationError(IMAGE_ERRORS['api_key_decryption_error'].format(error=str(e)))
+            raise ValidationError(f"API key decryption error: {str(e)}")
 
 
 class CacheMixin:
@@ -559,13 +558,13 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
             if not is_super:
                 if not self.provider.allow_shared_for_normal_admins:
                     raise ValidationError(
-                        SETTINGS_ERRORS["shared_api_not_allowed"].format(provider_name=self.provider.display_name)
+                        f"Shared API is not allowed for {self.provider.display_name}."
                     )
             
             shared_key = self.provider.get_shared_api_key()
             if not shared_key:
                 raise ValidationError(
-                    SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=self.provider.display_name)
+                    f"Shared API key is not set for {self.provider.display_name}."
                 )
             
             return shared_key
@@ -573,7 +572,7 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
             personal_key = self.get_personal_api_key()
             if not personal_key:
                 raise ValidationError(
-                    SETTINGS_ERRORS["personal_api_key_not_set"]
+                    "Personal API key is not set."
                 )
             
             return personal_key

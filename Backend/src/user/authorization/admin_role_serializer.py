@@ -46,24 +46,24 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         if value is None:
             return {}
         if not isinstance(value, dict):
-            raise serializers.ValidationError("Permissions must be a valid JSON object")
+            raise serializers.ValidationError(ROLE_ERRORS["permissions_must_be_json"])
         if not value:
             return {}
         if 'specific_permissions' in value:
             specific_perms = value['specific_permissions']
             if not isinstance(specific_perms, list):
-                raise serializers.ValidationError("specific_permissions must be a list")
+                raise serializers.ValidationError(ROLE_ERRORS["specific_permissions_must_be_list"])
             allowed_modules = {'all', *AVAILABLE_MODULES.keys()}
             allowed_actions = {'create', 'read', 'update', 'delete', 'export', 'manage', 'all', 'import'}
             for perm in specific_perms:
                 if not isinstance(perm, dict):
-                    raise serializers.ValidationError("Each permission must be a dict with 'module' and 'action'")
+                    raise serializers.ValidationError(ROLE_ERRORS["permission_must_be_dict"])
                 if 'permission_key' in perm and perm['permission_key']:
                     if not PermissionRegistry.exists(perm['permission_key']):
                         raise serializers.ValidationError(PERMISSION_ERRORS['invalid_permission_key'].format(permission_key=perm['permission_key']))
                     continue
                 if 'module' not in perm or 'action' not in perm:
-                    raise serializers.ValidationError("Each permission must have 'module' and 'action' fields")
+                    raise serializers.ValidationError(ROLE_ERRORS["permission_missing_fields"])
                 if perm['module'] not in allowed_modules:
                     raise serializers.ValidationError(PERMISSION_ERRORS['invalid_module'].format(module=perm['module']))
                 if perm['action'] not in allowed_actions:
@@ -76,7 +76,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         if 'modules' in value:
             modules = value['modules']
             if not isinstance(modules, list):
-                raise serializers.ValidationError("modules must be a list")
+                raise serializers.ValidationError(ROLE_ERRORS["modules_must_be_list"])
             
             allowed_modules = {'all', *AVAILABLE_MODULES.keys()}
             invalid_modules = set(modules) - allowed_modules
@@ -91,7 +91,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         if 'actions' in value:
             actions = value['actions']
             if not isinstance(actions, list):
-                raise serializers.ValidationError("actions must be a list")
+                raise serializers.ValidationError(ROLE_ERRORS["actions_must_be_list"])
             
             allowed_actions = {'create', 'read', 'update', 'delete', 'export', 'all'}
             invalid_actions = set(actions) - allowed_actions
@@ -107,7 +107,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
     
     def validate_level(self, value):
         if value < 1 or value > 10:
-            raise serializers.ValidationError("Level must be between 1 (highest) and 10 (lowest)")
+            raise serializers.ValidationError(ROLE_ERRORS["level_invalid_range"])
         return value
 
 
@@ -179,7 +179,7 @@ class AdminRolePermissionsSerializer(serializers.ModelSerializer):
         if value is None:
             return {}
         if not isinstance(value, dict):
-            raise serializers.ValidationError("Permissions must be a valid JSON object")
+            raise serializers.ValidationError(ROLE_ERRORS["permissions_must_be_json"])
         if not value:
             return {}
         serializer = AdminRoleSerializer()

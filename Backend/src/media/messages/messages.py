@@ -32,5 +32,8 @@ MEDIA_ERRORS = {
     "svg_dangerous_element": "فایل SVG شامل عنصر خطرناک است: {element}",
     "invalid_svg_format": "فرمت فایل SVG نامعتبر است.",
     "cover_must_be_image": "کاور باید یک نمونه ImageMedia باشد.",
+    "invalid_file_type": "نوع فایل نامعتبر است.",
+    "invalid_video_format": "فرمت فایل ویدیو نامعتبر است.",
+    "corrupted_video": "فایل ویدیو خراب است.",
 }
 

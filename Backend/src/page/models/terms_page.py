@@ -13,7 +13,7 @@ class TermsPage(BaseModel, SEOMixin):
         default="Terms and Conditions",
         verbose_name="Page Title",
         help_text="Terms and conditions page title",
-        validators=[MinLengthValidator(3, message="Title must be at least 3 characters")]
+        validators=[MinLengthValidator(3, message="Title must be at least 3 characters.")]
     )
     
     content = models.TextField(
@@ -47,7 +47,7 @@ class TermsPage(BaseModel, SEOMixin):
         verbose_name_plural = "Terms Pages"
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['meta_title']),  # SEO search
+            models.Index(fields=['meta_title']),
         ]
     
     def __str__(self):

@@ -378,7 +378,7 @@ class BulkDeleteSerializer(serializers.Serializer):
 
     def validate_ids(self, value):
         if not value:
-            raise serializers.ValidationError("ID list must not be empty.")
+            raise serializers.ValidationError(AUTH_ERRORS["id_list_empty"])
         if not all(isinstance(item, int) for item in value):
-            raise serializers.ValidationError("All IDs must be integers.")
+            raise serializers.ValidationError(AUTH_ERRORS["ids_must_be_integers"])
         return value

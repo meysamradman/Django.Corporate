@@ -191,8 +191,6 @@ class GroqProvider(BaseProvider):
             raise Exception(GROQ_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
-        import re
-        from django.utils.text import slugify
         
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')

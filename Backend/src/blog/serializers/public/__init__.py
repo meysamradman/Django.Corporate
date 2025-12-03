@@ -9,7 +9,7 @@ from .category_serializer import BlogCategoryPublicSerializer
 
 
 __all__ = [
-    'BlogPublicSerializer',  # Backward compatibility
+    'BlogPublicSerializer',
     'BlogPublicListSerializer',
     'BlogPublicDetailSerializer',
     'BlogCategoryPublicSerializer',

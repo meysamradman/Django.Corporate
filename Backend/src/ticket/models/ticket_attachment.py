@@ -1,7 +1,9 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+
 from src.core.models import BaseModel
-from .ticket_message import TicketMessage
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from .ticket_message import TicketMessage
 
 
 class TicketAttachment(BaseModel):
@@ -57,7 +59,6 @@ class TicketAttachment(BaseModel):
         return f"Attachment #{self.id} for Message #{self.ticket_message.id}"
     
     def clean(self):
-        from django.core.exceptions import ValidationError
         media_count = sum([
             bool(self.image),
             bool(self.video),
@@ -65,7 +66,7 @@ class TicketAttachment(BaseModel):
             bool(self.document)
         ])
         if media_count != 1:
-            raise ValidationError("Exactly one media type must be specified.")
+            raise ValidationError("Exactly one media type must be selected.")
     
     def get_media(self):
         return self.image or self.video or self.audio or self.document

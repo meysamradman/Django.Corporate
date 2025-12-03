@@ -1,17 +1,18 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import AllowAny
+
+from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
+from src.email.messages.messages import EMAIL_ERRORS, EMAIL_SUCCESS
 from src.email.models.email_message import EmailMessage
 from src.email.serializers.email_serializer import (
-    EmailMessageSerializer,
-    EmailMessageCreateSerializer
+    EmailMessageCreateSerializer,
+    EmailMessageSerializer
 )
-from src.email.messages.messages import EMAIL_SUCCESS, EMAIL_ERRORS
 from src.email.services.email_service import EmailService
-from src.core.pagination import StandardLimitPagination
 from src.user.authorization.admin_permission import EmailManagerAccess
 from src.user.permissions import PermissionValidator
 
@@ -75,10 +76,9 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 data=response_serializer.data,
                 status_code=status.HTTP_201_CREATED
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=EMAIL_ERRORS['message_create_failed'],
-                errors={'detail': str(e)},
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -132,7 +132,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 message=EMAIL_ERRORS['message_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=EMAIL_ERRORS['message_update_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -157,7 +157,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 message=EMAIL_ERRORS['message_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=EMAIL_ERRORS['message_delete_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -239,21 +239,15 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
-            stats = {
-                'total': EmailMessage.objects.count(),
-                'new': EmailMessage.objects.filter(status='new').count(),
-                'read': EmailMessage.objects.filter(status='read').count(),
-                'replied': EmailMessage.objects.filter(status='replied').count(),
-                'archived': EmailMessage.objects.filter(status='archived').count(),
-                'draft': EmailMessage.objects.filter(status='draft').count(),
-            }
+            stats = EmailService.get_statistics()
+            stats['draft'] = EmailMessage.objects.filter(status='draft').count()
             
             return APIResponse.success(
                 message=EMAIL_SUCCESS['statistics_retrieved'],
                 data=stats,
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=EMAIL_ERRORS['message_not_found'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
