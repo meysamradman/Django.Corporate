@@ -1,10 +1,4 @@
-"""
-Users Module Permissions
-Admin and regular user management permissions
-"""
-
 USERS_PERMISSIONS = {
-    # Admin Management - CRUD permissions for managing admin users
     'admin.read': {
         'module': 'admin',
         'action': 'read',
@@ -40,8 +34,6 @@ USERS_PERMISSIONS = {
         'description': 'Allow full access to admin management (view, create, update, delete)',
         'requires_superadmin': True,
     },
-    
-    # Users
     'users.read': {
         'module': 'users',
         'action': 'read',
@@ -73,4 +65,3 @@ USERS_PERMISSIONS = {
         'description': 'Allow full access to user management (view, create, update, delete)',
     },
 }
-

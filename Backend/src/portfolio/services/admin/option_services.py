@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.utils.cache import OptionCacheKeys, OptionCacheManager
+from src.portfolio.messages.messages import OPTION_ERRORS
 
 
 class PortfolioOptionAdminService:
@@ -51,7 +52,7 @@ class PortfolioOptionAdminService:
             ).first()
             
             if existing:
-                raise ValidationError(f"Option with name '{name}' already exists")
+                raise ValidationError(OPTION_ERRORS["option_name_exists"].format(name=name))
         
         option = PortfolioOption.objects.create(**validated_data)
         
@@ -64,7 +65,7 @@ class PortfolioOptionAdminService:
         try:
             option = PortfolioOption.objects.get(id=option_id)
         except PortfolioOption.DoesNotExist:
-            raise PortfolioOption.DoesNotExist("Option not found")
+            raise PortfolioOption.DoesNotExist(OPTION_ERRORS["option_not_found"])
         
         name = validated_data.get('name')
         
@@ -74,7 +75,7 @@ class PortfolioOptionAdminService:
             ).exclude(id=option_id).first()
             
             if existing:
-                raise ValidationError(f"Option with name '{name}' already exists")
+                raise ValidationError(OPTION_ERRORS["option_name_exists"].format(name=name))
         
         for field, value in validated_data.items():
             setattr(option, field, value)
@@ -90,11 +91,11 @@ class PortfolioOptionAdminService:
         try:
             option = PortfolioOption.objects.get(id=option_id)
         except PortfolioOption.DoesNotExist:
-            raise PortfolioOption.DoesNotExist("Option not found")
+            raise PortfolioOption.DoesNotExist(OPTION_ERRORS["option_not_found"])
         
         portfolio_count = option.portfolio_options.count()
         if portfolio_count > 0:
-            raise ValidationError(f"Option is used by {portfolio_count} portfolios")
+            raise ValidationError(OPTION_ERRORS["option_has_portfolios"].format(count=portfolio_count))
         
         option.delete()
         
@@ -109,7 +110,7 @@ class PortfolioOptionAdminService:
         
         if used_options:
             used_names = [f'{name}' for _, name in used_options]
-            raise ValidationError(f"Cannot delete options that are in use: {', '.join(used_names)}")
+            raise ValidationError(OPTION_ERRORS["options_in_use"].format(names=', '.join(used_names)))
         
         deleted_count = PortfolioOption.objects.filter(id__in=option_ids).delete()[0]
         

@@ -1,8 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Exists, OuterRef
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket import Ticket
+from src.ticket.models.ticket_message import TicketMessage
 from src.ticket.serializers.ticket_serializer import TicketSerializer, TicketListSerializer, TicketDetailSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
@@ -60,7 +62,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
     
     def create(self, request, *args, **kwargs):
-        from src.ticket.messages.messages import TICKET_ERRORS
         return APIResponse.error(
             message=TICKET_ERRORS["admin_cannot_create"],
             status_code=status.HTTP_403_FORBIDDEN
@@ -112,7 +113,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         try:
             ticket = self.get_object()
             
-            from src.ticket.models.ticket_message import TicketMessage
             unread_messages = TicketMessage.objects.filter(
                 ticket=ticket,
                 sender_type='user',
@@ -127,16 +127,14 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             
             serializer = TicketDetailSerializer(ticket)
             
-            from src.ticket.messages.messages import TICKET_SUCCESS
             return APIResponse.success(
                 message=TICKET_SUCCESS.get('messages_marked_as_read', f"{count} message(s) marked as read"),
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
-            from src.ticket.messages.messages import TICKET_ERRORS
             return APIResponse.error(
-                message=TICKET_ERRORS.get('mark_read_failed', f"Error marking ticket as read: {str(e)}"),
+                message=TICKET_ERRORS['mark_read_failed'].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -180,7 +178,7 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=TICKET_ERRORS.get('update_status_failed', f"Error updating ticket status: {str(e)}"),
+                message=TICKET_ERRORS['update_status_failed'].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -193,9 +191,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            from src.ticket.models.ticket_message import TicketMessage
-            from django.db.models import Exists, OuterRef
-            
             has_unread = TicketMessage.objects.filter(
                 ticket=OuterRef('pk'),
                 sender_type='user',
@@ -240,7 +235,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
                 'recent_tickets': recent_tickets_data,
             }
             
-            from src.ticket.messages.messages import TICKET_SUCCESS
             return APIResponse.success(
                 message=TICKET_SUCCESS["statistics_retrieved"],
                 data=stats,
@@ -248,6 +242,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message="Error retrieving ticket statistics",
+                message=TICKET_ERRORS["statistics_retrieve_failed"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

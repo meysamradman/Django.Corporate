@@ -28,7 +28,6 @@ from src.user.authorization import (
 )
 from src.user.permissions import PermissionValidator
 from src.core.pagination.pagination import StandardLimitPagination
-# Throttling removed for admin operations - admins can work freely
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -36,7 +35,6 @@ class UserManagementView(UserAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = StandardLimitPagination
-    # No throttling for admin operations - admins can work freely
 
     def get_permissions(self):
         return [UserManagerAccess()]
@@ -52,7 +50,6 @@ class UserManagementView(UserAuthMixin, APIView):
             if user_id:
                 try:
                     user = UserManagementService.get_user_detail(user_id)
-                    # Ensure target user is a regular account
                     if user.is_staff:
                         raise NotFound(AUTH_ERRORS["not_found"])
                     serializer = UserDetailSerializer(user, context={'request': request})
@@ -115,7 +112,6 @@ class UserManagementView(UserAuthMixin, APIView):
     def get_by_public_id(request, public_id=None):
         try:
             user = UserManagementService.get_user_by_public_id(public_id)
-            # Ensure queried user is a regular account
             if user.is_staff:
                 raise NotFound(AUTH_ERRORS["not_found"])
             serializer = UserDetailSerializer(user, context={'request': request})
@@ -150,7 +146,6 @@ class UserManagementView(UserAuthMixin, APIView):
             )
             
         try:
-            # Use dedicated user registration service
             from src.user.services.user.user_register_service import UserRegisterService
             user = UserRegisterService.register_user_from_serializer(
                 validated_data=serializer.validated_data,

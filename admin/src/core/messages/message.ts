@@ -127,8 +127,6 @@ const VALIDATION_MESSAGES = {
   
 } as const;
 
-// AI Messages - منتقل شده به @/components/ai/messages
-// برای استفاده: import { AI_MESSAGES, AI_UI_MESSAGES } from '@/components/ai/messages';
 
 // Common UI Messages (برای loading، confirm، etc.)
 const COMMON_UI_MESSAGES = {
@@ -174,7 +172,75 @@ const COMMON_UI_MESSAGES = {
   
   // Profile Success Messages
   userProfileUpdated: "پروفایل کاربر با موفقیت به‌روزرسانی شد",
-  adminProfileUpdated: "پروفایل ادمین با موفقیت به‌روزرسانی شد"
+  adminProfileUpdated: "پروفایل ادمین با موفقیت به‌روزرسانی شد",
+  
+  // Portfolio/Blog Status Messages
+  portfolioActivated: "نمونه‌کار با موفقیت فعال شد",
+  portfolioDeactivated: "نمونه‌کار با موفقیت غیرفعال شد",
+  blogActivated: "بلاگ با موفقیت فعال شد",
+  blogDeactivated: "بلاگ با موفقیت غیرفعال شد",
+  statusChangeError: "خطا در تغییر وضعیت",
+  
+  // Export Messages
+  excelExportSuccess: "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد",
+  excelExportAllSuccess: "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد",
+  pdfExportSuccess: "فایل PDF (صفحه فعلی) با موفقیت دانلود شد",
+  pdfExportAllSuccess: "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد",
+  excelExportError: "خطا در دانلود فایل اکسل",
+  pdfExportError: "خطا در دانلود فایل PDF",
+  printDataError: "خطا در دریافت داده‌ها برای پرینت",
+  popupBlockerError: "لطفاً popup blocker را غیرفعال کنید",
+  printLimitWarning: "فقط {max} آیتم اول از {total} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.",
+  
+  // Delete Confirm Messages
+  deletePortfolio: "آیا از حذف این نمونه‌کار اطمینان دارید؟",
+  deleteBlog: "آیا از حذف این بلاگ اطمینان دارید؟",
+  bulkDeletePortfolios: "آیا از حذف {count} نمونه‌کار اطمینان دارید؟",
+  bulkDeleteBlogs: "آیا از حذف {count} بلاگ اطمینان دارید؟",
+  
+  // Permission Messages
+  portfolioDeleteDenied: "اجازه حذف نمونه‌کار ندارید",
+  blogDeleteDenied: "اجازه حذف بلاگ ندارید",
+  
+  // Page Titles
+  portfolioManagement: "مدیریت نمونه‌کارها",
+  blogManagement: "مدیریت بلاگ‌ها",
+  addPortfolio: "افزودن نمونه‌کار",
+  addBlog: "افزودن بلاگ",
+  
+  // Error Messages
+  dataLoadError: "خطا در بارگذاری داده‌ها",
+  server500Error: "سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.",
+  clearCacheAndRetry: "پاک کردن کش و تلاش مجدد",
+  
+  // Table Actions
+  edit: "ویرایش",
+  delete: "حذف",
+  
+  // Status Text
+  statusPublished: "منتشر شده",
+  statusDraft: "پیش‌نویس",
+  statusArchived: "بایگانی شده",
+  yes: "بله",
+  no: "خیر",
+  
+  // Print Headers
+  printPortfolioTitle: "پرینت لیست نمونه‌کارها",
+  printBlogTitle: "پرینت لیست بلاگ‌ها",
+  printAll: "(همه)",
+  printCurrent: "(صفحه فعلی)",
+  
+  // Table Headers
+  status: "وضعیت",
+  createdAt: "تاریخ ایجاد",
+  options: "گزینه‌ها",
+  tags: "تگ‌ها",
+  categories: "دسته‌بندی‌ها",
+  active: "فعال",
+  public: "عمومی",
+  featured: "ویژه",
+  title: "عنوان",
+  summary: "خلاصه"
 } as const;
 
 // Helper function for parameter replacement
@@ -186,7 +252,6 @@ const replaceParams = (message: string, params?: Record<string, string | number>
   }, message);
 };
 
-// Export functions (فقط برای errorHandler و common usage)
 export const getErrorMessage = (key: keyof typeof ERROR_MESSAGES): string => {
   return ERROR_MESSAGES[key] || ERROR_MESSAGES.unknownError;
 };
@@ -205,7 +270,6 @@ export const getConfirmMessage = (key: keyof typeof COMMON_UI_MESSAGES, params?:
   return replaceParams(message, params);
 };
 
-// AI Message helpers - منتقل شده به @/components/ai/messages
 
 // Main msg object for convenient access
 export const msg = {
@@ -222,14 +286,11 @@ export const msg = {
     const message = VALIDATION_MESSAGES[key] || key;
     return replaceParams(message, params);
   },
-  // AI messages - redirect to @/components/ai/messages
   ai: (key: string): string => {
-    // Dynamic import to avoid circular dependency
     const { AI_MESSAGES } = require('@/components/ai/messages');
     return AI_MESSAGES[key as keyof typeof AI_MESSAGES] || key;
   },
   aiUI: (key: string): string => {
-    // Dynamic import to avoid circular dependency
     const { AI_UI_MESSAGES } = require('@/components/ai/messages');
     return AI_UI_MESSAGES[key as keyof typeof AI_UI_MESSAGES] || key;
   },

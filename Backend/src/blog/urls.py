@@ -9,9 +9,7 @@ router.register(r'admin/blog-category', views.BlogCategoryAdminViewSet, basename
 router.register(r'blog-category', views.BlogCategoryPublicViewSet, basename='public-blog-category')
 router.register(r'admin/blog-tag', views.BlogTagAdminViewSet, basename='admin-blog-tag')
 router.register(r'blog-tag', views.BlogTagPublicViewSet, basename='public-blog-tag')
-# BlogMediaViewSet is removed as BlogMedia model no longer exists
 
-# Note: Export endpoint is defined in config/urls.py before this include to take precedence
 urlpatterns = [
     path('', include(router.urls)),
 ]

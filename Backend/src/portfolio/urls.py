@@ -11,9 +11,7 @@ router.register(r'admin/portfolio-option', views.PortfolioOptionAdminViewSet, ba
 router.register(r'portfolio-option', views.PortfolioOptionPublicViewSet, basename='public-portfolio-option')
 router.register(r'admin/portfolio-tag', views.PortfolioTagAdminViewSet, basename='admin-portfolio-tag')
 router.register(r'portfolio-tag', views.PortfolioTagPublicViewSet, basename='public-portfolio-tag')
-# PortfolioMediaViewSet is removed as PortfolioMedia model no longer exists
 
-# Note: Export endpoint is defined in config/urls.py before this include to take precedence
 urlpatterns = [
     path('', include(router.urls)),
 ]

@@ -6,7 +6,6 @@ from src.media.models.media import ImageMedia
 
 
 class SocialMedia(BaseModel):
-    """Social media links - can be multiple"""
     
     name = models.CharField(
         max_length=100,

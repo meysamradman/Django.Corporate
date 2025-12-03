@@ -444,7 +444,6 @@ class PortfolioPDFExportService:
                     canv.setLineWidth(1)
                     canv.line(60, A4[1] - 50, A4[0] - 60, A4[1] - 50)
                     
-                    # Footer with page number
                     canv.setFillColor(PortfolioPDFExportService.TEXT_SECONDARY)
                     canv.setFont(persian_font_name, 8)
                     page_num = process_persian_text(PDF_LABELS['page'].format(page=doc.page))
@@ -472,14 +471,11 @@ class PortfolioPDFExportService:
                 onLaterPages=add_header_footer
             )
             
-            # Container for PDF elements
             elements = []
             styles = getSampleStyleSheet()
             
-            # Create custom styles
             pdf_styles = PortfolioPDFExportService._create_persian_styles(persian_font_name)
             
-            # Add title with improved styling
             processed_title = process_persian_text(portfolio.title)
             title_para = Paragraph(
                 f'<para backColor="{PortfolioPDFExportService.LIGHT_BG}" borderPadding="12">'

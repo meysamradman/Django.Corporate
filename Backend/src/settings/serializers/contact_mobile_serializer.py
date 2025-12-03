@@ -1,11 +1,8 @@
 from rest_framework import serializers
-
 from src.settings.models import ContactMobile
 
 
 class ContactMobileSerializer(serializers.ModelSerializer):
-    """Serializer for contact mobiles"""
-    
     class Meta:
         model = ContactMobile
         fields = [

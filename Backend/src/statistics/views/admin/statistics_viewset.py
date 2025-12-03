@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from src.user.authorization.admin_permission import AdminRolePermission, RequirePermission
 from src.core.responses import APIResponse
 from src.statistics.messages.messages import STATISTICS_SUCCESS
-from ...services.admin import (
+from src.statistics.services.admin import (
     DashboardStatsService,
     UserStatsService,
     AdminStatsService,

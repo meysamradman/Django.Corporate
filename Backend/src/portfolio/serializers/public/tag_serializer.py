@@ -3,7 +3,6 @@ from src.portfolio.models.tag import PortfolioTag
 
 
 class PortfolioTagPublicSerializer(serializers.ModelSerializer):
-    """Public serializer for portfolio tags with portfolio count"""
     portfolio_count = serializers.IntegerField(read_only=True)
 
     class Meta:

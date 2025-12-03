@@ -5,7 +5,6 @@ from src.core.models.base import BaseModel
 
 
 class ContactEmail(BaseModel):
-    """Contact email - can be multiple"""
     
     email = models.EmailField(
         max_length=255,

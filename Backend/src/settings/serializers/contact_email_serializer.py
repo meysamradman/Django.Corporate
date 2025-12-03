@@ -1,11 +1,8 @@
 from rest_framework import serializers
-
 from src.settings.models import ContactEmail
 
 
 class ContactEmailSerializer(serializers.ModelSerializer):
-    """Serializer for contact emails"""
-    
     class Meta:
         model = ContactEmail
         fields = [

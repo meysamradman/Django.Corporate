@@ -5,7 +5,6 @@ from src.ai.utils.cache import AICacheKeys, AICacheManager
 
 class AICacheService:
     
-    # Cache TTL (seconds)
     PROVIDER_TTL = 300
     MODEL_TTL = 300
     SETTINGS_TTL = 300

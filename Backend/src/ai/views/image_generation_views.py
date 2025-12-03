@@ -36,12 +36,10 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
         return AIProviderSerializer
     
     def list(self, request, *args, **kwargs):
-        # If super admin, see all providers
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         if is_super:
             providers = self.get_queryset()
         else:
-            # For regular admins: only show active providers
             providers = AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name')
         
         serializer = self.get_serializer(providers, many=True)
@@ -121,13 +119,10 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
         providers = AIProvider.objects.filter(is_active=True)
         serializer = AIProviderListSerializer(providers, many=True)
         
-        # CRITICAL: API-based providers should be shown even without API key
-        # Because they may get their models without auth (OpenRouter, Groq)
         api_based_providers = ['openrouter', 'groq', 'huggingface']
         
         available = [
             p for p in serializer.data
-            # For API-based providers, API key is not required
             if p.get('slug') in api_based_providers or p.get('has_shared_api_key') or p.get('allow_personal_keys')
         ]
         
@@ -147,7 +142,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
         try:
             from src.ai.providers.openrouter import OpenRouterProvider
             
-            # Get API key
             try:
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
             except AIProvider.DoesNotExist:
@@ -213,7 +207,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
         try:
             from src.ai.providers.huggingface import HuggingFaceProvider
             
-            # Get API key
             try:
                 provider = AIProvider.objects.get(slug='huggingface', is_active=True)
             except AIProvider.DoesNotExist:
@@ -300,7 +293,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # Validate API key
             is_valid = AIImageGenerationService.validate_provider_api_key(
                 provider.slug,
                 provider.get_shared_api_key()
@@ -393,7 +385,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
         try:
             model = AIModel.objects.select_related('provider').get(id=model_id)
             
-            # Check access
             state = ModelAccessState.calculate(model.provider, model, request.user)
             if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
                 return APIResponse.error(
@@ -401,7 +392,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                     status_code=status.HTTP_403_FORBIDDEN
                 )
             
-            # Check capability
             if 'image' not in model.capabilities:
                 return APIResponse.error(
                     message=AI_ERRORS["model_no_image_capability"],

@@ -18,5 +18,18 @@ MEDIA_ERRORS = {
     "media_bulk_delete_failed": "حذف دسته‌جمعی رسانه‌ها ناموفق بود.",
     "media_data_invalid": "داده‌های رسانه نامعتبر است.",
     "UPLOAD_PERMISSION_DENIED": "شما اجازه آپلود رسانه را ندارید.",
+    "invalid_image_extension": "پسوند تصویر نامعتبر است. مجاز: {extensions}",
+    "image_too_large": "تصویر خیلی بزرگ است. حداکثر: {max_size} MB",
+    "invalid_video_extension": "پسوند ویدیو نامعتبر است. مجاز: {extensions}",
+    "video_too_large": "ویدیو خیلی بزرگ است. حداکثر: {max_size} MB",
+    "invalid_audio_extension": "پسوند صوتی نامعتبر است. مجاز: {extensions}",
+    "audio_too_large": "فایل صوتی خیلی بزرگ است. حداکثر: {max_size} MB",
+    "invalid_document_extension": "پسوند سند نامعتبر است. مجاز: {extensions}",
+    "invalid_file_extension": "پسوند فایل '{ext}' مجاز نیست. پسوندهای مجاز: {extensions}",
+    "file_size_exceeds_limit": "اندازه فایل از حداکثر مجاز {max_size_mb}MB تجاوز می‌کند.",
+    "svg_size_exceeds_limit": "اندازه فایل SVG از حداکثر مجاز 5MB تجاوز می‌کند.",
+    "svg_dangerous_element": "فایل SVG شامل عنصر خطرناک است: {element}",
+    "invalid_svg_format": "فرمت فایل SVG نامعتبر است.",
+    "cover_must_be_image": "کاور باید یک نمونه ImageMedia باشد.",
 }
 

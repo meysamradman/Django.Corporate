@@ -13,11 +13,6 @@ class UserListSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'mobile', 'email', 'is_active', 'created_at', 'updated_at', 'profile']
 
 class UserDetailSerializer(serializers.ModelSerializer):
-    """
-    Serializer for regular user detail responses.
-    Provides only basic user data plus profile information.
-    Admin-specific permission data must be handled by AdminDetailSerializer.
-    """
     profile = UserProfileSerializer(source='user_profile', read_only=True)
     full_name = serializers.SerializerMethodField()
 
@@ -27,10 +22,6 @@ class UserDetailSerializer(serializers.ModelSerializer):
                  'created_at', 'updated_at', 'profile', 'full_name']
     
     def get_full_name(self, obj):
-        """
-        Generate a human-readable full name using profile data,
-        falling back to identifier fields when necessary.
-        """
         if obj.user_type == 'user' and hasattr(obj, 'user_profile') and obj.user_profile:
             profile = obj.user_profile
             if profile.first_name and profile.last_name:

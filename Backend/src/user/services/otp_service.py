@@ -22,7 +22,6 @@ class OTPService:
         self.request_window = getattr(settings, 'OTP_REQUEST_WINDOW', 3600)
 
     def _get_redis_keys(self, mobile):
-
         return {
             'otp': f"otp:{mobile}",
             'expiry': f"otp_expiry:{mobile}",
@@ -30,7 +29,6 @@ class OTPService:
         }
 
     def _check_request_limit(self, mobile):
-
         keys = self._get_redis_keys(mobile)
         current_requests = int(self.redis_client.get(keys['requests']) or 0)
         
@@ -40,7 +38,6 @@ class OTPService:
         return current_requests
 
     def _store_otp_data(self, mobile, otp, expiry_time):
-
         keys = self._get_redis_keys(mobile)
 
         self.redis_client.setex(keys['otp'], self.otp_expiry, otp)
@@ -50,7 +47,6 @@ class OTPService:
         self.redis_client.expire(keys['requests'], self.request_window)
 
     def _send_sms(self, mobile, otp):
-
         sms_data = {
             'bodyId': settings.MELIPAYAMAK_BODY_ID,
             'to': mobile,
@@ -72,7 +68,6 @@ class OTPService:
             raise Exception(AUTH_ERRORS["otp_send_failed"])
 
     def send_otp(self, identifier):
-
         try:
             email, mobile = validate_identifier(identifier)
             if not mobile:
@@ -91,7 +86,6 @@ class OTPService:
             raise Exception(str(e))
 
     def verify_otp(self, identifier, otp):
-
         try:
             email, mobile = validate_identifier(identifier)
             if not mobile:
@@ -120,7 +114,4 @@ class OTPService:
             raise Exception(str(e))
             
     def get_tokens(self, user):
-        """
-        دریافت توکن‌های JWT برای کاربر
-        """
         return generate_jwt_tokens(user)

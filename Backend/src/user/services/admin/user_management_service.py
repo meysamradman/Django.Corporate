@@ -50,9 +50,6 @@ class UserManagementService:
 
     @staticmethod
     def update_user(user_id, validated_data, admin_user=None):
-        """
-        Update a regular user along with the related profile.
-        """
         try:
             if admin_user is not None:
                 if not admin_user.is_staff:
@@ -205,9 +202,6 @@ class UserManagementService:
 
     @staticmethod
     def delete_user(user_id, admin_user=None):
-        """
-        Delete a regular user.
-        """
         if admin_user is not None and not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
         
@@ -226,9 +220,6 @@ class UserManagementService:
 
     @staticmethod
     def bulk_delete_users(user_ids, admin_user=None):
-        """
-        Bulk delete regular users.
-        """
         if not isinstance(user_ids, list) or not user_ids:
                 raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 

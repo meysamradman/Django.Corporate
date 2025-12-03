@@ -458,17 +458,14 @@ class PortfolioAdminMediaService:
     def _update_portfolio_media_covers(portfolio_id, media_covers, all_current_ids, 
                                        current_video_ids, current_audio_ids, current_document_ids):
         for media_id_str, cover_image_id in media_covers.items():
-            # Convert key to int (DictField may serialize keys as strings)
             try:
                 media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
             except (ValueError, TypeError):
                 continue
             
-            # Check if media_id exists in current portfolio media
             if media_id not in all_current_ids:
                 continue
             
-            # Determine media type and update cover
             if media_id in current_video_ids:
                 PortfolioAdminMediaService._update_media_cover(
                     PortfolioVideo, 'video', portfolio_id, media_id, cover_image_id, video_id=media_id

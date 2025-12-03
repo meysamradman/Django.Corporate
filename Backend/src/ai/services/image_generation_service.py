@@ -95,7 +95,7 @@ class AIImageGenerationService:
                 
                 config = provider.config or {}
             except AIProvider.DoesNotExist:
-                raise ValueError(f"Provider '{provider_name}' not found or inactive")
+                raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
         else:
 
             try:
@@ -103,7 +103,7 @@ class AIImageGenerationService:
                 api_key = provider.get_shared_api_key()
                 config = provider.config or {}
             except AIProvider.DoesNotExist:
-                raise ValueError(f"Provider '{provider_name}' not found or inactive")
+                raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
         
         image_bytes = cls.generate_image(
             provider_name=provider_name,
@@ -137,7 +137,7 @@ class AIImageGenerationService:
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
-            raise ValueError(f"Provider '{provider_name}' not found or inactive")
+            raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             settings = AdminProviderSettings.objects.filter(

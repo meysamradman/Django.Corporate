@@ -1,6 +1,3 @@
-"""
-Admin serializer exports.
-"""
 from .admin_management_serializer import (
     AdminListSerializer,
     AdminDetailSerializer,

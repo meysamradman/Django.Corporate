@@ -10,6 +10,9 @@ ABOUT_PAGE_ERRORS = {
     'validation_error': 'خطا در اعتبارسنجی داده‌ها',
     'invalid_title': 'عنوان نامعتبر است',
     'invalid_content': 'محتوای صفحه نامعتبر است',
+    'title_min_length': 'عنوان باید حداقل 3 کاراکتر باشد',
+    'meta_title_max_length': 'Meta title باید حداکثر 70 کاراکتر باشد',
+    'meta_description_max_length': 'Meta description باید حداکثر 300 کاراکتر باشد',
 }
 
 TERMS_PAGE_SUCCESS = {
@@ -24,5 +27,8 @@ TERMS_PAGE_ERRORS = {
     'validation_error': 'خطا در اعتبارسنجی داده‌ها',
     'invalid_title': 'عنوان نامعتبر است',
     'invalid_content': 'محتوای صفحه نامعتبر است',
+    'title_min_length': 'عنوان باید حداقل 3 کاراکتر باشد',
+    'meta_title_max_length': 'Meta title باید حداکثر 70 کاراکتر باشد',
+    'meta_description_max_length': 'Meta description باید حداکثر 300 کاراکتر باشد',
 }
 

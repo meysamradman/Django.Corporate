@@ -6,7 +6,6 @@ from config.django.base import AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME
 
 
 class BaseCookie:
-    """Base cookie handler for JWT authentication"""
 
     @classmethod
     def set_auth_cookies(cls, response: Response, access_token: str, refresh_token: str, expiration_time=None):
@@ -64,10 +63,6 @@ class BaseCookie:
 
 
 class UserCookie(BaseCookie):
-    """
-    Cookie handler for users (website)
-    JWT-based authentication with cookies
-    """
     
     @classmethod
     def get_access_token_lifetime(cls):
@@ -83,26 +78,20 @@ class UserCookie(BaseCookie):
 
 
 class AdminSessionCookie:
-    """
-    Cookie handler for admin panel sessions
-    Session-based authentication with Redis
-    """
     
     @staticmethod
     def set_session_cookie(response: Response, session_key: str):
-        """Set admin session cookie"""
         response.set_cookie(
             key='admin_session_id',
             value=session_key,
             httponly=True,
             secure=not settings.DEBUG,
             samesite='Strict',
-            max_age=int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,  # 3 days default
+            max_age=int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,
         )
         return response
     
     @staticmethod
     def clear_session_cookie(response: Response):
-        """Clear admin session cookie"""
         response.delete_cookie('admin_session_id')
         return response

@@ -1,12 +1,9 @@
 from rest_framework import serializers
-
 from src.settings.models import SocialMedia
 from src.media.serializers.media_serializer import ImageMediaSerializer
 
 
 class SocialMediaSerializer(serializers.ModelSerializer):
-    """Serializer for social medias"""
-    
     icon_data = ImageMediaSerializer(source='icon', read_only=True)
     
     class Meta:

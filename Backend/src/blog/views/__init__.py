@@ -5,7 +5,6 @@ from .admin import (
     BlogTagAdminViewSet,
 )
 
-# Import Public ViewSets
 from .public import (
     BlogPublicViewSet,
     BlogCategoryPublicViewSet,
@@ -13,12 +12,9 @@ from .public import (
 )
 
 __all__ = [
-    # Admin ViewSets
     'BlogAdminViewSet',
     'BlogCategoryAdminViewSet',
     'BlogTagAdminViewSet',
-    
-    # Public ViewSets
     'BlogPublicViewSet',
     'BlogCategoryPublicViewSet',
     'BlogTagPublicViewSet',

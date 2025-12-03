@@ -18,6 +18,10 @@ FORM_FIELD_ERRORS = {
     'validation_error': 'خطا در اعتبارسنجی داده‌ها',
     'invalid_platform': 'پلتفرم نامعتبر است',
     'platform_fields_failed': 'دریافت فیلدهای پلتفرم ناموفق بود',
+    'field_id_required': 'یکی از field_id، public_id یا field_key باید ارائه شود',
+    'field_create_error': 'خطا در ایجاد فیلد: {error}',
+    'field_update_error': 'خطا در به‌روزرسانی فیلد: {error}',
+    'field_delete_error': 'خطا در حذف فیلد: {error}',
 }
 
 FORM_SUBMISSION_SUCCESS = {

@@ -60,10 +60,6 @@ class PermissionRegistry:
         }
 
 
-# Centralized, single-source permission definitions
-# All permissions are loaded from permissions_config.py
-
-# Register all permissions from config
 for perm_id, perm_data in PERMISSIONS.items():
     PermissionRegistry.register(Permission(
         id=perm_id,

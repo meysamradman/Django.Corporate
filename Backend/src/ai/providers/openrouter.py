@@ -219,9 +219,9 @@ class OpenRouterProvider(BaseProvider):
                     error_msg = error_data['error'].get('message', error_msg)
             except:
                 pass
-            raise Exception(f"{error_msg}: {str(e)}")
+            raise Exception(IMAGE_ERRORS["image_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:
-            raise Exception(f"{IMAGE_ERRORS.get('image_generation_failed', 'Image generation failed')}: {str(e)}")
+            raise Exception(IMAGE_ERRORS["image_generation_failed"].format(error=str(e)))
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -267,10 +267,10 @@ class OpenRouterProvider(BaseProvider):
                     error_msg = error_data['error'].get('message', error_msg)
             except:
                 pass
-            raise Exception(f"{error_msg}: {str(e)}")
+            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:
             from src.ai.messages.messages import CONTENT_ERRORS
-            raise Exception(f"{CONTENT_ERRORS.get('content_generation_failed', 'Content generation failed')}: {str(e)}")
+            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -382,10 +382,10 @@ Return output as JSON with the following structure:
                     error_msg = error_data['error'].get('message', error_msg)
             except:
                 pass
-            raise Exception(f"{error_msg}: {str(e)}")
+            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:
             from src.ai.messages.messages import CONTENT_ERRORS
-            raise Exception(f"{CONTENT_ERRORS.get('content_generation_failed', 'Content generation failed')}: {str(e)}")
+            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
         from src.ai.messages.messages import CHAT_ERRORS
@@ -462,7 +462,7 @@ Return output as JSON with the following structure:
             elif status_code == 403:
                 raise Exception(CHAT_ERRORS.get("chat_forbidden", "Access forbidden"))
             
-            raise Exception(f"{error_msg}: {str(e)}")
+            raise Exception(CHAT_ERRORS["chat_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:
-            raise Exception(f"{CHAT_ERRORS.get('chat_failed', 'Chat failed')}: {str(e)}")
+            raise Exception(CHAT_ERRORS["chat_failed"].format(error=str(e)))
 

@@ -1,8 +1,7 @@
 from rest_framework import serializers
-
 from src.page.models import TermsPage
-
 from src.media.serializers.media_serializer import ImageMediaSerializer
+from src.page.messages import TERMS_PAGE_ERRORS
 
 
 class TermsPageSerializer(serializers.ModelSerializer):
@@ -100,7 +99,7 @@ class TermsPageUpdateSerializer(serializers.ModelSerializer):
     
     def validate_title(self, value):
         if value and len(value.strip()) < 3:
-            raise serializers.ValidationError("عنوان باید حداقل 3 کاراکتر باشد")
+            raise serializers.ValidationError(TERMS_PAGE_ERRORS["title_min_length"])
         return value.strip() if value else value
     
     def validate_content(self, value):
@@ -108,11 +107,10 @@ class TermsPageUpdateSerializer(serializers.ModelSerializer):
     
     def validate_meta_title(self, value):
         if value and len(value) > 70:
-            raise serializers.ValidationError("Meta title باید حداکثر 70 کاراکتر باشد")
+            raise serializers.ValidationError(TERMS_PAGE_ERRORS["meta_title_max_length"])
         return value
     
     def validate_meta_description(self, value):
         if value and len(value) > 300:
-            raise serializers.ValidationError("Meta description باید حداکثر 300 کاراکتر باشد")
+            raise serializers.ValidationError(TERMS_PAGE_ERRORS["meta_description_max_length"])
         return value
-

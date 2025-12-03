@@ -5,7 +5,6 @@ from drf_spectacular.utils import extend_schema_field
 
 
 class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
-    """Simple category serializer for nested relationships"""
     class Meta:
         model = PortfolioCategory
         fields = [
@@ -14,7 +13,6 @@ class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
 
 
 class PortfolioCategoryPublicSerializer(serializers.ModelSerializer):
-    """Public serializer for portfolio categories with portfolio count"""
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
     image = MediaPublicSerializer(read_only=True)

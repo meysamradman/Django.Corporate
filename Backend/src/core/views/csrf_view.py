@@ -14,7 +14,7 @@ class CSRFTokenView(APIView):
     def get(self, request, *args, **kwargs):
         token = get_token(request)
         return APIResponse.success(
-            message=AUTH_SUCCESS.get("csrf_token_retrieved", "CSRF token retrieved successfully"),
+            message=AUTH_SUCCESS["csrf_token_retrieved"],
             data={},
             status_code=status.HTTP_200_OK
         )

@@ -122,8 +122,8 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
             if item.document and hasattr(item.document, 'file') and item.document.file:
                 try:
                     _ = item.document.file.url
-                    except:
-                        pass
+                except:
+                    pass
         
         all_media = list(all_images) + videos + audios + documents
         all_media.sort(key=lambda x: (x.order, x.created_at))

@@ -3,7 +3,6 @@ from src.settings.models import ContactEmail
 
 
 def get_contact_emails(filters=None, ordering=None):
-    """Get list of contact emails"""
     queryset = ContactEmail.objects.all()
     
     if filters:
@@ -19,12 +18,10 @@ def get_contact_emails(filters=None, ordering=None):
 
 
 def create_contact_email(validated_data):
-    """Create new contact email"""
     return ContactEmail.objects.create(**validated_data)
 
 
 def get_contact_email_by_id(email_id):
-    """Get contact email by ID"""
     try:
         return ContactEmail.objects.get(id=email_id)
     except ContactEmail.DoesNotExist:
@@ -32,7 +29,6 @@ def get_contact_email_by_id(email_id):
 
 
 def update_contact_email(instance, validated_data):
-    """Update contact email"""
     for field, value in validated_data.items():
         setattr(instance, field, value)
     
@@ -41,5 +37,4 @@ def update_contact_email(instance, validated_data):
 
 
 def delete_contact_email(instance):
-    """Delete contact email"""
     instance.delete()

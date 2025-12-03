@@ -2,16 +2,15 @@ from rest_framework import serializers
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.serializers.mixins import SEODataMixin, CountsMixin
 from src.media.serializers import MediaAdminSerializer
+from src.portfolio.messages import CATEGORY_ERRORS
 
 
 class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSerializer):
-    """Optimized list view for category tree with usage statistics"""
     level = serializers.SerializerMethodField()
     has_children = serializers.SerializerMethodField()
     parent_name = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     
-    # Use annotated field from queryset - no database queries!
     portfolio_count = serializers.IntegerField(read_only=True)
     
     class Meta:
@@ -25,20 +24,16 @@ class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSeriali
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_level(self, obj):
-        """Get tree depth level"""
         return obj.get_depth()
     
     def get_has_children(self, obj):
-        """Check if category has children"""
         return obj.get_children_count() > 0
     
     def get_parent_name(self, obj):
-        """Get parent category name"""
         parent = obj.get_parent()
         return parent.name if parent else None
     
     def get_image_url(self, obj):
-        """Get image URL if exists"""
         try:
             if obj.image and hasattr(obj.image, 'file') and obj.image.file:
                 return obj.image.file.url
@@ -48,7 +43,6 @@ class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSeriali
 
 
 class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSerializer):
-    """Complete detail view for category with tree information and SEO"""
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
     breadcrumbs = serializers.SerializerMethodField()
@@ -66,7 +60,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
             'is_public', 'is_active', 'level', 'tree_path',
             'parent', 'children', 'breadcrumbs', 'portfolio_count',
             'image', 'recent_portfolios', 'seo_data',
-            # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta',
             'created_at', 'updated_at'
@@ -74,7 +67,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_parent(self, obj):
-        """Get parent category info"""
         parent = obj.get_parent()
         if parent:
             return {
@@ -86,7 +78,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
         return None
     
     def get_children(self, obj):
-        """Get direct children categories"""
         children = obj.get_children().filter(is_active=True)
         return [
             {
@@ -101,7 +92,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
         ]
     
     def get_breadcrumbs(self, obj):
-        """Get category breadcrumb path"""
         ancestors = obj.get_ancestors()
         breadcrumbs = [
             {
@@ -111,7 +101,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
             }
             for ancestor in ancestors
         ]
-        # Add current category
         breadcrumbs.append({
             'id': obj.id,
             'name': obj.name,
@@ -120,19 +109,15 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
         return breadcrumbs
     
     def get_portfolio_count(self, obj):
-        """Get total portfolio count including descendants"""
         return getattr(obj, 'portfolio_count', obj.portfolio_categories.count())
     
     def get_tree_path(self, obj):
-        """Get tree path for display"""
         return obj.path
     
     def get_level(self, obj):
-        """Get tree depth level"""
         return obj.get_depth()
     
     def get_recent_portfolios(self, obj):
-        """Get recent portfolios in this category"""
         portfolios = obj.portfolio_categories.filter(
             status='published', is_public=True
         ).order_by('-created_at')[:5]
@@ -150,7 +135,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
 
 
 class PortfolioCategoryAdminCreateSerializer(serializers.ModelSerializer):
-    """Create serializer with tree positioning"""
     parent_id = serializers.PrimaryKeyRelatedField(
         queryset=PortfolioCategory.objects.filter(is_active=True),
         required=False,
@@ -170,41 +154,33 @@ class PortfolioCategoryAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_public', 'is_active',
             'parent_id', 'image_id',
-            # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
     
     def validate_name(self, value):
-        """Validate name uniqueness"""
-        # Only check for existing name if this is a create operation
         if not self.instance and PortfolioCategory.objects.filter(name=value).exists():
-            raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
+            raise serializers.ValidationError(CATEGORY_ERRORS["category_name_exists"])
         return value
     
     def validate_slug(self, value):
-        """Validate slug uniqueness"""
-        # Only check for existing slug if this is a create operation
         if value and not self.instance and PortfolioCategory.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(CATEGORY_ERRORS["category_slug_exists"])
         return value
     
     def validate(self, data):
-        """Validate tree structure"""
         parent_id = data.get('parent_id')
         
         if parent_id:
-            # Check maximum tree depth (e.g., 5 levels)
             if parent_id.get_depth() >= 5:
                 raise serializers.ValidationError({
-                    'parent_id': 'حداکثر عمق درخت 5 سطح است.'
+                    'parent_id': CATEGORY_ERRORS["category_max_depth"]
                 })
         
         return data
 
 
 class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
-    """Update serializer with tree operations"""
     parent_id = serializers.PrimaryKeyRelatedField(
         queryset=PortfolioCategory.objects.filter(is_active=True),
         required=False,
@@ -224,60 +200,51 @@ class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_public', 'is_active',
             'parent_id', 'image_id',
-            # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
     
     def validate_name(self, value):
-        """Validate name uniqueness excluding current instance"""
         if self.instance and PortfolioCategory.objects.exclude(
             id=self.instance.id
         ).filter(name=value).exists():
-            raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
+            raise serializers.ValidationError(CATEGORY_ERRORS["category_name_exists"])
         return value
     
     def validate_slug(self, value):
-        """Validate slug uniqueness excluding current instance"""
         if value and self.instance and PortfolioCategory.objects.exclude(
             id=self.instance.id
         ).filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(CATEGORY_ERRORS["category_slug_exists"])
         return value
     
     def validate(self, data):
-        """Validate tree operations"""
         parent_id = data.get('parent_id')
         
         if parent_id:
-            # Prevent making category its own parent
             if parent_id.id == self.instance.id:
                 raise serializers.ValidationError({
-                    'parent_id': 'دسته‌بندی نمی‌تواند والد خودش باشد.'
+                    'parent_id': CATEGORY_ERRORS["category_cannot_be_own_parent"]
                 })
             
-            # Prevent circular references
             if self.instance.is_ancestor_of(parent_id):
                 raise serializers.ValidationError({
-                    'parent_id': 'نمی‌توانید دسته‌بندی را به فرزند خودش منتقل کنید.'
+                    'parent_id': CATEGORY_ERRORS["category_move_to_descendant"]
                 })
             
-            # Check maximum tree depth
             if parent_id.get_depth() >= 5:
                 raise serializers.ValidationError({
-                    'parent_id': 'حداکثر عمق درخت 5 سطح است.'
+                    'parent_id': CATEGORY_ERRORS["category_max_depth"]
                 })
         
         return data
 
 
 class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
-    """Tree serializer for hierarchical display"""
     children = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     
-    # Use annotated field from queryset - no database queries!
     portfolio_count = serializers.IntegerField(read_only=True)
     
     class Meta:
@@ -288,23 +255,19 @@ class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
         ]
     
     def get_children(self, obj):
-        """Get children recursively"""
         children = obj.get_children().filter(is_active=True, is_public=True)
         return PortfolioCategoryTreeSerializer(children, many=True).data if children else []
     
     def get_level(self, obj):
-        """Get tree level"""
         return obj.get_depth()
     
     def get_image_url(self, obj):
-        """Get image URL"""
         if obj.image and obj.image.file:
             return obj.image.file.url
         return None
 
 
 class PortfolioCategorySimpleAdminSerializer(serializers.ModelSerializer):
-    """Simple serializer for nested usage"""
     level = serializers.SerializerMethodField()
     display_name = serializers.SerializerMethodField()
     
@@ -314,15 +277,11 @@ class PortfolioCategorySimpleAdminSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id']
     
     def get_level(self, obj):
-        """Get tree level"""
         return obj.get_depth()
     
     def get_display_name(self, obj):
-        """Get indented name for tree display"""
         return f"{'» ' * (obj.get_depth() - 1)}{obj.name}"
 
 
-# Backward compatibility
 class PortfolioCategoryAdminSerializer(PortfolioCategoryAdminDetailSerializer):
-    """Backward compatibility alias"""
     pass

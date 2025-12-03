@@ -17,6 +17,10 @@ ROLE_SUCCESS = {
     "system_permissions_retrieved": "System permissions retrieved successfully.",
     "cache_cleared_for_user": "Permission cache cleared for user {user_id}.",
     "all_cache_cleared": "All admin permission cache cleared.",
+    "available_permissions_retrieved": "Available permissions retrieved successfully.",
+    "base_permissions_retrieved": "Base permissions retrieved successfully.",
+    "default_roles_setup_completed": "Default roles setup completed.",
+    "roles_summary_retrieved": "Roles summary retrieved successfully.",
 }
 
 ROLE_ERRORS = {
@@ -57,6 +61,12 @@ ROLE_ERRORS = {
     "cache_clear_failed": "Failed to clear cache.",
     "invalid_cache_type": "Invalid cache_type. Use 'user' (with user_id) or 'all'.",
     "system_permissions_retrieve_failed": "Failed to retrieve system permissions.",
+    "failed_to_retrieve_role_permissions": "Failed to retrieve role permissions.",
+    "failed_to_retrieve_available_permissions": "Failed to retrieve available permissions.",
+    "failed_to_retrieve_base_permissions": "Failed to retrieve base permissions.",
+    "only_super_admin_can_setup_roles": "Only super admin can setup default roles.",
+    "failed_to_setup_default_roles": "Failed to setup default roles.",
+    "failed_to_retrieve_roles_summary": "Failed to retrieve roles summary.",
 }
 
 ROLE_TEXT = {

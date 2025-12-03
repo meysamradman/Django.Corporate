@@ -1,10 +1,4 @@
-"""
-Content Module Permissions
-Blog and Portfolio permissions including categories, tags, and options
-"""
-
 CONTENT_PERMISSIONS = {
-    # Blog
     'blog.read': {
         'module': 'blog',
         'action': 'read',
@@ -29,14 +23,6 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Blog',
         'description': 'Allow deleting blog posts',
     },
-    'blog.manage': {
-        'module': 'blog',
-        'action': 'manage',
-        'display_name': 'Manage Blogs',
-        'description': 'Allow full access to blog posts (view, create, update, delete)',
-    },
-    
-    # Blog Categories
     'blog.category.read': {
         'module': 'blog',
         'action': 'read',
@@ -61,14 +47,6 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Blog Category',
         'description': 'Allow deleting blog categories',
     },
-    'blog.category.manage': {
-        'module': 'blog',
-        'action': 'manage',
-        'display_name': 'Manage Blog Categories',
-        'description': 'Allow full access to blog categories (view, create, update, delete)',
-    },
-    
-    # Blog Tags
     'blog.tag.read': {
         'module': 'blog',
         'action': 'read',
@@ -93,14 +71,6 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Blog Tag',
         'description': 'Allow deleting blog tags',
     },
-    'blog.tag.manage': {
-        'module': 'blog',
-        'action': 'manage',
-        'display_name': 'Manage Blog Tags',
-        'description': 'Allow full access to blog tags (view, create, update, delete)',
-    },
-    
-    # Portfolio
     'portfolio.read': {
         'module': 'portfolio',
         'action': 'read',
@@ -125,14 +95,6 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Portfolio',
         'description': 'Allow deleting portfolio items',
     },
-    'portfolio.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolios',
-        'description': 'Allow full access to portfolio items (view, create, update, delete)',
-    },
-    
-    # Portfolio Categories
     'portfolio.category.read': {
         'module': 'portfolio',
         'action': 'read',
@@ -157,14 +119,6 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Portfolio Category',
         'description': 'Allow deleting portfolio categories',
     },
-    'portfolio.category.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolio Categories',
-        'description': 'Allow full access to portfolio categories (view, create, update, delete)',
-    },
-    
-    # Portfolio Tags
     'portfolio.tag.read': {
         'module': 'portfolio',
         'action': 'read',
@@ -189,14 +143,6 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Portfolio Tag',
         'description': 'Allow deleting portfolio tags',
     },
-    'portfolio.tag.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolio Tags',
-        'description': 'Allow full access to portfolio tags (view, create, update, delete)',
-    },
-    
-    # Portfolio Options
     'portfolio.option.read': {
         'module': 'portfolio',
         'action': 'read',
@@ -221,11 +167,4 @@ CONTENT_PERMISSIONS = {
         'display_name': 'Delete Portfolio Option',
         'description': 'Allow deleting portfolio options',
     },
-    'portfolio.option.manage': {
-        'module': 'portfolio',
-        'action': 'manage',
-        'display_name': 'Manage Portfolio Options',
-        'description': 'Allow full access to portfolio options (view, create, update, delete)',
-    },
 }
-

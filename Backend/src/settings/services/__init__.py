@@ -1,6 +1,3 @@
-"""
-Settings Services - تمام سرویس‌های مربوط به تنظیمات
-"""
 from .general_settings_service import (
     get_general_settings,
     update_general_settings,
@@ -58,4 +55,3 @@ __all__ = [
     'update_social_media',
     'delete_social_media',
 ]
-

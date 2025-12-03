@@ -4,6 +4,8 @@ from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider, OpenRouterProvider, GroqProvider
+from src.ai.messages.messages import AI_ERRORS, SETTINGS_ERRORS
+from src.ai.providers.capabilities import ProviderAvailabilityManager
 
 
 class AIContentGenerationService:
@@ -19,8 +21,6 @@ class AIContentGenerationService:
     
     @classmethod
     def get_provider(cls, provider_name: str, admin=None):
-        from src.ai.messages.messages import AI_ERRORS
-        
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS.get("provider_not_supported", "Provider not supported").format(provider_name=provider_name))
@@ -42,23 +42,19 @@ class AIContentGenerationService:
                     if not api_key or not api_key.strip():
                         api_key = settings.get_personal_api_key()
                         if not api_key or not api_key.strip():
-                            from src.ai.messages.messages import SETTINGS_ERRORS
                             raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
                 else:
                     api_key = settings.get_personal_api_key()
                     if not api_key or not api_key.strip():
-                        from src.ai.messages.messages import SETTINGS_ERRORS
                         raise ValueError(SETTINGS_ERRORS.get("personal_api_key_not_set", "Personal API Key not set").format(provider_name=provider_name))
                     
             except AdminProviderSettings.DoesNotExist:
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
-                    from src.ai.messages.messages import SETTINGS_ERRORS
                     raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         else:
             api_key = provider.get_shared_api_key()
             if not api_key or not api_key.strip():
-                from src.ai.messages.messages import SETTINGS_ERRORS
                 raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         
         config = provider.config or {}
@@ -139,11 +135,9 @@ class AIContentGenerationService:
         except ValueError as e:
             raise e
         except Exception as e:
-            from src.ai.messages.messages import AI_ERRORS
             raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
-        from src.ai.providers.capabilities import ProviderAvailabilityManager
         return ProviderAvailabilityManager.get_available_providers('content')
 

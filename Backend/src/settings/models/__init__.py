@@ -1,6 +1,3 @@
-"""
-Settings Models - تمام مدل‌های مربوط به تنظیمات سیستم
-"""
 from .general_settings import GeneralSettings
 from .contact_phone import ContactPhone
 from .contact_mobile import ContactMobile
@@ -14,4 +11,3 @@ __all__ = [
     'ContactEmail',
     'SocialMedia',
 ]
-

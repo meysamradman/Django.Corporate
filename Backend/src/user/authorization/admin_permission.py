@@ -163,10 +163,8 @@ class AdminRolePermission(permissions.BasePermission):
             if view_kwargs.get('action') == 'me':
                 return True
             
-            # Check kwargs for admin identifiers
             target_id = view_kwargs.get('pk') or view_kwargs.get('admin_id')
             if target_id is None:
-                # Some APIs pass ?admin_id= in query params
                 target_id = request.query_params.get('admin_id')
             
             if target_id is None:
@@ -190,19 +188,16 @@ class RequireAdminRole(AdminRolePermission):
         try:
             from src.user.models import AdminUserRole
             
-            # Get user's role names
             user_role_names = list(AdminUserRole.objects.filter(
                 user=user,
                 is_active=True
             ).values_list('role__name', flat=True))
             
-            # Check if user has any of the required roles
             has_required_role = any(role in user_role_names for role in self.required_roles)
             
             if not has_required_role:
                 return False
             
-            # If user has required role, check action permissions
             return super()._calculate_admin_permission(user, method, view)
             
         except Exception as e:
@@ -258,7 +253,6 @@ class RequireModuleAccess(AdminRolePermission):
             if not isinstance(specific_perms, list):
                 return False
             
-            # Check for exact module+action match in specific_permissions
             for perm in specific_perms:
                 if not isinstance(perm, dict):
                     continue
@@ -266,17 +260,13 @@ class RequireModuleAccess(AdminRolePermission):
                 perm_module = perm.get('module')
                 perm_action = perm.get('action')
                 
-                # Skip if module or action is missing
                 if not perm_module or not perm_action:
                     continue
                 
-                # Check for 'all' wildcards
                 if perm_module == 'all' or perm_action == 'all':
                     return True
                 
-                # Check if this permission matches (with normalization)
                 if self.required_modules:
-                    # Check if any required module matches this permission module
                     has_module = any(
                         self._module_matches(perm_module, req_module) 
                         for req_module in self.required_modules
@@ -284,7 +274,6 @@ class RequireModuleAccess(AdminRolePermission):
                 else:
                     has_module = True
                 
-                # Action can be 'view' or 'read' (both mean the same)
                 has_action = perm_action == action or (perm_action == 'read' and action == 'view') or (perm_action == 'view' and action == 'read')
                 
                 if has_module and has_action:
@@ -292,16 +281,12 @@ class RequireModuleAccess(AdminRolePermission):
             
             return False
         
-        # Old format: check modules AND actions (cartesian product)
-        # Check module access first
         if self.required_modules:
             allowed_modules = permissions.get('modules', [])
             
-            # If 'all' is in modules, allow everything
             if 'all' in allowed_modules:
-                pass  # Continue to action check
+                pass
             else:
-                # Check if user has access to any required module (with normalization)
                 has_module_access = any(
                     any(self._module_matches(allowed_mod, req_mod) for allowed_mod in allowed_modules)
                     for req_mod in self.required_modules
@@ -309,16 +294,13 @@ class RequireModuleAccess(AdminRolePermission):
                 if not has_module_access:
                     return False
         
-        # Check actions (with read/view normalization)
         allowed_actions = permissions.get('actions', [])
         if 'all' in allowed_actions:
             return True
         
-        # Check direct match or read/view synonym
         return action in allowed_actions or (action == 'view' and 'read' in allowed_actions) or (action == 'read' and 'view' in allowed_actions)
 
 
-# Decorator functions for easy usage
 def require_admin_roles(*roles):
     return RequireAdminRole(*roles)
 
@@ -347,15 +329,12 @@ class UserManagementPermission(AdminRolePermission):
         if not request.user.is_active:
             return False
         
-        # Admin panel access check
         if not self._is_valid_admin_user(request.user):
             return False
         
-        # Super Admin bypass (fastest path for super admins)
         if request.user.is_admin_full:
             return True
         
-        # For regular admins, use role-based permission check
         return self._check_admin_role_permissions(request.user, request.method, view)
 
 
@@ -461,7 +440,6 @@ class AdminPermissionCache:
             try:
                 UserCacheManager.invalidate_permissions(user_id)
             except Exception:
-                # Fallback if pattern deletion not supported
                 pass
             
         except Exception:

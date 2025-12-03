@@ -26,7 +26,6 @@ class AdminManagementView(UserAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = StandardLimitPagination
-    # No throttling for admin operations - admins can work freely
 
     def get_permissions(self):
         return [SimpleAdminPermission()]
@@ -55,7 +54,6 @@ class AdminManagementView(UserAuthMixin, APIView):
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
                     )
 
-            # Check if user can view admin list - extra security layer
             if not self._can_view_other_admins(request.user):
                 return self._forbidden_response(AUTH_ERRORS["admin_list_view_forbidden"])
 
@@ -246,7 +244,6 @@ class AdminManagementView(UserAuthMixin, APIView):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    # Helper methods
     def _forbidden_response(self, message=None):
         return APIResponse.error(
             message=message or AUTH_ERRORS["auth_not_authorized"],
@@ -266,16 +263,12 @@ class AdminManagementView(UserAuthMixin, APIView):
             return False
 
     def _can_view_other_admins(self, user):
-        # Super admin has full access
         if self._is_super_admin(user):
             return True
         
-        # User manager role has full access
         if self._has_role(user, 'user_manager'):
             return True
         
-        # All active admin users can view the list (read-only)
-        # Edit/delete operations have separate checks
         user_type = getattr(user, 'user_type', None)
         is_admin_active = getattr(user, 'is_admin_active', False)
         

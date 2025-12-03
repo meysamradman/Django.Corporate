@@ -22,9 +22,6 @@ from src.user.permissions import PermissionValidator
 
 
 class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
-    """
-    Optimized Category ViewSet for Admin Panel with tree operations
-    """
     permission_classes = [BlogManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogCategoryAdminFilter

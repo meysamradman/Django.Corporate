@@ -103,6 +103,10 @@ CATEGORY_ERRORS = {
     "category_move_to_self": "نمی‌توانید دسته‌بندی را به خودش منتقل کنید.",
     "category_move_failed": "خطا در انتقال دسته‌بندی: {error}",
     "categories_not_found": "دسته‌بندی‌های انتخاب‌شده یافت نشدند.",
+    "category_name_exists": "این نام قبلاً استفاده شده است.",
+    "category_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "category_max_depth": "حداکثر عمق درخت 5 سطح است.",
+    "category_cannot_be_own_parent": "دسته‌بندی نمی‌تواند والد خودش باشد.",
 }
 
 TAG_SUCCESS = {
@@ -126,5 +130,7 @@ TAG_ERRORS = {
     "tag_cannot_merge_with_self": "نمی‌توانید تگ را با خودش ادغام کنید.",
     "tag_has_blogs": "این تگ در {count} مقاله استفاده شده و قابل حذف نیست.",
     "tags_not_found": "تگ‌های انتخاب‌شده یافت نشدند.",
+    "tag_name_exists": "این نام قبلاً استفاده شده است.",
+    "tag_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 

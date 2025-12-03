@@ -60,7 +60,6 @@ def create_default_admin_roles(force_update=False, verbose=True):
                     results.append(result)
                         
             except AdminRole.DoesNotExist:
-                # Create new role
                 role = AdminRole.objects.create(
                     name=role_name,
                     display_name=role_data['display_name'],
@@ -81,7 +80,6 @@ def create_default_admin_roles(force_update=False, verbose=True):
 
         demoted_roles, deleted_roles = _demote_removed_system_roles(set(role_configs.keys()), verbose=verbose)
 
-    # Summary
     summary = {
         'created': created_count,
         'updated': updated_count,

@@ -15,7 +15,7 @@ import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { getConfirmMessage } from "@/core/messages/message";
+import { getConfirmMessage, msg } from "@/core/messages/message";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,12 +35,9 @@ import type { DataTableRowAction } from "@/types/shared/table";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { env } from '@/core/config/environment';
 
-// تابع تبدیل دسته‌بندی‌ها به فرمت سلسله مراتبی
 const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
-  // ابتدا دسته‌بندی‌های ریشه را پیدا می‌کنیم
   const rootCategories = categories.filter(cat => !cat.parent_id);
   
-  // تابع بازگشتی برای ساخت درخت
   const buildTree = (category: PortfolioCategory): any => {
     const children = categories.filter(cat => cat.parent_id === category.id);
     
@@ -53,7 +50,6 @@ const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[]
     };
   };
   
-  // ساخت درخت برای هر دسته‌بندی ریشه
   return rootCategories.map(buildTree);
 };
 
@@ -62,7 +58,6 @@ export default function PortfolioPage() {
   const queryClient = useQueryClient();
   const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
   
-  // استیت برای دسته‌بندی‌ها
   const [categories, setCategories] = useState<PortfolioCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   
@@ -82,7 +77,6 @@ export default function PortfolioPage() {
       pageSize: 10,
     };
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState(() => {
@@ -112,7 +106,6 @@ export default function PortfolioPage() {
     return {};
   });
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     portfolioId?: number;
@@ -123,13 +116,12 @@ export default function PortfolioPage() {
     isBulk: false,
   });
 
-  // دریافت دسته‌بندی‌ها
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await portfolioApi.getCategories({
           page: 1,
-          size: 1000, // دریافت همه دسته‌بندی‌ها
+          size: 1000,
           is_active: true,
           is_public: true
         });
@@ -137,44 +129,39 @@ export default function PortfolioPage() {
         setCategories(response.data);
         setCategoryOptions(convertCategoriesToHierarchical(response.data));
       } catch (error) {
-        // Error handled silently
       }
     };
     
     fetchCategories();
   }, []);
 
-  // ساخت کانفیگ فیلترها
   const portfolioFilterConfig = getPortfolioFilterConfig(
     statusFilterOptions, 
     booleanFilterOptions,
     categoryOptions
   );
 
-  // Build query parameters
   const queryParams = {
     search: searchValue,
-    page: pagination.pageIndex + 1, // Convert zero-based to one-based indexing
+    page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
-    // Add filter parameters
     status: clientFilters.status as string,
     is_featured: clientFilters.is_featured as boolean | undefined,
     is_public: clientFilters.is_public as boolean | undefined,
-    is_active: clientFilters.is_active as boolean | undefined, // اضافه کردن فیلتر فعال بودن
-    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined, // تبدیل دسته‌بندی به رشته
+    is_active: clientFilters.is_active as boolean | undefined,
+    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
   };
 
-  // Use React Query for data fetching
   const { data: portfolios, isLoading, error } = useQuery({
     queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
     queryFn: async () => {
       const response = await portfolioApi.getPortfolioList(queryParams);
       return response;
     },
-    staleTime: 0, // Always fetch fresh data
-    retry: 1, // Retry once on failure
+    staleTime: 0,
+    retry: 1,
   });
 
   const data: Portfolio[] = portfolios?.data || [];
@@ -184,10 +171,10 @@ export default function PortfolioPage() {
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success("با موفقیت حذف شد");
+      toast.success(msg.ui("deleted"));
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      toast.error(msg.error("serverError"));
     },
   });
 
@@ -195,29 +182,27 @@ export default function PortfolioPage() {
     mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success("با موفقیت حذف شد");
+      toast.success(msg.ui("deleted"));
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      toast.error(msg.error("serverError"));
     },
   });
 
-  // Toggle active status mutation
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
       return portfolioApi.partialUpdatePortfolio(id, { is_active });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(`نمونه‌کار با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
+      toast.success(data.is_active ? msg.ui("portfolioActivated") : msg.ui("portfolioDeactivated"));
     },
     onError: (error) => {
-      toast.error("خطا در تغییر وضعیت");
+      toast.error(msg.ui("statusChangeError"));
     },
   });
 
-  // Handle toggle active status
   const handleToggleActive = (portfolio: Portfolio) => {
     toggleActiveMutation.mutate({
       id: portfolio.id,
@@ -225,7 +210,6 @@ export default function PortfolioPage() {
     });
   };
 
-  // تابع حذف نمونه‌کار
   const handleDeletePortfolio = (portfolioId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -234,7 +218,6 @@ export default function PortfolioPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -243,7 +226,6 @@ export default function PortfolioPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.portfolioIds) {
@@ -252,7 +234,6 @@ export default function PortfolioPage() {
         await deletePortfolioMutation.mutateAsync(deleteConfirm.portfolioId);
       }
     } catch (error) {
-      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };

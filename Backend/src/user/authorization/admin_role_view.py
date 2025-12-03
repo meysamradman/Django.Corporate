@@ -546,7 +546,7 @@ class AdminRoleView(viewsets.ViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message="Failed to retrieve role permissions",
+                message=ROLE_ERRORS["failed_to_retrieve_role_permissions"],
                 status_code=500
             )
     
@@ -555,13 +555,9 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
             
-            # Get all available modules
             modules = AVAILABLE_MODULES
             
-            # Build permission groups based on REAL defined permissions
             permission_groups = []
-            # We generate a temporary numeric ID for the frontend state management
-            # This ID is transient and only used for the current session in the UI
             permission_id = 1
             
             base_permission_keys = set(BASE_ADMIN_PERMISSIONS.keys())
@@ -611,30 +607,29 @@ class AdminRoleView(viewsets.ViewSet):
                     })
             
             return APIResponse.success(
-                message="Available permissions retrieved successfully",
+                message=ROLE_SUCCESS["available_permissions_retrieved"],
                 data=permission_groups,
                 status_code=200
             )
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to retrieve available permissions",
+                message=ROLE_ERRORS["failed_to_retrieve_available_permissions"],
                 status_code=500
             )
     
     @action(detail=False, methods=['get'])
     def base_permissions(self, request):
         try:
-            # Use centralized BASE_ADMIN_PERMISSIONS constant
             return APIResponse.success(
-                message="Base permissions retrieved successfully",
+                message=ROLE_SUCCESS["base_permissions_retrieved"],
                 data=BASE_ADMIN_PERMISSIONS,
                 status_code=200
             )
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to retrieve base permissions",
+                message=ROLE_ERRORS["failed_to_retrieve_base_permissions"],
                 status_code=500
             )
     
@@ -643,21 +638,19 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             force_update = request.data.get('force_update', False)
             
-            # Only super admin can setup roles
             if not request.user.is_full_admin_user():
                 return APIResponse.error(
-                    message="Only super admin can setup default roles",
+                    message=ROLE_ERRORS["only_super_admin_can_setup_roles"],
                     status_code=403
                 )
             
-            # Create/update default roles
             result = create_default_admin_roles(
                 force_update=force_update, 
                 verbose=False
             )
             
             return APIResponse.success(
-                message="Default roles setup completed",
+                message=ROLE_SUCCESS["default_roles_setup_completed"],
                 data={
                     'summary': {
                         'created': result['created'],
@@ -672,7 +665,7 @@ class AdminRoleView(viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to setup default roles",
+                message=ROLE_ERRORS["failed_to_setup_default_roles"],
                 status_code=500
             )
     
@@ -682,13 +675,13 @@ class AdminRoleView(viewsets.ViewSet):
             summary = get_role_summary()
             
             return APIResponse.success(
-                message="Roles summary retrieved successfully",
+                message=ROLE_SUCCESS["roles_summary_retrieved"],
                 data=summary,
                 status_code=200
             )
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to retrieve roles summary",
+                message=ROLE_ERRORS["failed_to_retrieve_roles_summary"],
                 status_code=500
             )

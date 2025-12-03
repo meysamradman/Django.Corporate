@@ -6,7 +6,6 @@ from src.media.models.media import ImageMedia
 
 
 class GeneralSettings(BaseModel):
-    """General settings for system (website and application) - Singleton Pattern"""
     
     site_name = models.CharField(
         max_length=200,
@@ -79,7 +78,6 @@ class GeneralSettings(BaseModel):
     
     @classmethod
     def get_settings(cls):
-        """Get general settings (Singleton)"""
         settings = cls.objects.first()
         if not settings:
             settings = cls.objects.create(

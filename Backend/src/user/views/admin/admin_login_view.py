@@ -13,7 +13,6 @@ from src.core.security.captcha.messages import CAPTCHA_ERRORS
 from src.core.security.throttling import AdminLoginThrottle
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
 
-# For backward compatibility - simple version
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 from src.user.models import AdminUserRole
 import os
@@ -23,13 +22,13 @@ import os
 class AdminLoginView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = []
-    throttle_classes = [AdminLoginThrottle]  # Enable throttling for additional security
+    throttle_classes = [AdminLoginThrottle]
     parser_classes = [JSONParser]
 
     def get(self, request):
         csrf_token = get_token(request)
         return APIResponse.success(
-            message="CSRF token generated successfully",
+            message=AUTH_SUCCESS["csrf_token_retrieved"],
             data={'csrf_token': csrf_token}
         )
 
@@ -49,7 +48,6 @@ class AdminLoginView(APIView):
             captcha_answer = serializer.validated_data.get('captcha_answer')
             otp_code = serializer.validated_data.get('otp_code')
             
-            # Validate CAPTCHA when enabled for additional security
             if not CaptchaService.verify_captcha(captcha_id, captcha_answer):
                 return APIResponse.error(
                     message=CAPTCHA_ERRORS.get("captcha_invalid"),
@@ -101,7 +99,6 @@ class AdminLoginView(APIView):
                     except Exception as e:
                         pass
                 
-                # Set session cookie
                 response = APIResponse.success(
                     message=AUTH_SUCCESS["auth_logged_in"],
                     data={
@@ -112,13 +109,12 @@ class AdminLoginView(APIView):
                     }
                 )
                 
-                # Issue CSRF token only after successful authentication
                 csrf_token = get_token(request)
                 response.set_cookie(
                     'csrftoken',
                     csrf_token,
-                    max_age=3600,  # 1 hour
-                    httponly=False,  # Frontend needs to read this
+                    max_age=3600,
+                    httponly=False,
                     samesite='Strict',
                     secure=not os.getenv('DEBUG', 'True').lower() == 'true'
                 )

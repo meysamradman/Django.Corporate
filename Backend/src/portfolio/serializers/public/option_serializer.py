@@ -3,7 +3,6 @@ from src.portfolio.models.option import PortfolioOption
 
 
 class PortfolioOptionPublicSerializer(serializers.ModelSerializer):
-    """Public serializer for portfolio options with portfolio count"""
     portfolio_count = serializers.IntegerField(read_only=True)
 
     class Meta:

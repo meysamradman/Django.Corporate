@@ -27,9 +27,10 @@ TICKET_ERRORS = {
     'ticket_closed': 'Cannot add messages to a closed ticket.',
     'user_required': 'User is required for public ticket creation.',
     'status_required': 'Status is required.',
-    'mark_read_failed': 'Error marking ticket as read.',
-    'update_status_failed': 'Error updating ticket status.',
+    'mark_read_failed': 'Error marking ticket as read: {error}',
+    'update_status_failed': 'Error updating ticket status: {error}',
     'admin_cannot_create': 'Admins cannot create tickets. Only authenticated users can create tickets.',
+    'statistics_retrieve_failed': 'Error retrieving ticket statistics: {error}',
     'too_many_recent_tickets': 'لطفاً یک ساعت صبر کنید قبل از ایجاد تیکت جدید.',
     'max_open_tickets_reached': 'شما حداکثر 5 تیکت باز دارید. لطفاً منتظر پاسخ به تیکت‌های قبلی باشید.',
 }

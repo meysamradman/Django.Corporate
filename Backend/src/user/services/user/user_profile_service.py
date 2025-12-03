@@ -118,9 +118,6 @@ class UserProfileService:
 
     @staticmethod
     def update_profile_image(user, media_obj):
-        """
-        Update the profile picture using an ImageMedia object from the media app.
-        """
         profile = UserProfileService.get_user_profile(user)
         
         if media_obj is None:

@@ -49,10 +49,8 @@ class BlogAdminMediaService:
         if not media_ids:
             return set(), set(), set(), set()
         
-        # Convert to list for better performance with __in lookup
         media_ids_list = list(media_ids) if not isinstance(media_ids, list) else media_ids
         
-        # Get all existing associations in parallel queries (4 queries total)
         existing_image_ids = set(
             BlogImage.objects.filter(
                 blog_id=blog_id,
@@ -95,7 +93,6 @@ class BlogAdminMediaService:
         created_count = 0
         failed_ids = []
         
-        # Handle file uploads first
         failed_files = []
         if media_files:
             uploaded_medias = []
@@ -106,7 +103,6 @@ class BlogAdminMediaService:
                     file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
                     media_type = detect_media_type_from_extension(file_ext)
                     
-                    # Create media using central app
                     media = MediaAdminService.create_media(media_type, {
                         'file': media_file,
                         'title': f"Media for {blog.title}",
@@ -119,22 +115,17 @@ class BlogAdminMediaService:
                     })
                     continue
             
-            # Add uploaded media to blog
             if uploaded_medias:
-                # Get next order number
                 next_order = BlogAdminMediaService.get_next_media_order(blog_id)
                 
-                # Check if blog already has a main image
                 has_main_image = BlogImage.objects.filter(
                     blog=blog,
                     is_main=True
                 ).exists()
                 
-                # Create blog media relations
                 blog_media_objects = []
                 for i, (media, media_type) in enumerate(uploaded_medias):
                     if media_type == 'image':
-                        # Set the first image as main image if no main image exists
                         should_be_main = (i == 0) and not has_main_image
                         
                         blog_media_objects.append(
@@ -146,7 +137,6 @@ class BlogAdminMediaService:
                             )
                         )
                         
-                        # Update main image status if needed
                         if should_be_main:
                             has_main_image = True
                     elif media_type == 'video':
@@ -174,9 +164,7 @@ class BlogAdminMediaService:
                             )
                         )
                 
-                # Bulk create all blog media relations
                 if blog_media_objects:
-                    # Create all objects in one query per type
                     images = [obj for obj in blog_media_objects if isinstance(obj, BlogImage)]
                     videos = [obj for obj in blog_media_objects if isinstance(obj, BlogVideo)]
                     audios = [obj for obj in blog_media_objects if isinstance(obj, BlogAudio)]
@@ -193,39 +181,28 @@ class BlogAdminMediaService:
                     
                     created_count += len(blog_media_objects)
         
-        # Handle existing media associations
         if media_ids:
-            # Convert to list and remove duplicates for better performance
             media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
             
-            
-            # Get all media objects in optimized queries (4 queries instead of 4*N)
             image_medias, video_medias, audio_medias, document_medias = \
                 BlogAdminMediaService.get_media_by_ids(media_ids_list)
             
-            # Create lookup dictionaries for O(1) access
             image_dict = {media.id: media for media in image_medias}
             video_dict = {media.id: media for media in video_medias}
             audio_dict = {media.id: media for media in audio_medias}
             document_dict = {media.id: media for media in document_medias}
             
-            # Get existing blog media associations (4 optimized queries)
             existing_image_ids, existing_video_ids, existing_audio_ids, existing_document_ids = \
                 BlogAdminMediaService.get_existing_blog_media(blog_id, media_ids_list)
             
-            # Combine all existing IDs for faster lookup
             all_existing_ids = existing_image_ids | existing_video_ids | existing_audio_ids | existing_document_ids
             
-            # Prepare media to create - optimized loop
             media_to_create = []
             
-            # Process each media ID - optimized with early exits
             for media_id in media_ids_list:
-                # Skip if already exists (fast set lookup O(1))
                 if media_id in all_existing_ids:
                     continue
                 
-                # Determine media type using dictionary lookup (O(1))
                 if media_id in image_dict:
                     media_to_create.append(('image', image_dict[media_id]))
                 elif media_id in video_dict:
@@ -237,23 +214,17 @@ class BlogAdminMediaService:
                 else:
                     failed_ids.append(media_id)
             
-            
-            # Create blog media relations if we have any
             if media_to_create:
-                # Get next order number
                 next_order = BlogAdminMediaService.get_next_media_order(blog_id)
                 
-                # Check if blog already has a main image
                 has_main_image = BlogImage.objects.filter(
                     blog=blog,
                     is_main=True
                 ).exists()
                 
-                # Create blog media objects
                 blog_media_objects = []
                 for i, (media_type, media) in enumerate(media_to_create):
                     if media_type == 'image':
-                        # Set as main image if no main image exists
                         should_be_main = not has_main_image
                         
                         blog_media_objects.append(
@@ -265,7 +236,6 @@ class BlogAdminMediaService:
                             )
                         )
                         
-                        # Update main image status if needed
                         if should_be_main:
                             has_main_image = True
                     elif media_type == 'video':
@@ -293,9 +263,7 @@ class BlogAdminMediaService:
                             )
                         )
                 
-                # Bulk create all blog media relations
                 if blog_media_objects:
-                    # Create all objects in one query per type
                     images = [obj for obj in blog_media_objects if isinstance(obj, BlogImage)]
                     videos = [obj for obj in blog_media_objects if isinstance(obj, BlogVideo)]
                     audios = [obj for obj in blog_media_objects if isinstance(obj, BlogAudio)]
@@ -312,27 +280,21 @@ class BlogAdminMediaService:
                     
                     created_count += len(blog_media_objects)
         
-        # Optimized main image setting - check once and set if needed
         if created_count > 0 or media_ids:
-            # Single query to check if main image exists
             has_main_image = BlogImage.objects.filter(
                 blog_id=blog_id,
                 is_main=True
             ).exists()
             
             if not has_main_image:
-                # Try to get first image from newly created or existing images
-                # Use a single optimized query with select_related
                 first_image = BlogImage.objects.filter(
                     blog_id=blog_id
                 ).select_related('image').order_by('is_main', 'order', 'created_at').first()
                 
                 if first_image:
-                    # Update in single query if possible, or use update_fields
                     first_image.is_main = True
                     first_image.save(update_fields=['is_main'])
                     
-                    # Set OG image if not provided - use update_fields for better performance
                     if not blog.og_image:
                         blog.og_image = first_image.image
                         blog.save(update_fields=['og_image'])
@@ -350,8 +312,6 @@ class BlogAdminMediaService:
         except Blog.DoesNotExist:
             raise Blog.DoesNotExist("Blog not found")
         
-        # Handle empty list - if media_ids is explicitly [] (empty array), sync should still run
-        # If media_ids is None, don't sync (meaning no change)
         if media_ids is None:
             return {
                 'removed_count': 0,
@@ -359,11 +319,9 @@ class BlogAdminMediaService:
                 'total_count': 0
             }
         
-        # Convert to set for efficient operations
         media_ids = media_ids if isinstance(media_ids, (list, tuple)) else []
         media_ids_set = set(media_ids)
         
-        # Get all current media IDs from database in optimized queries
         current_image_ids = set(
             BlogImage.objects.filter(blog_id=blog_id).values_list('image_id', flat=True)
         )
@@ -377,17 +335,13 @@ class BlogAdminMediaService:
             BlogDocument.objects.filter(blog_id=blog_id).values_list('document_id', flat=True)
         )
         
-        # Combine all current media IDs
         all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
         
-        # Find media to remove (in DB but not in new list)
         media_to_remove = all_current_ids - media_ids_set
         
-        # Find media to add (in new list but not in DB)
         media_to_add = media_ids_set - all_current_ids
         
         with transaction.atomic():
-            # Check if current main image is being removed
             current_main_image_id = None
             if current_image_ids:
                 main_image_obj = BlogImage.objects.filter(
@@ -397,12 +351,9 @@ class BlogAdminMediaService:
                 if main_image_obj:
                     current_main_image_id = main_image_obj.image_id
             
-            # Remove deleted media in optimized bulk operations
             if media_to_remove:
-                # Remove images
                 image_ids_to_remove = media_to_remove & current_image_ids
                 if image_ids_to_remove:
-                    # If main image is being removed, we'll set a new one later
                     if current_main_image_id and current_main_image_id in image_ids_to_remove:
                         BlogImage.objects.filter(
                             blog_id=blog_id,
@@ -415,7 +366,6 @@ class BlogAdminMediaService:
                         image_id__in=image_ids_to_remove
                     ).delete()
                 
-                # Remove videos
                 video_ids_to_remove = media_to_remove & current_video_ids
                 if video_ids_to_remove:
                     BlogVideo.objects.filter(
@@ -423,7 +373,6 @@ class BlogAdminMediaService:
                         video_id__in=video_ids_to_remove
                     ).delete()
                 
-                # Remove audios
                 audio_ids_to_remove = media_to_remove & current_audio_ids
                 if audio_ids_to_remove:
                     BlogAudio.objects.filter(
@@ -431,7 +380,6 @@ class BlogAdminMediaService:
                         audio_id__in=audio_ids_to_remove
                     ).delete()
                 
-                # Remove documents
                 document_ids_to_remove = media_to_remove & current_document_ids
                 if document_ids_to_remove:
                     BlogDocument.objects.filter(
@@ -439,16 +387,12 @@ class BlogAdminMediaService:
                         document_id__in=document_ids_to_remove
                     ).delete()
                 
-            
-            # Update main image first if specified (before adding new media)
             if main_image_id is not None:
-                # Remove current main image flag
                 BlogImage.objects.filter(
                     blog_id=blog_id,
                     is_main=True
                 ).update(is_main=False)
                 
-                # Check if main_image_id is an existing image
                 blog_image = BlogImage.objects.filter(
                     blog_id=blog_id,
                     image_id=main_image_id
@@ -458,20 +402,17 @@ class BlogAdminMediaService:
                     blog_image.is_main = True
                     blog_image.save(update_fields=['is_main'])
                     
-                    # Update OG image if not set
                     blog.refresh_from_db()
                     if not blog.og_image:
                         blog.og_image = blog_image.image
                         blog.save(update_fields=['og_image'])
             
-            # Add new media
             if media_to_add:
                 BlogAdminMediaService.add_media_bulk(
                     blog_id=blog_id,
                     media_ids=list(media_to_add)
                 )
                 
-                # If main_image_id was in media_to_add, set it now
                 if main_image_id is not None and main_image_id in media_to_add:
                     blog_image = BlogImage.objects.filter(
                         blog_id=blog_id,
@@ -492,7 +433,6 @@ class BlogAdminMediaService:
                             blog.og_image = blog_image.image
                             blog.save(update_fields=['og_image'])
             
-            # Update cover images for blog media (blog-specific covers)
             if media_covers:
                 BlogAdminMediaService._update_blog_media_covers(
                     blog_id=blog_id,
@@ -503,7 +443,6 @@ class BlogAdminMediaService:
                     current_document_ids=current_document_ids
                 )
             
-            # Clear cache
             BlogCacheManager.invalidate_blog(blog_id)
         
         return {
@@ -516,17 +455,14 @@ class BlogAdminMediaService:
     def _update_blog_media_covers(blog_id, media_covers, all_current_ids, 
                                        current_video_ids, current_audio_ids, current_document_ids):
         for media_id_str, cover_image_id in media_covers.items():
-            # Convert key to int (DictField may serialize keys as strings)
             try:
                 media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
             except (ValueError, TypeError):
                 continue
             
-            # Check if media_id exists in current blog media
             if media_id not in all_current_ids:
                 continue
             
-            # Determine media type and update cover
             if media_id in current_video_ids:
                 BlogAdminMediaService._update_media_cover(
                     BlogVideo, 'video', blog_id, media_id, cover_image_id, video_id=media_id

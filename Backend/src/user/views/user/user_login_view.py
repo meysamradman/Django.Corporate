@@ -16,7 +16,7 @@ from src.core.security.captcha.messages import CAPTCHA_ERRORS
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = [UserJWTAuthentication, JWTAuthentication]
-    throttle_classes = [UserLoginThrottle]  # Enable throttling for additional security
+    throttle_classes = [UserLoginThrottle]
 
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
@@ -28,7 +28,6 @@ class UserLoginView(APIView):
             captcha_id = serializer.validated_data.get('captcha_id')
             captcha_answer = serializer.validated_data.get('captcha_answer')
             
-            # Validate CAPTCHA when enabled for additional security
             if not CaptchaService.verify_captcha(captcha_id, captcha_answer):
                 return APIResponse.error(
                     message=CAPTCHA_ERRORS.get("captcha_invalid"),

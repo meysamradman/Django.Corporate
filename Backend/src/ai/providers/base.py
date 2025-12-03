@@ -46,7 +46,8 @@ class BaseProvider(ABC):
             response.raise_for_status()
             return BytesIO(response.content)
         except Exception as e:
-            raise Exception(f"Error downloading image: {str(e)}")
+            from src.ai.messages.messages import IMAGE_ERRORS
+            raise Exception(IMAGE_ERRORS["image_download_failed"].format(error=str(e)))
     
     def get_default_config(self) -> Dict[str, Any]:
         return {

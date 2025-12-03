@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.serializers.mixins import CountsMixin
+from src.portfolio.messages import OPTION_ERRORS
 
 
 class PortfolioOptionAdminListSerializer(CountsMixin, serializers.ModelSerializer):
-    """Optimized list view for admin with usage statistics"""
     portfolio_count = serializers.SerializerMethodField()
     
     class Meta:
@@ -16,12 +16,10 @@ class PortfolioOptionAdminListSerializer(CountsMixin, serializers.ModelSerialize
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_portfolio_count(self, obj):
-        """Get portfolio count from annotation or database"""
         return getattr(obj, 'portfolio_count', obj.portfolio_options.count())
 
 
 class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
-    """Complete detail view for admin with full information"""
     portfolio_count = serializers.SerializerMethodField()
     related_options = serializers.SerializerMethodField()
     popular_portfolios = serializers.SerializerMethodField()
@@ -36,11 +34,9 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_portfolio_count(self, obj):
-        """Get portfolio count from annotation or database"""
         return getattr(obj, 'portfolio_count', obj.portfolio_options.count())
     
     def get_related_options(self, obj):
-        """Get other options with same name"""
         if not obj.name:
             return []
         
@@ -59,7 +55,6 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
         ]
     
     def get_popular_portfolios(self, obj):
-        """Get top 5 popular portfolios using this option"""
         portfolios = obj.portfolio_options.filter(
             status='published', is_public=True
         ).order_by('-created_at')[:5]
@@ -77,8 +72,6 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
 
 
 class PortfolioOptionAdminCreateSerializer(serializers.ModelSerializer):
-    """Create serializer with validation"""
-    
     class Meta:
         model = PortfolioOption
         fields = [
@@ -86,34 +79,29 @@ class PortfolioOptionAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, data):
-        """Validate name uniqueness"""
         name = data.get('name')
         
         if name:
             if PortfolioOption.objects.filter(name=name).exists():
                 raise serializers.ValidationError({
-                    'non_field_errors': [f'گزینه با نام "{name}" قبلاً وجود دارد.']
+                    'non_field_errors': [OPTION_ERRORS["option_name_exists"].format(name=name)]
                 })
         
         return data
     
     def validate_name(self, value):
-        """Validate name"""
         if not value or not value.strip():
-            raise serializers.ValidationError("نام نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError(OPTION_ERRORS["option_name_required"])
         
         return value
     
     def validate_slug(self, value):
-        """Validate slug"""
         if not value or not value.strip():
-            raise serializers.ValidationError("اسلاگ نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError(OPTION_ERRORS["option_slug_required"])
         return value
 
 
 class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
-    """Update serializer with validation"""
-    
     class Meta:
         model = PortfolioOption
         fields = [
@@ -121,7 +109,6 @@ class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, data):
-        """Validate name uniqueness excluding current instance"""
         name = data.get('name')
         
         if name and self.instance:
@@ -129,28 +116,24 @@ class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
                 id=self.instance.id
             ).filter(name=name).exists():
                 raise serializers.ValidationError({
-                    'non_field_errors': [f'گزینه با نام "{name}" قبلاً وجود دارد.']
+                    'non_field_errors': [OPTION_ERRORS["option_name_exists"].format(name=name)]
                 })
         
         return data
     
     def validate_name(self, value):
-        """Validate name"""
         if not value or not value.strip():
-            raise serializers.ValidationError("نام نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError(OPTION_ERRORS["option_name_required"])
         
         return value
     
     def validate_slug(self, value):
-        """Validate slug"""
         if not value or not value.strip():
-            raise serializers.ValidationError("اسلاگ نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError(OPTION_ERRORS["option_slug_required"])
         return value
 
 
 class PortfolioOptionSimpleAdminSerializer(serializers.ModelSerializer):
-    """Simple serializer for nested usage in other serializers"""
-    
     class Meta:
         model = PortfolioOption
         fields = ['id', 'public_id', 'name', 'slug']
@@ -158,13 +141,10 @@ class PortfolioOptionSimpleAdminSerializer(serializers.ModelSerializer):
 
 
 class PortfolioOptionGroupedAdminSerializer(serializers.Serializer):
-    """Serializer for grouped options by key"""
     key = serializers.CharField()
     options = PortfolioOptionSimpleAdminSerializer(many=True)
     total_count = serializers.IntegerField()
 
 
-# Backward compatibility - Main serializer alias
 class PortfolioOptionAdminSerializer(PortfolioOptionAdminDetailSerializer):
-    """Backward compatibility alias for existing code"""
     pass

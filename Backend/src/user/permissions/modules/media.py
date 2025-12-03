@@ -1,20 +1,10 @@
-"""
-Media Module Permissions
-Granular permissions for better security
-None are in BASE - must be granted separately to roles
-"""
-
 MEDIA_PERMISSIONS = {
-    # Media - Granular permissions for better security
-    # None are in BASE - must be granted separately to roles
     'media.read': {
         'module': 'media',
         'action': 'read',
         'display_name': 'View Media Library',
         'description': 'View all media items (images, videos, audio, documents)',
     },
-    
-    # Upload permissions - for different file types
     'media.image.upload': {
         'module': 'media',
         'action': 'create',
@@ -45,8 +35,6 @@ MEDIA_PERMISSIONS = {
         'display_name': 'Upload All Media Types',
         'description': 'Upload any type of media file (images, videos, audio, documents)',
     },
-    
-    # Update permissions
     'media.image.update': {
         'module': 'media',
         'action': 'update',
@@ -77,8 +65,6 @@ MEDIA_PERMISSIONS = {
         'display_name': 'Edit All Media Types',
         'description': 'Edit metadata for any media type',
     },
-    
-    # Delete permissions - Most sensitive access level
     'media.image.delete': {
         'module': 'media',
         'action': 'delete',
@@ -109,8 +95,6 @@ MEDIA_PERMISSIONS = {
         'display_name': 'Delete All Media Types',
         'description': 'Delete any media file (very dangerous - may break content)',
     },
-    
-    # Manage - Full access to all media operations
     'media.manage': {
         'module': 'media',
         'action': 'manage',
@@ -118,4 +102,3 @@ MEDIA_PERMISSIONS = {
         'description': 'Full access to media library (view, upload, update, delete all types)',
     },
 }
-

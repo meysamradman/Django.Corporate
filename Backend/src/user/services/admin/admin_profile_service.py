@@ -30,7 +30,6 @@ class AdminProfileService:
             from src.user.models import AdminProfile
             profile, created = AdminProfile.objects.get_or_create(admin_user=admin)
             
-            # If profile_picture is provided separately, prefer that value
             if profile_picture is None:
                 profile_picture = profile_data.pop('profile_picture', None)
             
@@ -41,7 +40,6 @@ class AdminProfileService:
             for field, value in profile_data.items():
                 current_value = getattr(profile, field, None)
                 
-                # Handle foreign key fields (province, city)
                 if field in ['province', 'city']:
                     current_id = getattr(current_value, 'id', None) if current_value else None
                     new_id = value if isinstance(value, int) else getattr(value, 'id', None) if value else None
@@ -66,19 +64,16 @@ class AdminProfileService:
                             fields_actually_updated.append(field)
                             update_needed = True
                 else:
-                    # Handle primitive fields
                     if str(value or '') != str(current_value or ''):
                         setattr(profile, field, value)
                         fields_actually_updated.append(field)
                         update_needed = True
             
             
-            # Process profile picture separately
             if profile_picture is not None:
                 current_profile_picture = getattr(profile, 'profile_picture', None)
                 current_id = getattr(current_profile_picture, 'id', None) if current_profile_picture else None
                 
-                # Convert integer profile_picture IDs into ImageMedia objects
                 if isinstance(profile_picture, int):
                     try:
                         from src.media.models import ImageMedia
@@ -111,7 +106,6 @@ class AdminProfileService:
                         pass
             
             if update_needed:
-                # Guard against duplicate national_id values before saving
                 if 'national_id' in fields_actually_updated:
                     national_id = getattr(profile, 'national_id', None)
                     if national_id:

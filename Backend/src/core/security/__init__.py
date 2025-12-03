@@ -1,6 +1,3 @@
-"""
-Core Security - امنیت مرکزی
-"""
 from .captcha import CaptchaService, CaptchaRequiredMixin
 from .throttling import (
     AdminLoginThrottle,

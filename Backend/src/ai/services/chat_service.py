@@ -1,9 +1,10 @@
 import asyncio
 import time
-import asyncio
 from typing import Dict, Any, Optional, List
 from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.providers import GeminiProvider, OpenAIProvider, DeepSeekProvider, OpenRouterProvider, GroqProvider, HuggingFaceProvider
+from src.ai.messages.messages import CHAT_ERRORS, SETTINGS_ERRORS, AI_ERRORS
+from src.ai.providers.capabilities import ProviderAvailabilityManager
 
 
 class AIChatService:
@@ -21,12 +22,12 @@ class AIChatService:
     def get_provider(cls, provider_name: str, admin=None):
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
-            raise ValueError(f"Provider '{provider_name}' is not supported")
+            raise ValueError(CHAT_ERRORS["provider_not_supported"].format(provider_name=provider_name))
         
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
-            raise ValueError(f"Provider '{provider_name}' not found or inactive")
+            raise ValueError(CHAT_ERRORS["provider_not_supported"].format(provider_name=provider_name))
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             settings = AdminProviderSettings.objects.filter(
@@ -45,23 +46,23 @@ class AIChatService:
                             if not api_key or not api_key.strip():
                                 api_key = provider.get_shared_api_key()
                                 if not api_key or not api_key.strip():
-                                    raise ValueError(f"API Key for {provider_name} is not set")
+                                    raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
                         except Exception:
                             api_key = provider.get_shared_api_key()
                             if not api_key or not api_key.strip():
-                                raise ValueError(f"API Key for {provider_name} is not set")
+                                raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
                     else:
                         api_key = settings.get_personal_api_key()
                         if not api_key or not api_key.strip():
-                            raise ValueError(f"Personal API Key for {provider_name} is not set")
+                            raise ValueError(SETTINGS_ERRORS["personal_api_key_not_set"])
             else:
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
-                    raise ValueError(f"Shared API Key for {provider_name} is not set")
+                    raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
         else:
             api_key = provider.get_shared_api_key()
             if not api_key or not api_key.strip():
-                raise ValueError(f"Shared API Key for {provider_name} is not set")
+                raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
         
         config = provider.config or {}
         
@@ -81,7 +82,6 @@ class AIChatService:
         try:
             provider = cls.get_provider(provider_name, admin=admin)
             
-            # Get AI response
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
@@ -93,7 +93,6 @@ class AIChatService:
                         temperature=kwargs.get('temperature', 0.7),
                         max_tokens=kwargs.get('max_tokens', 2048),
                         system_message=kwargs.get('system_message'),
-                        # Model will be read from config in OpenRouterProvider.__init__
                     )
                 )
             finally:
@@ -109,13 +108,10 @@ class AIChatService:
             }
             
         except Exception as e:
-            from src.ai.messages.messages import AI_ERRORS
             raise Exception(AI_ERRORS.get("chat_failed", "Chat failed").format(error=str(e)))
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
-        from src.ai.providers.capabilities import ProviderAvailabilityManager
         all_providers = ProviderAvailabilityManager.get_available_providers('chat')
-        # Filter based on PROVIDER_MAP
         return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_MAP]
 

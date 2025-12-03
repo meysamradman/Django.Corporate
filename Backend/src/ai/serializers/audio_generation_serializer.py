@@ -70,7 +70,6 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
                 f"Provider '{value}' does not support text-to-speech. Currently only 'openai' is supported."
             )
         
-        # Check if provider is active
         try:
             provider = AIProvider.objects.get(slug=value, is_active=True)
             if not provider.shared_api_key:
@@ -87,7 +86,6 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
         if not value or not value.strip():
             raise serializers.ValidationError("Text cannot be empty.")
         
-        # OpenAI TTS has a 4096 character limit
         if len(value) > 4096:
             raise serializers.ValidationError("Text cannot exceed 4096 characters.")
         

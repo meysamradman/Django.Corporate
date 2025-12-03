@@ -4,7 +4,10 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 
 from src.portfolio.models.category import PortfolioCategory
+from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.utils.cache import CategoryCacheKeys, CategoryCacheManager
+from src.portfolio.messages.messages import CATEGORY_ERRORS
+from src.media.models.media import ImageMedia
 
 
 class PortfolioCategoryAdminService:
@@ -101,7 +104,7 @@ class PortfolioCategoryAdminService:
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
-            raise PortfolioCategory.DoesNotExist("Category not found")
+            raise PortfolioCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         with transaction.atomic():
             parent_id = validated_data.pop('parent_id', None)
@@ -122,7 +125,6 @@ class PortfolioCategoryAdminService:
                     category.move(PortfolioCategory.get_root_nodes().first(), pos='last-sibling')
             
             if image_id is not None:
-                from src.media.models.media import ImageMedia
                 if image_id:
                     try:
                         media = ImageMedia.objects.get(id=image_id)
@@ -143,15 +145,15 @@ class PortfolioCategoryAdminService:
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
-            raise PortfolioCategory.DoesNotExist("Category not found")
+            raise PortfolioCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         portfolio_count = category.portfolio_categories.count()
         if portfolio_count > 0:
-            raise ValidationError(f"Category has {portfolio_count} portfolios")
+            raise ValidationError(CATEGORY_ERRORS["category_has_portfolios"].format(count=portfolio_count))
         
         children_count = category.get_children_count()
         if children_count > 0:
-            raise ValidationError(f"Category has {children_count} children")
+            raise ValidationError(CATEGORY_ERRORS["category_has_children"].format(count=children_count))
         
         with transaction.atomic():
             category.delete()
@@ -163,7 +165,7 @@ class PortfolioCategoryAdminService:
         target = PortfolioCategoryAdminService.get_category_by_id(target_id)
         
         if not category or not target:
-            raise PortfolioCategory.DoesNotExist("Category not found")
+            raise PortfolioCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         if target.is_descendant_of(category):
             raise ValidationError("Cannot move category to its own descendant")
@@ -216,8 +218,6 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def bulk_delete_categories(category_ids):
-        from src.portfolio.models.portfolio import Portfolio
-        
         categories = PortfolioCategory.objects.filter(id__in=category_ids)
         
         if not categories.exists():

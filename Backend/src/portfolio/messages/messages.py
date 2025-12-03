@@ -60,6 +60,10 @@ CATEGORY_ERRORS = {
     "category_move_to_self": "نمی‌توانید دسته‌بندی را به خودش منتقل کنید.",
     "category_move_failed": "خطا در انتقال دسته‌بندی: {error}",
     "categories_not_found": "دسته‌بندی‌های انتخاب شده یافت نشدند.",
+    "category_name_exists": "این نام قبلاً استفاده شده است.",
+    "category_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "category_max_depth": "حداکثر عمق درخت 5 سطح است.",
+    "category_cannot_be_own_parent": "دسته‌بندی نمی‌تواند والد خودش باشد.",
 }
 OPTION_SUCCESS = {
     "option_list_success": "لیست گزینه‌ها با موفقیت دریافت شد.",
@@ -77,6 +81,9 @@ OPTION_ERRORS = {
     "option_delete_failed": "حذف گزینه ناموفق بود.",
     "option_ids_required": "شناسه گزینه‌ها مورد نیاز است.",
     "option_key_required": "کلید مورد نیاز است.",
+    "option_name_exists": "گزینه با نام \"{name}\" قبلاً وجود دارد.",
+    "option_name_required": "نام نمی‌تواند خالی باشد.",
+    "option_slug_required": "اسلاگ نمی‌تواند خالی باشد.",
     "option_name_exists": "گزینه‌ای با نام '{name}' قبلاً وجود دارد.",
     "option_has_portfolios": "این گزینه در {count} نمونه کار استفاده شده و قابل حذف نیست.",
     "options_not_found": "گزینه‌های انتخاب شده یافت نشدند.",
@@ -102,6 +109,8 @@ TAG_ERRORS = {
     "tag_cannot_merge_with_self": "نمی‌توانید تگ را با خودش ادغام کنید.",
     "tag_has_portfolios": "این تگ در {count} نمونه کار استفاده شده و قابل حذف نیست.",
     "tags_not_found": "تگ‌های انتخاب شده یافت نشدند.",
+    "tag_name_exists": "این نام قبلاً استفاده شده است.",
+    "tag_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 PDF_LABELS = {

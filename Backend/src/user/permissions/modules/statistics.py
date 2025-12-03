@@ -1,10 +1,4 @@
-"""
-Statistics Module Permissions
-Granular permissions for security and privacy
-"""
-
 STATISTICS_PERMISSIONS = {
-    # Statistics - Granular permissions for security and privacy
     'statistics.dashboard.read': {
         'module': 'statistics',
         'action': 'read',
@@ -41,7 +35,6 @@ STATISTICS_PERMISSIONS = {
         'display_name': 'Export Statistics',
         'description': 'Export statistics data to Excel/CSV',
     },
-    # Manage - Full access to all statistics operations
     'statistics.manage': {
         'module': 'statistics',
         'action': 'manage',
@@ -49,4 +42,3 @@ STATISTICS_PERMISSIONS = {
         'description': 'Full access to all statistics features (view, export)',
     },
 }
-

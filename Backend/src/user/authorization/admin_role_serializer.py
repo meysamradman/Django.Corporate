@@ -2,6 +2,7 @@ from rest_framework import serializers
 from src.user.models import AdminRole, AdminUserRole, User
 from django.core.exceptions import ValidationError
 from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
+from src.user.messages.permission import PERMISSION_ERRORS
 from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
 
 
@@ -59,14 +60,14 @@ class AdminRoleSerializer(serializers.ModelSerializer):
                 if 'permission_key' in perm and perm['permission_key']:
                     from src.user.permissions.registry import PermissionRegistry
                     if not PermissionRegistry.exists(perm['permission_key']):
-                        raise serializers.ValidationError(f"Invalid permission_key: {perm['permission_key']}")
+                        raise serializers.ValidationError(PERMISSION_ERRORS['invalid_permission_key'].format(permission_key=perm['permission_key']))
                     continue
                 if 'module' not in perm or 'action' not in perm:
                     raise serializers.ValidationError("Each permission must have 'module' and 'action' fields")
                 if perm['module'] not in allowed_modules:
-                    raise serializers.ValidationError(f"Invalid module: {perm['module']}")
+                    raise serializers.ValidationError(PERMISSION_ERRORS['invalid_module'].format(module=perm['module']))
                 if perm['action'] not in allowed_actions:
-                    raise serializers.ValidationError(f"Invalid action: {perm['action']}")
+                    raise serializers.ValidationError(PERMISSION_ERRORS['invalid_action'].format(action=perm['action']))
             return value
         allowed_keys = {'modules', 'actions', 'restrictions', 'special'}
         if not any(key in value for key in allowed_keys):

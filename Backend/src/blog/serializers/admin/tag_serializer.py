@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from src.blog.models.tag import BlogTag
 from src.blog.serializers.mixins import CountsMixin
+from src.blog.messages import TAG_ERRORS
 
 
 class BlogTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
-    # Use annotated field from queryset - no database queries!
     blog_count = serializers.IntegerField(read_only=True)
     
     class Meta:
@@ -58,12 +58,12 @@ class BlogTagAdminCreateSerializer(serializers.ModelSerializer):
     
     def validate_slug(self, value):
         if value and BlogTag.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
         return value
     
     def validate_name(self, value):
         if BlogTag.objects.filter(name=value).exists():
-            raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
+            raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
         return value
 
 
@@ -78,14 +78,14 @@ class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
         if value and BlogTag.objects.exclude(
             id=self.instance.id
         ).filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
         return value
     
     def validate_name(self, value):
         if BlogTag.objects.exclude(
             id=self.instance.id
         ).filter(name=value).exists():
-            raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
+            raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
         return value
 
 

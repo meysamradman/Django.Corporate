@@ -10,7 +10,6 @@ from .admin import (
     BlogTagAdminSerializer,
 )
 
-# Import Public Serializers
 from .public import (
     BlogPublicSerializer,
     BlogPublicListSerializer,
@@ -21,8 +20,7 @@ from .public import (
 )
 
 __all__ = [
-    # Admin Serializers
-    'BlogAdminSerializer',  # Backward compatibility
+    'BlogAdminSerializer',
     'BlogAdminListSerializer',
     'BlogAdminDetailSerializer',
     'BlogAdminCreateSerializer',
@@ -30,9 +28,7 @@ __all__ = [
     'BlogCategoryAdminSerializer',
     'BlogCategorySimpleAdminSerializer',
     'BlogTagAdminSerializer',
-    
-    # Public Serializers
-    'BlogPublicSerializer',  # Backward compatibility
+    'BlogPublicSerializer',
     'BlogPublicListSerializer',
     'BlogPublicDetailSerializer',
     'BlogCategoryPublicSerializer',

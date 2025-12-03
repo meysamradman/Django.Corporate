@@ -24,7 +24,6 @@ class AdminRegisterService:
         is_superuser = False
         is_admin_active = True
 
-        # Validate mobile number
         try:
             validated_mobile = validate_mobile_number(mobile)
         except Exception as e:
@@ -55,7 +54,6 @@ class AdminRegisterService:
 
     @classmethod
     def register_admin_from_serializer(cls, validated_data, admin_user=None):
-        """
         mobile = validated_data.get('mobile')
         email = validated_data.get('email')
         password = validated_data.get('password')
@@ -85,7 +83,6 @@ class AdminRegisterService:
             if not admin_user or not admin_user.is_staff:
                 raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
             
-            # Validate mobile number
             try:
                 validated_mobile = validate_mobile_number(mobile)
             except Exception as e:
@@ -129,7 +126,6 @@ class AdminRegisterService:
             
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
-            # Convert province_id and city_id into FK objects
             if 'province_id' in profile_data:
                 from src.user.models.location import Province
                 try:
@@ -200,7 +196,6 @@ class AdminRegisterService:
             
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
-            # Convert province_id and city_id when provided
             if 'province_id' in profile_data:
                 from src.user.models.location import Province
                 try:
@@ -257,7 +252,6 @@ class AdminRegisterService:
 
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):
-        """
         try:
             from src.media.services.media_service import MediaService
             

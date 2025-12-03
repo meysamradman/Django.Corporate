@@ -226,7 +226,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_content(self, request):
-        # Check permission with fallback - allow ai.manage or ai.content.manage
         has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         has_permission = has_content_permission or has_manage_permission

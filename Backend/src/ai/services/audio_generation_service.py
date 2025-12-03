@@ -19,7 +19,6 @@ class AIAudioGenerationService:
     
     PROVIDER_CLASSES = {
         'openai': OpenAIProvider,
-        # 'huggingface': HuggingFaceProvider,  # TODO: Implement TTS for HuggingFace
     }
     
     @classmethod

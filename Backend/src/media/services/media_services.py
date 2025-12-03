@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.media.messages.messages import MEDIA_ERRORS
 
 
 class MediaAdminService:
@@ -15,12 +16,12 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise ValidationError(f"Unsupported media type: {media_type}")
+            raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         try:
             return model.objects.get(id=media_id)
         except model.DoesNotExist:
-            raise model.DoesNotExist("Media not found")
+            raise model.DoesNotExist(MEDIA_ERRORS["media_not_found"])
 
     @staticmethod
     def update_media_by_id_and_type(media_id, media_type, data):
@@ -33,7 +34,7 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise ValidationError(f"Unsupported media type: {media_type}")
+            raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         try:
             media = model.objects.get(id=media_id)
@@ -60,7 +61,7 @@ class MediaAdminService:
             media.save()
             return media
         except model.DoesNotExist:
-            raise model.DoesNotExist("Media not found")
+            raise model.DoesNotExist(MEDIA_ERRORS["media_not_found"])
 
     @staticmethod
     def delete_media_by_id_and_type(media_id, media_type):
@@ -73,14 +74,14 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise ValidationError(f"Unsupported media type: {media_type}")
+            raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         try:
             media = model.objects.get(id=media_id)
             media.delete()
             return True
         except model.DoesNotExist:
-            raise model.DoesNotExist("Media not found")
+            raise model.DoesNotExist(MEDIA_ERRORS["media_not_found"])
 
     @staticmethod
     def create_media(media_type, data):
@@ -93,7 +94,7 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
-            raise ValidationError(f"Unsupported media type: {media_type}")
+            raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         cover_image = None
         if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and 'cover_image' in data:

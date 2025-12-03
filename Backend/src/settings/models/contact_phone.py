@@ -11,7 +11,6 @@ phone_validator = RegexValidator(
 
 
 class ContactPhone(BaseModel):
-    """Contact phone number (fixed) - can be multiple"""
     
     phone_number = models.CharField(
         max_length=20,

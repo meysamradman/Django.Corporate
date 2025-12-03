@@ -77,7 +77,6 @@ class VerifyOTPView(APIView):
             status_code=400
         )
 
-# Add OTP Settings view
 class OTPSettingsView(APIView):
 
     permission_classes = [AllowAny]

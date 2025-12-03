@@ -10,9 +10,6 @@ from rest_framework.exceptions import AuthenticationFailed
 class UserRegisterService:
     @classmethod
     def register_user(cls, identifier, password, admin_user=None):
-        """
-        Register a new regular user.
-        """
         user_type = 'user'
         is_staff = False
         is_superuser = False
@@ -47,9 +44,6 @@ class UserRegisterService:
 
     @classmethod
     def register_user_from_serializer(cls, validated_data, admin_user=None):
-        """
-        Register a regular user using serializer data.
-        """
         identifier = validated_data.get('identifier')
         password = validated_data.get('password')
         
@@ -65,7 +59,6 @@ class UserRegisterService:
             'bio': validated_data.get('bio'),
         }
         
-        # Handle province and city separately as they are ForeignKeys
         province_id = validated_data.get('province_id')
         city_id = validated_data.get('city_id')
         
@@ -74,7 +67,6 @@ class UserRegisterService:
         
         if identifier:
             email_from_identifier, mobile = validate_identifier(identifier)
-            # Prefer explicit email from payload when provided
             explicit_email = validated_data.get('email')
             email = explicit_email or email_from_identifier
 
@@ -122,7 +114,6 @@ class UserRegisterService:
                 except ImageMedia.DoesNotExist:
                     pass
             
-            # Add province and city if provided
             if province_id:
                 from src.user.models.location import Province
                 try:
@@ -143,7 +134,6 @@ class UserRegisterService:
                 defaults=profile_data
             )
             
-            # Update existing UserProfile fields if one already exists
             if not created:
                 for key, value in profile_data.items():
                     setattr(user_profile, key, value)
@@ -160,9 +150,6 @@ class UserRegisterService:
 
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, user_id):
-        """
-        Handle profile picture uploads via the central media service.
-        """
         try:
             from src.media.services.media_service import MediaService
             

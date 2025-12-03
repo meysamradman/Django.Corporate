@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from src.form.models import ContactFormField
+from src.form.messages.messages import FORM_FIELD_ERRORS
 
 
 def get_contact_form_fields(is_active=None):
@@ -20,14 +21,14 @@ def get_contact_form_field(field_id=None, public_id=None, field_key=None):
         elif field_key:
             return ContactFormField.objects.get(field_key=field_key)
         else:
-            raise ValidationError("One of field_id, public_id or field_key must be provided")
+            raise ValidationError(FORM_FIELD_ERRORS['field_id_required'])
     except ContactFormField.DoesNotExist:
-        raise ContactFormField.DoesNotExist("Form field not found")
+        raise ContactFormField.DoesNotExist(FORM_FIELD_ERRORS['field_not_found'])
 
 
 def get_active_fields_for_platform(platform):
     if platform not in ['website', 'mobile_app']:
-        raise ValidationError("Invalid platform. Must be 'website' or 'mobile_app'")
+        raise ValidationError(FORM_FIELD_ERRORS['invalid_platform'])
     return ContactFormField.objects.filter(
         is_active=True,
         platforms__contains=[platform]
@@ -40,7 +41,7 @@ def create_contact_form_field(validated_data):
         field = ContactFormField.objects.create(**validated_data)
         return field
     except Exception as e:
-        raise ValidationError(f"Error creating field: {str(e)}")
+        raise ValidationError(FORM_FIELD_ERRORS['field_create_error'].format(error=str(e)))
 
 
 @transaction.atomic
@@ -51,7 +52,7 @@ def update_contact_form_field(field, validated_data):
         field.save()
         return field
     except Exception as e:
-        raise ValidationError(f"Error updating field: {str(e)}")
+        raise ValidationError(FORM_FIELD_ERRORS['field_update_error'].format(error=str(e)))
 
 
 @transaction.atomic
@@ -59,5 +60,5 @@ def delete_contact_form_field(field):
     try:
         field.delete()
     except Exception as e:
-        raise ValidationError(f"Error deleting field: {str(e)}")
+        raise ValidationError(FORM_FIELD_ERRORS['field_delete_error'].format(error=str(e)))
 

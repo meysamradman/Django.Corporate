@@ -10,9 +10,6 @@ from src.media.models import ImageMedia
 class AdminManagementService:
     @staticmethod
     def get_admins_list(search=None, is_active=None, is_superuser=None, request=None):
-        """
-        Retrieve admin list with optional filters applied.
-        """
         queryset = User.objects.select_related('admin_profile').prefetch_related(
             'admin_profile__profile_picture'
         ).filter(user_type='admin', is_staff=True, is_admin_active=True)
@@ -39,9 +36,6 @@ class AdminManagementService:
 
     @staticmethod
     def get_admin_detail(admin_id):
-        """
-        Retrieve a single admin instance with profile relations.
-        """
         try:
             return User.objects.select_related('admin_profile').prefetch_related(
                 'admin_profile__profile_picture'
@@ -51,9 +45,6 @@ class AdminManagementService:
 
     @staticmethod
     def update_admin(admin_id, validated_data, admin_user=None):
-        """
-        Update admin core fields and the related profile record.
-        """
         try:
             if admin_user is not None:
                 if not admin_user.is_staff:
@@ -122,8 +113,8 @@ class AdminManagementService:
             prefix_keys = [k for k in validated_data.keys() if k.startswith(profile_prefix)]
             for key in prefix_keys:
                 field = key[len(profile_prefix):]
-                    if field in profile_model_fields:
-                        profile_fields_to_update[field] = validated_data.pop(key)
+                if field in profile_model_fields:
+                    profile_fields_to_update[field] = validated_data.pop(key)
 
             nested_profile = validated_data.pop('profile', {}) or {}
             if isinstance(nested_profile, dict):
@@ -143,7 +134,6 @@ class AdminManagementService:
                 else:
                     should_remove_picture = should_remove_picture.lower() == 'true'
 
-            # Upload new profile image if provided
             if profile_picture_file:
                 try:
                     from src.media.services.media_service import MediaService
@@ -245,9 +235,6 @@ class AdminManagementService:
 
     @staticmethod
     def delete_admin(admin_id, admin_user=None):
-        """
-        Delete an admin account.
-        """
         if admin_user is not None and not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
         
@@ -269,9 +256,6 @@ class AdminManagementService:
 
     @staticmethod
     def bulk_delete_admins(admin_ids, admin_user=None):
-        """
-        Delete multiple admins in bulk.
-        """
         if not isinstance(admin_ids, list) or not admin_ids:
             raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 

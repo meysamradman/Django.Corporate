@@ -4,7 +4,6 @@ from src.settings.models import GeneralSettings
 
 
 def get_general_settings():
-    """Get general settings (Singleton)"""
     try:
         return GeneralSettings.get_settings()
     except OperationalError:
@@ -14,7 +13,6 @@ def get_general_settings():
 
 
 def update_general_settings(validated_data):
-    """Update general settings"""
     settings = GeneralSettings.get_settings()
     
     for field, value in validated_data.items():

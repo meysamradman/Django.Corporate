@@ -1,8 +1,3 @@
-"""
-Permission Modules - Modular structure for better organization
-Each module contains related permissions grouped by functionality
-"""
-
 from .base import BASE_PERMISSIONS
 from .panel import PANEL_PERMISSIONS
 from .media import MEDIA_PERMISSIONS
@@ -24,4 +19,3 @@ __all__ = [
     'STATISTICS_PERMISSIONS',
     'MANAGEMENT_PERMISSIONS',
 ]
-

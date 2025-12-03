@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from src.blog.models.category import BlogCategory
 from src.blog.utils.cache import CategoryCacheKeys, CategoryCacheManager
+from src.blog.messages.messages import CATEGORY_ERRORS
 
 
 class BlogCategoryAdminService:
@@ -101,7 +102,7 @@ class BlogCategoryAdminService:
         category = BlogCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
-            raise BlogCategory.DoesNotExist("Category not found")
+            raise BlogCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         with transaction.atomic():
             parent_id = validated_data.pop('parent_id', None)
@@ -122,7 +123,6 @@ class BlogCategoryAdminService:
                     category.move(BlogCategory.get_root_nodes().first(), pos='last-sibling')
             
             if image_id is not None:
-                from src.media.models.media import ImageMedia
                 if image_id:
                     try:
                         media = ImageMedia.objects.get(id=image_id)
@@ -143,15 +143,15 @@ class BlogCategoryAdminService:
         category = BlogCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
-            raise BlogCategory.DoesNotExist("Category not found")
+            raise BlogCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         blog_count = category.blog_categories.count()
         if blog_count > 0:
-            raise ValidationError(f"Category has {blog_count} blogs")
+            raise ValidationError(CATEGORY_ERRORS["category_has_blogs"].format(count=blog_count))
         
         children_count = category.get_children_count()
         if children_count > 0:
-            raise ValidationError(f"Category has {children_count} children")
+            raise ValidationError(CATEGORY_ERRORS["category_has_children"].format(count=children_count))
         
         with transaction.atomic():
             category.delete()
@@ -163,7 +163,7 @@ class BlogCategoryAdminService:
         target = BlogCategoryAdminService.get_category_by_id(target_id)
         
         if not category or not target:
-            raise BlogCategory.DoesNotExist("Category not found")
+            raise BlogCategory.DoesNotExist(CATEGORY_ERRORS["category_not_found"])
         
         if target.is_descendant_of(category):
             raise ValidationError("Cannot move category to its own descendant")
