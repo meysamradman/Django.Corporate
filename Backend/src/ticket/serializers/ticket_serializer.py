@@ -32,7 +32,6 @@ class TicketListSerializer(serializers.ModelSerializer):
         return obj.messages.count()
     
     def get_unread_messages_count(self, obj):
-        # Only count unread messages from users, not from admins
         return obj.messages.filter(is_read=False, sender_type='user').count()
 
 

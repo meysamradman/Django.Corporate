@@ -87,7 +87,6 @@ class PortfolioCategoryAdminService:
                 category = PortfolioCategory.add_root(**validated_data)
             
             if image_id:
-                from src.media.models.media import ImageMedia
                 try:
                     media = ImageMedia.objects.get(id=image_id)
                     category.image = media

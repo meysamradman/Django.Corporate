@@ -12,6 +12,7 @@ from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, OpenRouterProvider
 from src.ai.messages.messages import AI_ERRORS
+from src.ai.providers.capabilities import ProviderAvailabilityManager
 
 
 class AIImageGenerationService:
@@ -176,7 +177,6 @@ class AIImageGenerationService:
         if not save_to_db:
             return image_bytes
         
-        import time
         filename = f"ai_generated_{provider_name}_{int(time.time())}.png"
         
         image_file = InMemoryUploadedFile(
@@ -209,7 +209,6 @@ class AIImageGenerationService:
     
     @classmethod
     def get_available_providers(cls) -> list:
-        from src.ai.providers.capabilities import ProviderAvailabilityManager
         all_providers = ProviderAvailabilityManager.get_available_providers('image')
         return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_CLASSES]
 

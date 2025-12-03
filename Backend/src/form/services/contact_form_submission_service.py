@@ -106,7 +106,6 @@ def create_contact_form_submission(validated_data):
         default_email = 'no-email@example.com'
         if not email:
             email = default_email
-        from src.email.models.email_message import EmailMessage
         email_message = EmailMessage.objects.create(
             name=name,
             email=email,

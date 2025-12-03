@@ -4,17 +4,18 @@ import httpx
 import os
 import json
 import base64
+import re
+from unidecode import unidecode
+from django.core.cache import cache
 from .base import BaseProvider
-from src.ai.messages.messages import AI_ERRORS
-from src.ai.utils.cache import AICacheKeys
+from src.ai.messages.messages import AI_ERRORS, IMAGE_ERRORS, CONTENT_ERRORS, CHAT_ERRORS
+from src.ai.utils.cache import AICacheKeys, AICacheManager
 
 
 class OpenRouterModelCache:
     
     @staticmethod
     def clear_all():
-        from django.core.cache import cache
-        from src.ai.utils.cache import AICacheManager, AICacheKeys
         try:
             AICacheManager.invalidate_models_by_provider('openrouter')
             cache.delete_many([
@@ -31,8 +32,6 @@ class OpenRouterModelCache:
     
     @staticmethod
     def clear_provider(provider_filter: Optional[str] = None):
-        from django.core.cache import cache
-        from src.ai.utils.cache import AICacheKeys
         cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         cache.delete(cache_key)
 
@@ -83,7 +82,6 @@ class OpenRouterProvider(BaseProvider):
             url = f"{self.BASE_URL}/models"
             headers = self._get_headers()
             
-            import httpx
             with httpx.Client(timeout=5.0) as client:
                 response = client.get(url, headers=headers)
                 return response.status_code == 200
@@ -92,9 +90,6 @@ class OpenRouterProvider(BaseProvider):
     
     @classmethod
     def get_available_models(cls, api_key: Optional[str] = None, provider_filter: Optional[str] = None, use_cache: bool = True) -> List[Dict[str, Any]]:
-        from django.core.cache import cache
-        from src.ai.utils.cache import AICacheKeys
-        
         cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         
         if use_cache:
@@ -110,8 +105,6 @@ class OpenRouterProvider(BaseProvider):
             
             if api_key and api_key.strip():
                 headers["Authorization"] = f"Bearer {api_key}"
-            
-            import httpx
             
             with httpx.Client(timeout=10.0) as client:
                 response = client.get(url, headers=headers)
@@ -165,8 +158,6 @@ class OpenRouterProvider(BaseProvider):
             return []
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        from src.ai.messages.messages import IMAGE_ERRORS
-        
         if not any(img_model in self.image_model.lower() for img_model in ['dall-e', 'stability', 'flux', 'midjourney']):
             raise NotImplementedError(IMAGE_ERRORS.get("model_no_image_capability", "Model does not support image generation"))
         
@@ -199,7 +190,6 @@ class OpenRouterProvider(BaseProvider):
             if 'choices' in data and len(data['choices']) > 0:
                 content = data['choices'][0]['message']['content']
                 
-                import re
                 url_pattern = r'https?://[^\s]+'
                 urls = re.findall(url_pattern, content)
                 
@@ -255,11 +245,9 @@ class OpenRouterProvider(BaseProvider):
             if 'choices' in data and len(data['choices']) > 0:
                 return data['choices'][0]['message']['content'].strip()
             
-            from src.ai.messages.messages import CONTENT_ERRORS
             raise Exception(CONTENT_ERRORS.get("content_generation_failed", "Content generation failed"))
             
         except httpx.HTTPStatusError as e:
-            from src.ai.messages.messages import CONTENT_ERRORS
             error_msg = CONTENT_ERRORS.get("content_generation_failed", "Content generation failed")
             try:
                 error_data = e.response.json()
@@ -269,7 +257,6 @@ class OpenRouterProvider(BaseProvider):
                 pass
             raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:
-            from src.ai.messages.messages import CONTENT_ERRORS
             raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
@@ -351,9 +338,6 @@ Return output as JSON with the following structure:
                     seo_data = json.loads(content_str)
                     return seo_data
                 except json.JSONDecodeError as e:
-                    from unidecode import unidecode
-                    import re
-                    
                     slug = re.sub(r'[^a-z0-9]+', '-', unidecode(topic).lower()).strip('-')
                     
                     return {
@@ -367,14 +351,11 @@ Return output as JSON with the following structure:
                         "slug": slug
                     }
 
-            from src.ai.messages.messages import CONTENT_ERRORS
             raise Exception(CONTENT_ERRORS.get("content_generation_failed", "Content generation failed"))
             
         except json.JSONDecodeError as e:
-            from src.ai.messages.messages import CONTENT_ERRORS
             raise Exception(CONTENT_ERRORS.get("content_generation_failed", "Content generation failed"))
         except httpx.HTTPStatusError as e:
-            from src.ai.messages.messages import CONTENT_ERRORS
             error_msg = CONTENT_ERRORS.get("content_generation_failed", "Content generation failed")
             try:
                 error_data = e.response.json()
@@ -384,12 +365,9 @@ Return output as JSON with the following structure:
                 pass
             raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
         except Exception as e:
-            from src.ai.messages.messages import CONTENT_ERRORS
             raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
-        from src.ai.messages.messages import CHAT_ERRORS
-        
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = self._get_headers()

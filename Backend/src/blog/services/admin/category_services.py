@@ -4,8 +4,10 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 
 from src.blog.models.category import BlogCategory
+from src.blog.models.blog import Blog
 from src.blog.utils.cache import CategoryCacheKeys, CategoryCacheManager
 from src.blog.messages.messages import CATEGORY_ERRORS
+from src.media.models.media import ImageMedia
 
 
 class BlogCategoryAdminService:
@@ -85,7 +87,6 @@ class BlogCategoryAdminService:
                 category = BlogCategory.add_root(**validated_data)
             
             if image_id:
-                from src.media.models.media import ImageMedia
                 try:
                     media = ImageMedia.objects.get(id=image_id)
                     category.image = media
@@ -216,8 +217,6 @@ class BlogCategoryAdminService:
     
     @staticmethod
     def bulk_delete_categories(category_ids):
-        from src.blog.models.blog import Blog
-        
         categories = BlogCategory.objects.filter(id__in=category_ids)
         
         if not categories.exists():

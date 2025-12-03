@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
 from src.user.messages.permission import PERMISSION_ERRORS
 from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
+from src.user.permissions.registry import PermissionRegistry
 
 
 class AdminRoleSerializer(serializers.ModelSerializer):
@@ -58,7 +59,6 @@ class AdminRoleSerializer(serializers.ModelSerializer):
                 if not isinstance(perm, dict):
                     raise serializers.ValidationError("Each permission must be a dict with 'module' and 'action'")
                 if 'permission_key' in perm and perm['permission_key']:
-                    from src.user.permissions.registry import PermissionRegistry
                     if not PermissionRegistry.exists(perm['permission_key']):
                         raise serializers.ValidationError(PERMISSION_ERRORS['invalid_permission_key'].format(permission_key=perm['permission_key']))
                     continue

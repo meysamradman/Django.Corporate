@@ -5,6 +5,9 @@ from django.conf import settings
 from typing import List, Dict, Any
 from src.user.messages import AUTH_ERRORS
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
+from src.user.utils.cache import UserCacheKeys, UserCacheManager
+from src.user.models import AdminUserRole
+from src.user.permissions import PermissionValidator
 
 
 class AdminRolePermission(permissions.BasePermission):
@@ -81,7 +84,6 @@ class AdminRolePermission(permissions.BasePermission):
         return 'view'
     
     def _check_admin_role_permissions(self, user, method: str, view) -> bool:
-        from src.user.utils.cache import UserCacheKeys
         cache_key = UserCacheKeys.admin_perm_check(user.id, method, view.__class__.__name__)
         
         has_permission = self._calculate_admin_permission(user, method, view)
@@ -91,8 +93,6 @@ class AdminRolePermission(permissions.BasePermission):
     
     def _calculate_admin_permission(self, user, method: str, view) -> bool:
         try:
-            from src.user.models import AdminUserRole
-            
             view_action = getattr(view, 'action', None)
             view_name = view.__class__.__name__
             
@@ -186,8 +186,6 @@ class RequireAdminRole(AdminRolePermission):
             return super()._calculate_admin_permission(user, method, view)
         
         try:
-            from src.user.models import AdminUserRole
-            
             user_role_names = list(AdminUserRole.objects.filter(
                 user=user,
                 is_active=True
@@ -213,7 +211,6 @@ class RequireModuleAccess(AdminRolePermission):
     
     def _normalize_module_name(self, module: str) -> List[str]:
         from src.user.permissions.permission_factory import MODULE_MAPPINGS
-        
         module_mappings = {}
         for base_module, related_modules in MODULE_MAPPINGS.items():
             for variant in related_modules:
@@ -400,7 +397,6 @@ class RequirePermission(AdminRolePermission):
         if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False):
             return True
         
-        from src.user.permissions import PermissionValidator
         return PermissionValidator.has_permission(request.user, self.permission_id)
 
 
@@ -436,7 +432,6 @@ class AdminPermissionCache:
             
             cache.delete_many(cache_keys_to_clear)
             
-            from src.user.utils.cache import UserCacheManager
             try:
                 UserCacheManager.invalidate_permissions(user_id)
             except Exception:
