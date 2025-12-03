@@ -93,21 +93,18 @@ class PortfolioQuerySet(models.QuerySet):
         from django.db.models import Case, When, IntegerField
         return self.annotate(
             seo_score=Case(
-                # Complete SEO (all 3 fields)
                 When(
                     meta_title__isnull=False,
                     meta_description__isnull=False,
                     og_image__isnull=False,
                     then=3
                 ),
-                # Partial SEO (1-2 fields)
                 When(
                     Q(meta_title__isnull=False) | 
                     Q(meta_description__isnull=False) | 
                     Q(og_image__isnull=False),
                     then=1
                 ),
-                # No SEO
                 default=0,
                 output_field=IntegerField()
             )

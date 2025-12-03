@@ -9,7 +9,6 @@ from src.statistics.utils.cache import StatisticsCacheManager
 from .managers import PortfolioCategoryQuerySet
 
 class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
-    # Relations
     image = models.ForeignKey(
         ImageMedia, 
         on_delete=models.SET_NULL,
@@ -17,13 +16,11 @@ class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
         verbose_name="Main Image"
     )
     
-    # Core fields
     name = models.CharField(max_length=30, unique=True, db_index=True)
     slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     description = models.TextField(null=True, blank=True)
     is_public = models.BooleanField(default=True, db_index=True)
     
-    # Custom manager
     objects = PortfolioCategoryQuerySet.as_manager()
     
     node_order_by = ['name']
@@ -33,10 +30,9 @@ class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
         verbose_name = "Portfolio Category"
         verbose_name_plural = "Portfolio Categories"
         ordering = ["path"]
-        # Optimized indexes for tree operations
         indexes = [
-            models.Index(fields=['path']),  # Tree operations
-            models.Index(fields=['depth']),  # Tree level queries
+            models.Index(fields=['path']),
+            models.Index(fields=['depth']),
             models.Index(fields=['name']),
             models.Index(fields=['slug']),
             models.Index(fields=['public_id']),
@@ -51,7 +47,6 @@ class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
         return f"/category/{self.public_id}/"
     
     def save(self, *args, **kwargs):
-        # Auto SEO generation
         if not self.meta_title and self.name:
             self.meta_title = self.name[:70]
         
@@ -60,9 +55,7 @@ class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
             
         super().save(*args, **kwargs)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         CategoryCacheManager.invalidate_all()
-        # Invalidate dashboard stats as category counts affect it
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):

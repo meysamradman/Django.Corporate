@@ -8,13 +8,11 @@ from .managers import PortfolioOptionQuerySet
 
 
 class PortfolioOption(BaseModel, SEOMixin):
-    # Core fields
     name = models.CharField(max_length=100, db_index=True)
     slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     description = models.TextField(null=True, blank=True)
     is_public = models.BooleanField(default=True, db_index=True)
     
-    # Custom manager
     objects = PortfolioOptionQuerySet.as_manager()
     
     def get_public_url(self):
@@ -36,7 +34,6 @@ class PortfolioOption(BaseModel, SEOMixin):
         return self.name
     
     def save(self, *args, **kwargs):
-        # Auto SEO generation
         if not self.meta_title and self.name:
             self.meta_title = self.name[:70]
         
@@ -45,10 +42,8 @@ class PortfolioOption(BaseModel, SEOMixin):
             
         super().save(*args, **kwargs)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if self.pk:
             OptionCacheManager.invalidate_option(self.pk)
-        # Invalidate dashboard stats as option counts affect it
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):

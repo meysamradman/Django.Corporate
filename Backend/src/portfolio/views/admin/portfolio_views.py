@@ -408,10 +408,9 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        # Require portfolio.update for adding media to an existing portfolio
         if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
             return APIResponse.error(
-                message="شما اجازه افزودن رسانه به نمونه‌کار را ندارید.",
+                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_files = request.FILES.getlist('media_files')

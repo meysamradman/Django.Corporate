@@ -16,22 +16,17 @@ from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
 class PortfolioExportView(APIView):
-    """View for exporting portfolios to Excel or PDF"""
-    # Use only CSRFExemptSessionAuthentication - override default authentication
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [PortfolioManagerAccess]
-    # Disable format suffix negotiation for export endpoints (we handle format via query params)
     format_suffix_kwarg = None
     
     def options(self, request, *args, **kwargs):
-        """Handle CORS preflight requests"""
         response = Response()
         self._add_cors_headers(response, request)
         response['Access-Control-Max-Age'] = '86400'
         return response
     
     def _add_cors_headers(self, response, request):
-        """Add CORS headers for HttpResponse (binary downloads)"""
         origin = request.META.get('HTTP_ORIGIN', '')
         allowed_origins = getattr(settings, 'CORS_ALLOWED_ORIGINS', [])
         
@@ -46,23 +41,19 @@ class PortfolioExportView(APIView):
         response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type'
     
     def perform_content_negotiation(self, request, force=False):
-        """Skip content negotiation for binary file downloads"""
         from rest_framework.renderers import JSONRenderer
         return (JSONRenderer(), JSONRenderer().media_type)
     
     def dispatch(self, request, *args, **kwargs):
-        """Ensure CORS headers for HttpResponse"""
         result = super().dispatch(request, *args, **kwargs)
         if isinstance(result, HttpResponse) and 'Access-Control-Allow-Origin' not in result:
             self._add_cors_headers(result, request)
         return result
     
     def get(self, request):
-        """Export portfolios to Excel or PDF with all filters applied"""
         query_params = request.query_params
         export_format = query_params.get('format', 'excel').lower()
         
-        # Rate limiting - skip for super admin
         if not getattr(request.user, 'is_admin_full', False):
             export_rate_limit = settings.PORTFOLIO_EXPORT_RATE_LIMIT
             export_rate_window = settings.PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW
@@ -76,7 +67,6 @@ class PortfolioExportView(APIView):
             cache.set(cache_key, export_count + 1, export_rate_window)
         
         try:
-            # Build queryset with filters
             queryset = Portfolio.objects.prefetch_related(
                 'categories', 'tags', 'options',
                 'images__image',
@@ -85,10 +75,8 @@ class PortfolioExportView(APIView):
                 'documents__document', 'documents__document__cover_image',
             ).select_related('og_image')
             
-            # Apply filters
             queryset = PortfolioAdminFilter(query_params, queryset=queryset).qs
             
-            # Apply search
             search = query_params.get('search', '')
             if search:
                 queryset = queryset.filter(
@@ -98,17 +86,14 @@ class PortfolioExportView(APIView):
                     Q(meta_description__icontains=search)
                 )
             
-            # Apply ordering
             order_by = query_params.get('order_by', 'created_at')
             order_desc = query_params.get('order_desc', 'true').lower() == 'true'
             queryset = queryset.order_by(f'-{order_by}' if order_desc else order_by)
             
-            # Check if exporting specific page or all
             export_all = query_params.get('export_all', 'false').lower() == 'true'
             page = query_params.get('page')
             size = query_params.get('size')
             
-            # If page and size are provided, export only that page (faster)
             if page and size and not export_all:
                 try:
                     page_num = int(page)
@@ -116,19 +101,16 @@ class PortfolioExportView(APIView):
                     offset = (page_num - 1) * page_size
                     queryset = queryset[offset:offset + page_size]
                 except (ValueError, TypeError):
-                    # If invalid page/size, fall back to all
                     pass
             else:
-                # Export all (with limit check)
                 max_export_items = settings.PORTFOLIO_EXPORT_MAX_ITEMS
                 total_count = queryset.count()
                 if total_count > max_export_items:
                     return APIResponse.error(
-                        message=f"{PORTFOLIO_ERRORS['portfolio_export_too_large']} (تعداد: {total_count}, حد مجاز: {max_export_items})",
+                        message=PORTFOLIO_ERRORS['portfolio_export_too_large'],
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
             
-            # Export
             if export_format == 'pdf':
                 response = PortfolioPDFListExportService.export_portfolios_pdf(queryset)
             else:
