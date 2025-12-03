@@ -4,9 +4,6 @@ from src.user.utils.mobile_validator import validate_mobile_number
 
 
 class AdminLoginSerializer(serializers.Serializer):
-    """
-    سریالایزر برای ورود ادمین
-    """
     mobile = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
     captcha_id = serializers.CharField(required=True)
@@ -14,7 +11,6 @@ class AdminLoginSerializer(serializers.Serializer):
     otp_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate_mobile(self, value):
-        """اعتبارسنجی شماره موبایل"""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_required"))
         
@@ -25,7 +21,6 @@ class AdminLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate(self, data):
-        """اعتبارسنجی داده‌ها"""
         mobile = data.get('mobile')
         password = data.get('password')
         captcha_id = data.get('captcha_id')

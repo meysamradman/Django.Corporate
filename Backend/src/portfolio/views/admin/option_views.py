@@ -22,19 +22,15 @@ from src.user.permissions import PermissionValidator
 
 
 class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
-    """
-    Optimized Option ViewSet for Admin Panel with bulk operations and grouping
-    """
     permission_classes = [PortfolioManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioOptionAdminFilter
     search_fields = ['name', 'slug', 'description']
     ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
-    pagination_class = StandardLimitPagination  # Add DRF pagination
+    pagination_class = StandardLimitPagination
     
     def get_queryset(self):
-        """Optimized queryset based on action"""
         if self.action == 'list':
             return PortfolioOption.objects.with_portfolio_counts().order_by('-portfolio_count', 'name')
         elif self.action in ['retrieve', 'update', 'partial_update']:
@@ -43,7 +39,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
             return PortfolioOption.objects.all()
 
     def list(self, request, *args, **kwargs):
-        """List options with custom pagination (service-level style)"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.read'):
             return APIResponse.error(
                 message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to view portfolio options"),
@@ -58,7 +53,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         
         queryset = PortfolioOptionAdminService.get_option_queryset(filters=filters, search=search)
         
-        # Apply DRF pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = PortfolioOptionAdminListSerializer(page, many=True)
@@ -80,7 +74,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def get_serializer_class(self):
-        """Dynamic serializer selection"""
         if self.action == 'list':
             return PortfolioOptionAdminListSerializer
         elif self.action == 'create':
@@ -91,7 +84,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
             return PortfolioOptionAdminDetailSerializer
     
     def create(self, request, *args, **kwargs):
-        """Create option with duplicate validation"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.create'):
             return APIResponse.error(
                 message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to create portfolio options"),
@@ -101,13 +93,11 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         try:
-            # Create option using service
             option = PortfolioOptionAdminService.create_option(
                 serializer.validated_data,
                 created_by=request.user
             )
             
-            # Return detailed response
             detail_serializer = PortfolioOptionAdminDetailSerializer(option)
             return APIResponse.success(
                 message=OPTION_SUCCESS["option_created"],
@@ -127,7 +117,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """Get option detail with usage statistics"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.read'):
             return APIResponse.error(
                 message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to view portfolio options"),
@@ -149,7 +138,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        """Update option with validation"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.update'):
             return APIResponse.error(
                 message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to update portfolio options"),
@@ -168,13 +156,11 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         try:
-            # Update option using service
             updated_option = PortfolioOptionAdminService.update_option_by_id(
                 option.id, 
                 serializer.validated_data
             )
             
-            # Return detailed response
             detail_serializer = PortfolioOptionAdminDetailSerializer(updated_option)
             return APIResponse.success(
                 message=OPTION_SUCCESS["option_updated"],
@@ -194,7 +180,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete option with safety checks"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.option.delete'):
             return APIResponse.error(
                 message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to delete portfolio options"),
@@ -228,7 +213,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def popular(self, request):
-        """Get most popular options"""
         limit = int(request.GET.get('limit', 10))
         options = PortfolioOptionAdminService.get_popular_options(limit)
         
@@ -240,7 +224,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def by_key(self, request):
-        """Get options grouped by key"""
         key = request.GET.get('key')
         
         if not key:
@@ -260,7 +243,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def keys(self, request):
-        """Get all unique option keys"""
         keys = PortfolioOptionAdminService.get_unique_keys()
         
         return APIResponse.success(
@@ -271,7 +253,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        """Bulk delete multiple options"""
         option_ids = request.data.get('ids', [])
         
         if not option_ids:
@@ -280,7 +261,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        # Convert to list if it's a single value
         if not isinstance(option_ids, list):
             option_ids = [option_ids]
         
@@ -307,10 +287,8 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def grouped(self, request):
-        """Get options grouped by key for admin interface"""
         from collections import defaultdict
         
-        # Group options by key
         options_by_key = defaultdict(list)
         options = PortfolioOption.objects.with_portfolio_counts().order_by('key', 'value')
         
@@ -323,7 +301,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
                 'is_active': option.is_active
             })
         
-        # Prepare grouped data
         grouped_data = []
         for key, options_list in options_by_key.items():
             grouped_data.append({
@@ -332,7 +309,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
                 'total_count': len(options_list)
             })
         
-        # Sort by total usage
         grouped_data.sort(key=lambda x: sum(opt['portfolio_count'] for opt in x['options']), reverse=True)
         
         return APIResponse.success(
@@ -343,7 +319,6 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """Get option statistics for admin dashboard"""
         total_options = PortfolioOption.objects.count()
         active_options = PortfolioOption.objects.filter(is_active=True).count()
         used_options = PortfolioOption.objects.filter(portfolio_options__isnull=False).distinct().count()

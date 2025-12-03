@@ -1,5 +1,3 @@
-# Single-language message catalog (English)
-
 AUTH_SUCCESS = {
     "auth_created": "Authentication entry created successfully.",
     "auth_logged_in": "Signed in successfully.",
@@ -21,12 +19,12 @@ AUTH_SUCCESS = {
     "error_occurred": "An unexpected error occurred.",
     "otp_settings_retrieved_successfully": "OTP settings retrieved successfully.",
     "auth_token_refreshed": "Token refreshed successfully.",
-    # Location Messages
     "location_provinces_retrieved": "Provinces retrieved successfully.",
     "location_cities_retrieved": "Cities retrieved successfully.",
     "location_province_cities_retrieved": "Province cities retrieved successfully.",
     "location_province_retrieved": "Province retrieved successfully.",
     "location_city_retrieved": "City retrieved successfully.",
+    "csrf_token_retrieved": "CSRF token retrieved successfully.",
 }
 
 AUTH_ERRORS = {
@@ -72,7 +70,6 @@ AUTH_ERRORS = {
     "auth_no_token": "No authentication token was provided.",
     "auth_password_must_contain_number": "Password must contain at least one number.",
     "auth_password_must_contain_uppercase": "Password must contain at least one uppercase letter.",
-    # Location Errors
     "location_province_not_found": "Province not found.",
     "location_city_not_found": "City not found.",
     "location_province_inactive": "Province is inactive.",

@@ -65,7 +65,5 @@ class TicketMessage(BaseModel):
             self.ticket.save(update_fields=['last_replied_at'])
         
         if self.ticket_id:
-            # ✅ Use Cache Manager for standardized cache invalidation
-            # Invalidate ticket cache and stats (unanswered count changes)
             TicketCacheManager.invalidate_all(ticket_id=self.ticket.id)
 

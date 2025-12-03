@@ -40,11 +40,9 @@ def create_default_admin_roles(force_update=False, verbose=True):
     with transaction.atomic():
         for role_name, role_data in role_configs.items():
             try:
-                # Check if role exists
                 role = AdminRole.objects.get(name=role_name)
                 
                 if force_update:
-                    # Update existing role
                     role.display_name = role_data['display_name']
                     role.description = role_data['description']
                     role.level = role_data['level']

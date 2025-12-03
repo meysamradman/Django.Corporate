@@ -1,5 +1,3 @@
-# Media messages - Persian messages for users
-
 MEDIA_SUCCESS = {
     "media_list_success": "لیست رسانه‌ها با موفقیت دریافت شد.",
     "media_created": "رسانه با موفقیت ایجاد شد.",

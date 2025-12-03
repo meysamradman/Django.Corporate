@@ -58,7 +58,6 @@ class AdminManagementService:
             if admin_user is not None:
                 if not admin_user.is_staff:
                     raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
-                # Validate access for sensitive field changes
                 modifying_sensitive = any(key in validated_data for key in ['is_staff', 'is_superuser'])
                 if modifying_sensitive and not admin_user.is_superuser:
                     user_to_update = User.objects.get(id=admin_id)
@@ -70,22 +69,18 @@ class AdminManagementService:
             except (TypeError, ValueError):
                 raise ValidationError({"admin_id": AUTH_ERRORS.get("invalid_user_id_format")})
             
-            # Fetch admin with related profile
             admin = User.objects.select_related('admin_profile').get(id=admin_id)
             
-            # Split admin fields from profile fields
             admin_fields_to_update = {}
             profile_fields_to_update = {}
             profile_picture = validated_data.pop('profile_picture', None)
             profile_picture_file = validated_data.pop('profile_picture_file', None)
 
-            # Handle identifier updates
             if 'identifier' in validated_data:
                 identifier = validated_data.pop('identifier')
                 if identifier:
                     try:
                         email, mobile = validate_identifier(identifier)
-                        # Enforce uniqueness
                         if email and User.objects.filter(~Q(id=admin_id), email=email).exists():
                             raise ValidationError(AUTH_ERRORS["auth_email_exists"])
                         if mobile and User.objects.filter(~Q(id=admin_id), mobile=mobile).exists():
@@ -96,7 +91,6 @@ class AdminManagementService:
                     except ValidationError as e:
                         raise ValidationError({"identifier": str(e)})
             
-            # Direct email/mobile updates
             if 'email' in validated_data:
                 email = validated_data.pop('email')
                 final_email = None if email == '' else email 
@@ -111,7 +105,6 @@ class AdminManagementService:
                     raise ValidationError({"mobile": AUTH_ERRORS["auth_mobile_exists"]})
                 admin_fields_to_update['mobile'] = final_mobile
 
-            # Map admin model fields
             admin_model_fields = ['password', 'is_active', 'is_staff', 'is_superuser']
             for field in admin_model_fields:
                 if field in validated_data:
@@ -120,28 +113,24 @@ class AdminManagementService:
                         continue
                     admin_fields_to_update[field] = value
 
-            # Map profile model fields
             profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone']
             for field in profile_model_fields:
                 if field in validated_data:
                     profile_fields_to_update[field] = validated_data.pop(field)
 
-            # Handle prefixed profile_* fields
             profile_prefix = 'profile_'
             prefix_keys = [k for k in validated_data.keys() if k.startswith(profile_prefix)]
             for key in prefix_keys:
                 field = key[len(profile_prefix):]
-                if field in profile_model_fields:
-                    profile_fields_to_update[field] = validated_data.pop(key)
+                    if field in profile_model_fields:
+                        profile_fields_to_update[field] = validated_data.pop(key)
 
-            # Handle nested profile payload
             nested_profile = validated_data.pop('profile', {}) or {}
             if isinstance(nested_profile, dict):
                 for field in profile_model_fields:
                     if field in nested_profile:
                         profile_fields_to_update[field] = nested_profile[field]
             
-            # Determine profile picture removal flag
             should_remove_picture = validated_data.pop('remove_profile_picture', 'false').lower() == 'true'
             
             if not should_remove_picture:
@@ -173,7 +162,6 @@ class AdminManagementService:
             elif profile_picture:
                 profile_fields_to_update['profile_picture'] = profile_picture
 
-            # Persist admin model updates
             if admin_fields_to_update:
                 if 'password' in admin_fields_to_update:
                     password = admin_fields_to_update.pop('password')
@@ -183,7 +171,6 @@ class AdminManagementService:
                     setattr(admin, field, value)
                 admin.save()
             
-            # Update role assignment if requested
             role_id_str = validated_data.pop('role_id', None)
             if role_id_str is not None:
                 try:
@@ -215,10 +202,8 @@ class AdminManagementService:
                                 user_role.is_active = True
                                 user_role.save()
                             
-                            # ✅ Update permissions cache and clear Redis cache
                             user_role.update_permissions_cache()
                             
-                            # Additional comprehensive cache clearing
                             from src.user.permissions.helpers import PermissionHelper
                             from src.user.authorization.admin_permission import AdminPermissionCache
                             from src.user.permissions.validator import PermissionValidator
@@ -234,7 +219,6 @@ class AdminManagementService:
                 except Exception as e:
                     pass
 
-            # Update profile details
             if profile_fields_to_update or should_remove_picture:
                 from src.user.services.admin.admin_profile_service import AdminProfileService
                 
@@ -244,7 +228,6 @@ class AdminManagementService:
                 if profile_fields_to_update:
                     AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
             
-            # ✅ Clear all cache for this admin (comprehensive cache invalidation)
             from src.user.authorization.admin_permission import AdminPermissionCache
             from src.user.permissions.validator import PermissionValidator
             from src.user.permissions.helpers import PermissionHelper
@@ -258,8 +241,6 @@ class AdminManagementService:
         except User.DoesNotExist:
             raise NotFound(AUTH_ERRORS["not_found"])
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise
 
     @staticmethod

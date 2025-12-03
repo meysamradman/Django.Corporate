@@ -1,7 +1,3 @@
-"""
-User utility exports.
-"""
-# Relative imports are safe inside __init__.py
 from .validate_identifier import validate_identifier
 from .email_validator import validate_email_address
 from .mobile_validator import validate_mobile_number

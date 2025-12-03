@@ -51,10 +51,8 @@ class MediaAdminService:
                 elif cover_image_value is None or cover_image_value == '':
                     media.cover_image = None
                 
-                # Remove cover_image from data to avoid setting it again
                 data.pop('cover_image', None)
             
-            # Update other fields
             for key, value in data.items():
                 if hasattr(media, key):
                     setattr(media, key, value)

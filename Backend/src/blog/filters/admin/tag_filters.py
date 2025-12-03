@@ -4,15 +4,9 @@ from src.blog.models.tag import BlogTag
 
 
 class BlogTagAdminFilter(django_filters.FilterSet):
-    """Advanced filtering for Blog Tags in admin panel"""
-    
-    # Text search in name and description
     search = django_filters.CharFilter(method='filter_search', label='جستجو')
     
-    # Activity status
     is_active = django_filters.BooleanFilter(field_name='is_active', label='وضعیت فعال')
-    
-    # Usage filter
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
         choices=[
@@ -22,8 +16,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         ],
         label='وضعیت استفاده'
     )
-    
-    # Blog count range
     blog_count_min = django_filters.NumberFilter(
         method='filter_blog_count_min',
         label='حداقل تعداد نمونه کار'
@@ -32,8 +24,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         method='filter_blog_count_max',
         label='حداکثر تعداد نمونه کار'
     )
-    
-    # Date filters
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
@@ -44,8 +34,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         label='ایجاد شده قبل از'
     )
-    
-    # Name length filter
     name_length = django_filters.ChoiceFilter(
         method='filter_name_length',
         choices=[
@@ -61,7 +49,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         fields = []
     
     def filter_search(self, queryset, name, value):
-        """Search in name, description"""
         if not value:
             return queryset
         
@@ -72,7 +59,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         )
     
     def filter_usage(self, queryset, name, value):
-        """Filter by usage status"""
         if not value:
             return queryset
         
@@ -88,7 +74,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         return queryset
     
     def filter_blog_count_min(self, queryset, name, value):
-        """Filter by minimum blog count"""
         if value is None:
             return queryset
         
@@ -97,7 +82,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         ).filter(usage_count__gte=value)
     
     def filter_blog_count_max(self, queryset, name, value):
-        """Filter by maximum blog count"""
         if value is None:
             return queryset
         
@@ -106,7 +90,6 @@ class BlogTagAdminFilter(django_filters.FilterSet):
         ).filter(usage_count__lte=value)
     
     def filter_name_length(self, queryset, name, value):
-        """Filter by name length"""
         if not value:
             return queryset
         

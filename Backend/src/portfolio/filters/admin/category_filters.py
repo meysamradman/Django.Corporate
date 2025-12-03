@@ -4,34 +4,19 @@ from src.portfolio.models.category import PortfolioCategory
 
 
 class PortfolioCategoryAdminFilter(django_filters.FilterSet):
-    """Advanced filtering for Portfolio Categories in admin panel with tree support"""
-    
-    # Text search in name and description
     search = django_filters.CharFilter(method='filter_search', label='جستجو')
-    
-    # Activity status
     is_active = django_filters.BooleanFilter(field_name='is_active', label='وضعیت فعال')
     is_public = django_filters.BooleanFilter(field_name='is_public', label='وضعیت عمومی')
-    
-    # Tree level filters
     level = django_filters.NumberFilter(field_name='depth', label='سطح درخت')
     level_min = django_filters.NumberFilter(field_name='depth', lookup_expr='gte', label='حداقل سطح')
     level_max = django_filters.NumberFilter(field_name='depth', lookup_expr='lte', label='حداکثر سطح')
-    
-    # Parent filter
     parent = django_filters.ModelChoiceFilter(
         method='filter_parent',
         queryset=PortfolioCategory.objects.filter(is_active=True),
         label='دسته‌بندی والد'
     )
-    
-    # Root categories only
     is_root = django_filters.BooleanFilter(method='filter_root', label='فقط دسته‌های اصلی')
-    
-    # Has children filter
     has_children = django_filters.BooleanFilter(method='filter_has_children', label='دارای زیردسته')
-    
-    # Usage filter
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
         choices=[
@@ -41,8 +26,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         ],
         label='وضعیت استفاده'
     )
-    
-    # Portfolio count range
     portfolio_count_min = django_filters.NumberFilter(
         method='filter_portfolio_count_min',
         label='حداقل تعداد نمونه کار'
@@ -51,8 +34,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         method='filter_portfolio_count_max',
         label='حداکثر تعداد نمونه کار'
     )
-    
-    # Date filters
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
@@ -63,11 +44,7 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         label='ایجاد شده قبل از'
     )
-    
-    # Image status
     has_image = django_filters.BooleanFilter(method='filter_has_image', label='دارای تصویر')
-    
-    # SEO status
     seo_status = django_filters.ChoiceFilter(
         method='filter_seo_status',
         choices=[
@@ -83,7 +60,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         fields = []
     
     def filter_search(self, queryset, name, value):
-        """Search in name, description, slug"""
         if not value:
             return queryset
         
@@ -94,16 +70,12 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         )
     
     def filter_parent(self, queryset, name, value):
-        """Filter by parent category (includes descendants)"""
         if not value:
             return queryset
-        
-        # Get all descendants of the parent
         descendants = value.get_descendants(include_self=True)
         return queryset.filter(id__in=descendants.values_list('id', flat=True))
     
     def filter_root(self, queryset, name, value):
-        """Filter root categories only"""
         if value is None:
             return queryset
         
@@ -113,7 +85,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
             return queryset.filter(depth__gt=1)
     
     def filter_has_children(self, queryset, name, value):
-        """Filter categories with/without children"""
         if value is None:
             return queryset
         
@@ -127,7 +98,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
             ).filter(children_count=0)
     
     def filter_usage(self, queryset, name, value):
-        """Filter by usage status"""
         if not value:
             return queryset
         
@@ -143,7 +113,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         return queryset
     
     def filter_portfolio_count_min(self, queryset, name, value):
-        """Filter by minimum portfolio count"""
         if value is None:
             return queryset
         
@@ -152,7 +121,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         ).filter(usage_count__gte=value)
     
     def filter_portfolio_count_max(self, queryset, name, value):
-        """Filter by maximum portfolio count"""
         if value is None:
             return queryset
         
@@ -161,7 +129,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
         ).filter(usage_count__lte=value)
     
     def filter_has_image(self, queryset, name, value):
-        """Filter categories with/without image"""
         if value is None:
             return queryset
         
@@ -171,7 +138,6 @@ class PortfolioCategoryAdminFilter(django_filters.FilterSet):
             return queryset.filter(image__isnull=True)
     
     def filter_seo_status(self, queryset, name, value):
-        """Filter by SEO completeness"""
         if not value:
             return queryset
         

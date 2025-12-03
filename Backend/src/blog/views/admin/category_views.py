@@ -30,11 +30,10 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     filterset_class = BlogCategoryAdminFilter
     search_fields = ['name', 'description']
     ordering_fields = ['path', 'created_at', 'name']
-    ordering = ['path']  # Tree order by default
-    pagination_class = StandardLimitPagination  # Add DRF pagination
+    ordering = ['path']
+    pagination_class = StandardLimitPagination
     
     def get_queryset(self):
-        """Optimized queryset based on action"""
         if self.action == 'list':
             return BlogCategoryAdminService.get_tree_queryset()
         elif self.action in ['retrieve', 'update', 'partial_update']:
@@ -43,7 +42,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
             return BlogCategory.objects.all()
     
     def get_serializer_class(self):
-        """Dynamic serializer selection"""
         if self.action == 'list':
             return BlogCategoryAdminListSerializer
         elif self.action == 'create':
@@ -56,7 +54,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
             return BlogCategoryAdminDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        """List categories with tree structure and custom pagination"""
         if not PermissionValidator.has_permission(request.user, 'blog.category.read'):
             return APIResponse.error(
                 message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to view blog categories"),
@@ -71,10 +68,7 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
 
-        # Use the Django Filter backend properly
         queryset = self.filter_queryset(BlogCategoryAdminService.get_tree_queryset())
-        
-        # Apply DRF pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = BlogCategoryAdminListSerializer(page, many=True)
@@ -96,7 +90,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
 
     def create(self, request, *args, **kwargs):
-        """Create category with tree positioning"""
         if not PermissionValidator.has_permission(request.user, 'blog.category.create'):
             return APIResponse.error(
                 message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to create blog categories"),
@@ -104,14 +97,10 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
             )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        # Create category using service
         category = BlogCategoryAdminService.create_category(
             serializer.validated_data,
             created_by=request.user
         )
-        
-        # Return detailed response
         detail_serializer = BlogCategoryAdminDetailSerializer(category)
         return APIResponse.success(
             message=CATEGORY_SUCCESS["category_created"],
@@ -120,7 +109,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        """Get category detail with tree information"""
         if not PermissionValidator.has_permission(request.user, 'blog.category.read'):
             return APIResponse.error(
                 message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to view blog categories"),
@@ -142,7 +130,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         )
 
     def update(self, request, *args, **kwargs):
-        """Update category with tree operations"""
         if not PermissionValidator.has_permission(request.user, 'blog.category.update'):
             return APIResponse.error(
                 message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to update blog categories"),
@@ -153,15 +140,11 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        
-        # Update category using service
         try:
             updated_category = BlogCategoryAdminService.update_category_by_id(
                 category_id, 
                 serializer.validated_data
             )
-            
-            # Return detailed response
             detail_serializer = BlogCategoryAdminDetailSerializer(updated_category)
             return APIResponse.success(
                 message=CATEGORY_SUCCESS["category_updated"],
@@ -175,7 +158,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
             )
 
     def destroy(self, request, *args, **kwargs):
-        """Delete category with safety checks"""
         if not PermissionValidator.has_permission(request.user, 'blog.category.delete'):
             return APIResponse.error(
                 message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to delete blog categories"),
@@ -213,7 +195,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def tree(self, request):
-        """Get complete category tree"""
         tree_data = BlogCategoryAdminService.get_tree_data()
         
         return APIResponse.success(
@@ -224,7 +205,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def roots(self, request):
-        """Get root categories only"""
         root_categories = BlogCategoryAdminService.get_root_categories()
         
         return APIResponse.success(
@@ -235,7 +215,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):
-        """Get direct children of a category"""
         category = BlogCategoryAdminService.get_category_by_id(pk)
         
         if not category:
@@ -255,7 +234,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def breadcrumbs(self, request, pk=None):
-        """Get category breadcrumbs"""
         category = BlogCategoryAdminService.get_category_by_id(pk)
         
         if not category:
@@ -274,7 +252,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
-        """Move category to new position"""
         target_id = request.data.get('target_id')
         position = request.data.get('position', 'last-child')
         
@@ -310,7 +287,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def popular(self, request):
-        """Get most popular categories"""
         limit = int(request.GET.get('limit', 10))
         popular_categories = BlogCategoryAdminService.get_popular_categories(limit)
         
@@ -322,16 +298,12 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        """Bulk delete multiple categories"""
         category_ids = request.data.get('ids', [])
-        
         if not category_ids:
             return APIResponse.error(
                 message=CATEGORY_ERRORS["category_ids_required"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Convert to list if it's a single value
         if not isinstance(category_ids, list):
             category_ids = [category_ids]
         
@@ -355,7 +327,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """Get category statistics for admin dashboard"""
         stats = BlogCategoryAdminService.get_category_statistics()
         
         return APIResponse.success(

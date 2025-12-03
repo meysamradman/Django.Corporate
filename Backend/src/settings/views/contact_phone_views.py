@@ -17,14 +17,11 @@ from src.user.authorization.admin_permission import RequirePermission
 
 
 class ContactPhoneViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing contact phones"""
-    
     queryset = ContactPhone.objects.all()
     serializer_class = ContactPhoneSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('settings.manage')]
     filterset_fields = ['is_active']
     search_fields = ['phone_number', 'label']
@@ -32,7 +29,6 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
     ordering = ['order', '-created_at']
     
     def list(self, request, *args, **kwargs):
-        """List contact phones"""
         filters = {}
         if 'is_active' in request.query_params:
             filters['is_active'] = request.query_params['is_active'] == 'true'
@@ -51,7 +47,6 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
         )
     
     def create(self, request, *args, **kwargs):
-        """Create new contact phone"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -78,7 +73,6 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        """Update contact phone"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -110,7 +104,6 @@ class ContactPhoneViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete contact phone"""
         try:
             instance = self.get_object()
             delete_contact_phone(instance)

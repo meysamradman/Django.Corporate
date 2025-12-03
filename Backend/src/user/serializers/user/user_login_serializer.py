@@ -4,9 +4,6 @@ from src.user.utils.validate_identifier import validate_identifier
 
 
 class UserLoginSerializer(serializers.Serializer):
-    """
-    Serializer for regular-user login requests.
-    """
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(required=False, write_only=True, allow_blank=True)
     otp = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -18,7 +15,6 @@ class UserLoginSerializer(serializers.Serializer):
     )
 
     def validate_identifier(self, value):
-        """Validate identifier (email or mobile)."""
         if not value:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
         
@@ -32,7 +28,6 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate(self, data):
-        """Perform payload-level validation."""
         login_type = data.get('login_type')
         identifier = data.get('identifier')
         captcha_id = data.get('captcha_id')

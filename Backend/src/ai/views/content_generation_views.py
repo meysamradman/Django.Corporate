@@ -247,12 +247,10 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
         
         validated_data = serializer.validated_data
         
-        # ✅ Extract destination info
         destination = validated_data.get('destination', 'direct')
         destination_data = validated_data.get('destination_data', {})
         
         try:
-            # Generate content
             content_data = AIContentGenerationService.generate_content(
                 topic=validated_data['topic'],
                 provider_name=validated_data.get('provider_name', 'gemini'),
@@ -262,7 +260,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 admin=request.user,
             )
             
-            # ✅ Handle destination
             from src.ai.services.destination_handler import ContentDestinationHandler
             
             try:
@@ -273,19 +270,16 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                     admin=request.user
                 )
             except ValueError as dest_error:
-                # Error in saving
                 return APIResponse.error(
                     message=str(dest_error),
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Organize response
             response_data = {
-                'content': content_data,  # Generated content
-                'destination': destination_result,  # Save result
+                'content': content_data,
+                'destination': destination_result,
             }
             
-            # ✅ Success message based on destination
             if destination_result['saved']:
                 message = f"{AI_SUCCESS['content_generated']} {destination_result['message']}"
             else:

@@ -24,19 +24,15 @@ from src.user.permissions import PermissionValidator
 
 
 class BlogTagAdminViewSet(viewsets.ModelViewSet):
-    """
-    Optimized Tag ViewSet for Admin Panel with bulk operations
-    """
     permission_classes = [BlogManagerAccess]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogTagAdminFilter
     search_fields = ['name', 'description']
     ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
-    pagination_class = StandardLimitPagination  # Add DRF pagination
+    pagination_class = StandardLimitPagination
     
     def get_queryset(self):
-        """Optimized queryset based on action"""
         if self.action == 'list':
             return BlogTag.objects.with_counts().order_by('-blog_count', 'name')
         elif self.action in ['retrieve', 'update', 'partial_update']:
@@ -45,7 +41,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
             return BlogTag.objects.all()
 
     def list(self, request, *args, **kwargs):
-        """List tags with custom pagination (service-level style)"""
         if not PermissionValidator.has_permission(request.user, 'blog.tag.read'):
             return APIResponse.error(
                 message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to view blog tags"),
@@ -59,7 +54,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         
         queryset = BlogTagAdminService.get_tag_queryset(filters=filters, search=search)
         
-        # Apply DRF pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = BlogTagAdminListSerializer(page, many=True)
@@ -81,7 +75,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def get_serializer_class(self):
-        """Dynamic serializer selection"""
         if self.action == 'list':
             return BlogTagAdminListSerializer
         elif self.action == 'create':
@@ -93,7 +86,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     
     @method_decorator(csrf_exempt)
     def create(self, request, *args, **kwargs):
-        """Create tag with auto-slug generation"""
         if not PermissionValidator.has_permission(request.user, 'blog.tag.create'):
             return APIResponse.error(
                 message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to create blog tags"),
@@ -102,13 +94,11 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Create tag using service
         tag = BlogTagAdminService.create_tag(
             serializer.validated_data,
             created_by=request.user
         )
         
-        # Return detailed response
         detail_serializer = BlogTagAdminDetailSerializer(tag)
         return APIResponse.success(
             message=TAG_SUCCESS["tag_created"],
@@ -117,7 +107,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        """Get tag detail with usage statistics"""
         if not PermissionValidator.has_permission(request.user, 'blog.tag.read'):
             return APIResponse.error(
                 message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to view blog tags"),
@@ -139,7 +128,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        """Update tag with validation"""
         if not PermissionValidator.has_permission(request.user, 'blog.tag.update'):
             return APIResponse.error(
                 message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to update blog tags"),
@@ -157,13 +145,11 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tag, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        # Update tag using service
         updated_tag = BlogTagAdminService.update_tag_by_id(
             tag.id, 
             serializer.validated_data
         )
         
-        # Return detailed response
         detail_serializer = BlogTagAdminDetailSerializer(updated_tag)
         return APIResponse.success(
             message=TAG_SUCCESS["tag_updated"],
@@ -172,7 +158,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete tag with safety checks"""
         if not PermissionValidator.has_permission(request.user, 'blog.tag.delete'):
             return APIResponse.error(
                 message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to delete blog tags"),
@@ -206,7 +191,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def popular(self, request):
-        """Get most popular tags"""
         limit = int(request.GET.get('limit', 10))
         tags = BlogTagAdminService.get_popular_tags(limit)
         
@@ -218,7 +202,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        """Bulk delete multiple tags"""
         tag_ids = request.data.get('ids', [])
         
         if not tag_ids:
@@ -227,7 +210,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        # Convert to list if it's a single value
         if not isinstance(tag_ids, list):
             tag_ids = [tag_ids]
         
@@ -251,7 +233,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def merge(self, request, pk=None):
-        """Merge this tag into another tag"""
         source_tag_id = pk
         target_tag_id = request.data.get('target_tag_id')
         
@@ -289,7 +270,6 @@ class BlogTagAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """Get tag statistics for admin dashboard"""
         total_tags = BlogTag.objects.count()
         active_tags = BlogTag.objects.filter(is_active=True).count()
         used_tags = BlogTag.objects.filter(blog_tags__isnull=False).distinct().count()

@@ -11,7 +11,6 @@ class RuleBasedChatService:
     
     @classmethod
     def _get_cached_faqs(cls) -> List[FAQ]:
-        # ✅ Use standardized cache key from ChatbotCacheKeys
         cache_key = ChatbotCacheKeys.faqs_active()
         faqs = cache.get(cache_key)
         if faqs is None:
@@ -66,5 +65,4 @@ class RuleBasedChatService:
     
     @classmethod
     def clear_cache(cls):
-        # ✅ Use Cache Manager for standardized cache invalidation
         ChatbotCacheManager.invalidate_all()

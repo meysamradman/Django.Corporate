@@ -67,7 +67,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         response = super().update(request, *args, **kwargs)
         if response.status_code == status.HTTP_200_OK:
             message = self.get_object()
-            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
             TicketCacheManager.invalidate_ticket_messages(message.ticket.id)
             return APIResponse.success(
                 message=TICKET_SUCCESS['message_updated'],
@@ -77,7 +76,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         return response
     
     def destroy(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.delete
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.delete']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -86,7 +84,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         message = self.get_object()
         ticket_id = message.ticket.id
         super().destroy(request, *args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         TicketCacheManager.invalidate_ticket(ticket_id)
         StatisticsCacheManager.invalidate_tickets()
         return APIResponse.success(
@@ -96,7 +93,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
-        # ✅ Support both ticket.manage and ticket.update (marking as read is an update)
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -105,7 +101,6 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         message = self.get_object()
         message.is_read = True
         message.save()
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         TicketCacheManager.invalidate_ticket_messages(message.ticket.id)
         return APIResponse.success(
             message=TICKET_SUCCESS['message_updated'],

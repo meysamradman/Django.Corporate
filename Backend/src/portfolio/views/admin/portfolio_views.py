@@ -171,7 +171,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
-        # Validate upload limit - use settings directly for performance
         upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
         total_media = len(media_ids) + len(media_files)
         if total_media > upload_max:
@@ -181,12 +180,10 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 ]
             })
         
-        # Validate and create portfolio
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         portfolio = serializer.save()
         
-        # Add media immediately after creation
         if media_files or media_ids:
             from src.portfolio.services.admin import PortfolioAdminMediaService
             PortfolioAdminMediaService.add_media_bulk(
@@ -238,7 +235,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             )
         instance = self.get_object()
         
-        # Delete using service (handles media cleanup)
         success = PortfolioAdminService.delete_portfolio(instance.id)
         
         if success:
@@ -423,7 +419,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 'non_field_errors': ['At least one of media_ids or media_files must be provided.']
             })
         
-        # Validate upload limit - use settings directly for performance
         upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
         total_media = len(media_ids) + len(media_files)
         if total_media > upload_max:
@@ -456,19 +451,14 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # First, remove main image flag from any existing main image
             from src.portfolio.models.media import PortfolioImage
             PortfolioImage.objects.filter(portfolio_id=pk, is_main=True).update(is_main=False)
             
-            # Then set the new main image
-            # Check if this is a PortfolioImage, PortfolioVideo, etc.
             portfolio_image = PortfolioImage.objects.filter(portfolio_id=pk, image_id=media_id).first()
             if portfolio_image:
                 portfolio_image.is_main = True
                 portfolio_image.save()
             else:
-                # If not found, we might need to create it or handle differently
-                # For now, let's just call the service method
                 portfolio_media = PortfolioAdminService.set_main_image(pk, media_id)
             
             return APIResponse.success(
@@ -503,7 +493,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             'without_seo': Portfolio.objects.missing_seo().count(),
         }
         
-        # Recent portfolios
         recent_portfolios = Portfolio.objects.for_admin_listing()[:5]
         recent_serializer = PortfolioAdminListSerializer(recent_portfolios, many=True)
         
@@ -625,13 +614,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='export-pdf')
     def export_pdf(self, request, pk=None):
-        """Export single portfolio to PDF
-        
-        Security:
-        - Uses PortfolioManagerAccess permission class (inherited from ViewSet)
-        - Only authenticated admin users with portfolio/content manager or super admin roles can access
-        - File is streamed directly without exposing data in response body
-        """
         try:
             portfolio = Portfolio.objects.prefetch_related(
                 'categories',
@@ -647,7 +629,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
                 'og_image'
             ).select_related('og_image').get(pk=pk)
             
-            # Use export service
             return PortfolioPDFExportService.export_portfolio_pdf(portfolio)
         except Portfolio.DoesNotExist:
             from src.portfolio.messages.messages import PORTFOLIO_ERRORS

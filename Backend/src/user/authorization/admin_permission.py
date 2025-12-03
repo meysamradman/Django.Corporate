@@ -158,10 +158,6 @@ class AdminRolePermission(permissions.BasePermission):
         return False
 
     def _is_accessing_own_profile(self, request, view) -> bool:
-        """
-        Checks whether admin is accessing only their own profile (retrieve/update/me).
-        Works for both APIView and ViewSet implementations.
-        """
         try:
             view_kwargs = getattr(view, 'kwargs', {}) or {}
             if view_kwargs.get('action') == 'me':
@@ -182,10 +178,6 @@ class AdminRolePermission(permissions.BasePermission):
 
 
 class RequireAdminRole(AdminRolePermission):
-    """
-    Permission class that requires specific admin roles
-    Usage: permission_classes = [RequireAdminRole('super_admin', 'content_manager')]
-    """
     
     def __init__(self, *required_roles):
         self.required_roles = list(required_roles)
@@ -328,45 +320,21 @@ class RequireModuleAccess(AdminRolePermission):
 
 # Decorator functions for easy usage
 def require_admin_roles(*roles):
-    """
-    Decorator function to create RequireAdminRole permission
-    Usage: @require_admin_roles('super_admin', 'content_manager')
-    """
     return RequireAdminRole(*roles)
 
 def require_module_access(*modules):
-    """
-    Decorator function to create RequireModuleAccess permission
-    Usage: @require_module_access('users', 'media')
-    """
     return RequireModuleAccess(*modules)
 
 def super_admin_only():
-    """
-    Decorator for super admin only access
-    Usage: @super_admin_only()
-    """
     return RequireAdminRole('super_admin')
 
 def content_managers_only():
-    """
-    Decorator for content managers and super admins
-    Usage: @content_managers_only()
-    """
     return RequireAdminRole('super_admin', 'content_manager')
 
 def user_managers_only():
-    """
-    Decorator for user managers and super admins
-    Usage: @user_managers_only()
-    """
     return RequireAdminRole('super_admin', 'user_manager')
 
 def media_managers_only():
-    """
-    Decorator for media managers and super admins
-    Usage: @media_managers_only()
-    """
     return RequireAdminRole('super_admin', 'media_manager')
 
 
@@ -398,43 +366,34 @@ class SimpleAdminPermission(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        # Active status check
         if not request.user.is_active:
             return False
         
-        # SECURITY: Block regular users from admin panel
         user_type = getattr(request.user, "user_type", None)
         if user_type != 'admin' and not request.user.is_staff:
             return False
         
-        # Super admin bypass (full access)
         if request.user.is_superuser or getattr(request.user, 'is_admin_full', False):
             return True
         
-        # Staff check
         if not request.user.is_staff:
             return False
         
-        # Admin panel access check
         if not getattr(request.user, 'is_admin_active', False):
             return False
         
-        # Allow all active admins
         return True
 
 
-# Performance optimized permission combinations - Auto-generated from registry
 class SuperAdminOnly(RequireAdminRole):
     def __init__(self):
         super().__init__('super_admin')
 
 import src.user.permissions.permission_factory as permission_factory
 
-# Make all factory classes available in this module
 for class_name in permission_factory.__all__:
     globals()[class_name] = getattr(permission_factory, class_name)
 
-# Legacy aliases for backward compatibility - safe version
 def _setup_aliases():
     if 'BlogManagerAccess' in globals():
         globals()['ContentManagerAccess'] = globals()['BlogManagerAccess']
@@ -447,10 +406,6 @@ def _setup_aliases():
 _setup_aliases()
 
 class RequirePermission(AdminRolePermission):
-    """
-    Permission class that requires specific permission ID from registry
-    Usage: permission_classes = [RequirePermission('ai.chat.manage')]
-    """
     
     def __init__(self, permission_id: str):
         self.permission_id = permission_id
@@ -463,16 +418,13 @@ class RequirePermission(AdminRolePermission):
         if not request.user.is_active:
             return False
         
-        # Super admin bypass
         if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False):
             return True
         
-        # Check permission using PermissionValidator
         from src.user.permissions import PermissionValidator
         return PermissionValidator.has_permission(request.user, self.permission_id)
 
 
-# Cache management utilities
 class AdminPermissionCache:
     
     @staticmethod
@@ -491,7 +443,6 @@ class AdminPermissionCache:
                     f"admin_perm_{user_id}_{method}_UserManagementView",
                 ])
             
-            # General permission cache keys
             cache_keys_to_clear.extend([
                 f"admin_permissions_{user_id}",
                 f"admin_roles_{user_id}",
@@ -504,10 +455,8 @@ class AdminPermissionCache:
                 f"admin_profile_{user_id}_regular",
             ])
             
-            # Clear all keys at once
             cache.delete_many(cache_keys_to_clear)
             
-            # ✅ Use Cache Manager for standardized cache invalidation (Redis)
             from src.user.utils.cache import UserCacheManager
             try:
                 UserCacheManager.invalidate_permissions(user_id)

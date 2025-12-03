@@ -6,7 +6,6 @@ from src.portfolio.models.media import PortfolioImage
 class PortfolioPublicService:
     @staticmethod
     def get_portfolio_queryset(filters=None, search=None):
-        """Get optimized queryset for public portfolio listing"""
         queryset = Portfolio.objects.filter(
             is_active=True,
             is_public=True
@@ -24,7 +23,6 @@ class PortfolioPublicService:
             )
         )
         
-        # Apply filters
         if filters:
             if filters.get('category_slug'):
                 queryset = queryset.filter(categories__slug=filters['category_slug'])
@@ -33,7 +31,6 @@ class PortfolioPublicService:
             if filters.get('tag_slug'):
                 queryset = queryset.filter(tags__slug=filters['tag_slug'])
         
-        # Apply search
         if search:
             queryset = queryset.filter(
                 Q(title__icontains=search) |
@@ -47,7 +44,6 @@ class PortfolioPublicService:
     
     @staticmethod
     def get_portfolio_by_slug(slug):
-        """Get single portfolio by slug with full data"""
         return Portfolio.objects.filter(
             slug=slug,
             is_active=True,
@@ -63,10 +59,9 @@ class PortfolioPublicService:
             'audios__audio',
             'documents__document'
         ).first()
-        
+    
     @staticmethod
     def get_portfolio_by_public_id(public_id):
-        """Get single portfolio by public_id with full data"""
         return Portfolio.objects.filter(
             public_id=public_id,
             is_active=True,
@@ -85,7 +80,6 @@ class PortfolioPublicService:
     
     @staticmethod
     def get_featured_portfolios(limit=6):
-        """Get featured portfolios for homepage"""
         return Portfolio.objects.filter(
             is_active=True,
             is_public=True,
@@ -104,7 +98,6 @@ class PortfolioPublicService:
     
     @staticmethod
     def get_related_portfolios(portfolio, limit=4):
-        """Get related portfolios based on categories"""
         category_ids = portfolio.categories.values_list('id', flat=True)
         return Portfolio.objects.filter(
             is_active=True,

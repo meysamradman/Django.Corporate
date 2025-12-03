@@ -1,7 +1,3 @@
-"""
-Admin Statistics Service - Highly sensitive admin data
-Requires: statistics.admins.read permission
-"""
 from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -11,17 +7,11 @@ User = get_user_model()
 
 
 class AdminStatsService:
-    """
-    Admin statistics - Highly sensitive data
-    Admin counts, active admins, roles, etc.
-    """
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = 300
     REQUIRED_PERMISSION = 'statistics.admins.read'
     
     @classmethod
     def get_stats(cls) -> dict:
-        """Get admin statistics"""
-        # ✅ Use standardized cache key from StatisticsCacheKeys
         cache_key = StatisticsCacheKeys.admins()
         data = cache.get(cache_key)
         if not data:
@@ -31,7 +21,6 @@ class AdminStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
-        """Calculate admin statistics"""
         total_admins = User.objects.filter(is_staff=True, user_type='admin').count()
         active_admins = User.objects.filter(is_staff=True, user_type='admin', is_active=True).count()
         
@@ -44,7 +33,5 @@ class AdminStatsService:
     
     @classmethod
     def clear_cache(cls):
-        """Clear admin stats cache"""
-        # ✅ Use Cache Manager for standardized cache invalidation
         StatisticsCacheManager.invalidate_admins()
 

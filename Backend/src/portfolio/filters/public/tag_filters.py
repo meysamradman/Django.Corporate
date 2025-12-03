@@ -3,8 +3,6 @@ from src.portfolio.models.tag import PortfolioTag
 
 
 class PortfolioTagPublicFilter(filters.FilterSet):
-    """Public tag filters for website"""
-    
     name = filters.CharFilter(
         field_name='name',
         lookup_expr='icontains',

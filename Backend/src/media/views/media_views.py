@@ -132,17 +132,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        """
-        آپلود مدیا (با context awareness)
-        POST /api/admin/media/
-        
-        Body:
-        {
-            "file": <file>,
-            "context_type": "portfolio" | "blog" | "media_library",  # optional
-            "context_action": "create" | "update"  # optional
-        }
-        """
         file = request.FILES.get('file') or request.FILES.get('files')
         if not file:
             return APIResponse.error(
@@ -421,7 +410,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         )
 
 
-# -------------------- ViewSet BY Public ID --------------------
 class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = MediaPublicSerializer
@@ -433,8 +421,6 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        # For public viewset, we'll return images by default
-        # Other types can be filtered
         return ImageMedia.objects.none()
 
     def list(self, request, *args, **kwargs):

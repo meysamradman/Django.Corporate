@@ -179,12 +179,10 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 ]
             })
         
-        # Validate and create blog
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         blog = serializer.save()
         
-        # Add media immediately after creation
         if media_files or media_ids:
             from src.blog.services.admin import BlogAdminMediaService
             BlogAdminMediaService.add_media_bulk(
@@ -193,13 +191,9 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
                 media_ids=media_ids,
                 created_by=request.user
             )
-            # Refresh blog to get updated media relationships
             blog.refresh_from_db()
-            # Clear cache to ensure fresh data
             BlogCacheManager.invalidate_blog(blog.id)
         
-        # Return detailed response with refreshed data
-        # Use for_detail queryset to get all relations properly
         blog = Blog.objects.for_detail().get(id=blog.id)
         detail_serializer = BlogAdminDetailSerializer(blog)
         return APIResponse.success(

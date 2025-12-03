@@ -9,7 +9,6 @@ from src.user.utils.mobile_validator import validate_mobile_number
 from django.db.models import Q
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
 
-# For backward compatibility - simple version
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
 
@@ -25,7 +24,6 @@ class AdminListSerializer(serializers.ModelSerializer):
                  'created_at', 'updated_at', 'profile', 'permissions', 'roles']
     
     def get_profile(self, obj):
-        """Return profile serializer based on user type."""
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
             from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
@@ -35,7 +33,6 @@ class AdminListSerializer(serializers.ModelSerializer):
         return None
     
     def get_full_name(self, obj):
-        """Resolve full name using preloaded profile information."""
         if hasattr(obj, 'admin_profile') and obj.admin_profile:
             profile = obj.admin_profile
             if profile.first_name and profile.last_name:
@@ -47,7 +44,6 @@ class AdminListSerializer(serializers.ModelSerializer):
         return obj.mobile or obj.email or f"User {obj.id}"
     
     def get_roles(self, obj):
-        """Return role metadata for admin listing."""
         if obj.is_superuser:
             return [{'name': 'super_admin', 'display_name': 'Super Admin'}]
         
@@ -71,7 +67,6 @@ class AdminListSerializer(serializers.ModelSerializer):
         return assigned_roles
     
     def get_permissions(self, user):
-        """Return simplified permission snapshot for listing."""
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
             return {
                 'access_level': 'user',
@@ -117,7 +112,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                  'created_at', 'updated_at', 'profile', 'full_name', 'permissions']
     
     def get_profile(self, obj):
-        """Return profile serializer for admin/user based on type."""
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
             from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
             return AdminProfileSerializer(obj.admin_profile, context=self.context).data
@@ -127,7 +121,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
         return None
     
     def get_full_name(self, user):
-        """Resolve human-friendly full name for detail response."""
         if user.user_type == 'admin' and hasattr(user, 'admin_profile') and user.admin_profile:
             profile = user.admin_profile
             if profile.first_name and profile.last_name:
@@ -147,7 +140,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
         return user.mobile or user.email or f"User {user.id}"
     
     def get_permissions(self, user):
-        """Return detailed permission snapshot for a specific admin."""
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
             return {
                 'access_level': 'user',
@@ -194,7 +186,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                     
                     role_perms = ur.role.permissions
                     
-                    # ✅ NEW: Check for specific_permissions format first
                     if 'specific_permissions' in role_perms:
                         specific_perms = role_perms.get('specific_permissions', [])
                         if isinstance(specific_perms, list):
@@ -208,7 +199,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
                                         if module != 'all' and action != 'all':
                                             permissions_list.append(f"{module}.{action}")
                     else:
-                        # Old format: modules and actions
                         role_actions = role_perms.get('actions', [])
                         role_modules = role_perms.get('modules', [])
                         
@@ -239,7 +229,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
 
 
 class AdminUpdateSerializer(serializers.Serializer):
-    # User fields
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
@@ -247,17 +236,13 @@ class AdminUpdateSerializer(serializers.Serializer):
     is_staff = serializers.BooleanField(required=False)
     is_superuser = serializers.BooleanField(required=False)
     
-    # Role selector
     role_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
-    # Profile payload
     profile = serializers.DictField(required=False)
     
-    # Direct profile picture upload support
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     def validate_profile_picture(self, value):
-        """Validate uploaded profile picture through media service."""
         if value is None:
             return value
         
@@ -270,7 +255,6 @@ class AdminUpdateSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate_profile_picture_id(self, value):
-        """Validate profile picture ID exists and is active."""
         if value is None:
             return value
         
@@ -311,7 +295,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         return value
 
     def validate_role_id(self, value):
-        """Validate that provided role ID maps to an active role."""
         if value is None or value == "" or value == "none":
             return None
         
@@ -333,7 +316,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         return data
     
     def to_internal_value(self, data):
-        """Transform incoming payload into internal data structures."""
         user_id = self.context.get('user_id')
         
         if user_id:
@@ -345,7 +327,6 @@ class AdminUpdateSerializer(serializers.Serializer):
                     data['profile'] = data.get('profile', {})
                     profile_data = data['profile']
                     
-                    # Inject profile_picture into nested profile if present
                     if 'profile_picture' in data:
                         profile_data['profile_picture'] = data['profile_picture']
                     

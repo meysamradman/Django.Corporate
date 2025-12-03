@@ -1,4 +1,3 @@
-# Role Messages
 ROLE_SUCCESS = {
     "role_created_successfully": "Role created successfully.",
     "role_updated_successfully": "Role updated successfully.",
@@ -14,6 +13,10 @@ ROLE_SUCCESS = {
     "user_roles_retrieved_successfully": "User roles retrieved successfully.",
     "role_removed_from_user_successfully": "Role removed from user successfully.",
     "custom_roles_fixed_successfully": "Custom roles repaired successfully.",
+    "permission_matrix_retrieved": "Permission matrix retrieved successfully.",
+    "system_permissions_retrieved": "System permissions retrieved successfully.",
+    "cache_cleared_for_user": "Permission cache cleared for user {user_id}.",
+    "all_cache_cleared": "All admin permission cache cleared.",
 }
 
 ROLE_ERRORS = {
@@ -50,6 +53,10 @@ ROLE_ERRORS = {
     "role_only_admin_can_be_assigned": "Only admin users can be assigned admin roles.",
     "role_already_assigned": "This role has already been assigned to the user.",
     "role_invalid_ids": "Role IDs are invalid.",
+    "permission_matrix_retrieve_failed": "Failed to retrieve permission matrix.",
+    "cache_clear_failed": "Failed to clear cache.",
+    "invalid_cache_type": "Invalid cache_type. Use 'user' (with user_id) or 'all'.",
+    "system_permissions_retrieve_failed": "Failed to retrieve system permissions.",
 }
 
 ROLE_TEXT = {

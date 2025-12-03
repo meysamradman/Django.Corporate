@@ -17,14 +17,11 @@ from src.user.authorization.admin_permission import RequirePermission
 
 
 class SocialMediaViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing social medias"""
-    
     queryset = SocialMedia.objects.all()
     serializer_class = SocialMediaSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('settings.manage')]
     filterset_fields = ['is_active']
     search_fields = ['name', 'url']
@@ -32,7 +29,6 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
     ordering = ['order', '-created_at']
     
     def list(self, request, *args, **kwargs):
-        """List social medias"""
         filters = {}
         if 'is_active' in request.query_params:
             filters['is_active'] = request.query_params['is_active'] == 'true'
@@ -51,7 +47,6 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
         )
     
     def create(self, request, *args, **kwargs):
-        """Create new social media"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -78,7 +73,6 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        """Update social media"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -110,7 +104,6 @@ class SocialMediaViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete social media"""
         try:
             instance = self.get_object()
             delete_social_media(instance)

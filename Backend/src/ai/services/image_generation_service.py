@@ -139,7 +139,6 @@ class AIImageGenerationService:
         except AIProvider.DoesNotExist:
             raise ValueError(f"Provider '{provider_name}' not found or inactive")
         
-        # ✅ Get appropriate API key
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             settings = AdminProviderSettings.objects.filter(
                 admin=admin,

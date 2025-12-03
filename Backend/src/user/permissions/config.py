@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 from src.user.messages import ROLE_TEXT
 
-# Import modular permissions
 from .modules.base import BASE_PERMISSIONS
 from .modules.panel import PANEL_PERMISSIONS
 from .modules.media import MEDIA_PERMISSIONS
@@ -14,10 +13,6 @@ from .modules.ai import AI_PERMISSIONS
 from .modules.statistics import STATISTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
 
-
-# =============================================================================
-# PART 1: PERMISSIONS CONFIGURATION
-# =============================================================================
 
 BASE_ADMIN_PERMISSIONS = {
     'dashboard.read': {
@@ -43,25 +38,19 @@ BASE_ADMIN_PERMISSIONS = {
     },
 }
 
-# All available permissions in the system
-# Merged from modular files for better organization
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
-    **BASE_ADMIN_PERMISSIONS,  # Base permissions for all admins
-    **BASE_PERMISSIONS,         # Base module permissions
-    **PANEL_PERMISSIONS,        # Panel and Pages permissions
-    **MEDIA_PERMISSIONS,        # Media library permissions
-    **USERS_PERMISSIONS,        # Admin and User management permissions
-    **CONTENT_PERMISSIONS,       # Blog and Portfolio permissions
-    **COMMUNICATION_PERMISSIONS, # Email and Ticket permissions
-    **AI_PERMISSIONS,           # AI tools permissions
-    **STATISTICS_PERMISSIONS,    # Statistics permissions
-    **MANAGEMENT_PERMISSIONS,    # Forms, Settings, Chatbot permissions
+    **BASE_ADMIN_PERMISSIONS,
+    **BASE_PERMISSIONS,
+    **PANEL_PERMISSIONS,
+    **MEDIA_PERMISSIONS,
+    **USERS_PERMISSIONS,
+    **CONTENT_PERMISSIONS,
+    **COMMUNICATION_PERMISSIONS,
+    **AI_PERMISSIONS,
+    **STATISTICS_PERMISSIONS,
+    **MANAGEMENT_PERMISSIONS,
 }
 
-
-# =============================================================================
-# PART 2: ROLES CONFIGURATION
-# =============================================================================
 
 @dataclass
 class RoleConfig:
@@ -106,7 +95,6 @@ def _build_role_config(
     )
 
 
-# System roles configuration
 SYSTEM_ROLES: Dict[str, RoleConfig] = {
     'super_admin': _build_role_config(
         'super_admin',
@@ -262,11 +250,6 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
 }
 
 
-# =============================================================================
-# PART 3: MODULES & ACTIONS METADATA
-# =============================================================================
-
-# Available modules in the system
 AVAILABLE_MODULES = {
     'all': {
         'name': 'all',
@@ -380,7 +363,6 @@ AVAILABLE_MODULES = {
     }
 }
 
-# Available actions in the system
 AVAILABLE_ACTIONS = {
     'all': {
         'name': 'all',
@@ -425,10 +407,6 @@ AVAILABLE_ACTIONS = {
 }
 
 
-# =============================================================================
-# PART 4: VALIDATION RULES
-# =============================================================================
-
 PERMISSION_VALIDATION_RULES = {
     'allowed_modules': set(AVAILABLE_MODULES.keys()),
     'allowed_actions': set(AVAILABLE_ACTIONS.keys()),
@@ -437,10 +415,6 @@ PERMISSION_VALIDATION_RULES = {
     'max_level': 10
 }
 
-
-# =============================================================================
-# PART 5: HELPER FUNCTIONS - PERMISSIONS
-# =============================================================================
 
 def get_all_permissions() -> Dict[str, Dict[str, Any]]:
     return PERMISSIONS.copy()
@@ -457,10 +431,6 @@ def get_permissions_by_module(module: str) -> List[Tuple[str, Dict[str, Any]]]:
 def get_permissions_by_action(action: str) -> List[Tuple[str, Dict[str, Any]]]:
     return [(pid, p) for pid, p in PERMISSIONS.items() if p['action'] == action]
 
-
-# =============================================================================
-# PART 6: HELPER FUNCTIONS - ROLES
-# =============================================================================
 
 def get_role_config(role_name: str) -> Optional[RoleConfig]:
     return SYSTEM_ROLES.get(role_name)
@@ -551,10 +521,6 @@ def validate_role_permissions(permissions: Dict[str, Any]) -> tuple[bool, List[s
 
 
 def get_role_permissions_for_creation(role_name: str) -> Dict[str, Any]:
-    """
-    Return the permission payload ready to be persisted in the database
-    Intended for use within create_admin_roles.py
-    """
     config = get_role_config(role_name)
     if not config:
         return {}
@@ -563,10 +529,6 @@ def get_role_permissions_for_creation(role_name: str) -> Dict[str, Any]:
 
 
 def get_all_role_configs() -> Dict[str, Dict[str, Any]]:
-    """
-    Return all role configurations as a serializable dictionary
-    Intended for use within create_admin_roles.py
-    """
     configs = {}
     for role_name, role_config in SYSTEM_ROLES.items():
         configs[role_name] = {

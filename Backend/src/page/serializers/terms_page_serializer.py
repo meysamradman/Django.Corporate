@@ -1,16 +1,11 @@
-# Third-party (DRF)
 from rest_framework import serializers
 
-# Project models
 from src.page.models import TermsPage
 
-# Project serializers
 from src.media.serializers.media_serializer import ImageMediaSerializer
 
 
 class TermsPageSerializer(serializers.ModelSerializer):
-    """Serializer برای نمایش کامل اطلاعات صفحه قوانین و مقررات"""
-    
     featured_image_data = ImageMediaSerializer(
         source='featured_image',
         read_only=True
@@ -20,8 +15,6 @@ class TermsPageSerializer(serializers.ModelSerializer):
         source='og_image',
         read_only=True
     )
-    
-    # SEO computed fields
     computed_meta_title = serializers.SerializerMethodField()
     computed_meta_description = serializers.SerializerMethodField()
     computed_og_title = serializers.SerializerMethodField()
@@ -51,7 +44,6 @@ class TermsPageSerializer(serializers.ModelSerializer):
             'is_active',
             'created_at',
             'updated_at',
-            # Computed fields
             'computed_meta_title',
             'computed_meta_description',
             'computed_og_title',
@@ -87,8 +79,6 @@ class TermsPageSerializer(serializers.ModelSerializer):
 
 
 class TermsPageUpdateSerializer(serializers.ModelSerializer):
-    """Serializer برای به‌روزرسانی صفحه قوانین و مقررات"""
-    
     class Meta:
         model = TermsPage
         fields = [
@@ -109,23 +99,19 @@ class TermsPageUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_title(self, value):
-        """اعتبارسنجی عنوان"""
         if value and len(value.strip()) < 3:
             raise serializers.ValidationError("عنوان باید حداقل 3 کاراکتر باشد")
         return value.strip() if value else value
     
     def validate_content(self, value):
-        """اعتبارسنجی محتوا"""
         return value.strip() if value else value
     
     def validate_meta_title(self, value):
-        """اعتبارسنجی meta title"""
         if value and len(value) > 70:
             raise serializers.ValidationError("Meta title باید حداکثر 70 کاراکتر باشد")
         return value
     
     def validate_meta_description(self, value):
-        """اعتبارسنجی meta description"""
         if value and len(value) > 300:
             raise serializers.ValidationError("Meta description باید حداکثر 300 کاراکتر باشد")
         return value

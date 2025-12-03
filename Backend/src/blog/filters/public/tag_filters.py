@@ -3,8 +3,6 @@ from src.blog.models.tag import BlogTag
 
 
 class BlogTagPublicFilter(filters.FilterSet):
-    """Public tag filters for website"""
-    
     name = filters.CharFilter(
         field_name='name',
         lookup_expr='icontains',

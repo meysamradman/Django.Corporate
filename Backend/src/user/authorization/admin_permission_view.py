@@ -8,6 +8,7 @@ from django.core.cache import cache
 
 from src.core.responses import APIResponse
 from src.user.models import AdminRole, AdminUserRole, User
+from src.user.messages import ROLE_SUCCESS, ROLE_ERRORS
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from .admin_permission import (
     SuperAdminOnly,
@@ -50,7 +51,6 @@ class AdminPermissionView(viewsets.ViewSet):
             
             user = User.objects.get(id=user_id)
             
-            # Check if user is admin
             if not user.is_admin_active:
                 return APIResponse.success(
                     message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
@@ -61,7 +61,6 @@ class AdminPermissionView(viewsets.ViewSet):
                     }
                 )
             
-            # Super admin always has access
             if user.is_admin_full:
                 return APIResponse.success(
                     message=AUTH_SUCCESS.get("auth_retrieved_successfully"),
@@ -72,7 +71,6 @@ class AdminPermissionView(viewsets.ViewSet):
                     }
                 )
             
-            # Check role-based permissions
             has_permission, details = self._check_user_role_permissions(
                 user, required_action, required_modules
             )
@@ -110,10 +108,8 @@ class AdminPermissionView(viewsets.ViewSet):
             
             user = User.objects.get(id=user_id)
             
-            # Get user's cached permissions
             permissions_data = user.get_cached_permissions()
             
-            # Get detailed role information
             user_roles = AdminUserRole.objects.filter(
                 user=user,
                 is_active=True
@@ -198,7 +194,7 @@ class AdminPermissionView(viewsets.ViewSet):
                 })
             
             return APIResponse.success(
-                message="Permission matrix retrieved successfully",
+                message=ROLE_SUCCESS["permission_matrix_retrieved"],
                 data={
                     'roles': matrix,
                     'total_roles': len(matrix),
@@ -208,7 +204,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to retrieve permission matrix",
+                message=ROLE_ERRORS["permission_matrix_retrieve_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -219,16 +215,14 @@ class AdminPermissionView(viewsets.ViewSet):
             user_id = request.data.get('user_id')
             
             if cache_type == 'user' and user_id:
-                # Clear cache for specific user
                 AdminPermissionCache.clear_user_cache(user_id)
-                message = f"Permission cache cleared for user {user_id}"
+                message = ROLE_SUCCESS["cache_cleared_for_user"].format(user_id=user_id)
             elif cache_type == 'all':
-                # Clear all admin permission cache
                 AdminPermissionCache.clear_all_admin_cache()
-                message = "All admin permission cache cleared"
+                message = ROLE_SUCCESS["all_cache_cleared"]
             else:
                 return APIResponse.error(
-                    message="Invalid cache_type. Use 'user' (with user_id) or 'all'",
+                    message=ROLE_ERRORS["invalid_cache_type"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -236,14 +230,13 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to clear cache",
+                message=ROLE_ERRORS["cache_clear_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     @action(detail=False, methods=['get'])
     def system_permissions(self, request):
         try:
-            # Get statistics
             total_roles = AdminRole.objects.filter(is_active=True).count()
             system_roles = AdminRole.objects.filter(is_active=True, is_system_role=True).count()
             custom_roles = total_roles - system_roles
@@ -260,7 +253,6 @@ class AdminPermissionView(viewsets.ViewSet):
                 is_active=True
             ).count()
             
-            # Get role distribution
             role_distribution = []
             roles = AdminRole.objects.filter(is_active=True).order_by('level')
             
@@ -274,7 +266,7 @@ class AdminPermissionView(viewsets.ViewSet):
                 })
             
             return APIResponse.success(
-                message="System permissions retrieved successfully",
+                message=ROLE_SUCCESS["system_permissions_retrieved"],
                 data={
                     'statistics': {
                         'total_roles': total_roles,
@@ -290,7 +282,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message="Failed to retrieve system permissions",
+                message=ROLE_ERRORS["system_permissions_retrieve_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -309,11 +301,9 @@ class AdminPermissionView(viewsets.ViewSet):
             for user_role in user_roles:
                 permissions = user_role.permissions_cache or user_role.role.permissions
                 
-                # Check actions
                 allowed_actions = permissions.get('actions', [])
                 has_action = 'all' in allowed_actions or required_action in allowed_actions
                 
-                # Check modules if specified
                 has_module = True
                 if required_modules:
                     allowed_modules = permissions.get('modules', [])
@@ -349,21 +339,18 @@ class AdminPermissionView(viewsets.ViewSet):
             return False, {'reason': f'Error checking permissions: {str(e)}'}
 
     def can_delete_admin(self, admin_to_delete, current_admin):
-        # Full admins cannot be deleted
         if admin_to_delete.is_admin_full:
             return False, {
                 'error': 'Full admins cannot be deleted',
                 'reason': 'This admin has full access and is protected from deletion'
             }
         
-        # Only full admins can delete other admins
         if not current_admin.is_admin_full:
             return False, {
                 'error': 'Insufficient permissions',
                 'reason': 'Only full admins can delete other admin users'
             }
         
-        # Cannot delete yourself
         if admin_to_delete.id == current_admin.id:
             return False, {
                 'error': 'Cannot delete yourself',

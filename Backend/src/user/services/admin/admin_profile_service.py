@@ -8,9 +8,6 @@ from src.media.models import ImageMedia
 class AdminProfileService:
     @staticmethod
     def get_admin_profile(admin):
-        """
-        Retrieve or create the profile associated with an admin user.
-        """
         try:
             profile_instance = getattr(admin, 'admin_profile', None)
 
@@ -26,9 +23,6 @@ class AdminProfileService:
 
     @staticmethod
     def update_admin_profile(admin, profile_data, admin_user=None, profile_picture=None):
-        """
-        Update an admin profile using the provided payload and picture.
-        """
         if not profile_data and profile_picture is None:
             return AdminProfileService.get_admin_profile(admin)
 
@@ -128,7 +122,6 @@ class AdminProfileService:
                 
                 profile.save()
                 
-                # ✅ Clear all cache for this admin (comprehensive cache invalidation)
                 from django.core.cache import cache
                 from src.user.authorization.admin_permission import AdminPermissionCache
                 from src.user.permissions.validator import PermissionValidator
@@ -148,15 +141,10 @@ class AdminProfileService:
             return profile
                     
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise ValidationError(AUTH_ERRORS.get("auth_profile_failed"))
 
     @staticmethod
     def update_profile_image(admin, media_obj):
-        """
-        Update the admin profile picture using a media object provided by the media app.
-        """
         profile = AdminProfileService.get_admin_profile(admin)
         
         if media_obj is None:
@@ -164,7 +152,6 @@ class AdminProfileService:
                 profile.profile_picture = None
                 profile.save(update_fields=['profile_picture'])
             
-            # ✅ Clear cache after removing profile picture
             from django.core.cache import cache
             from src.user.authorization.admin_permission import AdminPermissionCache
             from src.user.permissions.validator import PermissionValidator
@@ -182,7 +169,6 @@ class AdminProfileService:
         profile.profile_picture = media_obj
         profile.save(update_fields=['profile_picture'])
         
-        # ✅ Clear cache after updating profile picture
         from django.core.cache import cache
         from src.user.authorization.admin_permission import AdminPermissionCache
         from src.user.permissions.validator import PermissionValidator

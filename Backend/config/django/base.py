@@ -255,14 +255,12 @@ CACHES = {
                 'socket_connect_timeout': 5,
                 'socket_timeout': 5,
             },
-            # ✅ Compression for large data (better performance)
             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            # ✅ JSON Serializer (faster than pickle for API data)
             'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
         },
         'KEY_PREFIX': 'webtalik',
         'VERSION': 1,
-        'TIMEOUT': 300,  # 5 minutes default
+        'TIMEOUT': 300,
     },
     'session': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -276,15 +274,14 @@ CACHES = {
                 'socket_timeout': 5,
             },
         },
-        'TIMEOUT': int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,  # 3 days default
+        'TIMEOUT': int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,
     }
 }
 
 CACHE_TTL = int(os.getenv('DEFAULT_CACHE_TIMEOUT_SECONDS', 60 * 15))
 
-# CAPTCHA Settings
-CAPTCHA_EXPIRY_SECONDS = int(os.getenv('CAPTCHA_EXPIRY_SECONDS', 300))  # 5 minutes
-CAPTCHA_LENGTH = int(os.getenv('CAPTCHA_LENGTH', 4))  # digits
+CAPTCHA_EXPIRY_SECONDS = int(os.getenv('CAPTCHA_EXPIRY_SECONDS', 300))
+CAPTCHA_LENGTH = int(os.getenv('CAPTCHA_LENGTH', 4))
 CAPTCHA_REDIS_PREFIX = os.getenv('CAPTCHA_REDIS_PREFIX', 'captcha:')
 
 

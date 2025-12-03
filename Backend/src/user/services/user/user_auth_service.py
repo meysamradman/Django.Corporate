@@ -54,7 +54,4 @@ class UserAuthService:
     
     @staticmethod
     def get_tokens(user):
-        """
-        دریافت توکن‌های JWT برای کاربر
-        """
         return generate_jwt_tokens(user)

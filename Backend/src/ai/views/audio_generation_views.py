@@ -16,11 +16,10 @@ from src.user.permissions import PermissionValidator
 
 class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]  # ✅ Changed to IsAuthenticated - permission check is done in view
+    permission_classes = [IsAuthenticated]
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        # Check permission with fallback - allow ai.audio.manage or ai.manage
         has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         has_permission = has_audio_permission or has_manage_permission
@@ -46,7 +45,6 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_audio(self, request):
-        # Check permission with fallback - allow ai.audio.manage or ai.manage
         has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         has_permission = has_audio_permission or has_manage_permission
@@ -78,7 +76,7 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
                         user_id=request.user.id if hasattr(request.user, 'id') else None,
                         title=validated_data.get('title'),
                         save_to_db=True,
-                        admin=request.user,  # ✅ Pass admin for personal/shared API selection
+                        admin=request.user,
                         model=validated_data.get('model', 'tts-1'),
                         voice=validated_data.get('voice', 'alloy'),
                         speed=validated_data.get('speed', 1.0),
@@ -101,10 +99,10 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
                     text=validated_data['text'],
                     model=validated_data.get('model', 'tts-1'),
                     voice=validated_data.get('voice', 'alloy'),
-                    speed=validated_data.get('speed', 1.0),
-                    response_format=validated_data.get('response_format', 'mp3'),
-                    admin=request.user,  # ✅ Pass admin for personal/shared API selection
-                )
+                        speed=validated_data.get('speed', 1.0),
+                        response_format=validated_data.get('response_format', 'mp3'),
+                        admin=request.user,
+                    )
                 
                 import base64
                 audio_base64 = base64.b64encode(audio_bytes.getvalue()).decode('utf-8')
@@ -125,7 +123,7 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
             
         except ValueError as e:
             error_message = str(e)
-            if any(key in error_message for key in ['خطا', 'Provider', 'API key', 'فعال نیست']):
+            if any(key in error_message for key in ['Provider', 'API key', 'not active', 'not supported']):
                 return APIResponse.error(
                     message=error_message,
                     status_code=status.HTTP_400_BAD_REQUEST

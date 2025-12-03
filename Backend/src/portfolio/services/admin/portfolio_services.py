@@ -10,14 +10,9 @@ from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentM
 
 
 class PortfolioAdminService:
-    """
-    Optimized Portfolio service with SEO support and media integration
-    Compatible with central media app
-    """
     
     @staticmethod
     def get_portfolio_queryset(filters=None, search=None, order_by=None, order_desc=None):
-        """Return optimized queryset for admin listing; pagination handled at view layer"""
         queryset = Portfolio.objects.select_related('og_image').prefetch_related(
             'categories',
             'tags',
@@ -32,7 +27,6 @@ class PortfolioAdminService:
             'documents'
         )
         
-        # Apply filters
         if filters:
             if filters.get('status'):
                 queryset = queryset.filter(status=filters['status'])
@@ -43,7 +37,6 @@ class PortfolioAdminService:
             if filters.get('category_id'):
                 queryset = queryset.filter(categories__id=filters['category_id'])
             
-            # SEO filters
             if filters.get('seo_status'):
                 if filters['seo_status'] == 'complete':
                     queryset = queryset.filter(
@@ -65,7 +58,6 @@ class PortfolioAdminService:
                         meta_description__isnull=True
                     )
         
-        # Apply search
         if search:
             queryset = queryset.filter(
                 Q(title__icontains=search) |
@@ -74,17 +66,14 @@ class PortfolioAdminService:
                 Q(meta_description__icontains=search)
             )
         
-        # Apply ordering
         if order_by:
             ordering_field = order_by
             if order_desc:
                 ordering_field = f'-{order_by}'
             queryset = queryset.order_by(ordering_field)
         else:
-            # Default ordering
             queryset = queryset.order_by('-created_at')
         
-        # Add annotation for counts (optimized)
         queryset = queryset.annotate(
             categories_count=Count('categories', distinct=True),
             tags_count=Count('tags', distinct=True),
@@ -96,7 +85,6 @@ class PortfolioAdminService:
     
     @staticmethod
     def get_portfolio_detail(portfolio_id):
-        """Get single portfolio with all relations for admin"""
         try:
             return Portfolio.objects.select_related('og_image').prefetch_related(
                 'categories',
@@ -112,69 +100,51 @@ class PortfolioAdminService:
     
     @staticmethod
     def create_portfolio(validated_data, created_by=None):
-        """Create portfolio with auto SEO generation"""
-        # Auto-generate SEO if not provided
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
             
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
             validated_data['meta_description'] = validated_data['short_description'][:300]
         
-        # Auto-generate OG fields if not provided
         if not validated_data.get('og_title') and validated_data.get('meta_title'):
             validated_data['og_title'] = validated_data['meta_title']
             
         if not validated_data.get('og_description') and validated_data.get('meta_description'):
             validated_data['og_description'] = validated_data['meta_description']
         
-        # Handle canonical URL - set to None if it's an invalid relative path
-        # The model will auto-generate it properly in the save method
         if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
             canonical_url = validated_data['canonical_url']
-            # Check if it's a valid URL (starts with http or https)
             if not canonical_url.startswith(('http://', 'https://')):
-                # If it's not a valid URL, set it to None
                 validated_data['canonical_url'] = None
         
         return Portfolio.objects.create(**validated_data)
     
     @staticmethod
     def create_portfolio_with_media(validated_data, media_files, created_by=None):
-        """Create portfolio with media files from central media app using optimized service"""
-        # First create the portfolio
         portfolio = PortfolioAdminService.create_portfolio(validated_data, created_by)
         
         if media_files:
-            # Add media using the new optimized service
             from src.portfolio.services.admin import PortfolioAdminMediaService
             result = PortfolioAdminMediaService.add_media_bulk(
                 portfolio_id=portfolio.id,
                 media_files=media_files,
                 created_by=created_by
             )
-            
-            # The service handles setting the main image automatically
         
         return portfolio
 
-    # Removed: This method is now handled by PortfolioAdminMediaService.add_media_bulk
-    # which provides better performance and avoids N+1 query problems
-
     @staticmethod
     def set_main_image(portfolio_id, media_id):
-        """Set main image for portfolio"""
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
             raise Portfolio.DoesNotExist("Portfolio not found")
         
-        # Remove current main image
         PortfolioImage.objects.filter(
             portfolio=portfolio,
             is_main=True
         ).update(is_main=False)
         
-        # Set new main image
         try:
             portfolio_image = PortfolioImage.objects.get(
                 portfolio=portfolio,
@@ -185,7 +155,6 @@ class PortfolioAdminService:
         portfolio_image.is_main = True
         portfolio_image.save()
         
-        # Also set as OG image if not set
         if not portfolio.og_image:
             portfolio.og_image = portfolio_image.image
             portfolio.save(update_fields=['og_image'])
@@ -194,7 +163,6 @@ class PortfolioAdminService:
     
     @staticmethod
     def bulk_update_status(portfolio_ids, new_status):
-        """Bulk status update"""
         if new_status not in dict(Portfolio.STATUS_CHOICES):
             return False
             
@@ -206,11 +174,9 @@ class PortfolioAdminService:
     
     @staticmethod
     def bulk_update_seo(portfolio_ids, seo_data):
-        """Bulk SEO update"""
         portfolios = Portfolio.objects.filter(id__in=portfolio_ids)
         
         for portfolio in portfolios:
-            # Auto-generate missing SEO data
             if not portfolio.meta_title and portfolio.title:
                 portfolio.meta_title = portfolio.title[:70]
             if not portfolio.meta_description and portfolio.short_description:
@@ -226,15 +192,12 @@ class PortfolioAdminService:
     
     @staticmethod
     def get_seo_report():
-        """Get comprehensive SEO report with caching"""
         from src.portfolio.utils.cache import PortfolioCacheKeys
-        # Try to get from cache first
         cache_key = PortfolioCacheKeys.seo_report()
         cached_report = cache.get(cache_key)
         if cached_report:
             return cached_report
         
-        """Get comprehensive SEO report"""
         total = Portfolio.objects.count()
         
         if total == 0:
@@ -247,7 +210,6 @@ class PortfolioAdminService:
                 'og_image_count': 0,
                 'canonical_url_count': 0
             }
-            # Cache for 10 minutes
             cache.set(cache_key, report_data, 600)
             return report_data
         
@@ -280,33 +242,25 @@ class PortfolioAdminService:
             'canonical_url_count': canonical_url_count
         }
         
-        # Cache for 10 minutes
         cache.set(cache_key, report_data, 600)
         return report_data
     
     @staticmethod
     def delete_portfolio(portfolio_id):
-        """Delete portfolio and handle media cleanup"""
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
             raise Portfolio.DoesNotExist("Portfolio not found")
         
-        # Get associated media files for potential cleanup
         portfolio_medias = PortfolioImage.objects.filter(portfolio=portfolio)
         media_ids = list(portfolio_medias.values_list('image_id', flat=True))
         
-        # Delete portfolio (will cascade to PortfolioMedia)
         portfolio.delete()
-        
-        # Note: Media cleanup is not implemented as there's no cleanup_orphaned_media method
-        # This should be handled separately if needed
         
         return True
     
     @staticmethod
     def bulk_delete_portfolios(portfolio_ids):
-        """Bulk delete multiple portfolios with optimized query"""
         from django.core.exceptions import ValidationError
         
         if not portfolio_ids:
@@ -321,18 +275,15 @@ class PortfolioAdminService:
             deleted_count = portfolios.count()
             portfolios.delete()
             
-            # Clear cache if needed
             PortfolioCacheManager.invalidate_portfolios(portfolio_ids)
         
         return deleted_count
 
 
 class PortfolioAdminStatusService:
-    """Service for portfolio status management"""
     
     @staticmethod
     def change_status(portfolio_id, new_status):
-        """Change portfolio status with validation"""
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
@@ -347,13 +298,11 @@ class PortfolioAdminStatusService:
     
     @staticmethod
     def publish_portfolio(portfolio_id):
-        """Publish portfolio with SEO validation"""
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
             raise Portfolio.DoesNotExist("Portfolio not found")
         
-        # Check if SEO is complete for publishing
         seo_warnings = []
         if not portfolio.meta_title:
             seo_warnings.append("Meta title is missing")
@@ -372,11 +321,9 @@ class PortfolioAdminStatusService:
 
 
 class PortfolioAdminSEOService:
-    """Dedicated service for SEO operations"""
     
     @staticmethod
     def auto_generate_seo(portfolio_id):
-        """Auto-generate SEO data for portfolio"""
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
@@ -384,33 +331,26 @@ class PortfolioAdminSEOService:
         
         updates = {}
         
-        # Generate meta title
         if not portfolio.meta_title and portfolio.title:
             updates['meta_title'] = portfolio.title[:70]
         
-        # Generate meta description
         if not portfolio.meta_description and portfolio.short_description:
             updates['meta_description'] = portfolio.short_description[:300]
         
-        # Generate OG data
         if not portfolio.og_title and (portfolio.meta_title or portfolio.title):
             updates['og_title'] = (portfolio.meta_title or portfolio.title)[:70]
         
         if not portfolio.og_description and (portfolio.meta_description or portfolio.short_description):
             updates['og_description'] = (portfolio.meta_description or portfolio.short_description)[:300]
         
-        # Generate canonical URL - let the model handle this properly
-        # Remove any invalid canonical_url that might have been set
         if portfolio.canonical_url and not portfolio.canonical_url.startswith(('http://', 'https://')):
             updates['canonical_url'] = None
         
-        # Auto-set OG image from main image
         if not portfolio.og_image:
             main_image = portfolio.get_main_image()
             if main_image:
                 updates['og_image'] = main_image
         
-        # Apply updates
         if updates:
             for field, value in updates.items():
                 setattr(portfolio, field, value)
@@ -420,7 +360,6 @@ class PortfolioAdminSEOService:
     
     @staticmethod
     def validate_seo_data(portfolio_id):
-        """Validate SEO data and return suggestions"""
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
@@ -428,19 +367,16 @@ class PortfolioAdminSEOService:
         
         suggestions = []
         
-        # Title length check
         if portfolio.meta_title:
             if len(portfolio.meta_title) > 60:
                 suggestions.append("Meta title should be under 60 characters for optimal display")
         
-        # Description length check
         if portfolio.meta_description:
             if len(portfolio.meta_description) < 120:
                 suggestions.append("Meta description should be at least 120 characters")
             elif len(portfolio.meta_description) > 160:
                 suggestions.append("Meta description should be under 160 characters")
         
-        # Image check
         if not portfolio.og_image:
             suggestions.append("Adding an OG image improves social media sharing")
         

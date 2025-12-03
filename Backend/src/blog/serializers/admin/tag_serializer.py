@@ -4,7 +4,6 @@ from src.blog.serializers.mixins import CountsMixin
 
 
 class BlogTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
-    """Optimized list view for admin with usage statistics"""
     # Use annotated field from queryset - no database queries!
     blog_count = serializers.IntegerField(read_only=True)
     
@@ -18,7 +17,6 @@ class BlogTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
 
 
 class BlogTagAdminDetailSerializer(serializers.ModelSerializer):
-    """Complete detail view for admin with full information"""
     blog_count = serializers.SerializerMethodField()
     popular_blogs = serializers.SerializerMethodField()
     
@@ -32,11 +30,9 @@ class BlogTagAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_blog_count(self, obj):
-        """Get blog count from annotation or database"""
         return getattr(obj, 'blog_count', obj.blog_tags.count())
     
     def get_popular_blogs(self, obj):
-        """Get top 5 popular blogs using this tag"""
         blogs = obj.blog_tags.filter(
             status='published', is_public=True
         ).order_by('-created_at')[:5]
@@ -54,8 +50,6 @@ class BlogTagAdminDetailSerializer(serializers.ModelSerializer):
 
 
 class BlogTagAdminCreateSerializer(serializers.ModelSerializer):
-    """Create serializer with auto-slug generation"""
-    
     class Meta:
         model = BlogTag
         fields = [
@@ -63,21 +57,17 @@ class BlogTagAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Validate slug uniqueness"""
         if value and BlogTag.objects.filter(slug=value).exists():
             raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
         return value
     
     def validate_name(self, value):
-        """Validate name uniqueness"""
         if BlogTag.objects.filter(name=value).exists():
             raise serializers.ValidationError("این نام قبلاً استفاده شده است.")
         return value
 
 
 class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
-    """Update serializer with validation"""
-    
     class Meta:
         model = BlogTag
         fields = [
@@ -85,7 +75,6 @@ class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Validate slug uniqueness excluding current instance"""
         if value and BlogTag.objects.exclude(
             id=self.instance.id
         ).filter(slug=value).exists():
@@ -93,7 +82,6 @@ class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_name(self, value):
-        """Validate name uniqueness excluding current instance"""
         if BlogTag.objects.exclude(
             id=self.instance.id
         ).filter(name=value).exists():
@@ -102,15 +90,11 @@ class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
 
 
 class BlogTagSimpleAdminSerializer(serializers.ModelSerializer):
-    """Simple serializer for nested usage in other serializers"""
-    
     class Meta:
         model = BlogTag
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = ['id', 'public_id']
 
 
-# Backward compatibility - Main serializer alias
 class BlogTagAdminSerializer(BlogTagAdminDetailSerializer):
-    """Backward compatibility alias for existing code"""
     pass

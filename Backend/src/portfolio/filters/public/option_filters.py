@@ -3,8 +3,6 @@ from src.portfolio.models.option import PortfolioOption
 
 
 class PortfolioOptionPublicFilter(filters.FilterSet):
-    """Public option filters for website"""
-    
     name = filters.CharFilter(
         field_name='name',
         lookup_expr='icontains',

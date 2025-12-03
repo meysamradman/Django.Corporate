@@ -3,8 +3,6 @@ from src.portfolio.models.portfolio import Portfolio
 
 
 class PortfolioPublicFilter(filters.FilterSet):
-    """Public portfolio filters for website"""
-    
     category_slug = filters.CharFilter(
         field_name='categories__slug',
         lookup_expr='exact',

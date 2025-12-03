@@ -33,8 +33,6 @@ class AdminRegisterSerializer(serializers.Serializer):
     position = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
     bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    
-    # Location fields
     province_id = serializers.IntegerField(required=False, allow_null=True)
     city_id = serializers.IntegerField(required=False, allow_null=True)
     
@@ -201,8 +199,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True, min_length=6)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
-    
-    # Nested profile payload
     profile = serializers.DictField(required=False, allow_empty=True)
     
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
@@ -308,7 +304,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def validate(self, data):
-        """Admin-scoped validation before creating a regular user."""
         admin_user = self.context.get('admin_user')
         if not admin_user or not admin_user.has_admin_access():
             raise serializers.ValidationError({
@@ -334,7 +329,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                     'identifier': AUTH_ERRORS.get("auth_validation_error")
                 })
         
-        # Handle explicit email field
         if 'email' in data and data['email']:
             try:
                 from src.user.utils.validate_identifier import validate_identifier
@@ -348,9 +342,8 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             except Exception as e:
                 raise serializers.ValidationError({
                     'email': AUTH_ERRORS["auth_invalid_email"]
-                })
+                    })
         
-        # Handle phone field for user profile
         if 'phone' in data and data['phone']:
             try:
                 from src.user.utils.phone_validator import validate_phone_number_optional
@@ -360,14 +353,12 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                     'phone': str(e)
                 })
         
-        # Handle profile data extraction
         profile_data = data.get('profile', {})
         if profile_data:
             for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'bio', 'province_id', 'city_id']:
                 if field in profile_data and field not in data:
                     data[field] = profile_data[field]
         
-        # Also check if province_id and city_id are in main data
         if 'province_id' in data and data['province_id']:
             try:
                 from src.user.models.location import Province
@@ -389,7 +380,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             if 'profile_picture' in profile_data and 'profile_picture_id' not in data:
                 data['profile_picture_id'] = profile_data['profile_picture']
         
-        # Handle phone field validation after profile data extraction
         if 'phone' in data and data['phone']:
             try:
                 from src.user.utils.phone_validator import validate_phone_number_optional
@@ -399,7 +389,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                     'phone': str(e)
                 })
         
-        # Handle national_id field validation
         if 'national_id' in data and data['national_id']:
             try:
                 from src.user.utils.national_id_validator import validate_national_id_format
@@ -409,7 +398,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                     'national_id': str(e)
                 })
         
-        # Handle phone field validation for user profile
         if 'phone' in data and data['phone']:
             try:
                 from src.user.utils.phone_validator import validate_phone_number_optional
@@ -419,7 +407,6 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                     'phone': str(e)
                 })
         
-        # Handle national_id field validation for user profile
         if 'national_id' in data and data['national_id']:
             try:
                 from src.user.utils.national_id_validator import validate_national_id_format

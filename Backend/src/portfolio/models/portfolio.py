@@ -147,7 +147,6 @@ class Portfolio(BaseModel, SEOMixin):
                         'alt_text': main_image.alt_text
                     }
         
-        # Fallback to model method (uses cache)
         main_image = self.get_main_image()
         if main_image:
             file_url = main_image.file.url if main_image.file else None

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Portfolio Excel Export Service
-"""
 from io import BytesIO
 from datetime import datetime
 from django.http import HttpResponse
@@ -15,7 +11,6 @@ except ImportError:
 
 
 class PortfolioExcelExportService:
-    """Service for exporting portfolios to Excel format using xlsxwriter"""
     
     @staticmethod
     def export_portfolios(queryset):
@@ -32,20 +27,19 @@ class PortfolioExcelExportService:
         
         headers = [
             'ID',
-            'عنوان',
-            'توضیحات کوتاه',
-            'وضعیت',
-            'ویژه',
-            'عمومی',
-            'فعال',
-            'تاریخ ایجاد',
-            'تاریخ بروزرسانی',
-            'دسته‌بندی‌ها',
-            'تگ‌ها',
-            'گزینه‌ها'
+            'Title',
+            'Short Description',
+            'Status',
+            'Featured',
+            'Public',
+            'Active',
+            'Created At',
+            'Updated At',
+            'Categories',
+            'Tags',
+            'Options'
         ]
         
-        # Header format
         header_format = workbook.add_format({
             'bold': True,
             'bg_color': '#366092',
@@ -66,18 +60,16 @@ class PortfolioExcelExportService:
             'border_color': '#d0d7de',
         })
         
-        # Write data
         for row_num, portfolio in enumerate(queryset, start=1):
             worksheet.write(row_num, 0, portfolio.id, data_format)
             worksheet.write(row_num, 1, portfolio.title, data_format)
             worksheet.write(row_num, 2, portfolio.short_description or "", data_format)
             worksheet.write(row_num, 3, portfolio.get_status_display() if hasattr(portfolio, 'get_status_display') else portfolio.status, data_format)
             
-            worksheet.write(row_num, 4, "بله" if portfolio.is_featured else "خیر", data_format)
-            worksheet.write(row_num, 5, "بله" if portfolio.is_public else "خیر", data_format)
-            worksheet.write(row_num, 6, "بله" if portfolio.is_active else "خیر", data_format)
+            worksheet.write(row_num, 4, "Yes" if portfolio.is_featured else "No", data_format)
+            worksheet.write(row_num, 5, "Yes" if portfolio.is_public else "No", data_format)
+            worksheet.write(row_num, 6, "Yes" if portfolio.is_active else "No", data_format)
             
-            # Dates
             if portfolio.created_at:
                 worksheet.write_datetime(row_num, 7, portfolio.created_at, data_format)
             else:
@@ -88,7 +80,6 @@ class PortfolioExcelExportService:
             else:
                 worksheet.write(row_num, 8, "", data_format)
             
-            # Relations
             categories = ", ".join([cat.name for cat in portfolio.categories.all()])
             worksheet.write(row_num, 9, categories, data_format)
             
@@ -104,7 +95,6 @@ class PortfolioExcelExportService:
             options = ", ".join(options_list)
             worksheet.write(row_num, 11, options, data_format)
         
-        # Column widths
         worksheet.set_column(0, 0, 8)
         worksheet.set_column(1, 1, 30)
         worksheet.set_column(2, 2, 40)
@@ -125,5 +115,4 @@ class PortfolioExcelExportService:
         timestamp = datetime.now().strftime("%Y%m%d")
         response['Content-Disposition'] = f'attachment; filename="portfolios_{timestamp}.xlsx"'
         
-        # CORS headers will be added by view's _add_cors_headers method
         return response

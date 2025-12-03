@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from datetime import datetime
 from src.media.models.media import ImageMedia
-from src.user.models import AdminProfile, Province, City, User  # include User for related lookups
+from src.user.models import AdminProfile, Province, City, User
 from src.user.serializers.location_serializer import ProvinceCompactSerializer, CityCompactSerializer
 from src.user.utils.national_id_validator import validate_national_id_format, validate_national_id
 from src.user.messages import AUTH_ERRORS
@@ -22,7 +22,6 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         return None
     
     def to_representation(self, instance):
-        """Override to handle None case properly"""
         if instance is None:
             return None
         return super().to_representation(instance)
@@ -85,25 +84,22 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
             'first_name': {'required': False},
             'last_name': {'required': False},
             'birth_date': {'required': False},
-            'national_id': {'required': False, 'validators': []},  # Disable built-in validators
+            'national_id': {'required': False, 'validators': []},
             'address': {'required': False},
-            'phone': {'required': False, 'validators': []},  # Disable built-in validators
+            'phone': {'required': False, 'validators': []},
             'province': {'required': False},
             'city': {'required': False},
             'bio': {'required': False},
         }
         
     def validate_phone(self, value):
-        """Validate phone number format and uniqueness using centralized validator"""
         try:
-            # Get admin_user_id from context or from instance
             admin_user_id = self.context.get('admin_user_id') or (self.instance.admin_user_id if self.instance else None)
             return validate_phone_number_with_uniqueness(value, admin_user_id, 'admin')
         except Exception as e:
             raise serializers.ValidationError(str(e))
     
     def validate_national_id(self, value):
-        """Validate national_id uniqueness"""
         if value:
             admin_user_id = self.context.get('admin_user_id') or (self.instance.admin_user_id if self.instance else None)
             
@@ -117,7 +113,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_profile_picture_file(self, value):
-        """Validate uploaded profile picture using the media service."""
         if value is None:
             return value
         
@@ -126,7 +121,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
             validate_image_file(value)
             return value
         except ImportError:
-            # Fallback validation if media validators not available
             if not value.name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
                 raise serializers.ValidationError(AUTH_ERRORS["auth_file_must_be_image"])
             return value
@@ -134,7 +128,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(e))
     
     def validate(self, data):
-        """Ensure mutually exclusive image inputs are not sent together."""
         if data.get('profile_picture') and data.get('profile_picture_file'):
             raise serializers.ValidationError({
                 'profile_picture_file': AUTH_ERRORS.get("auth_validation_error")
@@ -143,14 +136,11 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
         return data
     
     def save(self, **kwargs):
-        """Override save to handle profile_picture_file"""
         instance = super().save(**kwargs)
         
-        # Handle profile_picture_file if provided
         if 'profile_picture_file' in self.validated_data:
             profile_picture_file = self.validated_data['profile_picture_file']
             if profile_picture_file:
-                # Create new ImageMedia instance
                 from src.media.models.media import ImageMedia
                 new_image = ImageMedia.objects.create(
                     file=profile_picture_file,
@@ -163,7 +153,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
         return instance
     
     def to_internal_value(self, data):
-        """Convert profile_picture IDs provided as strings into integers."""
         if isinstance(data, dict) and 'profile_picture' in data and data.get('profile_picture'):
             profile_picture_value = data['profile_picture']
             
@@ -178,7 +167,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class AdminCompleteProfileSerializer(serializers.ModelSerializer):
-    """Serializer that bundles user details, profile data, and permissions for admin views."""
     profile = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
@@ -200,7 +188,6 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_profile(self, user):
-        """Return serialized admin profile using optimized relations."""
         try:
             if hasattr(user, 'admin_profile') and user.admin_profile:
                 return AdminProfileSerializer(user.admin_profile, context=self.context).data
@@ -209,11 +196,9 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         return {}
 
     def get_is_super(self, user):
-        """Expose is_superuser flag for frontend compatibility."""
         return user.is_superuser
     
     def get_roles(self, user):
-        """Return role metadata for the admin user."""
         from src.user.permissions.config import get_role_config, is_super_admin_role
         
         if user.is_superuser:
@@ -249,7 +234,6 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         return roles
     
     def get_full_name(self, user):
-        """Return full name using admin profile or fall back to identifier."""
         if user.user_type == 'admin' and hasattr(user, 'admin_profile') and user.admin_profile:
             profile = user.admin_profile
             if profile.first_name and profile.last_name:
@@ -262,11 +246,9 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         return user.mobile or user.email or f"User {user.id}"
 
     def get_permissions(self, user):
-        """Return optimized permission code list for the admin user."""
         if not user.is_authenticated or not user.is_active:
             return []
         
-        # Local import to avoid circular dependency
         from django.contrib.auth.models import Permission
         
         direct_perms = set()
@@ -288,7 +270,6 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         return sorted(list(all_user_permissions))
     
     def to_representation(self, instance):
-        """Augment representation with derived permission info when needed."""
         data = super().to_representation(instance)
         
         if instance.user_type == 'admin' or instance.is_staff or instance.is_superuser:

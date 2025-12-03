@@ -4,11 +4,6 @@ from src.blog.models.blog import Blog
 
 
 class BlogAdminFilter(django_filters.FilterSet):
-    """
-    Advanced filtering for Blog admin with SEO filters
-    """
-    
-    # Basic filters
     status = django_filters.ChoiceFilter(
         choices=Blog.STATUS_CHOICES,
         help_text="Filter by blog status"
@@ -25,8 +20,6 @@ class BlogAdminFilter(django_filters.FilterSet):
     is_active = django_filters.BooleanFilter(
         help_text="Filter by active status"
     )
-    
-    # Date filters
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
@@ -38,8 +31,6 @@ class BlogAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         help_text="Created before this date (YYYY-MM-DD)"
     )
-    
-    # Category and tag filters
     category = django_filters.NumberFilter(
         field_name='categories__id',
         help_text="Filter by category ID"
@@ -59,14 +50,10 @@ class BlogAdminFilter(django_filters.FilterSet):
         field_name='tags__slug',
         help_text="Filter by tag slug"
     )
-    
-    # Custom filter for categories__in
     categories__in = django_filters.CharFilter(
         method='filter_categories_in',
         help_text="Filter by category IDs (comma-separated)"
     )
-    
-    # SEO filters
     seo_status = django_filters.ChoiceFilter(
         method='filter_seo_status',
         choices=[
@@ -104,14 +91,10 @@ class BlogAdminFilter(django_filters.FilterSet):
         exclude=True,
         help_text="Has canonical URL"
     )
-    
-    # Text search across multiple fields
     search = django_filters.CharFilter(
         method='filter_search',
         help_text="Search in title, description, and SEO fields"
     )
-    
-    # Media filters
     has_main_image = django_filters.BooleanFilter(
         method='filter_has_main_image',
         help_text="Has main image assigned"
@@ -140,7 +123,6 @@ class BlogAdminFilter(django_filters.FilterSet):
         ]
     
     def filter_seo_status(self, queryset, name, value):
-        """Filter by SEO completeness status"""
         if value == 'complete':
             return queryset.filter(
                 meta_title__isnull=False,
@@ -166,7 +148,6 @@ class BlogAdminFilter(django_filters.FilterSet):
         return queryset
     
     def filter_search(self, queryset, name, value):
-        """Advanced search across multiple fields"""
         if not value:
             return queryset
         
@@ -182,44 +163,35 @@ class BlogAdminFilter(django_filters.FilterSet):
         ).distinct()
     
     def filter_has_main_image(self, queryset, name, value):
-        """Filter blogs with/without main image"""
         if value:
             return queryset.filter(blog_medias__is_main_image=True).distinct()
         else:
             return queryset.exclude(blog_medias__is_main_image=True).distinct()
     
     def filter_media_count(self, queryset, name, value):
-        """Filter by exact media count"""
         from django.db.models import Count
         return queryset.annotate(
             media_count=Count('blog_medias')
         ).filter(media_count=value)
     
     def filter_media_count_gte(self, queryset, name, value):
-        """Filter by minimum media count"""
         from django.db.models import Count
         return queryset.annotate(
             media_count=Count('blog_medias')
         ).filter(media_count__gte=value)
     
     def filter_categories_in(self, queryset, name, value):
-        """Filter by category IDs (comma-separated)"""
         if value:
             try:
                 category_ids = [int(id.strip()) for id in value.split(',') if id.strip()]
                 if category_ids:
                     return queryset.filter(categories__id__in=category_ids).distinct()
             except ValueError:
-                pass  # Invalid category IDs, return all
+                pass
         return queryset
 
 
 class BlogSEOFilter(django_filters.FilterSet):
-    """
-    Specialized filter for SEO analysis
-    """
-    
-    # SEO quality filters
     title_length_good = django_filters.BooleanFilter(
         method='filter_title_length_good',
         help_text="Title length is optimal (≤60 chars)"
@@ -245,7 +217,6 @@ class BlogSEOFilter(django_filters.FilterSet):
         fields = ['title_length_good', 'description_length_good', 'missing_alt_text', 'duplicate_meta_title']
     
     def filter_title_length_good(self, queryset, name, value):
-        """Filter by optimal title length"""
         if value:
             return queryset.extra(
                 where=["CHAR_LENGTH(meta_title) <= 60 AND meta_title IS NOT NULL"]
@@ -256,7 +227,6 @@ class BlogSEOFilter(django_filters.FilterSet):
             )
     
     def filter_description_length_good(self, queryset, name, value):
-        """Filter by optimal description length"""
         if value:
             return queryset.extra(
                 where=["CHAR_LENGTH(meta_description) BETWEEN 120 AND 160 AND meta_description IS NOT NULL"]
@@ -267,22 +237,16 @@ class BlogSEOFilter(django_filters.FilterSet):
             )
     
     def filter_missing_alt_text(self, queryset, name, value):
-        """Filter blogs with images missing alt text"""
-        # This would need to be implemented based on your media model structure
-        # For now, return the queryset as-is
         return queryset
     
     def filter_duplicate_meta_title(self, queryset, name, value):
-        """Filter blogs with duplicate meta titles"""
         if value:
             from django.db.models import Count
             duplicate_titles = Blog.objects.values('meta_title').annotate(
                 title_count=Count('meta_title')
             ).filter(title_count__gt=1, meta_title__isnull=False).values_list('meta_title', flat=True)
-            
             return queryset.filter(meta_title__in=duplicate_titles)
         else:
-            # Non-duplicate titles
             from django.db.models import Count
             duplicate_titles = Blog.objects.values('meta_title').annotate(
                 title_count=Count('meta_title')

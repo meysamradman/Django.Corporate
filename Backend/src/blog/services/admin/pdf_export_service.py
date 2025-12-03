@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Blog PDF Export Service
-Handles PDF export functionality for blogs with custom font and improved design
-"""
 from io import BytesIO
 from datetime import datetime
 from html import escape
@@ -24,21 +19,21 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-from src.blog.messages.messages import BLOG_ERRORS
+from src.blog.messages.messages import BLOG_ERRORS, PDF_LABELS
 
 
 class BlogPDFExportService:
     
-    PRIMARY_COLOR = colors.HexColor('#2563eb')  # Blue
-    SECONDARY_COLOR = colors.HexColor('#64748b')  # Slate
-    SUCCESS_COLOR = colors.HexColor('#10b981')  # Green
-    WARNING_COLOR = colors.HexColor('#f59e0b')  # Amber
-    DANGER_COLOR = colors.HexColor('#ef4444')  # Red
-    LIGHT_BG = colors.HexColor('#f8fafc')  # Slate 50
-    MEDIUM_BG = colors.HexColor('#f1f5f9')  # Slate 100
-    BORDER_COLOR = colors.HexColor('#e2e8f0')  # Slate 200
-    TEXT_PRIMARY = colors.HexColor('#0f172a')  # Slate 900
-    TEXT_SECONDARY = colors.HexColor('#475569')  # Slate 600
+    PRIMARY_COLOR = colors.HexColor('#2563eb')
+    SECONDARY_COLOR = colors.HexColor('#64748b')
+    SUCCESS_COLOR = colors.HexColor('#10b981')
+    WARNING_COLOR = colors.HexColor('#f59e0b')
+    DANGER_COLOR = colors.HexColor('#ef4444')
+    LIGHT_BG = colors.HexColor('#f8fafc')
+    MEDIUM_BG = colors.HexColor('#f1f5f9')
+    BORDER_COLOR = colors.HexColor('#e2e8f0')
+    TEXT_PRIMARY = colors.HexColor('#0f172a')
+    TEXT_SECONDARY = colors.HexColor('#475569')
     
     @staticmethod
     def _register_persian_font():
@@ -92,7 +87,6 @@ class BlogPDFExportService:
     def _create_persian_styles(persian_font_name):
         styles = getSampleStyleSheet()
         
-        # Title style with gradient-like effect
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
@@ -105,7 +99,6 @@ class BlogPDFExportService:
             borderPadding=10,
         )
         
-        # Section heading style
         heading_style = ParagraphStyle(
             'CustomHeading',
             parent=styles['Heading3'],
@@ -124,7 +117,6 @@ class BlogPDFExportService:
             rightIndent=0,
         )
         
-        # Normal text style
         normal_style = ParagraphStyle(
             'CustomNormal',
             parent=styles['Normal'],
@@ -136,7 +128,6 @@ class BlogPDFExportService:
             leading=16,
         )
         
-        # Description style
         desc_style = ParagraphStyle(
             'Description',
             parent=styles['Normal'],
@@ -159,9 +150,7 @@ class BlogPDFExportService:
     @staticmethod
     def _add_section_header(elements, text, process_persian_text, escape, heading_style):
         heading_text = process_persian_text(text)
-        # Add decorative line
         elements.append(HRFlowable(width="100%", thickness=2, color=BlogPDFExportService.PRIMARY_COLOR, spaceBefore=10, spaceAfter=8))
-        # Add heading with background
         heading_para = Paragraph(
             f'<para backColor="{BlogPDFExportService.LIGHT_BG}" borderPadding="8">'
             f'<b><font color="{BlogPDFExportService.PRIMARY_COLOR}">{escape(heading_text)}</font></b>'
@@ -188,7 +177,6 @@ class BlogPDFExportService:
             img = PILImage.open(file_path)
             img_width, img_height = img.size
             
-            # Calculate aspect ratio and resize if needed
             width_ratio = max_width / img_width
             height_ratio = max_height / img_height
             ratio = min(width_ratio, height_ratio, 1.0)
@@ -204,25 +192,24 @@ class BlogPDFExportService:
     @staticmethod
     def _add_basic_info_table(elements, blog, persian_font_name, process_persian_text, escape, heading_style=None, normal_style=None):
         info_data = [
-            [str(blog.id), 'شناسه:'],
-            [blog.slug or '-', 'اسلاگ:'],
-            [blog.get_status_display() if hasattr(blog, 'get_status_display') else blog.status, 'وضعیت:'],
-            ['بله' if blog.is_featured else 'خیر', 'ویژه:'],
-            ['بله' if blog.is_public else 'خیر', 'عمومی:'],
-            ['بله' if blog.is_active else 'خیر', 'فعال:'],
+            [str(blog.id), PDF_LABELS['id']],
+            [blog.slug or '-', PDF_LABELS['slug']],
+            [blog.get_status_display() if hasattr(blog, 'get_status_display') else blog.status, PDF_LABELS['status']],
+            [PDF_LABELS['yes'] if blog.is_featured else PDF_LABELS['no'], PDF_LABELS['featured']],
+            [PDF_LABELS['yes'] if blog.is_public else PDF_LABELS['no'], PDF_LABELS['public']],
+            [PDF_LABELS['yes'] if blog.is_active else PDF_LABELS['no'], PDF_LABELS['active']],
         ]
         
         if blog.created_at:
-            info_data.append([blog.created_at.strftime("%Y-%m-%d %H:%M:%S"), 'تاریخ ایجاد:'])
+            info_data.append([blog.created_at.strftime("%Y-%m-%d %H:%M:%S"), PDF_LABELS['created_at']])
         if blog.updated_at:
-            info_data.append([blog.updated_at.strftime("%Y-%m-%d %H:%M:%S"), 'تاریخ بروزرسانی:'])
+            info_data.append([blog.updated_at.strftime("%Y-%m-%d %H:%M:%S"), PDF_LABELS['updated_at']])
         
         processed_info_data = [[process_persian_text(cell) for cell in row] for row in info_data]
         escaped_info_data = [[escape(str(cell)) for cell in row] for row in processed_info_data]
         
         info_table = Table(escaped_info_data, colWidths=[4*inch, 2*inch])
         info_table.setStyle(TableStyle([
-            # Header row (first row styling)
             ('BACKGROUND', (1, 0), (1, -1), BlogPDFExportService.PRIMARY_COLOR),
             ('TEXTCOLOR', (1, 0), (1, -1), colors.white),
             ('FONTNAME', (1, 0), (1, -1), persian_font_name),
@@ -236,10 +223,8 @@ class BlogPDFExportService:
             ('TOPPADDING', (0, 0), (-1, -1), 14),
             ('RIGHTPADDING', (0, 0), (-1, -1), 15),
             ('LEFTPADDING', (0, 0), (-1, -1), 15),
-            # Grid and borders
             ('GRID', (0, 0), (-1, -1), 1, BlogPDFExportService.BORDER_COLOR),
             ('LINEBELOW', (0, 0), (-1, 0), 2, BlogPDFExportService.PRIMARY_COLOR),
-            # Alternating row colors
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, BlogPDFExportService.LIGHT_BG]),
         ]))
         
@@ -250,21 +235,21 @@ class BlogPDFExportService:
     def _add_seo_table(elements, blog, persian_font_name, process_persian_text, escape, heading_style):
         seo_fields = []
         if blog.meta_title:
-            seo_fields.append(['عنوان متا:', blog.meta_title])
+            seo_fields.append([PDF_LABELS['meta_title'], blog.meta_title])
         if blog.meta_description:
-            seo_fields.append(['توضیحات متا:', blog.meta_description])
+            seo_fields.append([PDF_LABELS['meta_description'], blog.meta_description])
         if blog.og_title:
-            seo_fields.append(['عنوان Open Graph:', blog.og_title])
+            seo_fields.append([PDF_LABELS['og_title'], blog.og_title])
         if blog.og_description:
-            seo_fields.append(['توضیحات Open Graph:', blog.og_description])
+            seo_fields.append([PDF_LABELS['og_description'], blog.og_description])
         if blog.canonical_url:
-            seo_fields.append(['آدرس Canonical:', blog.canonical_url])
+            seo_fields.append([PDF_LABELS['canonical_url'], blog.canonical_url])
         if blog.robots_meta:
             seo_fields.append(['Robots Meta:', blog.robots_meta])
         
         if seo_fields:
             BlogPDFExportService._add_section_header(
-                elements, 'اطلاعات SEO', process_persian_text, escape, heading_style
+                elements, PDF_LABELS['seo_info'], process_persian_text, escape, heading_style
             )
             
             seo_data_rtl = [[row[1], row[0]] for row in seo_fields]
@@ -297,11 +282,10 @@ class BlogPDFExportService:
         main_image = blog.get_main_image()
         if main_image:
             BlogPDFExportService._add_section_header(
-                elements, 'تصویر اصلی', process_persian_text, escape, heading_style
+                elements, PDF_LABELS['main_image'], process_persian_text, escape, heading_style
             )
             pdf_image = add_image_func(main_image, max_width=5.5*inch, max_height=4.5*inch)
             if pdf_image:
-                # Add border around image
                 elements.append(pdf_image)
                 elements.append(Spacer(1, 0.1*inch))
                 if main_image.title:
@@ -314,7 +298,7 @@ class BlogPDFExportService:
         
         if blog.og_image:
             BlogPDFExportService._add_section_header(
-                elements, 'تصویر Open Graph', process_persian_text, escape, heading_style
+                elements, PDF_LABELS['og_image'], process_persian_text, escape, heading_style
             )
             pdf_image = add_image_func(blog.og_image, max_width=5.5*inch, max_height=4.5*inch)
             if pdf_image:
@@ -333,9 +317,9 @@ class BlogPDFExportService:
         images = list(all_images.order_by('order', 'created_at')[:10])
         
         if images:
-            header_text = 'گالری تصاویر'
+            header_text = PDF_LABELS['gallery']
             if total_images > 10:
-                header_text = f'گالری تصاویر (نمایش 10 از {total_images} تصویر)'
+                header_text = PDF_LABELS['gallery_with_count'].format(count=total_images)
             BlogPDFExportService._add_section_header(
                 elements, header_text, process_persian_text, escape, heading_style
             )
@@ -345,7 +329,7 @@ class BlogPDFExportService:
                     if pdf_image:
                         elements.append(pdf_image)
                         elements.append(Spacer(1, 0.08*inch))
-                        image_title = blog_image.image.title or f"تصویر {blog_image.order + 1}"
+                        image_title = blog_image.image.title or PDF_LABELS['image'].format(order=blog_image.order + 1)
                         processed_title = process_persian_text(image_title)
                         elements.append(Paragraph(
                             f'<font color="{BlogPDFExportService.TEXT_SECONDARY}">{escape(processed_title)}</font>',
@@ -355,7 +339,7 @@ class BlogPDFExportService:
                             elements.append(HRFlowable(width="80%", thickness=1, color=BlogPDFExportService.BORDER_COLOR, spaceBefore=0.15*inch, spaceAfter=0.15*inch))
             
             if total_images > 10:
-                note_text = process_persian_text(f'نکته: برای مشاهده تمام {total_images} تصویر، به پنل مدیریت مراجعه کنید.')
+                note_text = process_persian_text(PDF_LABELS['gallery_note'].format(count=total_images))
                 elements.append(Paragraph(
                     f'<font color="{BlogPDFExportService.TEXT_SECONDARY}"><i>{escape(note_text)}</i></font>',
                     normal_style
@@ -365,10 +349,10 @@ class BlogPDFExportService:
         videos = blog.videos.select_related('video', 'video__cover_image').all().order_by('order', 'created_at')
         if videos.exists():
             BlogPDFExportService._add_section_header(
-                elements, 'ویدیوها', process_persian_text, escape, heading_style
+                elements, PDF_LABELS['videos'], process_persian_text, escape, heading_style
             )
             for idx, blog_video in enumerate(videos):
-                video_title = blog_video.video.title or f"ویدیو {blog_video.order + 1}"
+                video_title = blog_video.video.title or PDF_LABELS['video'].format(order=blog_video.order + 1)
                 processed_title = process_persian_text(video_title)
                 elements.append(Paragraph(
                     f'<font color="{BlogPDFExportService.PRIMARY_COLOR}"><b>▸</b></font> '
@@ -388,10 +372,10 @@ class BlogPDFExportService:
         audios = blog.audios.select_related('audio', 'audio__cover_image').all().order_by('order', 'created_at')
         if audios.exists():
             BlogPDFExportService._add_section_header(
-                elements, 'فایل‌های صوتی', process_persian_text, escape, heading_style
+                elements, PDF_LABELS['audios'], process_persian_text, escape, heading_style
             )
             for idx, blog_audio in enumerate(audios):
-                audio_title = blog_audio.audio.title or f"فایل صوتی {blog_audio.order + 1}"
+                audio_title = blog_audio.audio.title or PDF_LABELS['audio'].format(order=blog_audio.order + 1)
                 processed_title = process_persian_text(audio_title)
                 elements.append(Paragraph(
                     f'<font color="{BlogPDFExportService.SUCCESS_COLOR}"><b>♪</b></font> '
@@ -411,10 +395,10 @@ class BlogPDFExportService:
         documents = blog.documents.select_related('document', 'document__cover_image').all().order_by('order', 'created_at')
         if documents.exists():
             BlogPDFExportService._add_section_header(
-                elements, 'اسناد', process_persian_text, escape, heading_style
+                elements, PDF_LABELS['documents'], process_persian_text, escape, heading_style
             )
             for idx, blog_doc in enumerate(documents):
-                doc_title = blog_doc.title or blog_doc.document.title or f"سند {blog_doc.order + 1}"
+                doc_title = blog_doc.title or blog_doc.document.title or PDF_LABELS['document'].format(order=blog_doc.order + 1)
                 processed_title = process_persian_text(doc_title)
                 elements.append(Paragraph(
                     f'<font color="{BlogPDFExportService.WARNING_COLOR}"><b>📄</b></font> '
@@ -433,36 +417,19 @@ class BlogPDFExportService:
     
     @staticmethod
     def export_blog_pdf(blog):
-        """
-        Export single blog to PDF with improved design
-        
-        Args:
-            blog: Blog instance with prefetch_related
-            
-        Returns:
-            HttpResponse with PDF file
-            
-        Raises:
-            ImportError: If reportlab package is not installed
-        """
         if not REPORTLAB_AVAILABLE:
             raise ImportError(BLOG_ERRORS["blog_export_failed"])
         
         try:
-            # Create PDF buffer
             buffer = BytesIO()
             
-            # Register Persian font
             persian_font_name = BlogPDFExportService._register_persian_font()
             
-            # Process Persian text function
             process_persian_text = BlogPDFExportService._process_persian_text
             
-            # Define header and footer functions
             def add_header_footer(canv, doc):
                 try:
                     canv.saveState()
-                    # Header with title
                     canv.setFont(persian_font_name, 10)
                     canv.setFillColor(BlogPDFExportService.TEXT_PRIMARY)
                     if blog:
@@ -473,18 +440,15 @@ class BlogPDFExportService:
                     date_text = process_persian_text(datetime.now().strftime("%Y/%m/%d %H:%M"))
                     canv.drawString(60, A4[1] - 40, date_text)
                     
-                    # Header line
                     canv.setStrokeColor(BlogPDFExportService.BORDER_COLOR)
                     canv.setLineWidth(1)
                     canv.line(60, A4[1] - 50, A4[0] - 60, A4[1] - 50)
                     
-                    # Footer with page number
                     canv.setFillColor(BlogPDFExportService.TEXT_SECONDARY)
                     canv.setFont(persian_font_name, 8)
-                    page_num = process_persian_text(f"صفحه {doc.page}")
+                    page_num = process_persian_text(PDF_LABELS['page'].format(page=doc.page))
                     canv.drawRightString(A4[0] - 60, 40, page_num)
                     
-                    # Footer line
                     canv.setStrokeColor(BlogPDFExportService.BORDER_COLOR)
                     canv.setLineWidth(1)
                     canv.line(60, 50, A4[0] - 60, 50)
@@ -496,7 +460,6 @@ class BlogPDFExportService:
                     except:
                         pass
             
-            # Create document with custom margins and header/footer
             doc = SimpleDocTemplate(
                 buffer,
                 pagesize=A4,
@@ -508,14 +471,11 @@ class BlogPDFExportService:
                 onLaterPages=add_header_footer
             )
             
-            # Container for PDF elements
             elements = []
             styles = getSampleStyleSheet()
             
-            # Create custom styles
             pdf_styles = BlogPDFExportService._create_persian_styles(persian_font_name)
             
-            # Add title with improved styling
             processed_title = process_persian_text(blog.title)
             title_para = Paragraph(
                 f'<para backColor="{BlogPDFExportService.LIGHT_BG}" borderPadding="12">'
@@ -524,12 +484,10 @@ class BlogPDFExportService:
                 pdf_styles['title']
             )
             elements.append(title_para)
-            # Add colored line below title
             elements.append(HRFlowable(width="100%", thickness=4, color=BlogPDFExportService.PRIMARY_COLOR, spaceBefore=0, spaceAfter=0.4*inch))
             
-            # Add basic information section
             BlogPDFExportService._add_section_header(
-                elements, 'اطلاعات پایه', process_persian_text, escape, pdf_styles['heading']
+                elements, PDF_LABELS['basic_info'], process_persian_text, escape, pdf_styles['heading']
             )
             BlogPDFExportService._add_basic_info_table(
                 elements, blog, persian_font_name, process_persian_text, escape
@@ -537,7 +495,7 @@ class BlogPDFExportService:
             
             if blog.short_description:
                 BlogPDFExportService._add_section_header(
-                    elements, 'توضیحات کوتاه', process_persian_text, escape, pdf_styles['heading']
+                    elements, PDF_LABELS['short_description'], process_persian_text, escape, pdf_styles['heading']
                 )
                 processed_short_desc = process_persian_text(blog.short_description)
                 desc_para = Paragraph(
@@ -551,7 +509,7 @@ class BlogPDFExportService:
             
             if blog.description:
                 BlogPDFExportService._add_section_header(
-                    elements, 'توضیحات کامل', process_persian_text, escape, pdf_styles['heading']
+                    elements, PDF_LABELS['full_description'], process_persian_text, escape, pdf_styles['heading']
                 )
                 processed_desc = process_persian_text(blog.description)
                 escaped_desc = escape(processed_desc).replace('\n', '<br/>')
@@ -567,7 +525,7 @@ class BlogPDFExportService:
             categories = blog.categories.all()
             if categories:
                 BlogPDFExportService._add_section_header(
-                    elements, 'دسته‌بندی‌ها', process_persian_text, escape, pdf_styles['heading']
+                    elements, PDF_LABELS['categories'], process_persian_text, escape, pdf_styles['heading']
                 )
                 category_names = ", ".join([cat.name for cat in categories])
                 processed_categories = process_persian_text(category_names)
@@ -583,7 +541,7 @@ class BlogPDFExportService:
             tags = blog.tags.all()
             if tags:
                 BlogPDFExportService._add_section_header(
-                    elements, 'تگ‌ها', process_persian_text, escape, pdf_styles['heading']
+                    elements, PDF_LABELS['tags'], process_persian_text, escape, pdf_styles['heading']
                 )
                 tag_names = ", ".join([tag.name for tag in tags])
                 processed_tags = process_persian_text(tag_names)
@@ -596,23 +554,19 @@ class BlogPDFExportService:
                 elements.append(tag_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add SEO information
             BlogPDFExportService._add_seo_table(
                 elements, blog, persian_font_name, process_persian_text, escape, pdf_styles['heading']
             )
             
-            # Add media sections
             add_image_func = BlogPDFExportService._add_image_to_pdf
             BlogPDFExportService._add_media_sections(
                 elements, blog, add_image_func, process_persian_text, escape, 
                 pdf_styles['heading'], pdf_styles['normal']
             )
             
-            # Build PDF
             doc.build(elements)
             buffer.seek(0)
             
-            # Create HTTP response
             response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
             timestamp = datetime.now().strftime("%Y%m%d")
             response['Content-Disposition'] = f'attachment; filename="blog_{blog.id}_{timestamp}.pdf"'

@@ -27,13 +27,10 @@ class AIProviderSerializer(serializers.ModelSerializer):
         api_key = attrs.get('shared_api_key')
         slug = attrs.get('slug') or (self.instance.slug if self.instance else None)
         
-        # If new API key entered and not '***'
         if api_key and api_key != '***' and api_key.strip():
-            # If in edit mode and API key hasn't changed
             if self.instance and self.instance.shared_api_key and api_key == '***':
                 return attrs
             
-            # Validation API key
             from src.ai.services.image_generation_service import AIImageGenerationService
             try:
                 is_valid = AIImageGenerationService.validate_provider_api_key(
@@ -43,7 +40,6 @@ class AIProviderSerializer(serializers.ModelSerializer):
                 if not is_valid:
                     attrs['is_active'] = False
             except Exception:
-                # On error, deactivate provider
                 attrs['is_active'] = False
         
         return attrs
@@ -92,7 +88,6 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
         help_text="Image description"
     )
     
-    # Image parameters
     size = serializers.CharField(
         required=False,
         default="1024x1024",
@@ -115,7 +110,6 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
         required=False
     )
     
-    # Save options
     save_to_media = serializers.BooleanField(
         default=True,
         required=False

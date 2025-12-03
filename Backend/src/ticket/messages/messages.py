@@ -11,6 +11,7 @@ TICKET_SUCCESS = {
     'ticket_assigned': 'Ticket assigned successfully.',
     'ticket_status_updated': 'Ticket status updated successfully.',
     'messages_marked_as_read': 'Messages marked as read successfully.',
+    'statistics_retrieved': 'Ticket statistics retrieved successfully.',
 }
 
 TICKET_ERRORS = {
@@ -28,5 +29,8 @@ TICKET_ERRORS = {
     'status_required': 'Status is required.',
     'mark_read_failed': 'Error marking ticket as read.',
     'update_status_failed': 'Error updating ticket status.',
+    'admin_cannot_create': 'Admins cannot create tickets. Only authenticated users can create tickets.',
+    'too_many_recent_tickets': 'لطفاً یک ساعت صبر کنید قبل از ایجاد تیکت جدید.',
+    'max_open_tickets_reached': 'شما حداکثر 5 تیکت باز دارید. لطفاً منتظر پاسخ به تیکت‌های قبلی باشید.',
 }
 

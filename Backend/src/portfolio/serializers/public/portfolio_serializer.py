@@ -18,7 +18,6 @@ class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
 
 
 class PortfolioPublicListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for public listing"""
     main_image_url = serializers.SerializerMethodField()
     categories = PortfolioCategorySimplePublicSerializer(many=True, read_only=True)
     
@@ -30,9 +29,7 @@ class PortfolioPublicListSerializer(serializers.ModelSerializer):
         ]
     
     def get_main_image_url(self, obj):
-        """Get main image efficiently"""
         try:
-            # Get the main image from PortfolioImage model
             main_image = obj.images.filter(is_main=True).first()
             if main_image and main_image.image:
                 return main_image.image.file.url
@@ -42,7 +39,6 @@ class PortfolioPublicListSerializer(serializers.ModelSerializer):
 
 
 class PortfolioMediaPublicSerializer(serializers.Serializer):
-    """Public serializer for portfolio media"""
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     media = MediaPublicSerializer(read_only=True)
@@ -51,8 +47,6 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
     
     def to_representation(self, instance):
-        """Convert instance to appropriate serializer based on media type"""
-        # Determine media type based on instance class
         if isinstance(instance, PortfolioImage):
             return {
                 'id': instance.id,
@@ -90,13 +84,10 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
 
 
 class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
-    """Full serializer for public detail with SEO data"""
     categories = PortfolioCategorySimplePublicSerializer(many=True, read_only=True)
     options = PortfolioOptionPublicSerializer(many=True, read_only=True)
     tags = PortfolioTagPublicSerializer(many=True, read_only=True)
     media = serializers.SerializerMethodField()
-    
-    # SEO data for frontend rendering
     seo_data = serializers.SerializerMethodField()
     
     class Meta:
@@ -109,16 +100,11 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
         ]
     
     def get_media(self, obj):
-        """Get all media for the portfolio"""
         media_list = []
-        
-        # Get all types of media
         images = obj.images.all()
         videos = obj.videos.all()
         audios = obj.audios.all()
         documents = obj.documents.all()
-        
-        # Add all media to the list
         for image in images:
             media_list.append(PortfolioMediaPublicSerializer(image, context=self.context).data)
         for video in videos:
@@ -131,7 +117,6 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
         return media_list
     
     def get_seo_data(self, obj):
-        """Get SEO data for frontend meta tags"""
         return {
             'meta_title': obj.get_meta_title(),
             'meta_description': obj.get_meta_description(),
@@ -143,7 +128,5 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
         }
 
 
-# Backward compatibility
 class PortfolioPublicSerializer(PortfolioPublicDetailSerializer):
-    """Backward compatibility alias"""
     pass

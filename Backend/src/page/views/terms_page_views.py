@@ -1,26 +1,15 @@
-# Third-party (Django, DRF)
 from rest_framework import viewsets, status
 from django.core.exceptions import ValidationError
-
-# Project core
 from src.core.responses.response import APIResponse
-
-# Project models
 from src.page.models import TermsPage
-
-# Project serializers
 from src.page.serializers import (
     TermsPageSerializer,
     TermsPageUpdateSerializer,
 )
-
-# Project services
 from src.page.services.terms_page_service import (
     get_terms_page,
     update_terms_page,
 )
-
-# Project messages
 from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
 from src.user.authorization.admin_permission import RequirePermission
 

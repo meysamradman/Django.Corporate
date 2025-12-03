@@ -6,13 +6,11 @@ from src.statistics.utils.cache import StatisticsCacheManager
 from .managers import BlogTagQuerySet
 
 class BlogTag(BaseModel, SEOMixin):
-    # Core fields
     name = models.CharField(max_length=20, unique=True, db_index=True)
     slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
     description = models.TextField(null=True, blank=True)
     is_public = models.BooleanField(default=True, db_index=True)
     
-    # Custom manager
     objects = BlogTagQuerySet.as_manager()
 
     def get_public_url(self):
@@ -34,7 +32,6 @@ class BlogTag(BaseModel, SEOMixin):
         return self.name
     
     def save(self, *args, **kwargs):
-        # Auto SEO generation
         if not self.meta_title and self.name:
             self.meta_title = self.name[:70]
         
@@ -43,10 +40,8 @@ class BlogTag(BaseModel, SEOMixin):
             
         super().save(*args, **kwargs)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         if self.pk:
             TagCacheManager.invalidate_tag(self.pk)
-        # Invalidate dashboard stats as tag counts affect it
         StatisticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):

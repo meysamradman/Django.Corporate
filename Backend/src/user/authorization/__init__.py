@@ -46,7 +46,6 @@ from src.user.authorization.role_utils import (
 )
 
 __all__ = [
-    # DRF Permission classes
     "AdminRolePermission",
     "UserManagementPermission",
     "SimpleAdminPermission",
@@ -55,8 +54,6 @@ __all__ = [
     "RequireAdminRole",
     "require_admin_roles",
     "require_module_access",
-    
-    # Auto-generated module access classes
     "ContentManagerAccess",
     "PortfolioManagerAccess",
     "UserManagerAccess",
@@ -75,25 +72,17 @@ __all__ = [
     "StatisticsManagerAccess",
     "StatisticsViewerAccess",
     "UsersManagerAccess",
-    
-    # ViewSets
     "AdminRoleView",
     "AdminPermissionView",
-    
-    # Config (re-exported from permissions.config)
     "SYSTEM_ROLES",
     "AVAILABLE_MODULES",
     "AVAILABLE_ACTIONS",
-    "ADMIN_ROLE_PERMISSIONS",  # Legacy
-    
-    # Helper functions (re-exported from permissions.config)
+    "ADMIN_ROLE_PERMISSIONS",
     "get_role_config",
     "get_role_display_name",
     "get_default_permissions",
     "get_all_role_configs",
     "validate_role_permissions",
-    
-    # Role Setup Utilities
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",

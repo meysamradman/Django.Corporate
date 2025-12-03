@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Portfolio PDF List Export Service
-Handles PDF export functionality for portfolio list (table format, similar to Excel)
-"""
 from io import BytesIO
 from datetime import datetime
 from html import escape
@@ -11,7 +6,6 @@ import platform
 from django.http import HttpResponse
 from django.conf import settings
 
-# Try to import jdatetime for Persian date conversion
 try:
     import jdatetime
     JDATETIME_AVAILABLE = True
@@ -30,16 +24,16 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-from src.portfolio.messages.messages import PORTFOLIO_ERRORS
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS, PDF_LABELS
 
 
 class PortfolioPDFListExportService:
     
-    PRIMARY_COLOR = colors.HexColor('#2563eb')  # Blue
-    LIGHT_BG = colors.HexColor('#f8fafc')  # Slate 50
-    BORDER_COLOR = colors.HexColor('#e2e8f0')  # Slate 200
-    TEXT_PRIMARY = colors.HexColor('#0f172a')  # Slate 900
-    TEXT_SECONDARY = colors.HexColor('#475569')  # Slate 600
+    PRIMARY_COLOR = colors.HexColor('#2563eb')
+    LIGHT_BG = colors.HexColor('#f8fafc')
+    BORDER_COLOR = colors.HexColor('#e2e8f0')
+    TEXT_PRIMARY = colors.HexColor('#0f172a')
+    TEXT_SECONDARY = colors.HexColor('#475569')
     
     @staticmethod
     def _register_persian_font():
@@ -100,7 +94,7 @@ class PortfolioPDFListExportService:
             textColor=PortfolioPDFListExportService.PRIMARY_COLOR,
             spaceAfter=12,
             spaceBefore=20,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=20,
         )
@@ -111,10 +105,10 @@ class PortfolioPDFListExportService:
             fontSize=10,
             textColor=PortfolioPDFListExportService.TEXT_PRIMARY,
             spaceAfter=10,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=14,
-            wordWrap='LTR',  # Enable word wrapping
+            wordWrap='LTR',
         )
         
         return {
@@ -124,15 +118,6 @@ class PortfolioPDFListExportService:
     
     @staticmethod
     def export_portfolios_pdf(queryset):
-        """
-        Export portfolio list to PDF (table format, similar to Excel)
-        
-        Args:
-            queryset: Portfolio queryset with prefetch_related
-            
-        Returns:
-            HttpResponse with PDF file containing portfolio list table
-        """
         if not REPORTLAB_AVAILABLE:
             raise ImportError(PORTFOLIO_ERRORS["portfolio_export_failed"])
         
@@ -146,14 +131,11 @@ class PortfolioPDFListExportService:
                 canv.saveState()
                 canv.setFont(persian_font_name, 9)
                 canv.setFillColor(PortfolioPDFListExportService.TEXT_SECONDARY)
-                # Landscape page size: 11.69 x 8.27 inches
-                # Process Persian text for page number - larger font
-                page_text = process_persian_text(f"صفحه {doc.page}")
-                canv.setFont(persian_font_name, 10)  # Larger font for page number
+                page_text = process_persian_text(PDF_LABELS['page'].format(page=doc.page))
+                canv.setFont(persian_font_name, 10)
                 canv.drawString(40, 580, page_text)
                 canv.restoreState()
             
-            # Use landscape orientation for better table fit
             page_size = landscape(A4)
             doc = SimpleDocTemplate(buffer, pagesize=page_size, rightMargin=20, leftMargin=20, topMargin=30, bottomMargin=30)
             elements = []
@@ -162,19 +144,14 @@ class PortfolioPDFListExportService:
             heading_style = pdf_styles['heading']
             normal_style = pdf_styles['normal']
             
-            # No header - skip title and date
-            
-            # Helper function to convert date to Persian
             def convert_to_persian_date(dt):
                 if not dt:
                     return ""
                 try:
                     if JDATETIME_AVAILABLE:
                         jd = jdatetime.datetime.fromgregorian(datetime=dt)
-                        # Format: YYYY/MM/DD HH:MM:SS
                         return jd.strftime("%Y/%m/%d %H:%M:%S")
                     else:
-                        # Fallback: simple conversion
                         year = dt.year - 621
                         month = dt.month
                         day = dt.day
@@ -183,58 +160,52 @@ class PortfolioPDFListExportService:
                     return dt.strftime("%Y-%m-%d %H:%M:%S")
             
             table_headers = [
-                process_persian_text('وضعیت'),
-                process_persian_text('تاریخ ایجاد'),
-                process_persian_text('گزینه‌ها'),
-                process_persian_text('تگ‌ها'),
-                process_persian_text('دسته‌بندی‌ها'),
-                process_persian_text('فعال'),
-                process_persian_text('عمومی'),
-                process_persian_text('ویژه'),
+                process_persian_text(PDF_LABELS['status']),
+                process_persian_text(PDF_LABELS['created_at']),
+                process_persian_text(PDF_LABELS['options']),
+                process_persian_text(PDF_LABELS['tags']),
+                process_persian_text(PDF_LABELS['categories']),
+                process_persian_text(PDF_LABELS['active']),
+                process_persian_text(PDF_LABELS['public']),
+                process_persian_text(PDF_LABELS['featured']),
                 process_persian_text('ID'),
-                process_persian_text('عنوان')
+                process_persian_text(PDF_LABELS['title'])
             ]
             
-            # Escape headers and convert to strings
             escaped_headers = [escape(str(header)) for header in table_headers]
             
-            # Table data rows
             table_data = [escaped_headers]
             
             for portfolio in queryset:
-                # Get list items
                 categories = [cat.name for cat in portfolio.categories.all()]
                 tags = [tag.name for tag in portfolio.tags.all()]
                 options = [opt.name + (f" ({opt.description})" if opt.description else "") for opt in portfolio.options.all()]
                 
-                # Title - will be converted to Paragraph for right alignment
                 title_text = portfolio.title or ""
                 
-                # Status - convert to Persian
                 status_display = portfolio.get_status_display() if hasattr(portfolio, 'get_status_display') else str(portfolio.status)
                 if status_display == 'Published':
-                    status_display = 'منتشر شده'
+                    status_display = PDF_LABELS['published']
                 elif status_display == 'Draft':
-                    status_display = 'پیش‌نویس'
+                    status_display = PDF_LABELS['draft']
                 elif status_display == 'Archived':
-                    status_display = 'بایگانی شده'
+                    status_display = PDF_LABELS['archived']
                 
                 row = [
                     status_display,
                     convert_to_persian_date(portfolio.created_at) if portfolio.created_at else "",
-                    options,  # Will be converted to bullet list
-                    tags,  # Will be converted to bullet list
-                    categories,  # Will be converted to bullet list
-                    "بله" if portfolio.is_active else "خیر",
-                    "بله" if portfolio.is_public else "خیر",
-                    "بله" if portfolio.is_featured else "خیر",
+                    options,
+                    tags,
+                    categories,
+                    PDF_LABELS['yes'] if portfolio.is_active else PDF_LABELS['no'],
+                    PDF_LABELS['yes'] if portfolio.is_public else PDF_LABELS['no'],
+                    PDF_LABELS['yes'] if portfolio.is_featured else PDF_LABELS['no'],
                     str(portfolio.id),
                     title_text
                 ]
                 
                 table_data.append(row)
             
-            # Calculate available width (landscape A4: 11.69" - margins: 0.4" = 11.29")
             available_width = 11.29 * inch
             col_widths = [
                 0.8*inch,
@@ -248,44 +219,36 @@ class PortfolioPDFListExportService:
                 0.5*inch,
                 2.0*inch,
             ]
-            # Total: ~10.9 inch
             
             table = Table(table_data, colWidths=col_widths, repeatRows=1)
             
-            # Apply table style - clean style like the reference image
             table_style = TableStyle([
-                # Header row - simple, no background color - larger and bolder
                 ('FONTNAME', (0, 0), (-1, 0), persian_font_name),
-                ('FONTSIZE', (0, 0), (-1, 0), 11),  # Larger font
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
                 ('TEXTCOLOR', (0, 0), (-1, 0), PortfolioPDFListExportService.TEXT_PRIMARY),
-                ('BOLD', (0, 0), (-1, 0), True),  # Already bold
+                ('BOLD', (0, 0), (-1, 0), True),
                 ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
                 ('ALIGN', (0, 0), (-1, 0), 'RIGHT'),
                 
-                # Data rows - general styling - larger font
                 ('FONTNAME', (0, 1), (-1, -1), persian_font_name),
-                ('FONTSIZE', (0, 1), (-1, -1), 10),  # Larger font (was 8)
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
                 ('TEXTCOLOR', (0, 1), (-1, -1), PortfolioPDFListExportService.TEXT_PRIMARY),
                 ('VALIGN', (0, 1), (-1, -1), 'TOP'),
                 
                 ('ALIGN', (0, 1), (-1, -1), 'RIGHT'),
                 
-                # Borders - only horizontal lines between rows, no vertical lines
-                ('LINEBELOW', (0, 0), (-1, 0), 1, PortfolioPDFListExportService.BORDER_COLOR),  # Header bottom border
-                ('LINEBELOW', (0, 1), (-1, -1), 0.5, PortfolioPDFListExportService.BORDER_COLOR),  # Row separators
+                ('LINEBELOW', (0, 0), (-1, 0), 1, PortfolioPDFListExportService.BORDER_COLOR),
+                ('LINEBELOW', (0, 1), (-1, -1), 0.5, PortfolioPDFListExportService.BORDER_COLOR),
                 
-                # Alternating row colors
                 ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, PortfolioPDFListExportService.LIGHT_BG]),
                 
-                # Padding - reduced for better fit
                 ('LEFTPADDING', (0, 0), (-1, -1), 6),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 6),
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ])
             
-            # Convert cells to proper format: Title to Paragraph (right-aligned), Lists to bullet list Paragraphs
-            for row_idx in range(1, len(table_data)):  # Skip header
+            for row_idx in range(1, len(table_data)):
                 row = table_data[row_idx]
                 
                 if len(row) > 0:
@@ -298,7 +261,6 @@ class PortfolioPDFListExportService:
                     )
                     row[0] = status_para
                 
-                # Convert date (col 1) to Paragraph with right alignment
                 if len(row) > 1:
                     date_text = escape(process_persian_text(str(row[1])))
                     date_para = Paragraph(
@@ -330,7 +292,6 @@ class PortfolioPDFListExportService:
                             )
                             row[col_idx] = list_para
                         else:
-                            # Fallback for non-list values
                             cell_text = escape(process_persian_text(str(items)))
                             row[col_idx] = cell_text
                 
@@ -345,7 +306,6 @@ class PortfolioPDFListExportService:
                         )
                         row[col_idx] = cell_para
                 
-                # Convert ID (col 8) to Paragraph
                 if len(row) > 8:
                     id_text = escape(process_persian_text(str(row[8])))
                     id_para = Paragraph(
@@ -356,7 +316,6 @@ class PortfolioPDFListExportService:
                     )
                     row[8] = id_para
                 
-                # Convert title (col 9 - last) to Paragraph with right alignment and word wrap
                 if len(row) > 9:
                     title_text = escape(process_persian_text(str(row[9])))
                     title_para = Paragraph(
@@ -367,12 +326,10 @@ class PortfolioPDFListExportService:
                     )
                     row[9] = title_para
             
-            # Create table with processed data
             table = Table(table_data, colWidths=col_widths, repeatRows=1)
             table.setStyle(table_style)
             elements.append(table)
             
-            # Build PDF
             doc.build(elements, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
             buffer.seek(0)
             

@@ -1,7 +1,3 @@
-"""
-Content Statistics Service - Portfolio, blog, media stats
-Requires: statistics.content.read permission
-"""
 from django.core.cache import cache
 from django.utils import timezone
 from src.portfolio.models.portfolio import Portfolio
@@ -11,16 +7,11 @@ from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManag
 
 
 class ContentStatsService:
-    """
-    Content statistics - Portfolio, blog, media, categories
-    """
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = 300
     REQUIRED_PERMISSION = 'statistics.content.read'
     
     @classmethod
     def get_stats(cls) -> dict:
-        """Get content statistics"""
-        # ✅ Use standardized cache key from StatisticsCacheKeys
         cache_key = StatisticsCacheKeys.content()
         data = cache.get(cache_key)
         if not data:
@@ -30,7 +21,6 @@ class ContentStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
-        """Calculate content statistics"""
         total_media = (
             ImageMedia.objects.count() +
             VideoMedia.objects.count() +
@@ -56,7 +46,5 @@ class ContentStatsService:
     
     @classmethod
     def clear_cache(cls):
-        """Clear content stats cache"""
-        # ✅ Use Cache Manager for standardized cache invalidation
         StatisticsCacheManager.invalidate_content()
 

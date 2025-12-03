@@ -3,8 +3,6 @@ from src.portfolio.models.category import PortfolioCategory
 
 
 class PortfolioCategoryPublicFilter(filters.FilterSet):
-    """Public category filters for website"""
-    
     name = filters.CharFilter(
         field_name='name',
         lookup_expr='icontains',

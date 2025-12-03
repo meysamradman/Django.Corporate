@@ -24,10 +24,8 @@ class FAQ(BaseModel):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         ChatbotCacheManager.invalidate_faqs()
     
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation
         ChatbotCacheManager.invalidate_faqs()

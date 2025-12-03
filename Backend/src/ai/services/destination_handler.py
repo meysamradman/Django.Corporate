@@ -76,8 +76,6 @@ class ContentDestinationHandler:
                     tags = BlogTag.objects.filter(id__in=tag_ids, is_active=True)
                     blog.tags.set(tags)
                 
-                
-                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                 from src.blog.utils.cache import BlogCacheManager
                 BlogCacheManager.invalidate_blog(blog.id)
                 
@@ -106,7 +104,6 @@ class ContentDestinationHandler:
         
         try:
             with transaction.atomic():
-                # Create unique slug
                 base_slug = content_data.get('slug', slugify(content_data['title']))
                 slug = base_slug
                 counter = 1
@@ -142,8 +139,6 @@ class ContentDestinationHandler:
                     options = PortfolioOption.objects.filter(id__in=option_ids, is_active=True)
                     portfolio.options.set(options)
                 
-                
-                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                 from src.portfolio.utils.cache import PortfolioCacheManager
                 PortfolioCacheManager.invalidate_portfolio(portfolio.id)
                 
@@ -162,10 +157,10 @@ class ContentDestinationHandler:
     
     @classmethod
     def _save_to_podcast(cls, content_data, destination_data, admin):
-
-        raise NotImplementedError("Podcast app هنوز پیاده‌سازی نشده است")
+        from src.ai.messages.messages import CONTENT_ERRORS
+        raise NotImplementedError(CONTENT_ERRORS.get("destination_not_supported", "Destination not supported").format(destination="podcast"))
     
     @classmethod
     def _save_to_custom(cls, content_data, destination_data, admin):
-
-        raise NotImplementedError("Custom destination هنوز پیاده‌سازی نشده است")
+        from src.ai.messages.messages import CONTENT_ERRORS
+        raise NotImplementedError(CONTENT_ERRORS.get("destination_not_supported", "Destination not supported").format(destination="custom"))

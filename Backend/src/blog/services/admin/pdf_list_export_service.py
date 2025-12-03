@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Blog PDF List Export Service
-Handles PDF export functionality for blog list (table format, similar to Excel)
-"""
 from io import BytesIO
 from datetime import datetime
 from html import escape
@@ -11,7 +6,6 @@ import platform
 from django.http import HttpResponse
 from django.conf import settings
 
-# Try to import jdatetime for Persian date conversion
 try:
     import jdatetime
     JDATETIME_AVAILABLE = True
@@ -30,16 +24,16 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-from src.blog.messages.messages import BLOG_ERRORS
+from src.blog.messages.messages import BLOG_ERRORS, PDF_LABELS
 
 
 class BlogPDFListExportService:
     
-    PRIMARY_COLOR = colors.HexColor('#2563eb')  # Blue
-    LIGHT_BG = colors.HexColor('#f8fafc')  # Slate 50
-    BORDER_COLOR = colors.HexColor('#e2e8f0')  # Slate 200
-    TEXT_PRIMARY = colors.HexColor('#0f172a')  # Slate 900
-    TEXT_SECONDARY = colors.HexColor('#475569')  # Slate 600
+    PRIMARY_COLOR = colors.HexColor('#2563eb')
+    LIGHT_BG = colors.HexColor('#f8fafc')
+    BORDER_COLOR = colors.HexColor('#e2e8f0')
+    TEXT_PRIMARY = colors.HexColor('#0f172a')
+    TEXT_SECONDARY = colors.HexColor('#475569')
     
     @staticmethod
     def _register_persian_font():
@@ -100,7 +94,7 @@ class BlogPDFListExportService:
             textColor=BlogPDFListExportService.PRIMARY_COLOR,
             spaceAfter=12,
             spaceBefore=20,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=20,
         )
@@ -111,10 +105,10 @@ class BlogPDFListExportService:
             fontSize=10,
             textColor=BlogPDFListExportService.TEXT_PRIMARY,
             spaceAfter=10,
-            alignment=2,  # RIGHT alignment for RTL
+            alignment=2,
             fontName=persian_font_name,
             leading=14,
-            wordWrap='LTR',  # Enable word wrapping
+            wordWrap='LTR',
         )
         
         return {
@@ -124,15 +118,6 @@ class BlogPDFListExportService:
     
     @staticmethod
     def export_blogs_pdf(queryset):
-        """
-        Export blog list to PDF (table format, similar to Excel)
-        
-        Args:
-            queryset: Blog queryset with prefetch_related
-            
-        Returns:
-            HttpResponse with PDF file containing blog list table
-        """
         if not REPORTLAB_AVAILABLE:
             raise ImportError(BLOG_ERRORS["blog_export_failed"])
         
@@ -146,14 +131,11 @@ class BlogPDFListExportService:
                 canv.saveState()
                 canv.setFont(persian_font_name, 9)
                 canv.setFillColor(BlogPDFListExportService.TEXT_SECONDARY)
-                # Landscape page size: 11.69 x 8.27 inches
-                # Process Persian text for page number - larger font
-                page_text = process_persian_text(f"صفحه {doc.page}")
-                canv.setFont(persian_font_name, 10)  # Larger font for page number
+                page_text = process_persian_text(PDF_LABELS['page'].format(page=doc.page))
+                canv.setFont(persian_font_name, 10)
                 canv.drawString(40, 580, page_text)
                 canv.restoreState()
             
-            # Use landscape orientation for better table fit
             page_size = landscape(A4)
             doc = SimpleDocTemplate(buffer, pagesize=page_size, rightMargin=20, leftMargin=20, topMargin=30, bottomMargin=30)
             elements = []
@@ -162,19 +144,14 @@ class BlogPDFListExportService:
             heading_style = pdf_styles['heading']
             normal_style = pdf_styles['normal']
             
-            # No header - skip title and date
-            
-            # Helper function to convert date to Persian
             def convert_to_persian_date(dt):
                 if not dt:
                     return ""
                 try:
                     if JDATETIME_AVAILABLE:
                         jd = jdatetime.datetime.fromgregorian(datetime=dt)
-                        # Format: YYYY/MM/DD HH:MM:SS
                         return jd.strftime("%Y/%m/%d %H:%M:%S")
                     else:
-                        # Fallback: simple conversion
                         year = dt.year - 621
                         month = dt.month
                         day = dt.day
@@ -191,47 +168,41 @@ class BlogPDFListExportService:
                 process_persian_text('عمومی'),
                 process_persian_text('ویژه'),
                 process_persian_text('ID'),
-                process_persian_text('عنوان')
+                process_persian_text(PDF_LABELS['title'])
             ]
             
-            # Escape headers and convert to strings
             escaped_headers = [escape(str(header)) for header in table_headers]
             
-            # Table data rows
             table_data = [escaped_headers]
             
             for blog in queryset:
-                # Get list items
                 categories = [cat.name for cat in blog.categories.all()]
                 tags = [tag.name for tag in blog.tags.all()]
                 
-                # Title - will be converted to Paragraph for right alignment
                 title_text = blog.title or ""
                 
-                # Status - convert to Persian
                 status_display = blog.get_status_display() if hasattr(blog, 'get_status_display') else str(blog.status)
                 if status_display == 'Published':
-                    status_display = 'منتشر شده'
+                    status_display = PDF_LABELS['published']
                 elif status_display == 'Draft':
-                    status_display = 'پیش‌نویس'
+                    status_display = PDF_LABELS['draft']
                 elif status_display == 'Archived':
-                    status_display = 'بایگانی شده'
+                    status_display = PDF_LABELS['archived']
                 
                 row = [
                     status_display,
                     convert_to_persian_date(blog.created_at) if blog.created_at else "",
-                    tags,  # Will be converted to bullet list
-                    categories,  # Will be converted to bullet list
-                    "بله" if blog.is_active else "خیر",
-                    "بله" if blog.is_public else "خیر",
-                    "بله" if blog.is_featured else "خیر",
+                    tags,
+                    categories,
+                    PDF_LABELS['yes'] if blog.is_active else PDF_LABELS['no'],
+                    PDF_LABELS['yes'] if blog.is_public else PDF_LABELS['no'],
+                    PDF_LABELS['yes'] if blog.is_featured else PDF_LABELS['no'],
                     str(blog.id),
                     title_text
                 ]
                 
                 table_data.append(row)
             
-            # Calculate available width (landscape A4: 11.69" - margins: 0.4" = 11.29")
             available_width = 11.29 * inch
             col_widths = [
                 0.8*inch,
@@ -245,44 +216,36 @@ class BlogPDFListExportService:
                 0.5*inch,
                 2.0*inch,
             ]
-            # Total: ~10.9 inch
             
             table = Table(table_data, colWidths=col_widths, repeatRows=1)
             
-            # Apply table style - clean style like the reference image
             table_style = TableStyle([
-                # Header row - simple, no background color - larger and bolder
                 ('FONTNAME', (0, 0), (-1, 0), persian_font_name),
-                ('FONTSIZE', (0, 0), (-1, 0), 11),  # Larger font
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
                 ('TEXTCOLOR', (0, 0), (-1, 0), BlogPDFListExportService.TEXT_PRIMARY),
-                ('BOLD', (0, 0), (-1, 0), True),  # Already bold
+                ('BOLD', (0, 0), (-1, 0), True),
                 ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
                 ('ALIGN', (0, 0), (-1, 0), 'RIGHT'),
                 
-                # Data rows - general styling - larger font
                 ('FONTNAME', (0, 1), (-1, -1), persian_font_name),
-                ('FONTSIZE', (0, 1), (-1, -1), 10),  # Larger font (was 8)
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
                 ('TEXTCOLOR', (0, 1), (-1, -1), BlogPDFListExportService.TEXT_PRIMARY),
                 ('VALIGN', (0, 1), (-1, -1), 'TOP'),
                 
                 ('ALIGN', (0, 1), (-1, -1), 'RIGHT'),
                 
-                # Borders - only horizontal lines between rows, no vertical lines
-                ('LINEBELOW', (0, 0), (-1, 0), 1, BlogPDFListExportService.BORDER_COLOR),  # Header bottom border
-                ('LINEBELOW', (0, 1), (-1, -1), 0.5, BlogPDFListExportService.BORDER_COLOR),  # Row separators
+                ('LINEBELOW', (0, 0), (-1, 0), 1, BlogPDFListExportService.BORDER_COLOR),
+                ('LINEBELOW', (0, 1), (-1, -1), 0.5, BlogPDFListExportService.BORDER_COLOR),
                 
-                # Alternating row colors
                 ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, BlogPDFListExportService.LIGHT_BG]),
                 
-                # Padding - reduced for better fit
                 ('LEFTPADDING', (0, 0), (-1, -1), 6),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 6),
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ])
             
-            # Convert cells to proper format: Title to Paragraph (right-aligned), Lists to bullet list Paragraphs
-            for row_idx in range(1, len(table_data)):  # Skip header
+            for row_idx in range(1, len(table_data)):
                 row = table_data[row_idx]
                 
                 if len(row) > 0:
@@ -325,7 +288,6 @@ class BlogPDFListExportService:
                             )
                             row[col_idx] = list_para
                         else:
-                            # Fallback for non-list values
                             cell_text = escape(process_persian_text(str(items)))
                             row[col_idx] = cell_text
                 
@@ -340,7 +302,6 @@ class BlogPDFListExportService:
                         )
                         row[col_idx] = cell_para
                 
-                # Convert ID (col 8) to Paragraph
                 if len(row) > 8:
                     id_text = escape(process_persian_text(str(row[8])))
                     id_para = Paragraph(
@@ -351,7 +312,6 @@ class BlogPDFListExportService:
                     )
                     row[8] = id_para
                 
-                # Convert title (col 9 - last) to Paragraph with right alignment and word wrap
                 if len(row) > 9:
                     title_text = escape(process_persian_text(str(row[9])))
                     title_para = Paragraph(
@@ -362,12 +322,10 @@ class BlogPDFListExportService:
                     )
                     row[9] = title_para
             
-            # Create table with processed data
             table = Table(table_data, colWidths=col_widths, repeatRows=1)
             table.setStyle(table_style)
             elements.append(table)
             
-            # Build PDF
             doc.build(elements, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
             buffer.seek(0)
             

@@ -16,7 +16,6 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('chatbot.manage')]
     
     def get_queryset(self):
@@ -66,7 +65,6 @@ class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
     serializer_class = ChatbotSettingsSerializer
     
     def get_permissions(self):
-        """تعیین دسترسی‌ها"""
         return [RequirePermission('chatbot.manage')]
     
     def get_queryset(self):
@@ -79,7 +77,7 @@ class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(settings)
         return APIResponse.success(
-            message=CHATBOT_SUCCESS.get('settings_retrieved', 'تنظیمات دریافت شد.'),
+            message=CHATBOT_SUCCESS.get('settings_retrieved', CHATBOT_SUCCESS.get('settings_updated', '')),
             data=serializer.data
         )
     

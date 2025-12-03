@@ -33,7 +33,6 @@ class OpenRouterModelCache:
     def clear_provider(provider_filter: Optional[str] = None):
         from django.core.cache import cache
         from src.ai.utils.cache import AICacheKeys
-        # ✅ Use standardized cache key from AICacheKeys
         cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         cache.delete(cache_key)
 
@@ -63,11 +62,9 @@ class OpenRouterProvider(BaseProvider):
             "Content-Type": "application/json",
         }
         
-        # Add optional headers only if they're not empty
         if self.http_referer:
             headers["HTTP-Referer"] = self.http_referer
         else:
-            # OpenRouter recommends setting HTTP-Referer
             headers["HTTP-Referer"] = "https://localhost:3000"
         
         if self.x_title:
@@ -80,21 +77,17 @@ class OpenRouterProvider(BaseProvider):
     
     def validate_api_key(self) -> bool:
         try:
-            # Check if key format is correct (OpenRouter API keys start with 'sk-or-')
             if not self.api_key or not self.api_key.startswith('sk-or-'):
                 return False
             
-            # Make a simple test request to validate the key (with shorter timeout)
             url = f"{self.BASE_URL}/models"
             headers = self._get_headers()
             
-            # Use sync client for validation with shorter timeout to avoid hanging
             import httpx
             with httpx.Client(timeout=5.0) as client:
                 response = client.get(url, headers=headers)
                 return response.status_code == 200
         except (httpx.TimeoutException, httpx.RequestError, Exception):
-            # Return False on any error to prevent hanging
             return False
     
     @classmethod
@@ -230,7 +223,6 @@ class OpenRouterProvider(BaseProvider):
         except Exception as e:
             raise Exception(f"{IMAGE_ERRORS.get('image_generation_failed', 'Image generation failed')}: {str(e)}")
     
-    # Content generation
     async def generate_content(self, prompt: str, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
         
@@ -280,7 +272,6 @@ class OpenRouterProvider(BaseProvider):
             from src.ai.messages.messages import CONTENT_ERRORS
             raise Exception(f"{CONTENT_ERRORS.get('content_generation_failed', 'Content generation failed')}: {str(e)}")
     
-    # SEO content generation
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
@@ -332,7 +323,6 @@ Return output as JSON with the following structure:
                 }
             ],
             "temperature": kwargs.get('temperature', 0.7),
-            # Calculate max_tokens based on word_count (approximately 1.3x for Persian + HTML)
             "max_tokens": kwargs.get('max_tokens', int(word_count * 1.5)),
         }
         
@@ -348,9 +338,7 @@ Return output as JSON with the following structure:
             if 'choices' in data and len(data['choices']) > 0:
                 content_str = data['choices'][0]['message']['content'].strip()
                 
-                # Try to parse JSON response
                 try:
-                    # Try to extract JSON from markdown code blocks if present
                     if '```json' in content_str:
                         json_start = content_str.find('```json') + 7
                         json_end = content_str.find('```', json_start)
@@ -363,7 +351,6 @@ Return output as JSON with the following structure:
                     seo_data = json.loads(content_str)
                     return seo_data
                 except json.JSONDecodeError as e:
-                    # Fallback: Create simple structure from text
                     from unidecode import unidecode
                     import re
                     

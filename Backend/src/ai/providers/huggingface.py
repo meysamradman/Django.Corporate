@@ -198,9 +198,7 @@ class HuggingFaceProvider(BaseProvider):
                 raise Exception(AI_ERRORS.get("image_generation_timeout", "Image generation timeout"))
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=error_str))
     
-    # Content generation methods
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        # Use new endpoint: https://router.huggingface.co/hf-inference/models/{model_id}
         url = f"{self.BASE_URL}/models/{self.content_model}"
         
         headers = {
@@ -220,7 +218,7 @@ class HuggingFaceProvider(BaseProvider):
         payload = {
             "inputs": full_prompt,
             "parameters": {
-                "max_new_tokens": word_count * 2,  # Approximate token count
+                "max_new_tokens": word_count * 2,
                 "temperature": 0.7,
                 "top_p": 0.9,
                 "return_full_text": False,
@@ -234,11 +232,9 @@ class HuggingFaceProvider(BaseProvider):
             
             data = response.json()
             
-            # Handle different response formats
             if isinstance(data, list) and len(data) > 0:
                 generated_text = data[0].get('generated_text', '')
                 if generated_text:
-                    # Remove the original prompt if it's included
                     if full_prompt in generated_text:
                         generated_text = generated_text.replace(full_prompt, '').strip()
                     return generated_text.strip()
@@ -286,7 +282,6 @@ class HuggingFaceProvider(BaseProvider):
         
         keywords_str = ', '.join(keywords) if keywords else ''
         
-        # Build comprehensive prompt for SEO content
         seo_prompt = f"""Write a complete SEO-optimized article in Persian (Farsi) in JSON format.
 
 Topic: {topic}
@@ -324,7 +319,7 @@ Return ONLY the JSON object, nothing else."""
         payload = {
             "inputs": seo_prompt,
             "parameters": {
-                "max_new_tokens": word_count * 3,  # More tokens for structured output
+                "max_new_tokens": word_count * 3,
                 "temperature": 0.7,
                 "top_p": 0.9,
                 "return_full_text": False,
@@ -338,7 +333,6 @@ Return ONLY the JSON object, nothing else."""
             
             data = response.json()
             
-            # Extract generated text
             generated_text = ""
             if isinstance(data, list) and len(data) > 0:
                 generated_text = data[0].get('generated_text', '')
@@ -348,23 +342,19 @@ Return ONLY the JSON object, nothing else."""
             if not generated_text:
                 raise Exception(AI_ERRORS.get("content_generation_failed", "No content generated"))
             
-            # Remove prompt if included
             if seo_prompt in generated_text:
                 generated_text = generated_text.replace(seo_prompt, '').strip()
             
-            # Clean and extract JSON
             generated_text = generated_text.strip()
             if generated_text.startswith('```'):
                 generated_text = re.sub(r'^```json\s*', '', generated_text)
                 generated_text = re.sub(r'^```\s*', '', generated_text)
                 generated_text = re.sub(r'\s*```$', '', generated_text)
             
-            # Try to parse JSON
             try:
                 seo_data = json.loads(generated_text)
                 return seo_data
             except json.JSONDecodeError:
-                # Try to extract JSON from text
                 json_match = re.search(r'\{.*\}', generated_text, re.DOTALL)
                 if json_match:
                     seo_data = json.loads(json_match.group())
@@ -399,7 +389,6 @@ Return ONLY the JSON object, nothing else."""
         except Exception as e:
             raise Exception(AI_ERRORS.get("content_generation_failed", "Content generation failed").format(error=str(e)))
     
-    # Chat method
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/models/{self.content_model}"
         
@@ -408,10 +397,8 @@ Return ONLY the JSON object, nothing else."""
             "Content-Type": "application/json",
         }
         
-        # Build prompt from conversation history and current message
         system_message = kwargs.get('system_message') or 'You are a helpful AI assistant.'
         
-        # Build full prompt with conversation history
         full_prompt = system_message + "\n\n"
         
         if conversation_history:
@@ -419,12 +406,11 @@ Return ONLY the JSON object, nothing else."""
                 role = msg.get('role', 'user')
                 content = msg.get('content', '')
                 if role == 'user':
-                    full_prompt += f"کاربر: {content}\n"
+                    full_prompt += f"User: {content}\n"
                 elif role == 'assistant':
-                    full_prompt += f"دستیار: {content}\n"
+                    full_prompt += f"Assistant: {content}\n"
         
-        # Add current message
-        full_prompt += f"کاربر: {message}\nدستیار:"
+        full_prompt += f"User: {message}\nAssistant:"
         
         payload = {
             "inputs": full_prompt,
@@ -443,11 +429,9 @@ Return ONLY the JSON object, nothing else."""
             
             data = response.json()
             
-            # Handle different response formats
             if isinstance(data, list) and len(data) > 0:
                 generated_text = data[0].get('generated_text', '')
                 if generated_text:
-                    # Remove the original prompt if it's included
                     if full_prompt in generated_text:
                         generated_text = generated_text.replace(full_prompt, '').strip()
                     return generated_text.strip()

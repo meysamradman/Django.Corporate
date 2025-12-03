@@ -36,14 +36,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
             if profile.first_name and profile.last_name:
                 return f"{profile.first_name} {profile.last_name}"
         
-        # Fallback to identifier for users without a completed profile
         return obj.mobile or obj.email or str(obj.id)
     
     def to_representation(self, instance):
-        """Ensure permission fields are not injected by shared mixins."""
         data = super().to_representation(instance)
         
-        # Guard against injected permission field
         data.pop('permissions', None)
         
         return data
@@ -59,17 +56,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
     
     def to_internal_value(self, data):
-        """Override to pass user_id to profile serializer"""
-        # Get user_id for profile validation
         user_id = self.context.get('user_id') or (self.instance.id if self.instance else None)
         
-        # Update profile data context if it exists
         if 'profile' in data and isinstance(data['profile'], dict):
-            # Create a temporary context for profile validation
             profile_context = self.context.copy()
             profile_context['user_id'] = user_id
             
-            # Validate profile data separately
             profile_serializer = UserProfileUpdateSerializer(
                 instance=self.instance.user_profile if self.instance and hasattr(self.instance, 'user_profile') else None,
                 data=data['profile'],
@@ -81,13 +73,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
     
     def validate_email(self, value):
-        """Validate email format and uniqueness"""
         if value:
             try:
-                # Validate email format
                 validated_email = validate_email_address(value)
                 
-                # Check uniqueness (exclude current user)
                 user_id = self.context.get('user_id') or (self.instance.id if self.instance else None)
                 
                 if user_id and User.objects.filter(email=validated_email).exclude(id=user_id).exists():
@@ -99,13 +88,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_mobile(self, value):
-        """Validate mobile format and uniqueness"""
         if value:
             try:
-                # Validate mobile format
                 validated_mobile = validate_mobile_number(value)
                 
-                # Check uniqueness (exclude current user)
                 user_id = self.context.get('user_id') or (self.instance.id if self.instance else None)
                 
                 if user_id and User.objects.filter(mobile=validated_mobile).exclude(id=user_id).exists():
@@ -123,8 +109,6 @@ class UserFilterSerializer(serializers.Serializer):
         choices=['-created_at', 'created_at', '-updated_at', 'updated_at'],
         required=False
     )
-
-# UserCreateSerializer removed - use UserRegisterByAdminSerializer instead
 
 class BulkDeleteSerializer(serializers.Serializer):
     ids = serializers.ListField(

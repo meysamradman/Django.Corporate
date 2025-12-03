@@ -8,9 +8,6 @@ from src.media.models.media import ImageMedia
 class UserProfileService:
     @staticmethod
     def get_user_profile(user):
-        """
-        Retrieve or create the profile associated with a regular user.
-        """
         try:
             profile_instance = getattr(user, 'user_profile', None)
 
@@ -26,9 +23,6 @@ class UserProfileService:
 
     @staticmethod
     def update_user_profile(user, profile_data):
-        """
-        Update a regular user's profile with the provided data.
-        """
         if not profile_data:
             return UserProfileService.get_user_profile(user)
 
@@ -44,7 +38,6 @@ class UserProfileService:
             for field, value in profile_data.items():
                 current_value = getattr(profile, field, None)
                 
-                # Handle foreign key fields (province, city)
                 if field in ['province', 'city']:
                     current_id = getattr(current_value, 'id', None) if current_value else None
                     new_id = value if isinstance(value, int) else getattr(value, 'id', None) if value else None
@@ -69,14 +62,11 @@ class UserProfileService:
                             fields_actually_updated.append(field)
                             update_needed = True
                 else:
-                    # Handle primitive fields
                     if str(value or '') != str(current_value or ''):
                         setattr(profile, field, value)
                         fields_actually_updated.append(field)
                         update_needed = True
             
-            
-            # Process profile picture updates separately
             if profile_picture is not None:
                 current_profile_picture = getattr(profile, 'profile_picture', None)
                 current_id = getattr(current_profile_picture, 'id', None) if current_profile_picture else None
@@ -104,7 +94,6 @@ class UserProfileService:
                         pass
             
             if update_needed:
-                # Guard against duplicate national_id values before saving
                 if 'national_id' in fields_actually_updated:
                     national_id = getattr(profile, 'national_id', None)
                     if national_id:
@@ -125,8 +114,6 @@ class UserProfileService:
             return profile
                     
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise ValidationError(AUTH_ERRORS.get("auth_profile_failed"))
 
     @staticmethod

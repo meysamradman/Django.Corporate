@@ -49,7 +49,6 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
     )
     
 
-    
     def validate_topic(self, value):
         if not value or not value.strip():
             raise serializers.ValidationError(AI_ERRORS["topic_required"])
@@ -63,7 +62,6 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
 
 class AIContentGenerationResponseSerializer(serializers.Serializer):
     
-    # Content data
     content = serializers.DictField(
         child=serializers.CharField(),
         help_text="Generated content data (title, content, meta_title, etc)"

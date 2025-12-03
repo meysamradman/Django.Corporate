@@ -145,7 +145,7 @@ Write the content as plain text without special formatting."""
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = f"، {', '.join(keywords)}" if keywords else ""
+        keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
         seo_prompt = OPENAI_PROMPTS['seo_content_generation'].format(
             topic=topic,
@@ -199,13 +199,9 @@ Write the content as plain text without special formatting."""
                 
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(
-                            "خطای OpenAI API: اعتبار حساب شما تمام شده است. لطفاً به https://platform.openai.com/account/billing مراجعه کنید و حساب خود را شارژ کنید."
-                        )
+                        raise Exception(OPENAI_ERRORS['billing_limit'])
                     else:
-                        raise Exception(
-                            "خطای OpenAI API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
-                        )
+                        raise Exception(OPENAI_ERRORS['rate_limit'])
                 elif status_code == 401:
                     raise Exception(OPENAI_ERRORS['invalid_api_key'])
                 elif status_code == 403:
@@ -213,8 +209,6 @@ Write the content as plain text without special formatting."""
                 
                 raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
-                if 'خطای OpenAI API' in str(ex) or 'خطا در تولید محتوا' in str(ex):
-                    raise ex
                 if status_code == 429:
                     raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
                 raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
@@ -241,11 +235,9 @@ Write the content as plain text without special formatting."""
             for msg in conversation_history:
                 role = msg.get('role', 'user')
                 content = msg.get('content', '')
-                # Map 'assistant' to 'assistant' and 'user' to 'user'
                 if role in ['user', 'assistant']:
                     messages.append({"role": role, "content": content})
         
-        # Add current message
         messages.append({"role": "user", "content": message})
         
         payload = {
@@ -284,8 +276,6 @@ Write the content as plain text without special formatting."""
                 
                 raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
-                if 'خطای OpenAI API' in str(ex):
-                    raise ex
                 if status_code == 429:
                     raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
                 raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
@@ -300,11 +290,10 @@ Write the content as plain text without special formatting."""
             "Content-Type": "application/json",
         }
         
-        # TTS parameters
-        model = kwargs.get('model', 'tts-1')  # tts-1 (fast) or tts-1-hd (high quality)
-        voice = kwargs.get('voice', 'alloy')  # alloy, echo, fable, onyx, nova, shimmer
-        response_format = kwargs.get('response_format', 'mp3')  # mp3, opus, aac, flac
-        speed = kwargs.get('speed', 1.0)  # 0.25 to 4.0
+        model = kwargs.get('model', 'tts-1')
+        voice = kwargs.get('voice', 'alloy')
+        response_format = kwargs.get('response_format', 'mp3')
+        speed = kwargs.get('speed', 1.0)
         
         payload = {
             "model": model,
@@ -318,7 +307,6 @@ Write the content as plain text without special formatting."""
             response = await self.client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             
-            # Return audio bytes
             return BytesIO(response.content)
             
         except httpx.HTTPStatusError as e:
@@ -339,8 +327,6 @@ Write the content as plain text without special formatting."""
                 
                 raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
-                if 'خطای OpenAI API' in str(ex):
-                    raise ex
                 if status_code == 429:
                     raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
                 raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))

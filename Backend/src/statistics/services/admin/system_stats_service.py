@@ -1,7 +1,3 @@
-"""
-System Statistics Service - Database size, Cache status, Storage usage
-Optimized with caching - Safe for production
-"""
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import connection
@@ -12,16 +8,11 @@ from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManag
 
 
 class SystemStatsService:
-    """
-    System statistics - Database size, Cache status, Storage usage
-    All queries are optimized and cached
-    """
-    CACHE_TIMEOUT = 600  # 10 minutes (system stats don't change frequently)
+    CACHE_TIMEOUT = 600
     REQUIRED_PERMISSION = 'statistics.system.read'
 
     @classmethod
     def get_stats(cls) -> dict:
-        """Get system statistics"""
         cache_key = StatisticsCacheKeys.system()
         data = cache.get(cache_key)
         if not data:
@@ -31,12 +22,6 @@ class SystemStatsService:
 
     @classmethod
     def _calculate_stats(cls) -> dict:
-        """
-        Calculate system statistics
-        Optimized: All queries use aggregation - no N+1 issues
-        """
-        # ✅ Storage usage by type - Single query per type with SUM
-        # Uses file_size field (already stored in DB - no file system scan needed)
         storage_by_type = {
             'image': ImageMedia.objects.aggregate(
                 total_size=Sum('file_size'),
@@ -56,13 +41,11 @@ class SystemStatsService:
             ) or {'total_size': 0, 'count': 0},
         }
 
-        # Calculate total storage
         total_storage = sum(
             data.get('total_size', 0) or 0
             for data in storage_by_type.values()
         )
 
-        # Format storage sizes
         formatted_storage = {}
         for media_type, data in storage_by_type.items():
             size_bytes = data.get('total_size', 0) or 0
@@ -74,10 +57,7 @@ class SystemStatsService:
                 'formatted': cls._format_bytes(size_bytes)
             }
 
-        # ✅ Redis Cache Status - Lightweight (Redis INFO command)
         cache_status = cls._get_cache_status()
-
-        # ✅ Database Size - Lightweight (PostgreSQL/MySQL query)
         db_size = cls._get_database_size()
 
         return {
@@ -95,23 +75,16 @@ class SystemStatsService:
 
     @classmethod
     def _get_cache_status(cls) -> dict:
-        """Get Redis cache status - Lightweight"""
         try:
             redis_client = get_redis_connection('default')
             info = redis_client.info('memory')
-            
-            # Get memory usage
             used_memory = info.get('used_memory', 0)
             used_memory_human = info.get('used_memory_human', '0B')
-            
-            # Get key count
             db_info = redis_client.info('keyspace')
             total_keys = 0
             for db_name, db_data in db_info.items():
                 if db_name.startswith('db'):
                     total_keys += db_data.get('keys', 0)
-            
-            # Get cache hit/miss stats (if available)
             stats = redis_client.info('stats')
             keyspace_hits = stats.get('keyspace_hits', 0)
             keyspace_misses = stats.get('keyspace_misses', 0)
@@ -139,14 +112,12 @@ class SystemStatsService:
 
     @classmethod
     def _get_database_size(cls) -> dict:
-        """Get database size - Lightweight (database-specific query)"""
         try:
             with connection.cursor() as cursor:
                 db_name = connection.settings_dict['NAME']
                 vendor = connection.vendor
                 
                 if vendor == 'postgresql':
-                    # PostgreSQL
                     cursor.execute("""
                         SELECT pg_size_pretty(pg_database_size(%s)) as size,
                                pg_database_size(%s) as size_bytes
@@ -161,7 +132,6 @@ class SystemStatsService:
                             'vendor': 'postgresql',
                         }
                 elif vendor == 'mysql':
-                    # MySQL
                     cursor.execute("""
                         SELECT 
                             ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb,
@@ -180,7 +150,6 @@ class SystemStatsService:
                             'vendor': 'mysql',
                         }
                 elif vendor == 'sqlite':
-                    # SQLite - get file size
                     import os
                     db_path = connection.settings_dict['NAME']
                     if os.path.exists(db_path):
@@ -212,7 +181,6 @@ class SystemStatsService:
 
     @staticmethod
     def _format_bytes(bytes_size: int) -> str:
-        """Format bytes to human readable format"""
         if bytes_size == 0:
             return '0 B'
         
@@ -224,6 +192,5 @@ class SystemStatsService:
 
     @classmethod
     def clear_cache(cls):
-        """Clear system stats cache"""
         StatisticsCacheManager.invalidate_system()
 

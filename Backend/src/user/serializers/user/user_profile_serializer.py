@@ -54,7 +54,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return value
 
     def validate_phone(self, value):
-        """Validate phone number format and uniqueness using centralized validator"""
         try:
             user_id = self.context.get('user_id')
             return validate_phone_number_with_uniqueness(value, user_id, 'user')
@@ -89,25 +88,22 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'first_name': {'required': False},
             'last_name': {'required': False},
             'birth_date': {'required': False},
-            'national_id': {'required': False, 'validators': []},  # Disable built-in validators
+            'national_id': {'required': False, 'validators': []},
             'address': {'required': False},
-            'phone': {'required': False, 'validators': []},  # Disable built-in validators
+            'phone': {'required': False, 'validators': []},
             'province': {'required': False},
             'city': {'required': False},
             'bio': {'required': False},
         }
     
     def validate_phone(self, value):
-        """Validate phone number format and uniqueness using centralized validator"""
         try:
-            # Get user_id from context or from instance
             user_id = self.context.get('user_id') or (self.instance.user_id if self.instance else None)
             return validate_phone_number_with_uniqueness(value, user_id, 'user')
         except Exception as e:
             raise serializers.ValidationError(str(e))
     
     def validate_national_id(self, value):
-        """Validate national_id uniqueness"""
         if value:
             user_id = self.context.get('user_id') or (self.instance.user_id if self.instance else None)
             
@@ -121,7 +117,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_profile_picture_file(self, value):
-        """Validate uploaded profile picture using the media service."""
         if value is None:
             return value
         
@@ -134,7 +129,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(e))
     
     def validate(self, data):
-        """Cross-field validation for mutually exclusive image inputs."""
         if data.get('profile_picture') and data.get('profile_picture_file'):
             raise serializers.ValidationError({
                 'profile_picture_file': AUTH_ERRORS.get("auth_validation_error")

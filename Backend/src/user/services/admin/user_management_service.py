@@ -9,9 +9,6 @@ from src.user.services.user.user_profile_service import UserProfileService
 class UserManagementService:
     @staticmethod
     def get_users_list(search=None, is_active=None, request=None):
-        """
-        Retrieve regular users list with optional filters applied.
-        """
         queryset = User.objects.select_related('user_profile').prefetch_related(
             'user_profile__profile_picture'
         ).filter(user_type='user', is_staff=False)
@@ -35,9 +32,6 @@ class UserManagementService:
 
     @staticmethod
     def get_user_detail(user_id):
-        """
-        Retrieve details for a specific regular user.
-        """
         try:
             return User.objects.select_related('user_profile').prefetch_related(
                 'user_profile__profile_picture'
@@ -47,9 +41,6 @@ class UserManagementService:
 
     @staticmethod
     def get_user_by_public_id(public_id):
-        """
-        Retrieve a user by public_id value.
-        """
         try:
             return User.objects.select_related('user_profile').prefetch_related(
                 'user_profile__profile_picture'
@@ -116,7 +107,6 @@ class UserManagementService:
                         continue
                     user_fields_to_update[field] = value
 
-            # include profile_picture so nested profile.profile_picture is handled
             profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone', 'profile_picture']
             for field in profile_model_fields:
                 if field in validated_data:
@@ -205,15 +195,12 @@ class UserManagementService:
                 if profile_fields_to_update:
                     UserProfileService.update_user_profile(user, profile_fields_to_update)
             
-            # Reload fresh user with related profile and profile picture to avoid stale relations
             user = User.objects.select_related('user_profile').prefetch_related('user_profile__profile_picture').get(id=user_id)
             return user
             
         except User.DoesNotExist:
             raise NotFound(AUTH_ERRORS["not_found"])
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise
 
     @staticmethod

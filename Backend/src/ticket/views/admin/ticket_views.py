@@ -44,7 +44,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return TicketSerializer
     
     def list(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.read
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -53,7 +52,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
     
     def retrieve(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.read
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -62,21 +60,19 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
     
     def create(self, request, *args, **kwargs):
-        # Admins can no longer create tickets - only users can
+        from src.ticket.messages.messages import TICKET_ERRORS
         return APIResponse.error(
-            message="Admins cannot create tickets. Only authenticated users can create tickets.",
+            message=TICKET_ERRORS["admin_cannot_create"],
             status_code=status.HTTP_403_FORBIDDEN
         )
     
     def update(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.update
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         response = super().update(request, *args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         ticket = self.get_object()
         TicketCacheManager.invalidate_ticket(ticket.id)
         StatisticsCacheManager.invalidate_tickets()
@@ -89,7 +85,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return response
     
     def destroy(self, request, *args, **kwargs):
-        # ✅ Support both ticket.manage and ticket.delete
         if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.delete']):
             return APIResponse.error(
                 message=TICKET_ERRORS['permission_denied'],
@@ -97,7 +92,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             )
         ticket_id = self.get_object().id
         response = super().destroy(request, *args, **kwargs)
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         TicketCacheManager.invalidate_ticket(ticket_id)
         StatisticsCacheManager.invalidate_tickets()
         if response.status_code == status.HTTP_204_NO_CONTENT:
@@ -202,25 +196,21 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             from src.ticket.models.ticket_message import TicketMessage
             from django.db.models import Exists, OuterRef
             
-            # Subquery to check if ticket has unread messages from users
             has_unread = TicketMessage.objects.filter(
                 ticket=OuterRef('pk'),
                 sender_type='user',
                 is_read=False
             )
             
-            # Get tickets with unread messages
             tickets_with_unread = Ticket.objects.annotate(
                 has_unread_messages=Exists(has_unread)
             ).filter(has_unread_messages=True)
             
-            # New tickets (open status and not assigned, with unread messages)
             new_tickets_count = tickets_with_unread.filter(
                 status='open',
                 assigned_admin__isnull=True
             ).count()
             
-            # Tickets assigned to current admin (with unread messages)
             assigned_to_me_count = 0
             if hasattr(request.user, 'admin_profile'):
                 assigned_to_me_count = tickets_with_unread.filter(
@@ -228,7 +218,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
                     status__in=['open', 'in_progress']
                 ).count()
             
-            # Recent tickets with unread messages (last 5)
             recent_tickets = tickets_with_unread.filter(
                 status__in=['open', 'in_progress']
             ).select_related('user').order_by('-created_at')[:5]
@@ -251,8 +240,9 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
                 'recent_tickets': recent_tickets_data,
             }
             
+            from src.ticket.messages.messages import TICKET_SUCCESS
             return APIResponse.success(
-                message="Ticket statistics retrieved successfully",
+                message=TICKET_SUCCESS["statistics_retrieved"],
                 data=stats,
                 status_code=status.HTTP_200_OK
             )

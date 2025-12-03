@@ -21,7 +21,6 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
         return [RequirePermission('settings.manage')]
     
     def list(self, request, *args, **kwargs):
-        """Get general settings (Singleton)"""
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings)
@@ -54,7 +53,6 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """Get general settings by ID"""
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings)
@@ -82,7 +80,6 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        """Update general settings"""
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings, data=request.data, partial=True)

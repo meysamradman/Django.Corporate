@@ -6,16 +6,14 @@ from src.blog.models.blog import Blog
 class BlogCategoryPublicService:
     @staticmethod
     def get_category_queryset(filters=None, search=None):
-        """Get optimized queryset for public category listing"""
         queryset = BlogCategory.objects.filter(
             is_active=True
         ).annotate(
             blog_count=Count('blogs', filter=Q(blogs__is_active=True, blogs__is_public=True))
         ).filter(
-            blog_count__gt=0  # Only show categories with active blogs
+            blog_count__gt=0
         )
         
-        # Apply filters
         if filters:
             if filters.get('name'):
                 queryset = queryset.filter(name__icontains=filters['name'])
@@ -26,7 +24,6 @@ class BlogCategoryPublicService:
             if filters.get('min_blog_count'):
                 queryset = queryset.filter(blog_count__gte=filters['min_blog_count'])
         
-        # Apply search
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
@@ -37,7 +34,6 @@ class BlogCategoryPublicService:
     
     @staticmethod
     def get_category_by_slug(slug):
-        """Get category by slug with blog count"""
         return BlogCategory.objects.filter(
             slug=slug, 
             is_active=True
@@ -47,7 +43,6 @@ class BlogCategoryPublicService:
     
     @staticmethod
     def get_tree_data():
-        """Get category tree for public use"""
         return BlogCategory.objects.filter(
             is_active=True
         ).annotate(
@@ -58,7 +53,6 @@ class BlogCategoryPublicService:
     
     @staticmethod
     def get_root_categories():
-        """Get root categories with blog count"""
         return BlogCategory.objects.filter(
             is_active=True,
             depth=1

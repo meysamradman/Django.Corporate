@@ -3,7 +3,6 @@ from src.blog.models.tag import BlogTag
 
 
 class BlogTagPublicSerializer(serializers.ModelSerializer):
-    """Public serializer for blog tags with blog count"""
     blog_count = serializers.IntegerField(read_only=True)
 
     class Meta:

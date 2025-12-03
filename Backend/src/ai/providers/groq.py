@@ -137,18 +137,11 @@ class GroqProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = f"""Please write a professional and SEO-optimized content in Persian (Farsi) language.
-
-موضوع: {prompt}
-
-ملاحظات:
-- طول محتوا: حدود {word_count} کلمه
-- سبک: {tone}
-- محتوا باید برای SEO بهینه باشد
-- استفاده از کلمات کلیدی طبیعی
-- ساختار منطقی و خوانا
-
-محتوا را به صورت متن ساده بدون فرمت خاص بنویسید."""
+        full_prompt = GROQ_PROMPTS["content_generation"].format(
+            topic=prompt,
+            word_count=word_count,
+            tone=tone
+        )
         
         payload = {
             "model": self.content_model,
@@ -206,7 +199,7 @@ class GroqProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = ', '.join(keywords) if keywords else 'طبیعی و مرتبط'
+        keywords_str = ', '.join(keywords) if keywords else ''
         
         prompt = GROQ_PROMPTS["seo_content_generation"].format(
             topic=topic,
@@ -232,8 +225,8 @@ class GroqProvider(BaseProvider):
                 }
             ],
             "temperature": 0.7,
-            "max_tokens": word_count * 3,  # More tokens for structured output
-            "response_format": {"type": "json_object"}  # Force JSON output
+            "max_tokens": word_count * 3,
+            "response_format": {"type": "json_object"}
         }
         
         try:
@@ -244,18 +237,15 @@ class GroqProvider(BaseProvider):
             if 'choices' in data and len(data['choices']) > 0:
                 content = data['choices'][0]['message']['content']
                 
-                # Parse JSON response
                 try:
                     seo_data = json.loads(content)
                 except json.JSONDecodeError:
-                    # Try to extract JSON from markdown code blocks
                     json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
                     if json_match:
                         seo_data = json.loads(json_match.group(1))
                     else:
                         raise Exception(GROQ_ERRORS['json_parse_error'].format(error="Invalid JSON format"))
                 
-                # Ensure all required fields
                 if 'slug' not in seo_data or not seo_data['slug']:
                     seo_data['slug'] = slugify(seo_data.get('title', topic))
                 
@@ -286,21 +276,17 @@ class GroqProvider(BaseProvider):
         except Exception as e:
             raise Exception(GROQ_ERRORS["content_generation_failed"].format(error=str(e)))
     
-    # Chat method
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = self._get_headers()
         
-        # Build messages array
         messages = []
         
-        # Add system message (optional)
         system_message = kwargs.get('system_message', AI_SYSTEM_MESSAGES['default_chat'])
         if system_message:
             messages.append({"role": "system", "content": system_message})
         
-        # Add conversation history if provided
         if conversation_history:
             for msg in conversation_history:
                 role = msg.get('role', 'user')
@@ -308,7 +294,6 @@ class GroqProvider(BaseProvider):
                 if role in ['user', 'assistant']:
                     messages.append({"role": role, "content": content})
         
-        # Add current message
         messages.append({"role": "user", "content": message})
         
         payload = {

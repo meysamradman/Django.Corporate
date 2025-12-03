@@ -222,9 +222,6 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
         return [serializer.to_representation(media) for media in all_media]
     
     def _prefetch_cover_image_urls(self, items, media_type):
-        """
-        Prefetch cover_image URLs to avoid N+1 queries
-        """
         for item in items:
             media_obj = getattr(item, media_type, None)
             if media_obj and hasattr(media_obj, 'cover_image') and media_obj.cover_image:
@@ -234,7 +231,6 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
                     except Exception:
                         pass
             
-            # For documents, also prefetch file URL
             if media_type == 'document' and hasattr(item, 'document') and item.document:
                 if hasattr(item.document, 'file') and item.document.file:
                     try:
@@ -324,8 +320,6 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
         write_only=True, 
         required=False
     )
-    # Media files - we'll handle this in the view, not in the serializer
-    # This is just to document that media files can be sent
     media_files = serializers.ListField(
         child=serializers.FileField(),
         write_only=True,
@@ -337,32 +331,25 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'title', 'slug', 'short_description', 'description',
             'status', 'is_featured', 'is_public',
-            # SEO fields
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            # Relations
             'categories_ids', 'tags_ids',
-            # Media
             'media_files'
         ]
     
     def create(self, validated_data):
         categories_ids = validated_data.pop('categories_ids', [])
         tags_ids = validated_data.pop('tags_ids', [])
-        # Remove media_files from validated_data as we handle it in the view
         media_files = validated_data.pop('media_files', [])
         
-        # Auto-generate SEO fields if not provided
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
             
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
             validated_data['meta_description'] = validated_data['short_description'][:300]
         
-        # Create blog
         blog = Blog.objects.create(**validated_data)
         
-        # Set relations
         if categories_ids:
             blog.categories.set(categories_ids)
         if tags_ids:
@@ -425,7 +412,6 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
             validated_data['meta_description'] = validated_data['short_description'][:300]
         
-        # Update blog fields
         for field, value in validated_data.items():
             setattr(instance, field, value)
         

@@ -6,7 +6,6 @@ from src.blog.models.media import BlogImage
 class BlogPublicService:
     @staticmethod
     def get_blog_queryset(filters=None, search=None):
-        """Get optimized queryset for public blog listing"""
         queryset = Blog.objects.filter(
             is_active=True,
             is_public=True
@@ -23,7 +22,6 @@ class BlogPublicService:
             )
         )
         
-        # Apply filters
         if filters:
             if filters.get('category_slug'):
                 queryset = queryset.filter(categories__slug=filters['category_slug'])
@@ -32,7 +30,6 @@ class BlogPublicService:
             if filters.get('tag_slug'):
                 queryset = queryset.filter(tags__slug=filters['tag_slug'])
         
-        # Apply search
         if search:
             queryset = queryset.filter(
                 Q(title__icontains=search) |
@@ -46,7 +43,6 @@ class BlogPublicService:
     
     @staticmethod
     def get_blog_by_slug(slug):
-        """Get single blog by slug with full data"""
         return Blog.objects.filter(
             slug=slug,
             is_active=True,
@@ -64,7 +60,6 @@ class BlogPublicService:
         
     @staticmethod
     def get_blog_by_public_id(public_id):
-        """Get single blog by public_id with full data"""
         return Blog.objects.filter(
             public_id=public_id,
             is_active=True,
@@ -82,7 +77,6 @@ class BlogPublicService:
     
     @staticmethod
     def get_featured_blogs(limit=6):
-        """Get featured blogs for homepage"""
         return Blog.objects.filter(
             is_active=True,
             is_public=True,
@@ -101,7 +95,6 @@ class BlogPublicService:
     
     @staticmethod
     def get_related_blogs(blog, limit=4):
-        """Get related blogs based on categories"""
         category_ids = blog.categories.values_list('id', flat=True)
         return Blog.objects.filter(
             is_active=True,

@@ -70,13 +70,11 @@ class AIContentGenerationService:
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        # Generate new content
         start_time = time.time()
         
         try:
             provider = cls.get_provider(provider_name, admin=admin)
             
-            # Use async generation
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
@@ -91,10 +89,8 @@ class AIContentGenerationService:
             finally:
                 loop.close()
             
-            # Calculate generation time
             generation_time_ms = int((time.time() - start_time) * 1000)
             
-            # Ensure required fields
             if 'title' not in seo_data:
                 seo_data['title'] = topic
             if 'meta_title' not in seo_data:
@@ -108,11 +104,9 @@ class AIContentGenerationService:
             if 'keywords' not in seo_data:
                 seo_data['keywords'] = keywords if keywords else []
             if 'word_count' not in seo_data:
-                # Approximate word count
                 content_text = seo_data.get('content', '')
                 seo_data['word_count'] = len(content_text.split())
             
-            # ✅ Track usage
             if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
                 try:
                     settings = AdminProviderSettings.objects.get(
@@ -120,26 +114,22 @@ class AIContentGenerationService:
                         provider=provider,
                         is_active=True
                     )
-                    # Track based on which API is used
                     if settings.use_shared_api:
                         provider.increment_usage()
                     else:
                         settings.increment_usage()
                 except AdminProviderSettings.DoesNotExist:
-                    # No settings → track on provider
                     provider.increment_usage()
             else:
-                # No admin → track on provider
                 provider.increment_usage()
             
-            # Format and return response
             return {
                 'title': seo_data['title'],
                 'meta_title': seo_data['meta_title'],
                 'meta_description': seo_data['meta_description'],
                 'slug': seo_data['slug'],
                 'h1': seo_data.get('h1', seo_data['title']),
-                'content': seo_data['content'],  # HTML content with <p>, <h2>, <h3> tags
+                'content': seo_data['content'],
                 'keywords': seo_data.get('keywords', []),
                 'word_count': seo_data.get('word_count', 0),
                 'provider_name': provider_name,

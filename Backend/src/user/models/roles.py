@@ -9,25 +9,20 @@ from src.core.models import BaseModel
 
 
 class AdminRole(BaseModel):
-    """
-    Advanced Role system optimized for high-performance admin panel
-    Based on Permission_System.mdc specifications
-    """
-    # Pre-defined admin roles for admin panel
     ADMIN_ROLES = (
-        ('super_admin', 'Super Admin'),             # Full access
-        ('content_manager', 'Content Manager'),     # Content management (portfolio, blog)
-        ('blog_manager', 'Blog Manager'),           # Blog module
-        ('portfolio_manager', 'Portfolio Manager'), # Portfolio module
-        ('media_manager', 'Media Manager'),         # File and media management
-        ('forms_manager', 'Forms Manager'),         # Forms module
-        ('pages_manager', 'Pages Manager'),         # Static pages
-        ('email_manager', 'Email Manager'),         # Email center
-        ('ai_manager', 'AI Manager'),               # AI tools
-        ('settings_manager', 'Settings Manager'),   # System settings
-        ('panel_manager', 'Panel Manager'),         # Panel settings
-        ('statistics_viewer', 'Statistics Viewer'), # Statistics dashboards
-        ('user_manager', 'User Manager'),           # Website user management
+        ('super_admin', 'Super Admin'),
+        ('content_manager', 'Content Manager'),
+        ('blog_manager', 'Blog Manager'),
+        ('portfolio_manager', 'Portfolio Manager'),
+        ('media_manager', 'Media Manager'),
+        ('forms_manager', 'Forms Manager'),
+        ('pages_manager', 'Pages Manager'),
+        ('email_manager', 'Email Manager'),
+        ('ai_manager', 'AI Manager'),
+        ('settings_manager', 'Settings Manager'),
+        ('panel_manager', 'Panel Manager'),
+        ('statistics_viewer', 'Statistics Viewer'),
+        ('user_manager', 'User Manager'),
     )
     
     name = models.CharField(
@@ -48,14 +43,12 @@ class AdminRole(BaseModel):
         help_text="Detailed description of this role"
     )
     
-    # JSON-based permissions for high performance
     permissions = models.JSONField(
         default=dict, 
         verbose_name="Permissions",
         help_text="JSON structure: {'modules': ['users', 'media'], 'actions': ['read', 'create', 'update']}"
     )
     
-    # Hierarchy for role levels
     level = models.PositiveIntegerField(
         default=5, 
         db_index=True,
@@ -85,15 +78,11 @@ class AdminRole(BaseModel):
 
 
 class AdminUserRole(BaseModel):
-    """
-    Optimized relationship between Admin Users and Roles
-    High-performance design with caching support
-    """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
         db_index=True,
-        limit_choices_to={'is_staff': True},  # Only admin users
+        limit_choices_to={'is_staff': True},
         verbose_name="Admin User",
         help_text="Admin user for this role assignment"
     )
@@ -105,7 +94,6 @@ class AdminUserRole(BaseModel):
         help_text="Role assigned to the admin user"
     )
     
-    # Assignment metadata
     assigned_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
@@ -126,7 +114,6 @@ class AdminUserRole(BaseModel):
         help_text="Optional expiry date for this role assignment"
     )
     
-    # Cache for performance
     permissions_cache = models.JSONField(
         default=dict, 
         blank=True,
@@ -154,18 +141,11 @@ class AdminUserRole(BaseModel):
         return f"{self.user} - {self.role}"
     
     def update_permissions_cache(self):
-        """
-        ✅ به‌روزرسانی permissions cache در database و پاک کردن Redis cache
-        برای اطمینان از consistency بین database و Redis
-        """
-        # ✅ FIX: Ensure permissions is always a valid dict
         role_permissions = self.role.permissions if self.role.permissions else {}
         self.permissions_cache = role_permissions
         
-        # Save without calling clean() again to avoid re-validation
         super(AdminUserRole, self).save(update_fields=['permissions_cache', 'last_cache_update'])
         
-        # ✅ Clear all Redis cache for this user using comprehensive methods
         from src.user.authorization.admin_permission import AdminPermissionCache
         from src.user.permissions.validator import PermissionValidator
         from src.user.permissions.helpers import PermissionHelper
@@ -181,7 +161,6 @@ class AdminUserRole(BaseModel):
         return False
 
 
-# Validation signal for AdminUserRole
 @receiver(pre_save, sender=AdminUserRole)
 def validate_admin_user_role(sender, instance, **kwargs):
     if (instance.role and instance.role.name == 'super_admin' and 
@@ -193,22 +172,16 @@ def validate_admin_user_role(sender, instance, **kwargs):
 
 @receiver([post_save, post_delete], sender=AdminUserRole)
 def clear_admin_user_cache(sender, instance, **kwargs):
-    """
-    ✅ پاک کردن کامل تمام cache های مربوط به کاربر از Redis
-    وقتی role assignment تغییر می‌کنه (create, update, delete)
-    """
     from src.user.authorization.admin_permission import AdminPermissionCache
     from src.user.permissions.validator import PermissionValidator
     from src.user.permissions.helpers import PermissionHelper
     
     user_id = instance.user_id
     
-    # Clear using comprehensive cache clearing methods
     AdminPermissionCache.clear_user_cache(user_id)
     PermissionValidator.clear_user_cache(user_id)
     PermissionHelper.clear_user_cache(user_id)
     
-    # ✅ Use Cache Manager for standardized cache invalidation (Redis)
     from src.user.utils.cache import UserCacheManager
     UserCacheManager.invalidate_profile(user_id)
 
@@ -218,21 +191,17 @@ def clear_admin_role_cache(sender, instance, **kwargs):
     from src.user.permissions.validator import PermissionValidator
     from src.user.permissions.helpers import PermissionHelper
     
-    # Clear all admin user caches that have this role
     user_roles = AdminUserRole.objects.filter(role=instance, is_active=True).values_list('user_id', flat=True).distinct()
     
     for user_id in user_roles:
-        # Clear using comprehensive cache clearing methods
         AdminPermissionCache.clear_user_cache(user_id)
         PermissionValidator.clear_user_cache(user_id)
         PermissionHelper.clear_user_cache(user_id)
         
-        # ✅ Use Cache Manager for standardized cache invalidation (Redis)
         from src.user.utils.cache import UserCacheManager
         UserCacheManager.invalidate_profile(user_id)
 
 
-# Legacy models for backward compatibility (will be deprecated)
 class Role(BaseModel):
     name = models.CharField(max_length=255, db_index=True)
     description = models.TextField(null=True, blank=True)

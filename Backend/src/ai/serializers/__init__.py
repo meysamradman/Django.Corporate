@@ -1,7 +1,3 @@
-"""
-AI Serializers - Dynamic System (2025)
-"""
-# ✅ Core Dynamic System Serializers
 from .ai_provider_serializer import (
     AIProviderListSerializer,
     AIProviderDetailSerializer,
@@ -13,7 +9,6 @@ from .ai_provider_serializer import (
     AdminProviderSettingsUpdateSerializer,
 )
 
-# ✅ AI Generation Serializers
 from .content_generation_serializer import (
     AIContentGenerationRequestSerializer,
     AIContentGenerationResponseSerializer
@@ -31,7 +26,6 @@ from .chat_serializer import (
 from .audio_generation_serializer import AIAudioGenerationRequestSerializer
 
 __all__ = [
-    # Core dynamic system
     'AIProviderListSerializer',
     'AIProviderDetailSerializer',
     'AIProviderCreateUpdateSerializer',
@@ -40,7 +34,6 @@ __all__ = [
     'AIModelCreateUpdateSerializer',
     'AdminProviderSettingsSerializer',
     'AdminProviderSettingsUpdateSerializer',
-    # Generation features
     'AIContentGenerationRequestSerializer',
     'AIContentGenerationResponseSerializer',
     'AIProviderSerializer',

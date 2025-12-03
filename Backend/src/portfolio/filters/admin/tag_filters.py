@@ -4,15 +4,8 @@ from src.portfolio.models.tag import PortfolioTag
 
 
 class PortfolioTagAdminFilter(django_filters.FilterSet):
-    """Advanced filtering for Portfolio Tags in admin panel"""
-    
-    # Text search in name and description
     search = django_filters.CharFilter(method='filter_search', label='جستجو')
-    
-    # Activity status
     is_active = django_filters.BooleanFilter(field_name='is_active', label='وضعیت فعال')
-    
-    # Usage filter
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
         choices=[
@@ -22,8 +15,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         ],
         label='وضعیت استفاده'
     )
-    
-    # Portfolio count range
     portfolio_count_min = django_filters.NumberFilter(
         method='filter_portfolio_count_min',
         label='حداقل تعداد نمونه کار'
@@ -32,8 +23,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         method='filter_portfolio_count_max',
         label='حداکثر تعداد نمونه کار'
     )
-    
-    # Date filters
     created_after = django_filters.DateFilter(
         field_name='created_at',
         lookup_expr='gte',
@@ -44,8 +33,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         label='ایجاد شده قبل از'
     )
-    
-    # Name length filter
     name_length = django_filters.ChoiceFilter(
         method='filter_name_length',
         choices=[
@@ -61,7 +48,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         fields = []
     
     def filter_search(self, queryset, name, value):
-        """Search in name, description"""
         if not value:
             return queryset
         
@@ -72,7 +58,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         )
     
     def filter_usage(self, queryset, name, value):
-        """Filter by usage status"""
         if not value:
             return queryset
         
@@ -88,7 +73,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         return queryset
     
     def filter_portfolio_count_min(self, queryset, name, value):
-        """Filter by minimum portfolio count"""
         if value is None:
             return queryset
         
@@ -97,7 +81,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         ).filter(usage_count__gte=value)
     
     def filter_portfolio_count_max(self, queryset, name, value):
-        """Filter by maximum portfolio count"""
         if value is None:
             return queryset
         
@@ -106,7 +89,6 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         ).filter(usage_count__lte=value)
     
     def filter_name_length(self, queryset, name, value):
-        """Filter by name length"""
         if not value:
             return queryset
         

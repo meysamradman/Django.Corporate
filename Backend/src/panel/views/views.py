@@ -7,6 +7,7 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.panel.models import PanelSettings
 from src.panel.serializers import PanelSettingsSerializer
 from src.core.responses.response import APIResponse
+from src.panel.messages.messages import PANEL_SUCCESS
 
 
 class AdminPanelSettingsViewSet(viewsets.ModelViewSet):
@@ -22,7 +23,7 @@ class AdminPanelSettingsViewSet(viewsets.ModelViewSet):
         instance, _ = PanelSettings.objects.get_or_create()
         serializer = self.get_serializer(instance)
         return APIResponse.success(
-            message="Panel settings retrieved",
+            message=PANEL_SUCCESS["settings_retrieved"],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -33,7 +34,7 @@ class AdminPanelSettingsViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return APIResponse.success(
-            message="Panel settings updated",
+            message=PANEL_SUCCESS["settings_updated"],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -45,7 +46,7 @@ class AdminPanelSettingsViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return APIResponse.success(
-            message="Panel settings updated",
+            message=PANEL_SUCCESS["settings_updated"],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )

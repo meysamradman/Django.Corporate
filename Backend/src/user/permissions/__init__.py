@@ -7,12 +7,10 @@ from .config import (
     AVAILABLE_ACTIONS,
     BASE_ADMIN_PERMISSIONS,
     RoleConfig,
-    # Helper functions - Permissions
     get_all_permissions,
     get_permission,
     get_permissions_by_module,
     get_permissions_by_action,
-    # Helper functions - Roles
     get_role_config,
     get_role_display_name,
     get_default_permissions,
@@ -28,23 +26,19 @@ from .config import (
 )
 
 __all__ = [
-    # Core classes
     "Permission",
     "PermissionRegistry",
     "PermissionValidator",
-    # Data structures
     "PERMISSIONS",
     "SYSTEM_ROLES",
     "AVAILABLE_MODULES",
     "AVAILABLE_ACTIONS",
     "BASE_ADMIN_PERMISSIONS",
     "RoleConfig",
-    # Helper functions - Permissions
     "get_all_permissions",
     "get_permission",
     "get_permissions_by_module",
     "get_permissions_by_action",
-    # Helper functions - Roles
     "get_role_config",
     "get_role_display_name",
     "get_default_permissions",

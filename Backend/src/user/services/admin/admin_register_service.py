@@ -10,9 +10,6 @@ from rest_framework.exceptions import AuthenticationFailed
 class AdminRegisterService:
     @classmethod
     def register_admin(cls, mobile, password, email=None, admin_user=None):
-        """
-        Register a new admin user (admin-panel optimized).
-        """
         if not admin_user:
             raise ValidationError(AUTH_ERRORS.get("auth_validation_error"))
             
@@ -58,8 +55,6 @@ class AdminRegisterService:
 
     @classmethod
     def register_admin_from_serializer(cls, validated_data, admin_user=None):
-        """
-        Register an admin using serializer data (handles identifiers and profile info).
         """
         mobile = validated_data.get('mobile')
         email = validated_data.get('email')
@@ -262,8 +257,6 @@ class AdminRegisterService:
 
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):
-        """
-        Handle profile picture uploads via the central media service.
         """
         try:
             from src.media.services.media_service import MediaService

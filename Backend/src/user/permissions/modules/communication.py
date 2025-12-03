@@ -1,10 +1,4 @@
-"""
-Communication Module Permissions
-Email and Ticket management permissions
-"""
-
 COMMUNICATION_PERMISSIONS = {
-    # Email - CRUD permissions (like other content modules)
     'email.read': {
         'module': 'email',
         'action': 'read',
@@ -36,7 +30,6 @@ COMMUNICATION_PERMISSIONS = {
         'description': 'Full access to email messages (view, send, update, delete)',
     },
     
-    # Ticket - Permissions (users create tickets, admins manage them)
     'ticket.read': {
         'module': 'ticket',
         'action': 'read',

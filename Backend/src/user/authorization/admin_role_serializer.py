@@ -72,7 +72,6 @@ class AdminRoleSerializer(serializers.ModelSerializer):
         if not any(key in value for key in allowed_keys):
             return {}
         
-        # Validate modules
         if 'modules' in value:
             modules = value['modules']
             if not isinstance(modules, list):
@@ -88,7 +87,6 @@ class AdminRoleSerializer(serializers.ModelSerializer):
                     )
                 )
         
-        # Validate actions
         if 'actions' in value:
             actions = value['actions']
             if not isinstance(actions, list):
@@ -118,7 +116,6 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source='user.email', read_only=True)
     user_mobile = serializers.CharField(source='user.mobile', read_only=True)
     assigned_by_name = serializers.CharField(source='assigned_by.email', read_only=True)
-    # Include role details with permissions
     role = AdminRoleSerializer(read_only=True)
     
     class Meta:
@@ -146,7 +143,6 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
         role = attrs.get('role')
         
         if user and role:
-            # Check if assignment already exists
             existing = AdminUserRole.objects.filter(
                 user=user, role=role, is_active=True
             ).exists()

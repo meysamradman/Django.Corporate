@@ -3,8 +3,6 @@ from src.blog.models.blog import Blog
 
 
 class BlogPublicFilter(filters.FilterSet):
-    """Public blog filters for website"""
-    
     category_slug = filters.CharFilter(
         field_name='categories__slug',
         lookup_expr='exact',

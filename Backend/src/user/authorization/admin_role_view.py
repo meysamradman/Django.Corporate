@@ -37,22 +37,17 @@ class AdminRoleView(viewsets.ViewSet):
     
     def list(self, request):
         try:
-            # Get query parameters
             is_active = request.query_params.get('is_active')
             is_system_role = request.query_params.get('is_system_role')
             search = request.query_params.get('search', '').strip()
             order_by = request.query_params.get('order_by', 'created_at')
             order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
             
-            # Build queryset with optimization for users_count
             from django.db.models import Count
             queryset = AdminRole.objects.annotate(
                 users_count=Count('adminuserrole', filter=models.Q(adminuserrole__is_active=True))
             )
             
-            # ✅ FIX: Apply ordering based on query parameter
-            # Default: created_at descending (newest first)
-            # Allowed fields: name, display_name, level, created_at, updated_at, is_active, is_system_role, users_count
             allowed_order_fields = {
                 'name', 'display_name', 'level', 'created_at', 'updated_at', 
                 'is_active', 'is_system_role', 'users_count'
@@ -62,15 +57,12 @@ class AdminRoleView(viewsets.ViewSet):
                 order_prefix = '-' if order_desc else ''
                 queryset = queryset.order_by(f'{order_prefix}{order_by}')
             else:
-                # Default ordering: newest first (created_at descending)
                 queryset = queryset.order_by('-created_at')
             
-            # Apply filters
             if is_active is not None:
                 is_active_bool = is_active.lower() in ('true', '1', 'yes')
                 queryset = queryset.filter(is_active=is_active_bool)
             
-            # ✅ Filter by is_system_role
             if is_system_role is not None:
                 is_system_role_bool = is_system_role.lower() in ('true', '1', 'yes')
                 queryset = queryset.filter(is_system_role=is_system_role_bool)
@@ -82,12 +74,10 @@ class AdminRoleView(viewsets.ViewSet):
                     display_name__icontains=search
                 )
             
-            # Pagination
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:
                 serializer = AdminRoleListSerializer(page, many=True)
-                # Return paginated response using DRF's standard pagination response
                 return paginator.get_paginated_response(serializer.data)
             
             serializer = AdminRoleListSerializer(queryset, many=True)
@@ -139,7 +129,6 @@ class AdminRoleView(viewsets.ViewSet):
             with transaction.atomic():
                 role = serializer.save()
                 
-                # Clear cache since we added a new role
                 AdminPermissionCache.clear_all_admin_cache()
             
             return APIResponse.success(
@@ -158,7 +147,6 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             role = AdminRole.objects.get(pk=pk)
             
-            # Prevent modification of system roles unless explicitly allowed
             if role.is_system_role and not request.data.get('force_update_system_role'):
                 return APIResponse.error(
                     message=ROLE_ERRORS["system_roles_cannot_be_modified"],
@@ -177,12 +165,9 @@ class AdminRoleView(viewsets.ViewSet):
             with transaction.atomic():
                 updated_role = serializer.save()
                 
-                # ✅ Update permissions cache for all users with this role
-                # update_permissions_cache() already clears Redis cache internally
                 user_roles = AdminUserRole.objects.filter(role=role, is_active=True)
                 for user_role in user_roles:
                     user_role.update_permissions_cache()
-                    # ✅ Additional comprehensive cache clearing to ensure all cache keys are cleared
                     from src.user.permissions.validator import PermissionValidator
                     from src.user.permissions.helpers import PermissionHelper
                     from django.core.cache import cache
@@ -191,7 +176,6 @@ class AdminRoleView(viewsets.ViewSet):
                     PermissionValidator.clear_user_cache(user_role.user_id)
                     PermissionHelper.clear_user_cache(user_role.user_id)
                     
-                    # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                     from src.user.utils.cache import UserCacheManager
                     UserCacheManager.invalidate_profile(user_role.user_id)
             
@@ -216,14 +200,12 @@ class AdminRoleView(viewsets.ViewSet):
         try:
             role = AdminRole.objects.get(pk=pk)
             
-            # Prevent deletion of system roles
             if role.is_system_role:
                 return APIResponse.error(
                     message=ROLE_ERRORS["system_roles_cannot_be_deleted"],
                     status_code=403
                 )
             
-            # Check if role is assigned to any users
             assigned_users_count = AdminUserRole.objects.filter(
                 role=role, is_active=True
             ).count()
@@ -279,13 +261,11 @@ class AdminRoleView(viewsets.ViewSet):
             with transaction.atomic():
                 for role in roles:
                     try:
-                        # ✅ FIX: Check if assignment exists (active OR inactive)
                         existing = AdminUserRole.objects.filter(
                             user=user, role=role
                         ).first()
                         
                         if existing:
-                            # If exists but inactive, reactivate it
                             if not existing.is_active:
                                 existing.is_active = True
                                 existing.assigned_by = request.user
@@ -294,7 +274,6 @@ class AdminRoleView(viewsets.ViewSet):
                                 existing.update_permissions_cache()
                                 created_assignments.append(existing)
                         else:
-                            # Create new assignment
                             
                             assignment = AdminUserRole.objects.create(
                                 user=user,
@@ -309,8 +288,6 @@ class AdminRoleView(viewsets.ViewSet):
                     except Exception as e:
                         raise Exception(ROLE_ERRORS["error_assigning_role"].format(role_name=role.display_name, role_id=role.id, error=str(e)))
                 
-                # ✅ Clear user's permission cache comprehensively
-                # Signals will also clear cache, but we do it here too for immediate effect
                 from src.user.permissions.validator import PermissionValidator
                 from src.user.permissions.helpers import PermissionHelper
                 
@@ -318,7 +295,6 @@ class AdminRoleView(viewsets.ViewSet):
                 PermissionValidator.clear_user_cache(user_id)
                 PermissionHelper.clear_user_cache(user_id)
                 
-                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                 from src.user.utils.cache import UserCacheManager
                 UserCacheManager.invalidate_profile(user_id)
             
@@ -374,8 +350,6 @@ class AdminRoleView(viewsets.ViewSet):
                 assignment.is_active = False
                 assignment.save()
                 
-                # ✅ Clear user's permission cache comprehensively
-                # Signals will also clear cache, but we do it here too for immediate effect
                 from src.user.permissions.validator import PermissionValidator
                 from src.user.permissions.helpers import PermissionHelper
                 
@@ -383,7 +357,6 @@ class AdminRoleView(viewsets.ViewSet):
                 PermissionValidator.clear_user_cache(int(user_id))
                 PermissionHelper.clear_user_cache(int(user_id))
                 
-                # ✅ Use Cache Manager for standardized cache invalidation (Redis)
                 from src.user.utils.cache import UserCacheManager
                 UserCacheManager.invalidate_profile(user_id)
             
@@ -407,14 +380,12 @@ class AdminRoleView(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def fix_custom_roles(self, request):
         try:
-            # Only super admin can fix roles
             if not request.user.is_full_admin_user():
                 return APIResponse.error(
                     message=ROLE_ERRORS["only_super_admin_can_fix_custom_roles"],
                     status_code=403
                 )
             
-            # Get predefined system role names
             system_role_names = [
                 'super_admin',
                 'content_manager',
@@ -431,7 +402,6 @@ class AdminRoleView(viewsets.ViewSet):
                 'user_manager'
             ]
             
-            # Find roles that are marked as system but are not in predefined list
             incorrect_roles = AdminRole.objects.filter(
                 is_system_role=True
             ).exclude(name__in=system_role_names)
@@ -471,12 +441,10 @@ class AdminRoleView(viewsets.ViewSet):
                     status_code=400
                 )
             
-            # Get roles to delete
             roles_to_delete = AdminRole.objects.filter(
                 id__in=role_ids, is_active=True
             )
             
-            # Check for system roles
             system_roles = roles_to_delete.filter(is_system_role=True)
             if system_roles.exists():
                 return APIResponse.error(
@@ -484,7 +452,6 @@ class AdminRoleView(viewsets.ViewSet):
                     status_code=403
                 )
             
-            # Check for roles assigned to users
             assigned_roles = roles_to_delete.filter(
                 adminuserrole__is_active=True
             ).distinct()
@@ -496,7 +463,6 @@ class AdminRoleView(viewsets.ViewSet):
                     status_code=400
                 )
             
-            # Delete roles
             with transaction.atomic():
                 deleted_count = roles_to_delete.count()
                 roles_to_delete.delete()
@@ -598,23 +564,19 @@ class AdminRoleView(viewsets.ViewSet):
             # This ID is transient and only used for the current session in the UI
             permission_id = 1
             
-            # Get base permission keys to exclude them
             base_permission_keys = set(BASE_ADMIN_PERMISSIONS.keys())
             
-            # ✅ OPTIMIZED: Statistics permissions that are actually used (defined once, reused)
-            # Exclude future permissions (financial, export) until they are implemented
             STATISTICS_USED_PERMISSIONS = {
-                'statistics.manage',  # Full access to statistics
+                'statistics.manage',
                 'statistics.users.read',
                 'statistics.admins.read',
                 'statistics.content.read'
             }
             
             for module_key, module_info in modules.items():
-                if module_key == 'all':  # Skip 'all' module
+                if module_key == 'all':
                     continue
                 
-                # Get REAL permissions defined in config.py for this module
                 real_perms = get_permissions_by_module(module_key)
                 
                 if not real_perms:
@@ -623,14 +585,11 @@ class AdminRoleView(viewsets.ViewSet):
                 permissions_for_module = []
                 
                 for perm_key, perm_data in real_perms:
-                    # ✅ FIX: Exclude base permissions (dashboard.read, profile.read, profile.update)
-                    # These are automatically granted to all admins and should not be selectable
                     if perm_key in base_permission_keys:
-                        continue  # Skip base permissions
+                        continue
                     
-                    # ✅ FIX: For statistics module, only include used permissions
                     if module_key == 'statistics' and perm_key not in STATISTICS_USED_PERMISSIONS:
-                        continue  # Skip unused statistics permissions
+                        continue
                     
                     permissions_for_module.append({
                         'id': permission_id,
@@ -640,7 +599,7 @@ class AdminRoleView(viewsets.ViewSet):
                         'description': perm_data['description'],
                         'is_standalone': perm_data.get('is_standalone', False),
                         'requires_superadmin': perm_data.get('requires_superadmin', False),
-                        'original_key': perm_key # Useful for debugging
+                        'original_key': perm_key
                     })
                     permission_id += 1
                 

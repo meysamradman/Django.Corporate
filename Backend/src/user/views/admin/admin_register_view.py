@@ -19,7 +19,6 @@ class AdminRegisterView(UserAuthMixin, APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
-        """ثبت‌نام ادمین جدید"""
         serializer = AdminRegisterSerializer(data=request.data, context={'admin_user': request.user})
         
         if not serializer.is_valid():

@@ -56,7 +56,6 @@ class PermissionValidator:
         if not context_type or context_type == 'media_library':
             return False
         
-        # Portfolio context
         if context_type == 'portfolio':
             required_perm = f'portfolio.{context_action}'
             user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
@@ -64,7 +63,6 @@ class PermissionValidator:
             has_context_action = "all" in user_actions or context_action in user_actions
             return has_portfolio_module and has_context_action
         
-        # Blog context
         if context_type == 'blog':
             required_perm = f'blog.{context_action}'
             user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
@@ -101,7 +99,6 @@ class PermissionValidator:
         
         granted = []
         
-        # ✅ FIX: Get permissions directly from roles (support both specific_permissions and old format)
         from src.user.models import AdminUserRole
         roles_qs = AdminUserRole.objects.filter(
             user=user, 
@@ -116,22 +113,17 @@ class PermissionValidator:
             role_perms: Dict = role.permissions or {}
             has_any_role = True
             
-            # ✅ NEW FORMAT: specific_permissions (precise - direct conversion)
             if isinstance(role_perms, dict) and 'specific_permissions' in role_perms:
                 has_specific_permissions_format = True
                 specific_perms = role_perms.get('specific_permissions', [])
                 if isinstance(specific_perms, list):
                     for perm in specific_perms:
                         if isinstance(perm, dict):
-                            # ✅ FIX: Support permission_key for statistics permissions (all have module='statistics', action='read')
-                            # If permission_key is provided, use it directly (for statistics.users.read, statistics.admins.read, etc.)
                             if 'permission_key' in perm and perm.get('permission_key'):
                                 perm_string = perm['permission_key']
-                                # Check if permission exists in registry
                                 if PermissionRegistry.exists(perm_string):
                                     perm_obj = PermissionRegistry.get(perm_string)
                                     if perm_obj:
-                                        # Check requires_superadmin
                                         if perm_obj.requires_superadmin and not is_superadmin:
                                             continue
                                         if perm_string not in granted:
@@ -141,21 +133,17 @@ class PermissionValidator:
                             perm_module = perm.get('module')
                             perm_action = perm.get('action')
                             
-                            # Handle 'all' cases
                             if perm_module == 'all' or perm_action == 'all':
                                 if is_superadmin:
                                     all_perms = list(PermissionRegistry.get_all().keys())
                                     granted.extend(all_perms)
                                 continue
                             
-                            # Convert to permission string format (module.action)
                             perm_string = f"{perm_module}.{perm_action}"
                             
-                            # Check if permission exists in registry
                             if PermissionRegistry.exists(perm_string):
                                 perm_obj = PermissionRegistry.get(perm_string)
                                 if perm_obj:
-                                    # Check requires_superadmin
                                     if perm_obj.requires_superadmin and not is_superadmin:
                                         continue
                                     if perm_string not in granted:
@@ -221,9 +209,7 @@ class PermissionValidator:
                 role = user_role.role
                 role_perms: Dict = role.permissions or {}
                 
-                # Handle both new format (specific_permissions) and old format (modules/actions)
                 if isinstance(role_perms, dict):
-                    # ✅ NEW FORMAT: specific_permissions (precise)
                     if 'specific_permissions' in role_perms:
                         specific_perms = role_perms.get('specific_permissions', [])
                         if isinstance(specific_perms, list):
@@ -234,16 +220,14 @@ class PermissionValidator:
                                     if perm_module:
                                         modules.add(perm_module)
                                     if perm_action:
-                                        # Map read to view
                                         if perm_action == 'read':
                                             actions.add('view')
-                                            actions.add('read')  # Keep both
+                                            actions.add('read')
                                         elif perm_action == 'view':
                                             actions.add('view')
-                                            actions.add('read')  # Keep both
+                                            actions.add('read')
                                         else:
                                             actions.add(perm_action)
-                    # OLD FORMAT: modules/actions (cartesian product)
                     else:
                         role_modules = role_perms.get("modules", [])
                         role_actions = role_perms.get("actions", [])
@@ -251,7 +235,6 @@ class PermissionValidator:
                         if isinstance(role_modules, list):
                             modules.update(role_modules)
                         if isinstance(role_actions, list):
-                            # Map read to view for old format too
                             for action in role_actions:
                                 if action == 'read':
                                     actions.add('view')

@@ -8,18 +8,15 @@ from src.portfolio.utils.cache import CategoryCacheKeys, CategoryCacheManager
 
 
 class PortfolioCategoryAdminService:
-    """Optimized service for Portfolio Category admin operations with tree support"""
     
     @staticmethod
     def get_tree_queryset():
-        """Get optimized queryset for tree operations"""
         return PortfolioCategory.objects.select_related('image').annotate(
             portfolio_count=Count('portfolio_categories', distinct=True)
         ).order_by('path')
     
     @staticmethod
     def get_category_by_id(category_id):
-        """Get category by ID with optimized relations"""
         try:
             return PortfolioCategoryAdminService.get_tree_queryset().get(id=category_id)
         except PortfolioCategory.DoesNotExist:
@@ -27,7 +24,6 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def get_root_categories():
-        """Get root categories with portfolio counts"""
         cache_key = CategoryCacheKeys.root_categories()
         root_categories = cache.get(cache_key)
         
@@ -45,7 +41,6 @@ class PortfolioCategoryAdminService:
 
     @staticmethod
     def get_tree_data():
-        """Get complete tree structure for admin interface"""
         cache_key = CategoryCacheKeys.tree_admin()
         tree_data = cache.get(cache_key)
         
@@ -77,23 +72,17 @@ class PortfolioCategoryAdminService:
 
     @staticmethod
     def create_category(validated_data, created_by=None):
-        """Create category with proper tree positioning"""
         with transaction.atomic():
-            # Handle parent positioning
             parent_id = validated_data.pop('parent_id', None)
             image_id = validated_data.pop('image_id', None)
             
-            # Remove created_by from validated_data as it's not a model field
             validated_data.pop('created_by', None)
             
             if parent_id:
-                # Add as child of parent
                 category = parent_id.add_child(**validated_data)
             else:
-                # Add as root category
                 category = PortfolioCategory.add_root(**validated_data)
             
-            # Handle image assignment from central media app
             if image_id:
                 from src.media.models.media import ImageMedia
                 try:
@@ -101,7 +90,7 @@ class PortfolioCategoryAdminService:
                     category.image = media
                     category.save()
                 except ImageMedia.DoesNotExist:
-                    pass  # Invalid media ID, skip
+                    pass
             
             CategoryCacheManager.invalidate_all()
             
@@ -109,37 +98,29 @@ class PortfolioCategoryAdminService:
 
     @staticmethod
     def update_category_by_id(category_id, validated_data, updated_by=None):
-        """Update category with tree operations support"""
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
             raise PortfolioCategory.DoesNotExist("Category not found")
         
         with transaction.atomic():
-            # Handle parent change (move in tree)
             parent_id = validated_data.pop('parent_id', None)
             image_id = validated_data.pop('image_id', None)
             
-            # Remove updated_by from validated_data as it's not a model field
             validated_data.pop('updated_by', None)
             
-            # Update basic fields
             for field, value in validated_data.items():
                 setattr(category, field, value)
             
-            # Handle tree movement
             if parent_id is not None:
                 current_parent = category.get_parent()
                 
-                # Only move if parent actually changed
                 if (current_parent and current_parent.id != parent_id.id) or \
                    (not current_parent and parent_id):
                     category.move(parent_id, pos='last-child')
                 elif not parent_id and current_parent:
-                    # Move to root
                     category.move(PortfolioCategory.get_root_nodes().first(), pos='last-sibling')
             
-            # Handle image assignment from central media app
             if image_id is not None:
                 from src.media.models.media import ImageMedia
                 if image_id:
@@ -147,7 +128,7 @@ class PortfolioCategoryAdminService:
                         media = ImageMedia.objects.get(id=image_id)
                         category.image = media
                     except ImageMedia.DoesNotExist:
-                        pass  # Invalid media ID, skip
+                        pass
                 else:
                     category.image = None
             
@@ -159,18 +140,15 @@ class PortfolioCategoryAdminService:
 
     @staticmethod
     def delete_category_by_id(category_id):
-        """Delete category with safety checks"""
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         
         if not category:
             raise PortfolioCategory.DoesNotExist("Category not found")
         
-        # Check if category has portfolios
         portfolio_count = category.portfolio_categories.count()
         if portfolio_count > 0:
             raise ValidationError(f"Category has {portfolio_count} portfolios")
         
-        # Check if category has children
         children_count = category.get_children_count()
         if children_count > 0:
             raise ValidationError(f"Category has {children_count} children")
@@ -181,18 +159,15 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def move_category(category_id, target_id, position='last-child'):
-        """Move category to new position in tree"""
         category = PortfolioCategoryAdminService.get_category_by_id(category_id)
         target = PortfolioCategoryAdminService.get_category_by_id(target_id)
         
         if not category or not target:
             raise PortfolioCategory.DoesNotExist("Category not found")
         
-        # Prevent moving to descendant
         if target.is_descendant_of(category):
             raise ValidationError("Cannot move category to its own descendant")
         
-        # Prevent moving to self
         if category.id == target.id:
             raise ValidationError("Cannot move category to itself")
         
@@ -202,7 +177,6 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def get_popular_categories(limit=10):
-        """Get most popular categories by portfolio count"""
         cache_key = CategoryCacheKeys.popular(limit)
         popular = cache.get(cache_key)
         
@@ -222,7 +196,6 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def get_breadcrumbs(category):
-        """Get category breadcrumbs"""
         ancestors = category.get_ancestors()
         breadcrumbs = []
         
@@ -243,7 +216,6 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def bulk_delete_categories(category_ids):
-        """Bulk delete multiple categories with cascade delete for children - removes relationships first"""
         from src.portfolio.models.portfolio import Portfolio
         
         categories = PortfolioCategory.objects.filter(id__in=category_ids)
@@ -252,19 +224,14 @@ class PortfolioCategoryAdminService:
             raise ValidationError("Selected categories not found")
         
         with transaction.atomic():
-            # Collect all categories to delete (including children)
             all_category_ids = set()
             category_list = list(categories)
             
-            # Filter out categories that are descendants of other selected categories
-            # to avoid trying to delete them twice
             top_level_categories = []
             for category in category_list:
-                # Check if this category is a descendant of any other selected category
                 is_descendant = False
                 for other_category in category_list:
                     if other_category.id != category.id:
-                        # Check if category is a descendant of other_category
                         if category.is_descendant_of(other_category):
                             is_descendant = True
                             break
@@ -272,24 +239,17 @@ class PortfolioCategoryAdminService:
                 if not is_descendant:
                     top_level_categories.append(category)
                     all_category_ids.add(category.id)
-                    # Get all descendants
                     descendants = category.get_descendants()
                     all_category_ids.update(descendant.id for descendant in descendants)
             
-            # Get all categories (including children) to clear relationships
             all_categories = PortfolioCategory.objects.filter(id__in=all_category_ids)
             
-            # Remove relationships from portfolios for all categories (including children)
             for category in all_categories:
                 category.portfolio_categories.clear()
             
-            # Delete parent categories - treebeard's delete() automatically handles cascade
-            # We delete parents first, and treebeard will handle children automatically
             deleted_count = 0
             for category in top_level_categories:
-                # Count descendants before deletion
                 descendants_count = category.get_descendants().count()
-                # treebeard's delete() automatically deletes all descendants
                 category.delete()
                 deleted_count += 1 + descendants_count
             
@@ -299,7 +259,6 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def get_category_statistics():
-        """Get category statistics for admin dashboard"""
         cache_key = CategoryCacheKeys.statistics()
         stats = cache.get(cache_key)
         
