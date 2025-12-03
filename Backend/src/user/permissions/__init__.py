@@ -1,9 +1,3 @@
-"""
-User Permissions package - Unified Config
-
-Centralized permission registry, validator, and configuration.
-All permissions and roles are now in config.py (Single Source of Truth)
-"""
 from .registry import Permission, PermissionRegistry
 from .validator import PermissionValidator
 from .config import (

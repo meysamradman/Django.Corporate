@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from src.chatbot.models.faq import FAQ
+from src.chatbot.messages.messages import CHATBOT_ERRORS
 
 
 class FAQSerializer(serializers.ModelSerializer):
@@ -12,9 +13,9 @@ class FAQSerializer(serializers.ModelSerializer):
         question = data.get('question', '').strip()
         answer = data.get('answer', '').strip()
         if not question:
-            raise serializers.ValidationError({"question": "سوال نمی‌تواند خالی باشد."})
+            raise serializers.ValidationError({"question": CHATBOT_ERRORS['question_required']})
         if not answer:
-            raise serializers.ValidationError({"answer": "پاسخ نمی‌تواند خالی باشد."})
+            raise serializers.ValidationError({"answer": CHATBOT_ERRORS['answer_required']})
         return data
 
 

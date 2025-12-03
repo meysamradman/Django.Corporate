@@ -7,32 +7,28 @@ from src.page.models.seo import SEOMixin
 
 
 class AboutPage(BaseModel, SEOMixin):
-    """
-    مدل برای صفحه "درباره ما" - Singleton Pattern
-    فقط یک نمونه از این مدل در دیتابیس وجود دارد
-    """
     
     title = models.CharField(
         max_length=200,
-        default="درباره ما",
-        verbose_name="عنوان صفحه",
-        help_text="عنوان صفحه درباره ما",
-        validators=[MinLengthValidator(3, message="عنوان باید حداقل 3 کاراکتر باشد")]
+        default="About Us",
+        verbose_name="Page Title",
+        help_text="About page title",
+        validators=[MinLengthValidator(3, message="Title must be at least 3 characters")]
     )
     
     content = models.TextField(
         blank=True,
         null=True,
-        verbose_name="محتوای صفحه",
-        help_text="متن اصلی صفحه درباره ما (پشتیبانی از HTML)"
+        verbose_name="Page Content",
+        help_text="Main content of about page (HTML supported)"
     )
     
     short_description = models.TextField(
         max_length=500,
         blank=True,
         null=True,
-        verbose_name="توضیح کوتاه",
-        help_text="خلاصه کوتاه از محتوای صفحه (برای نمایش در پیش‌نمایش)"
+        verbose_name="Short Description",
+        help_text="Short summary of page content (for preview display)"
     )
     
     featured_image = models.ForeignKey(
@@ -41,24 +37,23 @@ class AboutPage(BaseModel, SEOMixin):
         null=True,
         blank=True,
         related_name='about_pages',
-        verbose_name="تصویر شاخص",
-        help_text="تصویر اصلی صفحه (اختیاری)"
+        verbose_name="Featured Image",
+        help_text="Main page image (optional)"
     )
     
     class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'pages_about'
-        verbose_name = "صفحه درباره ما"
-        verbose_name_plural = "صفحه درباره ما"
+        verbose_name = "About Page"
+        verbose_name_plural = "About Pages"
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['meta_title']),  # SEO search
         ]
     
     def __str__(self):
-        return "صفحه درباره ما"
+        return "About Page"
     
     def save(self, *args, **kwargs):
-        """ذخیره با Singleton Pattern"""
         if not self.pk:
             if AboutPage.objects.exists():
                 existing = AboutPage.objects.first()
@@ -68,7 +63,6 @@ class AboutPage(BaseModel, SEOMixin):
         self.full_clean()
         super().save(*args, **kwargs)
         
-        # Auto-generate SEO fields efficiently
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         if not self.meta_description and self.short_description:
@@ -78,17 +72,15 @@ class AboutPage(BaseModel, SEOMixin):
     
     @classmethod
     def get_page(cls):
-        """دریافت صفحه درباره ما (Singleton)"""
         page = cls.objects.first()
         if not page:
             page = cls.objects.create(
-                title="درباره ما",
-                content="محتوای صفحه درباره ما"
+                title="About Us",
+                content="About page content"
             )
         return page
     
     def generate_structured_data(self):
-        """Generate structured data for About Page"""
         return {
             "@context": "https://schema.org",
             "@type": "AboutPage",

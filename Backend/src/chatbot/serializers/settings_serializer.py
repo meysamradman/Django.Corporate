@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from src.chatbot.models.settings import ChatbotSettings
+from src.chatbot.messages.messages import CHATBOT_ERRORS
 
 
 class ChatbotSettingsSerializer(serializers.ModelSerializer):
@@ -10,7 +11,7 @@ class ChatbotSettingsSerializer(serializers.ModelSerializer):
     
     def validate_rate_limit_per_minute(self, value):
         if value < 1:
-            raise serializers.ValidationError("محدودیت درخواست باید حداقل 1 باشد.")
+            raise serializers.ValidationError(CHATBOT_ERRORS['rate_limit_min'])
         if value > 100:
-            raise serializers.ValidationError("محدودیت درخواست نمی‌تواند بیشتر از 100 باشد.")
+            raise serializers.ValidationError(CHATBOT_ERRORS['rate_limit_max'])
         return value

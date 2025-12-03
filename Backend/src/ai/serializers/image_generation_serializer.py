@@ -84,19 +84,19 @@ class AIProviderListSerializer(serializers.ModelSerializer):
 class AIImageGenerationRequestSerializer(serializers.Serializer):
     model_id = serializers.IntegerField(
         required=True,
-        help_text="AI Model ID با قابلیت 'image'"
+        help_text="AI Model ID with 'image' capability"
     )
     prompt = serializers.CharField(
         required=True,
         max_length=4000,
-        help_text="توضیحات تصویر"
+        help_text="Image description"
     )
     
     # Image parameters
     size = serializers.CharField(
         required=False,
         default="1024x1024",
-        help_text="اندازه تصویر"
+        help_text="Image size"
     )
     quality = serializers.ChoiceField(
         choices=['standard', 'hd'],
@@ -132,9 +132,10 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
     )
     
     def validate_prompt(self, value):
+        from src.ai.messages.messages import IMAGE_ERRORS
         if not value or not value.strip():
-            raise serializers.ValidationError("Prompt نمی‌تواند خالی باشد")
+            raise serializers.ValidationError(IMAGE_ERRORS.get("prompt_required", "Prompt cannot be empty"))
         if len(value.strip()) < 3:
-            raise serializers.ValidationError("Prompt باید حداقل 3 کاراکتر باشد")
+            raise serializers.ValidationError(IMAGE_ERRORS.get("prompt_invalid", "Prompt must be at least 3 characters"))
         return value.strip()
 

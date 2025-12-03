@@ -67,21 +67,17 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
     
     def validate_name(self, value):
         instance = self.instance
+        from src.ai.messages.messages import IMAGE_ERRORS
         if instance:
-            # In edit mode
             if AIProvider.objects.exclude(pk=instance.pk).filter(name=value).exists():
-                raise serializers.ValidationError("این نام قبلاً استفاده شده است")
+                raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         else:
-            # In create mode
             if AIProvider.objects.filter(name=value).exists():
-                raise serializers.ValidationError("این نام قبلاً استفاده شده است")
+                raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         return value
 
 
 class AIModelListSerializer(serializers.ModelSerializer):
-    """
-    Serializer برای لیست مدل‌های AI
-    """
     provider_name = serializers.CharField(source='provider.display_name', read_only=True)
     provider_slug = serializers.CharField(source='provider.slug', read_only=True)
     is_free = serializers.SerializerMethodField()
@@ -172,10 +168,11 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_provider_id(self, value):
+        from src.ai.messages.messages import IMAGE_ERRORS
         try:
             AIProvider.objects.get(pk=value, is_active=True)
         except AIProvider.DoesNotExist:
-            raise serializers.ValidationError("Provider یافت نشد یا غیرفعال است")
+            raise serializers.ValidationError(IMAGE_ERRORS['provider_not_found_or_inactive'])
         return value
     
     def create(self, validated_data):
@@ -305,8 +302,9 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
         return attrs
     
     def validate_provider_id(self, value):
+        from src.ai.messages.messages import IMAGE_ERRORS
         try:
             AIProvider.objects.get(pk=value, is_active=True)
         except AIProvider.DoesNotExist:
-            raise serializers.ValidationError("Provider یافت نشد یا غیرفعال است")
+            raise serializers.ValidationError(IMAGE_ERRORS['provider_not_found_or_inactive'])
         return value

@@ -1,6 +1,5 @@
 import asyncio
 import time
-import asyncio
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from src.ai.models import AIProvider, AdminProviderSettings
@@ -20,13 +19,15 @@ class AIContentGenerationService:
     
     @classmethod
     def get_provider(cls, provider_name: str, admin=None):
+        from src.ai.messages.messages import AI_ERRORS
+        
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
-            raise ValueError(f"Provider '{provider_name}' is not supported")
+            raise ValueError(AI_ERRORS.get("provider_not_supported", "Provider not supported").format(provider_name=provider_name))
         
         provider = AIProvider.get_provider_by_slug(provider_name)
         if not provider:
-            raise ValueError(f"Provider '{provider_name}' is not active or not found")
+            raise ValueError(AI_ERRORS.get("provider_not_available", "Provider not available").format(provider_name=provider_name))
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
@@ -41,20 +42,24 @@ class AIContentGenerationService:
                     if not api_key or not api_key.strip():
                         api_key = settings.get_personal_api_key()
                         if not api_key or not api_key.strip():
-                            raise ValueError(f"API Key for {provider_name} is not set")
+                            from src.ai.messages.messages import SETTINGS_ERRORS
+                            raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
                 else:
                     api_key = settings.get_personal_api_key()
                     if not api_key or not api_key.strip():
-                        raise ValueError(f"Personal API Key for {provider_name} is not set")
+                        from src.ai.messages.messages import SETTINGS_ERRORS
+                        raise ValueError(SETTINGS_ERRORS.get("personal_api_key_not_set", "Personal API Key not set").format(provider_name=provider_name))
                     
             except AdminProviderSettings.DoesNotExist:
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
-                    raise ValueError(f"Shared API Key for {provider_name} is not set")
+                    from src.ai.messages.messages import SETTINGS_ERRORS
+                    raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         else:
             api_key = provider.get_shared_api_key()
             if not api_key or not api_key.strip():
-                raise ValueError(f"Shared API Key for {provider_name} is not set")
+                from src.ai.messages.messages import SETTINGS_ERRORS
+                raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         
         config = provider.config or {}
         return provider_class(api_key=api_key, config=config)

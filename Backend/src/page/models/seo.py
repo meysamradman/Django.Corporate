@@ -3,15 +3,11 @@ from django.core.exceptions import ValidationError
 
 
 class SEOMixin(models.Model):
-    """
-    Optimized SEO Mixin for large scale applications
-    """
     
-    # Core SEO fields - اغلب استفاده می‌شوند
     meta_title = models.CharField(
         max_length=70,
         null=True, blank=True,
-        db_index=True,  # برای جستجو
+        db_index=True,
         verbose_name="Meta Title",
         help_text="SEO title for search engines (max 70 characters)"
     )
@@ -22,7 +18,6 @@ class SEOMixin(models.Model):
         help_text="SEO description for search engines (max 300 characters)"
     )
     
-    # Essential OG tags only - کم استفاده
     og_title = models.CharField(
         max_length=70,
         null=True, blank=True,
@@ -43,11 +38,9 @@ class SEOMixin(models.Model):
         verbose_name="Open Graph Image"
     )
     
-    # Advanced fields - کمتر استفاده می‌شوند
     canonical_url = models.URLField(null=True, blank=True)
     robots_meta = models.CharField(max_length=50, null=True, blank=True, default="index,follow")
     
-    # JSON fields for complex data - فقط در صورت نیاز
     structured_data = models.JSONField(null=True, blank=True, default=dict)
     hreflang_data = models.JSONField(null=True, blank=True, default=dict)
     
@@ -55,7 +48,6 @@ class SEOMixin(models.Model):
         abstract = True
         
     def get_meta_title(self):
-        """Optimized meta title getter"""
         if hasattr(self, '_cached_meta_title'):
             return self._cached_meta_title
             
@@ -75,7 +67,6 @@ class SEOMixin(models.Model):
         return self._cached_meta_title
     
     def get_meta_description(self):
-        """Optimized meta description getter"""
         if hasattr(self, '_cached_meta_description'):
             return self._cached_meta_description
             
@@ -95,15 +86,12 @@ class SEOMixin(models.Model):
         return self._cached_meta_description
     
     def get_og_title(self):
-        """Get Open Graph title with fallback"""
         return self.og_title or self.get_meta_title()
     
     def get_og_description(self):
-        """Get Open Graph description with fallback"""
         return self.og_description or self.get_meta_description()
     
     def get_canonical_url(self):
-        """Get canonical URL with fallback"""
         if self.canonical_url:
             return self.canonical_url
         # Fallback to model's public URL
@@ -112,7 +100,6 @@ class SEOMixin(models.Model):
         return ""
     
     def generate_structured_data(self):
-        """Generate basic structured data - override in child models"""
         return {
             "@context": "https://schema.org",
             "@type": "Thing",

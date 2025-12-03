@@ -14,41 +14,41 @@ class EmailAttachment(models.Model):
         'email.EmailMessage',
         on_delete=models.CASCADE,
         related_name='attachments',
-        verbose_name="پیام",
+        verbose_name="Message",
         db_index=True
     )
     file = models.FileField(
         upload_to=email_attachment_upload_path,
-        verbose_name="فایل",
-        help_text="فایل ضمیمه"
+        verbose_name="File",
+        help_text="Attachment file"
     )
     filename = models.CharField(
         max_length=255,
-        verbose_name="نام فایل",
-        help_text="نام اصلی فایل"
+        verbose_name="Filename",
+        help_text="Original filename"
     )
     file_size = models.PositiveIntegerField(
-        verbose_name="حجم فایل (بایت)",
-        help_text="حجم فایل به بایت"
+        verbose_name="File Size (bytes)",
+        help_text="File size in bytes"
     )
     content_type = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="نوع فایل",
-        help_text="MIME type فایل"
+        verbose_name="Content Type",
+        help_text="MIME type of file"
     )
     
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="تاریخ ایجاد",
+        verbose_name="Created At",
         db_index=True
     )
     
     class Meta:
         db_table = 'email_attachments'
         ordering = ['-created_at']
-        verbose_name = "ضمیمه ایمیل"
-        verbose_name_plural = "ضمیمه‌های ایمیل"
+        verbose_name = "Email Attachment"
+        verbose_name_plural = "Email Attachments"
         indexes = [
             models.Index(fields=['message', 'created_at']),
         ]

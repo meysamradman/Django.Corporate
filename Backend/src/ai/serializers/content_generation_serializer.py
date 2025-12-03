@@ -7,46 +7,45 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
     topic = serializers.CharField(
         required=True,
         max_length=500,
-        help_text="موضوع یا عنوان محتوا"
+        help_text="Content topic or title"
     )
     
     provider_name = serializers.ChoiceField(
-        choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],  # Added groq and huggingface
+        choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],
         default='gemini',
-        help_text="مدل AI برای تولید محتوا"
+        help_text="AI model for content generation"
     )
     
     word_count = serializers.IntegerField(
         default=500,
         min_value=100,
         max_value=2000,
-        help_text="تعداد کلمات مورد نظر (100 تا 2000)"
+        help_text="Desired word count (100 to 2000)"
     )
     
     tone = serializers.ChoiceField(
         choices=['professional', 'casual', 'formal', 'friendly', 'technical'],
         default='professional',
-        help_text="سبک نوشتاری"
+        help_text="Writing style"
     )
     
     keywords = serializers.ListField(
         child=serializers.CharField(max_length=50),
         required=False,
         allow_empty=True,
-        help_text="کلمات کلیدی برای SEO (اختیاری)"
+        help_text="SEO keywords (optional)"
     )
     
-    # ✅ Destination handling - where to save generated content
     destination = serializers.ChoiceField(
         choices=['direct', 'blog', 'portfolio'],
         required=False,
         default='direct',
-        help_text="مقصد ذخیره‌سازی محتوا: direct (فقط نمایش), blog (ذخیره در بلاگ), portfolio (ذخیره در نمونه‌کار)"
+        help_text="Content save destination: direct (display only), blog (save to blog), portfolio (save to portfolio)"
     )
     destination_data = serializers.JSONField(
         required=False,
         default=dict,
-        help_text="داده‌های اضافی برای مقصد (مثل دسته‌بندی، تگ، وضعیت)"
+        help_text="Additional data for destination (e.g., category, tag, status)"
     )
     
 
@@ -67,11 +66,10 @@ class AIContentGenerationResponseSerializer(serializers.Serializer):
     # Content data
     content = serializers.DictField(
         child=serializers.CharField(),
-        help_text="داده‌های محتوای تولید شده (title, content, meta_title, etc)"
+        help_text="Generated content data (title, content, meta_title, etc)"
     )
     
-    # Destination result
     destination = serializers.DictField(
-        help_text="نتیجه ذخیره‌سازی در مقصد (saved, destination, id, url, message)"
+        help_text="Destination save result (saved, destination, id, url, message)"
     )
 

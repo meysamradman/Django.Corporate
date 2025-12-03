@@ -97,6 +97,8 @@ IMAGE_ERRORS = {
     "api_key_encryption_error": "خطا در رمزنگاری API key: {error}",
     "api_key_decryption_error": "خطا در رمزگشایی API key: {error}",
     "activation_failed": "خطا در فعال‌سازی Provider: {error}",
+    "provider_name_duplicate": "این نام قبلاً استفاده شده است",
+    "provider_not_found_or_inactive": "Provider یافت نشد یا غیرفعال است",
     "validation_error": "خطا در اعتبارسنجی: {error}",
     "openai_billing_limit": "حساب OpenAI به حد اعتبار رسیده است. لطفاً به تنظیمات billing مراجعه کنید.",
     "openai_invalid_response": "پاسخ نامعتبر از API OpenAI.",
@@ -210,6 +212,7 @@ OPENAI_ERRORS = {
     "content_generation_failed": "خطا در تولید محتوا: {error}",
     "json_parse_error": "خطا در تجزیه پاسخ JSON",
     "no_content_generated": "هیچ محتوایی تولید نشد",
+    "no_response_received": "هیچ پاسخی دریافت نشد",
     "billing_limit": "خطای OpenAI API: اعتبار حساب شما تمام شده است. لطفاً به https://platform.openai.com/account/billing مراجعه کنید و حساب خود را شارژ کنید.",
     "rate_limit": "خطای OpenAI API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید.",
     "invalid_api_key": "خطای OpenAI API: API Key نامعتبر است. لطفاً API Key خود را بررسی کنید.",
@@ -241,6 +244,15 @@ DEEPSEEK_ERRORS = {
 DEEPSEEK_PROMPTS = {
     "content_generation": "لطفاً یک محتوای حرفه‌ای و سئو شده به زبان فارسی بنویسید.\n\nموضوع: {topic}\n\nملاحظات:\n- طول محتوا: حدود {word_count} کلمه\n- سبک: {tone}\n- محتوا باید برای SEO بهینه باشد\n- استفاده از کلمات کلیدی طبیعی\n- ساختار منطقی و خوانا\n\nمحتوا را به صورت متن ساده بدون فرمت خاص بنویسید.",
     "seo_content_generation": "لطفاً یک محتوای حرفه‌ای و سئو شده به زبان فارسی برای موضوع \"{topic}\" بنویسید.",
+}
+
+DEEPSEEK_SYSTEM_MESSAGES = {
+    "content_writer": "شما یک نویسنده حرفه‌ای و متخصص SEO هستید که به زبان فارسی می‌نویسید.",
+    "seo_expert": "شما یک متخصص SEO و نویسنده حرفه‌ای هستید. همیشه پاسخ را به صورت JSON معتبر برگردانید.",
+}
+
+AI_SYSTEM_MESSAGES = {
+    "default_chat": "شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.",
 }
 
 AI_PROMPTS = {

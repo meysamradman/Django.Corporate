@@ -182,10 +182,9 @@ class PortfolioPDFListExportService:
                 except Exception:
                     return dt.strftime("%Y-%m-%d %H:%M:%S")
             
-            # Table headers - RTL order: حذف تاریخ بروزرسانی
             table_headers = [
-                process_persian_text('وضعیت'),  # اول در RTL (سمت راست)
-                process_persian_text('تاریخ ایجاد'),  # فقط تاریخ ایجاد
+                process_persian_text('وضعیت'),
+                process_persian_text('تاریخ ایجاد'),
                 process_persian_text('گزینه‌ها'),
                 process_persian_text('تگ‌ها'),
                 process_persian_text('دسته‌بندی‌ها'),
@@ -193,7 +192,7 @@ class PortfolioPDFListExportService:
                 process_persian_text('عمومی'),
                 process_persian_text('ویژه'),
                 process_persian_text('ID'),
-                process_persian_text('عنوان')  # آخر در RTL (سمت چپ)
+                process_persian_text('عنوان')
             ]
             
             # Escape headers and convert to strings
@@ -220,10 +219,9 @@ class PortfolioPDFListExportService:
                 elif status_display == 'Archived':
                     status_display = 'بایگانی شده'
                 
-                # RTL order: حذف تاریخ بروزرسانی
                 row = [
-                    status_display,  # اول در RTL (سمت راست)
-                    convert_to_persian_date(portfolio.created_at) if portfolio.created_at else "",  # تاریخ فارسی
+                    status_display,
+                    convert_to_persian_date(portfolio.created_at) if portfolio.created_at else "",
                     options,  # Will be converted to bullet list
                     tags,  # Will be converted to bullet list
                     categories,  # Will be converted to bullet list
@@ -231,26 +229,24 @@ class PortfolioPDFListExportService:
                     "بله" if portfolio.is_public else "خیر",
                     "بله" if portfolio.is_featured else "خیر",
                     str(portfolio.id),
-                    title_text  # آخر در RTL (سمت چپ)
+                    title_text
                 ]
                 
                 table_data.append(row)
             
             # Calculate available width (landscape A4: 11.69" - margins: 0.4" = 11.29")
             available_width = 11.29 * inch
-            # Optimized column widths for landscape - RTL order (از راست به چپ) - حذف تاریخ بروزرسانی
-            # وضعیت, تاریخ ایجاد, لیست‌ها, بله/خیر, ID, عنوان
             col_widths = [
-                0.8*inch,   # وضعیت (0) - راست
-                1.2*inch,   # تاریخ ایجاد (1) - بزرگتر برای تاریخ فارسی
-                1.3*inch,   # گزینه‌ها (2)
-                1.3*inch,   # تگ‌ها (3)
-                1.3*inch,   # دسته‌بندی‌ها (4)
-                0.5*inch,   # فعال (5)
-                0.5*inch,   # عمومی (6)
-                0.5*inch,   # ویژه (7)
-                0.5*inch,   # ID (8)
-                2.0*inch,   # عنوان (9) - چپ - بزرگتر برای wrap
+                0.8*inch,
+                1.2*inch,
+                1.3*inch,
+                1.3*inch,
+                1.3*inch,
+                0.5*inch,
+                0.5*inch,
+                0.5*inch,
+                0.5*inch,
+                2.0*inch,
             ]
             # Total: ~10.9 inch
             
@@ -264,8 +260,7 @@ class PortfolioPDFListExportService:
                 ('TEXTCOLOR', (0, 0), (-1, 0), PortfolioPDFListExportService.TEXT_PRIMARY),
                 ('BOLD', (0, 0), (-1, 0), True),  # Already bold
                 ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
-                # Header alignment - همه راست‌چین (RTL)
-                ('ALIGN', (0, 0), (-1, 0), 'RIGHT'),  # همه header ها راست‌چین
+                ('ALIGN', (0, 0), (-1, 0), 'RIGHT'),
                 
                 # Data rows - general styling - larger font
                 ('FONTNAME', (0, 1), (-1, -1), persian_font_name),
@@ -273,8 +268,7 @@ class PortfolioPDFListExportService:
                 ('TEXTCOLOR', (0, 1), (-1, -1), PortfolioPDFListExportService.TEXT_PRIMARY),
                 ('VALIGN', (0, 1), (-1, -1), 'TOP'),
                 
-                # Column-specific alignments - همه راست‌چین (RTL)
-                ('ALIGN', (0, 1), (-1, -1), 'RIGHT'),  # همه داده‌ها راست‌چین
+                ('ALIGN', (0, 1), (-1, -1), 'RIGHT'),
                 
                 # Borders - only horizontal lines between rows, no vertical lines
                 ('LINEBELOW', (0, 0), (-1, 0), 1, PortfolioPDFListExportService.BORDER_COLOR),  # Header bottom border
@@ -294,9 +288,6 @@ class PortfolioPDFListExportService:
             for row_idx in range(1, len(table_data)):  # Skip header
                 row = table_data[row_idx]
                 
-                # RTL order: وضعیت (0), تاریخ ایجاد (1), لیست‌ها (2,3,4), بله/خیر (5,6,7), ID (8), عنوان (9)
-                
-                # Convert status (col 0) to Paragraph with right alignment and word wrap
                 if len(row) > 0:
                     status_text = escape(process_persian_text(str(row[0])))
                     status_para = Paragraph(
@@ -318,7 +309,6 @@ class PortfolioPDFListExportService:
                     )
                     row[1] = date_para
                 
-                # Convert list columns (2, 3, 4) to bullet list Paragraphs - گزینه‌ها, تگ‌ها, دسته‌بندی‌ها
                 for col_idx in [2, 3, 4]:
                     if col_idx < len(row):
                         items = row[col_idx]
@@ -344,7 +334,6 @@ class PortfolioPDFListExportService:
                             cell_text = escape(process_persian_text(str(items)))
                             row[col_idx] = cell_text
                 
-                # Convert بله/خیر columns (5, 6, 7) - فعال, عمومی, ویژه - به Paragraph برای wrap
                 for col_idx in [5, 6, 7]:
                     if col_idx < len(row):
                         cell_text = escape(process_persian_text(str(row[col_idx])))

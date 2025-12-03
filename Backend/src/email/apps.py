@@ -7,5 +7,4 @@ class EmailConfig(AppConfig):
     
     def ready(self):
         import src.email.signals
-        # ✅ Django Admin حذف شد - از Next.js برای پنل ادمین استفاده می‌شود
 

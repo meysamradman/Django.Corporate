@@ -5,7 +5,7 @@ import json
 import os
 from .base import BaseProvider
 from src.ai.utils.cache import AICacheKeys
-from src.ai.messages.messages import GROQ_ERRORS, GROQ_PROMPTS
+from src.ai.messages.messages import GROQ_ERRORS, GROQ_PROMPTS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
 
 
 class GroqProvider(BaseProvider):
@@ -155,7 +155,7 @@ class GroqProvider(BaseProvider):
             "messages": [
                 {
                     "role": "system",
-                    "content": "شما یک نویسنده حرفه‌ای و متخصص SEO هستید که به زبان فارسی می‌نویسید."
+                    "content": DEEPSEEK_SYSTEM_MESSAGES['content_writer']
                 },
                 {
                     "role": "user",
@@ -224,7 +224,7 @@ class GroqProvider(BaseProvider):
             "messages": [
                 {
                     "role": "system",
-                    "content": "شما یک متخصص SEO و نویسنده حرفه‌ای هستید. همیشه پاسخ را به صورت JSON معتبر برگردانید."
+                    "content": DEEPSEEK_SYSTEM_MESSAGES['seo_expert']
                 },
                 {
                     "role": "user",
@@ -253,7 +253,7 @@ class GroqProvider(BaseProvider):
                     if json_match:
                         seo_data = json.loads(json_match.group(1))
                     else:
-                        raise Exception("پاسخ در فرمت JSON معتبر نیست")
+                        raise Exception(GROQ_ERRORS['json_parse_error'].format(error="Invalid JSON format"))
                 
                 # Ensure all required fields
                 if 'slug' not in seo_data or not seo_data['slug']:
@@ -296,7 +296,7 @@ class GroqProvider(BaseProvider):
         messages = []
         
         # Add system message (optional)
-        system_message = kwargs.get('system_message', 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.')
+        system_message = kwargs.get('system_message', AI_SYSTEM_MESSAGES['default_chat'])
         if system_message:
             messages.append({"role": "system", "content": system_message})
         

@@ -1,17 +1,3 @@
-"""
-🔥 UNIFIED PERMISSIONS & ROLES CONFIG - Single Source of Truth
-این فایل مرکزی و واحد برای تعریف همه Permissions و Roles است
-
-بخش‌های این فایل:
-1. PERMISSIONS - تعریف همه دسترسی‌های موجود در سیستم
-2. SYSTEM_ROLES - تعریف همه نقش‌های پیش‌فرض سیستم
-3. AVAILABLE_MODULES - ماژول‌های قابل دسترسی
-4. AVAILABLE_ACTIONS - عملیات‌های قابل انجام
-5. Helper Functions - توابع کمکی برای کار با permissions و roles
-
-Compatible with Django 5.2.6
-"""
-
 from typing import Dict, List, Tuple, Any, Optional
 from dataclasses import dataclass
 
@@ -33,12 +19,6 @@ from .modules.management import MANAGEMENT_PERMISSIONS
 # PART 1: PERMISSIONS CONFIGURATION
 # =============================================================================
 
-# Base permissions for all admins
-# These permissions are automatically granted to every admin user
-# Only includes truly essential permissions:
-# - View general dashboard (without sensitive data)
-# - View and edit own profile
-# Note: Media is NO LONGER in BASE - must be granted separately per role
 BASE_ADMIN_PERMISSIONS = {
     'dashboard.read': {
         'module': 'statistics',

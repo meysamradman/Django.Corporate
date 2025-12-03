@@ -312,7 +312,6 @@ class BlogPDFExportService:
                     ))
                 elements.append(Spacer(1, 0.25*inch))
         
-        # OG image - متن فارسی تایپ شده دستی
         if blog.og_image:
             BlogPDFExportService._add_section_header(
                 elements, 'تصویر Open Graph', process_persian_text, escape, heading_style
@@ -329,13 +328,11 @@ class BlogPDFExportService:
                     ))
                 elements.append(Spacer(1, 0.25*inch))
         
-        # Images gallery - محدود به 10 تصویر برای جلوگیری از PDF سنگین
         all_images = blog.images.select_related('image').all()
         total_images = all_images.count()
         images = list(all_images.order_by('order', 'created_at')[:10])
         
         if images:
-            # متن‌های فارسی تایپ شده دستی
             header_text = 'گالری تصاویر'
             if total_images > 10:
                 header_text = f'گالری تصاویر (نمایش 10 از {total_images} تصویر)'
@@ -365,7 +362,6 @@ class BlogPDFExportService:
                 ))
             elements.append(Spacer(1, 0.3*inch))
         
-        # Videos - متن فارسی تایپ شده دستی
         videos = blog.videos.select_related('video', 'video__cover_image').all().order_by('order', 'created_at')
         if videos.exists():
             BlogPDFExportService._add_section_header(
@@ -389,7 +385,6 @@ class BlogPDFExportService:
                     elements.append(Spacer(1, 0.2*inch))
             elements.append(Spacer(1, 0.3*inch))
         
-        # Audios - متن فارسی تایپ شده دستی
         audios = blog.audios.select_related('audio', 'audio__cover_image').all().order_by('order', 'created_at')
         if audios.exists():
             BlogPDFExportService._add_section_header(
@@ -413,7 +408,6 @@ class BlogPDFExportService:
                     elements.append(Spacer(1, 0.2*inch))
             elements.append(Spacer(1, 0.3*inch))
         
-        # Documents - متن فارسی تایپ شده دستی
         documents = blog.documents.select_related('document', 'document__cover_image').all().order_by('order', 'created_at')
         if documents.exists():
             BlogPDFExportService._add_section_header(
@@ -497,7 +491,6 @@ class BlogPDFExportService:
                     
                     canv.restoreState()
                 except Exception as e:
-                    # اگر مشکلی در header/footer پیش آمد، فقط restore کن
                     try:
                         canv.restoreState()
                     except:
@@ -542,7 +535,6 @@ class BlogPDFExportService:
                 elements, blog, persian_font_name, process_persian_text, escape
             )
             
-            # Add short description - متن فارسی تایپ شده دستی
             if blog.short_description:
                 BlogPDFExportService._add_section_header(
                     elements, 'توضیحات کوتاه', process_persian_text, escape, pdf_styles['heading']
@@ -557,7 +549,6 @@ class BlogPDFExportService:
                 elements.append(desc_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add full description - متن فارسی تایپ شده دستی
             if blog.description:
                 BlogPDFExportService._add_section_header(
                     elements, 'توضیحات کامل', process_persian_text, escape, pdf_styles['heading']
@@ -573,7 +564,6 @@ class BlogPDFExportService:
                 elements.append(desc_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add categories - متن فارسی تایپ شده دستی
             categories = blog.categories.all()
             if categories:
                 BlogPDFExportService._add_section_header(
@@ -590,7 +580,6 @@ class BlogPDFExportService:
                 elements.append(cat_para)
                 elements.append(Spacer(1, 0.3*inch))
             
-            # Add tags - متن فارسی تایپ شده دستی
             tags = blog.tags.all()
             if tags:
                 BlogPDFExportService._add_section_header(

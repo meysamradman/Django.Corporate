@@ -2,6 +2,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 from src.email.models.email_message import EmailMessage
+from src.email.messages import EMAIL_TEXT
 
 
 class EmailService:
@@ -14,13 +15,13 @@ class EmailService:
             if not original_message and email_message.dynamic_fields:
                 original_message = email_message.dynamic_fields.get('message', '')
             
-            original_subject = email_message.subject or email_message.dynamic_fields.get('subject', 'بدون موضوع') if email_message.dynamic_fields else 'بدون موضوع'
+            original_subject = email_message.subject or email_message.dynamic_fields.get('subject', EMAIL_TEXT['no_subject']) if email_message.dynamic_fields else EMAIL_TEXT['no_subject']
             
             recipient_name = email_message.name
             if not recipient_name and email_message.dynamic_fields:
-                recipient_name = email_message.dynamic_fields.get('name', 'کاربر گرامی')
+                recipient_name = email_message.dynamic_fields.get('name', EMAIL_TEXT['dear_user'])
             if not recipient_name:
-                recipient_name = 'کاربر گرامی'
+                recipient_name = EMAIL_TEXT['dear_user']
             
             recipient_email = email_message.email
             if not recipient_email and email_message.dynamic_fields:
@@ -29,7 +30,7 @@ class EmailService:
             if not recipient_email:
                 return False
             
-            company_name = getattr(settings, 'COMPANY_NAME', 'شرکت ما')
+            company_name = getattr(settings, 'COMPANY_NAME', EMAIL_TEXT['default_company'])
             default_from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@corporate.local')
             if '<' in default_from_email and '>' in default_from_email:
                 company_name = default_from_email.split('<')[0].strip()
@@ -38,19 +39,19 @@ class EmailService:
                 'company_name': company_name,
                 'recipient_name': recipient_name,
                 'reply_message': reply_text,
-                'original_message': original_message or 'پیام اصلی یافت نشد',
+                'original_message': original_message or EMAIL_TEXT['original_message_not_found'],
             })
             
             text_content = f"""
-سلام {recipient_name}،
+{EMAIL_TEXT['greeting']} {recipient_name}،
 
 {reply_text}
 
-------- پیام اصلی شما -------
-{original_message or 'پیام اصلی یافت نشد'}
+{EMAIL_TEXT['original_message_label']}
+{original_message or EMAIL_TEXT['original_message_not_found']}
 
-با تشکر،
-تیم {company_name}
+{EMAIL_TEXT['thanks']}،
+{EMAIL_TEXT['team']} {company_name}
             """
             
             email = EmailMultiAlternatives(

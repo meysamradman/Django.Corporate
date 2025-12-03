@@ -30,7 +30,6 @@ class BlogExcelExportService:
         })
         worksheet = workbook.add_worksheet('Blogs')
         
-        # Headers - تایپ شده دستی
         headers = [
             'ID',
             'عنوان',
@@ -73,7 +72,6 @@ class BlogExcelExportService:
             worksheet.write(row_num, 2, blog.short_description or "", data_format)
             worksheet.write(row_num, 3, blog.get_status_display() if hasattr(blog, 'get_status_display') else blog.status, data_format)
             
-            # بله/خیر - تایپ شده دستی
             worksheet.write(row_num, 4, "بله" if blog.is_featured else "خیر", data_format)
             worksheet.write(row_num, 5, "بله" if blog.is_public else "خیر", data_format)
             worksheet.write(row_num, 6, "بله" if blog.is_active else "خیر", data_format)

@@ -214,10 +214,6 @@ def clear_admin_user_cache(sender, instance, **kwargs):
 
 @receiver([post_save, post_delete], sender=AdminRole)
 def clear_admin_role_cache(sender, instance, **kwargs):
-    """
-    ✅ پاک کردن کامل cache تمام کاربرانی که این role رو دارند
-    وقتی role permissions تغییر می‌کنه (update, delete)
-    """
     from src.user.authorization.admin_permission import AdminPermissionCache
     from src.user.permissions.validator import PermissionValidator
     from src.user.permissions.helpers import PermissionHelper

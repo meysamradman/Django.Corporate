@@ -7,17 +7,17 @@ from src.core.models.base import BaseModel
 class EmailMessage(BaseModel):
     
     STATUS_CHOICES = [
-        ('new', 'جدید'),
-        ('read', 'خوانده شده'),
-        ('replied', 'پاسخ داده شده'),
-        ('archived', 'آرشیو شده'),
-        ('draft', 'پیش‌نویس'),
+        ('new', 'New'),
+        ('read', 'Read'),
+        ('replied', 'Replied'),
+        ('archived', 'Archived'),
+        ('draft', 'Draft'),
     ]
     
     SOURCE_CHOICES = [
-        ('website', 'وب‌سایت'),
-        ('mobile_app', 'اپلیکیشن موبایل'),
-        ('email', 'ایمیل مستقیم'),
+        ('website', 'Website'),
+        ('mobile_app', 'Mobile App'),
+        ('email', 'Direct Email'),
         ('api', 'API'),
     ]
     
@@ -25,46 +25,46 @@ class EmailMessage(BaseModel):
         max_length=200,
         blank=True,
         null=True,
-        verbose_name="نام",
+        verbose_name="Name",
         db_index=True,
-        help_text="نام فرستنده پیام"
+        help_text="Sender name"
     )
     email = models.EmailField(
         blank=True,
         null=True,
-        verbose_name="ایمیل",
+        verbose_name="Email",
         db_index=True,
         validators=[EmailValidator()],
-        help_text="آدرس ایمیل فرستنده"
+        help_text="Sender email address"
     )
     phone = models.CharField(
         max_length=20,
         blank=True,
         null=True,
-        verbose_name="تلفن",
-        help_text="شماره تلفن فرستنده (اختیاری)"
+        verbose_name="Phone",
+        help_text="Sender phone number (optional)"
     )
     
     subject = models.CharField(
         max_length=300,
         blank=True,
         null=True,
-        verbose_name="موضوع",
+        verbose_name="Subject",
         db_index=True,
-        help_text="موضوع پیام"
+        help_text="Message subject"
     )
     message = models.TextField(
         blank=True,
         null=True,
-        verbose_name="پیام",
-        help_text="متن پیام"
+        verbose_name="Message",
+        help_text="Message content"
     )
     
     dynamic_fields = models.JSONField(
         default=dict,
         blank=True,
-        verbose_name="فیلدهای دینامیک",
-        help_text="فیلدهای ساخته شده در فرم‌ساز پنل ادمین"
+        verbose_name="Dynamic Fields",
+        help_text="Fields created in admin form builder"
     )
     
     status = models.CharField(
@@ -72,8 +72,8 @@ class EmailMessage(BaseModel):
         choices=STATUS_CHOICES,
         default='new',
         db_index=True,
-        verbose_name="وضعیت",
-        help_text="وضعیت فعلی پیام"
+        verbose_name="Status",
+        help_text="Current message status"
     )
     
     source = models.CharField(
@@ -81,35 +81,35 @@ class EmailMessage(BaseModel):
         choices=SOURCE_CHOICES,
         default='website',
         db_index=True,
-        verbose_name="منبع",
-        help_text="منبع ارسال پیام"
+        verbose_name="Source",
+        help_text="Message source"
     )
     
     ip_address = models.GenericIPAddressField(
         blank=True,
         null=True,
-        verbose_name="آدرس IP",
-        help_text="آدرس IP فرستنده"
+        verbose_name="IP Address",
+        help_text="Sender IP address"
     )
     user_agent = models.TextField(
         blank=True,
         null=True,
         verbose_name="User Agent",
-        help_text="اطلاعات مرورگر یا اپلیکیشن فرستنده"
+        help_text="Browser or application information"
     )
     
     reply_message = models.TextField(
         blank=True,
         null=True,
-        verbose_name="پاسخ ادمین",
-        help_text="پاسخ ادمین به این پیام"
+        verbose_name="Reply Message",
+        help_text="Admin reply to this message"
     )
     replied_at = models.DateTimeField(
         blank=True,
         null=True,
         db_index=True,
-        verbose_name="تاریخ پاسخ",
-        help_text="زمانی که پاسخ ارسال شد"
+        verbose_name="Replied At",
+        help_text="When reply was sent"
     )
     replied_by = models.ForeignKey(
         'user.User',
@@ -117,8 +117,8 @@ class EmailMessage(BaseModel):
         blank=True,
         null=True,
         related_name='replied_email_messages',
-        verbose_name="پاسخ داده شده توسط",
-        help_text="ادمینی که پاسخ را ارسال کرده"
+        verbose_name="Replied By",
+        help_text="Admin who sent the reply"
     )
     
     created_by = models.ForeignKey(
@@ -127,23 +127,23 @@ class EmailMessage(BaseModel):
         blank=True,
         null=True,
         related_name='created_email_messages',
-        verbose_name="ایجاد شده توسط",
-        help_text="ادمینی که این ایمیل/پیش‌نویس را ایجاد کرده"
+        verbose_name="Created By",
+        help_text="Admin who created this email/draft"
     )
     
     read_at = models.DateTimeField(
         blank=True,
         null=True,
         db_index=True,
-        verbose_name="تاریخ خواندن",
-        help_text="زمانی که پیام خوانده شد"
+        verbose_name="Read At",
+        help_text="When message was read"
     )
     
     class Meta:
         db_table = 'email_messages'
         ordering = ['-created_at']
-        verbose_name = "پیام ایمیل"
-        verbose_name_plural = "پیام‌های ایمیل"
+        verbose_name = "Email Message"
+        verbose_name_plural = "Email Messages"
         indexes = [
             models.Index(fields=['email']),
             models.Index(fields=['status', 'created_at']),

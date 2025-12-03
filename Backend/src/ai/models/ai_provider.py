@@ -34,12 +34,14 @@ class EncryptedAPIKeyMixin:
             encrypted = fernet.encrypt(api_key.strip().encode())
             return encrypted.decode()
         except Exception as e:
-            raise ValidationError(f"خطا در رمزنگاری API key: {str(e)}")
+            from src.ai.messages.messages import IMAGE_ERRORS
+            raise ValidationError(IMAGE_ERRORS['api_key_encryption_error'].format(error=str(e)))
     
     @classmethod
     def decrypt_key(cls, encrypted_key: str) -> str:
         if not encrypted_key:
-            raise ValidationError("API key خالی است")
+            from src.ai.messages.messages import IMAGE_ERRORS
+            raise ValidationError(IMAGE_ERRORS['api_key_required'])
         
         try:
             key = cls._get_encryption_key()
@@ -47,7 +49,8 @@ class EncryptedAPIKeyMixin:
             decrypted = fernet.decrypt(encrypted_key.encode())
             return decrypted.decode()
         except Exception as e:
-            raise ValidationError(f"خطا در رمزگشایی API key: {str(e)}")
+            from src.ai.messages.messages import IMAGE_ERRORS
+            raise ValidationError(IMAGE_ERRORS['api_key_decryption_error'].format(error=str(e)))
 
 
 class CacheMixin:

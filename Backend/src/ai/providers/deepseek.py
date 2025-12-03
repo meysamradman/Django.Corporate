@@ -4,13 +4,10 @@ import httpx
 import json
 import os
 from .base import BaseProvider
+from src.ai.messages.messages import DEEPSEEK_PROMPTS, DEEPSEEK_ERRORS, DEEPSEEK_SYSTEM_MESSAGES, AI_SYSTEM_MESSAGES
 
 
 class DeepSeekProvider(BaseProvider):
-    """
-    Provider for DeepSeek API - supports chat and content generation
-    DeepSeek uses OpenAI-compatible API format
-    """
     
     BASE_URL = os.getenv('DEEPSEEK_API_BASE_URL', 'https://api.deepseek.com/v1')
     
@@ -36,23 +33,16 @@ class DeepSeekProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = f"""لطفاً یک محتوای حرفه‌ای و سئو شده به زبان فارسی بنویسید.
-
-موضوع: {prompt}
-
-ملاحظات:
-- طول محتوا: حدود {word_count} کلمه
-- سبک: {tone}
-- محتوا باید برای SEO بهینه باشد
-- استفاده از کلمات کلیدی طبیعی
-- ساختار منطقی و خوانا
-
-محتوا را به صورت متن ساده بدون فرمت خاص بنویسید."""
+        full_prompt = DEEPSEEK_PROMPTS['content_generation'].format(
+            topic=prompt,
+            word_count=word_count,
+            tone=tone
+        )
         
         payload = {
             "model": self.content_model,
             "messages": [
-                {"role": "system", "content": "شما یک نویسنده حرفه‌ای و متخصص SEO هستید که به زبان فارسی می‌نویسید."},
+                {"role": "system", "content": DEEPSEEK_SYSTEM_MESSAGES['content_writer']},
                 {"role": "user", "content": full_prompt}
             ],
             "temperature": 0.7,
@@ -68,7 +58,7 @@ class DeepSeekProvider(BaseProvider):
                 content = data['choices'][0]['message']['content']
                 return content.strip()
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(DEEPSEEK_ERRORS['no_response_received'])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -77,21 +67,21 @@ class DeepSeekProvider(BaseProvider):
                 error_msg = error_data.get('error', {}).get('message', '')
                 
                 if status_code == 429:
-                    raise Exception("خطای DeepSeek API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                    raise Exception(DEEPSEEK_ERRORS['rate_limit'])
                 elif status_code == 401:
-                    raise Exception("خطای DeepSeek API: API Key نامعتبر است.")
+                    raise Exception(DEEPSEEK_ERRORS['invalid_api_key'])
                 elif status_code == 403:
-                    raise Exception("خطای DeepSeek API: دسترسی به API محدود شده است.")
+                    raise Exception(DEEPSEEK_ERRORS['api_access_denied'])
                 
-                raise Exception(f"خطای DeepSeek API: {error_msg}")
+                raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
                 if 'خطای DeepSeek API' in str(ex):
                     raise ex
                 if status_code == 429:
-                    raise Exception("خطای DeepSeek API: تعداد درخواست‌ها زیاد است (rate limit: هر 3 ثانیه یک درخواست).")
-                raise Exception(f"خطای HTTP {status_code}")
+                    raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
+                raise Exception(DEEPSEEK_ERRORS['http_error'].format(status_code=status_code))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(DEEPSEEK_ERRORS['content_generation_failed'].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         import re
@@ -103,30 +93,12 @@ class DeepSeekProvider(BaseProvider):
         
         keywords_str = ', '.join(keywords) if keywords else ''
         
-        prompt = f"""لطفاً یک محتوای حرفه‌ای و سئو شده به زبان فارسی برای موضوع "{topic}" بنویسید.
-
-ملاحظات:
-- طول محتوا: حدود {word_count} کلمه
-- سبک: {tone}
-- محتوا باید برای SEO بهینه باشد
-- استفاده از کلمات کلیدی: {keywords_str if keywords_str else 'طبیعی و مرتبط'}
-- ساختار منطقی و خوانا
-- محتوا باید شامل تگ‌های HTML <h2> و <h3> باشد
-
-لطفاً پاسخ را به صورت JSON با فرمت زیر برگردانید:
-{{
-    "title": "عنوان اصلی (H1)",
-    "meta_title": "عنوان متا برای SEO (50-60 کاراکتر)",
-    "meta_description": "توضیحات متا برای SEO (150-160 کاراکتر)",
-    "slug": "slug-url-friendly",
-    "h1": "عنوان اصلی",
-    "h2_list": ["عنوان H2 اول", "عنوان H2 دوم", ...],
-    "h3_list": ["عنوان H3 اول", "عنوان H3 دوم", ...],
-    "content": "<p>در دنیای امروز، [موضوع] یکی از مهم‌ترین عوامل موفقیت است. محتوای کامل باید با تگ‌های HTML باشد.</p>\n\n<h2>عنوان H2 اول</h2>\n<p>محتوا مربوط به بخش اول که شامل کلمات کلیدی طبیعی است.</p>\n\n<h3>عنوان H3 اول</h3>\n<p>محتوا مربوط به زیربخش H3 با جزئیات بیشتر.</p>\n\n<h2>عنوان H2 دوم</h2>\n<p>محتوا مربوط به بخش دوم که بهینه شده برای SEO است.</p>",
-    "keywords": ["کلمه کلیدی 1", "کلمه کلیدی 2", ...]
-}}
-
-مهم: حتماً تگ‌های <h2> و <h3> را در داخل فیلد "content" قرار دهید و مطمئن شوید که h2_list و h3_list با تگ‌های موجود در content مطابقت دارند."""
+        prompt = DEEPSEEK_PROMPTS['seo_content_generation'].format(
+            topic=topic,
+            word_count=word_count,
+            tone=tone,
+            keywords_str=f"\n- استفاده از کلمات کلیدی: {keywords_str}" if keywords_str else ""
+        )
         
         url = f"{self.BASE_URL}/chat/completions"
         
@@ -138,7 +110,7 @@ class DeepSeekProvider(BaseProvider):
         payload = {
             "model": self.content_model,
             "messages": [
-                {"role": "system", "content": "شما یک متخصص SEO و نویسنده حرفه‌ای هستید. همیشه پاسخ را به صورت JSON معتبر برگردانید."},
+                {"role": "system", "content": DEEPSEEK_SYSTEM_MESSAGES['seo_expert']},
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.7,
@@ -161,14 +133,14 @@ class DeepSeekProvider(BaseProvider):
                     if json_match:
                         seo_data = json.loads(json_match.group(1))
                     else:
-                        raise Exception("پاسخ در فرمت JSON معتبر نیست")
+                        raise Exception(DEEPSEEK_ERRORS['json_parse_error'].format(error="Invalid JSON format"))
                 
                 if 'slug' not in seo_data or not seo_data['slug']:
                     seo_data['slug'] = slugify(seo_data.get('title', topic))
                 
                 return seo_data
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(DEEPSEEK_ERRORS['no_response_received'])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -177,23 +149,23 @@ class DeepSeekProvider(BaseProvider):
                 error_msg = error_data.get('error', {}).get('message', '')
                 
                 if status_code == 429:
-                    raise Exception("خطای DeepSeek API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید (rate limit: هر 3 ثانیه یک درخواست).")
+                    raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
                 elif status_code == 401:
-                    raise Exception("خطای DeepSeek API: API Key نامعتبر است.")
+                    raise Exception(DEEPSEEK_ERRORS['invalid_api_key'])
                 elif status_code == 403:
-                    raise Exception("خطای DeepSeek API: دسترسی به API محدود شده است.")
+                    raise Exception(DEEPSEEK_ERRORS['api_access_denied'])
                 
-                raise Exception(f"خطای DeepSeek API: {error_msg}")
+                raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
                 if 'خطای DeepSeek API' in str(ex):
                     raise ex
                 if status_code == 429:
-                    raise Exception("خطای DeepSeek API: تعداد درخواست‌ها زیاد است (rate limit: هر 3 ثانیه یک درخواست).")
-                raise Exception(f"خطای HTTP {status_code}")
+                    raise Exception(DEEPSEEK_ERRORS['rate_limit_error'])
+                raise Exception(DEEPSEEK_ERRORS['http_error'].format(status_code=status_code))
         except json.JSONDecodeError as e:
-            raise Exception(f"خطا در تجزیه پاسخ JSON: {str(e)}")
+            raise Exception(DEEPSEEK_ERRORS['json_parse_error'].format(error=str(e)))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(DEEPSEEK_ERRORS['content_generation_failed'].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -205,7 +177,7 @@ class DeepSeekProvider(BaseProvider):
         
         messages = []
         
-        system_message = kwargs.get('system_message', 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.')
+        system_message = kwargs.get('system_message', AI_SYSTEM_MESSAGES['default_chat'])
         if system_message:
             messages.append({"role": "system", "content": system_message})
         
@@ -234,7 +206,7 @@ class DeepSeekProvider(BaseProvider):
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(DEEPSEEK_ERRORS['no_response_received'])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -243,21 +215,21 @@ class DeepSeekProvider(BaseProvider):
                 error_msg = error_data.get('error', {}).get('message', '')
                 
                 if status_code == 429:
-                    raise Exception("خطای DeepSeek API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید (rate limit: هر 3 ثانیه یک درخواست).")
+                    raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
                 elif status_code == 401:
-                    raise Exception("خطای DeepSeek API: API Key نامعتبر است.")
+                    raise Exception(DEEPSEEK_ERRORS['invalid_api_key'])
                 elif status_code == 403:
-                    raise Exception("خطای DeepSeek API: دسترسی به API محدود شده است.")
+                    raise Exception(DEEPSEEK_ERRORS['api_access_denied'])
                 
-                raise Exception(f"خطای DeepSeek API: {error_msg}")
+                raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
                 if 'خطای DeepSeek API' in str(ex):
                     raise ex
                 if status_code == 429:
-                    raise Exception("خطای DeepSeek API: تعداد درخواست‌ها زیاد است یا rate limit (هر 3 ثانیه یک درخواست).")
-                raise Exception(f"خطای HTTP {status_code}")
+                    raise Exception(DEEPSEEK_ERRORS['rate_limit_or_error'])
+                raise Exception(DEEPSEEK_ERRORS['http_error'].format(status_code=status_code))
         except Exception as e:
-            raise Exception(f"خطا در چت: {str(e)}")
+            raise Exception(DEEPSEEK_ERRORS['chat_error'].format(error=str(e)))
     
     def validate_api_key(self) -> bool:
         try:

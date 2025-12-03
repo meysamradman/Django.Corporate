@@ -5,31 +5,27 @@ from src.core.models.base import BaseModel
 
 
 class ContactFormField(BaseModel):
-    """
-    مدل برای تعریف فیلدهای فرم تماس - Dynamic Form Builder
-    امکان مدیریت فیلدها از پنل ادمین بدون نیاز به migration
-    """
     
     FIELD_TYPE_CHOICES = [
-        ('text', 'متن'),
-        ('email', 'ایمیل'),
-        ('phone', 'شماره تلفن'),
-        ('textarea', 'متن چندخطی'),
-        ('select', 'انتخابی'),
-        ('checkbox', 'چک باکس'),
-        ('radio', 'رادیو'),
-        ('number', 'عدد'),
-        ('date', 'تاریخ'),
-        ('url', 'لینک'),
+        ('text', 'Text'),
+        ('email', 'Email'),
+        ('phone', 'Phone'),
+        ('textarea', 'Textarea'),
+        ('select', 'Select'),
+        ('checkbox', 'Checkbox'),
+        ('radio', 'Radio'),
+        ('number', 'Number'),
+        ('date', 'Date'),
+        ('url', 'URL'),
     ]
     
     field_key = models.CharField(
         max_length=100,
         unique=True,
         db_index=True,
-        verbose_name="کلید فیلد",
-        help_text="کلید یکتا برای فیلد (مثال: name, email, phone)",
-        validators=[MinLengthValidator(2, message="کلید فیلد باید حداقل 2 کاراکتر باشد")]
+        verbose_name="Field Key",
+        help_text="Unique key for the field (e.g., name, email, phone)",
+        validators=[MinLengthValidator(2, message="Field key must be at least 2 characters")]
     )
     
     field_type = models.CharField(
@@ -37,62 +33,62 @@ class ContactFormField(BaseModel):
         choices=FIELD_TYPE_CHOICES,
         default='text',
         db_index=True,
-        verbose_name="نوع فیلد",
-        help_text="نوع فیلد (متن، ایمیل، انتخابی و غیره)"
+        verbose_name="Field Type",
+        help_text="Type of field (text, email, select, etc.)"
     )
     
     label = models.CharField(
         max_length=200,
-        verbose_name="برچسب",
-        help_text="برچسب فارسی فیلد که به کاربر نمایش داده می‌شود"
+        verbose_name="Label",
+        help_text="Field label displayed to users"
     )
     
     placeholder = models.CharField(
         max_length=200,
         blank=True,
         null=True,
-        verbose_name="متن راهنما",
-        help_text="متن راهنمای داخل فیلد (اختیاری)"
+        verbose_name="Placeholder",
+        help_text="Placeholder text inside the field (optional)"
     )
     
     required = models.BooleanField(
         default=True,
         db_index=True,
-        verbose_name="الزامی",
-        help_text="آیا این فیلد الزامی است؟"
+        verbose_name="Required",
+        help_text="Whether this field is required"
     )
     
     platforms = models.JSONField(
         default=list,
-        verbose_name="پلتفرم‌ها",
-        help_text="لیست پلتفرم‌هایی که این فیلد در آن‌ها نمایش داده می‌شود: ['website', 'mobile_app']"
+        verbose_name="Platforms",
+        help_text="List of platforms where this field is displayed: ['website', 'mobile_app']"
     )
     
     options = models.JSONField(
         default=list,
         blank=True,
-        verbose_name="گزینه‌ها",
-        help_text="گزینه‌های فیلد انتخابی: [{'value': 'option1', 'label': 'گزینه 1'}]"
+        verbose_name="Options",
+        help_text="Options for select field: [{'value': 'option1', 'label': 'Option 1'}]"
     )
     
     validation_rules = models.JSONField(
         default=dict,
         blank=True,
-        verbose_name="قوانین اعتبارسنجی",
-        help_text="قوانین اعتبارسنجی: {'min_length': 3, 'max_length': 100, 'pattern': '...'}"
+        verbose_name="Validation Rules",
+        help_text="Validation rules: {'min_length': 3, 'max_length': 100, 'pattern': '...'}"
     )
     
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
-        verbose_name="ترتیب نمایش",
-        help_text="ترتیب نمایش فیلد در فرم (اعداد کمتر اول نمایش داده می‌شوند)"
+        verbose_name="Display Order",
+        help_text="Display order in form (lower numbers appear first)"
     )
     
     class Meta(BaseModel.Meta):
         db_table = 'form_contact_fields'
-        verbose_name = "فیلد فرم تماس"
-        verbose_name_plural = "فیلدهای فرم تماس"
+        verbose_name = "Contact Form Field"
+        verbose_name_plural = "Contact Form Fields"
         ordering = ['order', 'field_key']
         indexes = [
             models.Index(fields=['is_active', 'order']),

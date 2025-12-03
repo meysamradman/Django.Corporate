@@ -6,12 +6,12 @@ class AIChatMessageSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
         choices=['user', 'assistant'],
         required=True,
-        help_text="نقش پیام: 'user' یا 'assistant'"
+        help_text="Message role: 'user' or 'assistant'"
     )
     
     content = serializers.CharField(
         required=True,
-        help_text="محتوای پیام"
+        help_text="Message content"
     )
 
 
@@ -20,20 +20,20 @@ class AIChatRequestSerializer(serializers.Serializer):
     message = serializers.CharField(
         required=True,
         max_length=5000,
-        help_text="پیام کاربر"
+        help_text="User message"
     )
     
     provider_name = serializers.ChoiceField(
         choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],
-        default='deepseek',  # Default to DeepSeek as it's free
-        help_text="مدل AI برای چت"
+        default='deepseek',
+        help_text="AI model for chat"
     )
     
     conversation_history = AIChatMessageSerializer(
         many=True,
         required=False,
         allow_null=True,
-        help_text="تاریخچه مکالمه قبلی (اختیاری - برای ادامه مکالمه)"
+        help_text="Previous conversation history (optional - for continuing conversation)"
     )
     
     system_message = serializers.CharField(
@@ -41,7 +41,7 @@ class AIChatRequestSerializer(serializers.Serializer):
         allow_blank=True,
         allow_null=True,
         max_length=1000,
-        help_text="پیام سیستم (اختیاری - برای تنظیم شخصیت AI)"
+        help_text="System message (optional - for setting AI personality)"
     )
     
     temperature = serializers.FloatField(
@@ -49,7 +49,7 @@ class AIChatRequestSerializer(serializers.Serializer):
         default=0.7,
         min_value=0.0,
         max_value=2.0,
-        help_text="دما برای تولید پاسخ (0.0 تا 2.0)"
+        help_text="Temperature for response generation (0.0 to 2.0)"
     )
     
     max_tokens = serializers.IntegerField(
@@ -57,12 +57,13 @@ class AIChatRequestSerializer(serializers.Serializer):
         default=2048,
         min_value=100,
         max_value=4096,
-        help_text="حداکثر تعداد توکن در پاسخ (100 تا 4096)"
+        help_text="Maximum number of tokens in response (100 to 4096)"
     )
     
     def validate_message(self, value):
+        from src.ai.messages.messages import CHAT_ERRORS
         if not value or not value.strip():
-            raise serializers.ValidationError("پیام نمی‌تواند خالی باشد.")
+            raise serializers.ValidationError(CHAT_ERRORS.get("validation_error", "Message cannot be empty"))
         return value.strip()
 
 

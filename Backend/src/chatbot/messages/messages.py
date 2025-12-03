@@ -12,6 +12,10 @@ CHATBOT_ERRORS = {
     'settings_not_found': 'تنظیمات چت‌بات یافت نشد.',
     'permission_denied': 'شما اجازه دسترسی به این بخش را ندارید.',
     'rate_limit_exceeded': 'تعداد درخواست‌های شما بیش از حد مجاز است.',
+    'rate_limit_min': 'محدودیت درخواست باید حداقل 1 باشد.',
+    'rate_limit_max': 'محدودیت درخواست نمی‌تواند بیشتر از 100 باشد.',
     'chatbot_disabled': 'چت‌بات در حال حاضر غیرفعال است.',
     'invalid_message': 'پیام نمی‌تواند خالی باشد.',
+    'question_required': 'سوال نمی‌تواند خالی باشد.',
+    'answer_required': 'پاسخ نمی‌تواند خالی باشد.',
 }

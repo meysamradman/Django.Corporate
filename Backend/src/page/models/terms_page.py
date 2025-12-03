@@ -7,32 +7,28 @@ from src.page.models.seo import SEOMixin
 
 
 class TermsPage(BaseModel, SEOMixin):
-    """
-    مدل برای صفحه "قوانین و مقررات" - Singleton Pattern
-    فقط یک نمونه از این مدل در دیتابیس وجود دارد
-    """
     
     title = models.CharField(
         max_length=200,
-        default="قوانین و مقررات",
-        verbose_name="عنوان صفحه",
-        help_text="عنوان صفحه قوانین و مقررات",
-        validators=[MinLengthValidator(3, message="عنوان باید حداقل 3 کاراکتر باشد")]
+        default="Terms and Conditions",
+        verbose_name="Page Title",
+        help_text="Terms and conditions page title",
+        validators=[MinLengthValidator(3, message="Title must be at least 3 characters")]
     )
     
     content = models.TextField(
         blank=True,
         null=True,
-        verbose_name="محتوای صفحه",
-        help_text="متن اصلی صفحه قوانین و مقررات (پشتیبانی از HTML)"
+        verbose_name="Page Content",
+        help_text="Main content of terms page (HTML supported)"
     )
     
     short_description = models.TextField(
         max_length=500,
         blank=True,
         null=True,
-        verbose_name="توضیح کوتاه",
-        help_text="خلاصه کوتاه از محتوای صفحه (برای نمایش در پیش‌نمایش)"
+        verbose_name="Short Description",
+        help_text="Short summary of page content (for preview display)"
     )
     
     featured_image = models.ForeignKey(
@@ -41,24 +37,23 @@ class TermsPage(BaseModel, SEOMixin):
         null=True,
         blank=True,
         related_name='terms_pages',
-        verbose_name="تصویر شاخص",
-        help_text="تصویر اصلی صفحه (اختیاری)"
+        verbose_name="Featured Image",
+        help_text="Main page image (optional)"
     )
     
     class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'pages_terms'
-        verbose_name = "صفحه قوانین و مقررات"
-        verbose_name_plural = "صفحه قوانین و مقررات"
+        verbose_name = "Terms Page"
+        verbose_name_plural = "Terms Pages"
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['meta_title']),  # SEO search
         ]
     
     def __str__(self):
-        return "صفحه قوانین و مقررات"
+        return "Terms Page"
     
     def save(self, *args, **kwargs):
-        """ذخیره با Singleton Pattern"""
         if not self.pk:
             if TermsPage.objects.exists():
                 existing = TermsPage.objects.first()
@@ -68,7 +63,6 @@ class TermsPage(BaseModel, SEOMixin):
         self.full_clean()
         super().save(*args, **kwargs)
         
-        # Auto-generate SEO fields efficiently
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         if not self.meta_description and self.short_description:
@@ -78,17 +72,15 @@ class TermsPage(BaseModel, SEOMixin):
     
     @classmethod
     def get_page(cls):
-        """دریافت صفحه قوانین و مقررات (Singleton)"""
         page = cls.objects.first()
         if not page:
             page = cls.objects.create(
-                title="قوانین و مقررات",
-                content="محتوای صفحه قوانین و مقررات"
+                title="Terms and Conditions",
+                content="Terms page content"
             )
         return page
     
     def generate_structured_data(self):
-        """Generate structured data for Terms Page"""
         return {
             "@context": "https://schema.org",
             "@type": "TermsOfService",

@@ -32,3 +32,14 @@ EMAIL_ERRORS = {
     "email_send_failed": "خطا در ارسال ایمیل. پیام ذخیره شد ولی ایمیل ارسال نشد.",
 }
 
+EMAIL_TEXT = {
+    "no_subject": "بدون موضوع",
+    "dear_user": "کاربر گرامی",
+    "default_company": "شرکت ما",
+    "original_message_not_found": "پیام اصلی یافت نشد",
+    "greeting": "سلام",
+    "original_message_label": "------- پیام اصلی شما -------",
+    "thanks": "با تشکر",
+    "team": "تیم",
+}
+

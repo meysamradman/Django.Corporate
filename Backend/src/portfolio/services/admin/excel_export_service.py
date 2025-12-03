@@ -30,7 +30,6 @@ class PortfolioExcelExportService:
         })
         worksheet = workbook.add_worksheet('Portfolios')
         
-        # Headers - تایپ شده دستی
         headers = [
             'ID',
             'عنوان',
@@ -74,7 +73,6 @@ class PortfolioExcelExportService:
             worksheet.write(row_num, 2, portfolio.short_description or "", data_format)
             worksheet.write(row_num, 3, portfolio.get_status_display() if hasattr(portfolio, 'get_status_display') else portfolio.status, data_format)
             
-            # بله/خیر - تایپ شده دستی
             worksheet.write(row_num, 4, "بله" if portfolio.is_featured else "خیر", data_format)
             worksheet.write(row_num, 5, "بله" if portfolio.is_public else "خیر", data_format)
             worksheet.write(row_num, 6, "بله" if portfolio.is_active else "خیر", data_format)

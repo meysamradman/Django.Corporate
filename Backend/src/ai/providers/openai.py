@@ -6,7 +6,7 @@ import os
 import json
 import re
 from .base import BaseProvider
-from src.ai.messages.messages import AI_ERRORS
+from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES, OPENAI_ERRORS, OPENAI_PROMPTS
 
 
 class OpenAIProvider(BaseProvider):
@@ -128,17 +128,17 @@ Write the content as plain text without special formatting."""
                 content = data['choices'][0]['message']['content']
                 return content.strip()
             
-            raise Exception("No content generated")
+            raise Exception(OPENAI_ERRORS['no_content_generated'])
             
         except httpx.HTTPStatusError as e:
             try:
                 error_data = e.response.json()
                 error_msg = error_data.get('error', {}).get('message', '')
-                raise Exception(f"خطای OpenAI API: {error_msg}")
+                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except:
-                raise Exception(f"خطای HTTP {e.response.status_code}")
+                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=e.response.status_code))
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(OPENAI_ERRORS['content_generation_failed'].format(error=str(e)))
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -147,34 +147,11 @@ Write the content as plain text without special formatting."""
         
         keywords_str = f"، {', '.join(keywords)}" if keywords else ""
         
-        seo_prompt = f"""لطفاً یک محتوای وبلاگ حرفه‌ای و کاملاً سئو شده به زبان فارسی برای موضوع زیر بنویسید:
-
-موضوع: {topic}{keywords_str}
-
-نیاز دارم به فرمت JSON دقیق زیر:
-{{
-    "title": "عنوان اصلی (H1) - حداکثر 60 کاراکتر، جذاب و شامل کلمه کلیدی",
-    "meta_title": "عنوان متا SEO - دقیقاً 50-60 کاراکتر، شامل کلمه کلیدی اصلی",
-    "meta_description": "توضیحات متا SEO - دقیقاً 150-160 کاراکتر، جذاب و شامل کلمه کلیدی",
-    "slug": "url-friendly-slug",
-    "h1": "عنوان اصلی (H1) - باید دقیقاً همان title باشد",
-    "h2_list": ["عنوان H2 اول که در محتوا استفاده می‌شود", "عنوان H2 دوم", "حداقل 2-3 عنوان H2"],
-    "h3_list": ["عنوان H3 اول که در محتوا استفاده می‌شود", "عنوان H3 دوم", "حداقل 2-3 عنوان H3"],
-    "content": "<p>در دنیای امروز، [موضوع] یکی از مهم‌ترین عوامل موفقیت در فضای دیجیتال است. یک وب‌سایت خوب باید هم از نظر ظاهری جذاب باشد و هم از نظر تجربه کاربری عالی عمل کند.</p>\n\n<h2>عنوان H2 اول</h2>\n<p>محتوا مربوط به بخش اول محتوا برای موضوع H2. کلمات کلیدی به صورت طبیعی استفاده می‌شوند. محتوا باید SEO-optimized باشد.</p>\n\n<h3>عنوان H3 اول</h3>\n<p>محتوا مربوط به زیربخش H3. این بخش جزئیات بیشتری از موضوع اصلی را پوشش می‌دهد.</p>\n\n<h2>عنوان H2 دوم</h2>\n<p>محتوا مربوط به بخش دوم.... محتوای کامل باید حدود {word_count} کلمه باشد و شامل تگ‌های HTML <p>, <h2> و <h3> باشد.</p>",
-    "keywords": ["کلمه کلیدی 1", "کلمه کلیدی 2", "کلمه کلیدی 3"],
-    "word_count": {word_count}
-}}
-
-مهم و ضروری:
-1. محتوا باید دقیقاً حدود {word_count} کلمه باشد (فقط متن، بدون احتساب HTML tags)
-2. در فیلد content باید تگ‌های HTML <h2> و <h3> را به صورت صحیح قرار دهید
-3. عناوین در h2_list و h3_list باید دقیقاً همان عناوینی باشند که در content استفاده شده‌اند
-4. از کلمات کلیدی طبیعی استفاده کنید (keyword stuffing نکنید)
-5. محتوا باید حرفه‌ای، خوانا و برای خواننده مفید باشد
-6. h1 باید دقیقاً همان title باشد
-7. فقط JSON معتبر را برگردانید، بدون توضیحات اضافی
-8. تمام مقادیر باید به زبان فارسی باشد
-9. در content، تگ‌ها را به صورت <h2>عنوان</h2> و <h3>عنوان</h3> قرار دهید"""
+        seo_prompt = OPENAI_PROMPTS['seo_content_generation'].format(
+            topic=topic,
+            keywords_str=keywords_str,
+            word_count=word_count
+        )
         
         url = f"{self.BASE_URL}/chat/completions"
         
@@ -210,9 +187,9 @@ Write the content as plain text without special formatting."""
                     if json_match:
                         seo_data = json.loads(json_match.group())
                         return seo_data
-                    raise Exception("خطا در تجزیه پاسخ JSON")
+                    raise Exception(OPENAI_ERRORS['json_parse_error'])
             
-            raise Exception("هیچ محتوایی تولید نشد")
+            raise Exception(OPENAI_ERRORS['no_content_generated'])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -230,21 +207,21 @@ Write the content as plain text without special formatting."""
                             "خطای OpenAI API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
                         )
                 elif status_code == 401:
-                    raise Exception("خطای OpenAI API: API Key نامعتبر است. لطفاً API Key خود را بررسی کنید.")
+                    raise Exception(OPENAI_ERRORS['invalid_api_key'])
                 elif status_code == 403:
-                    raise Exception("خطای OpenAI API: دسترسی به API محدود شده است. لطفاً تنظیمات حساب خود را بررسی کنید.")
+                    raise Exception(OPENAI_ERRORS['api_access_denied'])
                 
-                raise Exception(f"خطای OpenAI API: {error_msg}")
+                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
                 if 'خطای OpenAI API' in str(ex) or 'خطا در تولید محتوا' in str(ex):
                     raise ex
                 if status_code == 429:
-                    raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است یا اعتبار حساب تمام شده. لطفاً چند لحظه صبر کنید یا حساب خود را شارژ کنید.")
-                raise Exception(f"خطای HTTP {status_code}")
+                    raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
+                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
         except json.JSONDecodeError as e:
-            raise Exception(f"خطا در تجزیه پاسخ: {str(e)}")
+            raise Exception(OPENAI_ERRORS['json_parse_error'])
         except Exception as e:
-            raise Exception(f"خطا در تولید محتوا: {str(e)}")
+            raise Exception(OPENAI_ERRORS['content_generation_failed'].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -256,7 +233,7 @@ Write the content as plain text without special formatting."""
         
         messages = []
         
-        system_message = kwargs.get('system_message', 'شما یک دستیار هوشمند و مفید هستید که به زبان فارسی پاسخ می‌دهید.')
+        system_message = kwargs.get('system_message', AI_SYSTEM_MESSAGES['default_chat'])
         if system_message:
             messages.append({"role": "system", "content": system_message})
         
@@ -287,7 +264,7 @@ Write the content as plain text without special formatting."""
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception("هیچ پاسخی دریافت نشد")
+            raise Exception(OPENAI_ERRORS.get('no_response_received', 'No response received'))
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -297,25 +274,23 @@ Write the content as plain text without special formatting."""
                 
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(
-                            "خطای OpenAI API: اعتبار حساب شما تمام شده است. لطفاً به https://platform.openai.com/account/billing مراجعه کنید."
-                        )
+                        raise Exception(OPENAI_ERRORS['billing_limit'])
                     else:
-                        raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                        raise Exception(OPENAI_ERRORS['rate_limit'])
                 elif status_code == 401:
-                    raise Exception("خطای OpenAI API: API Key نامعتبر است.")
+                    raise Exception(OPENAI_ERRORS['invalid_api_key'])
                 elif status_code == 403:
-                    raise Exception("خطای OpenAI API: دسترسی به API محدود شده است.")
+                    raise Exception(OPENAI_ERRORS['api_access_denied'])
                 
-                raise Exception(f"خطای OpenAI API: {error_msg}")
+                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
                 if 'خطای OpenAI API' in str(ex):
                     raise ex
                 if status_code == 429:
-                    raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است یا اعتبار حساب تمام شده.")
-                raise Exception(f"خطای HTTP {status_code}")
+                    raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
+                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
         except Exception as e:
-            raise Exception(f"خطا در چت: {str(e)}")
+            raise Exception(OPENAI_ERRORS['chat_error'].format(error=str(e)))
     
     async def text_to_speech(self, text: str, **kwargs) -> BytesIO:
         url = f"{self.BASE_URL}/audio/speech"
@@ -354,25 +329,23 @@ Write the content as plain text without special formatting."""
                 
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(
-                            "خطای OpenAI API: اعتبار حساب شما تمام شده است. لطفاً به https://platform.openai.com/account/billing مراجعه کنید."
-                        )
+                        raise Exception(OPENAI_ERRORS['billing_limit'])
                     else:
-                        raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است. لطفاً چند لحظه صبر کنید.")
+                        raise Exception(OPENAI_ERRORS['rate_limit'])
                 elif status_code == 401:
-                    raise Exception("خطای OpenAI API: API Key نامعتبر است.")
+                    raise Exception(OPENAI_ERRORS['invalid_api_key'])
                 elif status_code == 403:
-                    raise Exception("خطای OpenAI API: دسترسی به API محدود شده است.")
+                    raise Exception(OPENAI_ERRORS['api_access_denied'])
                 
-                raise Exception(f"خطای OpenAI API: {error_msg}")
+                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
             except Exception as ex:
                 if 'خطای OpenAI API' in str(ex):
                     raise ex
                 if status_code == 429:
-                    raise Exception("خطای OpenAI API: تعداد درخواست‌ها زیاد است یا اعتبار حساب تمام شده.")
-                raise Exception(f"خطای HTTP {status_code}")
+                    raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
+                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
         except Exception as e:
-            raise Exception(f"خطا در تولید صدا: {str(e)}")
+            raise Exception(OPENAI_ERRORS['audio_generation_error'].format(error=str(e)))
     
     def validate_api_key(self) -> bool:
         try:
