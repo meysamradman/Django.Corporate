@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
