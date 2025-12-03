@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from django.db.models import Q
+
 from src.ai.models import AIProvider, AIModel, AdminProviderSettings
+from src.ai.messages.messages import IMAGE_ERRORS
 from src.ai.services.state_machine import ModelAccessState
 
 
@@ -67,7 +70,6 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
     
     def validate_name(self, value):
         instance = self.instance
-        from src.ai.messages.messages import IMAGE_ERRORS
         if instance:
             if AIProvider.objects.exclude(pk=instance.pk).filter(name=value).exists():
                 raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
@@ -162,7 +164,6 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_provider_id(self, value):
-        from src.ai.messages.messages import IMAGE_ERRORS
         try:
             AIProvider.objects.get(pk=value, is_active=True)
         except AIProvider.DoesNotExist:
@@ -262,8 +263,6 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if 'provider_name' in attrs and 'provider_id' not in attrs:
             try:
-                from django.db.models import Q
-                from src.ai.messages.messages import IMAGE_ERRORS
                 provider = AIProvider.objects.get(
                     Q(name=attrs['provider_name']) | Q(slug=attrs['provider_name']),
                     is_active=True
@@ -281,7 +280,6 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
         return attrs
     
     def validate_provider_id(self, value):
-        from src.ai.messages.messages import IMAGE_ERRORS
         try:
             AIProvider.objects.get(pk=value, is_active=True)
         except AIProvider.DoesNotExist:

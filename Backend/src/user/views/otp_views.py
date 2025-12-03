@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.auth import UserCookie
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.serializers import SendOTPSerializer, VerifyOTPSerializer
@@ -12,7 +12,7 @@ from src.user.utils.otp_validator import get_otp_length
 
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [CaptchaThrottle]  # Enable throttling to reduce spam attempts
+    throttle_classes = [CaptchaThrottle]
 
     def post(self, request):
         serializer = SendOTPSerializer(data=request.data)

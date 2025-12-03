@@ -1,5 +1,8 @@
 from rest_framework import serializers
+
 from src.ai.models import AIProvider, AIModel
+from src.ai.messages.messages import IMAGE_ERRORS
+from src.ai.services.image_generation_service import AIImageGenerationService
 
 
 class AIProviderSerializer(serializers.ModelSerializer):
@@ -31,7 +34,6 @@ class AIProviderSerializer(serializers.ModelSerializer):
             if self.instance and self.instance.shared_api_key and api_key == '***':
                 return attrs
             
-            from src.ai.services.image_generation_service import AIImageGenerationService
             try:
                 is_valid = AIImageGenerationService.validate_provider_api_key(
                     slug,
@@ -126,7 +128,6 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
     )
     
     def validate_prompt(self, value):
-        from src.ai.messages.messages import IMAGE_ERRORS
         if not value or not value.strip():
             raise serializers.ValidationError(IMAGE_ERRORS["prompt_required"])
         if len(value.strip()) < 3:

@@ -9,7 +9,7 @@ from src.user.serializers.location_serializer import (
     ProvinceSerializer, ProvinceDetailSerializer,
     CitySerializer, CityDetailSerializer
 )
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 
 

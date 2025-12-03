@@ -13,7 +13,7 @@ from src.ai.serializers.content_generation_serializer import (
 )
 from src.ai.serializers.image_generation_serializer import AIImageGenerationRequestSerializer
 from src.ai.services.image_generation_service import AIImageGenerationService
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
 
 

@@ -46,7 +46,7 @@ class GeminiProvider(BaseProvider):
                 "temperature": 0.7,
                 "topK": 40,
                 "topP": 0.95,
-                "maxOutputTokens": word_count * 2,  # Approximate token count
+                "maxOutputTokens": word_count * 2,
             }
         }
         

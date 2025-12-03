@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.settings.models import GeneralSettings
@@ -10,6 +11,7 @@ from src.settings.services.general_settings_service import (
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.authorization.admin_permission import RequirePermission
+from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 
 
 class GeneralSettingsViewSet(viewsets.ModelViewSet):
@@ -22,12 +24,25 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         try:
+            cache_key = SettingsCacheKeys.general_settings()
+            cached_data = cache.get(cache_key)
+            
+            if cached_data is not None:
+                return APIResponse.success(
+                    message=SETTINGS_SUCCESS['settings_retrieved'],
+                    data=cached_data,
+                    status_code=status.HTTP_200_OK
+                )
+            
             settings = get_general_settings()
             serializer = self.get_serializer(settings)
+            serialized_data = serializer.data
+            
+            cache.set(cache_key, serialized_data, 300)
             
             return APIResponse.success(
                 message=SETTINGS_SUCCESS['settings_retrieved'],
-                data=serializer.data,
+                data=serialized_data,
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
@@ -54,12 +69,25 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         try:
+            cache_key = SettingsCacheKeys.general_settings()
+            cached_data = cache.get(cache_key)
+            
+            if cached_data is not None:
+                return APIResponse.success(
+                    message=SETTINGS_SUCCESS['settings_retrieved'],
+                    data=cached_data,
+                    status_code=status.HTTP_200_OK
+                )
+            
             settings = get_general_settings()
             serializer = self.get_serializer(settings)
+            serialized_data = serializer.data
+            
+            cache.set(cache_key, serialized_data, 300)
             
             return APIResponse.success(
                 message=SETTINGS_SUCCESS['settings_retrieved'],
-                data=serializer.data,
+                data=serialized_data,
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
@@ -86,6 +114,7 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             
             updated_settings = update_general_settings(serializer.validated_data)
+            SettingsCacheManager.invalidate_general_settings()
             response_serializer = self.get_serializer(updated_settings)
             
             return APIResponse.success(

@@ -164,7 +164,7 @@ class AdminRoleListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'name', 'display_name', 'description',
             'level', 'is_system_role', 'is_active', 'users_count',
-            'created_at', 'updated_at'  # Include timestamp fields for auditing
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 

@@ -160,7 +160,6 @@ class Portfolio(BaseModel, SEOMixin):
         return None
     
     def generate_structured_data(self):
-        from src.portfolio.utils.cache import PortfolioCacheKeys
         cache_key = PortfolioCacheKeys.structured_data(self.pk)
         structured_data = cache.get(cache_key)
         

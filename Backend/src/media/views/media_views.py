@@ -9,7 +9,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from src.core.pagination.pagination import StandardLimitPagination
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.media.filters.media_filters import MediaFilter
 from src.media.messages import MEDIA_ERRORS, MEDIA_SUCCESS
 from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoMedia, detect_media_type_from_extension

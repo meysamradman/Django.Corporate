@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.authorization.admin_permission import SimpleAdminPermission
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.services.admin.admin_auth_service import AdminAuthService
 
@@ -23,7 +23,7 @@ class AdminLogoutView(APIView):
             cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
             cookie_samesite = getattr(settings, 'SESSION_COOKIE_SAMESITE', 'Lax')
             cookie_secure = getattr(settings, 'SESSION_COOKIE_SECURE', False)
-        else:  # CSRF
+        else:
             cookie_name = getattr(settings, 'CSRF_COOKIE_NAME', 'csrftoken')
             cookie_path = getattr(settings, 'CSRF_COOKIE_PATH', '/')
             cookie_domain = getattr(settings, 'CSRF_COOKIE_DOMAIN', None)

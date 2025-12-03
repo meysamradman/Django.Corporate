@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.serializers.admin.admin_management_serializer import (
     AdminListSerializer,
     AdminDetailSerializer,

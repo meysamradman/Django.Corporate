@@ -3,6 +3,7 @@ import re
 from rest_framework import serializers
 
 from src.form.models import ContactFormField
+from src.form.messages.messages import FORM_FIELD_ERRORS
 
 
 class ContactFormFieldSerializer(serializers.ModelSerializer):
@@ -33,7 +34,6 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
         ]
     
     def validate_field_key(self, value):
-        from src.form.messages.messages import FORM_FIELD_ERRORS
         if value and len(value.strip()) < 2:
             raise serializers.ValidationError(FORM_FIELD_ERRORS['field_key_min_length'])
         
@@ -43,7 +43,6 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
         return value.strip()
     
     def validate_platforms(self, value):
-        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(value, list):
             raise serializers.ValidationError(FORM_FIELD_ERRORS['platforms_must_be_list'])
         
@@ -58,7 +57,6 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
         return value
     
     def validate_options(self, value):
-        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not value:
             return value
         

@@ -155,7 +155,6 @@ class Blog(BaseModel, SEOMixin):
         return None
     
     def generate_structured_data(self):
-        from src.blog.utils.cache import BlogCacheKeys
         cache_key = BlogCacheKeys.structured_data(self.pk)
         structured_data = cache.get(cache_key)
         

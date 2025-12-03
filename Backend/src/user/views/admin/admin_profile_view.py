@@ -7,7 +7,7 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.authorization.admin_permission import SimpleAdminPermission
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from django.http import Http404
 from django.core.exceptions import ValidationError

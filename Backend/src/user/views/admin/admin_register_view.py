@@ -3,7 +3,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.serializers.admin.admin_register_serializer import AdminRegisterSerializer
 from src.user.serializers.admin.admin_management_serializer import AdminDetailSerializer
 from src.user.services.admin.admin_register_service import AdminRegisterService

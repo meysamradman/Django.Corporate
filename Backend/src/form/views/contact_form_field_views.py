@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -23,6 +24,7 @@ from src.form.services.contact_form_field_service import (
 )
 from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
 from src.user.authorization.admin_permission import RequirePermission
+from src.form.utils.cache import FormCacheKeys, FormCacheManager
 
 
 class ContactFormFieldViewSet(viewsets.ModelViewSet):
@@ -116,6 +118,7 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
         
         try:
             field = create_contact_form_field(serializer.validated_data)
+            FormCacheManager.invalidate_fields()
             response_serializer = ContactFormFieldSerializer(field)
             
             return APIResponse.success(
@@ -150,6 +153,7 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             
             updated_field = update_contact_form_field(instance, serializer.validated_data)
+            FormCacheManager.invalidate_field(field_id=instance.id, field_key=instance.field_key)
             response_serializer = ContactFormFieldSerializer(updated_field)
             
             return APIResponse.success(
@@ -183,7 +187,9 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            field_key = instance.field_key
             delete_contact_form_field(instance)
+            FormCacheManager.invalidate_field(field_id=instance.id, field_key=field_key)
             
             return APIResponse.success(
                 message=FORM_FIELD_SUCCESS['field_deleted'],
@@ -211,12 +217,25 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             )
         
         try:
+            cache_key = FormCacheKeys.fields_for_platform(platform)
+            cached_data = cache.get(cache_key)
+            
+            if cached_data is not None:
+                return APIResponse.success(
+                    message=FORM_FIELD_SUCCESS['platform_fields_retrieved'],
+                    data=cached_data,
+                    status_code=status.HTTP_200_OK
+                )
+            
             fields = get_active_fields_for_platform(platform)
             serializer = self.get_serializer(fields, many=True)
+            serialized_data = serializer.data
+            
+            cache.set(cache_key, serialized_data, 300)
             
             return APIResponse.success(
                 message=FORM_FIELD_SUCCESS['platform_fields_retrieved'],
-                data=serializer.data,
+                data=serialized_data,
                 status_code=status.HTTP_200_OK
             )
         except ValidationError:

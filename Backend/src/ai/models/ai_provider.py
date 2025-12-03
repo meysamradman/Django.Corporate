@@ -10,6 +10,8 @@ import hashlib
 
 from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
+from src.ai.messages.messages import IMAGE_ERRORS, SETTINGS_ERRORS
+from src.ai.services.state_machine import ModelAccessState
 
 
 class EncryptedAPIKeyMixin:
@@ -34,13 +36,11 @@ class EncryptedAPIKeyMixin:
             encrypted = fernet.encrypt(api_key.strip().encode())
             return encrypted.decode()
         except Exception as e:
-            from src.ai.messages.messages import IMAGE_ERRORS
             raise ValidationError(IMAGE_ERRORS['api_key_encryption_error'].format(error=str(e)))
     
     @classmethod
     def decrypt_key(cls, encrypted_key: str) -> str:
         if not encrypted_key:
-            from src.ai.messages.messages import IMAGE_ERRORS
             raise ValidationError(IMAGE_ERRORS['api_key_required'])
         
         try:
@@ -49,7 +49,6 @@ class EncryptedAPIKeyMixin:
             decrypted = fernet.decrypt(encrypted_key.encode())
             return decrypted.decode()
         except Exception as e:
-            from src.ai.messages.messages import IMAGE_ERRORS
             raise ValidationError(IMAGE_ERRORS['api_key_decryption_error'].format(error=str(e)))
 
 
@@ -347,9 +346,6 @@ class AIModel(BaseModel, CacheMixin):
         return capability in self.capabilities
     
     def get_api_config(self, admin):
-
-        from src.ai.services.state_machine import ModelAccessState
-        
         state = ModelAccessState.calculate(self.provider, self, admin)
         
         has_personal_settings = False
@@ -378,9 +374,6 @@ class AIModel(BaseModel, CacheMixin):
         }
     
     def get_actions(self, admin):
-
-        from src.ai.services.state_machine import ModelAccessState
-        
         state = ModelAccessState.calculate(self.provider, self, admin)
         
         return {
@@ -560,9 +553,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return self.decrypt_key(self.personal_api_key)
     
     def get_api_key(self) -> str:
-
-        from src.ai.messages.messages import SETTINGS_ERRORS
-        
         is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
         
         if self.use_shared_api:
@@ -609,9 +599,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         }
     
     def get_api_config(self, admin):
-
-        from src.ai.services.state_machine import ModelAccessState
-        
         state = ModelAccessState.calculate(self.provider, None, admin)
         
         return {
@@ -631,9 +618,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         }
     
     def get_actions(self, admin):
-
-        from src.ai.services.state_machine import ModelAccessState
-        
         state = ModelAccessState.calculate(self.provider, None, admin)
         
         return {

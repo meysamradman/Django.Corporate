@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 from src.user.models import AdminRole, AdminUserRole, User
 from .admin_role_serializer import (

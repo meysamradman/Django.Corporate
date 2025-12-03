@@ -1,7 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
+
 from src.user.authorization.admin_permission import AdminRolePermission, RequirePermission
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.statistics.messages.messages import STATISTICS_SUCCESS
 from src.statistics.services.admin import (
     DashboardStatsService,
@@ -19,7 +20,7 @@ class AdminStatisticsViewSet(viewsets.ViewSet):
     
     def get_permissions(self):
         permission_map = {
-            'dashboard': [AdminRolePermission()],  # Base admin permission
+            'dashboard': [AdminRolePermission()],
             'users_stats': [RequirePermission('statistics.users.read')],
             'admins_stats': [RequirePermission('statistics.admins.read')],
             'content_stats': [RequirePermission('statistics.content.read')],

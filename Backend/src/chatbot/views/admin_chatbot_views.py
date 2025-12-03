@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.chatbot.models.faq import FAQ
@@ -10,6 +11,7 @@ from src.chatbot.serializers.settings_serializer import ChatbotSettingsSerialize
 from src.chatbot.services.rule_based_service import RuleBasedChatService
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
 from src.user.authorization.admin_permission import RequirePermission
+from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 
 class AdminFAQViewSet(viewsets.ModelViewSet):
@@ -27,11 +29,25 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
         return FAQSerializer
     
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        cache_key = ChatbotCacheKeys.faqs_active()
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return APIResponse.success(
+                message=CHATBOT_SUCCESS.get('faq_list_retrieved', 'FAQs retrieved successfully'),
+                data=cached_data,
+                status_code=status.HTTP_200_OK
+            )
+        
+        response = super().list(request, *args, **kwargs)
+        if hasattr(response, 'data'):
+            cache.set(cache_key, response.data, 300)
+        return response
     
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         RuleBasedChatService.clear_cache()
+        ChatbotCacheManager.invalidate_faqs()
         if response.status_code == status.HTTP_201_CREATED:
             return APIResponse.success(
                 message=CHATBOT_SUCCESS['faq_created'],
@@ -43,6 +59,7 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
         RuleBasedChatService.clear_cache()
+        ChatbotCacheManager.invalidate_faqs()
         if response.status_code == status.HTTP_200_OK:
             return APIResponse.success(
                 message=CHATBOT_SUCCESS['faq_updated'],
@@ -55,6 +72,7 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         super().destroy(request, *args, **kwargs)
         RuleBasedChatService.clear_cache()
+        ChatbotCacheManager.invalidate_faqs()
         return APIResponse.success(
             message=CHATBOT_SUCCESS['faq_deleted'],
             status_code=status.HTTP_200_OK
@@ -71,14 +89,28 @@ class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
         return ChatbotSettings.objects.all()
     
     def list(self, request, *args, **kwargs):
+        cache_key = ChatbotCacheKeys.settings()
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is not None:
+            return APIResponse.success(
+                message=CHATBOT_SUCCESS['settings_retrieved'],
+                data=cached_data,
+                status_code=status.HTTP_200_OK
+            )
+        
         settings = self.get_queryset().first()
         if not settings:
             settings = ChatbotSettings.objects.create()
         
         serializer = self.get_serializer(settings)
+        serialized_data = serializer.data
+        cache.set(cache_key, serialized_data, 300)
+        
         return APIResponse.success(
             message=CHATBOT_SUCCESS['settings_retrieved'],
-            data=serializer.data
+            data=serialized_data,
+            status_code=status.HTTP_200_OK
         )
     
     @action(detail=False, methods=['put', 'patch'], url_path='update')
@@ -92,9 +124,11 @@ class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
         serializer.save()
         
         RuleBasedChatService.clear_cache()
+        ChatbotCacheManager.invalidate_settings()
         
         return APIResponse.success(
             message=CHATBOT_SUCCESS['settings_updated'],
-            data=serializer.data
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
         )
 

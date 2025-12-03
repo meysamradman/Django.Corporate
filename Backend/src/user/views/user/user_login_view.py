@@ -1,6 +1,6 @@
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from rest_framework.exceptions import AuthenticationFailed
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.auth.user_cookies import UserCookie

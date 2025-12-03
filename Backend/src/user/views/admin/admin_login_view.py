@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.serializers.admin.admin_login_serializer import AdminLoginSerializer
 from src.user.services.admin.admin_auth_service import AdminAuthService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS

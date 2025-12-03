@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from src.form.messages.messages import FORM_FIELD_ERRORS
+
 
 class ContactFormSubmissionCreateSerializer(serializers.Serializer):
     
@@ -12,7 +14,6 @@ class ContactFormSubmissionCreateSerializer(serializers.Serializer):
     )
     
     def validate_form_data(self, value):
-        from src.form.messages.messages import FORM_FIELD_ERRORS
         if not isinstance(value, dict):
             raise serializers.ValidationError(FORM_FIELD_ERRORS['form_data_must_be_dict'])
         
@@ -22,7 +23,6 @@ class ContactFormSubmissionCreateSerializer(serializers.Serializer):
         return value
     
     def validate_platform(self, value):
-        from src.form.messages.messages import FORM_FIELD_ERRORS
         valid_platforms = ['website', 'mobile_app']
         if value not in valid_platforms:
             raise serializers.ValidationError(FORM_FIELD_ERRORS['invalid_platform'])

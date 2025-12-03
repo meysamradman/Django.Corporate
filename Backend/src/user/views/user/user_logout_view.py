@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from src.core.responses import APIResponse
+from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.auth import UserJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
