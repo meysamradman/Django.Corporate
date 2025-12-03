@@ -98,14 +98,9 @@ class AIModelListSerializer(serializers.ModelSerializer):
 
 
 class AIModelDetailSerializer(serializers.ModelSerializer):
-    """
-    ✅ Serializer برای جزئیات مدل AI - with Computed Fields
-    برای پنل ادمین با تمام اطلاعات دسترسی
-    """
     provider = AIProviderListSerializer(read_only=True)
     is_free = serializers.SerializerMethodField()
     
-    # ✅ Computed Fields from Model
     access_state = serializers.SerializerMethodField()
     api_config = serializers.SerializerMethodField()
     actions = serializers.SerializerMethodField()
@@ -120,7 +115,6 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
             'max_tokens', 'context_window', 'config',
             'is_active', 'sort_order',
             'total_requests', 'last_used_at',
-            # ✅ Computed fields
             'access_state', 'api_config', 'actions', 'usage_info',
             'created_at', 'updated_at'
         ]
@@ -179,19 +173,16 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
         provider_id = validated_data.pop('provider_id')
         model_id = validated_data.get('model_id')
         
-        # ✅ Check if model already exists with this provider_id and model_id
         try:
             existing_model = AIModel.objects.get(
                 provider_id=provider_id,
                 model_id=model_id
             )
-            # ✅ Model exists → Update it
             for key, value in validated_data.items():
                 setattr(existing_model, key, value)
             existing_model.save()
             return existing_model
         except AIModel.DoesNotExist:
-            # ✅ Model doesn't exist → Create new one
             validated_data['provider_id'] = provider_id
             return super().create(validated_data)
     
@@ -205,7 +196,7 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
     provider_name = serializers.CharField(source='provider.display_name', read_only=True)
     provider_slug = serializers.CharField(source='provider.slug', read_only=True)
     has_personal_api = serializers.SerializerMethodField()
-    api_key = serializers.SerializerMethodField()  # Add api_key for display
+    api_key = serializers.SerializerMethodField()
     usage_info = serializers.SerializerMethodField()
     api_config = serializers.SerializerMethodField()
     actions = serializers.SerializerMethodField()
@@ -214,7 +205,7 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
         model = AdminProviderSettings
         fields = [
             'id', 'provider_name', 'provider_slug',
-            'has_personal_api', 'api_key', 'use_shared_api',  # Add api_key
+            'has_personal_api', 'api_key', 'use_shared_api',
             'monthly_limit', 'monthly_usage', 'usage_info',
             'api_config', 'actions',
             'total_requests', 'last_used_at', 'is_active'
@@ -225,18 +216,13 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
         return bool(obj.personal_api_key)
     
     def get_api_key(self, obj):
-        # If use_shared_api=True, get from shared provider
-        # obj.provider is loaded from select_related (no N+1)
         if obj.use_shared_api and obj.provider and obj.provider.shared_api_key:
             try:
-                # get_shared_api_key() only decrypts (no extra query)
                 return obj.provider.get_shared_api_key()
             except Exception:
                 return None
-        # Otherwise get from personal API key
         elif obj.personal_api_key:
             try:
-                # get_personal_api_key() only decrypts (no extra query)
                 return obj.get_personal_api_key()
             except Exception:
                 return None
@@ -260,8 +246,8 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
 
 class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
     provider_id = serializers.IntegerField(write_only=True, required=False)
-    provider_name = serializers.CharField(write_only=True, required=False)  # ✅ Accept provider_name from frontend
-    api_key = serializers.CharField(write_only=True, required=False, allow_blank=True)  # ✅ Alias for personal_api_key
+    provider_name = serializers.CharField(write_only=True, required=False)
+    api_key = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
     class Meta:
         model = AdminProviderSettings
@@ -270,15 +256,14 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
             'use_shared_api', 'monthly_limit', 'is_active'
         ]
         extra_kwargs = {
-            'provider': {'read_only': True}  # ✅ provider is set in view, not from request
+            'provider': {'read_only': True}
         }
     
     def validate(self, attrs):
-        # ✅ Map provider_name to provider_id
         if 'provider_name' in attrs and 'provider_id' not in attrs:
             try:
-                # Search by name or slug
                 from django.db.models import Q
+                from src.ai.messages.messages import IMAGE_ERRORS
                 provider = AIProvider.objects.get(
                     Q(name=attrs['provider_name']) | Q(slug=attrs['provider_name']),
                     is_active=True
@@ -286,18 +271,12 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
                 attrs['provider_id'] = provider.id
             except AIProvider.DoesNotExist:
                 raise serializers.ValidationError({
-                    'provider_name': 'Provider یافت نشد یا غیرفعال است'
+                    'provider_name': IMAGE_ERRORS.get('provider_not_found_or_inactive', 'Provider not found or inactive')
                 })
-            # ✅ Remove provider_name after mapping
             attrs.pop('provider_name')
         
-        # ✅ Map api_key to personal_api_key
         if 'api_key' in attrs and 'personal_api_key' not in attrs:
             attrs['personal_api_key'] = attrs.pop('api_key')
-        
-        # Soft validation: only warning, not error
-        # Real validation happens when using Model (in generation views)
-        # Here we just allow settings to be saved
         
         return attrs
     
