@@ -4,6 +4,8 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_register_password
 from src.user.models import User, UserProfile
 from src.user.services.user.user_profile_service import UserProfileService
+from src.media.services.media_services import MediaAdminService as MediaService
+
 
 
 class UserManagementService:

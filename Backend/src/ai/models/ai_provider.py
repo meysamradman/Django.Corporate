@@ -10,7 +10,7 @@ import hashlib
 
 from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
-from src.ai.services.state_machine import ModelAccessState
+
 
 
 class EncryptedAPIKeyMixin:
@@ -377,6 +377,8 @@ class AIModel(BaseModel, CacheMixin):
         return capability in self.capabilities
     
     def get_api_config(self, admin):
+        from src.ai.utils.state_machine import ModelAccessState
+        
         state = ModelAccessState.calculate(self.provider, self, admin)
         
         has_personal_settings = False
@@ -405,6 +407,8 @@ class AIModel(BaseModel, CacheMixin):
         }
     
     def get_actions(self, admin):
+        from src.ai.utils.state_machine import ModelAccessState
+        
         state = ModelAccessState.calculate(self.provider, self, admin)
         
         return {
@@ -642,6 +646,8 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         }
     
     def get_api_config(self, admin):
+        from src.ai.utils.state_machine import ModelAccessState
+        
         state = ModelAccessState.calculate(self.provider, None, admin)
         
         return {
@@ -661,6 +667,8 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         }
     
     def get_actions(self, admin):
+        from src.ai.utils.state_machine import ModelAccessState
+        
         state = ModelAccessState.calculate(self.provider, None, admin)
         
         return {

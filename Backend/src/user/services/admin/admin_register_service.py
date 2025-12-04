@@ -8,7 +8,7 @@ from src.user.utils.password_validator import validate_register_password
 from src.user.models import User, AdminProfile, UserProfile, AdminUserRole, AdminRole
 from src.user.models.location import Province, City
 from src.media.models import ImageMedia
-from src.media.services.media_service import MediaService
+from src.media.services.media_services import MediaAdminService as MediaService
 
 
 class AdminRegisterService:

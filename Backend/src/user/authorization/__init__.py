@@ -1,3 +1,8 @@
+"""
+Authorization module for admin permissions and roles.
+Provides permission classes, role management, and access control.
+"""
+
 from .admin_permission import (
     AdminRolePermission,
     RequireModuleAccess,
@@ -6,22 +11,43 @@ from .admin_permission import (
     SimpleAdminPermission,
     SuperAdminOnly,
     require_admin_roles,
-    require_module_access
+    require_module_access,
+    RequirePermission,
+    AdminPermissionCache,
 )
 
+# Import dynamically generated permission classes
 import src.user.permissions.permission_factory as permission_factory
-for class_name in permission_factory.__all__:
-    globals()[class_name] = getattr(permission_factory, class_name)
 
-try:
-    globals()['ContentManagerAccess'] = globals().get('BlogManagerAccess')
-    globals()['UserManagerAccess'] = globals().get('UsersManagerAccess')
-    globals()['AnalyticsViewerAccess'] = globals().get('StatisticsManagerAccess')
-    globals()['SupportAdminAccess'] = globals().get('UsersManagerAccess')
-    globals()['PanelSettingsAccess'] = globals().get('PanelManagerAccess')
-    globals()['AIManagerAccess'] = globals().get('AiManagerAccess')
-except:
-    pass
+# Store generated classes in a dictionary first
+_permission_classes = {}
+for class_name in permission_factory.__all__:
+    _permission_classes[class_name] = getattr(permission_factory, class_name)
+
+# Create specific manager access classes
+BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
+PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
+UsersManagerAccess = _permission_classes.get('UsersManagerAccess')
+MediaManagerAccess = _permission_classes.get('MediaManagerAccess')
+FormsManagerAccess = _permission_classes.get('FormsManagerAccess')
+PagesManagerAccess = _permission_classes.get('PagesManagerAccess')
+SettingsManagerAccess = _permission_classes.get('SettingsManagerAccess')
+PanelManagerAccess = _permission_classes.get('PanelManagerAccess')
+EmailManagerAccess = _permission_classes.get('EmailManagerAccess')
+AiManagerAccess = _permission_classes.get('AiManagerAccess')
+StatisticsManagerAccess = _permission_classes.get('StatisticsManagerAccess')
+StatisticsViewerAccess = _permission_classes.get('StatisticsViewerAccess')
+ChatbotManagerAccess = _permission_classes.get('ChatbotManagerAccess')
+TicketManagerAccess = _permission_classes.get('TicketManagerAccess')
+AdminManagerAccess = _permission_classes.get('AdminManagerAccess')
+
+# Create aliases for compatibility
+ContentManagerAccess = BlogManagerAccess
+UserManagerAccess = UsersManagerAccess
+AnalyticsViewerAccess = StatisticsManagerAccess
+SupportAdminAccess = UsersManagerAccess
+PanelSettingsAccess = PanelManagerAccess
+AIManagerAccess = AiManagerAccess
 
 from .admin_role_view import AdminRoleView
 from .admin_permission_view import AdminPermissionView
@@ -46,34 +72,48 @@ from src.user.authorization.role_utils import (
 )
 
 __all__ = [
+    # Permission classes
     "AdminRolePermission",
     "UserManagementPermission",
     "SimpleAdminPermission",
     "SuperAdminOnly",
     "RequireModuleAccess",
     "RequireAdminRole",
+    "RequirePermission",
     "require_admin_roles",
     "require_module_access",
-    "ContentManagerAccess",
-    "PortfolioManagerAccess",
-    "UserManagerAccess",
-    "MediaManagerAccess",
+    "AdminPermissionCache",
+    
+    # Manager Access Classes
     "BlogManagerAccess",
-    "AnalyticsViewerAccess",
-    "SupportAdminAccess",
+    "PortfolioManagerAccess",
+    "UsersManagerAccess",
+    "MediaManagerAccess",
     "FormsManagerAccess",
     "PagesManagerAccess",
     "SettingsManagerAccess",
-    "PanelSettingsAccess",
     "PanelManagerAccess",
     "EmailManagerAccess",
-    "AIManagerAccess",
     "AiManagerAccess",
     "StatisticsManagerAccess",
     "StatisticsViewerAccess",
-    "UsersManagerAccess",
+    "ChatbotManagerAccess",
+    "TicketManagerAccess",
+    "AdminManagerAccess",
+    
+    # Aliases (deprecated, for backward compatibility)
+    "ContentManagerAccess",
+    "UserManagerAccess",
+    "AnalyticsViewerAccess",
+    "SupportAdminAccess",
+    "PanelSettingsAccess",
+    "AIManagerAccess",
+    
+    # Views
     "AdminRoleView",
     "AdminPermissionView",
+    
+    # Config
     "SYSTEM_ROLES",
     "AVAILABLE_MODULES",
     "AVAILABLE_ACTIONS",
@@ -83,6 +123,8 @@ __all__ = [
     "get_default_permissions",
     "get_all_role_configs",
     "validate_role_permissions",
+    
+    # Role utils
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",

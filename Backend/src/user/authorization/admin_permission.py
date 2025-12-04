@@ -5,7 +5,7 @@ from django.conf import settings
 from typing import List, Dict, Any
 from src.user.messages import AUTH_ERRORS
 from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
-from src.user.permissions.permission_factory import MODULE_MAPPINGS
+from src.user.permissions.module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
 from src.user.permissions import PermissionValidator
@@ -365,21 +365,6 @@ class SuperAdminOnly(RequireAdminRole):
     def __init__(self):
         super().__init__('super_admin')
 
-import src.user.permissions.permission_factory as permission_factory
-
-for class_name in permission_factory.__all__:
-    globals()[class_name] = getattr(permission_factory, class_name)
-
-def _setup_aliases():
-    if 'BlogManagerAccess' in globals():
-        globals()['ContentManagerAccess'] = globals()['BlogManagerAccess']
-    if 'UsersManagerAccess' in globals():
-        globals()['UserManagerAccess'] = globals()['UsersManagerAccess']
-        globals()['SupportAdminAccess'] = globals()['UsersManagerAccess']
-    if 'StatisticsManagerAccess' in globals():
-        globals()['AnalyticsViewerAccess'] = globals()['StatisticsManagerAccess']
-
-_setup_aliases()
 
 class RequirePermission(AdminRolePermission):
     
@@ -446,3 +431,19 @@ class AdminPermissionCache:
             cache.clear()
         except Exception:
             pass
+
+
+# Re-export permission classes from permission_factory for backward compatibility
+# These are dynamically generated but need to be available here for existing imports
+def _import_permission_classes():
+    """Import and re-export dynamically generated permission classes"""
+    try:
+        import src.user.permissions.permission_factory as pf
+        
+        # Get all generated classes
+        for class_name in pf.__all__:
+            globals()[class_name] = getattr(pf, class_name)
+    except ImportError:
+        pass
+
+_import_permission_classes()

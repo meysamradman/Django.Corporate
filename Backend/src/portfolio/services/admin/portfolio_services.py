@@ -6,7 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.services.admin import PortfolioAdminMediaService
+from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
 from src.portfolio.utils.cache import PortfolioCacheManager, PortfolioCacheKeys
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia

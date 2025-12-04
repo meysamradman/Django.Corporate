@@ -9,7 +9,7 @@ from src.blog.models.blog import Blog
 from src.blog.utils.cache import BlogCacheManager, BlogCacheKeys
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
-from src.blog.services.admin import BlogAdminMediaService
+from src.blog.services.admin.media_services import BlogAdminMediaService
 from src.blog.messages.messages import BLOG_ERRORS
 
 

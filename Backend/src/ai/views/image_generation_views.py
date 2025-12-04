@@ -5,7 +5,7 @@ import time
 import base64
 
 from src.ai.models import AIProvider, AIModel, AdminProviderSettings
-from src.ai.services.state_machine import ModelAccessState
+from src.ai.utils.state_machine import ModelAccessState
 from src.ai.services.image_generation_service import AIImageGenerationService
 from src.ai.serializers.image_generation_serializer import (
     AIProviderSerializer,

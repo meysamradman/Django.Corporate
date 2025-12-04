@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from src.ai.models import AIProvider, AIModel, AdminProviderSettings
 from src.ai.messages.messages import IMAGE_ERRORS
-from src.ai.services.state_machine import ModelAccessState
+from src.ai.utils.state_machine import ModelAccessState
 
 
 class AIProviderListSerializer(serializers.ModelSerializer):

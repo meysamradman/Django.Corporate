@@ -4,7 +4,7 @@ from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.validate_identifier import validate_identifier
 from src.user.utils.password_validator import validate_register_password
-from src.media.models import Media
+from src.media.models import ImageMedia
 from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
@@ -50,9 +50,9 @@ class UserRegisterSerializer(serializers.Serializer):
             return value
         
         try:
-            media = Media.objects.get(id=value, media_type='image')
+            media = ImageMedia.objects.get(id=value, media_type='image')
             return value
-        except Media.DoesNotExist:
+        except ImageMedia.DoesNotExist:
             raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])

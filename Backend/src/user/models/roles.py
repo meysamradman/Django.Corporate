@@ -197,7 +197,7 @@ def validate_admin_user_role(sender, instance, **kwargs):
         )
 
 
-@receiver([post_save, post_delete], sender=AdminUserRole)
+@receiver([post_save, post_delete], sender=AdminUserRole, dispatch_uid="clear_admin_user_cache")
 def clear_admin_user_cache(sender, instance, **kwargs):
     from src.user.authorization.admin_permission import AdminPermissionCache
     from src.user.permissions.validator import PermissionValidator
@@ -212,7 +212,7 @@ def clear_admin_user_cache(sender, instance, **kwargs):
     from src.user.utils.cache import UserCacheManager
     UserCacheManager.invalidate_profile(user_id)
 
-@receiver([post_save, post_delete], sender=AdminRole)
+@receiver([post_save, post_delete], sender=AdminRole, dispatch_uid="clear_admin_role_cache")
 def clear_admin_role_cache(sender, instance, **kwargs):
     from src.user.authorization.admin_permission import AdminPermissionCache
     from src.user.permissions.validator import PermissionValidator

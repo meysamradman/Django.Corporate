@@ -5,7 +5,7 @@ import time
 import base64
 
 from src.ai.models import AIModel
-from src.ai.services.state_machine import ModelAccessState
+from src.ai.utils.state_machine import ModelAccessState
 from src.ai.services.content_generation_service import AIContentGenerationService
 from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationRequestSerializer,
