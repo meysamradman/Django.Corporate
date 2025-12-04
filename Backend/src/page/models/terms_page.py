@@ -7,15 +7,28 @@ from src.page.models.seo import SEOMixin
 
 
 class TermsPage(BaseModel, SEOMixin):
-    
+    """
+    Terms page model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Content → Description → Relationships
+    """
+    # 2. Primary Content Fields
     title = models.CharField(
         max_length=200,
         default="Terms and Conditions",
+        db_index=True,
         verbose_name="Page Title",
         help_text="Terms and conditions page title",
         validators=[MinLengthValidator(3, message="Title must be at least 3 characters.")]
     )
     
+    # 3. Description Fields
+    short_description = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="Short Description",
+        help_text="Short summary of page content (for preview display)"
+    )
     content = models.TextField(
         blank=True,
         null=True,
@@ -23,20 +36,14 @@ class TermsPage(BaseModel, SEOMixin):
         help_text="Main content of terms page (HTML supported)"
     )
     
-    short_description = models.TextField(
-        max_length=500,
-        blank=True,
-        null=True,
-        verbose_name="Short Description",
-        help_text="Short summary of page content (for preview display)"
-    )
-    
+    # 5. Relationships
     featured_image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='terms_pages',
+        db_index=True,
         verbose_name="Featured Image",
         help_text="Main page image (optional)"
     )
@@ -46,9 +53,7 @@ class TermsPage(BaseModel, SEOMixin):
         verbose_name = "Terms Page"
         verbose_name_plural = "Terms Pages"
         ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['meta_title']),
-        ]
+        indexes = []
     
     def __str__(self):
         return "Terms Page"
@@ -60,15 +65,16 @@ class TermsPage(BaseModel, SEOMixin):
                 self.pk = existing.pk
                 self.public_id = existing.public_id
         
-        self.full_clean()
-        super().save(*args, **kwargs)
-        
+        # Set meta fields before validation
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         if not self.meta_description and self.short_description:
             self.meta_description = self.short_description[:300]
         elif not self.meta_description and self.content:
             self.meta_description = self.content[:300]
+        
+        self.full_clean()
+        super().save(*args, **kwargs)
     
     @classmethod
     def get_page(cls):

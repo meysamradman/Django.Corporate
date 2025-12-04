@@ -9,32 +9,84 @@ from .managers import BlogQuerySet
 
 
 class Blog(BaseModel, SEOMixin):
+    """
+    Blog post model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Status → Content → Flags → Relationships → Metadata → Timestamps
+    """
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('published', 'Published'),
+        ('archived', 'Archived'),
     )
     
+    # 1. Status/State Fields
     status = models.CharField(
-        choices=STATUS_CHOICES, default='draft', max_length=20,
-        db_index=True
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft',
+        db_index=True,
+        verbose_name="Status",
+        help_text="Publication status of the blog post"
     )
-    title = models.CharField(max_length=60, db_index=True)
-    slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
-    short_description = models.CharField(max_length=300, blank=True)
-    description = models.TextField(null=True, blank=True)
     
-    is_featured = models.BooleanField(default=False, db_index=True)
-    is_public = models.BooleanField(default=True, db_index=True)
+    # 2. Primary Content Fields
+    title = models.CharField(
+        max_length=200,
+        db_index=True,
+        verbose_name="Title",
+        help_text="Blog post title"
+    )
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        db_index=True,
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the blog post"
+    )
     
+    # 3. Description Fields
+    short_description = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Short Description",
+        help_text="Brief summary of the blog post"
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Description",
+        help_text="Full content of the blog post"
+    )
+    
+    # 4. Boolean Flags
+    is_featured = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Featured",
+        help_text="Designates whether this blog post is featured"
+    )
+    is_public = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Public",
+        help_text="Designates whether this blog post is publicly visible"
+    )
+    
+    # 5. Relationships
     categories = models.ManyToManyField(
         'BlogCategory',
         blank=True,
-        related_name="blog_categories"
+        related_name='blog_categories',
+        verbose_name="Categories",
+        help_text="Categories associated with this blog post"
     )
     tags = models.ManyToManyField(
         'BlogTag',
         blank=True,
-        related_name="blog_tags"
+        related_name='blog_tags',
+        verbose_name="Tags",
+        help_text="Tags associated with this blog post"
     )
     
     objects = BlogQuerySet.as_manager()
@@ -42,17 +94,12 @@ class Blog(BaseModel, SEOMixin):
     class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'blog_listings'
         verbose_name = "Blog"
-        verbose_name_plural = "Blog"
-        indexes = [
-            models.Index(fields=['status', 'is_public']),
-            models.Index(fields=['title']),
-            models.Index(fields=['slug']),
-            models.Index(fields=['public_id']),
-            models.Index(fields=['is_featured', 'status']),
-            models.Index(fields=['created_at']),
-            models.Index(fields=['meta_title']),
-        ]
+        verbose_name_plural = "Blogs"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'is_public', '-created_at']),
+            models.Index(fields=['is_featured', 'status', '-created_at']),
+        ]
 
     def __str__(self):
         return self.title

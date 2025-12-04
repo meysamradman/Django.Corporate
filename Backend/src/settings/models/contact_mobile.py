@@ -11,27 +11,32 @@ mobile_validator = RegexValidator(
 
 
 class ContactMobile(BaseModel):
-    
+    """
+    Contact mobile model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Content → Order
+    """
+    # 2. Primary Content Fields
     mobile_number = models.CharField(
         max_length=15,
+        unique=True,
+        db_index=True,
         verbose_name="Mobile Number",
         help_text="Mobile number - must start with 09 (example: 09123456789)",
-        validators=[mobile_validator],
-        unique=True
+        validators=[mobile_validator]
     )
-    
     label = models.CharField(
         max_length=100,
+        blank=True,
         verbose_name="Label",
-        help_text="Label for mobile number (e.g., Support, Sales)",
-        blank=True
+        help_text="Label for mobile number (e.g., Support, Sales)"
     )
     
+    # Order Field
     order = models.PositiveIntegerField(
         default=0,
+        db_index=True,
         verbose_name="Display Order",
-        help_text="Display order in list (lower numbers appear first)",
-        db_index=True
+        help_text="Display order in list (lower numbers appear first)"
     )
     
     class Meta(BaseModel.Meta):

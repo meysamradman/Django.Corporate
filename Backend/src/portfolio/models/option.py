@@ -8,26 +8,54 @@ from .managers import PortfolioOptionQuerySet
 
 
 class PortfolioOption(BaseModel, SEOMixin):
-    name = models.CharField(max_length=100, db_index=True)
-    slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
-    description = models.TextField(null=True, blank=True)
-    is_public = models.BooleanField(default=True, db_index=True)
+    """
+    Portfolio option model following DJANGO_MODEL_STANDARDS.md conventions.
+    """
+    # 2. Primary Content Fields
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        verbose_name="Name",
+        help_text="Option name"
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the option"
+    )
+    
+    # 3. Description Fields
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Description",
+        help_text="Option description"
+    )
+    
+    # 4. Boolean Flags
+    is_public = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Public",
+        help_text="Designates whether this option is publicly visible"
+    )
     
     objects = PortfolioOptionQuerySet.as_manager()
     
     def get_public_url(self):
         return f"/option/{self.public_id}/"
 
-    class Meta:
+    class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'portfolio_options'
         verbose_name = "Portfolio Option"
         verbose_name_plural = "Portfolio Options"
+        ordering = ['name']
         indexes = [
-            models.Index(fields=["name"]),
-            models.Index(fields=["slug"]),
-            models.Index(fields=["public_id"]),
-            models.Index(fields=["is_public"]),
-            models.Index(fields=["meta_title"]),
+            models.Index(fields=['is_public', 'name']),
         ]
 
     def __str__(self):

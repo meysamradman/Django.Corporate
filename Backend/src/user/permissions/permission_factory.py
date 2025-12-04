@@ -1,6 +1,5 @@
 from typing import Dict, List
 from .config import PERMISSIONS
-from src.user.authorization.admin_permission import RequireModuleAccess
 
 
 MODULE_MAPPINGS = {
@@ -22,6 +21,8 @@ MODULE_MAPPINGS = {
 
 
 def _create_permission_classes():
+    from src.user.authorization.admin_permission import RequireModuleAccess
+    
     for module_name, related_modules in MODULE_MAPPINGS.items():
         class_name = f"{module_name.capitalize()}ManagerAccess"
         

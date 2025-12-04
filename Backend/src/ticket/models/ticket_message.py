@@ -12,18 +12,41 @@ SENDER_TYPE_CHOICES = [
 
 
 class TicketMessage(BaseModel):
-    ticket = models.ForeignKey(
-        Ticket,
-        on_delete=models.CASCADE,
-        related_name='messages',
-        verbose_name="Ticket"
-    )
-    message = models.TextField(verbose_name="Message")
+    """
+    Ticket message model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Status → Content → Flags → Relationships → Metadata
+    """
+    # 1. Status/State Fields
     sender_type = models.CharField(
         max_length=10,
         choices=SENDER_TYPE_CHOICES,
         db_index=True,
-        verbose_name="Sender Type"
+        verbose_name="Sender Type",
+        help_text="Type of sender (user or admin)"
+    )
+    
+    # 3. Description Fields
+    message = models.TextField(
+        verbose_name="Message",
+        help_text="Message content"
+    )
+    
+    # 4. Boolean Flags
+    is_read = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Is Read",
+        help_text="Whether this message has been read"
+    )
+    
+    # 5. Relationships
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        db_index=True,
+        verbose_name="Ticket",
+        help_text="Ticket this message belongs to"
     )
     sender_user = models.ForeignKey(
         User,
@@ -31,7 +54,9 @@ class TicketMessage(BaseModel):
         null=True,
         blank=True,
         related_name='ticket_messages',
-        verbose_name="Sender User"
+        db_index=True,
+        verbose_name="Sender User",
+        help_text="User who sent this message (if sender_type is user)"
     )
     sender_admin = models.ForeignKey(
         AdminProfile,
@@ -39,18 +64,21 @@ class TicketMessage(BaseModel):
         null=True,
         blank=True,
         related_name='ticket_messages',
-        verbose_name="Sender Admin"
+        db_index=True,
+        verbose_name="Sender Admin",
+        help_text="Admin who sent this message (if sender_type is admin)"
     )
-    is_read = models.BooleanField(default=False, db_index=True, verbose_name="Is Read")
     
-    class Meta:
+    class Meta(BaseModel.Meta):
+        db_table = 'ticket_messages'
         verbose_name = "Ticket Message"
         verbose_name_plural = "Ticket Messages"
         ordering = ['created_at']
         indexes = [
-            models.Index(fields=['ticket', 'created_at'], name='ticket_msg_ticket_created_idx'),
-            models.Index(fields=['sender_type', 'created_at'], name='ticket_msg_sender_created_idx'),
-            models.Index(fields=['is_read', 'created_at'], name='ticket_msg_read_created_idx'),
+            # Composite indexes for common query patterns
+            models.Index(fields=['ticket', 'created_at']),
+            models.Index(fields=['sender_type', 'created_at']),
+            models.Index(fields=['is_read', 'created_at']),
         ]
     
     def __str__(self):

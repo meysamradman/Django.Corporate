@@ -5,7 +5,10 @@ from src.core.models.base import BaseModel
 
 
 class ContactFormField(BaseModel):
-    
+    """
+    Contact form field model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Status → Content → Flags → Order → Metadata
+    """
     FIELD_TYPE_CHOICES = [
         ('text', 'Text'),
         ('email', 'Email'),
@@ -19,15 +22,7 @@ class ContactFormField(BaseModel):
         ('url', 'URL'),
     ]
     
-    field_key = models.CharField(
-        max_length=100,
-        unique=True,
-        db_index=True,
-        verbose_name="Field Key",
-        help_text="Unique key for the field (e.g., name, email, phone)",
-        validators=[MinLengthValidator(2, message="Field key must be at least 2 characters.")]
-    )
-    
+    # 1. Status/State Fields
     field_type = models.CharField(
         max_length=20,
         choices=FIELD_TYPE_CHOICES,
@@ -37,12 +32,20 @@ class ContactFormField(BaseModel):
         help_text="Type of field (text, email, select, etc.)"
     )
     
+    # 2. Primary Content Fields
+    field_key = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        verbose_name="Field Key",
+        help_text="Unique key for the field (e.g., name, email, phone)",
+        validators=[MinLengthValidator(2, message="Field key must be at least 2 characters.")]
+    )
     label = models.CharField(
         max_length=200,
         verbose_name="Label",
         help_text="Field label displayed to users"
     )
-    
     placeholder = models.CharField(
         max_length=200,
         blank=True,
@@ -51,6 +54,7 @@ class ContactFormField(BaseModel):
         help_text="Placeholder text inside the field (optional)"
     )
     
+    # 4. Boolean Flags
     required = models.BooleanField(
         default=True,
         db_index=True,
@@ -58,31 +62,31 @@ class ContactFormField(BaseModel):
         help_text="Whether this field is required"
     )
     
+    # Order Field
+    order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Display Order",
+        help_text="Display order in form (lower numbers appear first)"
+    )
+    
+    # Metadata Fields
     platforms = models.JSONField(
         default=list,
         verbose_name="Platforms",
         help_text="List of platforms where this field is displayed: ['website', 'mobile_app']"
     )
-    
     options = models.JSONField(
         default=list,
         blank=True,
         verbose_name="Options",
         help_text="Options for select field: [{'value': 'option1', 'label': 'Option 1'}]"
     )
-    
     validation_rules = models.JSONField(
         default=dict,
         blank=True,
         verbose_name="Validation Rules",
         help_text="Validation rules: {'min_length': 3, 'max_length': 100, 'pattern': '...'}"
-    )
-    
-    order = models.PositiveIntegerField(
-        default=0,
-        db_index=True,
-        verbose_name="Display Order",
-        help_text="Display order in form (lower numbers appear first)"
     )
     
     class Meta(BaseModel.Meta):
@@ -93,7 +97,6 @@ class ContactFormField(BaseModel):
         indexes = [
             models.Index(fields=['is_active', 'order']),
             models.Index(fields=['field_type', 'is_active']),
-            models.Index(fields=['platforms']),
         ]
     
     def __str__(self):

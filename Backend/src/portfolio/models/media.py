@@ -1,40 +1,64 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-
 from src.core.models.base import BaseModel
 from src.portfolio.models.portfolio import Portfolio
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
+
 class PortfolioImage(BaseModel):
+    """
+    Portfolio image relationship model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships → Boolean Flags → Order Fields
+    """
+    # 5. Relationships
     portfolio = models.ForeignKey(
         Portfolio,
         on_delete=models.CASCADE,
         related_name="images",
         db_index=True,
-        verbose_name="Portfolio"
+        verbose_name="Portfolio",
+        help_text="Portfolio item this image belongs to"
     )
     image = models.ForeignKey(
         ImageMedia,
         on_delete=models.CASCADE,
         related_name="portfolio_links",
         db_index=True,
-        verbose_name="Image File"
+        verbose_name="Image File",
+        help_text="Image media file"
     )
+    
+    # 4. Boolean Flags
     is_main = models.BooleanField(
         default=False,
         db_index=True,
-        verbose_name="Main Image"
+        verbose_name="Main Image",
+        help_text="Designates whether this is the main image for the portfolio item"
     )
-    order = models.PositiveIntegerField(default=0, db_index=True)
+    
+    # Order Field
+    order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Display Order",
+        help_text="Order in which this image should be displayed"
+    )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         db_table = "portfolio_images"
-        ordering = ["order", "-created_at"]
         verbose_name = "Portfolio Image"
         verbose_name_plural = "Portfolio Images"
+        ordering = ["order", "-created_at"]
         indexes = [
+            # Composite indexes for common query patterns
             models.Index(fields=["portfolio", "is_main"]),
             models.Index(fields=["portfolio", "order"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['portfolio', 'image'],
+                name='unique_portfolio_image'
+            ),
         ]
 
     def clean(self):
@@ -55,18 +79,26 @@ class PortfolioImage(BaseModel):
 
 
 class PortfolioVideo(BaseModel):
-
+    """
+    Portfolio video relationship model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships → Boolean Flags → Order Fields
+    """
+    # 5. Relationships
     portfolio = models.ForeignKey(
         Portfolio,
         on_delete=models.CASCADE,
         related_name="videos",
-        db_index=True
+        db_index=True,
+        verbose_name="Portfolio",
+        help_text="Portfolio item this video belongs to"
     )
     video = models.ForeignKey(
         VideoMedia,
         on_delete=models.CASCADE,
         related_name="portfolio_links",
-        db_index=True
+        db_index=True,
+        verbose_name="Video File",
+        help_text="Video media file"
     )
     cover_image = models.ForeignKey(
         ImageMedia,
@@ -76,18 +108,49 @@ class PortfolioVideo(BaseModel):
         blank=True,
         db_index=True,
         verbose_name="Cover Image",
+        help_text="Cover image for this video"
     )
-    order = models.PositiveIntegerField(default=0, db_index=True)
-    autoplay = models.BooleanField(default=False)
-    mute = models.BooleanField(default=True)
-    show_cover = models.BooleanField(default=True)
+    
+    # Order Field
+    order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Display Order",
+        help_text="Order in which this video should be displayed"
+    )
+    
+    # 4. Boolean Flags
+    autoplay = models.BooleanField(
+        default=False,
+        verbose_name="Autoplay",
+        help_text="Whether the video should autoplay"
+    )
+    mute = models.BooleanField(
+        default=True,
+        verbose_name="Mute",
+        help_text="Whether the video should be muted by default"
+    )
+    show_cover = models.BooleanField(
+        default=True,
+        verbose_name="Show Cover",
+        help_text="Whether to show the cover image before playback"
+    )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         db_table = "portfolio_videos"
-        ordering = ["order"]
         verbose_name = "Portfolio Video"
         verbose_name_plural = "Portfolio Videos"
-        indexes = [models.Index(fields=["portfolio", "order"])]
+        ordering = ["order", "-created_at"]
+        indexes = [
+            # Composite index for ordering videos by portfolio
+            models.Index(fields=["portfolio", "order"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['portfolio', 'video'],
+                name='unique_portfolio_video'
+            ),
+        ]
 
     def get_cover_image(self):
         return self.cover_image if self.cover_image else (self.video.cover_image if self.video else None)
@@ -97,18 +160,26 @@ class PortfolioVideo(BaseModel):
 
 
 class PortfolioAudio(BaseModel):
-
+    """
+    Portfolio audio relationship model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships → Boolean Flags → Order Fields
+    """
+    # 5. Relationships
     portfolio = models.ForeignKey(
         Portfolio,
         on_delete=models.CASCADE,
         related_name="audios",
-        db_index=True
+        db_index=True,
+        verbose_name="Portfolio",
+        help_text="Portfolio item this audio belongs to"
     )
     audio = models.ForeignKey(
         AudioMedia,
         on_delete=models.CASCADE,
         related_name="portfolio_links",
-        db_index=True
+        db_index=True,
+        verbose_name="Audio File",
+        help_text="Audio media file"
     )
     cover_image = models.ForeignKey(
         ImageMedia,
@@ -117,18 +188,45 @@ class PortfolioAudio(BaseModel):
         null=True,
         blank=True,
         db_index=True,
-        verbose_name="Cover Image"
+        verbose_name="Cover Image",
+        help_text="Cover image for this audio"
     )
-    order = models.PositiveIntegerField(default=0, db_index=True)
-    autoplay = models.BooleanField(default=False)
-    loop = models.BooleanField(default=False)
+    
+    # Order Field
+    order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Display Order",
+        help_text="Order in which this audio should be displayed"
+    )
+    
+    # 4. Boolean Flags
+    autoplay = models.BooleanField(
+        default=False,
+        verbose_name="Autoplay",
+        help_text="Whether the audio should autoplay"
+    )
+    loop = models.BooleanField(
+        default=False,
+        verbose_name="Loop",
+        help_text="Whether the audio should loop"
+    )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         db_table = "portfolio_audios"
-        ordering = ["order"]
         verbose_name = "Portfolio Audio"
         verbose_name_plural = "Portfolio Audios"
-        indexes = [models.Index(fields=["portfolio", "order"])]
+        ordering = ["order", "-created_at"]
+        indexes = [
+            # Composite index for ordering audios by portfolio
+            models.Index(fields=["portfolio", "order"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['portfolio', 'audio'],
+                name='unique_portfolio_audio'
+            ),
+        ]
 
     def get_cover_image(self):
         return self.cover_image if self.cover_image else (self.audio.cover_image if self.audio else None)
@@ -138,18 +236,26 @@ class PortfolioAudio(BaseModel):
 
 
 class PortfolioDocument(BaseModel):
-
+    """
+    Portfolio document relationship model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships → Content Fields → Order Fields
+    """
+    # 5. Relationships
     portfolio = models.ForeignKey(
         Portfolio,
         on_delete=models.CASCADE,
         related_name="documents",
-        db_index=True
+        db_index=True,
+        verbose_name="Portfolio",
+        help_text="Portfolio item this document belongs to"
     )
     document = models.ForeignKey(
         DocumentMedia,
         on_delete=models.CASCADE,
         related_name="portfolio_links",
-        db_index=True
+        db_index=True,
+        verbose_name="Document File",
+        help_text="Document media file"
     )
     cover_image = models.ForeignKey(
         ImageMedia,
@@ -159,16 +265,41 @@ class PortfolioDocument(BaseModel):
         blank=True,
         db_index=True,
         verbose_name="Cover Image",
+        help_text="Cover image for this document"
     )
-    order = models.PositiveIntegerField(default=0, db_index=True)
-    title = models.CharField(max_length=255, blank=True, null=True)
+    
+    # 2. Primary Content Fields
+    title = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Title",
+        help_text="Custom title for this document (optional)"
+    )
+    
+    # Order Field
+    order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Display Order",
+        help_text="Order in which this document should be displayed"
+    )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         db_table = "portfolio_documents"
-        ordering = ["order"]
         verbose_name = "Portfolio Document"
         verbose_name_plural = "Portfolio Documents"
-        indexes = [models.Index(fields=["portfolio", "order"])]
+        ordering = ["order", "-created_at"]
+        indexes = [
+            # Composite index for ordering documents by portfolio
+            models.Index(fields=["portfolio", "order"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['portfolio', 'document'],
+                name='unique_portfolio_document'
+            ),
+        ]
 
     def get_cover_image(self):
         return self.cover_image if self.cover_image else (self.document.cover_image if self.document else None)

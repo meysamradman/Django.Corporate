@@ -139,15 +139,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_table = 'users'
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['user_type', 'is_admin_active'], name='user_type_admin_active_idx'),
-            models.Index(fields=['is_admin_full', 'is_active'], name='user_admin_full_active_idx'),
-            models.Index(fields=['mobile'], name='user_mobile_idx'),
-            models.Index(fields=['email'], name='user_email_idx'),
-            models.Index(fields=['last_login_admin'], name='user_last_login_admin_idx'),
-            models.Index(fields=['public_id'], name='user_public_id_idx'),
-            models.Index(fields=['is_active', 'user_type'], name='user_active_type_idx'),
-            models.Index(fields=['is_staff', 'is_admin_active'], name='user_staff_admin_idx'),
+            # Composite indexes for common query patterns (equality → sort)
+            models.Index(fields=['user_type', 'is_admin_active', '-created_at'], name='user_type_admin_active_idx'),
+            models.Index(fields=['is_staff', 'is_admin_active', '-created_at'], name='user_staff_admin_idx'),
+            models.Index(fields=['is_active', '-created_at'], name='user_active_created_idx'),
+            # Note: mobile, email, and public_id already have unique=True/db_index=True (automatic indexes)
         ]
         constraints = [
             models.CheckConstraint(

@@ -9,38 +9,91 @@ from .managers import PortfolioQuerySet
 
 
 class Portfolio(BaseModel, SEOMixin):
+    """
+    Portfolio item model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Status → Content → Flags → Relationships → Metadata → Timestamps
+    """
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('published', 'Published'),
+        ('archived', 'Archived'),
     )
     
+    # 1. Status/State Fields
     status = models.CharField(
-        choices=STATUS_CHOICES, default='draft', max_length=20,
-        db_index=True
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft',
+        db_index=True,
+        verbose_name="Status",
+        help_text="Publication status of the portfolio item"
     )
-    title = models.CharField(max_length=60, db_index=True)
-    slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
-    short_description = models.CharField(max_length=300, blank=True)
-    description = models.TextField(null=True, blank=True)
     
-    is_featured = models.BooleanField(default=False, db_index=True)
-    is_public = models.BooleanField(default=True, db_index=True)
+    # 2. Primary Content Fields
+    title = models.CharField(
+        max_length=200,
+        db_index=True,
+        verbose_name="Title",
+        help_text="Portfolio item title"
+    )
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        db_index=True,
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the portfolio item"
+    )
     
+    # 3. Description Fields
+    short_description = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Short Description",
+        help_text="Brief summary of the portfolio item"
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Description",
+        help_text="Full content of the portfolio item"
+    )
+    
+    # 4. Boolean Flags
+    is_featured = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Featured",
+        help_text="Designates whether this portfolio item is featured"
+    )
+    is_public = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Public",
+        help_text="Designates whether this portfolio item is publicly visible"
+    )
+    
+    # 5. Relationships
     categories = models.ManyToManyField(
         'PortfolioCategory',
         blank=True,
-        related_name="portfolio_categories"
+        related_name='portfolio_categories',
+        verbose_name="Categories",
+        help_text="Categories associated with this portfolio item"
     )
     tags = models.ManyToManyField(
-        'PortfolioTag', 
+        'PortfolioTag',
         blank=True,
-        related_name="portfolio_tags"
+        related_name='portfolio_tags',
+        verbose_name="Tags",
+        help_text="Tags associated with this portfolio item"
     )
-    
     options = models.ManyToManyField(
         'PortfolioOption',
         blank=True,
-        related_name="portfolio_options"
+        related_name='portfolio_options',
+        verbose_name="Options",
+        help_text="Options associated with this portfolio item"
     )
     
     objects = PortfolioQuerySet.as_manager()
@@ -48,17 +101,12 @@ class Portfolio(BaseModel, SEOMixin):
     class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'portfolio_listings'
         verbose_name = "Portfolio"
-        verbose_name_plural = "Portfolio"
-        indexes = [
-            models.Index(fields=['status', 'is_public']),
-            models.Index(fields=['title']),
-            models.Index(fields=['slug']),
-            models.Index(fields=['public_id']),
-            models.Index(fields=['is_featured', 'status']),
-            models.Index(fields=['created_at']),
-            models.Index(fields=['meta_title']),
-        ]
+        verbose_name_plural = "Portfolios"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'is_public', '-created_at']),
+            models.Index(fields=['is_featured', 'status', '-created_at']),
+        ]
 
     def __str__(self):
         return self.title

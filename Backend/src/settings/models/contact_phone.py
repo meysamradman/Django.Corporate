@@ -11,26 +11,31 @@ phone_validator = RegexValidator(
 
 
 class ContactPhone(BaseModel):
-    
+    """
+    Contact phone model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Content → Order
+    """
+    # 2. Primary Content Fields
     phone_number = models.CharField(
         max_length=20,
+        db_index=True,
         verbose_name="Phone Number",
         help_text="Phone number (landline) - example: 021-12345678",
         validators=[phone_validator]
     )
-    
     label = models.CharField(
         max_length=100,
+        blank=True,
         verbose_name="Label",
-        help_text="Label for phone number (e.g., Main Office, Support)",
-        blank=True
+        help_text="Label for phone number (e.g., Main Office, Support)"
     )
     
+    # Order Field
     order = models.PositiveIntegerField(
         default=0,
+        db_index=True,
         verbose_name="Display Order",
-        help_text="Display order in list (lower numbers appear first)",
-        db_index=True
+        help_text="Display order in list (lower numbers appear first)"
     )
     
     class Meta(BaseModel.Meta):

@@ -6,56 +6,63 @@ from src.media.models.media import ImageMedia
 
 
 class GeneralSettings(BaseModel):
-    
+    """
+    General settings model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Content → Relationships → Metadata
+    """
+    # 2. Primary Content Fields
     site_name = models.CharField(
         max_length=200,
+        db_index=True,
         verbose_name="Site Name",
         help_text="System or brand name"
     )
-    
-    enamad_image = models.ForeignKey(
-        ImageMedia,
-        on_delete=models.SET_NULL,
-        null=True,
+    copyright_text = models.CharField(
+        max_length=500,
         blank=True,
-        related_name='enamad_settings',
-        verbose_name="Enamad Image",
-        help_text="Electronic trust symbol image"
+        verbose_name="Copyright Text",
+        help_text="Copyright text (e.g., All rights reserved © 2024)"
     )
     
+    # 5. Relationships
     logo_image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='logo_settings',
+        db_index=True,
         verbose_name="Logo Image",
         help_text="Main system logo"
     )
-    
     favicon_image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='favicon_settings',
+        db_index=True,
         verbose_name="Favicon Image",
         help_text="Icon displayed in browser tab"
     )
-    
-    copyright_text = models.CharField(
-        max_length=500,
-        verbose_name="Copyright Text",
-        help_text="Copyright text (e.g., All rights reserved © 2024)",
-        blank=True
+    enamad_image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='enamad_settings',
+        db_index=True,
+        verbose_name="Enamad Image",
+        help_text="Electronic trust symbol image"
     )
     
+    # Metadata Fields
     copyright_link = models.URLField(
         max_length=500,
-        verbose_name="Copyright Link",
-        help_text="Copyright related link (optional)",
         blank=True,
         null=True,
+        verbose_name="Copyright Link",
+        help_text="Copyright related link (optional)",
         validators=[URLValidator()]
     )
     
@@ -64,6 +71,10 @@ class GeneralSettings(BaseModel):
         verbose_name = "General Settings"
         verbose_name_plural = "General Settings"
         ordering = ['-created_at']
+        indexes = [
+            # Note: site_name already has db_index=True (automatic index)
+            # BaseModel already provides indexes for public_id, is_active, created_at
+        ]
     
     def __str__(self):
         return f"General Settings: {self.site_name}"

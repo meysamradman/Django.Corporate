@@ -55,21 +55,62 @@ def upload_media_path(instance, filename):
     return f"{folder_name}/{today.year}/{today.month:02d}/{today.day:02d}/{identifier}{ext}"
 
 class AbstractMedia(BaseModel):
-
-    file = models.FileField(upload_to=upload_media_path)
-    file_size = models.PositiveIntegerField(editable=False, null=True, blank=True)
-    mime_type = models.CharField(max_length=100, editable=False, blank=True)
-    title = models.CharField(max_length=100, blank=True, db_index=True)
-    alt_text = models.CharField(max_length=255, blank=True)
-    etag = models.CharField(max_length=40, editable=False, blank=True)
+    """
+    Abstract base model for media files following DJANGO_MODEL_STANDARDS.md conventions.
+    """
+    # 2. Primary Content Fields
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        db_index=True,
+        verbose_name="Title",
+        help_text="Media file title"
+    )
+    
+    # 3. Description Fields
+    alt_text = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Alt Text",
+        help_text="Alternative text for accessibility"
+    )
+    
+    # File Fields
+    file = models.FileField(
+        upload_to=upload_media_path,
+        verbose_name="File",
+        help_text="Media file"
+    )
+    file_size = models.PositiveIntegerField(
+        editable=False,
+        null=True,
+        blank=True,
+        verbose_name="File Size",
+        help_text="File size in bytes"
+    )
+    mime_type = models.CharField(
+        max_length=100,
+        editable=False,
+        blank=True,
+        verbose_name="MIME Type",
+        help_text="MIME type of the file"
+    )
+    etag = models.CharField(
+        max_length=40,
+        editable=False,
+        blank=True,
+        verbose_name="ETag",
+        help_text="Entity tag for cache validation"
+    )
 
     class Meta(BaseModel.Meta):
         abstract = True
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['created_at']),
-            models.Index(fields=['is_active', 'created_at']),
-            models.Index(fields=['title']),
+            # Composite index for filtering active media with descending date order
+            # Note: BaseModel has ['is_active', 'created_at'] (ascending), this is descending
+            models.Index(fields=['is_active', '-created_at']),
+            # Note: title already has db_index=True (automatic index)
         ]
 
     def clean(self):
@@ -98,7 +139,14 @@ class AbstractMedia(BaseModel):
         return self.file.url if self.file else None
 
 class AbstractImageMedia(AbstractMedia):
-    file = models.ImageField(upload_to=upload_media_path)
+    """
+    Abstract base model for image media files.
+    """
+    file = models.ImageField(
+        upload_to=upload_media_path,
+        verbose_name="Image File",
+        help_text="Image file"
+    )
 
     class Meta(AbstractMedia.Meta):
         abstract = True
@@ -121,11 +169,28 @@ class AbstractImageMedia(AbstractMedia):
             raise ValidationError(f"Image too large. Maximum: {max_size_mb:.1f} MB")
 
 class AbstractVideoMedia(AbstractMedia):
-    file = models.FileField(upload_to=upload_media_path)
-    duration = models.PositiveIntegerField(null=True, blank=True)
+    """
+    Abstract base model for video media files.
+    """
+    file = models.FileField(
+        upload_to=upload_media_path,
+        verbose_name="Video File",
+        help_text="Video file"
+    )
+    duration = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Duration",
+        help_text="Video duration in seconds"
+    )
     cover_image = models.ForeignKey(
-        'ImageMedia', null=True, blank=True, on_delete=models.SET_NULL,
-        related_name='covered_videos', help_text="Cover image for this video"
+        'ImageMedia',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='covered_videos',
+        verbose_name="Cover Image",
+        help_text="Cover image for this video"
     )
 
     class Meta(AbstractMedia.Meta):
@@ -152,11 +217,28 @@ class AbstractVideoMedia(AbstractMedia):
             raise ValidationError("Cover must be an ImageMedia instance.")
 
 class AbstractAudioMedia(AbstractMedia):
-    file = models.FileField(upload_to=upload_media_path)
-    duration = models.PositiveIntegerField(null=True, blank=True)
+    """
+    Abstract base model for audio media files.
+    """
+    file = models.FileField(
+        upload_to=upload_media_path,
+        verbose_name="Audio File",
+        help_text="Audio file"
+    )
+    duration = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Duration",
+        help_text="Audio duration in seconds"
+    )
     cover_image = models.ForeignKey(
-        'ImageMedia', null=True, blank=True, on_delete=models.SET_NULL,
-        related_name='covered_audios', help_text="Cover image for this audio"
+        'ImageMedia',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='covered_audios',
+        verbose_name="Cover Image",
+        help_text="Cover image for this audio"
     )
 
     class Meta(AbstractMedia.Meta):
@@ -183,10 +265,22 @@ class AbstractAudioMedia(AbstractMedia):
             raise ValidationError("Cover must be an ImageMedia instance.")
 
 class AbstractDocumentMedia(AbstractMedia):
-    file = models.FileField(upload_to=upload_media_path)
+    """
+    Abstract base model for document media files.
+    """
+    file = models.FileField(
+        upload_to=upload_media_path,
+        verbose_name="Document File",
+        help_text="Document file"
+    )
     cover_image = models.ForeignKey(
-        'ImageMedia', null=True, blank=True, on_delete=models.SET_NULL,
-        related_name='covered_documents', help_text="Cover image for this document"
+        'ImageMedia',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='covered_documents',
+        verbose_name="Cover Image",
+        help_text="Cover image for this document"
     )
 
     class Meta(AbstractMedia.Meta):

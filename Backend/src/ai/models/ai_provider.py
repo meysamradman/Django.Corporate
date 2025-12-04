@@ -76,90 +76,107 @@ class CacheMixin:
 
 
 class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
-
+    """
+    AI Provider model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Content → Flags → Configuration → Statistics
+    """
+    # 2. Primary Content Fields
     name = models.CharField(
         max_length=100,
         unique=True,
         db_index=True,
-        verbose_name="Provider Name"
+        verbose_name="Provider Name",
+        help_text="Unique provider identifier (e.g., 'openai', 'gemini')"
     )
-    
     slug = models.SlugField(
         max_length=100,
         unique=True,
         db_index=True,
-        verbose_name="Slug"
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the provider"
     )
-    
     display_name = models.CharField(
         max_length=150,
-        verbose_name="Display Name"
+        verbose_name="Display Name",
+        help_text="Human-readable provider name"
     )
     
-    website = models.URLField(
-        blank=True,
-        verbose_name="Website"
-    )
-    
-    api_base_url = models.URLField(
-        blank=True,
-        verbose_name="API Base URL"
-    )
-    
+    # 3. Description Fields
     description = models.TextField(
         blank=True,
-        verbose_name="Description"
+        verbose_name="Description",
+        help_text="Provider description"
     )
-    
-    shared_api_key = models.TextField(
+    website = models.URLField(
         blank=True,
-        verbose_name="Shared API Key (Encrypted)"
+        verbose_name="Website",
+        help_text="Provider website URL"
+    )
+    api_base_url = models.URLField(
+        blank=True,
+        verbose_name="API Base URL",
+        help_text="Base URL for API requests"
     )
     
+    # 4. Boolean Flags
     allow_personal_keys = models.BooleanField(
         default=True,
-        verbose_name="Allow Personal Keys"
+        db_index=True,
+        verbose_name="Allow Personal Keys",
+        help_text="Whether admins can use personal API keys"
     )
-    
     allow_shared_for_normal_admins = models.BooleanField(
         default=False,
         db_index=True,
-        verbose_name="Allow Shared for Normal Admins"
+        verbose_name="Allow Shared for Normal Admins",
+        help_text="Whether normal admins can use shared API key"
     )
     
+    # Configuration & Security
+    shared_api_key = models.TextField(
+        blank=True,
+        verbose_name="Shared API Key (Encrypted)",
+        help_text="Encrypted shared API key for the provider"
+    )
     config = models.JSONField(
         default=dict,
         blank=True,
-        verbose_name="Configuration"
+        verbose_name="Configuration",
+        help_text="Additional provider configuration"
     )
     
+    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
-        verbose_name="Total Requests"
+        verbose_name="Total Requests",
+        help_text="Total number of API requests made"
     )
-    
     last_used_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Last Used"
+        verbose_name="Last Used",
+        help_text="Date and time when provider was last used"
     )
-    
     sort_order = models.IntegerField(
         default=0,
         db_index=True,
-        verbose_name="Sort Order"
+        verbose_name="Sort Order",
+        help_text="Order for displaying providers"
     )
     
     class Meta(BaseModel.Meta):
+        db_table = 'ai_providers'
         verbose_name = "AI Provider"
         verbose_name_plural = "AI Providers"
         ordering = ['sort_order', 'name']
-        db_table = 'ai_providers'
         indexes = [
-            *BaseModel.Meta.indexes,
+            # Composite indexes for common query patterns
             models.Index(fields=['slug', 'is_active']),
             models.Index(fields=['is_active', 'sort_order']),
-            models.Index(fields=['allow_shared_for_normal_admins']),
+            models.Index(fields=['allow_shared_for_normal_admins', 'is_active']),
+            # Note: name and slug already have db_index=True and unique=True (automatic indexes)
+            # Note: BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
@@ -217,7 +234,10 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
 
 
 class AIModel(BaseModel, CacheMixin):
-    
+    """
+    AI Model model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Content → Relationships → Configuration → Statistics
+    """
     CAPABILITY_CHOICES = [
         ('chat', 'Chat / Text Generation'),
         ('image', 'Image Generation'),
@@ -229,102 +249,114 @@ class AIModel(BaseModel, CacheMixin):
         ('vision', 'Vision / Image Understanding'),
     ]
     
+    # 2. Primary Content Fields
+    name = models.CharField(
+        max_length=150,
+        db_index=True,
+        verbose_name="Model Name",
+        help_text="Model identifier name"
+    )
+    model_id = models.CharField(
+        max_length=200,
+        verbose_name="Model ID",
+        help_text="API model identifier (e.g., 'gpt-4', 'claude-3.5-sonnet')"
+    )
+    display_name = models.CharField(
+        max_length=200,
+        verbose_name="Display Name",
+        help_text="Human-readable model name"
+    )
+    
+    # 3. Description Fields
+    description = models.TextField(
+        blank=True,
+        verbose_name="Description",
+        help_text="Model description"
+    )
+    
+    # 5. Relationships
     provider = models.ForeignKey(
         AIProvider,
         on_delete=models.CASCADE,
         related_name='models',
         db_index=True,
-        verbose_name="Provider"
+        verbose_name="Provider",
+        help_text="AI provider that owns this model"
     )
     
-    name = models.CharField(
-        max_length=150,
-        db_index=True,
-        verbose_name="Model Name"
-    )
-    
-    model_id = models.CharField(
-        max_length=200,
-        verbose_name="Model ID"
-    )
-    
-    display_name = models.CharField(
-        max_length=200,
-        verbose_name="Display Name"
-    )
-    
-    description = models.TextField(
-        blank=True,
-        verbose_name="Description"
-    )
-    
+    # Configuration
     capabilities = models.JSONField(
         default=list,
-        verbose_name="Capabilities"
+        verbose_name="Capabilities",
+        help_text="List of model capabilities"
+    )
+    config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Configuration",
+        help_text="Additional model configuration"
     )
     
+    # Pricing & Limits
     pricing_input = models.DecimalField(
         max_digits=10,
         decimal_places=6,
         null=True,
         blank=True,
-        verbose_name="Input Price ($/1M tokens)"
+        verbose_name="Input Price ($/1M tokens)",
+        help_text="Price per million input tokens"
     )
-    
     pricing_output = models.DecimalField(
         max_digits=10,
         decimal_places=6,
         null=True,
         blank=True,
-        verbose_name="Output Price ($/1M tokens)"
+        verbose_name="Output Price ($/1M tokens)",
+        help_text="Price per million output tokens"
     )
-    
     max_tokens = models.IntegerField(
         null=True,
         blank=True,
-        verbose_name="Max Tokens"
+        verbose_name="Max Tokens",
+        help_text="Maximum tokens per request"
     )
-    
     context_window = models.IntegerField(
         null=True,
         blank=True,
-        verbose_name="Context Window"
+        verbose_name="Context Window",
+        help_text="Maximum context window size in tokens"
     )
     
-    config = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name="Configuration"
-    )
-    
+    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
-        verbose_name="Total Requests"
+        verbose_name="Total Requests",
+        help_text="Total number of requests made to this model"
     )
-    
     last_used_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Last Used"
+        verbose_name="Last Used",
+        help_text="Date and time when model was last used"
     )
-    
     sort_order = models.IntegerField(
         default=0,
         db_index=True,
-        verbose_name="Sort Order"
+        verbose_name="Sort Order",
+        help_text="Order for displaying models within provider"
     )
     
     class Meta(BaseModel.Meta):
+        db_table = 'ai_models'
         verbose_name = "AI Model"
         verbose_name_plural = "AI Models"
         ordering = ['provider', 'sort_order', 'name']
-        db_table = 'ai_models'
         unique_together = ['provider', 'model_id']
         indexes = [
-            *BaseModel.Meta.indexes,
-            models.Index(fields=['provider', 'is_active']),
-            models.Index(fields=['is_active', 'sort_order']),
-            models.Index(fields=['name']),
+            # Composite indexes for common query patterns
+            models.Index(fields=['provider', 'is_active', 'sort_order']),
+            # Note: name already has db_index=True (automatic index)
+            # Note: BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
@@ -471,66 +503,78 @@ class AIModel(BaseModel, CacheMixin):
 
 
 class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
-    
+    """
+    Admin provider settings model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships → Configuration → Usage Limits → Statistics
+    """
+    # 5. Relationships
     admin = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='ai_provider_settings',
         db_index=True,
-        verbose_name="Admin User"
+        verbose_name="Admin User",
+        help_text="Admin user these settings belong to"
     )
-    
     provider = models.ForeignKey(
         AIProvider,
         on_delete=models.CASCADE,
         related_name='admin_settings',
         db_index=True,
-        verbose_name="Provider"
+        verbose_name="Provider",
+        help_text="AI provider these settings are for"
     )
     
+    # Configuration
     personal_api_key = models.TextField(
         blank=True,
-        verbose_name="Personal API Key (Encrypted)"
+        verbose_name="Personal API Key (Encrypted)",
+        help_text="Encrypted personal API key for this admin"
     )
-    
     use_shared_api = models.BooleanField(
         default=True,
         db_index=True,
-        verbose_name="Use Shared API"
+        verbose_name="Use Shared API",
+        help_text="Whether to use shared API key instead of personal"
     )
     
+    # Usage Limits
     monthly_limit = models.IntegerField(
         default=1000,
-        verbose_name="Monthly Limit"
+        verbose_name="Monthly Limit",
+        help_text="Monthly request limit for this admin"
     )
-    
     monthly_usage = models.IntegerField(
         default=0,
-        verbose_name="Monthly Usage"
+        verbose_name="Monthly Usage",
+        help_text="Current monthly usage count"
     )
     
+    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
-        verbose_name="Total Requests"
+        verbose_name="Total Requests",
+        help_text="Total number of requests made by this admin"
     )
-    
     last_used_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Last Used"
+        verbose_name="Last Used",
+        help_text="Date and time when provider was last used by this admin"
     )
     
     class Meta(BaseModel.Meta):
+        db_table = 'ai_admin_provider_settings'
         verbose_name = "Admin Provider Settings"
         verbose_name_plural = "Admin Provider Settings"
         ordering = ['-created_at']
-        db_table = 'ai_admin_provider_settings'
         unique_together = ['admin', 'provider']
         indexes = [
-            *BaseModel.Meta.indexes,
+            # Composite indexes for common query patterns
             models.Index(fields=['admin', 'provider']),
             models.Index(fields=['admin', 'is_active']),
-            models.Index(fields=['use_shared_api']),
+            models.Index(fields=['use_shared_api', 'is_active']),
+            # Note: BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):

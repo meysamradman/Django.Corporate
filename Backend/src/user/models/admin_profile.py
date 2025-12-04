@@ -1,92 +1,121 @@
 from django.db import models
-from django.utils import timezone
 from django.conf import settings
 from src.core.models import BaseModel
 from .location import Province, City
 from src.media.models.media import ImageMedia
 
+
 class AdminProfile(BaseModel):
-    
+    """
+    Admin profile model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships → Content → Metadata
+    """
+    # 5. Relationships
     admin_user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="admin_profile", 
-        verbose_name='Admin Profile',
-        help_text="The admin user this profile belongs to.",
+        related_name="admin_profile",
+        db_index=True,
+        verbose_name="Admin User",
+        help_text="The admin user this profile belongs to",
         limit_choices_to={'is_staff': True}
     )
     profile_picture = models.ForeignKey(
-        ImageMedia, on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='admin_profiles',
-        verbose_name="Profile Picture", 
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_profiles',
+        db_index=True,
+        verbose_name="Profile Picture",
         help_text="Admin's profile picture"
     )
-    first_name = models.CharField(
-        max_length=50, 
-        null=True, blank=True,
-        verbose_name="First Name", 
-        help_text="Admin's first name."
-    )
-    last_name = models.CharField(
-        max_length=50, 
-        null=True, blank=True,
-        verbose_name="Last Name", 
-        help_text="Admin's last name."
-    )
-    birth_date = models.DateField(
-        null=True, blank=True,
-        verbose_name="Birth Date", 
-        help_text="Admin's birth date."
-    )
-    national_id = models.CharField(
-        max_length=20, 
-        null=True, blank=True, unique=True,
-        verbose_name="National ID", 
-        help_text="Admin's national ID (unique)."
-    )
     province = models.ForeignKey(
-        Province, on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='admin_profiles',
-        verbose_name="Province", 
+        Province,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_profiles',
+        db_index=True,
+        verbose_name="Province",
         help_text="Admin's province"
     )
     city = models.ForeignKey(
-        City, on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='admin_profiles',
-        verbose_name="City", 
+        City,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_profiles',
+        db_index=True,
+        verbose_name="City",
         help_text="Admin's city"
     )
-    address = models.TextField(
-        null=True, blank=True,
-        verbose_name="Address", 
-        help_text="Admin's address."
+    
+    # 2. Primary Content Fields
+    first_name = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="First Name",
+        help_text="Admin's first name"
     )
-    phone = models.CharField(
-        max_length=15, 
-        null=True, blank=True,
+    last_name = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="Last Name",
+        help_text="Admin's last name"
+    )
+    
+    # 3. Description Fields
+    bio = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Biography",
+        help_text="Brief description about the admin"
+    )
+    address = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Address",
+        help_text="Admin's address"
+    )
+    
+    # Metadata Fields
+    birth_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Birth Date",
+        help_text="Admin's birth date"
+    )
+    national_id = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
         unique=True,
         db_index=True,
-        verbose_name="Phone Number", 
+        verbose_name="National ID",
+        help_text="Admin's national ID (unique)"
+    )
+    phone = models.CharField(
+        max_length=15,
+        null=True,
+        blank=True,
+        unique=True,
+        db_index=True,
+        verbose_name="Phone Number",
         help_text="Admin's additional phone number (different from mobile for authentication)"
     )
-    bio = models.TextField(
-        null=True, blank=True,
-        verbose_name="Biography", 
-        help_text="Brief description about the admin."
-    )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         db_table = 'admin_profiles'
-        verbose_name = 'Admin Profile'
-        verbose_name_plural = 'Admin Profiles'
+        verbose_name = "Admin Profile"
+        verbose_name_plural = "Admin Profiles"
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=["admin_user"], name="admin_profile_user_idx"),
-            models.Index(fields=["national_id"], name="admin_profile_national_id_idx"),
-            models.Index(fields=["public_id"], name="admin_profile_public_id_idx"),
-            models.Index(fields=["profile_picture"], name="admin_profile_pic_idx"),
-            models.Index(fields=["phone"], name="admin_profile_phone_idx"),
-            models.Index(fields=["province"], name="admin_profile_province_idx"),
-            models.Index(fields=["city"], name="admin_profile_city_idx"),
+            # Composite index for common queries
+            models.Index(fields=['province', 'city']),
+            # Note: national_id and phone already have db_index=True and unique=True (automatic indexes)
         ]
 
     def __str__(self):

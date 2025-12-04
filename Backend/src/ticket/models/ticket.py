@@ -22,29 +22,52 @@ TICKET_PRIORITY_CHOICES = [
 
 
 class Ticket(BaseModel):
-    subject = models.CharField(max_length=500, db_index=True, verbose_name="Subject")
-    description = models.TextField(verbose_name="Description")
+    """
+    Ticket model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Status → Content → Relationships → Timestamps
+    """
+    # 1. Status/State Fields
     status = models.CharField(
         max_length=20,
         choices=TICKET_STATUS_CHOICES,
         default='open',
         db_index=True,
-        verbose_name="Status"
+        verbose_name="Status",
+        help_text="Current status of the ticket"
     )
     priority = models.CharField(
         max_length=20,
         choices=TICKET_PRIORITY_CHOICES,
         default='medium',
         db_index=True,
-        verbose_name="Priority"
+        verbose_name="Priority",
+        help_text="Priority level of the ticket"
     )
+    
+    # 2. Primary Content Fields
+    subject = models.CharField(
+        max_length=500,
+        db_index=True,
+        verbose_name="Subject",
+        help_text="Ticket subject"
+    )
+    
+    # 3. Description Fields
+    description = models.TextField(
+        verbose_name="Description",
+        help_text="Detailed description of the ticket issue"
+    )
+    
+    # 5. Relationships
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='tickets',
-        verbose_name="User"
+        db_index=True,
+        verbose_name="User",
+        help_text="User who created this ticket"
     )
     assigned_admin = models.ForeignKey(
         AdminProfile,
@@ -52,20 +75,30 @@ class Ticket(BaseModel):
         null=True,
         blank=True,
         related_name='assigned_tickets',
-        verbose_name="Assigned Admin"
+        db_index=True,
+        verbose_name="Assigned Admin",
+        help_text="Admin user assigned to handle this ticket"
     )
-    last_replied_at = models.DateTimeField(null=True, blank=True, verbose_name="Last Replied At")
     
-    class Meta:
+    # Timestamp Fields
+    last_replied_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Last Replied At",
+        help_text="Date and time when ticket was last replied to"
+    )
+    
+    class Meta(BaseModel.Meta):
+        db_table = 'tickets'
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['status', 'created_at'], name='ticket_status_created_idx'),
-            models.Index(fields=['priority', 'status'], name='ticket_priority_status_idx'),
-            models.Index(fields=['user', 'status'], name='ticket_user_status_idx'),
-            models.Index(fields=['assigned_admin', 'status'], name='ticket_admin_status_idx'),
-            models.Index(fields=['is_active', 'status'], name='ticket_active_status_idx'),
+            models.Index(fields=['status', 'priority', '-created_at']),
+            models.Index(fields=['status', 'user', '-created_at']),
+            models.Index(fields=['status', 'assigned_admin', '-created_at']),
+            models.Index(fields=['status', 'is_active']),
         ]
     
     def __str__(self):

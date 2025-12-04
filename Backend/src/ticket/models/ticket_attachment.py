@@ -7,11 +7,18 @@ from .ticket_message import TicketMessage
 
 
 class TicketAttachment(BaseModel):
+    """
+    Ticket attachment model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Relationships
+    """
+    # 5. Relationships
     ticket_message = models.ForeignKey(
         TicketMessage,
         on_delete=models.CASCADE,
         related_name='attachments',
-        verbose_name="Ticket Message"
+        db_index=True,
+        verbose_name="Ticket Message",
+        help_text="Ticket message this attachment belongs to"
     )
     image = models.ForeignKey(
         ImageMedia,
@@ -19,7 +26,9 @@ class TicketAttachment(BaseModel):
         null=True,
         blank=True,
         related_name='ticket_attachments',
-        verbose_name="Image"
+        db_index=True,
+        verbose_name="Image",
+        help_text="Image attachment (exactly one media type must be selected)"
     )
     video = models.ForeignKey(
         VideoMedia,
@@ -27,7 +36,9 @@ class TicketAttachment(BaseModel):
         null=True,
         blank=True,
         related_name='ticket_attachments',
-        verbose_name="Video"
+        db_index=True,
+        verbose_name="Video",
+        help_text="Video attachment (exactly one media type must be selected)"
     )
     audio = models.ForeignKey(
         AudioMedia,
@@ -35,7 +46,9 @@ class TicketAttachment(BaseModel):
         null=True,
         blank=True,
         related_name='ticket_attachments',
-        verbose_name="Audio"
+        db_index=True,
+        verbose_name="Audio",
+        help_text="Audio attachment (exactly one media type must be selected)"
     )
     document = models.ForeignKey(
         DocumentMedia,
@@ -43,15 +56,38 @@ class TicketAttachment(BaseModel):
         null=True,
         blank=True,
         related_name='ticket_attachments',
-        verbose_name="Document"
+        db_index=True,
+        verbose_name="Document",
+        help_text="Document attachment (exactly one media type must be selected)"
     )
     
-    class Meta:
+    class Meta(BaseModel.Meta):
+        db_table = 'ticket_attachments'
         verbose_name = "Ticket Attachment"
         verbose_name_plural = "Ticket Attachments"
         ordering = ['created_at']
         indexes = [
-            models.Index(fields=['ticket_message', 'created_at'], name='ticket_attach_msg_created_idx'),
+            # Composite index for common query pattern
+            models.Index(fields=['ticket_message', 'created_at']),
+        ]
+        constraints = [
+            # Ensure exactly one media type is selected
+            models.CheckConstraint(
+                check=(
+                    models.Q(image__isnull=False) & models.Q(video__isnull=True) & 
+                    models.Q(audio__isnull=True) & models.Q(document__isnull=True)
+                ) | (
+                    models.Q(image__isnull=True) & models.Q(video__isnull=False) & 
+                    models.Q(audio__isnull=True) & models.Q(document__isnull=True)
+                ) | (
+                    models.Q(image__isnull=True) & models.Q(video__isnull=True) & 
+                    models.Q(audio__isnull=False) & models.Q(document__isnull=True)
+                ) | (
+                    models.Q(image__isnull=True) & models.Q(video__isnull=True) & 
+                    models.Q(audio__isnull=True) & models.Q(document__isnull=False)
+                ),
+                name='exactly_one_media_type_required'
+            ),
         ]
     
     def __str__(self):

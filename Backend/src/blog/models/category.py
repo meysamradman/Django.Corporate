@@ -9,35 +9,67 @@ from src.statistics.utils.cache import StatisticsCacheManager
 from .managers import BlogCategoryQuerySet
 
 class BlogCategory(MP_Node, BaseModel, SEOMixin):
-    image = models.ForeignKey(
-        ImageMedia, 
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name="Main Image"
+    """
+    Blog category model with hierarchical structure.
+    Follows DJANGO_MODEL_STANDARDS.md conventions.
+    """
+    # 2. Primary Content Fields
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        verbose_name="Name",
+        help_text="Category name"
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the category"
     )
     
-    name = models.CharField(max_length=30, unique=True, db_index=True)
-    slug = models.SlugField(max_length=60, unique=True, db_index=True, allow_unicode=True)
-    description = models.TextField(null=True, blank=True)
-    is_public = models.BooleanField(default=True, db_index=True)
+    # 3. Description Fields
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Description",
+        help_text="Category description"
+    )
+    
+    # 4. Boolean Flags
+    is_public = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Public",
+        help_text="Designates whether this category is publicly visible"
+    )
+    
+    # 5. Relationships
+    image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='blog_category_images',
+        verbose_name="Main Image",
+        help_text="Main image for this category"
+    )
     
     objects = BlogCategoryQuerySet.as_manager()
     
     node_order_by = ['name']
     
-    class Meta:
+    class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'blog_categories'
         verbose_name = "Blog Category"
         verbose_name_plural = "Blog Categories"
-        ordering = ["path"]
+        ordering = ['path']
         indexes = [
             models.Index(fields=['path']),
             models.Index(fields=['depth']),
-            models.Index(fields=['name']),
-            models.Index(fields=['slug']),
-            models.Index(fields=['public_id']),
-            models.Index(fields=['is_public']),
-            models.Index(fields=['meta_title']),
+            models.Index(fields=['is_public', 'path']),
         ]
 
     def __str__(self):

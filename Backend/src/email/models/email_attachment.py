@@ -13,27 +13,53 @@ def email_attachment_upload_path(instance, filename):
 
 
 class EmailAttachment(models.Model):
+    """
+    Email attachment model following DJANGO_MODEL_STANDARDS.md conventions.
+    Note: This model doesn't inherit from BaseModel as it's a simple attachment model.
+    Field ordering: Relationships → Content → Metadata → Timestamps
+    """
+    # 5. Relationships
     message = models.ForeignKey(
         'email.EmailMessage',
         on_delete=models.CASCADE,
         related_name='attachments',
-        db_index=True
-    )
-    file = models.FileField(
-        upload_to=email_attachment_upload_path
-    )
-    filename = models.CharField(
-        max_length=255
-    )
-    file_size = models.PositiveIntegerField()
-    content_type = models.CharField(
-        max_length=100,
-        blank=True
+        db_index=True,
+        verbose_name="Email Message",
+        help_text="Email message this attachment belongs to"
     )
     
+    # 2. Primary Content Fields
+    filename = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False,
+        verbose_name="Filename",
+        help_text="Original filename"
+    )
+    file = models.FileField(
+        upload_to=email_attachment_upload_path,
+        verbose_name="File",
+        help_text="Attachment file"
+    )
+    
+    # Metadata Fields
+    file_size = models.PositiveIntegerField(
+        verbose_name="File Size",
+        help_text="File size in bytes"
+    )
+    content_type = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Content Type",
+        help_text="MIME type of the file"
+    )
+    
+    # Timestamp Fields
     created_at = models.DateTimeField(
         auto_now_add=True,
-        db_index=True
+        db_index=True,
+        verbose_name="Created At",
+        help_text="Date and time when attachment was created"
     )
     
     class Meta:

@@ -5,16 +5,47 @@ from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 
 class ChatbotSettings(BaseModel):
-    is_enabled = models.BooleanField(default=True, db_index=True, verbose_name="Is Enabled")
-    welcome_message = models.CharField(max_length=500, default="Hello! How can I help you?", verbose_name="Welcome Message")
-    default_message = models.CharField(max_length=500, default="Sorry, I didn't understand. Please ask your question more clearly.", verbose_name="Default Message")
-    rate_limit_per_minute = models.IntegerField(default=5, verbose_name="Rate Limit Per Minute")
+    """
+    Chatbot settings model following DJANGO_MODEL_STANDARDS.md conventions.
+    Field ordering: Flags → Content → Configuration
+    """
+    # 4. Boolean Flags
+    is_enabled = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Is Enabled",
+        help_text="Whether the chatbot is enabled"
+    )
     
-    class Meta:
+    # 2. Primary Content Fields
+    welcome_message = models.CharField(
+        max_length=500,
+        default="Hello! How can I help you?",
+        verbose_name="Welcome Message",
+        help_text="Message displayed when chatbot starts"
+    )
+    default_message = models.CharField(
+        max_length=500,
+        default="Sorry, I didn't understand. Please ask your question more clearly.",
+        verbose_name="Default Message",
+        help_text="Message displayed when chatbot doesn't understand the query"
+    )
+    
+    # Configuration Fields
+    rate_limit_per_minute = models.IntegerField(
+        default=5,
+        verbose_name="Rate Limit Per Minute",
+        help_text="Maximum number of requests per minute per user"
+    )
+    
+    class Meta(BaseModel.Meta):
+        db_table = 'chatbot_settings'
         verbose_name = "Chatbot Settings"
         verbose_name_plural = "Chatbot Settings"
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['is_enabled'], name='chatbot_settings_enabled_idx'),
+            # Note: is_enabled already has db_index=True (automatic index)
+            # BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
