@@ -6,11 +6,6 @@ from src.media.models.media import ImageMedia
 
 
 class AdminProfile(BaseModel):
-    """
-    Admin profile model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Content → Metadata
-    """
-    # 5. Relationships
     admin_user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -50,8 +45,6 @@ class AdminProfile(BaseModel):
         verbose_name="City",
         help_text="Admin's city"
     )
-    
-    # 2. Primary Content Fields
     first_name = models.CharField(
         max_length=50,
         null=True,
@@ -66,8 +59,6 @@ class AdminProfile(BaseModel):
         verbose_name="Last Name",
         help_text="Admin's last name"
     )
-    
-    # 3. Description Fields
     bio = models.TextField(
         null=True,
         blank=True,
@@ -80,8 +71,6 @@ class AdminProfile(BaseModel):
         verbose_name="Address",
         help_text="Admin's address"
     )
-    
-    # Metadata Fields
     birth_date = models.DateField(
         null=True,
         blank=True,
@@ -113,9 +102,7 @@ class AdminProfile(BaseModel):
         verbose_name_plural = "Admin Profiles"
         ordering = ['-created_at']
         indexes = [
-            # Composite index for common queries
             models.Index(fields=['province', 'city']),
-            # Note: national_id and phone already have db_index=True and unique=True (automatic indexes)
         ]
 
     def __str__(self):

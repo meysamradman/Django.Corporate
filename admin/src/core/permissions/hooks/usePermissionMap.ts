@@ -9,15 +9,13 @@ export const usePermissionMap = () => {
   const query = useQuery({
     queryKey: ['permission-map'],
     queryFn: async () => {
-      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const res = await permissionApi.getMap()
       return res
     },
-    staleTime: 0, // Always fetch fresh - no frontend caching
-    gcTime: 0, // No cache retention - backend Redis handles caching
+    staleTime: 0,
+    gcTime: 0,
   })
 
-  // Normalize data to ensure user_permissions is always an array
   const normalizedData = useMemo<PermissionSnapshot | undefined>(() => {
     if (!query.data) return undefined
     return {

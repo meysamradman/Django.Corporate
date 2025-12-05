@@ -1,14 +1,3 @@
-/**
- * مدیریت مرکزی نقش‌ها و دسترسی‌ها - Role Management Configuration
- * 
- * این فایل مرکزی برای مدیریت:
- * 1. نقش‌های سیستم
- * 2. ترجمه نقش‌ها
- * 3. آیکن‌های نقش‌ها
- * 4. رنگ‌بندی نقش‌ها
- * 5. سطح‌بندی نقش‌ها
- */
-
 export interface RoleConfig {
   name: string;
   display_name: string;
@@ -173,16 +162,10 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
   }
 };
 
-/**
- * دریافت تنظیمات نقش بر اساس نام
- */
 export const getRoleConfig = (roleName: string): RoleConfig | null => {
   return SYSTEM_ROLES[roleName] || null;
 };
 
-/**
- * دریافت نام نمایشی نقش
- */
 export const getRoleDisplayName = (roleName: string, short: boolean = false): string => {
   const config = getRoleConfig(roleName);
   if (!config) return roleName;
@@ -190,25 +173,16 @@ export const getRoleDisplayName = (roleName: string, short: boolean = false): st
   return short ? config.display_name_short : config.display_name;
 };
 
-/**
- * دریافت آیکن نقش
- */
 export const getRoleIcon = (roleName: string): string => {
   const config = getRoleConfig(roleName);
   return config?.icon || 'UserCheck';
 };
 
-/**
- * دریافت رنگ نقش
- */
 export const getRoleColor = (roleName: string): string => {
   const config = getRoleConfig(roleName);
   return config?.color || 'gray';
 };
 
-/**
- * بررسی اینکه آیا کاربر سوپر ادمین است
- */
 export const isSuperAdmin = (user: any): boolean => {
   return user?.is_super || 
          user?.is_superuser || 
@@ -217,9 +191,6 @@ export const isSuperAdmin = (user: any): boolean => {
          );
 };
 
-/**
- * دریافت متن نمایشی برای نقش‌های کاربر
- */
 export const getUserRoleDisplayText = (user: any): string => {
   if (!user) return 'بدون نقش';
   
@@ -227,12 +198,10 @@ export const getUserRoleDisplayText = (user: any): string => {
   
   if (roles.length === 0) return 'بدون نقش';
   
-  // بررسی سوپر ادمین
   if (isSuperAdmin(user)) {
     return getRoleDisplayName('super_admin', true);
   }
   
-  // برای ادمین‌های عادی، نقش اصلی را نمایش بده
   const mainRole = roles[0];
   const roleName = typeof mainRole === 'string' ? mainRole : mainRole?.name;
   
@@ -240,20 +209,13 @@ export const getUserRoleDisplayText = (user: any): string => {
     return getRoleDisplayName(roleName, true);
   }
   
-  // اگر نتوانست نقش را تشخیص دهد، تعداد نقش‌ها را نمایش بده
   return `${roles.length} نقش`;
 };
 
-/**
- * دریافت تمام نقش‌های سیستم به ترتیب سطح
- */
 export const getSystemRoles = (): RoleConfig[] => {
   return Object.values(SYSTEM_ROLES).sort((a, b) => a.level - b.level);
 };
 
-/**
- * دریافت نقش‌های قابل انتخاب برای کاربر بر اساس سطح دسترسی فعلی
- */
 export const getAvailableRoles = (currentUserLevel: number = 10): RoleConfig[] => {
   return getSystemRoles().filter(role => role.level > currentUserLevel);
 };

@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatbotApi, FAQ, ChatbotSettings, CreateFAQData, UpdateFAQData, UpdateChatbotSettingsData } from "@/api/chatbot/route";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 
-// FAQ hooks
 export function useFAQList() {
   return useQuery({
     queryKey: ["chatbot", "faq", "list"],
@@ -89,7 +88,6 @@ export function useDeleteFAQ() {
   });
 }
 
-// Settings hooks
 export function useChatbotSettings() {
   return useQuery({
     queryKey: ["chatbot", "settings"],

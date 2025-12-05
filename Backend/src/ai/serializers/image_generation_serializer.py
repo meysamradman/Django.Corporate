@@ -26,26 +26,6 @@ class AIProviderSerializer(serializers.ModelSerializer):
     def get_has_shared_api_key(self, obj) -> bool:
         return bool(obj.shared_api_key)
     
-    def validate(self, attrs):
-        api_key = attrs.get('shared_api_key')
-        slug = attrs.get('slug') or (self.instance.slug if self.instance else None)
-        
-        if api_key and api_key != '***' and api_key.strip():
-            if self.instance and self.instance.shared_api_key and api_key == '***':
-                return attrs
-            
-            try:
-                is_valid = AIImageGenerationService.validate_provider_api_key(
-                    slug,
-                    api_key.strip()
-                )
-                if not is_valid:
-                    attrs['is_active'] = False
-            except Exception:
-                attrs['is_active'] = False
-        
-        return attrs
-    
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if 'shared_api_key' in data:

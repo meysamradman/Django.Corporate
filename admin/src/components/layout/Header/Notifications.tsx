@@ -25,7 +25,6 @@ export function Notifications() {
   const totalCount = notifications?.total || 0;
   const hasNotifications = totalCount > 0;
 
-  // Don't show notification if no permissions
   if (!hasTicketPermission && !hasEmailPermission) {
     return null;
   }
@@ -86,7 +85,6 @@ export function Notifications() {
           </div>
         ) : (
           <div className="max-h-96 overflow-y-auto">
-            {/* Tickets Section */}
             {hasTicketPermission && notifications && notifications.tickets.total_new > 0 && (
               <>
                 <div className="px-2 py-1.5">
@@ -141,7 +139,6 @@ export function Notifications() {
               </>
             )}
 
-            {/* Emails Section */}
             {hasEmailPermission && notifications && notifications.emails.new_count > 0 && (
               <>
                 <div className="px-2 py-1.5">

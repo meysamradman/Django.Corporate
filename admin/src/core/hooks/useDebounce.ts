@@ -1,12 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-/**
- * Hook to debounce a value
- * 
- * @param value The value to debounce
- * @param delay Delay in milliseconds
- * @returns The debounced value
- */
 export function useDebounceValue<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -23,13 +16,6 @@ export function useDebounceValue<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-/**
- * Hook to debounce a callback function
- * 
- * @param callback The function to debounce
- * @param delay Delay in milliseconds
- * @returns The debounced callback function
- */
 export function useDebounce<T extends (...args: any[]) => any>(
   callback: T,
   delay: number

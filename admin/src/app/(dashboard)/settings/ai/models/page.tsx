@@ -47,7 +47,6 @@ export default function AIModelsPage() {
     const router = useRouter();
     const { hasModuleAction, isSuperAdmin } = useUserPermissions();
 
-    // ✅ Permission check: فقط سوپر ادمین‌ها می‌توانند این صفحه را ببینند
     const hasAccess = isSuperAdmin && hasModuleAction('ai', 'manage');
 
     useEffect(() => {
@@ -62,18 +61,13 @@ export default function AIModelsPage() {
     const [showOpenRouterModal, setShowOpenRouterModal] = useState(false);
     const [showHuggingFaceModal, setShowHuggingFaceModal] = useState(false);
 
-    // ✅ اگر دسترسی ندارد، چیزی نمایش نده
     if (!hasAccess) {
         return null;
     }
 
-    // ✅ فقط مدل‌های دیتابیس (Gemini, OpenAI, DeepSeek, etc.)
-    // ✅ فقط مدل‌هایی که Provider آن‌ها در بک‌اند ثبت شده و فعال است
-    // OpenRouter در Popup جداگانه نمایش داده می‌شود
     const { data: models, isLoading, error } = useQuery({
         queryKey: ['ai-models', activeTab],
         queryFn: async () => {
-            // ✅ include_inactive=true: نمایش مدل‌های غیرفعال هم (برای admin panel)
             const dbResponse = await aiApi.models.getByCapability(activeTab, true);
             const modelsList = dbResponse.metaData.status === 'success' ? (dbResponse.data || []) : [];
 
@@ -81,10 +75,9 @@ export default function AIModelsPage() {
 
             return modelsList;
         },
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 5 * 60 * 1000,
     });
 
-    // Filter models based on search query
     const filteredModels = useMemo(() => {
         if (!models) return [];
         if (!searchQuery.trim()) return models;
@@ -107,30 +100,17 @@ export default function AIModelsPage() {
     const openRouterSaveRef = React.useRef<(() => void) | undefined>(undefined);
     const huggingFaceSaveRef = React.useRef<(() => void) | undefined>(undefined);
 
-    // ✅ Handle saving selected models
     const handleSaveModels = async (selectedModels: any[], providerName: string) => {
         try {
             if (selectedModels.length === 0) {
                 return;
             }
 
-            // Show loading toast
             const toastId = toast.loading(`در حال ذخیره ${selectedModels.length} مدل...`);
 
-            // Get provider ID map
-            // Note: We need to map provider name (e.g. "OpenRouter") to backend ID
-            // Since we don't have the ID readily available in the modal props, we'll try to find it
-            // from the providers list we fetched earlier or fetch it if needed.
-            // For now, let's assume we can get it from the `providers` list in `useAISettings`
-            // But since we are in `AIModelsPage`, we might not have access to it directly.
-            // A better approach is to fetch providers here or pass it down.
-
-            // Let's fetch providers to find the ID
             const providersResponse = await aiApi.providers.getAll();
             const providers = providersResponse.data || [];
 
-            // Find provider ID
-            // Try to match by name or slug
             const targetProvider = providers.find((p: any) =>
                 p.name.toLowerCase() === providerName.toLowerCase() ||
                 p.slug.toLowerCase() === providerName.toLowerCase() ||
@@ -143,7 +123,6 @@ export default function AIModelsPage() {
                 return;
             }
 
-            // Save each model
             let createdCount = 0;
             let updatedCount = 0;
             let failCount = 0;
@@ -151,16 +130,14 @@ export default function AIModelsPage() {
 
             for (const model of selectedModels) {
                 try {
-                    // Prepare model data for backend
                     const modelData = {
-                        provider_id: targetProvider.id, // ✅ Send provider_id instead of provider_name
+                        provider_id: targetProvider.id,
                         name: model.name,
-                        model_id: model.id, // OpenRouter ID (e.g. google/gemini-pro)
-                        display_name: model.name, // Use name as display name by default
+                        model_id: model.id,
+                        display_name: model.name,
                         is_active: true,
-                        capabilities: [activeTab], // ✅ Send as array
+                        capabilities: [activeTab],
                         description: model.description,
-                        // Add pricing if available
                         pricing_input: model.pricing?.prompt || null,
                         pricing_output: model.pricing?.completion || null,
                         context_window: model.context_length || null,
@@ -168,19 +145,15 @@ export default function AIModelsPage() {
 
                     const response = await aiApi.models.create(modelData);
 
-                    // ✅ Backend now returns updated model if it already existed
-                    // We can't differentiate between create/update from response, so count as success
                     createdCount++;
                 } catch (error: any) {
                     failCount++;
 
-                    // Collect error messages
                     const errorMsg = error?.response?.data?.message || error?.message || 'خطای ناشناخته';
                     errors.push(`${model.name}: ${errorMsg}`);
                 }
             }
 
-            // Dismiss loading toast
             toast.dismiss(toastId);
 
             const totalSuccess = createdCount + updatedCount;
@@ -190,7 +163,6 @@ export default function AIModelsPage() {
                     message += ` (${updatedCount} مدل به‌روزرسانی شد)`;
                 }
                 showSuccessToast(message);
-                // Refresh models list
                 queryClient.invalidateQueries({ queryKey: ['ai-models'] });
             }
 
@@ -198,7 +170,6 @@ export default function AIModelsPage() {
                 showErrorToast(`${failCount} مدل ذخیره نشد`);
             }
 
-            // Close modals
             setShowOpenRouterModal(false);
             setShowHuggingFaceModal(false);
 
@@ -209,12 +180,10 @@ export default function AIModelsPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <h1 className="page-title">انتخاب و مدیریت مدل‌های AI</h1>
             </div>
 
-            {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as Capability)}>
                 <TabsList className="grid w-full grid-cols-4">
                     {Object.entries(CAPABILITY_CONFIG).map(([key, config]) => {
@@ -228,13 +197,11 @@ export default function AIModelsPage() {
                     })}
                 </TabsList>
 
-                {/* Tab Content */}
                 {Object.entries(CAPABILITY_CONFIG).map(([key, config]) => {
                     const TabIcon = config.icon;
                     return (
                         <TabsContent key={key} value={key} className="mt-6">
                             <Card className="shadow-sm border hover:shadow-lg transition-all duration-300">
-                                {/* Search Bar - در CardHeader مثل DataTable */}
                                 <CardHeader className="border-b">
                                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -265,7 +232,6 @@ export default function AIModelsPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    {/* OpenRouter Card - نمایش در Popup */}
                                     <Card className="mb-6 border-blue-1/30 bg-blue/10">
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
@@ -292,7 +258,6 @@ export default function AIModelsPage() {
                                         </CardContent>
                                     </Card>
 
-                                    {/* Hugging Face Card - نمایش در Popup */}
                                     <Card className="mb-6 border-purple-1/30 bg-purple/10">
                                         <CardContent className="p-4">
                                             <div className="flex items-center justify-between">
@@ -319,7 +284,6 @@ export default function AIModelsPage() {
                                         </CardContent>
                                     </Card>
 
-                                    {/* مدل‌های دیتابیس */}
                                     {isLoading ? (
                                         <div className="space-y-4">
                                             {[1, 2, 3].map((i) => (
@@ -349,7 +313,6 @@ export default function AIModelsPage() {
                 })}
             </Tabs>
 
-            {/* OpenRouter Model Selector Modal */}
             <Dialog open={showOpenRouterModal} onOpenChange={setShowOpenRouterModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
@@ -386,7 +349,6 @@ export default function AIModelsPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Hugging Face Model Selector Modal */}
             <Dialog open={showHuggingFaceModal} onOpenChange={setShowHuggingFaceModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">

@@ -69,7 +69,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.read'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized"),
+                message=BLOG_ERRORS["blog_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = Blog.objects.for_detail()
@@ -91,7 +91,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.read'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized"),
+                message=BLOG_ERRORS["blog_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = self.filter_queryset(self.get_queryset())
@@ -164,7 +164,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.create'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized"),
+                message=BLOG_ERRORS["blog_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_ids = self._extract_media_ids(request)
@@ -181,7 +181,11 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        blog = serializer.save()
+        
+        blog = BlogAdminService.create_blog(
+            validated_data=serializer.validated_data,
+            created_by=request.user
+        )
         
         if media_files or media_ids:
             BlogAdminMediaService.add_media_bulk(
@@ -204,17 +208,38 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.update'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized"),
+                message=BLOG_ERRORS["blog_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        
+        media_ids = self._extract_media_ids(request)
+        main_image_id = request.data.get('main_image_id')
+        media_covers_raw = request.data.get('media_covers')
+        
+        media_covers = None
+        if media_covers_raw:
+            if isinstance(media_covers_raw, dict):
+                media_covers = media_covers_raw
+            elif isinstance(media_covers_raw, str):
+                try:
+                    import json
+                    media_covers = json.loads(media_covers_raw)
+                except:
+                    media_covers = None
+        
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        updated_instance = serializer.save()
-        
-        BlogCacheManager.invalidate_blog(updated_instance.id)
+        updated_instance = BlogAdminService.update_blog(
+            blog_id=instance.id,
+            validated_data=serializer.validated_data,
+            media_ids=media_ids if media_ids else None,
+            main_image_id=main_image_id,
+            media_covers=media_covers,
+            updated_by=request.user
+        )
         
         updated_instance = Blog.objects.for_detail().get(pk=updated_instance.pk)
         
@@ -228,7 +253,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'blog.delete'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized"),
+                message=BLOG_ERRORS["blog_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()

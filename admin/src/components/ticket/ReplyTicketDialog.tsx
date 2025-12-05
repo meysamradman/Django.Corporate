@@ -54,7 +54,6 @@ export function ReplyTicketDialog({
       setMessage("");
       setAttachmentIds([]);
     } catch (error) {
-      // Error handled by parent component
     } finally {
       setSending(false);
     }

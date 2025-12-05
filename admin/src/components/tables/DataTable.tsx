@@ -153,7 +153,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
     }
   };
 
-  // Determine which export configs to use
   const activeExportConfigs = exportConfigs || (exportConfig ? [exportConfig] : []);
 
   return (
@@ -226,9 +225,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
 
            <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
              {customHeaderActions}
-             {filterConfig.map((filter) => {
-               // برای فیلترهایی که مربوط به ستون جدول هستند
-               // بررسی می‌کنیم که ستون وجود دارد
+              {filterConfig.map((filter) => {
                const column = table.getColumn(filter.columnId);
                
                if (!column && filter.columnId !== 'categories') return null;
@@ -403,9 +400,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               pageIndex: newPageIndex,
               pageSize: table.getState().pagination.pageSize,
             };
-            // Update table state
             table.setPageIndex(newPageIndex);
-            // Call onPaginationChange to sync with parent state and URL
             if (onPaginationChange) {
               onPaginationChange(newPagination);
             }
@@ -416,10 +411,8 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               pageIndex: 0,
               pageSize: size,
             };
-            // Update table state
             table.setPageSize(size);
             table.setPageIndex(0);
-            // Call onPaginationChange to sync with parent state and URL
             if (onPaginationChange) {
               onPaginationChange(newPagination);
             }

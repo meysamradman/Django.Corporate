@@ -201,6 +201,20 @@ class AIImageGenerationService:
             return True
     
     @classmethod
+    def validate_and_update_provider(cls, provider_instance, api_key: str, slug: str) -> bool:
+        if api_key and api_key != '***' and api_key.strip():
+            if provider_instance and provider_instance.shared_api_key and api_key == '***':
+                return True
+            
+            try:
+                is_valid = cls.validate_provider_api_key(slug, api_key.strip())
+                if not is_valid:
+                    return False
+            except Exception:
+                return False
+        return True
+    
+    @classmethod
     def get_available_providers(cls) -> list:
         all_providers = ProviderAvailabilityManager.get_available_providers('image')
         return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_CLASSES]

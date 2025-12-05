@@ -62,7 +62,6 @@ export function AIAudioGenerator({
             }
         } else if (!user) {
             setLoadingProviders(false);
-            // Demo mode when not logged in or API not available
             setIsDemoMode(true);
             setAvailableProviders([{
                 id: 1,
@@ -97,7 +96,6 @@ export function AIAudioGenerator({
                     
                 setAvailableProviders(providers);
                 
-                // Set TTS defaults from backend if available
                 if (providers.length > 0) {
                     const firstProvider = providers[0] as any;
                     if (firstProvider.tts_defaults) {
@@ -177,10 +175,9 @@ export function AIAudioGenerator({
                 fetchAvailableProviders();
             }
         } catch (error: any) {
-            // If in demo mode, show sample audio
             if (isDemoMode) {
                 setTimeout(() => {
-                    setGeneratedAudioUrl('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); // Sample audio for demo
+                    setGeneratedAudioUrl('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
                     toast.info('حالت نمایشی: این یک نمونه است. برای استفاده واقعی، API را فعال کنید.');
                     setGenerating(false);
                 }, 1500);

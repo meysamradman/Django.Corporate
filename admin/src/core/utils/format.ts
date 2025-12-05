@@ -14,21 +14,17 @@ export function formatDate(date: string | Date | undefined | null): string {
   }
   
   try {
-    // Parse the date
     const d = new Date(date)
     
-    // Check if date is valid
     if (isNaN(d.getTime())) {
       return '-'
     }
     
-    // Format using date-fns-jalali for Persian calendar without "ام"
     const day = format(d, 'd', { locale: faIR });
     const month = format(d, 'MMMM', { locale: faIR });
     const year = format(d, 'yyyy', { locale: faIR });
     return `${day} ${month} ${year}`;
   } catch (error) {
-    // Fallback to simple formatting if there's an error
     const d = new Date(date)
     const year = d.getFullYear()
     const month = d.getMonth()
@@ -46,7 +42,6 @@ export function formatDate(date: string | Date | undefined | null): string {
   }
 }
 
-// Function to format date for input fields (Gregorian format for HTML5 date inputs)
 export function formatInputDate(date: string | Date | undefined | null): string {
   if (!date) {
     return ''
@@ -58,7 +53,6 @@ export function formatInputDate(date: string | Date | undefined | null): string 
       return ''
     }
     
-    // Return in YYYY-MM-DD format for HTML5 date inputs (Gregorian)
     return d.toISOString().split('T')[0]
   } catch (error) {
     return ''

@@ -70,7 +70,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
+                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = Portfolio.objects.for_detail()
@@ -92,7 +92,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
+                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         queryset = self.filter_queryset(self.get_queryset())
@@ -165,7 +165,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.create'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
+                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_ids = self._extract_media_ids(request)
@@ -182,7 +182,11 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        portfolio = serializer.save()
+        
+        portfolio = PortfolioAdminService.create_portfolio(
+            validated_data=serializer.validated_data,
+            created_by=request.user
+        )
         
         if media_files or media_ids:
             PortfolioAdminMediaService.add_media_bulk(
@@ -205,17 +209,38 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
+                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        
+        media_ids = self._extract_media_ids(request)
+        main_image_id = request.data.get('main_image_id')
+        media_covers_raw = request.data.get('media_covers')
+        
+        media_covers = None
+        if media_covers_raw:
+            if isinstance(media_covers_raw, dict):
+                media_covers = media_covers_raw
+            elif isinstance(media_covers_raw, str):
+                try:
+                    import json
+                    media_covers = json.loads(media_covers_raw)
+                except:
+                    media_covers = None
+        
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        updated_instance = serializer.save()
-        
-        PortfolioCacheManager.invalidate_portfolio(updated_instance.id)
+        updated_instance = PortfolioAdminService.update_portfolio(
+            portfolio_id=instance.id,
+            validated_data=serializer.validated_data,
+            media_ids=media_ids if media_ids else None,
+            main_image_id=main_image_id,
+            media_covers=media_covers,
+            updated_by=request.user
+        )
         
         updated_instance = Portfolio.objects.for_detail().get(pk=updated_instance.pk)
         
@@ -229,7 +254,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if not PermissionValidator.has_permission(request.user, 'portfolio.delete'):
             return APIResponse.error(
-                message=PORTFOLIO_ERRORS.get("portfolio_not_authorized"),
+                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         instance = self.get_object()

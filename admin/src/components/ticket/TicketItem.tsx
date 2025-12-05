@@ -60,7 +60,6 @@ export function TicketItem({ ticket, isSelected, onSelect, onClick }: TicketItem
   };
 
   const getStatusColor = (status: Ticket['status'], hasUnread: boolean) => {
-    // Only show colored dot for unread tickets
     if (!hasUnread) {
       return 'bg-gray-300 dark:bg-gray-600'; // Gray for read tickets
     }

@@ -19,29 +19,25 @@ interface ProviderCardProps {
   hasStoredApiKey?: boolean;
   isSuperAdmin?: boolean;
   allowNormalAdmins?: boolean;
-  hasSharedApi?: boolean;  // ✅ آیا provider API مشترک دارد؟
-  canUseSharedApi?: boolean;  // ✅ آیا می‌تواند از API مشترک استفاده کند؟
-  isActive?: boolean;  // ✅ NEW: وضعیت فعال/غیرفعال
+  hasSharedApi?: boolean;
+  canUseSharedApi?: boolean;
+  isActive?: boolean;
   onToggleApiKeyVisibility: () => void;
   onApiKeyChange: (value: string) => void;
   onToggleUseSharedApi: (checked: boolean) => void;
   onToggleGlobalControl?: (allow: boolean) => void;
-  onToggleActive?: (checked: boolean) => void;  // ✅ NEW: تغییر وضعیت
+  onToggleActive?: (checked: boolean) => void;
   onSave: () => void;
   isSaving?: boolean;
 }
 
-// تابع برای mask کردن API key (نمایش امن)
 function maskApiKey(apiKey: string, showFull: boolean = false): string {
   if (!apiKey || apiKey.trim() === '') return '';
 
-  // اگر باید کامل نمایش داده شود
   if (showFull) return apiKey;
 
-  // اگر API key خیلی کوتاه است، همه را نمایش بده
   if (apiKey.length <= 8) return '•'.repeat(apiKey.length);
 
-  // نمایش 4 کاراکتر اول و 4 کاراکتر آخر
   const prefix = apiKey.substring(0, 4);
   const suffix = apiKey.substring(apiKey.length - 4);
   const masked = '•'.repeat(Math.min(8, apiKey.length - 8));
@@ -58,30 +54,23 @@ export function ProviderCard({
   hasStoredApiKey = false,
   isSuperAdmin = false,
   allowNormalAdmins = false,
-  hasSharedApi = false,  // ✅ آیا provider API مشترک دارد؟
-  canUseSharedApi: canUseSharedApiProp,  // ✅ از parent می‌آید
-  isActive = false,  // ✅ NEW
+  hasSharedApi = false,
+  canUseSharedApi: canUseSharedApiProp,
+  isActive = false,
   onToggleApiKeyVisibility,
   onApiKeyChange,
   onToggleUseSharedApi,
   onToggleGlobalControl,
-  onToggleActive,  // ✅ NEW
+  onToggleActive,
   onSave,
   isSaving = false,
 }: ProviderCardProps) {
-  // ✅ اگر canUseSharedApi از parent پاس داده شده، از آن استفاده کن، در غیر این صورت محاسبه کن
   const canUseSharedApi = canUseSharedApiProp !== undefined
     ? canUseSharedApiProp
     : (isSuperAdmin || (allowNormalAdmins && hasSharedApi));
 
-      canUseSharedApiProp,
-      canUseSharedApi
-    }, null, 2));
-  }
-
   return (
     <CardContent className="pt-6 pb-6 space-y-6">
-      {/* ✅ Toggle Active - فعال/غیرفعال */}
       {onToggleActive && (
         <div className="p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border-2 border-br hover:border-primary/20 transition-all">
           <div className="flex items-center justify-between gap-4">
@@ -107,7 +96,6 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* ✅ NEW: Global Control (فقط برای Super Admin) */}
       {isSuperAdmin && onToggleGlobalControl && (
         <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg">
           <div className="flex items-center justify-between gap-4">
@@ -133,7 +121,6 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* API Key Type Selection - برای سوپر ادمین یا ادمین معمولی با allowNormalAdmins */}
       {canUseSharedApi && (
         <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
           <div className="space-y-1 flex-1 pr-4">
@@ -164,7 +151,6 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* برای ادمین معمولی که نمی‌تواند از API مشترک استفاده کند: فقط نمایش Badge "شخصی" */}
       {!canUseSharedApi && (
         <div className="flex items-center justify-between gap-4 p-4 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br transition-colors">
           <div className="space-y-1 flex-1 pr-4">
@@ -184,9 +170,6 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* API Key Input */}
-      {/* ✅ برای سوپر ادمین: همیشه نمایش بده (چه مشترک چه شخصی) */}
-      {/* ✅ برای ادمین معمولی: فقط اگر useSharedApi=false باشد (یعنی از API شخصی استفاده می‌شود) */}
       {(isSuperAdmin || (!isSuperAdmin && !useSharedApi)) && (
         <div className="space-y-3">
           {hasStoredApiKey && (
@@ -209,7 +192,6 @@ export function ProviderCard({
               autoComplete="new-password"
             />
 
-            {/* Eye Icon Button */}
             <Button
               type="button"
               variant="outline"
@@ -226,7 +208,6 @@ export function ProviderCard({
               {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
 
-            {/* Clear Button - Only show if there is text */}
             {apiKey && (
               <Button
                 type="button"
@@ -247,9 +228,6 @@ export function ProviderCard({
           </div>
           <div className="flex items-start gap-2 mt-2">
             {hasStoredApiKey && !showApiKey && !apiKey && (
-              // This case might not be reachable if we populate apiKey with stored value, 
-              // but if we keep them separate in parent, we might need logic here.
-              // Assuming apiKey prop reflects current input value.
               null
             )}
 
@@ -271,7 +249,6 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* اگر useSharedApi=true باشد و ادمین معمولی است، پیام نمایش بده */}
       {useSharedApi && !isSuperAdmin && (
         <div className="p-3 bg-blue/10 border border-blue/20 rounded-md mb-4">
           <p className="text-xs text-font-s">
@@ -280,7 +257,6 @@ export function ProviderCard({
         </div>
       )}
 
-      {/* Save Button */}
       <div className="pt-6 border-t border-br">
         <Button
           className="w-full gap-2"

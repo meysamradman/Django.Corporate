@@ -3,15 +3,17 @@
 import { useAuth } from '@/core/auth/AuthContext';
 import Image from 'next/image';
 import { mediaService } from '@/components/media/services';
+import { useState, useEffect } from 'react';
 
 export function SidebarLogo() {
   const { panelSettings } = useAuth();
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
-  // Use logo_detail if available, otherwise fallback to logo_url
-  const logoPath = panelSettings?.logo_detail?.file_url || panelSettings?.logo_url;
-  
-  // Use mediaService to properly construct the full URL
-  const logoUrl = logoPath ? mediaService.getMediaUrlFromObject({ file_url: logoPath } as any) : null;
+  useEffect(() => {
+    const logoPath = panelSettings?.logo_detail?.file_url || panelSettings?.logo_url;
+    const url = logoPath ? mediaService.getMediaUrlFromObject({ file_url: logoPath } as any) : null;
+    setLogoUrl(url);
+  }, [panelSettings?.logo_detail?.file_url, panelSettings?.logo_url]);
 
   return (
     <div className="h-16 flex items-center justify-center border-b">
@@ -22,8 +24,8 @@ export function SidebarLogo() {
             alt={panelSettings?.panel_title || 'پنل ادمین'}
             fill
             className="object-cover"
-            unoptimized // For dynamic URLs with cache busting
-            priority // Load logo quickly
+            unoptimized
+            priority
           />
         </div>
       ) : (

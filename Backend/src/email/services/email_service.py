@@ -11,6 +11,53 @@ from src.email.utils.cache import EmailCacheKeys
 class EmailService:
     
     @staticmethod
+    def create_email_message(validated_data, request=None, initial_data=None):
+
+        if request:
+
+            validated_data['ip_address'] = EmailService.get_client_ip(request)
+            validated_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
+            
+            if validated_data.get('status') == 'draft' and request.user.is_authenticated:
+                validated_data['created_by'] = request.user
+
+            if 'source' not in validated_data:
+                if request.user.is_authenticated and hasattr(request.user, 'has_admin_access') and request.user.has_admin_access():
+                    validated_data['source'] = 'email'
+                else:
+                    validated_data['source'] = 'website'
+        
+        if initial_data:
+            dynamic_fields = {}
+            system_fields = ['source', 'status']
+            
+            for key, value in initial_data.items():
+                if key not in system_fields and value:
+                    dynamic_fields[key] = value
+            
+            if dynamic_fields:
+                validated_data['dynamic_fields'] = dynamic_fields
+            
+            for field in ['name', 'email', 'phone', 'subject', 'message']:
+                if field in initial_data and initial_data.get(field):
+                    validated_data[field] = initial_data[field]
+
+        if 'status' not in validated_data:
+            validated_data['status'] = 'new'
+        
+        return EmailMessage.objects.create(**validated_data)
+    
+    @staticmethod
+    def get_client_ip(request):
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+    
+    @staticmethod
     def send_reply_email(email_message: EmailMessage, reply_text: str, admin_user) -> bool:
         try:
             original_message = email_message.message

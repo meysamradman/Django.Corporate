@@ -56,9 +56,22 @@ def validate_form_submission(form_data, platform):
     }
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
 @transaction.atomic
-def create_contact_form_submission(validated_data):
+def create_contact_form_submission(validated_data, request=None):
     try:
+        if request:
+            validated_data['ip_address'] = get_client_ip(request)
+            validated_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
+        
         validation_result = validate_form_submission(
             validated_data.get('form_data', {}),
             validated_data.get('platform', 'website')

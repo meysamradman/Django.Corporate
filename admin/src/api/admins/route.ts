@@ -6,8 +6,6 @@ import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pa
 
 export type UserStatus = 'active' | 'inactive' | 'all';
 
-// ✅ NO CACHE TAGS: Admin panel is CSR only - caching handled by backend Redis
-
 export function createQueryString(params: Record<string, any>, additionalParams?: Record<string, any>): string {
     const queryParams = new URLSearchParams();
 
@@ -62,11 +60,11 @@ export const adminApi = {
         last_name?: string;
         phone?: string;
         address?: string;
-        province?: number | null; // ID بجای نام
-        city?: number | null; // ID بجای نام
+        province?: number | null;
+        city?: number | null;
         bio?: string;
         national_id?: string;
-        profile_picture?: number | null; // ID عکس پروفایل
+        profile_picture?: number | null;
     }): Promise<AdminWithProfile> => {
         try {
             const response = await fetchApi.put<AdminWithProfile>('/admin/profile/', profileData);
@@ -89,14 +87,12 @@ export const adminApi = {
         try {
             const finalFilters: Record<string, any> = filters ? { ...filters } : {};
 
-            // Normalize pagination parameters
             const normalizedParams = normalizePaginationParams(
                 { page: finalFilters.page, size: finalFilters.size },
                 SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT,
                 SERVER_PAGINATION_CONFIG.VALID_PAGE_SIZES
             );
             
-            // Convert page/size to limit/offset for Django API
             const { limit, offset } = convertToLimitOffset(normalizedParams.page, normalizedParams.size);
             
             // Create API filters with limit/offset instead of page/size

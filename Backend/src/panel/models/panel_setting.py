@@ -1,14 +1,11 @@
 from django.db import models
+from django.core.cache import cache
 from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
+from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
 
 
 class PanelSettings(BaseModel):
-    """
-    Panel settings model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Relationships
-    """
-    # 2. Primary Content Fields
     panel_title = models.CharField(
         max_length=100,
         default="Admin Panel",
@@ -16,8 +13,6 @@ class PanelSettings(BaseModel):
         verbose_name="Panel Title",
         help_text="Title displayed in the admin panel"
     )
-    
-    # 5. Relationships
     logo = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
@@ -45,16 +40,22 @@ class PanelSettings(BaseModel):
         verbose_name_plural = "Panel Settings"
         ordering = ['-created_at']
         indexes = [
-            # Note: panel_title already has db_index=True (automatic index)
-            # BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
         return self.panel_title
     
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        PanelCacheManager.invalidate_panel_settings()
+    
     @classmethod
     def get_settings(cls):
-        settings = cls.objects.first()
-        if not settings:
-            settings = cls.objects.create()
+        cache_key = PanelCacheKeys.panel_settings()
+        settings = cache.get(cache_key)
+        if settings is None:
+            settings = cls.objects.select_related('logo', 'favicon').first()
+            if not settings:
+                settings = cls.objects.create()
+            cache.set(cache_key, settings, 3600)
         return settings

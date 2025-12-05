@@ -7,27 +7,24 @@ import { getPanelSettings, updatePanelSettings } from '@/api/settings/panel/rout
 import { adminApi } from '@/api/admins/route';
 import { useAuth } from '@/core/auth/AuthContext';
 
-// Admin Profile Hook
 export const useAdminProfile = () => {
   return useQuery({
     queryKey: ['admin-profile'],
     queryFn: () => adminApi.getProfile(),
-    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
-    gcTime: 0, // No cache retention
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
-// Panel Settings Hook
 export const usePanelSettings = () => {
   return useQuery({
     queryKey: ['panel-settings'],
     queryFn: () => getPanelSettings(),
-    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
-    gcTime: 0, // No cache retention
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
-// Update Panel Settings Hook
 export const useUpdatePanelSettings = () => {
   const queryClient = useQueryClient();
   const { updatePanelSettingsInContext } = useAuth();
@@ -37,9 +34,7 @@ export const useUpdatePanelSettings = () => {
     onSuccess: (response) => {
       const updatedData = response.data;
       if (updatedData) {
-        // 1. Update React Query's cache
         queryClient.setQueryData(['panel-settings'], updatedData);
-        // 2. Update the global AuthContext
         updatePanelSettingsInContext(updatedData);
       }
       showSuccessToast('تنظیمات با موفقیت به‌روزرسانی شد');

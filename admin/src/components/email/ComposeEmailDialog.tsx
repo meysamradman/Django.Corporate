@@ -43,10 +43,8 @@ export function ComposeEmailDialog({
         const replySubject = replyTo.subject || 'بدون موضوع';
         setSubject(replySubject.startsWith("Re:") ? replySubject : `Re: ${replySubject}`);
         
-        // برای متن پیام اول dynamic_fields رو چک کن
         let previousMessage = replyTo.message || '';
         if (!previousMessage && replyTo.dynamic_fields) {
-          // اگر message خالی بود، از dynamic_fields بگیر
           previousMessage = replyTo.dynamic_fields.message || '';
         }
         
@@ -75,7 +73,6 @@ ${previousMessage}
       setSubject("");
       setMessage("");
     } catch (error) {
-      // Error handled by parent component
     } finally {
       setSending(false);
     }
@@ -87,7 +84,6 @@ ${previousMessage}
       await onSaveDraft({ to, subject, message });
       onOpenChange(false);
     } catch (error) {
-      // Error handled by parent component
     } finally {
       setSavingDraft(false);
     }

@@ -12,12 +12,10 @@ interface BreadcrumbItem {
 export function Breadcrumb() {
     const pathname = usePathname();
     
-    // Memoize breadcrumb calculation for better performance
     const { breadcrumbItems, displayItems } = React.useMemo(() => {
         const getTranslatedLabel = (segment: string): string => {
             const normalizedSegment = segment.toLowerCase();
             
-            // Map segments to hardcoded Persian labels
             const segmentMap: Record<string, string> = {
                 'setting': 'تنظیمات',
                 'admins': 'ادمین‌ها',
@@ -69,12 +67,10 @@ export function Breadcrumb() {
 
         const pathSegments = pathname.split("/").filter((segment) => segment);
 
-        // Create breadcrumb items
         const items: BreadcrumbItem[] = [
             { label: "خانه", href: "/" }
         ];
 
-        // Add path segments
         pathSegments.forEach((segment, index) => {
             const routeTo = "/" + pathSegments.slice(0, index + 1).join("/");
             const isLast = index === pathSegments.length - 1;
@@ -86,7 +82,6 @@ export function Breadcrumb() {
             });
         });
 
-        // Show ellipsis if more than 4 items
         const showEllipsis = items.length > 4;
         const display = showEllipsis 
             ? [items[0], { label: "...", href: undefined }, ...items.slice(-2)]

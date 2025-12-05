@@ -3,11 +3,6 @@
 import { useMemo } from 'react'
 import { usePermissionMap } from './usePermissionMap'
 
-/**
- * Simple, fast permission checker based on permission map.
- * ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
- * Example: useHasAccess('media.upload') or useHasAccess(['panel.update','media.upload'])
- */
 export const useHasAccess = (permission: string | string[]) => {
   const { data } = usePermissionMap()
 

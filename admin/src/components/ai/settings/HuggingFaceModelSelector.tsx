@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * 🎨 صفحه حرفه‌ای برای انتخاب مدل‌های Hugging Face
- * 
- * ویژگی‌ها:
- * - جستجوی پیشرفته
- * - فیلتر بر اساس task (text-to-image, text-generation, etc.)
- * - نمایش Grid/List
- * - انتخاب چندتایی
- * - Pagination
- */
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -68,10 +58,8 @@ export function HuggingFaceModelSelectorContent({
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
-  // ✅ Key برای localStorage (بر اساس provider و capability)
   const storageKey = `huggingface-selected-models-${capability}`;
 
-  // ✅ Expose save function via ref
   React.useEffect(() => {
     if (onSaveRef) {
       onSaveRef.current = () => {
@@ -91,16 +79,11 @@ export function HuggingFaceModelSelectorContent({
     }
   }, [selectedModels.size, onSelectionChange]);
 
-  // ✅ Map capability to Hugging Face task (pipeline_tag)
   const getTaskFilter = (cap: string): string | undefined => {
     if (cap === 'image') return 'text-to-image';
     if (cap === 'chat') return 'text-generation';
-    if (cap === 'content') return 'text-generation'; // ✅ محتوا همان text-generation است
-    // ✅ برای audio: هم speech-to-text و هم text-to-speech را شامل می‌شود
-    // Hugging Face از 'automatic-speech-recognition' برای speech-to-text استفاده می‌کند
-    // و 'text-to-speech' برای TTS (اما ممکن است تعداد کمی داشته باشد)
-    // برای audio capability، هر دو را شامل می‌کنیم
-    if (cap === 'audio') return 'automatic-speech-recognition'; // یا 'text-to-speech' - فعلاً speech-to-text
+    if (cap === 'content') return 'text-generation';
+    if (cap === 'audio') return 'automatic-speech-recognition';
     return undefined;
   };
 
@@ -123,7 +106,6 @@ export function HuggingFaceModelSelectorContent({
         }));
         setModels(mappedModels);
         
-        // ✅ Sync مدل‌های انتخاب شده با مدل‌های جدید (فقط مدل‌هایی که هنوز موجود هستند)
         try {
           const saved = localStorage.getItem(storageKey);
           if (saved) {
@@ -132,7 +114,6 @@ export function HuggingFaceModelSelectorContent({
               mappedModels.some(m => m.id === id)
             );
             if (validModels.length !== savedModels.length) {
-              // برخی مدل‌ها دیگر موجود نیستند - به‌روزرسانی localStorage
               localStorage.setItem(storageKey, JSON.stringify(validModels));
               setSelectedModels(new Set(validModels));
             } else {
@@ -150,7 +131,6 @@ export function HuggingFaceModelSelectorContent({
     }
   };
 
-  // ✅ بهینه: استفاده از useCallback برای جلوگیری از re-render
   const toggleModel = React.useCallback((modelId: string) => {
     setSelectedModels(prev => {
       const newSet = new Set(prev);
@@ -160,8 +140,6 @@ export function HuggingFaceModelSelectorContent({
         newSet.add(modelId);
       }
       
-      // ✅ بهینه: ذخیره در localStorage (فوری برای UX بهتر)
-      // استفاده از setTimeout برای non-blocking
       setTimeout(() => {
         try {
           localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
@@ -176,11 +154,9 @@ export function HuggingFaceModelSelectorContent({
     });
   }, [storageKey, onSelectionChange]);
 
-  // فیلتر بر اساس capability + جستجو
   const filteredModels = useMemo(() => {
     let filtered = models;
 
-    // فیلتر بر اساس جستجو
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(model => {
@@ -189,26 +165,21 @@ export function HuggingFaceModelSelectorContent({
       });
     }
 
-    // ✅ بهینه: مرتب‌سازی: مدل‌های انتخاب شده در ابتدا
-    // استفاده از stable sort برای حفظ ترتیب مدل‌های غیرفعال
     const sorted = [...filtered].sort((a, b) => {
       const aSelected = selectedModels.has(a.id);
       const bSelected = selectedModels.has(b.id);
-      if (aSelected && !bSelected) return -1; // a اول
-      if (!aSelected && bSelected) return 1;  // b اول
-      // ✅ حفظ ترتیب اصلی برای مدل‌های هم‌گروه
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
       return 0;
     });
     return sorted;
   }, [models, searchQuery, selectedModels]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredModels.length / MODELS_PER_PAGE);
   const startIndex = (currentPage - 1) * MODELS_PER_PAGE;
   const endIndex = startIndex + MODELS_PER_PAGE;
   const paginatedModels = filteredModels.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, capability]);
@@ -226,7 +197,6 @@ export function HuggingFaceModelSelectorContent({
 
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <p className="text-font-s text-sm">
@@ -246,7 +216,6 @@ export function HuggingFaceModelSelectorContent({
         </div>
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
         <Input
@@ -258,7 +227,6 @@ export function HuggingFaceModelSelectorContent({
         />
       </div>
 
-      {/* Models Display */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {paginatedModels.map((model) => {
@@ -289,7 +257,6 @@ export function HuggingFaceModelSelectorContent({
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
           <Button
@@ -343,7 +310,6 @@ export function HuggingFaceModelSelectorContent({
         </div>
       )}
 
-      {/* Empty State */}
       {filteredModels.length === 0 && (
         <div className="text-center py-12">
           <Info className="w-12 h-12 mx-auto mb-4 text-font-s" />
@@ -356,7 +322,6 @@ export function HuggingFaceModelSelectorContent({
   );
 }
 
-// Model Card Component
 function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
   return (
     <Card className="transition-all duration-300 hover:shadow-lg border-border">
@@ -408,7 +373,6 @@ function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: 
   );
 }
 
-// Model List Item Component
 function ModelListItem({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
   return (
     <Card className="transition-all border-border">

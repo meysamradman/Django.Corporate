@@ -1,16 +1,5 @@
 "use client";
 
-/**
- * 🎨 صفحه حرفه‌ای و خلاقانه برای انتخاب مدل‌های OpenRouter
- * 
- * ویژگی‌ها:
- * - جستجوی پیشرفته
- * - فیلتر بر اساس قیمت، Provider، نوع (Chat/Image/Content)
- * - نمایش Grid/List
- * - انتخاب چندتایی
- * - نمایش اطلاعات کامل هر مدل
- */
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
@@ -40,7 +29,7 @@ interface Model {
   price?: string;
   free?: boolean;
   selected?: boolean;
-  category?: 'chat' | 'image' | 'audio' | 'content'; // ✅ اضافه کردن audio
+  category?: 'chat' | 'image' | 'audio' | 'content';
   description?: string;
   context_length?: number;
   architecture?: {
@@ -62,10 +51,9 @@ interface OpenRouterModelSelectorContentProps {
   onSave: (selectedModels: Model[]) => void;
   onSelectionChange?: (selectedCount: number) => void;
   onSaveRef?: React.MutableRefObject<(() => void) | undefined>;
-  capability?: 'chat' | 'content' | 'image' | 'audio'; // ✅ فیلتر بر اساس capability
+  capability?: 'chat' | 'content' | 'image' | 'audio';
 }
 
-// Component اصلی (برای استفاده در صفحه جداگانه - deprecated)
 export function OpenRouterModelSelector({
   providerId,
   providerName,
@@ -74,7 +62,6 @@ export function OpenRouterModelSelector({
 }: OpenRouterModelSelectorProps) {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
@@ -102,8 +89,7 @@ export function OpenRouterModelSelector({
   );
 }
 
-// Component محتوا (برای استفاده در Modal)
-const MODELS_PER_PAGE = 24; // برای Popup
+const MODELS_PER_PAGE = 24;
 
 export function OpenRouterModelSelectorContent({
   providerId,
@@ -111,7 +97,7 @@ export function OpenRouterModelSelectorContent({
   onSave,
   onSelectionChange,
   onSaveRef,
-  capability = 'chat' // ✅ Default: chat
+  capability = 'chat'
 }: OpenRouterModelSelectorContentProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,7 +107,6 @@ export function OpenRouterModelSelectorContent({
   const [currentPage, setCurrentPage] = useState(1);
   const [registeredProviders, setRegisteredProviders] = useState<Set<string>>(new Set());
 
-  // ✅ Key برای localStorage (بر اساس provider و capability)
   const storageKey = `openrouter-selected-models-${capability}`;
 
   useEffect(() => {
@@ -129,23 +114,20 @@ export function OpenRouterModelSelectorContent({
     fetchModels();
   }, []);
 
-  // ✅ دریافت لیست Provider های ثبت شده در دیتابیس
   const fetchRegisteredProviders = async () => {
     try {
       const response = await aiApi.providers.getAll();
       if (response.metaData.status === 'success' && response.data) {
         const providers = Array.isArray(response.data) ? response.data : [];
-        // استخراج slug های Provider ها (فقط Provider های فعال)
         const providerSlugs = new Set(
           providers
-            .filter((p: any) => p.is_active !== false) // فقط Provider های فعال
+            .filter((p: any) => p.is_active !== false)
             .map((p: any) => (p.slug || '').toLowerCase())
             .filter(Boolean)
         );
         setRegisteredProviders(providerSlugs);
       }
     } catch (error) {
-      // در صورت خطا، همه را نمایش بده (fallback)
     }
   };
 
@@ -161,7 +143,6 @@ export function OpenRouterModelSelectorContent({
       const response = await aiApi.chat.getOpenRouterModels();
       if (response.metaData.status === 'success' && response.data) {
         const modelsData = Array.isArray(response.data) ? response.data : [];
-        // ✅ فقط مدل‌های واقعی از API (نه mock data)
         const realModels = modelsData.map((model: any) => ({
           id: model.id || model.name,
           name: model.name || model.id,
@@ -198,7 +179,6 @@ export function OpenRouterModelSelectorContent({
       }
     } catch (error) {
       toast.error('خطا در دریافت مدل‌ها از OpenRouter');
-      // ✅ اگر خطا بود، لیست خالی بده (نه mock data)
       setModels([]);
     } finally {
       setLoading(false);
@@ -210,9 +190,7 @@ export function OpenRouterModelSelectorContent({
     return parts[0] || 'Unknown';
   };
 
-  // ✅ تشخیص capability بر اساس architecture.modality (دقیق‌تر از نام مدل)
   const detectCategory = (model: any): 'chat' | 'content' | 'image' | 'audio' => {
-    // اول از architecture.modality استفاده کن (دقیق‌ترین روش)
     const modality = model.architecture?.modality?.toLowerCase();
     if (modality === 'image' || modality === 'vision') {
       return 'image';
@@ -220,7 +198,6 @@ export function OpenRouterModelSelectorContent({
     if (modality === 'audio' || modality === 'speech') {
       return 'audio';
     }
-    // Fallback: اگر modality نبود، از نام مدل استفاده کن
     const id = (model.id || model.name || '').toLowerCase();
     if (id.includes('dall-e') || id.includes('imagen') || id.includes('flux') || id.includes('stable') || id.includes('midjourney')) {
       return 'image';
@@ -228,11 +205,9 @@ export function OpenRouterModelSelectorContent({
     if (id.includes('tts') || id.includes('speech') || id.includes('whisper')) {
       return 'audio';
     }
-    // Default: chat (برای content هم از chat استفاده می‌کنیم چون هر دو text generation هستند)
     return 'chat';
   };
 
-  // ✅ بهینه: استفاده از useCallback برای جلوگیری از re-render
   const toggleModel = React.useCallback((modelId: string) => {
     setSelectedModels(prev => {
       const newSet = new Set(prev);
@@ -242,8 +217,6 @@ export function OpenRouterModelSelectorContent({
         newSet.add(modelId);
       }
       
-      // ✅ بهینه: ذخیره در localStorage (فوری برای UX بهتر)
-      // استفاده از setTimeout برای non-blocking
       setTimeout(() => {
         try {
           localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
@@ -251,7 +224,6 @@ export function OpenRouterModelSelectorContent({
         }
       }, 0);
       
-      // Notify parent of selection change
       if (onSelectionChange) {
         onSelectionChange(newSet.size);
       }
@@ -259,34 +231,26 @@ export function OpenRouterModelSelectorContent({
     });
   }, [storageKey, onSelectionChange]);
 
-  // ✅ فیلتر بر اساس capability + جستجو + Provider های ثبت شده
   const filteredModels = useMemo(() => {
     let filtered = models;
 
-    // 0. ✅ فیلتر بر اساس Provider های ثبت شده در دیتابیس
     if (registeredProviders.size > 0) {
       filtered = filtered.filter(model => {
-        // استخراج Provider از model.id (مثلاً: anthropic/claude-3.5-sonnet -> anthropic)
         const modelProvider = extractProvider(model.id || model.name || '').toLowerCase();
-        // بررسی اینکه آیا این Provider در دیتابیس ثبت شده است
         const isRegistered = registeredProviders.has(modelProvider);
         return isRegistered;
       });
     }
 
-    // 1. ✅ فیلتر بر اساس capability (استفاده از architecture.modality)
     if (capability === 'chat') {
       filtered = filtered.filter(model => {
-        // اول از architecture.modality استفاده کن
         const modality = model.architecture?.modality?.toLowerCase();
         if (modality === 'image' || modality === 'audio' || modality === 'speech' || modality === 'vision') {
           return false;
         }
-        // Fallback: اگر modality نبود، از نام مدل استفاده کن
         const id = (model.id || '').toLowerCase();
         const name = (model.name || '').toLowerCase();
         const category = detectCategory(model);
-        // حذف مدل‌های image و audio
         return category === 'chat' &&
           !id.includes('dall-e') && !id.includes('flux') &&
           !id.includes('stable') && !id.includes('tts') &&
@@ -294,18 +258,14 @@ export function OpenRouterModelSelectorContent({
           !name.includes('image') && !name.includes('audio');
       });
     } else if (capability === 'content') {
-      // ✅ محتوا: همان مدل‌های chat (text generation) اما ممکن است برخی مدل‌ها فقط برای content بهینه شده باشند
       filtered = filtered.filter(model => {
-        // اول از architecture.modality استفاده کن
         const modality = model.architecture?.modality?.toLowerCase();
         if (modality === 'image' || modality === 'audio' || modality === 'speech' || modality === 'vision') {
           return false;
         }
-        // Fallback: اگر modality نبود، از نام مدل استفاده کن
         const id = (model.id || '').toLowerCase();
         const name = (model.name || '').toLowerCase();
         const category = detectCategory(model);
-        // حذف مدل‌های image و audio (مثل chat)
         return category === 'chat' &&
           !id.includes('dall-e') && !id.includes('flux') &&
           !id.includes('stable') && !id.includes('tts') &&
@@ -314,12 +274,10 @@ export function OpenRouterModelSelectorContent({
       });
     } else if (capability === 'image') {
       filtered = filtered.filter(model => {
-        // اول از architecture.modality استفاده کن
         const modality = model.architecture?.modality?.toLowerCase();
         if (modality === 'image' || modality === 'vision') {
           return true;
         }
-        // Fallback: اگر modality نبود، از نام مدل استفاده کن
         const id = (model.id || '').toLowerCase();
         const name = (model.name || '').toLowerCase();
         const category = detectCategory(model);
@@ -332,12 +290,10 @@ export function OpenRouterModelSelectorContent({
       });
     } else if (capability === 'audio') {
       filtered = filtered.filter(model => {
-        // اول از architecture.modality استفاده کن
         const modality = model.architecture?.modality?.toLowerCase();
         if (modality === 'audio' || modality === 'speech') {
           return true;
         }
-        // Fallback: اگر modality نبود، از نام مدل استفاده کن
         const id = (model.id || '').toLowerCase();
         const name = (model.name || '').toLowerCase();
         const category = detectCategory(model);
@@ -349,7 +305,6 @@ export function OpenRouterModelSelectorContent({
       });
     }
 
-    // 2. فیلتر بر اساس جستجو
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(model => {
@@ -358,32 +313,25 @@ export function OpenRouterModelSelectorContent({
       });
     }
 
-    // ✅ بهینه: مرتب‌سازی: مدل‌های انتخاب شده در ابتدا
-    // استفاده از stable sort برای حفظ ترتیب مدل‌های غیرفعال
     const sorted = [...filtered].sort((a, b) => {
       const aSelected = selectedModels.has(a.id);
       const bSelected = selectedModels.has(b.id);
-      if (aSelected && !bSelected) return -1; // a اول
-      if (!aSelected && bSelected) return 1;  // b اول
-      // ✅ حفظ ترتیب اصلی برای مدل‌های هم‌گروه (همه فعال یا همه غیرفعال)
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
       return 0;
     });
     return sorted;
   }, [models, searchQuery, capability, registeredProviders, selectedModels]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredModels.length / MODELS_PER_PAGE);
   const startIndex = (currentPage - 1) * MODELS_PER_PAGE;
   const endIndex = startIndex + MODELS_PER_PAGE;
   const paginatedModels = filteredModels.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, capability]);
 
-
-  // Expose save function via ref (will be used by parent)
   React.useEffect(() => {
     if (onSaveRef) {
       onSaveRef.current = () => {
@@ -406,7 +354,6 @@ export function OpenRouterModelSelectorContent({
 
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <p className="text-font-s text-sm">
@@ -431,7 +378,6 @@ export function OpenRouterModelSelectorContent({
         </div>
       </div>
 
-      {/* Search - فقط جستجو */}
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
         <Input
@@ -443,7 +389,6 @@ export function OpenRouterModelSelectorContent({
         />
       </div>
 
-      {/* Models Display */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {paginatedModels.map((model) => {
@@ -474,7 +419,6 @@ export function OpenRouterModelSelectorContent({
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
           <Button
@@ -528,7 +472,6 @@ export function OpenRouterModelSelectorContent({
         </div>
       )}
 
-      {/* Empty State */}
       {filteredModels.length === 0 && (
         <div className="text-center py-12">
           <Info className="w-12 h-12 mx-auto mb-4 text-font-s" />
@@ -540,10 +483,6 @@ export function OpenRouterModelSelectorContent({
     </div>
   );
 }
-
-// ============================================
-// 🎨 Model Card Component
-// ============================================
 
 function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
   return (
@@ -599,10 +538,6 @@ function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: 
     </Card>
   );
 }
-
-// ============================================
-// 🎨 Model List Item Component
-// ============================================
 
 function ModelListItem({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
   return (

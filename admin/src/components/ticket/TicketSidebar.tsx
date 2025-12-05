@@ -161,7 +161,6 @@ export function TicketSidebar({ selectedStatus, onStatusChange, statusCounts }: 
                   </span>
                   <span className="text-sm font-medium cursor-pointer">{status.label}</span>
                 </div>
-                {/* Show single badge: unread (red+pulse) if exists, otherwise total count */}
                 {status.unreadCount !== undefined && status.unreadCount > 0 ? (
                   <Badge
                     variant="red"

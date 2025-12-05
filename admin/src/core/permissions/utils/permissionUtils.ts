@@ -31,31 +31,24 @@ export function parsePermission(permission: string): PermissionCheck {
   }
 }
 
-/**
- * Check if user has a specific permission
- */
 export function hasPermission(
   userPermissions: UserPermissions,
   requiredPermission: string | PermissionCheck
 ): boolean {
-  // Super admin has all permissions
   if (userPermissions.is_super || userPermissions.is_superuser) {
     return true
   }
 
   const permissions = userPermissions.permissions || []
   
-  // Check for wildcard permissions
   if (permissions.includes('*') || permissions.includes('*.*')) {
     return true
   }
 
-  // Parse required permission
   const required = typeof requiredPermission === 'string' 
     ? parsePermission(requiredPermission) 
     : requiredPermission
 
-  // Check exact match first
   const exactPermission = `${required.resource}.${required.action}`
   if (required.scope && required.scope !== 'global') {
     const scopedPermission = `${exactPermission}:${required.scope}`
@@ -68,7 +61,6 @@ export function hasPermission(
     return true
   }
 
-  // Check wildcard patterns
   for (const userPerm of permissions) {
     if (matchesPermissionPattern(userPerm, required)) {
       return true
@@ -78,24 +70,17 @@ export function hasPermission(
   return false
 }
 
-/**
- * Check if user permission pattern matches required permission
- */
 function matchesPermissionPattern(userPermission: string, required: PermissionCheck): boolean {
   const user = parsePermission(userPermission)
   
-  // Resource wildcard check
   if (user.resource === '*' || user.resource === required.resource) {
-    // Action wildcard check
     if (user.action === '*' || user.action === required.action) {
-      // Scope check
       if (user.scope === 'global' || user.scope === required.scope) {
         return true
       }
     }
   }
   
-  // Resource.* patterns
   if (user.action === '*' && user.resource === required.resource) {
     return true
   }
@@ -103,9 +88,6 @@ function matchesPermissionPattern(userPermission: string, required: PermissionCh
   return false
 }
 
-/**
- * Check if user has any of the specified permissions
- */
 export function hasAnyPermission(
   userPermissions: UserPermissions,
   requiredPermissions: (string | PermissionCheck)[]
@@ -115,9 +97,6 @@ export function hasAnyPermission(
   )
 }
 
-/**
- * Check if user has all of the specified permissions
- */
 export function hasAllPermissions(
   userPermissions: UserPermissions,
   requiredPermissions: (string | PermissionCheck)[]
@@ -127,9 +106,6 @@ export function hasAllPermissions(
   )
 }
 
-/**
- * Get filtered permissions by resource
- */
 export function getPermissionsByResource(
   userPermissions: UserPermissions,
   resource: string
@@ -145,9 +121,6 @@ export function getPermissionsByResource(
   })
 }
 
-/**
- * Get filtered permissions by action
- */
 export function getPermissionsByAction(
   userPermissions: UserPermissions,
   action: string
@@ -163,9 +136,6 @@ export function getPermissionsByAction(
   })
 }
 
-/**
- * Format permission for display
- */
 export function formatPermission(permission: string): string {
   const parsed = parsePermission(permission)
   
@@ -214,9 +184,6 @@ export function formatPermission(permission: string): string {
   return result
 }
 
-/**
- * Group permissions by resource for better organization
- */
 export function groupPermissionsByResource(permissions: string[]): Record<string, string[]> {
   const grouped: Record<string, string[]> = {}
   
@@ -231,9 +198,6 @@ export function groupPermissionsByResource(permissions: string[]): Record<string
   return grouped
 }
 
-/**
- * Check if user has role with specific code
- */
 export function hasRole(
   userPermissions: UserPermissions,
   roleCode: string
@@ -242,9 +206,6 @@ export function hasRole(
   return roles.some(role => role.code === roleCode)
 }
 
-/**
- * Get user's highest priority role
- */
 export function getHighestPriorityRole(userPermissions: UserPermissions): string | null {
   const roles = userPermissions.roles || []
   if (roles.length === 0) return null
@@ -256,19 +217,14 @@ export function getHighestPriorityRole(userPermissions: UserPermissions): string
   return highestRole.code
 }
 
-/**
- * React Hook for permission checking
- * Uses the current user's permissions from AuthContext
- */
 export function usePermissions() {
   const { user } = useAuth()
   
-  // Transform UserRole to match our interface
   const transformedRoles = user?.roles?.map((role: { id: number; name: string }) => ({
     id: role.id,
-    code: role.name, // Using name as code since UserRole doesn't have code
+    code: role.name,
     name: role.name,
-    priority: 0 // Default priority since UserRole doesn't have priority
+    priority: 0
   })) || []
   
   const userPermissions: UserPermissions = {

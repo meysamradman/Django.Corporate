@@ -40,22 +40,15 @@ export interface UploadSettings {
   };
 }
 
-/**
- * ✅ Custom hook for file upload management
- * اگر context و contextId پاس داده نشه، خودکار از route تشخیص می‌ده
- */
 export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' | 'blog', overrideContextId?: number | string) => {
-  // اگر override نشده، از route تشخیص بده
   const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
   
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
-  // ✅ دریافت تنظیمات از API با React Query
   const { data: apiSettings, isLoading: isLoadingSettings } = useUploadSettings();
   
-  // ✅ استفاده از تنظیمات API یا fallback به پیش‌فرض
   const uploadSettings = (() => {
     const settings = apiSettings || mediaService.getUploadSettings();
     return {
@@ -80,40 +73,30 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     };
   })();
 
-  /**
-   * ✅ Process files with validation (using API settings)
-   */
   const processFiles = useCallback((filesToProcess: File[]) => {
-    // ✅ پاک کردن خطاهای قبلی
     setValidationErrors([]);
     
-    // ✅ اگر تنظیمات هنوز load نشده، صبر کن
     if (isLoadingSettings) {
       setValidationErrors(['در حال بارگذاری تنظیمات... لطفا صبر کنید']);
       return;
     }
     
-    
     const errors: string[] = [];
     const validFiles = filesToProcess.filter(file => {
-      // ✅ Validation using API settings (uploadSettings)
       const ext = file.name.split('.').pop()?.toLowerCase() || '';
       const category = getFileCategory(file);
       
-      // ✅ بررسی اینکه تنظیمات موجود است
       if (!uploadSettings || !uploadSettings.allowedTypes || !uploadSettings.sizeLimit) {
         errors.push('خطا در دریافت تنظیمات آپلود. لطفا صفحه را رفرش کنید');
         return false;
       }
       
-      // Check extension - خطا را در state ذخیره کن
       const allowedExts = uploadSettings.allowedTypes[category] || [];
       if (!ext || !allowedExts.includes(ext)) {
         errors.push(`فایل "${file.name}": پسوند "${ext}" برای نوع "${category}" مجاز نیست. پسوندهای مجاز: ${allowedExts.join(', ')}`);
         return false;
       }
       
-      // Check file size - خطا را در state ذخیره کن
       const maxSize = uploadSettings.sizeLimit[category];
       if (!maxSize) {
         errors.push(`فایل "${file.name}": تنظیمات حجم فایل برای نوع "${category}" یافت نشد`);
@@ -127,7 +110,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
         return false;
       }
       
-      // Basic validations - بدون toast (سریع‌تر)
       if (!file.name || file.name.trim() === '') {
         return false;
       }
@@ -145,7 +127,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
         return false;
       }
       
-      
       return true;
     });
     
@@ -154,14 +135,13 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
       id: crypto.randomUUID(),
       progress: 0,
       status: 'pending' as const,
-      title: file.name.split('.')[0], // Default title from filename
+      title: file.name.split('.')[0],
       alt_text: '',
       description: '',
       is_public: true,
       coverFile: null
     }));
     
-    // ✅ نمایش خطاها در popup
     if (errors.length > 0) {
       setValidationErrors(errors);
     }
@@ -170,34 +150,22 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     setFiles(prev => [...prev, ...newFiles]);
   }, [uploadSettings, isLoadingSettings]);
 
-  /**
-   * ✅ Update file metadata
-   */
   const updateFileMetadata = useCallback((id: string, field: keyof MediaFile, value: string | boolean | File | null) => {
     setFiles(prev => prev.map(file => 
       file.id === id ? { ...file, [field]: value } : file
     ));
   }, []);
 
-  /**
-   * ✅ Remove file
-   */
   const removeFile = useCallback((id: string) => {
     setFiles(prev => prev.filter(file => file.id !== id));
   }, []);
 
-  /**
-   * ✅ Remove cover file
-   */
   const removeCoverFile = useCallback((id: string) => {
     setFiles(prev => prev.map(file => 
       file.id === id ? { ...file, coverFile: null } : file
     ));
   }, []);
 
-  /**
-   * ✅ Upload files
-   */
   const uploadFiles = useCallback(async (): Promise<{ successCount: number; totalCount: number }> => {
     if (files.length === 0) {
       toast.error("لطفا فایل‌ها را انتخاب کنید");
@@ -207,53 +175,43 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     setIsUploading(true);
     let successCount = 0;
 
-    // Process files sequentially to avoid overwhelming the server
     for (const file of files) {
       if (file.status === 'success') {
         successCount++;
-        continue; // Skip already uploaded files
+        continue;
       }
 
-      // Update status to uploading
       setFiles(prev => prev.map(f => 
         f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
       ));
 
       try {
-        // Create form data
         const formData = new FormData();
         formData.append('file', file.file);
         
-        // Add metadata (only supported fields)
         if (file.alt_text) formData.append('alt_text', file.alt_text);
         if (file.title) formData.append('title', file.title);
         
-        // Add cover image if exists (for video/audio/pdf)
         if (file.coverFile) {
             formData.append('cover_image', file.coverFile);
         }
         
-        // Add context for context-aware permission checking
         if (context && context !== 'media_library') {
           formData.append('context_type', context);
-          // Determine action: if contextId exists, it's update, otherwise create
           const contextAction = contextId ? 'update' : 'create';
           formData.append('context_action', contextAction);
         }
 
-        // ✅ Simple upload - بدون simulation
         await fetchApi.post('/admin/media/', formData);
 
-        // Mark as success
         setFiles(prev => prev.map(f => 
           f.id === file.id ? { ...f, status: 'success', progress: 100 } : f
         ));
         
         successCount++;
       } catch (error) {
-        // Error uploading file handled by toast
         
-        // Mark as error
+        
         setFiles(prev => prev.map(f => 
           f.id === file.id ? { 
             ...f, 
@@ -273,9 +231,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     return { successCount, totalCount: files.length };
   }, [files, context, contextId]);
 
-  /**
-   * ✅ Clear all files
-   */
   const clearFiles = useCallback(() => {
     setFiles([]);
     setValidationErrors([]);
@@ -285,8 +240,8 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     files,
     isUploading,
     uploadSettings,
-    isLoadingSettings, // ✅ برای نمایش loading state در UI
-    validationErrors, // ✅ خطاهای validation برای نمایش در popup
+    isLoadingSettings,
+    validationErrors,
     processFiles,
     updateFileMetadata,
     removeFile,

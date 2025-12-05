@@ -17,7 +17,6 @@ import { getQueryClient } from '@/core/utils/queryClient';
 import { FaviconManager } from '@/components/layout/FaviconManager';
 import { PermissionProfile } from '@/types/auth/permission';
 
-// CSRF token is now only available in cookies, not in response body
 
 interface ExtendedMetaData extends MetaData {
   csrf_token?: string;
@@ -47,11 +46,9 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// --- List of public paths that don't require authentication ---
-const publicPaths = ['/login']; // Add other public paths if needed
+const publicPaths = ['/login'];
 
 
-// Helper function to serialize user data for Next.js 15 compatibility
 function serializeUser(user: any | null): UserWithProfile | null {
   if (!user) return null;
   
@@ -63,10 +60,9 @@ function serializeUser(user: any | null): UserWithProfile | null {
     normalizedPermissions,
   });
 
-  // Create a plain object copy to avoid class/prototype issues
   return {
     ...user,
-    user_type: user.user_type || 'admin', // Default to admin for admin users
+    user_type: user.user_type || 'admin',
     permissions: normalizedPermissions,
     permission_profile: mergedProfile,
     permission_categories: user.permission_categories ? { ...user.permission_categories } : {},
@@ -75,7 +71,6 @@ function serializeUser(user: any | null): UserWithProfile | null {
   };
 }
 
-// Helper function to serialize panel settings
 function serializePanelSettings(settings: PanelSettings | null): PanelSettings | null {
   if (!settings) return null;
   
@@ -219,8 +214,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const fetchPanelSettings = useCallback(async (userPermissions: string[]) => {
-    // ✅ CRITICAL: Only fetch panel settings if user has panel.manage permission
-    if (!userPermissions.includes('panel.manage')) {
+    const hasAccess = userPermissions.includes('all') || userPermissions.includes('panel.manage');
+    
+    if (!hasAccess) {
       setPanelSettings(null);
       return;
     }
@@ -242,39 +238,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      // 1. Get user data - ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const userData = await authApi.getCurrentAdminUser({ refresh: true }); 
       if (userData) {
         setUser(serializeUser(userData));
         
         await csrfManager.refresh();
         
-        // 3. Load panel settings in background - موازی (ONLY if user has permission)
         const userPermissions = userData.permissions || [];
         fetchPanelSettings(userPermissions).catch(() => {
-          // Silently handle error - panel settings are not critical
         });
       } else {
         setUser(null);
         setPanelSettings(null);
-        // Redirect to login if on protected route
         if (!publicPaths.includes(pathname)) {
           router.push('/login');
         }
       }
     } catch (error) {
       if (error instanceof ApiError && error.response.AppStatusCode === 401) {
-        // User session is invalid/expired
         setUser(null);
         setPanelSettings(null);
         csrfManager.clear();
         
-        // Clear the invalid session cookie
         if (typeof document !== 'undefined') {
           document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
         
-        // Redirect to login if on protected route
         if (!publicPaths.includes(pathname)) {
           const currentPath = window.location.pathname + window.location.search;
           const returnToParam = currentPath !== '/' ? `?return_to=${encodeURIComponent(currentPath)}` : '';
@@ -304,12 +293,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           captcha_answer: captchaAnswer || '',
         };
         
-        // 1. Login and get session cookie + CSRF cookie
         await authApi.login(loginData);
         
         await csrfManager.refresh();
 
-        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
         const userData = await authApi.getCurrentAdminUser({ refresh: true });
         
         if (!userData) {
@@ -320,7 +307,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         const userPermissions = userData.permissions || [];
         fetchPanelSettings(userPermissions).catch(() => {
-          // Silently handle error - panel settings are not critical for login
         });
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -330,7 +316,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } catch (error) {
         setUser(null);
         setPanelSettings(null);
-        // Re-throw error to be handled by LoginForm
         throw error;
       } finally {
         setIsLoading(false);
@@ -348,12 +333,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         captcha_answer: captchaAnswer || '',
       };
 
-      // 1. Login and get session cookie + CSRF cookie
       await authApi.login(loginData);
 
       await csrfManager.refresh();
 
-      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const userData = await authApi.getCurrentAdminUser({ refresh: true });
       
       if (!userData) {
@@ -364,7 +347,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       const userPermissions = userData.permissions || [];
       fetchPanelSettings(userPermissions).catch(() => {
-        // Silently handle error - panel settings are not critical
       });
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -374,28 +356,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       setUser(null);
       setPanelSettings(null);
-      // Re-throw error to be handled by LoginForm
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Helper function to clear all auth-related cookies
   const clearAuthCookies = () => {
     if (typeof window !== 'undefined') {
       
       
-      // Get all existing cookies
       const allCookies = document.cookie.split(';').map(cookie => {
         return cookie.trim().split('=')[0];
       }).filter(name => name.length > 0);
       
       
       
-      // Predefined auth cookies
       const authCookies = [
-        'sessionid',  // ✅ اصلی‌ترین کوکی برای admin authentication
+        'sessionid',
         'sessionid',
         'csrftoken', 
         'admin_session',
@@ -407,11 +385,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         'token'
       ];
       
-      // Combine all cookies (existing + predefined)
       const cookiesToClear = [...new Set([...allCookies, ...authCookies])];
       
       cookiesToClear.forEach(cookieName => {
-        // Multiple attempts to clear cookies with different configurations
         const clearConfigs = [
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`,
           `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`,
@@ -427,7 +403,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       
       
-      // Clear React Query cache (simple)
       try {
         const queryClient = getQueryClient();
         queryClient.clear();
@@ -446,19 +421,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
     } catch (error) {
       
-      // Ignore logout API errors - continue with frontend logout
     } finally {
-      // Always clear frontend state and redirect
       
       
-      // Clear browser cookies
       clearAuthCookies();
       
       setUser(null);
       setPanelSettings(null);
       csrfManager.clear();
       
-      // Clear storage (simple)
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
@@ -466,7 +437,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setIsLoading(false);
       
-      // Force navigation to login page (hard redirect to clear any cached state)
       window.location.href = '/login';
     }
     });
@@ -474,7 +444,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshUser = async () => {
     try {
-      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const userData = await authApi.getCurrentAdminUser({ refresh: true });
       if (userData) {
         setUser(serializeUser(userData));
@@ -482,7 +451,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         await csrfManager.refresh();
         const userPermissions = userData.permissions || [];
         fetchPanelSettings(userPermissions).catch(() => {
-          // Silently handle error - panel settings are not critical
         });
       } else {
         setUser(null);
@@ -496,24 +464,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Function to update panel settings in the context state
   const updatePanelSettingsInContext = (newSettings: PanelSettings) => {
-      // Add cache-busting timestamp to image URLs to prevent browser caching
       const processedSettings = serializePanelSettings(newSettings);
       if (processedSettings) {
         const timestamp = Date.now();
         if (processedSettings.logo_url) {
-          // Keep the original URL and only add timestamp
           const baseUrl = processedSettings.logo_url.split('?')[0];
           processedSettings.logo_url = `${baseUrl}?t=${timestamp}`;
         }
         if (processedSettings.favicon_url) {
-          // Keep the original URL and only add timestamp
           const baseUrl = processedSettings.favicon_url.split('?')[0];
           processedSettings.favicon_url = `${baseUrl}?t=${timestamp}`;
         }
         
-        // Also handle logo_detail and favicon_detail if they exist
         if (processedSettings.logo_detail) {
           if (processedSettings.logo_detail.file_url) {
             const baseUrl = processedSettings.logo_detail.file_url.split('?')[0];

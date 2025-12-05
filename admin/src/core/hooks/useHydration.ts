@@ -6,7 +6,6 @@ export function useHydration() {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    // Set hydrated immediately when component mounts in browser
     setIsHydrated(true);
   }, []);
 

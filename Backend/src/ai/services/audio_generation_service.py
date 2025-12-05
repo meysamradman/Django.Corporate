@@ -27,6 +27,19 @@ class AIAudioGenerationService:
         return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_CLASSES]
     
     @classmethod
+    def validate_provider_for_audio(cls, provider_name: str) -> bool:
+        if provider_name != 'openai':
+            return False
+        
+        try:
+            provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+            if not provider.shared_api_key:
+                return False
+            return True
+        except AIProvider.DoesNotExist:
+            return False
+    
+    @classmethod
     def _get_api_key_and_config(cls, provider_name: str, admin=None) -> tuple[str, dict]:
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)

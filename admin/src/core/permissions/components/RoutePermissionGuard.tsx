@@ -52,7 +52,6 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
         return <>{children}</>;
     }
 
-    // Skip permission check for create pages - handled by ProtectedButton with Toast
     if (pathname === '/portfolios/create' || pathname === '/blogs/create') {
         return <>{children}</>;
     }
@@ -74,16 +73,13 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             action === "update" &&
             isSelfEditRoute;
 
-        // ✅ FIX: Use hasPermission which checks wildcards, manage, and synonyms
         const permissionString = `${rule.module}.${action}`;
         let hasAccess =
             bypassOwnProfile ||
             hasPermission(permissionString) ||
             (rule.module === "admin" && isOwnAdminProfile);
 
-        // ✅ AI-specific permission check: Support sub-permissions
         if (!hasAccess && rule.module === "ai" && action === "manage") {
-            // Map paths to specific permissions
             const aiPermissionMap: Record<string, string[]> = {
                 "/ai/chat": ["ai.chat.manage", "ai.manage"],
                 "/ai/content": ["ai.content.manage", "ai.manage"],
@@ -105,7 +101,6 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
                 ],
             };
             
-            // Find matching path and check permissions
             for (const [pathPrefix, perms] of Object.entries(aiPermissionMap)) {
                 if (pathname?.startsWith(pathPrefix)) {
                     hasAccess = perms.some(perm => hasPermission(perm));

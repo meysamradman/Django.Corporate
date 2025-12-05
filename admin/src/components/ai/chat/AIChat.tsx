@@ -38,7 +38,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>(() => {
-        // Load selected provider from localStorage on mount (only in compact mode)
         if (compact && typeof window !== 'undefined') {
             const saved = localStorage.getItem('ai_chat_selected_provider');
             return saved || '';
@@ -47,34 +46,13 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
     });
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<ChatMessage[]>(() => {
-        /**
-         * Load messages from localStorage on mount
-         * 
-         * ✅ Only load/save in compact mode (floating widget)
-         * ✅ Full page chat does NOT save to localStorage
-         * 
-         * ✅ Security Notes:
-         * - localStorage is client-side only, not sent to server automatically
-         * - Data is stored per browser/device (not shared across devices)
-         * - No sensitive data (API keys, passwords) stored - only chat messages
-         * - User must be authenticated to use chat (permission check in useEffect)
-         * 
-         * ✅ Performance Notes:
-         * - Limited to last 50 messages (~100KB max)
-         * - Prevents localStorage bloat
-         * - Only saves when user is authenticated
-         * - Auto-cleanup if messages exceed size limit
-         */
-        // Only load from localStorage in compact mode (floating widget)
         if (compact && typeof window !== 'undefined') {
             const saved = localStorage.getItem('ai_chat_messages');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    // Limit to last 50 messages for performance
                     return Array.isArray(parsed) ? parsed.slice(-50) : [];
                 } catch {
-                    // Invalid data, clear it
                     localStorage.removeItem('ai_chat_messages');
                     return [];
                 }
@@ -85,7 +63,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const providersFetched = useRef(false); // ✅ CRITICAL: Prevent double fetch
+    const providersFetched = useRef(false);
 
     const getAdminDisplayName = () => {
         if (user?.profile?.full_name) return user.profile.full_name;
@@ -113,10 +91,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
     };
 
     useEffect(() => {
-        // ✅ CRITICAL: Only fetch providers if user has ai.manage permission
-        // ✅ CRITICAL: Prevent double fetch with ref
         if (user && !providersFetched.current) {
-            // Check if user has ai.manage, any ai.* permission, or "all" permission
             const hasAIPermission = user?.permissions?.some((p: string) => 
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
@@ -128,7 +103,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                 setLoadingProviders(false);
             }
         } else if (!user) {
-            // If user not loaded yet, keep loading
             setLoadingProviders(true);
         }
     }, [user]);
@@ -137,56 +111,33 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         scrollToBottom();
     }, [messages]);
 
-    // Save messages to localStorage whenever they change
-    /**
-     * ✅ Security & Performance Optimizations:
-     * 1. Only saves in compact mode (floating widget) - full page does NOT save
-     * 2. Only saves if user is authenticated (user check)
-     * 3. Limits to last 50 messages (~100KB max)
-     * 4. Auto-reduces to 30 messages if exceeds 100KB
-     * 5. Clears localStorage when messages are empty
-     * 6. Prevents localStorage bloat (max browser limit ~5-10MB)
-     * 
-     * Note: localStorage is per-browser, not synced across devices.
-     * For multi-device sync, consider backend storage (future enhancement).
-     */
     useEffect(() => {
-        // Only save in compact mode (floating widget)
         if (compact && typeof window !== 'undefined' && user) {
             if (messages.length > 0) {
-                // Limit to last 50 messages for performance
                 const messagesToSave = messages.slice(-50);
                 const dataToSave = JSON.stringify(messagesToSave);
                 
-                // Check localStorage size (max ~5MB browser limit, we limit to ~100KB for chat)
                 if (dataToSave.length > 100000) {
-                    // If too large, only keep last 30 messages
                     const limited = messages.slice(-30);
                     localStorage.setItem('ai_chat_messages', JSON.stringify(limited));
                 } else {
                     localStorage.setItem('ai_chat_messages', dataToSave);
                 }
             } else {
-                // Clear localStorage if messages are empty
                 localStorage.removeItem('ai_chat_messages');
             }
         } else if (typeof window !== 'undefined' && !user) {
-            // Clear localStorage if user logs out
             localStorage.removeItem('ai_chat_messages');
             localStorage.removeItem('ai_chat_selected_provider');
         }
     }, [messages, user, compact]);
 
-    // Save selected provider to localStorage whenever it changes
-    // ✅ Security: Only save if user is authenticated and in compact mode
     useEffect(() => {
         if (compact && typeof window !== 'undefined' && selectedProvider && user) {
             localStorage.setItem('ai_chat_selected_provider', selectedProvider);
         }
     }, [selectedProvider, user, compact]);
 
-    // Function to clear chat history
-    // ✅ Security: Clear both state and localStorage
     const handleClearChat = () => {
         setMessages([]);
         if (typeof window !== 'undefined') {
@@ -245,8 +196,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         try {
             setSending(true);
 
-            // ✅ Performance: Only send last 20 messages to backend (to avoid large payloads)
-            // This prevents huge API requests and reduces token usage
             const conversationHistory = messages
                 .slice(-20)
                 .map(msg => ({
@@ -288,12 +237,9 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         }
     };
 
-    // ✅ Removed: Sample messages - users should start with empty chat
-
     if (compact) {
         return (
             <div className="flex flex-col h-full relative">
-                {/* Compact Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-br bg-bg/50">
                     <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-font-p">چت با AI</h3>
@@ -342,9 +288,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     )}
                 </div>
 
-                {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
-                    {/* Info Message about limitations */}
                     {messages.length > 0 && messages.length <= 5 && (
                         <div className="mb-3 p-2.5 bg-blue/10 border border-blue-1 rounded-lg">
                             <div className="flex items-start gap-2">
@@ -423,7 +367,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input */}
                 <div className="flex-shrink-0 border-t border-br bg-card p-3">
                     <div className="relative w-full">
                         <Textarea
@@ -450,7 +393,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                             </Button>
                         </div>
                     </div>
-                    {/* Info about chat limitations */}
                     <div className="mt-2 px-1">
                         <p className="text-[10px] text-font-s text-center leading-relaxed">
                             💡 چت‌ها موقتاً در مرورگر ذخیره می‌شوند (حداکثر 50 پیام)
@@ -529,7 +471,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                 }
             >
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
-                        {/* Info Message about limitations */}
                         {messages.length > 0 && messages.length <= 5 && (
                             <div className="mb-4 p-3 bg-blue/10 border border-blue-1 rounded-lg">
                                 <div className="flex items-start gap-2">
@@ -673,7 +614,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                             {msg.aiUI('chatInstructions')}
                         </p>
                     )}
-                    {/* Info about chat limitations - Only show in floating widget (compact mode) */}
                     {compact && (
                         <div className="mt-3 px-1">
                             <p className="text-xs text-font-s text-center leading-relaxed">
@@ -681,7 +621,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                             </p>
                         </div>
                     )}
-                    {/* Info for full page - No storage */}
                     {!compact && (
                         <div className="mt-3 px-1">
                             <p className="text-xs text-font-s text-center leading-relaxed">

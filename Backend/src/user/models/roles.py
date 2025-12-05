@@ -9,10 +9,6 @@ from src.core.models import BaseModel
 
 
 class AdminRole(BaseModel):
-    """
-    Admin role model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Description → Metadata → Flags
-    """
     ADMIN_ROLES = (
         ('super_admin', 'Super Admin'),
         ('content_manager', 'Content Manager'),
@@ -29,7 +25,6 @@ class AdminRole(BaseModel):
         ('user_manager', 'User Manager'),
     )
     
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=50, 
         unique=True, 
@@ -43,14 +38,12 @@ class AdminRole(BaseModel):
         help_text="Human-readable role name"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         blank=True,
         verbose_name="Description",
         help_text="Detailed description of this role"
     )
     
-    # Metadata Fields
     permissions = models.JSONField(
         default=dict, 
         verbose_name="Permissions",
@@ -63,7 +56,6 @@ class AdminRole(BaseModel):
         help_text="Role hierarchy level (1=highest, 10=lowest)"
     )
     
-    # 4. Boolean Flags
     is_system_role = models.BooleanField(
         default=True,
         db_index=True,
@@ -77,11 +69,7 @@ class AdminRole(BaseModel):
         verbose_name_plural = 'Admin Roles'
         ordering = ['level', 'name']
         indexes = [
-            # Composite index for filtering active roles by name
             models.Index(fields=['name', 'is_active']),
-            # Note: name already has unique=True and db_index=True (automatic index)
-            # Note: level already has db_index=True (automatic index)
-            # Note: public_id already indexed in BaseModel
         ]
 
     def __str__(self):
@@ -90,11 +78,6 @@ class AdminRole(BaseModel):
 
 
 class AdminUserRole(BaseModel):
-    """
-    Admin user role assignment model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Metadata → Timestamps
-    """
-    # 5. Relationships
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
@@ -123,7 +106,6 @@ class AdminUserRole(BaseModel):
         help_text="Super admin who assigned this role"
     )
     
-    # Metadata Fields
     permissions_cache = models.JSONField(
         default=dict, 
         blank=True,
@@ -131,7 +113,6 @@ class AdminUserRole(BaseModel):
         help_text="Cached permissions for performance"
     )
     
-    # Timestamp Fields (additional to BaseModel timestamps)
     assigned_at = models.DateTimeField(
         auto_now_add=True, 
         db_index=True,
@@ -157,11 +138,8 @@ class AdminUserRole(BaseModel):
         verbose_name_plural = 'Admin User Roles'
         unique_together = ['user', 'role']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['role', 'is_active']),
-            # Note: expires_at already has db_index=True (automatic index)
-            # Note: public_id already indexed in BaseModel
         ]
     
     def __str__(self):
@@ -230,11 +208,6 @@ def clear_admin_role_cache(sender, instance, **kwargs):
 
 
 class Role(BaseModel):
-    """
-    Legacy role model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Flags
-    """
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=255,
         db_index=True,
@@ -242,7 +215,6 @@ class Role(BaseModel):
         help_text="Role name"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         null=True,
         blank=True,
@@ -250,7 +222,6 @@ class Role(BaseModel):
         help_text="Role description"
     )
     
-    # 4. Boolean Flags
     is_superuser = models.BooleanField(
         default=False,
         db_index=True,
@@ -264,10 +235,7 @@ class Role(BaseModel):
         verbose_name_plural = 'Roles (Legacy)'
         ordering = ['name']
         indexes = [
-            # Composite index for filtering roles
             models.Index(fields=['is_superuser', 'name']),
-            # Note: name already has db_index=True, no need for separate Index()
-            # Note: public_id already indexed in BaseModel
         ]
 
     def __str__(self):
@@ -275,11 +243,6 @@ class Role(BaseModel):
 
 
 class CustomPermission(BaseModel):
-    """
-    Legacy custom permission model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Description
-    """
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=255,
         db_index=True,
@@ -294,7 +257,6 @@ class CustomPermission(BaseModel):
         help_text="Unique code name for the permission"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         null=True,
         blank=True,
@@ -308,10 +270,7 @@ class CustomPermission(BaseModel):
         verbose_name_plural = 'Permissions (Legacy)'
         ordering = ['name']
         indexes = [
-            # Composite index for common queries
             models.Index(fields=['codename', 'name']),
-            # Note: codename and name already have db_index=True and unique=True (automatic indexes)
-            # Note: public_id already indexed in BaseModel
         ]
 
     def __str__(self):
@@ -319,11 +278,6 @@ class CustomPermission(BaseModel):
 
 
 class UserRole(BaseModel):
-    """
-    Legacy user role assignment model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships
-    """
-    # 5. Relationships
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -347,10 +301,8 @@ class UserRole(BaseModel):
         verbose_name_plural = 'User Roles (Legacy)'
         unique_together = ('user', 'role')
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['role', 'is_active']),
-            # Note: public_id already indexed in BaseModel
         ]
 
     def __str__(self):
@@ -358,11 +310,6 @@ class UserRole(BaseModel):
 
 
 class RolePermission(BaseModel):
-    """
-    Legacy role permission assignment model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships
-    """
-    # 5. Relationships
     role = models.ForeignKey(
         Role,
         on_delete=models.CASCADE,
@@ -386,10 +333,8 @@ class RolePermission(BaseModel):
         verbose_name_plural = 'Role Permissions (Legacy)'
         unique_together = ('role', 'permission')
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['role', 'is_active']),
             models.Index(fields=['permission', 'is_active']),
-            # Note: public_id already indexed in BaseModel
         ]
 
     def __str__(self):

@@ -49,7 +49,6 @@ export const authApi = {
         if (options?.refresh) {
             url += url.includes('?') ? '&refresh=1' : '?refresh=1';
         }
-        // ✅ NO CACHE: Admin panel is CSR only - all caching handled by backend Redis
         const response = await fetchApi.get<AdminWithProfile>(url);
         if (!response.data) {
             throw new Error("API returned success but no admin user data found.");
@@ -60,7 +59,6 @@ export const authApi = {
 
     isAdminAuthenticated: async (): Promise<boolean> => {
         try {
-            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const user = await authApi.getCurrentAdminUser({refresh: true});
             return !!user;
         } catch (error) {

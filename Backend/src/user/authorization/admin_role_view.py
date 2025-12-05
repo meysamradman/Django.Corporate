@@ -49,7 +49,7 @@ class AdminRoleView(viewsets.ViewSet):
             order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
             
             queryset = AdminRole.objects.annotate(
-                users_count=Count('adminuserrole', filter=models.Q(adminuserrole__is_active=True))
+                users_count=Count('admin_user_roles', filter=models.Q(admin_user_roles__is_active=True))
             )
             
             allowed_order_fields = {

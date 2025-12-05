@@ -53,7 +53,6 @@ export const DashboardMain = () => {
   const { data: stats, isLoading, refetch } = useStatistics();
   const { data: systemStats, isLoading: systemLoading } = useSystemStats();
 
-  // زمان و تاریخ
   const { date, time, greeting } = useMemo(() => {
     const now = new Date();
     const hour = now.getHours();
@@ -78,7 +77,6 @@ export const DashboardMain = () => {
     };
   }, []);
 
-  // داده‌های نمودار توزیع محتوا
   const contentDistribution = useMemo(() => {
     if (!stats) return [];
     return [
@@ -88,7 +86,6 @@ export const DashboardMain = () => {
     ].filter(item => item.value > 0);
   }, [stats]);
 
-  // داده‌های نمودار ترکیبی ایمیل و تیکت
   const supportStats = useMemo(() => {
     if (!stats) return [];
     const replied = (stats.total_emails || 0) - (stats.new_emails || 0) - (stats.unanswered_emails || 0);
@@ -126,8 +123,6 @@ export const DashboardMain = () => {
     ].filter(item => (item.ایمیل > 0 || item.تیکت > 0));
   }, [stats]);
 
-
-  // داده‌های نمودار ذخیره‌سازی
   const storageData = useMemo(() => {
     if (!systemStats?.storage?.by_type) return [];
     return Object.entries(systemStats.storage.by_type).map(([type, data]) => ({
@@ -138,7 +133,6 @@ export const DashboardMain = () => {
     })).filter(item => item.value > 0);
   }, [systemStats]);
 
-  // کارت‌های خلاصه آمار
   const summaryCards = useMemo(() => {
     const cards = [
     {
@@ -212,7 +206,6 @@ export const DashboardMain = () => {
 
   return (
     <div className="space-y-6">
-      {/* هدر خوشامدگویی */}
       <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="text-right">
@@ -241,7 +234,6 @@ export const DashboardMain = () => {
         </div>
       </div>
 
-      {/* کارت‌های خلاصه آمار */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {summaryCards.map((card) => {
           const Icon = card.icon;
@@ -272,9 +264,7 @@ export const DashboardMain = () => {
         })}
       </div>
 
-      {/* نمودارهای اصلی */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* نمودار توزیع محتوا */}
         {contentDistribution.length > 0 && (
           <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
@@ -325,7 +315,6 @@ export const DashboardMain = () => {
         </div>
         )}
 
-        {/* آمار سیستم */}
         {hasPermission('statistics.system.read') && (
           <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
@@ -339,9 +328,7 @@ export const DashboardMain = () => {
             </div>
 
             <div className="space-y-4">
-              {/* کارت‌های اصلی در grid */}
               <div className="grid grid-cols-2 gap-3">
-            {/* حجم دیتابیس */}
                 <div className="p-3 rounded-lg border border-br bg-bg">
               <div className="flex items-center gap-2 mb-2">
                 <Database className="w-4 h-4 text-blue-1" />
@@ -356,7 +343,6 @@ export const DashboardMain = () => {
               )}
             </div>
 
-                {/* ذخیره‌سازی کل */}
                 <div className="p-3 rounded-lg border border-br bg-bg">
               <div className="flex items-center gap-2 mb-2">
                 <HardDrive className="w-4 h-4 text-purple-1" />
@@ -372,7 +358,6 @@ export const DashboardMain = () => {
                 </div>
             </div>
 
-            {/* وضعیت کش */}
               <div className="p-3 rounded-lg border border-br bg-bg">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-emerald-1" />
@@ -391,9 +376,8 @@ export const DashboardMain = () => {
                     </div>
                 </div>
               )}
-            </div>
+              </div>
 
-              {/* ذخیره‌سازی بر اساس نوع در grid */}
               {storageData.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
                   {storageData.map((item, index) => (
@@ -412,7 +396,6 @@ export const DashboardMain = () => {
             </div>
           )}
 
-        {/* نمودار وضعیت پشتیبانی */}
         {supportStats.length > 0 && 
           (hasPermission('statistics.emails.read') || hasPermission('statistics.tickets.read')) && (
           <div className="bg-card border border-br rounded-xl p-6 shadow-sm">

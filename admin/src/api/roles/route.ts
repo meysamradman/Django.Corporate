@@ -50,11 +50,9 @@ export const roleApi = {
     } as ApiResponse<Role[]>
   },
 
-  // Get all roles by fetching all pages
-  // Optimized: If total_pages is 1, only one request is made. Otherwise, loops through all pages.
   getAllRoles: async (params: Omit<RoleListParams, 'page' | 'size'> = {}): Promise<Role[]> => {
     const allRoles: Role[] = [];
-    const pageSize = 100; // Fetch 100 at a time
+    const pageSize = 100;
     let currentPage = 1;
     let totalPages = 1;
 
@@ -71,7 +69,6 @@ export const roleApi = {
 
     totalPages = firstResponse.pagination?.total_pages || 1;
 
-    // Only loop if there are more pages
     while (currentPage < totalPages) {
       currentPage++;
       const response = await roleApi.getRoleList({
@@ -93,7 +90,6 @@ export const roleApi = {
   },
 
   createRole: async (data: { name: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
-    // ✅ FIX: Accept permissions directly from frontend
     const requestData = {
       name: data.name,
       display_name: data.name,
@@ -105,7 +101,6 @@ export const roleApi = {
   },
 
   updateRole: async (id: number, data: { name?: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
-    // ✅ FIX: Accept permissions directly from frontend
     const updateData: any = {
       name: data.name,
       description: data.description,
@@ -127,27 +122,22 @@ export const roleApi = {
     return fetchApi.patch<Role>(`/admin/roles/${id}/status/`, { is_active })
   },
 
-  // Get all permissions grouped by resource
   getPermissions: async (): Promise<ApiResponse<PermissionGroup[]>> => {
     return fetchApi.get<PermissionGroup[]>('/admin/roles/permissions/')
   },
 
-  // Get base permissions that all admins have
   getBasePermissions: async (): Promise<ApiResponse<any[]>> => {
     return fetchApi.get<any[]>('/admin/roles/base_permissions/')
   },
 
-  // Get permissions for a specific role
   getRolePermissions: async (roleId: number): Promise<ApiResponse<{role_id: number; role_name: string; permissions: Record<string, any>}>> => {
     return fetchApi.get<{role_id: number; role_name: string; permissions: Record<string, any>}>(`/admin/roles/${roleId}/role_permissions/`)
   },
 
-  // Setup default admin roles
   setupDefaultRoles: async (forceUpdate: boolean = false): Promise<ApiResponse<any>> => {
     return fetchApi.post<any>('/admin/roles/setup_default_roles/', { force_update: forceUpdate })
   },
 
-  // Get roles summary
   getRolesSummary: async (): Promise<ApiResponse<any>> => {
     return fetchApi.get<any>('/admin/roles/summary/')
   },

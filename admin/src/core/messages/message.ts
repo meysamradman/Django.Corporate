@@ -11,7 +11,6 @@ const ERROR_MESSAGES = {
   otpSendFailed: "خطا در ارسال کد یکبار مصرف"
 } as const;
 
-// Auth Messages
 const AUTH_MESSAGES = {
   loginSuccess: "ورود موفقیت‌آمیز",
   logoutSuccess: "خروج موفقیت‌آمیز",
@@ -23,22 +22,17 @@ const AUTH_MESSAGES = {
   otpSendFailed: "خطا در ارسال کد یکبار مصرف"
 } as const;
 
-// Validation Messages
 const VALIDATION_MESSAGES = {
-  // General
   required: "{field} الزامی است",
   minLength: "{field} باید حداقل {min} کاراکتر باشد",
   maxLength: "{field} نباید بیشتر از {max} کاراکتر باشد",
   
-  // Mobile
   mobileRequired: "شماره موبایل الزامی است",
   mobileInvalid: "شماره موبایل معتبر نیست",
   
-  // Email  
   emailRequired: "ایمیل الزامی است",
   emailInvalid: "فرمت ایمیل معتبر نیست",
   
-  // Password
   passwordRequired: "رمز عبور الزامی است",
   passwordMinLength: "رمز عبور باید حداقل ۸ کاراکتر باشد",
   passwordUppercase: "رمز عبور باید حداقل یک حرف بزرگ داشته باشد",
@@ -46,19 +40,15 @@ const VALIDATION_MESSAGES = {
   passwordNumber: "رمز عبور باید حداقل یک عدد داشته باشد",
   passwordSpecial: "رمز عبور باید حداقل یک کاراکتر ویژه داشته باشد (!@#$%^&*)",
   
-  // Login Form
   captchaRequired: "کپچا الزامی است",
   otpRequired: "کد یکبار مصرف الزامی است",
   
-  // National ID
   nationalIdRequired: "کد ملی الزامی است",
   nationalIdLength: "کد ملی باید ۱۰ رقم باشد",
   nationalIdInvalid: "کد ملی معتبر نیست",
   
-  // Phone
   phoneInvalid: "شماره تلفن معتبر نیست",
   
-  // Admin Form
   fullNameRequired: "نام کامل الزامی است",
   fullNameMinLength: "نام کامل باید حداقل ۲ کاراکتر باشد",
   fullNameMaxLength: "نام کامل نباید بیشتر از ۱۰۰ کاراکتر باشد",
@@ -76,7 +66,6 @@ const VALIDATION_MESSAGES = {
   cityRequired: "انتخاب شهر الزامی است",
   passwordComplexity: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
   
-  // Portfolio
   portfolioNameRequired: "نام نمونه‌کار الزامی است",
   portfolioNameMinLength: "نام نمونه‌کار باید حداقل ۳ کاراکتر باشد",
   portfolioNameMaxLength: "نام نمونه‌کار نباید بیشتر از ۲۰۰ کاراکتر باشد",
@@ -87,7 +76,6 @@ const VALIDATION_MESSAGES = {
   portfolioCategoryRequired: "انتخاب دسته‌بندی الزامی است",
   portfolioFeaturedImageRequired: "انتخاب تصویر شاخص الزامی است",
   
-  // Blog
   blogNameRequired: "عنوان وبلاگ الزامی است",
   blogNameMinLength: "عنوان وبلاگ باید حداقل ۳ کاراکتر باشد",
   blogNameMaxLength: "عنوان وبلاگ نباید بیشتر از ۲۰۰ کاراکتر باشد",
@@ -98,27 +86,22 @@ const VALIDATION_MESSAGES = {
   blogCategoryRequired: "انتخاب دسته‌بندی وبلاگ الزامی است",
   blogFeaturedImageRequired: "انتخاب تصویر شاخص وبلاگ الزامی است",
   
-  // Role
   roleNameRequired: "نام نقش الزامی است",
   roleNameMinLength: "نام نقش باید حداقل ۲ کاراکتر باشد",
   roleNameMaxLength: "نام نقش نباید بیشتر از ۱۰۰ کاراکتر باشد",
   roleDescMaxLength: "توضیحات نقش نباید بیشتر از ۳۰۰ کاراکتر باشد",
   rolePermissionsRequired: "انتخاب حداقل یک دسترسی الزامی است",
   
-  // SEO
   metaTitleMaxLength: "عنوان متا نباید بیشتر از ۷۰ کاراکتر باشد",
   metaDescMaxLength: "توضیحات متا نباید بیشتر از ۱۶۰ کاراکتر باشد",
   ogTitleMaxLength: "عنوان Open Graph نباید بیشتر از ۷۰ کاراکتر باشد",
   ogDescMaxLength: "توضیحات Open Graph نباید بیشتر از ۱۶۰ کاراکتر باشد",
   
-  // URL
   urlInvalid: "آدرس وارد شده معتبر نیست",
   
-  // Profile Update Errors
   userProfileUpdateFailed: "خطا در به‌روزرسانی پروفایل کاربر",
   adminProfileUpdateFailed: "خطا در به‌روزرسانی پروفایل ادمین",
   
-  // Field Validation Errors
   auth_mobile_invalid: "شماره موبایل معتبر نیست",
   auth_email_invalid: "ایمیل معتبر نیست",
   national_id_exists: "کد ملی قبلاً توسط کاربر دیگری استفاده شده است",
@@ -128,7 +111,6 @@ const VALIDATION_MESSAGES = {
 } as const;
 
 
-// Common UI Messages (برای loading، confirm، etc.)
 const COMMON_UI_MESSAGES = {
   loading: "در حال بارگذاری...",
   success: "موفقیت",
@@ -139,7 +121,6 @@ const COMMON_UI_MESSAGES = {
   retry: "تلاش مجدد",
   confirmDelete: "تایید حذف",
   
-  // Confirm Messages
   deleteAdmin: "آیا از حذف این ادمین اطمینان دارید؟",
   deleteRole: "آیا از حذف این نقش اطمینان دارید؟",
   deleteUser: "آیا از حذف این کاربر اطمینان دارید؟",
@@ -147,41 +128,34 @@ const COMMON_UI_MESSAGES = {
   bulkDeleteRoles: "آیا از حذف {count} نقش اطمینان دارید؟",
   bulkDeleteUsers: "آیا از حذف {count} کاربر اطمینان دارید؟",
 
-  // Success Messages  
   created: "با موفقیت ایجاد شد",
   updated: "با موفقیت به‌روزرسانی شد",
   deleted: "با موفقیت حذف شد",
   saved: "با موفقیت ذخیره شد",
   
-  // Portfolio Success Messages
   portfolioCreated: "نمونه‌کار با موفقیت ایجاد شد",
   portfolioUpdated: "نمونه‌کار با موفقیت به‌روزرسانی شد",
   portfolioDeleted: "نمونه‌کار با موفقیت حذف شد",
   portfolioDraftSaved: "پیش‌نویس با موفقیت ذخیره شد",
   
-  // Blog Success Messages
   blogCreated: "وبلاگ با موفقیت ایجاد شد",
   blogUpdated: "وبلاگ با موفقیت به‌روزرسانی شد",
   blogDeleted: "وبلاگ با موفقیت حذف شد",
   blogDraftSaved: "پیش‌نویس وبلاگ با موفقیت ذخیره شد",
   
-  // Role Success Messages
   roleCreated: "نقش با موفقیت ایجاد شد",
   roleUpdated: "نقش با موفقیت به‌روزرسانی شد",
   roleDeleted: "نقش با موفقیت حذف شد",
   
-  // Profile Success Messages
   userProfileUpdated: "پروفایل کاربر با موفقیت به‌روزرسانی شد",
   adminProfileUpdated: "پروفایل ادمین با موفقیت به‌روزرسانی شد",
   
-  // Portfolio/Blog Status Messages
   portfolioActivated: "نمونه‌کار با موفقیت فعال شد",
   portfolioDeactivated: "نمونه‌کار با موفقیت غیرفعال شد",
   blogActivated: "بلاگ با موفقیت فعال شد",
   blogDeactivated: "بلاگ با موفقیت غیرفعال شد",
   statusChangeError: "خطا در تغییر وضعیت",
   
-  // Export Messages
   excelExportSuccess: "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد",
   excelExportAllSuccess: "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد",
   pdfExportSuccess: "فایل PDF (صفحه فعلی) با موفقیت دانلود شد",
@@ -192,45 +166,37 @@ const COMMON_UI_MESSAGES = {
   popupBlockerError: "لطفاً popup blocker را غیرفعال کنید",
   printLimitWarning: "فقط {max} آیتم اول از {total} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.",
   
-  // Delete Confirm Messages
   deletePortfolio: "آیا از حذف این نمونه‌کار اطمینان دارید؟",
   deleteBlog: "آیا از حذف این بلاگ اطمینان دارید؟",
   bulkDeletePortfolios: "آیا از حذف {count} نمونه‌کار اطمینان دارید؟",
   bulkDeleteBlogs: "آیا از حذف {count} بلاگ اطمینان دارید؟",
   
-  // Permission Messages
   portfolioDeleteDenied: "اجازه حذف نمونه‌کار ندارید",
   blogDeleteDenied: "اجازه حذف بلاگ ندارید",
   
-  // Page Titles
   portfolioManagement: "مدیریت نمونه‌کارها",
   blogManagement: "مدیریت بلاگ‌ها",
   addPortfolio: "افزودن نمونه‌کار",
   addBlog: "افزودن بلاگ",
   
-  // Error Messages
   dataLoadError: "خطا در بارگذاری داده‌ها",
   server500Error: "سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.",
   clearCacheAndRetry: "پاک کردن کش و تلاش مجدد",
   
-  // Table Actions
   edit: "ویرایش",
   delete: "حذف",
   
-  // Status Text
   statusPublished: "منتشر شده",
   statusDraft: "پیش‌نویس",
   statusArchived: "بایگانی شده",
   yes: "بله",
   no: "خیر",
   
-  // Print Headers
   printPortfolioTitle: "پرینت لیست نمونه‌کارها",
   printBlogTitle: "پرینت لیست بلاگ‌ها",
   printAll: "(همه)",
   printCurrent: "(صفحه فعلی)",
   
-  // Table Headers
   status: "وضعیت",
   createdAt: "تاریخ ایجاد",
   options: "گزینه‌ها",
@@ -243,7 +209,6 @@ const COMMON_UI_MESSAGES = {
   summary: "خلاصه"
 } as const;
 
-// Helper function for parameter replacement
 const replaceParams = (message: string, params?: Record<string, string | number>): string => {
   if (!params) return message;
   
@@ -271,7 +236,6 @@ export const getConfirmMessage = (key: keyof typeof COMMON_UI_MESSAGES, params?:
 };
 
 
-// Main msg object for convenient access
 export const msg = {
   auth: (key: keyof typeof AUTH_MESSAGES): string => {
     return AUTH_MESSAGES[key] || key;
@@ -296,7 +260,6 @@ export const msg = {
   },
 };
 
-// Export constants
 export { ERROR_MESSAGES, COMMON_UI_MESSAGES, VALIDATION_MESSAGES, AUTH_MESSAGES }; 
 
 

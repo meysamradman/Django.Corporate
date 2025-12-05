@@ -16,17 +16,10 @@ import {
 } from '@/types/ai/ai';
 
 export const aiApi = {
-    /**
-     * Image Generation API
-     */
     image: {
-        /**
-         * دریافت لیست Provider های AI
-         */
         getProviders: async (): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = '/admin/ai-providers/';
-                // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در دریافت لیست Provider ها');
@@ -34,16 +27,11 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت لیست Provider های فعال
-         */
         getAvailableProviders: async (): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = '/admin/ai-providers/available/';
-                // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
                 if (error?.response?.AppStatusCode !== 404) {
                     showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
@@ -51,13 +39,9 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت اطلاعات یک Provider
-         */
         getProvider: async (id: number): Promise<ApiResponse<any>> => {
             try {
                 const endpoint = `/admin/ai-providers/${id}/`;
-                // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<any>(endpoint);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در دریافت اطلاعات Provider');
@@ -65,14 +49,11 @@ export const aiApi = {
             }
         },
 
-        /**
-         * ایجاد یا به‌روزرسانی Provider
-         */
         saveProvider: async (data: {
             id?: number;
             provider_name: string;
-            api_key?: string; // ✅ اختیاری - می‌تواند shared_api_key باشد
-            shared_api_key?: string; // ✅ اضافه کردن shared_api_key
+            api_key?: string;
+            shared_api_key?: string;
             is_active?: boolean;
             config?: any;
         }): Promise<ApiResponse<any>> => {
@@ -89,9 +70,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * فعال/غیرفعال کردن Provider
-         */
         toggleProvider: async (id: number, activate: boolean): Promise<ApiResponse<any>> => {
             try {
                 const endpoint = `/admin/ai-providers/${id}/${activate ? 'activate' : 'deactivate'}/`;
@@ -107,9 +85,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * بررسی اعتبار API key
-         */
         validateApiKey: async (id: number): Promise<ApiResponse<{ valid: boolean; message: string }>> => {
             try {
                 const endpoint = `/admin/ai-providers/${id}/validate-api-key/`;
@@ -125,9 +100,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت لیست مدل‌های OpenRouter
-         */
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = `/admin/ai-image-generation/providers/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
@@ -137,9 +109,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت لیست مدل‌های Hugging Face
-         */
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
@@ -149,9 +118,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * تولید تصویر با AI
-         */
         generateImage: async (data: {
             provider_name: string;
             prompt: string;
@@ -171,20 +137,12 @@ export const aiApi = {
         },
     },
 
-    /**
-     * Content Generation API
-     */
     content: {
-        /**
-         * دریافت لیست Provider های فعال برای تولید محتوا
-         */
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
                 const endpoint = '/admin/ai-content/available-providers/';
-                // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
-                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
                 if (error?.response?.AppStatusCode !== 404) {
                     showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
@@ -192,9 +150,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت لیست مدل‌های OpenRouter
-         */
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = `/admin/ai-content-generation/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
@@ -204,9 +159,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * تولید محتوا با AI
-         */
         generateContent: async (
             data: AIContentGenerationRequest
         ): Promise<ApiResponse<AIContentGenerationResponse>> => {
@@ -220,25 +172,12 @@ export const aiApi = {
         },
     },
 
-    /**
-     * ✅ REMOVED: capabilities API - Use models API instead
-     * Models are managed via /ai/admin/models/ endpoint
-     */
-
-    /**
-     * Audio Generation API (Text-to-Speech)
-     */
     audio: {
-        /**
-         * دریافت لیست Provider های فعال برای تولید صدا
-         */
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
                 const endpoint = '/admin/ai-audio/available-providers/';
-                // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
-                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
                 if (error?.response?.AppStatusCode !== 404) {
                     showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
@@ -246,9 +185,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * تولید فایل صوتی با AI (Text-to-Speech)
-         */
         generateAudio: async (data: {
             provider_name: string;
             text: string;
@@ -269,20 +205,12 @@ export const aiApi = {
         },
     },
 
-    /**
-     * Chat API
-     */
     chat: {
-        /**
-         * دریافت لیست Provider های فعال برای چت
-         */
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
                 const endpoint = '/admin/ai-chat/available-providers/';
-                // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
-                // ✅ اگر 404 بود، Toast نشان نده (مدل فعال نیست - طبیعی است)
                 if (error?.response?.AppStatusCode !== 404) {
                     showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
@@ -290,9 +218,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت لیست مدل‌های OpenRouter
-         */
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = `/admin/ai-chat/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
@@ -302,9 +227,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت لیست مدل‌های Hugging Face
-         */
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
@@ -314,13 +236,10 @@ export const aiApi = {
             }
         },
 
-        /**
-         * ارسال پیام و دریافت پاسخ از AI
-         */
         sendMessage: async (data: {
             message: string;
             provider_name?: string;
-            model?: string;  // Model ID for OpenRouter (e.g., 'google/gemini-2.5-flash')
+            model?: string;
             conversation_history?: Array<{ role: 'user' | 'assistant'; content: string }>;
             system_message?: string;
             temperature?: number;
@@ -345,13 +264,7 @@ export const aiApi = {
             }
         },
     },
-    /**
-     * Personal AI Settings API
-     */
     personalSettings: {
-        /**
-         * دریافت تنظیمات شخصی ادمین فعلی
-         */
         getMySettings: async (): Promise<ApiResponse<any[]>> => {
             try {
                 const endpoint = '/admin/ai-settings/';
@@ -362,9 +275,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * ایجاد یا به‌روزرسانی تنظیمات شخصی
-         */
         saveMySettings: async (data: {
             id?: number;
             provider_name: string;
@@ -387,9 +297,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * حذف تنظیمات شخصی
-         */
         deleteMySettings: async (id: number): Promise<ApiResponse<any>> => {
             try {
                 const endpoint = `/admin/ai-settings/${id}/`;
@@ -400,12 +307,9 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت وضعیت Global Control (اجازه استفاده از Shared API برای ادمین‌های معمولی)
-         */
         getGlobalControl: async (): Promise<ApiResponse<{ allow_regular_admins_use_shared_api: boolean }>> => {
             try {
-                const endpoint = '/admin/ai-settings/global-control/';  // Updated endpoint
+                const endpoint = '/admin/ai-settings/global-control/';
                 return await fetchApi.get<{ allow_regular_admins_use_shared_api: boolean }>(endpoint);
             } catch (error: any) {
                 showErrorToast(error?.message || 'خطا در دریافت تنظیمات Global Control');
@@ -413,9 +317,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * تغییر وضعیت Global Control
-         */
         updateGlobalControl: async (allowRegularAdmins: boolean): Promise<ApiResponse<{ allow_regular_admins_use_shared_api: boolean }>> => {
             try {
                 const endpoint = '/admin/ai-settings/global-control/';
@@ -429,18 +330,7 @@ export const aiApi = {
         },
     },
 
-    /**
-     * ✅ REMOVED: Global Control API - Backend doesn't have this endpoint yet
-     * When backend implements global_controls endpoint, restore this section
-     */
-
-    /**
-     * ✅ AI Providers API - مدیریت Provider ها (طبق backend)
-     */
     providers: {
-        /**
-         * دریافت لیست Provider ها
-         */
         getAll: async (): Promise<ApiResponse<AIProviderList[]>> => {
             try {
                 const endpoint = '/admin/ai-providers/';
@@ -451,9 +341,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت جزئیات Provider
-         */
         getById: async (id: number): Promise<ApiResponse<AIProviderDetail>> => {
             try {
                 const endpoint = `/admin/ai-providers/${id}/`;
@@ -464,9 +351,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * آمار Provider ها
-         */
         getStats: async (): Promise<ApiResponse<{
             total_providers: number;
             total_models: number;
@@ -482,13 +366,7 @@ export const aiApi = {
         },
     },
 
-    /**
-     * ✅ AI Models API - مدیریت Model ها (طبق backend)
-     */
     models: {
-        /**
-         * دریافت لیست Model ها
-         */
         getAll: async (filters?: {
             provider?: number;
             capability?: string;
@@ -508,9 +386,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت جزئیات Model (با computed fields)
-         */
         getById: async (id: number): Promise<ApiResponse<AIModelDetail>> => {
             try {
                 const endpoint = `/admin/ai-models/${id}/`;
@@ -521,9 +396,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت Model ها بر اساس capability
-         */
         getByCapability: async (capability: string, includeInactive: boolean = true): Promise<ApiResponse<AIModelList[]>> => {
             try {
                 const endpoint = `/admin/ai-models/by_capability/?capability=${capability}&include_inactive=${includeInactive}`;
@@ -534,9 +406,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * دریافت Model ها بر اساس provider
-         */
         getByProvider: async (providerSlug: string, capability?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
                 const params = new URLSearchParams({ provider: providerSlug });
@@ -550,9 +419,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * به‌روزرسانی Model
-         */
         update: async (id: number, data: Partial<AIModelList>): Promise<ApiResponse<AIModelDetail>> => {
             try {
                 const endpoint = `/admin/ai-models/${id}/`;
@@ -563,9 +429,6 @@ export const aiApi = {
             }
         },
 
-        /**
-         * ایجاد Model جدید
-         */
         create: async (data: Partial<AIModelList>): Promise<ApiResponse<AIModelDetail>> => {
             try {
                 const endpoint = '/admin/ai-models/';
@@ -577,13 +440,7 @@ export const aiApi = {
         },
     },
 
-    /**
-     * ✅ Admin Provider Settings API - تنظیمات شخصی (طبق backend)
-     */
     mySettings: {
-        /**
-         * دریافت همه تنظیمات شخصی
-         */
         getAll: async (): Promise<ApiResponse<AdminProviderSettings[]>> => {
             try {
                 const endpoint = '/admin/ai-settings/my_settings/';

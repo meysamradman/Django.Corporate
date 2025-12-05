@@ -10,10 +10,9 @@ const getSecureInt = (envVar: string, varName: string): number => {
       throw new Error(`🚨 SECURITY ERROR: ${varName} (envVar: ${envVar}) not found in environment.`);
     }
     
-    // Development fallback values (only for portfolio and other settings, NOT media upload)
     const fallbackValues: Record<string, number> = {
-      'NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS': 2000,  // Max items for print
-      'NEXT_PUBLIC_PORTFOLIO_EXPORT_MAX_ITEMS': 500,  // Max items for Excel/PDF export
+      'NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS': 2000,
+      'NEXT_PUBLIC_PORTFOLIO_EXPORT_MAX_ITEMS': 500,
     };
     
     const fallback = fallbackValues[envVar];
@@ -21,7 +20,7 @@ const getSecureInt = (envVar: string, varName: string): number => {
       return fallback;
     }
     
-    return 0; // Generic fallback
+    return 0;
   }
   
   const parsed = parseInt(value, 10);
@@ -30,7 +29,7 @@ const getSecureInt = (envVar: string, varName: string): number => {
     if (IS_PRODUCTION) {
       throw new Error(`🚨 SECURITY ERROR: ${varName} must be a positive integer, got: ${value}.`);
     }
-    return 0; // Fallback for development
+    return 0;
   }
   
   return parsed;
@@ -64,18 +63,11 @@ export const env = {
   },
   get APP_NAME(): string { return process.env.NEXT_PUBLIC_APP_NAME || 'Admin Panel'; },
 
-  // Feature Flags (can be read directly)
   get ENABLE_ANALYTICS(): boolean { return process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true'; },
   get ENABLE_DEBUG_MODE(): boolean { return process.env.NEXT_PUBLIC_ENABLE_DEBUG_MODE === 'true' || IS_DEVELOPMENT; },
 
-  // Portfolio Export Settings (only for print - export limits are handled by backend)
   get PORTFOLIO_EXPORT_PRINT_MAX_ITEMS(): number { return getSecureInt('NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', 'PORTFOLIO_EXPORT_PRINT_MAX_ITEMS'); },
-  
-  // Note: Media upload settings (size limits, extensions, upload config) are now in @/core/config/media.ts
-  // These are hardcoded values matching backend defaults, not read from env
-  // Backend reads from env and performs final validation
 
-  // Security helpers
   isSecure: IS_PRODUCTION,
   isDevelopment: IS_DEVELOPMENT,
 } as const;

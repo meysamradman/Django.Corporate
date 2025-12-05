@@ -14,7 +14,6 @@ export function useTicketStats() {
   return useQuery({
     queryKey: ['ticket-stats'],
     queryFn: async () => {
-      // This will be implemented when we have the stats endpoint
       return { new_tickets_count: 0, assigned_to_me_count: 0, total_new: 0 };
     },
     refetchInterval: 30000, // Auto-refetch every 30 seconds
@@ -118,7 +117,6 @@ export function useUpdateTicketStatus() {
     mutationFn: ({ id, status }: { id: number | string; status: Ticket['status'] }) => 
       ticketApi.updateStatus(id, status),
     onSuccess: (_, variables) => {
-      // Invalidate all ticket-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -137,7 +135,6 @@ export function useCreateTicketMessage() {
   return useMutation({
     mutationFn: (data: TicketMessageCreate) => ticketApi.createMessage(data),
     onSuccess: (data) => {
-      // Invalidate all ticket-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['ticket-messages', data.ticket] });
       queryClient.invalidateQueries({ queryKey: ['ticket', data.ticket] });
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
@@ -173,7 +170,6 @@ export function useMarkTicketAsRead() {
   return useMutation({
     mutationFn: (ticketId: number | string) => ticketApi.markTicketAsRead(ticketId),
     onSuccess: (data) => {
-      // Invalidate all ticket-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ['ticket-messages', data.id] });
       queryClient.invalidateQueries({ queryKey: ['ticket', data.id] });
       queryClient.invalidateQueries({ queryKey: ['tickets'] });

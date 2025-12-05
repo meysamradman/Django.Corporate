@@ -1,8 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - سیستمی: default (blue/primary)
- * - سفارشی: outline
- */
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -51,8 +46,6 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
         const backendDisplayName = row.original.display_name;
         const isSystemRole = row.original.is_system_role;
 
-        // Optimized: Only check messages for system roles (they are defined there)
-        // For custom roles: backend display_name is already in Persian, use it directly
         const localizedName = isSystemRole
           ? (getPermissionTranslation(slug, 'role') || backendDisplayName || slug)
           : (backendDisplayName || slug);

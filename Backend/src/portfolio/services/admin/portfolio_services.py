@@ -137,6 +137,46 @@ class PortfolioAdminService:
         return portfolio
 
     @staticmethod
+    def update_portfolio(portfolio_id, validated_data, media_ids=None, main_image_id=None, media_covers=None, updated_by=None):
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
+        
+        if not validated_data.get('meta_title') and validated_data.get('title'):
+            validated_data['meta_title'] = validated_data['title'][:70]
+        
+        if not validated_data.get('meta_description') and validated_data.get('short_description'):
+            validated_data['meta_description'] = validated_data['short_description'][:300]
+        
+        if not validated_data.get('og_title') and validated_data.get('meta_title'):
+            validated_data['og_title'] = validated_data['meta_title']
+        
+        if not validated_data.get('og_description') and validated_data.get('meta_description'):
+            validated_data['og_description'] = validated_data['meta_description']
+        
+        if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
+            canonical_url = validated_data['canonical_url']
+            if not canonical_url.startswith(('http://', 'https://')):
+                validated_data['canonical_url'] = None
+        
+        for field, value in validated_data.items():
+            setattr(portfolio, field, value)
+        portfolio.save()
+        
+        if media_ids is not None:
+            PortfolioAdminMediaService.sync_media(
+                portfolio_id=portfolio.id,
+                media_ids=media_ids,
+                main_image_id=main_image_id,
+                media_covers=media_covers
+            )
+        
+        PortfolioCacheManager.invalidate_portfolio(portfolio.id)
+        
+        return portfolio
+
+    @staticmethod
     def set_main_image(portfolio_id, media_id):
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)

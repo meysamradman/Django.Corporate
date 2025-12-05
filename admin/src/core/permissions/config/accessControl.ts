@@ -219,7 +219,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: "admin",
     action: "read",
     description: "Admin List",
-    requireSuperAdmin: true, // ✅ Admin management requires super admin
+    requireSuperAdmin: true,
   }),
   createRule({
     id: "admins-create",
@@ -227,7 +227,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: "admin",
     action: "create",
     description: "Create Admin",
-    requireSuperAdmin: true, // ✅ Admin management requires super admin
+    requireSuperAdmin: true,
   }),
   createRule({
     id: "admins-edit",
@@ -235,7 +235,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: "admin",
     action: "update",
     description: "Edit Admin",
-    requireSuperAdmin: true, // ✅ Admin management requires super admin (own profile bypass handled in RoutePermissionGuard)
+    requireSuperAdmin: true,
   }),
   createRule({
     id: "admins-permissions",
@@ -320,7 +320,6 @@ const aiRoutes: RouteRule[] = [
     module: "ai",
     action: "manage",
     description: "چت هوشمند",
-    // ✅ Requires ai.chat.manage OR ai.manage permission
   }),
   createRule({
     id: "ai-content",
@@ -328,7 +327,6 @@ const aiRoutes: RouteRule[] = [
     module: "ai",
     action: "manage",
     description: "تولید محتوا",
-    // ✅ Requires ai.content.manage OR ai.manage permission
   }),
   createRule({
     id: "ai-image",
@@ -336,7 +334,6 @@ const aiRoutes: RouteRule[] = [
     module: "ai",
     action: "manage",
     description: "تولید تصویر",
-    // ✅ Requires ai.image.manage OR ai.manage permission
   }),
   createRule({
     id: "ai-audio",
@@ -344,7 +341,6 @@ const aiRoutes: RouteRule[] = [
     module: "ai",
     action: "manage",
     description: "تولید پادکست",
-    // ✅ Requires ai.audio.manage OR ai.manage permission
   }),
 ];
 
@@ -408,7 +404,6 @@ const settingsRoutes: RouteRule[] = [
     module: "ai",
     action: "manage",
     description: "تنظیمات هوش مصنوعی (API مشترک و شخصی)",
-    // ✅ همه ادمین‌ها با permission می‌توانند (ai.manage)
   }),
   createRule({
     id: "settings-general",
@@ -416,7 +411,6 @@ const settingsRoutes: RouteRule[] = [
     module: "settings",
     action: "manage",
     description: "تنظیمات عمومی",
-    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-form",
@@ -424,7 +418,6 @@ const settingsRoutes: RouteRule[] = [
     module: "forms",
     action: "manage",
     description: "فرم‌ها",
-    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-chatbot",
@@ -432,7 +425,6 @@ const settingsRoutes: RouteRule[] = [
     module: "chatbot",
     action: "manage",
     description: "چت‌بات",
-    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-page-about",
@@ -440,7 +432,6 @@ const settingsRoutes: RouteRule[] = [
     module: "pages",
     action: "manage",
     description: "صفحه درباره ما",
-    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-page-terms",
@@ -448,7 +439,6 @@ const settingsRoutes: RouteRule[] = [
     module: "pages",
     action: "manage",
     description: "صفحه قوانین",
-    // ✅ ادمین عادی با permission می‌تواند
   }),
 ];
 
@@ -502,7 +492,6 @@ const normalizePathname = (pathname: string): string => {
     const url = new URL(pathname, "http://localhost");
     pathname = url.pathname;
   } catch {
-    // Ignore parsing errors
   }
 
   if (pathname.length > 1 && pathname.endsWith("/")) {

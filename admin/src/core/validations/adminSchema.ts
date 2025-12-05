@@ -16,14 +16,12 @@ export const adminFormSchema = z.object({
     .min(1, { message: msg.validation("mobileRequired") })
     .regex(/^09\d{9}$/, { message: msg.validation("mobileInvalid") }),
   
-  // ❌ اختیاری: ایمیل
   email: z
     .string()
     .email({ message: msg.validation("emailInvalid") })
     .optional()
     .or(z.literal("")),
   
-  // ✅ ضروری: رمز عبور
   password: z
     .string()
     .min(1, { message: msg.validation("passwordRequired") })
@@ -32,17 +30,14 @@ export const adminFormSchema = z.object({
       message: msg.validation("passwordComplexity")
     }),
   
-  // ✅ ضروری: نام کامل
   full_name: z
     .string()
     .min(1, { message: msg.validation("fullNameRequired") })
     .min(2, { message: msg.validation("fullNameMinLength") })
     .max(100, { message: msg.validation("fullNameMaxLength") }),
   
-  // ❌ اختیاری: سوپر ادمین
   is_superuser: z.boolean().default(false),
   
-  // ❌ اختیاری: نقش
   role_id: z
     .string()
     .optional()

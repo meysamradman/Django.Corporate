@@ -38,7 +38,6 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
     
-    // 🚀 Pre-computed permission flag
     const { canManagePanel } = useUIPermissions();
     
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
@@ -119,7 +118,6 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
             setFaviconDeleted(false);
 
         } catch (error) {
-            // Error in submission
         }
     };
 

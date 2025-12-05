@@ -126,7 +126,6 @@ export const Statistics: React.FC = () => {
   const { hasPermission, isLoading: permissionLoading } = usePermission();
   const { data: stats, isLoading, error } = useStatistics();
 
-  // ✅ چک کردن دسترسی به داشبورد
   const hasAnyStatisticsPermission = useMemo(() => 
     hasPermission('statistics.users.read') ||
     hasPermission('statistics.admins.read') ||
@@ -136,7 +135,6 @@ export const Statistics: React.FC = () => {
     [hasPermission]
   );
 
-  // Render loading cards
   const renderLoadingCards = () => (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-8">
       {STAT_CARDS_CONFIG.map((config) => (

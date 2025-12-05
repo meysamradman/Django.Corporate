@@ -18,13 +18,9 @@ class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-
-        validated_data = serializer.validated_data.copy()
-        validated_data['ip_address'] = self.get_client_ip(request)
-        validated_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
         
         try:
-            create_contact_form_submission(validated_data)
+            create_contact_form_submission(serializer.validated_data, request=request)
             
             return APIResponse.success(
                 message=FORM_SUBMISSION_SUCCESS['submission_created'],
@@ -49,13 +45,4 @@ class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
                 message=FORM_SUBMISSION_ERRORS['submission_create_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
-    @staticmethod
-    def get_client_ip(request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
 

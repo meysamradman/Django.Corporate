@@ -64,24 +64,6 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
         help_text="Save audio to database? (default: false - only generate)"
     )
     
-    def validate_provider_name(self, value):
-        if value != 'openai':
-            raise serializers.ValidationError(
-                AI_ERRORS["provider_tts_not_supported"].format(provider_name=value)
-            )
-        
-        try:
-            provider = AIProvider.objects.get(slug=value, is_active=True)
-            if not provider.shared_api_key:
-                raise serializers.ValidationError(
-                    AI_ERRORS["provider_not_available"].format(provider_name=value)
-                )
-        except AIProvider.DoesNotExist:
-            raise serializers.ValidationError(
-                AI_ERRORS["provider_not_available"].format(provider_name=value)
-            )
-        return value
-    
     def validate_text(self, value):
         if not value or not value.strip():
             raise serializers.ValidationError(AI_ERRORS["text_empty"])

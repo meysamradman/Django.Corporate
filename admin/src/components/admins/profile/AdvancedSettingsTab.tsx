@@ -54,7 +54,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         is_superuser: admin.is_superuser
     });
 
-    // Check if current user can manage permissions
     const userPermissionsObj = {
         permissions: user?.permissions || [],
         is_super: user?.is_superuser || false,
@@ -67,17 +66,12 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         hasPermission(userPermissionsObj, 'admin.manage')
     );
 
-    // ✅ Load admin roles and permissions when admin.id changes OR when admin prop updates
-    // This ensures fresh data after refresh or when admin prop changes
     useEffect(() => {
-        // Reset edit mode when admin changes to ensure fresh state
         setEditMode(false);
         loadAdminData();
     }, [admin.id]);
     
-    // ✅ Also reload when admin prop changes (e.g., after save/update from parent)
     useEffect(() => {
-        // Only reload if not in edit mode to avoid losing user's changes
         if (!editMode) {
             loadAdminData();
         }
@@ -88,21 +82,14 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             setIsLoading(true);
             setError(null);
 
-            // Load available roles - Get all roles by fetching all pages
             const rolesData = await roleApi.getAllRoles();
             setAvailableRoles(rolesData);
 
-            // ✅ Load admin roles - Always fetch fresh data
             const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
             
-            // ✅ CRITICAL FIX: Extract role details from AdminUserRole structure
-            // Backend returns AdminRoleAssignmentSerializer which has nested 'role' object
             const adminRolesData = Array.isArray(adminRolesResponse) 
                 ? adminRolesResponse.map((assignment: any) => {
-                    // AdminRoleAssignmentSerializer returns: { id, role: {...}, user, ... }
-                    // We need to extract the nested 'role' object
                     if (assignment.role && typeof assignment.role === 'object' && assignment.role.id) {
-                        // Return the nested role object with all its properties
                         return {
                             id: assignment.role.id,
                             name: assignment.role.name,
@@ -114,21 +101,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             is_active: assignment.role.is_active
                         };
                     }
-                    // Fallback: if it's already a role object (shouldn't happen but just in case)
                     if (assignment.id && assignment.name) {
                         return assignment;
                     }
                     return null;
-                  }).filter((role: any) => role !== null) // Remove null entries
+                  }).filter((role: any) => role !== null)
                 : [];
             
             setAdminRoles(adminRolesData);
 
-            // ✅ CRITICAL: Always initialize role assignments from fresh API data
-            // This ensures checkbox states match the actual database state after refresh
             const initialAssignments: RoleAssignment[] = rolesData.map((role: Role) => {
-                // ✅ FIX: Check against extracted role IDs from fresh API response
-                // Use strict comparison to ensure we match correctly
                 const assigned = adminRolesData.some((adminRole: any) => {
                     return adminRole && adminRole.id === role.id;
                 });
@@ -139,18 +121,14 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 };
             });
             
-            // ✅ Always update roleAssignments with fresh data
-            // This ensures after refresh, checkboxes show correct state from database
             setRoleAssignments(initialAssignments);
 
-            // Load base permissions that all admins have
             try {
                 const basePermsResponse = await roleApi.getBasePermissions();
                 if (basePermsResponse.data && Array.isArray(basePermsResponse.data)) {
                     setBasePermissions(basePermsResponse.data);
                 }
             } catch (permError) {
-                // Error loading base permissions
             }
             
         } catch (error) {
@@ -163,20 +141,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode || !canManagePermissions) return;
         
-        // ✅ FIX: Ensure role exists in assignments and update correctly
         setRoleAssignments(prev => {
-            // Check if role exists in current assignments
             const existingAssignment = prev.find(a => a.roleId === roleId);
             
             if (existingAssignment) {
-                // ✅ Update existing assignment - ensure we replace it correctly
                 return prev.map(assignment => 
                     assignment.roleId === roleId 
-                        ? { roleId, assigned } // ✅ Use new values directly
+                        ? { roleId, assigned }
                         : assignment
                 );
             } else {
-                // ✅ Add new assignment if role doesn't exist
                 return [...prev, { roleId, assigned }];
             }
         });
@@ -198,10 +172,8 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     };
 
     const handleCancel = () => {
-        // ✅ FIX: Reset role assignments to original state
         const originalAssignments = availableRoles.map((role: Role) => ({
             roleId: role.id,
-            // adminRoles now contains extracted role objects
             assigned: adminRoles.some((adminRole: any) => adminRole.id === role.id)
         }));
         setRoleAssignments(originalAssignments);
@@ -214,7 +186,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             return;
         }
 
-        // Prevent editing permissions for Super Admin
         if (admin.is_superuser) {
             toast.info(getPermissionTranslation('سوپر ادمین به صورت خودکار تمام دسترسی‌ها را دارد', 'description'));
             setEditMode(false);
@@ -224,13 +195,10 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         try {
             setIsSaving(true);
             
-            // ✅ FIX: Handle role assignments
-            // Get current assignments - adminRoles now contains extracted role objects
             const currentAssignedRoleIds = adminRoles.map((role: any) => role.id);
             
-            // ✅ FIX: Get new assigned role IDs from current state (ensure we use the latest state)
             const newAssignedRoleIds = roleAssignments
-                .filter(assignment => assignment.assigned === true) // ✅ Explicit check for true
+                .filter(assignment => assignment.assigned === true)
                 .map(assignment => assignment.roleId);
             
             const rolesToRemove = currentAssignedRoleIds.filter(
@@ -238,10 +206,9 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             );
             
             const rolesToAdd = newAssignedRoleIds.filter(
-                (roleId: number) => !currentAssignedRoleIds.includes(roleId)
+                (roleId: number) =>                 !currentAssignedRoleIds.includes(roleId)
             );
             
-            // ✅ Remove roles with error tracking
             const removeResults: { success: number[], failed: { id: number, error: string }[] } = {
                 success: [],
                 failed: []
@@ -255,7 +222,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
                     
-                    // Extract error message from API response
                     let errorMessage = 'خطای نامشخص';
                     if (error?.response?.data?.data?.validation_errors) {
                         errorMessage = JSON.stringify(error.response.data.data.validation_errors);
@@ -271,7 +237,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 }
             }
             
-            // ✅ Add roles with detailed error tracking
             const assignResults: { success: number[], failed: { id: number, error: string }[] } = {
                 success: [],
                 failed: []
@@ -285,7 +250,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
                     
-                    // Extract error message from API response
                     let errorMessage = 'خطای نامشخص';
                     if (error?.response?.data?.data?.validation_errors) {
                         errorMessage = JSON.stringify(error.response.data.data.validation_errors);
@@ -301,16 +265,12 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 }
             }
             
-            // ✅ Check if any operations failed
             const totalFailed = removeResults.failed.length + assignResults.failed.length;
             const totalSuccess = removeResults.success.length + assignResults.success.length;
             
-            // ✅ Show appropriate toast message based on results
             if (totalFailed === 0 && totalSuccess > 0) {
-                // All successful
                 toast.success(getPermissionTranslation("نقش‌های ادمین با موفقیت به‌روزرسانی شد", 'description'));
             } else if (totalSuccess === 0 && totalFailed > 0) {
-                // All failed
                 const allErrors = [...removeResults.failed, ...assignResults.failed].map(f => f.error);
                 toast.error(
                     getPermissionTranslation('خطا در به‌روزرسانی نقش‌ها', 'description'),
@@ -319,44 +279,30 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     }
                 );
             } else if (totalFailed > 0) {
-                // Partial success
                 const allErrors = [...removeResults.failed, ...assignResults.failed].map(f => f.error);
                 toast.warning(
                     getPermissionTranslation('بعضی نقش‌ها با خطا مواجه شدند', 'description'),
                     {
-                        description: `✅ موفق: ${totalSuccess}\n❌ ناموفق: ${totalFailed}\n\n${allErrors.join('\n')}`
+                        description: `موفق: ${totalSuccess}\nناموفق: ${totalFailed}\n\n${allErrors.join('\n')}`
                     }
                 );
             }
             
-            // ✅ CRITICAL: Only reload if at least one operation succeeded
-            // This ensures we don't reload stale data if everything failed
             if (totalSuccess > 0) {
-                // ✅ Exit edit mode first to ensure fresh data load
                 setEditMode(false);
                 
-                // ✅ CRITICAL: Wait a bit for backend to process and clear cache
-                // This ensures we get fresh data from database, not cached data
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // ✅ CRITICAL: Force reload by clearing local state first
-                // This ensures we don't use stale data
                 setAdminRoles([]);
                 setRoleAssignments([]);
                 
-                // ✅ Reload data to reflect changes
                 await loadAdminData();
                 
-                // ✅ CRITICAL: Invalidate permission-map query to refresh permissions in sidebar
                 await queryClient.invalidateQueries({ queryKey: ['permission-map'] });
                 
-                // ✅ CRITICAL: Refresh current user's permissions if editing own profile or if current user's roles changed
                 if (refreshUser && (user?.id === admin.id || rolesToAdd.length > 0 || rolesToRemove.length > 0)) {
                     await refreshUser();
                 }
-            } else {
-                // If everything failed, stay in edit mode so user can try again
-                // Don't reload to avoid losing their selections
             }
             
         } catch (error) {
@@ -369,7 +315,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     return (
         <TabsContent value="advanced_settings">
             <div className="space-y-6">
-            {/* Admin Settings Card */}
             <CardWithIcon
                 icon={Shield}
                 title="تنظیمات پیشرفته"
@@ -407,7 +352,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             />
                         </div>
 
-                        {/* Admin Roles Display */}
                         {adminRoles.length > 0 && (
                             <div className="rounded-lg border p-4">
                                 <Label>{getPermissionTranslation('نقش‌های فعلی', 'resource')}</Label>
@@ -424,7 +368,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             </div>
                         )}
 
-                        {/* Base Permissions Display - دسترسی‌های پایه */}
                         {basePermissions.length > 0 && (
                             <div className="rounded-lg border p-4 bg-green">
                                 <div className="flex items-center gap-2 mb-2">
@@ -451,7 +394,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                         )}
             </CardWithIcon>
 
-            {/* Role Assignment Card - Simplified role assignment without detailed permissions */}
             <CardWithIcon
                 icon={Users}
                 title="اختصاص نقش‌ها"
@@ -492,7 +434,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     </div>
                 }
             >
-                    {/* Super Admin Info */}
                     {admin.is_superuser && (
                         <div className="mb-4 p-4 bg-green border border-green-1 rounded-lg">
                             <div className="flex items-center gap-2">
@@ -527,7 +468,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                                     id={`role-${role.id}`}
                                                     checked={roleAssignments.find(a => a.roleId === role.id)?.assigned ?? false}
                                                     onCheckedChange={(checked) => {
-                                                        // ✅ FIX: Ensure boolean value is passed
                                                         handleRoleAssignmentChange(role.id, checked === true);
                                                     }}
                                                     disabled={!editMode || !canManagePermissions || admin.is_superuser}

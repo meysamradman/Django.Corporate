@@ -60,7 +60,6 @@ export default function MainLayout({children}: MainLayoutProps) {
                             </MediaContextProvider>
                     </div>
                 </main>
-                {/* Floating AI Chat Widget */}
                 <FloatingAIChat />
             </div>
         </div>

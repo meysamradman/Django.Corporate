@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد وضعیت ایمیل:
- * - جدید: red
- * - خوانده شده: blue
- * - پاسخ داده شده: green
- * - پیش‌نویس: orange
- */
 "use client";
 
 import React from "react";
@@ -106,7 +99,6 @@ export function EmailDetailView({
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden bg-card">
-      {/* Header */}
       <div className="border-b p-4 flex-shrink-0">
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="size-12 shrink-0">
@@ -175,9 +167,7 @@ export function EmailDetailView({
         </div>
       </div>
 
-      {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {/* Attachments */}
         {email.has_attachments && email.attachments && email.attachments.length > 0 && (
           <div className="border-b pb-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
@@ -203,7 +193,6 @@ export function EmailDetailView({
           </div>
         )}
 
-        {/* Message Content */}
         {email.message && (
           <div className="mb-4">
             <div className="prose prose-sm max-w-none">
@@ -212,7 +201,6 @@ export function EmailDetailView({
           </div>
         )}
 
-        {/* Dynamic Fields - نمایش فیلدهای دینامیک */}
         {email.dynamic_fields && Object.keys(email.dynamic_fields).length > 0 && (
           <div className="mb-4">
             <div className="bg-bg/50 rounded-lg p-4">
@@ -229,7 +217,6 @@ export function EmailDetailView({
           </div>
         )}
 
-        {/* Reply Section */}
         {email.reply_message && (
           <div className="border-t pt-4 mt-4">
             <div className="bg-bg/50 rounded-lg p-4">
@@ -247,7 +234,6 @@ export function EmailDetailView({
           </div>
         )}
 
-        {/* Metadata */}
         <div className="border-t pt-4 mt-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -282,7 +268,6 @@ export function EmailDetailView({
         </div>
       </div>
 
-      {/* Footer Actions */}
       <div className="border-t px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           {onToggleStar && mailbox !== "spam" && mailbox !== "trash" && (

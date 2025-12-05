@@ -3,34 +3,11 @@
 import { usePermission } from '../context/PermissionContext';
 import type { UIPermissions } from '../context/PermissionContext';
 
-/**
- * 🚀 Ultra-fast UI Permission Hook
- * 
- * استفاده از pre-computed flags بجای runtime checks
- * 
- * @example
- * ```tsx
- * function MyComponent() {
- *   const { canManageSettings, canUploadMedia } = useUIPermissions();
- *   
- *   if (!canManageSettings) return null;
- *   
- *   return <Button>Save Settings</Button>;
- * }
- * ```
- * 
- * Performance:
- * - ❌ Before: hasPermission('settings.manage') - O(1) but re-computes
- * - ✅ After: ui.canManageSettings - Pre-computed, zero overhead
- */
 export function useUIPermissions(): UIPermissions {
   const { ui } = usePermission();
   return ui;
 }
 
-/**
- * 🎯 Shorthand hooks برای استفاده سریع‌تر
- */
 export function useCanManageSettings() {
   const { canManageSettings } = useUIPermissions();
   return canManageSettings;
@@ -91,7 +68,6 @@ export function useCanManagePages() {
   return canManagePages;
 }
 
-// Media - Type-specific shortcuts
 export function useCanUploadImage() {
   const { canUploadImage } = useUIPermissions();
   return canUploadImage;
@@ -112,7 +88,6 @@ export function useCanUploadDocument() {
   return canUploadDocument;
 }
 
-// Statistics - Granular shortcuts
 export function useCanViewDashboardStats() {
   const { canViewDashboardStats } = useUIPermissions();
   return canViewDashboardStats;

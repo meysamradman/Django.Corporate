@@ -1,8 +1,10 @@
 from django.db import models
+from django.core.cache import cache
 from django.core.validators import URLValidator
 
 from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
+from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 
 
 class GeneralSettings(BaseModel):
@@ -86,13 +88,18 @@ class GeneralSettings(BaseModel):
                 self.pk = existing.pk
                 self.public_id = existing.public_id
         super().save(*args, **kwargs)
+        SettingsCacheManager.invalidate_general_settings()
     
     @classmethod
     def get_settings(cls):
-        settings = cls.objects.first()
-        if not settings:
-            settings = cls.objects.create(
-                site_name="System Name",
-                copyright_text="All rights reserved"
-            )
+        cache_key = SettingsCacheKeys.general_settings()
+        settings = cache.get(cache_key)
+        if settings is None:
+            settings = cls.objects.select_related('logo_image', 'favicon_image', 'enamad_image').first()
+            if not settings:
+                settings = cls.objects.create(
+                    site_name="System Name",
+                    copyright_text="All rights reserved"
+                )
+            cache.set(cache_key, settings, 3600)  # 1 hour cache
         return settings

@@ -17,14 +17,7 @@ export interface UploadSettings {
     MEDIA_DOCUMENT_SIZE_LIMIT: number;
 }
 
-/**
- * ✅ دریافت تنظیمات آپلود از API بک‌اند
- * این تنظیمات از .env در بک‌اند خوانده می‌شود (بدون cache در فرانت)
- * در صورت خطا، از مقادیر پیش‌فرض استفاده می‌شود
- */
 export const getUploadSettings = (): UploadSettings => {
-    // ✅ Fallback به مقادیر پیش‌فرض در صورت عدم دسترسی به API
-    // این فقط برای fallback است - در حالت عادی از API استفاده می‌شود
     return {
         MEDIA_IMAGE_SIZE_LIMIT: mediaConfig.sizeLimits.image,
         MEDIA_ALLOWED_IMAGE_EXTENSIONS: [...mediaConfig.allowedExtensions.image],
@@ -37,10 +30,6 @@ export const getUploadSettings = (): UploadSettings => {
     };
 };
 
-/**
- * ✅ Hook برای دریافت تنظیمات آپلود از API با React Query
- * این hook تنظیمات را از بک‌اند می‌گیرد (بدون cache - همیشه fresh data)
- */
 export const useUploadSettings = (clearCache: boolean = false) => {
     return useQuery<MediaUploadSettings>({
         queryKey: ['media-upload-settings', clearCache ? 'fresh' : 'cached'],
@@ -60,18 +49,15 @@ export const useUploadSettings = (clearCache: boolean = false) => {
                 };
             }
         },
-        staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
-        gcTime: 0, // No cache retention
-        retry: 2, // Retry 2 times on failure
-        retryDelay: 1000, // 1 second delay between retries
-        refetchOnWindowFocus: true, // ✅ وقتی کاربر به صفحه برمی‌گردد، refresh کن
-        refetchOnMount: true, // ✅ وقتی component mount می‌شود، refresh کن
+        staleTime: 0,
+        gcTime: 0,
+        retry: 2,
+        retryDelay: 1000,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
     });
 };
 
-/**
- * دریافت تنظیمات آپلود (chunk size, timeout, etc.)
- */
 export const getUploadConfig = () => ({
     chunkSize: mediaConfig.uploadConfig.chunkSize,
     timeout: mediaConfig.uploadConfig.timeout,
@@ -80,5 +66,4 @@ export const getUploadConfig = () => ({
 });
 
 export const clearCache = (): void => {
-    // Cache clearing is handled by React Query automatically
 };

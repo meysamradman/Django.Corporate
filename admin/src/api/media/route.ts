@@ -18,21 +18,12 @@ export interface MediaUploadSettings {
   MEDIA_ALLOWED_PDF_EXTENSIONS: string[];
 }
 
-// ✅ NO CACHE TAGS: Admin panel is CSR only - caching handled by backend Redis
-
-// Define valid page sizes for the media grid
 export const VALID_MEDIA_PAGE_SIZES = [12, 24, 36, 48];
 export const DEFAULT_MEDIA_PAGE_SIZE = 12;
 
-// Admin media path - must use admin router
 const BASE_MEDIA_PATH = '/admin/media'; 
 
 export const mediaApi = {
-    /**
-     * Fetches a list of media items.
-     * @param filters Optional filters for the media list.
-     * @param options Optional fetch options (cookieHeader).
-     */
     getMediaList: async (
         filters?: MediaFilter,
         options?: {
@@ -71,16 +62,13 @@ export const mediaApi = {
                 queryParams.append('offset', String(offset));
             }
 
-            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
                 cookieHeader: options?.cookieHeader,
             };
 
-            // Use the correct endpoint for listing media
             const endpoint = `${BASE_MEDIA_PATH}/?${queryParams.toString()}`;
             const response = await fetchApi.get<Media[]>(endpoint, fetchOptions);
 
-            // Ensure pagination info is properly structured
             if (!response.pagination) {
                 const count = response.data?.length || 0;
                 response.pagination = {
@@ -92,7 +80,6 @@ export const mediaApi = {
                     total_pages: Math.ceil(count / normalizedParams.size)
                 };
             } else {
-                // Fix pagination data to match frontend expectations
                 const pageSize = response.pagination.page_size || normalizedParams.size;
                 const totalCount = response.pagination.count || 0;
                 

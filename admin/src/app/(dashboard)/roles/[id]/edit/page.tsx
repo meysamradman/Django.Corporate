@@ -31,19 +31,15 @@ import {
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
 
-// ✅ OPTIMIZED: Statistics permissions that are actually used (defined once, reused)
-// ترتیب مهمه: در RTL از راست به چپ نمایش داده میشه (معکوس آرایه)
 const STATISTICS_USED_PERMISSIONS: readonly string[] = [
-  'statistics.manage', // دسترسی کامل اول (سمت راست)
+  'statistics.manage',
   'statistics.users.read',
   'statistics.admins.read',
   'statistics.content.read'
 ];
 
-// ✅ AI permissions that are actually used (defined once, reused)
-// ترتیب مهمه: در RTL از راست به چپ نمایش داده میشه (معکوس آرایه)
 const AI_USED_PERMISSIONS: readonly string[] = [
-  'ai.manage', // دسترسی کامل اول (سمت راست)
+  'ai.manage',
   'ai.chat.manage',
   'ai.content.manage',
   'ai.image.manage',
@@ -58,8 +54,6 @@ const roleSchema = z.object({
 });
 
 type RoleFormData = z.infer<typeof roleSchema>;
-
-// getResourceIcon is now imported from utils
 
 export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -87,7 +81,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     setValue,
   } = form;
 
-  // Set form data when role is loaded
   useEffect(() => {
     if (role) {
       reset({
@@ -97,52 +90,39 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     }
   }, [role, reset]);
 
-  // Set selected permissions based on role's current permissions + base permissions
   useEffect(() => {
     if (role && permissions) {
       const basePermissionIds = getBasePermissionIds(permissions);
       const rolePermissionIds: number[] = [];
       
-      // ✅ FIX: Reset selectedPermissions first to avoid stale state
-      // Check for specific_permissions format (new format)
       if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions)) {
         const specificPerms = role.permissions.specific_permissions;
         
-        // Match each specific permission to its ID
         permissions.forEach(group => {
           group.permissions.forEach(permission => {
-            // Skip base permissions
             if (basePermissionIds.includes(permission.id)) {
               return;
             }
             
-            // ✅ FIX: Improved matching logic
             const hasPermission = specificPerms.some((perm: any) => {
               const permOriginalKey = (permission as any).original_key;
               
-              // ✅ FIX: Always use permission_key (original_key) if available for exact match
-              // This ensures we match the exact permission, not just module+action
               if (permOriginalKey && perm.permission_key) {
                 return perm.permission_key === permOriginalKey;
               }
               
-              // ✅ FIX: For statistics permissions, use permission_key for exact match
               if (permission.resource === 'statistics' && permOriginalKey) {
                 return perm.permission_key === permOriginalKey;
               }
               
-              // ✅ FIX: For management permissions (is_standalone), use original_key for exact match
-              // Management permissions all have action='manage', so we need original_key to distinguish them
               if (permission.is_standalone && permOriginalKey) {
                 return perm.permission_key === permOriginalKey;
               }
               
-              // For other permissions, use module + action matching
               const permModule = (perm.module || perm.resource || '').toLowerCase();
               const permissionResource = (permission.resource || '').toLowerCase();
               const permResourceMatch = permModule === permissionResource;
               
-              // Normalize both actions to lowercase for comparison
               const backendAction = (perm.action || '').toLowerCase();
               const frontendAction = (permission.action || '').toLowerCase();
               const permActionMatch = backendAction === frontendAction;
@@ -156,7 +136,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           });
         });
       } else {
-        // Fallback: old modules/actions format
         const roleModules = role.permissions?.modules || [];
         const roleActions = role.permissions?.actions || [];
         
@@ -181,17 +160,13 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         });
       }
       
-      // ✅ FIX: Combine and dedup, ensuring valid numbers
-      // Only include base permissions and matched role permissions
       const uniqueIds = Array.from(new Set([...basePermissionIds, ...rolePermissionIds]))
         .filter(id => typeof id === 'number' && !isNaN(id));
       
-      // ✅ FIX: Set permissions only if they're different to avoid unnecessary re-renders
       setSelectedPermissions(prev => {
         const prevSet = new Set(prev);
         const newSet = new Set(uniqueIds);
         
-        // Check if sets are different
         if (prevSet.size !== newSet.size || 
             !Array.from(prevSet).every(id => newSet.has(id))) {
           return uniqueIds;
@@ -201,13 +176,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     }
   }, [role, permissions, basePermissions]);
   
-  // Helper function to get base permission IDs from API
   const getBasePermissionIds = (permissionGroups: any[]) => {
     if (!basePermissions || !Array.isArray(basePermissions)) return [];
     
     const basePermissionIds: number[] = [];
     
-    // Use base permissions from API
     basePermissions.forEach((basePerm: any) => {
       permissionGroups.forEach(group => {
         group.permissions.forEach((permission: any) => {
@@ -224,7 +197,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
   const togglePermission = (permissionId: number) => {
     setSelectedPermissions(prev => {
-      // Find the permission being toggled
       const allPermissions = permissions?.flatMap(g => g.permissions) || [];
       const toggledPerm = allPermissions.find((p: any) => p.id === permissionId);
       const isCurrentlySelected = prev.includes(permissionId);
@@ -232,39 +204,31 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       let newPermissions: number[];
       
       if (toggledPerm?.original_key === 'ai.manage') {
-        // ✅ If toggling ai.manage
         if (isCurrentlySelected) {
-          // Unselecting ai.manage - just remove it
           newPermissions = prev.filter(id => id !== permissionId);
         } else {
-          // Selecting ai.manage - remove all other AI permissions first
           const aiPermissionIds = allPermissions
             .filter((p: any) => p.original_key?.startsWith('ai.') && p.original_key !== 'ai.manage')
             .map((p: any) => p.id);
           newPermissions = [...prev.filter(id => !aiPermissionIds.includes(id)), permissionId];
         }
       } else if (toggledPerm?.original_key?.startsWith('ai.')) {
-        // ✅ If toggling any other AI permission
         const aiManagePerm = allPermissions.find((p: any) => p.original_key === 'ai.manage');
         const isAiManageSelected = aiManagePerm && prev.includes(aiManagePerm.id);
         
         if (isAiManageSelected) {
-          // ai.manage is selected - don't allow toggling other AI permissions
           return prev;
         }
         
-        // Normal toggle for other AI permissions
         newPermissions = prev.includes(permissionId)
           ? prev.filter(id => id !== permissionId)
           : [...prev, permissionId];
       } else {
-        // Normal toggle for non-AI permissions
         newPermissions = prev.includes(permissionId)
           ? prev.filter(id => id !== permissionId)
           : [...prev, permissionId];
       }
       
-      // Sync با form
       setValue("permission_ids", newPermissions, { shouldValidate: true });
       
       return newPermissions;
@@ -272,10 +236,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   };
 
   const toggleAllResourcePermissions = (resourcePermissions: any[]) => {
-    // Get all permission IDs for this resource
     const resourcePermissionIds = resourcePermissions.map(p => p.id);
     
-    // Check if all permissions for this resource are currently selected
     const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
     
     setSelectedPermissions(prev => {
@@ -291,7 +253,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             return updated;
           })();
       
-      // Sync با form
       setValue("permission_ids", newSelected, { shouldValidate: true });
       
       return newSelected;
@@ -308,21 +269,16 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     return resourcePermissionIds.every(id => selectedPermissions.includes(id));
   };
 
-  // Group permissions by resource and organize actions
   const getOrganizedPermissions = () => {
     if (!permissions) return [];
     
-    // Get base permission IDs to exclude them from the form
     const basePermissionIds = getBasePermissionIds(permissions);
     
-    // Create a map of resources and their permissions
     const resourceMap: Record<string, any> = {};
     
     permissions.forEach(group => {
-      // Filter out base permissions (dashboard.read, profile.read, profile.update)
       const filteredPermissions = group.permissions.filter((p: any) => !basePermissionIds.includes(p.id));
       
-      // Skip if no permissions left after filtering
       if (filteredPermissions.length === 0) return;
       
       if (!resourceMap[group.resource]) {
@@ -333,17 +289,13 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         };
       }
       
-      // Add filtered permissions for this resource
       resourceMap[group.resource].permissions.push(...filteredPermissions);
     });
     
-    // Convert to array
     return Object.values(resourceMap);
   };
 
-  // Get specific action permission for a resource
   const getActionPermission = (resourcePermissions: any[], action: string) => {
-    // List of possible action names for each type
     const actionVariants: Record<string, string[]> = {
       'view': ['view', 'list', 'read', 'get'],
       'create': ['create', 'post', 'write', 'add'],
@@ -359,24 +311,17 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     );
   };
 
-  // ✅ FIX: Memoize organizedPermissions to prevent re-computation
   const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
   
-  // Check if resource should be in management section
   const isManagementResource = (resource: any) => {
     const name = resource.resource?.toLowerCase() || '';
     const perms = resource.permissions || [];
 
-    // 1. Source of Truth: Check if any permission has is_standalone flag from backend
-    // This aligns perfectly with Backend/src/user/permissions/config.py
-    // Only these have is_standalone=True for management: panel, pages, forms, settings, chatbot
     const hasStandalonePermission = perms.some((p: any) => p.is_standalone);
     if (hasStandalonePermission) {
       return true;
     }
     
-    // 2. For others, check if they lack standard CRUD actions
-    // Statistics has CRUD permissions (read, export, manage) so should NOT be in management section
     const standardActions = ['create', 'post', 'write', 'add', 
                              'edit', 'update', 'put', 'patch', 'modify', 
                              'delete', 'remove', 'destroy', 'read', 'export', 'manage'];
@@ -389,12 +334,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     return !hasStandardAction;
   };
 
-  // Logic Update: Separating based on explicit list AND action types
   const manageOnlyResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => isManagementResource(r));
   }, [organizedPermissions]);
 
-  // Separate statistics and AI from standard resources
   const statisticsResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => r.resource === 'statistics');
   }, [organizedPermissions]);
@@ -407,22 +350,18 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     return organizedPermissions.filter((r: any) => !isManagementResource(r) && r.resource !== 'statistics' && r.resource !== 'ai');
   }, [organizedPermissions]);
 
-  // Backward compatibility (optional)
   const hasManageOnlyResources = manageOnlyResources.length > 0;
 
-  // 🔥 Smart Warning Logic: Check for resources with actions but no view permission
   const logicalPermissionErrors = useMemo(() => {
     const errors: string[] = [];
     
     standardResources.forEach((resource: any) => {
       const viewPerm = getActionPermission(resource.permissions, 'view');
       
-      // Skip if resource doesn't have a view permission (unlikely for standard resources)
       if (!viewPerm) return;
       
       const hasView = isPermissionSelected(viewPerm.id);
       
-      // Check if any other action is selected
       const otherActions = ['create', 'edit', 'delete'];
       const hasOtherAction = otherActions.some(action => {
         const perm = getActionPermission(resource.permissions, action);
@@ -439,35 +378,28 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
   const onSubmit = async (data: RoleFormData) => {
     try {
-      // ✅ FIX: Get base permission IDs to exclude them from submission
       const basePermissionIds = getBasePermissionIds(permissions || []);
       
-      // ✅ FIX: Filter out base permissions from selectedPermissions
-      // Base permissions are automatically granted to all admins and should not be sent
       const userSelectedPermissions = selectedPermissions.filter(
         id => !basePermissionIds.includes(id)
       );
       
-      // Convert permission IDs to modules/actions format that backend expects
       const selectedPermsData: Array<{module: string; action: string; permission_key?: string}> = [];
       
       if (permissions) {
         permissions.forEach((group: any) => {
           group.permissions.forEach((perm: any) => {
-            // ✅ FIX: Only include permissions that are selected AND not base permissions
             if (userSelectedPermissions.includes(perm.id)) {
-              // ✅ FIX: Always use original_key if available for exact permission matching
-              // This ensures backend can match the exact permission, not just module+action
               if (perm.original_key) {
                 selectedPermsData.push({
                   module: perm.resource,
                   action: perm.action.toLowerCase(),
-                  permission_key: perm.original_key // ✅ Add original_key for all permissions
+                  permission_key: perm.original_key
                 });
               } else {
                 selectedPermsData.push({
-                  module: perm.resource,  // Backend expects 'module' not 'resource'
-                  action: perm.action.toLowerCase() // Backend expects lowercase
+                  module: perm.resource,
+                  action: perm.action.toLowerCase()
                 });
               }
             }
@@ -475,7 +407,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         });
       }
 
-      // Build permissions object in backend format
       const permissionsPayload = selectedPermsData.length > 0 
         ? { specific_permissions: selectedPermsData }
         : {};
@@ -491,19 +422,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         data: payload,
       });
       
-      // ✅ FIX: Toast is already shown in useUpdateRole hook, no need to show again
-      // showSuccessToast(msg.ui("success")); // Removed to avoid duplicate toast
-      
-      // ✅ FIX: Wait for backend cache to clear and role to refetch
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ✅ FIX: Refetch role to get updated permissions
-      // This ensures the form shows the correct permissions after save
-      // Note: useUpdateRole already invalidates and refetches, but we wait a bit more
       
       router.push("/roles");
     } catch (error: any) {
-      
       if (hasFieldErrors(error)) {
         const fieldErrors = extractFieldErrors(error);
         Object.entries(fieldErrors).forEach(([field, message]) => {
@@ -581,16 +503,13 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="page-title">
           ویرایش نقش: {role.name}
         </h1>
       </div>
 
-      {/* Form */}
       <div className="space-y-6">
-        {/* Permissions */}
         <CardWithIcon
           icon={ShieldCheck}
           title="دسترسی‌ها"
@@ -618,14 +537,12 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             ) : permissions && permissions.length > 0 ? (
               <div className="space-y-8">
                 
-                {/* 🔥 Smart Warning Alert */}
                 <PermissionWarningAlert
                   logicalPermissionErrors={logicalPermissionErrors}
                   standardResources={standardResources}
                   getResourceIcon={getResourceIcon}
                 />
 
-                {/* Standard Resources Table */}
                 <StandardPermissionsTable
                   resources={standardResources}
                   selectedPermissions={selectedPermissions}
@@ -646,7 +563,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   getResourceIcon={getResourceIcon}
                 />
 
-                {/* Statistics Permissions - Separate Card */}
                 {statisticsResources.length > 0 && statisticsResources[0]?.permissions?.length > 0 && (
                   <StatisticsPermissionsCard
                     permissions={statisticsResources[0].permissions}
@@ -666,7 +582,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   />
                 )}
 
-                {/* AI Permissions - Separate Card */}
                 {aiResources.length > 0 && aiResources[0]?.permissions?.length > 0 && (
                   <AIPermissionsCard
                     permissions={aiResources[0].permissions}
@@ -683,11 +598,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                             }}
                     isPermissionSelected={isPermissionSelected}
                     getResourceIcon={getResourceIcon}
-                    allPermissions={permissions?.flatMap((g: any) => g.permissions) || []} // ✅ Pass all permissions for media check
+                    allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
                   />
                 )}
 
-                {/* Management-Only Modules */}
                 <ManagementPermissionsCard
                   resources={manageOnlyResources}
                   selectedPermissions={selectedPermissions}
@@ -705,7 +619,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   </div>
                 )}
                 
-                {/* نمایش خطا برای دسترسی‌ها */}
                 {errors.permission_ids?.message && (
                   <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10 rounded-lg">
                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -720,7 +633,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             )}
         </CardWithIcon>
 
-        {/* Basic Info */}
         <RoleBasicInfoForm
           form={form}
           onSubmit={onSubmit}

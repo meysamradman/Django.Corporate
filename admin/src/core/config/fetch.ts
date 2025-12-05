@@ -28,7 +28,6 @@ function getCsrfToken(): string | null {
     }
     }
   } catch (error) {
-    // CSRF token read error handled silently
   }
   return null;
 }
@@ -45,7 +44,6 @@ function getAdminSessionId(): string | null {
       }
     }
   } catch (error) {
-    // Cookie parsing error handled silently
   }
   return null;
 }
@@ -106,7 +104,6 @@ async function baseFetch<T>(
         }
     }
 
-    // ✅ NO CACHE: Admin panel is CSR only - all caching handled by backend Redis
     fetchOptions.cache = 'no-store';
 
     try {
@@ -116,7 +113,7 @@ async function baseFetch<T>(
         }
         
         const response = await fetch(fullUrl, fetchOptions);
-        clearTimeout(timeoutId); // Clear timeout if request succeeds
+        clearTimeout(timeoutId);
         
         let data: ApiResponse<T> | null = null;
         let errorText = '';
@@ -167,7 +164,6 @@ async function baseFetch<T>(
 
         if (!response.ok) {
             if (data && typeof data === 'object') {
-                // Extract specific validation errors if available
                 if (data.data || data.errors) {
                 }
             }
@@ -195,9 +191,7 @@ async function baseFetch<T>(
               };
         }
 
-        // Ensure the response has the correct structure
         if (response.ok && data && typeof data === 'object') {
-            // If data doesn't have metaData, wrap it properly
             if (!('metaData' in data)) {
                 const responseWithMeta: ApiResponse<T> = {
                     metaData: {
@@ -209,7 +203,6 @@ async function baseFetch<T>(
                     data: data as T
                 };
                 
-                // Add pagination if it exists in the response
                 if (data && typeof data === 'object' && 'pagination' in data) {
                     (responseWithMeta as any).pagination = (data as any).pagination;
                 }
@@ -217,11 +210,9 @@ async function baseFetch<T>(
                 return responseWithMeta;
             }
             
-            // If it already has metaData, return as is
             return data as ApiResponse<T>;
         }
 
-        // Handle case where data is null or undefined
         if (response.ok && (!data || typeof data !== 'object')) {
             return {
                 metaData: {
@@ -237,11 +228,10 @@ async function baseFetch<T>(
         return data as ApiResponse<T>;
 
     } catch (error) {
-        clearTimeout(timeoutId); // Always clear timeout
+        clearTimeout(timeoutId);
         if (error instanceof ApiError) {
             throw error;
         } else if (error instanceof Error && error.name === 'AbortError') {
-            // Timeout occurred
             throw new ApiError({
                 response: {
                     AppStatusCode: 504,
@@ -272,8 +262,6 @@ async function downloadFile(
     body?: BodyInit | Record<string, unknown> | null,
     options?: RequestOptions
 ): Promise<void> {
-    // For GET requests without body, use iframe for simple downloads (fast)
-    // But if error handling is needed, use fetch to get proper error messages from backend
     if (method === 'GET' && !body && !options?.useFetchForErrorHandling) {
         let fullUrl = url;
         if (!url.startsWith(env.API_BASE_URL)) {
@@ -292,14 +280,12 @@ async function downloadFile(
             try {
                 document.body.removeChild(iframe);
             } catch (e) {
-                // Iframe might already be removed
             }
         }, 5000);
         
         return;
     }
 
-    // For POST requests or requests with body, use fetch + blob
     const headers: Record<string, string> = {
         ...getCsrfHeaders(),
         ...options?.headers,
@@ -330,11 +316,10 @@ async function downloadFile(
         fullUrl = `${env.API_BASE_URL}${url}`;
     }
 
-    const response = await fetch(fullUrl, fetchOptions);
+        const response = await fetch(fullUrl, fetchOptions);
 
-    if (!response.ok) {
-        // Try to parse error message from backend
-        let errorMessage = `Download failed: ${response.status}`;
+        if (!response.ok) {
+            let errorMessage = `Download failed: ${response.status}`;
         try {
             const contentType = response.headers.get('content-type');
             if (contentType?.includes('application/json')) {
@@ -343,7 +328,6 @@ async function downloadFile(
             } else {
                 const errorText = await response.text();
                 if (errorText) {
-                    // Try to parse JSON from text
                     try {
                         const errorJson = JSON.parse(errorText);
                         errorMessage = errorJson?.metaData?.message || errorJson?.message || errorMessage;
@@ -353,7 +337,6 @@ async function downloadFile(
                 }
             }
         } catch (parseError) {
-            // Keep default error message
         }
         
         throw new ApiError({

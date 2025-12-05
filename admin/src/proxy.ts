@@ -42,7 +42,6 @@ export default function proxy(req: NextRequest) {
     if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
       const csrfHeader = req.headers.get('X-CSRFToken');
       if (!csrfHeader && !csrfCookie?.value) {
-        // CSRF validation should be done in route handlers for security
       }
     }
     

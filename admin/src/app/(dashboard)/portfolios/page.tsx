@@ -61,7 +61,6 @@ export default function PortfolioPage() {
   const [categories, setCategories] = useState<PortfolioCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   
-  // Initialize state from URL params
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -97,7 +96,6 @@ export default function PortfolioPage() {
       if (urlParams.get('categories__in')) {
         const categoryIds = urlParams.get('categories__in')?.split(',').map(Number);
         if (categoryIds && categoryIds.length > 0) {
-          // Store as comma-separated string to match the API format
           filters.categories = categoryIds.join(',') as any;
         }
       }
@@ -238,7 +236,6 @@ export default function PortfolioPage() {
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
   const rowActions: DataTableRowAction<Portfolio>[] = [
     {
       label: "ویرایش",
@@ -257,7 +254,6 @@ export default function PortfolioPage() {
   
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
-  // Export handlers
   const handleExportExcel = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
     try {
       const exportParams: any = {
@@ -315,22 +311,20 @@ export default function PortfolioPage() {
   };
 
   const handlePrint = async (printAll: boolean = false) => {
-    // Create print window with table design similar to PDF
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error("لطفاً popup blocker را غیرفعال کنید");
       return;
     }
 
-    // اگر printAll باشد، همه داده‌ها را از API بگیر
     let printData = data;
-    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS; // از env خوانده می‌شود (فقط برای دریافت داده)
+    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS;
     if (printAll) {
       try {
         const allParams = {
           search: searchValue || undefined,
           page: 1,
-          size: MAX_PRINT_ITEMS, // حداکثر آیتم‌ها (از env)
+          size: MAX_PRINT_ITEMS,
           order_by: sorting.length > 0 ? sorting[0].id : "created_at",
           order_desc: sorting.length > 0 ? sorting[0].desc : true,
           status: clientFilters.status as string | undefined,
@@ -353,7 +347,6 @@ export default function PortfolioPage() {
       }
     }
 
-    // Format date to Persian
     const formatDate = (dateString: string) => {
       const date = new Date(dateString);
       const year = date.getFullYear() - 621;
@@ -365,7 +358,6 @@ export default function PortfolioPage() {
       return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
     };
 
-    // Format status
     const getStatusText = (status: string) => {
       if (status === 'published') return 'منتشر شده';
       if (status === 'draft') return 'پیش‌نویس';
@@ -373,7 +365,6 @@ export default function PortfolioPage() {
       return status;
     };
 
-    // Build table rows
     const tableRows = printData.map((portfolio) => {
       const categories = portfolio.categories?.map(c => c.name).join(', ') || '-';
       const tags = portfolio.tags?.map(t => t.name).join(', ') || '-';
@@ -397,7 +388,6 @@ export default function PortfolioPage() {
       `;
     }).join('');
 
-    // Create HTML content
     const htmlContent = `
       <!DOCTYPE html>
       <html dir="rtl">
@@ -497,7 +487,6 @@ export default function PortfolioPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -507,21 +496,17 @@ export default function PortfolioPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      // Handle other filters
       setClientFilters(prev => ({
         ...prev,
         [filterKey]: value as string | boolean | number | undefined
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
-        // For boolean values, convert to string
         if (typeof value === 'boolean') {
           url.searchParams.set(filterKey, value.toString());
         } else if (filterKey === 'categories' && value !== undefined) {
-          // For categories, we need to handle the value correctly
           if (value === 'all' || value === '') {
             url.searchParams.delete('categories');
           } else {
@@ -538,7 +523,6 @@ export default function PortfolioPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -546,14 +530,12 @@ export default function PortfolioPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -561,7 +543,6 @@ export default function PortfolioPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -574,7 +555,6 @@ export default function PortfolioPage() {
   };
 
 
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -595,7 +575,6 @@ export default function PortfolioPage() {
           <Button 
             variant="outline"
             onClick={() => {
-              // Clear any cached data and retry
               queryClient.invalidateQueries({ queryKey: ['portfolios'] });
               window.location.reload();
             }}
@@ -610,7 +589,6 @@ export default function PortfolioPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -629,7 +607,6 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -690,7 +667,6 @@ export default function PortfolioPage() {
         filterConfig={portfolioFilterConfig}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

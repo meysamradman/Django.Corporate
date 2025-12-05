@@ -486,9 +486,9 @@ class AIModel(BaseModel, CacheMixin):
         audio_capabilities = ['audio', 'speech_to_text', 'text_to_speech'] if capability == 'audio' else None
         
         cache_key = AICacheKeys.models_by_capability(capability, include_inactive)
-        models_list = cache.get(cache_key)
+        cached_ids = cache.get(cache_key)
         
-        if models_list is None:
+        if cached_ids is None:
             query = cls.objects.filter(
                 provider__is_active=True
             ).select_related('provider').order_by('provider__sort_order', 'sort_order')
@@ -501,9 +501,14 @@ class AIModel(BaseModel, CacheMixin):
             else:
                 models_list = [m for m in query if capability in m.capabilities]
             
-            cache.set(cache_key, models_list, cls.CACHE_TIMEOUT)
+            cached_ids = [m.id for m in models_list]
+            cache.set(cache_key, cached_ids, cls.CACHE_TIMEOUT)
+            
+            return models_list
         
-        return models_list
+        return list(cls.objects.filter(
+            id__in=cached_ids
+        ).select_related('provider').order_by('provider__sort_order', 'sort_order'))
 
 
 class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):

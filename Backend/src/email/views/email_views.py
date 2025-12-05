@@ -13,7 +13,7 @@ from src.email.serializers.email_serializer import (
     EmailMessageSerializer
 )
 from src.email.services.email_service import EmailService
-from src.user.authorization.admin_permission import EmailManagerAccess
+from src.user.authorization import EmailManagerAccess
 from src.user.permissions import PermissionValidator
 
 
@@ -68,7 +68,12 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            instance = serializer.save()
+            # فراخوانی Service برای Business Logic
+            instance = EmailService.create_email_message(
+                validated_data=serializer.validated_data,
+                request=request,
+                initial_data=serializer.initial_data
+            )
             response_serializer = EmailMessageSerializer(instance)
             
             return APIResponse.success(

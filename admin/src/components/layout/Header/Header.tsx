@@ -22,9 +22,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSubMenu }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 min-h-16 items-center justify-between gap-2 sm:gap-4 border-b bg-header px-2 sm:px-4 lg:px-6 overflow-hidden">
-      {/* Left side: Toggles + Breadcrumb (grows) */}
       <div className="flex flex-1 items-center gap-2 min-w-0 sm:gap-4">
-        {/* Mobile Menu Toggle */}
         <Button
           variant="outline"
           size="icon"
@@ -35,7 +33,6 @@ export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSu
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* Desktop Sidebar Toggle */}
         {onContentToggle && (
           <button
             onClick={() => hasSubMenu && onContentToggle()}
@@ -52,13 +49,11 @@ export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSu
           </button>
         )}
         
-        {/* Breadcrumb container - hidden on mobile */}
         <div className="hidden flex-1 min-w-0 lg:block">
           <Breadcrumb />
         </div>
       </div>
 
-      {/* Right side: Actions (fixed size) */}
       <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 shrink-0 min-w-0">
         <div className="shrink-0">
           <AIChatButton />

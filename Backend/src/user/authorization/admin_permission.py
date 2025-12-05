@@ -433,14 +433,10 @@ class AdminPermissionCache:
             pass
 
 
-# Re-export permission classes from permission_factory for backward compatibility
-# These are dynamically generated but need to be available here for existing imports
 def _import_permission_classes():
-    """Import and re-export dynamically generated permission classes"""
     try:
         import src.user.permissions.permission_factory as pf
         
-        # Get all generated classes
         for class_name in pf.__all__:
             globals()[class_name] = getattr(pf, class_name)
     except ImportError:

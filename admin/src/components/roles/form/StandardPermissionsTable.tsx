@@ -145,7 +145,6 @@ export function StandardPermissionsTable({
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  {/* ✅ FIX: Hide "Create" checkbox for ticket (users create tickets, admins only manage) */}
                   {resource.resource === 'ticket' ? (
                     <div className="flex justify-center">
                       <span className="text-sm text-font-s">-</span>

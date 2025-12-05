@@ -24,7 +24,6 @@ export interface NotificationCounts {
 export const notificationsApi = {
   getNotificationCounts: async (): Promise<NotificationCounts> => {
     try {
-      // Fetch tickets and emails stats in parallel
       const [ticketsResponse, emailsResponse] = await Promise.allSettled([
         fetchApi.get<{
           new_tickets_count: number;

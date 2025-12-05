@@ -84,7 +84,6 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
       )}
       onClick={() => onClick?.(email)}
     >
-      {/* Checkbox */}
       <div onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={isSelected}
@@ -93,7 +92,6 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
         />
       </div>
 
-      {/* Star */}
       <Star
         className={cn(
           "size-4 shrink-0 transition-colors",
@@ -108,7 +106,6 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
         } : undefined}
       />
 
-      {/* Avatar */}
       <Avatar className="size-10 shrink-0">
         <AvatarImage 
           src={undefined}
@@ -120,7 +117,6 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
         </AvatarFallback>
       </Avatar>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <div
@@ -151,7 +147,6 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
         </div>
       </div>
 
-      {/* Date */}
       <div className="text-xs text-font-s shrink-0 cursor-pointer">
         {formatDate(email.created_at)}
       </div>

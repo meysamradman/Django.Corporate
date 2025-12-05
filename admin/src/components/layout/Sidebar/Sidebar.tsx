@@ -51,31 +51,26 @@ export function Sidebar({
     const setContentCollapsed = useAdminStore((state) => state.setContentCollapsed);
 
     const findActiveItem = useCallback((): MenuItem | null => {
-        // Early return for common cases
         if (!pathname || !menuData.groups.length) {
             return menuData.groups[0]?.items[0] || null;
         }
 
         for (const group of menuData.groups) {
             for (const item of group.items) {
-                // Check exact match first (fastest - O(1))
                 if ('url' in item && item.url === pathname) {
                     return item;
                 }
                 
-                // Check dynamic route match (like /admins/123 with /admins)
                 if ('url' in item && item.url && pathname.startsWith(item.url + '/')) {
                     return item;
                 }
 
-                // Check submenu items
                 if ('items' in item && item.items) {
                     for (const subItem of item.items) {
                         if (subItem.url === pathname) {
                             return item;
                         }
                         
-                        // Check dynamic route match for submenu items
                         if (subItem.url && pathname.startsWith(subItem.url + '/')) {
                             return item;
                         }
@@ -84,11 +79,9 @@ export function Sidebar({
             }
         }
 
-        // Fallback to first item if no match found
         return menuData.groups[0]?.items[0] || null;
     }, [pathname, menuData]);
 
-    // Memoize activeItem to prevent unnecessary recalculations
     const activeItem = useMemo(() => findActiveItem(), [findActiveItem]);
 
     useEffect(() => {

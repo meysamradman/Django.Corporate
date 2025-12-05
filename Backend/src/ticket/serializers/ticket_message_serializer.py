@@ -58,47 +58,4 @@ class TicketMessageCreateSerializer(serializers.ModelSerializer):
         if sender_type not in ['user', 'admin']:
             raise serializers.ValidationError(TICKET_ERRORS['invalid_sender_type'])
         return attrs
-    
-    def create(self, validated_data):
-        attachment_ids = validated_data.pop('attachment_ids', [])
-        sender_type = validated_data.get('sender_type')
-        request = self.context.get('request')
-        
-        if sender_type == 'user' and request and hasattr(request, 'user') and request.user.is_authenticated:
-            validated_data['sender_user'] = request.user
-        elif sender_type == 'admin' and request and hasattr(request, 'user') and request.user.is_authenticated:
-            if hasattr(request.user, 'admin_profile'):
-                validated_data['sender_admin'] = request.user.admin_profile
-        
-        message = TicketMessage.objects.create(**validated_data)
-        
-        if attachment_ids:
-            for media_id in attachment_ids:
-                attachment = TicketAttachment(ticket_message=message)
-                
-                image = ImageMedia.objects.filter(id=media_id, is_active=True).first()
-                if image:
-                    attachment.image = image
-                    attachment.save()
-                    continue
-                
-                video = VideoMedia.objects.filter(id=media_id, is_active=True).first()
-                if video:
-                    attachment.video = video
-                    attachment.save()
-                    continue
-                
-                audio = AudioMedia.objects.filter(id=media_id, is_active=True).first()
-                if audio:
-                    attachment.audio = audio
-                    attachment.save()
-                    continue
-                
-                document = DocumentMedia.objects.filter(id=media_id, is_active=True).first()
-                if document:
-                    attachment.document = document
-                    attachment.save()
-                    continue
-        
-        return message
 

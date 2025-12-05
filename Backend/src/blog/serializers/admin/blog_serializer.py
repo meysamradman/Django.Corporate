@@ -1,4 +1,3 @@
-import logging
 from rest_framework import serializers
 from django.core.cache import cache
 from django.conf import settings
@@ -342,12 +341,6 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
         tags_ids = validated_data.pop('tags_ids', [])
         media_files = validated_data.pop('media_files', [])
         
-        if not validated_data.get('meta_title') and validated_data.get('title'):
-            validated_data['meta_title'] = validated_data['title'][:70]
-            
-        if not validated_data.get('meta_description') and validated_data.get('short_description'):
-            validated_data['meta_description'] = validated_data['short_description'][:300]
-        
         blog = Blog.objects.create(**validated_data)
         
         if categories_ids:
@@ -406,12 +399,6 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         main_image_id = validated_data.pop('main_image_id', None)
         media_covers = validated_data.pop('media_covers', None)
         
-        if not validated_data.get('meta_title') and validated_data.get('title'):
-            validated_data['meta_title'] = validated_data['title'][:70]
-            
-        if not validated_data.get('meta_description') and validated_data.get('short_description'):
-            validated_data['meta_description'] = validated_data['short_description'][:300]
-        
         for field, value in validated_data.items():
             setattr(instance, field, value)
         
@@ -422,14 +409,6 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         if tags_ids is not None:
             instance.tags.set(tags_ids)
         
-        if media_ids is not None:
-            BlogAdminMediaService.sync_media(
-                blog_id=instance.id,
-                media_ids=media_ids,
-                main_image_id=main_image_id,
-                media_covers=media_covers
-            )
-            
         return instance
 
 

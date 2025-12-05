@@ -19,13 +19,12 @@ export type PermissionMapResponse = {
     modules: string[]
   }
   user_permissions: string[]
-  base_permissions: string[]  // Base permissions (رایگان برای همه ادمین‌ها)
+  base_permissions: string[]
   is_superadmin: boolean
 }
 
 export const permissionApi = {
   async getMap(options?: {}) {
-    // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
     const res = await fetchApi.get<PermissionMapResponse>('/admin/permissions/map/', options)
     return res.data
   },

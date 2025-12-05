@@ -30,16 +30,3 @@ class PanelSettingsSerializer(serializers.ModelSerializer):
         if obj.favicon and hasattr(obj.favicon, 'file') and obj.favicon.file:
             return obj.favicon.file.url
         return None
-
-    def update(self, instance, validated_data):
-        if self.context['request'].data.get('remove_logo') == 'true':
-            instance.logo = None
-            
-        if self.context['request'].data.get('remove_favicon') == 'true':
-            instance.favicon = None
-        
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-            
-        instance.save()
-        return instance

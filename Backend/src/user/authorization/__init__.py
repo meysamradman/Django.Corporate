@@ -1,8 +1,3 @@
-"""
-Authorization module for admin permissions and roles.
-Provides permission classes, role management, and access control.
-"""
-
 from .admin_permission import (
     AdminRolePermission,
     RequireModuleAccess,
@@ -16,15 +11,12 @@ from .admin_permission import (
     AdminPermissionCache,
 )
 
-# Import dynamically generated permission classes
 import src.user.permissions.permission_factory as permission_factory
 
-# Store generated classes in a dictionary first
 _permission_classes = {}
 for class_name in permission_factory.__all__:
     _permission_classes[class_name] = getattr(permission_factory, class_name)
 
-# Create specific manager access classes
 BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
 PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
 UsersManagerAccess = _permission_classes.get('UsersManagerAccess')
@@ -41,7 +33,6 @@ ChatbotManagerAccess = _permission_classes.get('ChatbotManagerAccess')
 TicketManagerAccess = _permission_classes.get('TicketManagerAccess')
 AdminManagerAccess = _permission_classes.get('AdminManagerAccess')
 
-# Create aliases for compatibility
 ContentManagerAccess = BlogManagerAccess
 UserManagerAccess = UsersManagerAccess
 AnalyticsViewerAccess = StatisticsManagerAccess
@@ -72,7 +63,6 @@ from src.user.authorization.role_utils import (
 )
 
 __all__ = [
-    # Permission classes
     "AdminRolePermission",
     "UserManagementPermission",
     "SimpleAdminPermission",
@@ -83,8 +73,6 @@ __all__ = [
     "require_admin_roles",
     "require_module_access",
     "AdminPermissionCache",
-    
-    # Manager Access Classes
     "BlogManagerAccess",
     "PortfolioManagerAccess",
     "UsersManagerAccess",
@@ -100,20 +88,14 @@ __all__ = [
     "ChatbotManagerAccess",
     "TicketManagerAccess",
     "AdminManagerAccess",
-    
-    # Aliases (deprecated, for backward compatibility)
     "ContentManagerAccess",
     "UserManagerAccess",
     "AnalyticsViewerAccess",
     "SupportAdminAccess",
     "PanelSettingsAccess",
     "AIManagerAccess",
-    
-    # Views
     "AdminRoleView",
     "AdminPermissionView",
-    
-    # Config
     "SYSTEM_ROLES",
     "AVAILABLE_MODULES",
     "AVAILABLE_ACTIONS",
@@ -123,8 +105,6 @@ __all__ = [
     "get_default_permissions",
     "get_all_role_configs",
     "validate_role_permissions",
-    
-    # Role utils
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",

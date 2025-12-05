@@ -1,16 +1,3 @@
-/**
- * CSRF Token Management
- * 
- * Django sends CSRF token in two ways:
- * 1. Cookie: csrftoken (HttpOnly=False for JS access)
- * 2. Response header: X-CSRFToken (fallback)
- * 
- * Security Notes:
- * - Never store CSRF in localStorage (XSS vulnerable)
- * - Use sessionStorage only (cleared on tab close)
- * - Always validate token existence before API calls
- */
-
 interface CSRFTokenStore {
   token: string | null;
   lastUpdated: number | null;
@@ -72,7 +59,6 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      // Error reading cookie
     }
     return null;
   }
@@ -114,7 +100,6 @@ class CSRFTokenManager {
         sessionStorage.removeItem(this.SESSION_STORAGE_KEY);
       }
     } catch (error) {
-      // Error saving to storage
     }
   }
 

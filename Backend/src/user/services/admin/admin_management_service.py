@@ -5,7 +5,7 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_register_password
 from src.user.models import User, AdminProfile, AdminUserRole, AdminRole
 from src.media.models import ImageMedia
-from src.media.services.media_services import MediaAdminService
+from src.media.services.media_services import MediaAdminService as MediaService
 from src.user.services.admin.admin_profile_service import AdminProfileService
 from src.user.authorization.admin_permission import AdminPermissionCache
 from src.user.permissions.validator import PermissionValidator
