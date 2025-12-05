@@ -23,9 +23,6 @@ import {
 import { useMemo } from "react";
 import { formatNumber } from "@/core/utils/format";
 import { 
-  PieChart,
-  Pie,
-  Cell,
   BarChart,
   Bar,
   ResponsiveContainer,
@@ -33,8 +30,20 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  LabelList,
+  Cell
 } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartConfig
+} from "@/components/elements/Chart";
 
 const COLORS = {
   portfolio: '#F59E0B',
@@ -86,42 +95,120 @@ export const DashboardMain = () => {
     ].filter(item => item.value > 0);
   }, [stats]);
 
+  const contentDistributionChartData = useMemo(() => {
+    if (!stats) return [];
+    const data = [];
+    if (stats.total_portfolios > 0) {
+      data.push({ month: 'نمونه کارها', desktop: stats.total_portfolios });
+    }
+    if (stats.total_posts > 0) {
+      data.push({ month: 'بلاگ‌ها', desktop: stats.total_posts });
+    }
+    if (stats.total_media > 0) {
+      data.push({ month: 'رسانه‌ها', desktop: stats.total_media });
+    }
+    return data;
+  }, [stats]);
+
+  const contentDistributionConfig = useMemo(() => ({
+    desktop: {
+      label: 'توزیع محتوا',
+      color: COLORS.portfolio,
+    },
+    portfolio: {
+      label: 'نمونه کارها',
+      color: COLORS.portfolio,
+    },
+    blog: {
+      label: 'بلاگ‌ها',
+      color: COLORS.blog,
+    },
+    media: {
+      label: 'رسانه‌ها',
+      color: COLORS.media,
+    },
+  } satisfies ChartConfig), []);
+
   const supportStats = useMemo(() => {
     if (!stats) return [];
     const replied = (stats.total_emails || 0) - (stats.new_emails || 0) - (stats.unanswered_emails || 0);
     return [
       { 
         category: 'جدید', 
-        ایمیل: stats.new_emails || 0, 
-        تیکت: 0,
-        color: '#F97316'
+        newEmails: stats.new_emails || 0,
+        newTickets: 0,
       },
       { 
         category: 'بدون پاسخ', 
-        ایمیل: stats.unanswered_emails || 0, 
-        تیکت: stats.unanswered_tickets || 0,
-        color: '#EF4444'
+        unansweredEmails: stats.unanswered_emails || 0,
+        unansweredTickets: stats.unanswered_tickets || 0,
       },
       { 
         category: 'پاسخ داده شده', 
-        ایمیل: replied > 0 ? replied : 0, 
-        تیکت: 0,
-        color: '#10B981'
+        repliedEmails: replied > 0 ? replied : 0,
+        repliedTickets: 0,
       },
       { 
         category: 'باز', 
-        ایمیل: 0, 
-        تیکت: stats.open_tickets || 0,
-        color: '#3B82F6'
+        openEmails: 0,
+        openTickets: stats.open_tickets || 0,
       },
       { 
         category: 'فعال', 
-        ایمیل: 0, 
-        تیکت: stats.active_tickets || 0,
-        color: '#8B5CF6'
+        activeEmails: 0,
+        activeTickets: stats.active_tickets || 0,
       },
-    ].filter(item => (item.ایمیل > 0 || item.تیکت > 0));
+    ].filter(item => 
+      ((item.newEmails || 0) > 0 || (item.newTickets || 0) > 0) ||
+      ((item.unansweredEmails || 0) > 0 || (item.unansweredTickets || 0) > 0) ||
+      ((item.repliedEmails || 0) > 0 || (item.repliedTickets || 0) > 0) ||
+      ((item.openEmails || 0) > 0 || (item.openTickets || 0) > 0) ||
+      ((item.activeEmails || 0) > 0 || (item.activeTickets || 0) > 0)
+    );
   }, [stats]);
+
+  const supportStatsConfig = useMemo(() => ({
+    newEmails: {
+      label: 'ایمیل جدید',
+      color: '#3B82F6', // blue-500
+    },
+    newTickets: {
+      label: 'تیکت جدید',
+      color: '#60A5FA', // blue-400
+    },
+    unansweredEmails: {
+      label: 'ایمیل بدون پاسخ',
+      color: '#2563EB', // blue-600
+    },
+    unansweredTickets: {
+      label: 'تیکت بدون پاسخ',
+      color: '#3B82F6', // blue-500
+    },
+    repliedEmails: {
+      label: 'ایمیل پاسخ داده شده',
+      color: '#1D4ED8', // blue-700
+    },
+    repliedTickets: {
+      label: 'تیکت پاسخ داده شده',
+      color: '#2563EB', // blue-600
+    },
+    openEmails: {
+      label: 'ایمیل باز',
+      color: '#1E40AF', // blue-800
+    },
+    openTickets: {
+      label: 'تیکت باز',
+      color: '#1D4ED8', // blue-700
+    },
+    activeEmails: {
+      label: 'ایمیل فعال',
+      color: '#1E3A8A', // blue-900
+    },
+    activeTickets: {
+      label: 'تیکت فعال',
+      color: '#1E40AF', // blue-800
+    },
+  } satisfies ChartConfig), []);
 
   const storageData = useMemo(() => {
     if (!systemStats?.storage?.by_type) return [];
@@ -276,33 +363,32 @@ export const DashboardMain = () => {
                 <p className="text-xs text-font-s">نمونه کارها، بلاگ‌ها و رسانه‌ها</p>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={contentDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={85}
-                  paddingAngle={5}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${formatNumber(value)}`}
-                >
-                  {contentDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#fff',
-                    border: '1px solid #e8e8e8',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            <ChartContainer
+              config={contentDistributionConfig}
+              className="mx-auto aspect-square max-h-[250px] [&_.recharts-polar-angle-axis-tick_text]:text-right [&_.recharts-polar-angle-axis-tick_text]:direction-rtl [&_.recharts-polar-angle-axis-tick_text]:text-anchor-end"
+              style={{ direction: 'rtl' }}
+            >
+              <RadarChart data={contentDistributionChartData}>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <PolarGrid gridType="circle" radialLines={false} />
+                <PolarAngleAxis 
+                  dataKey="month" 
+                  tick={{ fill: '#6b6876', fontSize: 11 }}
+                />
+                <Radar
+                  dataKey="desktop"
+                  fill="var(--color-desktop)"
+                  fillOpacity={0.6}
+                  dot={{
+                    r: 4,
+                    fillOpacity: 1,
                   }}
                 />
-              </PieChart>
-            </ResponsiveContainer>
+              </RadarChart>
+            </ChartContainer>
             <div className="grid grid-cols-3 gap-2 mt-3">
               {contentDistribution.map((item, i) => (
                 <div key={i} className="text-center p-2 rounded-lg bg-bg border border-br">
@@ -422,38 +508,44 @@ export const DashboardMain = () => {
                 </div>
               )}
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={supportStats} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e8" opacity={0.2} />
-                <XAxis 
-                  dataKey="category" 
+            <ChartContainer 
+              config={supportStatsConfig} 
+              className="min-h-[300px] w-full [&_.recharts-cartesian-axis-tick_text]:text-right [&_.recharts-cartesian-axis-tick_text]:direction-rtl"
+              style={{ direction: 'rtl' }}
+            >
+              <BarChart accessibilityLayer data={supportStats}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="category"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
                   tick={{ fill: '#6b6876', fontSize: 11 }}
-                  axisLine={{ stroke: '#e8e8e8' }}
                 />
-                <YAxis 
-                  tick={{ fill: '#6b6876', fontSize: 11 }}
-                  axisLine={{ stroke: '#e8e8e8' }}
-                  domain={[0, 'auto']}
-                  allowDecimals={false}
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dashed" />}
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#fff',
-                    border: '1px solid #e8e8e8',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
                 {hasPermission('statistics.emails.read') && (
-                  <Bar dataKey="ایمیل" fill={COLORS.email} radius={[8, 8, 0, 0]} />
+                  <>
+                    <Bar dataKey="newEmails" stackId="a" fill="var(--color-newEmails)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="unansweredEmails" stackId="a" fill="var(--color-unansweredEmails)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="repliedEmails" stackId="a" fill="var(--color-repliedEmails)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="openEmails" stackId="a" fill="var(--color-openEmails)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="activeEmails" stackId="a" fill="var(--color-activeEmails)" radius={[0, 0, 4, 4]} />
+                  </>
                 )}
                 {hasPermission('statistics.tickets.read') && (
-                  <Bar dataKey="تیکت" fill={COLORS.ticket} radius={[8, 8, 0, 0]} />
+                  <>
+                    <Bar dataKey="newTickets" stackId="a" fill="var(--color-newTickets)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="unansweredTickets" stackId="a" fill="var(--color-unansweredTickets)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="repliedTickets" stackId="a" fill="var(--color-repliedTickets)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="openTickets" stackId="a" fill="var(--color-openTickets)" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="activeTickets" stackId="a" fill="var(--color-activeTickets)" radius={[4, 4, 0, 0]} />
+                  </>
                 )}
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         )}
         </div>
