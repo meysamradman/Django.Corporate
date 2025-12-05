@@ -12,7 +12,6 @@ import dynamic from "next/dynamic";
 import { Media } from "@/types/shared/media";
 import { getErrorMessage, getUIMessage, getValidationMessage } from "@/core/messages/message";
 
-// اینجا دیگه نیاز به form و validation نداریم چون مثل ادمین‌ها کار می‌کنیم
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
         <div className="space-y-4 rounded-lg border p-6">
@@ -28,7 +27,6 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-// بیا tabs رو مثل ادمین‌ها dynamic import کنیم
 const AccountTab = dynamic(
     () => import("@/components/users/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })),
     { loading: () => <TabContentSkeleton />, ssr: false }
@@ -69,7 +67,6 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         userData.profile?.city?.id || null
     );
 
-    // Initialize formData when userData is loaded
     useEffect(() => {
         if (userData) {
             setFormData({
@@ -89,13 +86,11 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             setSelectedProvinceId(userData.profile?.province?.id || null);
             setSelectedCityId(userData.profile?.city?.id || null);
         }
-    }, [userData?.id]); // Only initialize once when userData first loads
+    }, [userData?.id]);
 
-    // Sync formData with userData changes (especially after profile update)
     useEffect(() => {
         if (!userData) return;
         
-                // Update profile image if it changed in userData
         if (userData.profile?.profile_picture?.id !== formData.profileImage?.id) {
             setFormData(prev => ({
                 ...prev,
@@ -111,7 +106,6 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         }
         setFormData(prev => ({ ...prev, [field]: value }));
         
-        // پاک کردن خطای فیلد وقتی کاربر شروع به تایپ می‌کند
         if (fieldErrors[field]) {
             setFieldErrors(prev => {
                 const newErrors = { ...prev };
@@ -123,7 +117,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
 
     const handleProvinceChange = (provinceName: string, provinceId: number) => {
         handleInputChange("province", provinceName);
-        handleInputChange("city", ""); // Reset city when province changes
+        handleInputChange("city", "");
         setSelectedProvinceId(provinceId);
         setSelectedCityId(null);
     };
@@ -137,7 +131,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         if (isSaving) return;
         
         setIsSaving(true);
-        setFieldErrors({}); // پاک کردن خطاهای قبلی
+        setFieldErrors({});
         
         try {
             const updateData: Record<string, any> = {
@@ -164,12 +158,10 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                         toast.success(getUIMessage('userProfileUpdated'));
             setEditMode(false);
         } catch (error: any) {
-            // بررسی خطاهای فیلدها
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
                 const newFieldErrors: Record<string, string> = {};
                 
-                // بررسی خطاهای فیلدهای خاص
                 if (errorData.mobile) {
                     newFieldErrors.mobile = getValidationMessage('auth_mobile_invalid');
                 }
@@ -177,7 +169,6 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                     newFieldErrors.email = getValidationMessage('auth_email_invalid');
                 }
                 if (errorData.profile?.national_id) {
-                    // بررسی نوع خطای کد ملی
                     if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
                         newFieldErrors.nationalId = getValidationMessage('national_id_exists');
                     } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
@@ -193,21 +184,17 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                     newFieldErrors.lastName = getValidationMessage('last_name_required');
                 }
                 
-                // بررسی خطاهای کلی
                 if (errorData.detail) {
-                    // اگر خطای کلی وجود داشت، آن را در toast نمایش بده
                     toast.error(errorData.detail);
                     return;
                 }
                 
-                // اگر خطاهای فیلد وجود داشت، آنها را نمایش بده
                 if (Object.keys(newFieldErrors).length > 0) {
                     setFieldErrors(newFieldErrors);
-                    return; // از نمایش toast جلوگیری کن
+                    return;
                 }
             }
             
-            // نمایش پیام خطای کلی
             const errorMessage = getValidationMessage('userProfileUpdateFailed');
             toast.error(errorMessage);
         } finally {

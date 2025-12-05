@@ -54,7 +54,6 @@ export const env = {
   
   get APP_VERSION(): string { return process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'; },
   
-  // Portfolio Media Limits
   get PORTFOLIO_MEDIA_UPLOAD_MAX(): number { 
     return parseInt(process.env.NEXT_PUBLIC_PORTFOLIO_MEDIA_UPLOAD_MAX || '50', 10); 
   },

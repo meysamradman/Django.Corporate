@@ -1,9 +1,3 @@
-/**
- * پیام‌های مربوط به AI
- * Messages for AI features
- */
-
-// Helper functions for accessing messages
 export const getAIMessage = (key: keyof typeof AI_MESSAGES): string => {
   return AI_MESSAGES[key] || key;
 };
@@ -12,7 +6,6 @@ export const getAIUIMessage = (key: keyof typeof AI_UI_MESSAGES): string => {
   return AI_UI_MESSAGES[key] || key;
 };
 
-// Wrapper object for backward compatibility with msg.ai() and msg.aiUI()
 export const aiMsg = {
   ai: (key: keyof typeof AI_MESSAGES): string => {
     return AI_MESSAGES[key] || key;
@@ -22,9 +15,7 @@ export const aiMsg = {
   },
 };
 
-// AI Messages
 export const AI_MESSAGES = {
-  // Validation
   selectModel: "لطفاً یک مدل AI انتخاب کنید",
   selectModelWithInstructions: "لطفاً یک مدل AI انتخاب کنید. ابتدا باید در تنظیمات پنل > تنظیمات مدل‌های AI، یک Provider را فعال کنید.",
   enterTopic: "لطفاً موضوع محتوا را وارد کنید",
@@ -32,7 +23,6 @@ export const AI_MESSAGES = {
   enterMessage: "لطفاً پیام خود را وارد کنید",
   enterApiKey: "لطفاً API key را وارد کنید",
   
-  // Success
   contentGenerated: "محتوای جدید تولید شد",
   imageGenerated: "تصویر با موفقیت تولید شد (ذخیره نشده)",
   imageGeneratedAndSaved: "تصویر با موفقیت تولید و ذخیره شد",
@@ -41,26 +31,21 @@ export const AI_MESSAGES = {
   chatCleared: "چت پاک شد",
   operationSuccess: "عملیات با موفقیت انجام شد",
   
-  // Errors
   copyError: "خطا در کپی کردن",
   saveImageError: "خطا در ذخیره تصویر",
 } as const;
 
-// AI UI Messages (برای متن‌های UI مثل labels، placeholders، buttons)
 export const AI_UI_MESSAGES = {
-  // Labels
   selectModel: "انتخاب مدل AI",
   imagePrompt: "توضیحات تصویر",
   contentTopic: "موضوع محتوا",
   
-  // Placeholders
   selectModelPlaceholder: "انتخاب مدل",
   messagePlaceholder: "پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط جدید)",
   topicPlaceholder: "مثال: راهنمای کامل طراحی وب سایت",
   promptPlaceholder: "مثال: a beautiful cat, professional photography, high quality...",
   apiKeyPlaceholder: "API key را وارد کنید",
   
-  // Buttons
   generateContent: "تولید محتوای SEO",
   generatingContent: "در حال تولید محتوا...",
   generateImage: "تولید تصویر",
@@ -77,7 +62,6 @@ export const AI_UI_MESSAGES = {
   goToAISettings: "رفتن به تنظیمات AI",
   clearChat: "پاک کردن چت",
   
-  // Status & Info
   selected: "انتخاب شده",
   clickToSelect: "برای انتخاب کلیک کنید",
   active: "فعال",
@@ -88,7 +72,6 @@ export const AI_UI_MESSAGES = {
   times: "بار",
   notSaved: "(ذخیره نشده)",
   
-  // Empty States
   noActiveProviders: "هیچ Provider فعالی یافت نشد",
   noActiveProvidersForImage: "هیچ مدل AI فعالی برای تولید تصویر وجود ندارد",
   noActiveModel: "هیچ مدل فعالی یافت نشد",
@@ -102,23 +85,19 @@ export const AI_UI_MESSAGES = {
   imageGenerationStep3: "API key را ذخیره کنید",
   imageGenerationStep4: "Switch را فعال کنید",
   
-  // Tips & Info
   qualityTipTitle: "💡 نکته برای کیفیت بهتر:",
   qualityTipDescription: "برای نتیجه بهتر، توضیحات را به انگلیسی بنویسید. مثال: \"a beautiful cat, high quality, detailed\"",
   qualityTipNote: "سیستم به صورت خودکار کلمات کلیدی کیفیت را اضافه می‌کند.",
   autoSaveLabel: "ذخیره خودکار در دیتابیس (اگر خالی باشد، فقط نمایش داده می‌شود - سریع‌تر)",
   
-  // Copy Buttons
   copyHTML: "کپی HTML",
   copyText: "کپی متن",
   copiedHTML: "کپی HTML شد",
   
-  // Content Labels
   fullContent: "محتوای کامل",
   generatedImage: "تصویر تولید شده",
   responding: "در حال پاسخ...",
   
-  // Confirmations
   confirmClearChat: "آیا مطمئن هستید که می‌خواهید تمام پیام‌ها را پاک کنید؟",
 } as const;
 

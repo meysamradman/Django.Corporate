@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - منتشر شده: green
- * - پیش‌نویس: yellow
- * - فعال: green
- * - غیرفعال: red
- */
 import { ColumnDef } from "@tanstack/react-table";
 import { Blog } from "@/types/blog/blog";
 import { Button } from "@/components/elements/Button";
@@ -66,7 +59,6 @@ export const useBlogColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const blog = row.original;
-        // Use the main_image object directly from the API response
         const imageUrl = blog.main_image?.file_url 
           ? mediaService.getMediaUrlFromObject({ file_url: blog.main_image.file_url } as any)
           : "";
@@ -166,8 +158,7 @@ export const useBlogColumns = (
             </div>
           );
         }
-        
-        // نمایش دسته‌بندی‌ها به صورت سلسله مراتبی
+
         const renderCategoryPath = (category: any) => {
           if (category.parent) {
             return `${category.parent.name} > ${category.name}`;
@@ -242,7 +233,6 @@ export const useBlogColumns = (
     {
       id: "actions",
       cell: ({ row }) => {
-        // Default actions if none provided
         const defaultActions: DataTableRowAction<Blog>[] = [
           {
             label: "ویرایش",
@@ -252,9 +242,7 @@ export const useBlogColumns = (
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (blog) => {
-              // Delete blog functionality would go here
-            },
+            onClick: (blog) => {},
             isDestructive: true,
           },
         ];

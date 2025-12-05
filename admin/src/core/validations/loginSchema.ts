@@ -1,13 +1,6 @@
 import { z } from "zod";
 import { msg } from "@/core/messages/message";
 
-/**
- * Zod Schema برای Validation فرم ورود
- * 
- * @description
- * این Schema تمام فیلدهای فرم ورود را validate می‌کند
- * و از message system برای نمایش خطاها استفاده می‌کند
- */
 export const passwordLoginSchema = z.object({
   mobile: z
     .string()
@@ -38,15 +31,9 @@ export const otpLoginSchema = z.object({
     .min(1, { message: msg.validation("captchaRequired") }),
 });
 
-/**
- * TypeScript Types از Zod Schemas
- */
 export type PasswordLoginForm = z.infer<typeof passwordLoginSchema>;
 export type OtpLoginForm = z.infer<typeof otpLoginSchema>;
 
-/**
- * Default Values برای فرم‌ها
- */
 export const passwordLoginDefaults: Partial<PasswordLoginForm> = {
   mobile: "",
   password: "",

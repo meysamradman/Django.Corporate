@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * کامپوننت انتخاب و مدیریت مدل‌های AI
- * 
- * ✅ بهینه برای 400+ مدل:
- * - Pagination برای کاهش اسکرول
- * - Compact design
- * - Virtual scrolling ready
- */
-
 import React, { useState, useMemo } from 'react';
 import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/elements/Card';
@@ -23,15 +14,14 @@ interface ModelSelectorProps {
     capability: 'chat' | 'content' | 'image' | 'audio';
 }
 
-const MODELS_PER_PAGE = 24; // 4 columns × 6 rows
-const PAGINATION_THRESHOLD = 24; // فقط اگر بیشتر از این تعداد مدل داشت، pagination فعال شود
+const MODELS_PER_PAGE = 24;
+const PAGINATION_THRESHOLD = 24;
 
 export function ModelSelector({ models, capability }: ModelSelectorProps) {
     const queryClient = useQueryClient();
     const [expandedModels, setExpandedModels] = useState<Set<number | string>>(new Set());
     const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
 
-    // Group models by provider
     const groupedModels = useMemo(() => {
         const groups: Record<string, any[]> = {};
         models.forEach((model) => {
@@ -44,7 +34,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
         return groups;
     }, [models]);
 
-    // Pagination for each provider (فقط برای Provider هایی که مدل‌های زیادی دارند)
     const paginatedGroups = useMemo(() => {
         const result: Record<string, { models: any[]; totalPages: number; currentPage: number; needsPagination: boolean }> = {};
         
@@ -65,7 +54,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                     needsPagination: true,
                 };
             } else {
-                // اگر مدل‌های کمی دارد، همه را نمایش بده
                 result[providerName] = {
                     models: providerModels,
                     totalPages: 1,
@@ -78,15 +66,12 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
         return result;
     }, [groupedModels, currentPage]);
 
-    // Toggle model active/inactive (فقط برای مدل‌های دیتابیس)
     const toggleModelMutation = useMutation({
         mutationFn: async ({ modelId, isActive, isOpenRouter }: { modelId: number | string; isActive: boolean; isOpenRouter?: boolean }) => {
-            // ✅ مدل‌های OpenRouter قابل toggle نیستند (از API می‌آیند)
             if (isOpenRouter) {
                 throw new Error('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');
             }
             
-            // Update model via API (partial update) - فقط برای مدل‌های دیتابیس
             const response = await aiApi.models.update(modelId as number, { is_active: isActive } as any);
             if (response.metaData.status !== 'success') {
                 throw new Error(response.metaData.message || 'خطا در به‌روزرسانی مدل');
@@ -94,7 +79,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
             return response.data;
         },
         onMutate: async ({ modelId, isActive }) => {
-            // Optimistic update
             await queryClient.cancelQueries({ queryKey: ['ai-models', capability] });
             const previousModels = queryClient.getQueryData(['ai-models', capability]);
 
@@ -112,7 +96,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
             showSuccessToast('وضعیت مدل با موفقیت تغییر کرد');
         },
         onError: (error: any, variables, context) => {
-            // Rollback
             if (context?.previousModels) {
                 queryClient.setQueryData(['ai-models', capability], context.previousModels);
             }
@@ -149,7 +132,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
             ...prev,
             [providerName]: page,
         }));
-        // Scroll to top of provider section
         const element = document.getElementById(`provider-${providerName}`);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -210,7 +192,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                         }`}
                                     >
                                         <CardContent className="p-3 space-y-2">
-                                            {/* Header */}
                                             <div className="space-y-2">
                                                 <div className="flex items-start justify-between gap-2">
                                                     <h3 className="font-semibold text-sm leading-tight line-clamp-2 flex-1">
@@ -233,7 +214,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                                 )}
                                             </div>
 
-                                            {/* Capabilities - فقط برای مدل‌های غیر OpenRouter */}
                                             {!isOpenRouter && model.capabilities && model.capabilities.length > 0 && (
                                                 <div className="flex flex-wrap gap-1">
                                                     {model.capabilities.slice(0, 2).map((cap: string) => (
@@ -253,7 +233,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                                 </div>
                                             )}
 
-                                            {/* Toggle Button */}
                                             <div className="pt-2 border-t border-border/50">
                                                 {isOpenRouter ? (
                                                     <Badge variant="blue" className="w-full justify-center text-xs py-1.5">
@@ -291,7 +270,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                                 )}
                                             </div>
 
-                                            {/* Expand Button */}
                                             {model.description && model.description.length > 100 && (
                                                 <Button
                                                     variant="outline"
@@ -303,7 +281,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                                 </Button>
                                             )}
 
-                                            {/* Expanded Details */}
                                             {isExpanded && (
                                                 <div className="pt-2 border-t space-y-2 text-xs text-font-s">
                                                     {model.provider_name && (
@@ -346,7 +323,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                             })}
                         </div>
 
-                        {/* Pagination - فقط اگر نیاز باشد */}
                         {needsPagination && totalPages > 1 && (
                             <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
                                 <Button

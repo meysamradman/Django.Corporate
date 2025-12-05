@@ -1,11 +1,3 @@
-/**
- * رنگ‌های استاندارد:
- * - اطلاعات پایه: blue
- * - تنظیمات: blue
- * - دسته‌بندی: purple (icon, badge, button)
- * - تگ: indigo (icon, badge, button)
- * - گزینه: teal (icon, badge, button)
- */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,14 +21,12 @@ import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
 import { formatSlug, generateSlug } from '@/core/utils/slugUtils';
 import { QuickCreateDialog } from "./QuickCreateDialog";
 
-// Props interface for react-hook-form approach (create page)
 interface BaseInfoTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
     editMode: boolean;
-    portfolioId?: number | string; // Portfolio ID for context-aware permissions
+    portfolioId?: number | string;
 }
 
-// Props interface for manual state approach (edit page)
 interface BaseInfoTabManualProps {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
@@ -50,10 +40,9 @@ interface BaseInfoTabManualProps {
     onTagRemove: (tagId: number) => void;
     onOptionToggle: (option: PortfolioOption) => void;
     onOptionRemove: (optionId: number) => void;
-    portfolioId?: number | string; // Portfolio ID for context-aware permissions
+    portfolioId?: number | string;
 }
 
-// Union type for both approaches
 type BaseInfoTabProps = BaseInfoTabFormProps | BaseInfoTabManualProps;
 
 export default function BaseInfoTab(props: BaseInfoTabProps) {
@@ -66,16 +55,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [showCategoryDialog, setShowCategoryDialog] = useState(false);
     const [showTagDialog, setShowTagDialog] = useState(false);
     const [showOptionDialog, setShowOptionDialog] = useState(false);
-    
-    // Check which approach is being used
     const isFormApproach = 'form' in props;
-    
-    // Get form state based on approach
     const { register, formState: { errors }, watch, setValue } = isFormApproach 
         ? props.form 
         : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
-    
-    // For manual approach, use props directly
     const formData = isFormApproach ? null : (props as any).formData;
     const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
     const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
@@ -89,8 +72,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
     const onOptionToggle = isFormApproach ? null : (props as any).onOptionToggle;
     const onOptionRemove = isFormApproach ? null : (props as any).onOptionRemove;
-    
-    // Watch values for form approach
     const nameValue = isFormApproach ? watch?.("name") : formData?.name;
     const slugValue = isFormApproach ? watch?.("slug") : formData?.slug;
     const shortDescriptionValue = isFormApproach ? watch?.("short_description") : formData?.short_description;
@@ -100,37 +81,31 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const formSelectedOptions = isFormApproach ? watch?.("selectedOptions") || [] : selectedOptions || [];
 
     useEffect(() => {
-        // Fetch categories
         const fetchCategories = async () => {
             try {
                 const response = await portfolioApi.getCategories({ page: 1, size: 100 });
                 setCategories(response.data || []);
             } catch (error) {
-                // Error handled silently
             } finally {
                 setLoadingCategories(false);
             }
         };
 
-        // Fetch tags
         const fetchTags = async () => {
             try {
                 const response = await portfolioApi.getTags({ page: 1, size: 100 });
                 setTags(response.data || []);
             } catch (error) {
-                // Error handled silently
             } finally {
                 setLoadingTags(false);
             }
         };
 
-        // Fetch options
         const fetchOptions = async () => {
             try {
                 const response = await portfolioApi.getOptions({ page: 1, size: 100 });
                 setOptions(response.data || []);
             } catch (error) {
-                // Error handled silently
             } finally {
                 setLoadingOptions(false);
             }
@@ -141,7 +116,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         fetchOptions();
     }, []);
 
-    // Auto-generate slug from name (form approach)
     useEffect(() => {
         if (isFormApproach && nameValue) {
             const slug = generateSlug(nameValue);
@@ -193,14 +167,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         }
     };
 
-    // Handle input changes for manual approach
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("name", value);
-            // Auto-generate slug
             if (value && !formData?.slug) {
                 const slug = value
                     .toLowerCase()
@@ -217,7 +188,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         const value = e.target.value;
         const formattedSlug = formatSlug(value);
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("slug", formattedSlug);
         }
@@ -226,7 +196,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const handleShortDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("short_description", value);
         }
@@ -364,7 +333,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     </Label>
                                 </div>
                                 <div className="space-y-2">
-                                    {/* Display selected categories */}
                                     {formSelectedCategories.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {formSelectedCategories.map((category: PortfolioCategory) => (
@@ -393,7 +361,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </div>
                                     )}
                                     
-                                    {/* Category selection dropdown */}
                                     <div className="flex gap-4 w-full">
                                         <div className="flex-1">
                                             <Select 
@@ -469,7 +436,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     </Label>
                                 </div>
                                 <div className="space-y-2">
-                                    {/* Display selected tags */}
                                     {formSelectedTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {formSelectedTags.map((tag: PortfolioTag) => (
@@ -491,7 +457,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </div>
                                     )}
                                     
-                                    {/* Tag selection dropdown */}
                                     <div className="flex gap-4 w-full">
                                         <div className="flex-1">
                                             <Select 
@@ -558,7 +523,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     </Label>
                                 </div>
                                 <div className="space-y-2">
-                                    {/* Display selected options */}
                                     {formSelectedOptions.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {formSelectedOptions.map((option: PortfolioOption) => (
@@ -579,7 +543,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </div>
                                     )}
                                     
-                                    {/* Option selection dropdown */}
                                     <div className="flex gap-4 w-full">
                                         <div className="flex-1">
                                             <Select 
@@ -684,7 +647,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 </div>
             </div>
 
-            {/* Quick Create Dialogs */}
             <QuickCreateDialog
                 open={showCategoryDialog}
                 onOpenChange={setShowCategoryDialog}

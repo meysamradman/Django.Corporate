@@ -6,7 +6,6 @@ import { env } from '@/core/config/environment';
 
 export const GetImageUrl = (imageName: string): string => {
     if (!imageName) return '';
-    // For relative paths, don't add the base URL
     if (imageName.startsWith('/')) {
         return imageName;
     }
@@ -15,7 +14,6 @@ export const GetImageUrl = (imageName: string): string => {
 
 export const GetVideoUrl = (videoName: string): string => {
     if (!videoName) return '';
-    // For relative paths, don't add the base URL
     if (videoName.startsWith('/')) {
         return videoName;
     }
@@ -24,7 +22,6 @@ export const GetVideoUrl = (videoName: string): string => {
 
 export const GetVideoCoverUrl = (coverName: string): string => {
     if (!coverName) return '';
-    // For relative paths, don't add the base URL
     if (coverName.startsWith('/')) {
         return coverName;
     }
@@ -33,7 +30,6 @@ export const GetVideoCoverUrl = (coverName: string): string => {
 
 export const GetAudioUrl = (audioName: string): string => {
     if (!audioName) return '';
-    // For relative paths, don't add the base URL
     if (audioName.startsWith('/')) {
         return audioName;
     }
@@ -42,7 +38,6 @@ export const GetAudioUrl = (audioName: string): string => {
 
 export const GetAudioCoverUrl = (coverName: string): string => {
     if (!coverName) return '';
-    // For relative paths, don't add the base URL
     if (coverName.startsWith('/')) {
         return coverName;
     }
@@ -51,7 +46,6 @@ export const GetAudioCoverUrl = (coverName: string): string => {
 
 export const GetPdfUrl = (pdfName: string): string => {
     if (!pdfName) return '';
-    // For relative paths, don't add the base URL
     if (pdfName.startsWith('/')) {
         return pdfName;
     }
@@ -60,7 +54,6 @@ export const GetPdfUrl = (pdfName: string): string => {
 
 export const GetPdfCoverUrl = (coverName: string): string => {
     if (!coverName) return '';
-    // For relative paths, don't add the base URL
     if (coverName.startsWith('/')) {
         return coverName;
     }
@@ -74,7 +67,6 @@ export const GetCategoryImageUrl = (imageName: string): string => {
 export const GetMediaUrl = (mediaType: string, fileName: string): string => {
     if (!fileName) return '';
     
-    // For relative paths, return as is
     if (fileName.startsWith('/')) {
         return fileName;
     }
@@ -169,7 +161,6 @@ export const GetMediaAltText = (media: Media): string => {
     return media.alt_text || media.title || 'Image';
 };
 
-// ✅ Aliases برای سازگاری با کدهای قدیمی - همه به توابع اصلی اشاره می‌کنند
 export const GetUserProfileImageUrl = GetImageUrl;
 export const GetPortfolioImageUrl = GetImageUrl;
 export const GetPortfolioVideoUrl = GetVideoUrl;

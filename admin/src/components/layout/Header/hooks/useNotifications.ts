@@ -7,8 +7,8 @@ export function useNotifications() {
   return useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationsApi.getNotificationCounts(),
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 0, // Always consider stale to refetch
+    refetchInterval: 30000,
+    staleTime: 0,
     retry: 2,
   });
 }

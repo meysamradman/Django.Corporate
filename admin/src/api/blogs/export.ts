@@ -1,21 +1,10 @@
 import { fetchApi } from "@/core/config/fetch";
 import { BlogListParams } from "@/types/blog/blogListParams";
 
-/**
- * Extended params for export (includes export_all flag)
- */
 interface ExportParams extends BlogListParams {
   export_all?: boolean;
 }
 
-/**
- * Export API functions for blogs
- * Separated from main route.ts for better organization
- */
-
-/**
- * Export single blog to PDF
- */
 export const exportBlogPdf = async (blogId: number): Promise<void> => {
   const url = `/admin/blog/${blogId}/export-pdf/`;
   const timestamp = new Date().toISOString().split('T')[0];
@@ -24,11 +13,6 @@ export const exportBlogPdf = async (blogId: number): Promise<void> => {
   await fetchApi.downloadFile(url, filename);
 };
 
-/**
- * Export blogs to Excel or PDF
- * @param filters - Blog filters and pagination
- * @param format - Export format: 'excel' or 'pdf'
- */
 export const exportBlogs = async (
   filters?: ExportParams, 
   format: 'excel' | 'pdf' = 'excel'
@@ -70,8 +54,6 @@ export const exportBlogs = async (
     ? `blogs_${timestamp}.pdf`
     : `blogs_${timestamp}.xlsx`;
   
-  // اگر export_all=true باشد، از fetch استفاده کن تا error message را بگیریم
-  // در غیر این صورت از iframe برای سرعت بیشتر
   const useFetchForErrorHandling = filters?.export_all === true;
   
   await fetchApi.downloadFile(url, filename, 'GET', null, { 

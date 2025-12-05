@@ -3,7 +3,6 @@ import { Base } from "@/types/shared/base";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { PermissionProfile } from "@/types/auth/permission";
 
-// User Base Interface
 export interface User extends Base {
     mobile: string;
     email: string | null;
@@ -14,7 +13,6 @@ export interface User extends Base {
     full_name: string;
 }
 
-// User Profile Interface
 export interface UserProfile extends Base {
     first_name: string;
     last_name: string;
@@ -29,7 +27,6 @@ export interface UserProfile extends Base {
     profile_picture: Media | null;
 }
 
-// User With Profile Interface
 export interface UserWithProfile extends Base {
     mobile: string;
     email: string;
@@ -52,7 +49,6 @@ export interface UserWithProfile extends Base {
     full_name?: string;
 }
 
-// User Creation Request Interface
 export interface UserCreateRequest {
     identifier: string;
     password: string;
@@ -62,7 +58,6 @@ export interface UserCreateRequest {
     is_superuser: boolean;
     user_type: string;
     
-    // Profile fields
     first_name?: string;
     last_name?: string;
     birth_date?: string;
@@ -75,13 +70,11 @@ export interface UserCreateRequest {
     profile_picture_id?: number;
 }
 
-// User Update Request Interface
 export interface UserUpdateRequest {
     mobile?: string;
     email?: string;
     is_active?: boolean;
     
-    // Profile fields
     first_name?: string;
     last_name?: string;
     birth_date?: string;
@@ -94,7 +87,6 @@ export interface UserUpdateRequest {
     profile_picture_id?: number;
 }
 
-// API Request/Response Types
 export interface UserListParams {
     search?: string;
     page?: number;

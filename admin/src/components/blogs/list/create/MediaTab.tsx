@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد نوع مدیا:
- * - تصویر: blue
- * - ویدیو: purple
- * - صدا: pink
- * - سند: gray
- */
 "use client";
 
 import { useState } from "react";
@@ -21,40 +14,34 @@ import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
 import { BlogMedia } from "@/types/blog/blogMedia";
 
-// Props interface for react-hook-form approach (create page)
 interface MediaTabFormProps {
     form: UseFormReturn<BlogFormValues>;
     blogMedia: BlogMedia;
     setBlogMedia: (media: BlogMedia) => void;
     editMode: boolean;
-    blogId?: number | string; // Blog ID for context-aware permissions
+    blogId?: number | string;
 }
 
-// Props interface for manual state approach (edit page)
 interface MediaTabManualProps {
     blogMedia: BlogMedia;
     setBlogMedia: (media: BlogMedia) => void;
     editMode: boolean;
     featuredImage?: Media | null;
     onFeaturedImageChange?: (media: Media | null) => void;
-    blogId?: number | string; // Blog ID for context-aware permissions
+    blogId?: number | string;
 }
 
-// Union type for both approaches
 type MediaTabProps = MediaTabFormProps | MediaTabManualProps;
 
 export default function MediaTab(props: MediaTabProps) {
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
     
-    // Check which approach is being used
     const isFormApproach = 'form' in props;
     
-    // Get form state based on approach
     const formState = isFormApproach ? props.form.formState : { errors: {} };
     const setValue = isFormApproach ? props.form.setValue : null;
     const watch = isFormApproach ? props.form.watch : null;
     
-    // For manual approach, use props directly
     const {
         blogMedia,
         setBlogMedia,
@@ -73,7 +60,6 @@ export default function MediaTab(props: MediaTabProps) {
         } 
         : props;
     
-    // Watch featured image for form approach
     const formFeaturedImage = isFormApproach ? watch?.("featuredImage") : undefined;
     const currentFeaturedImage = isFormApproach ? formFeaturedImage : manualFeaturedImage || blogMedia?.featuredImage;
 
@@ -81,14 +67,11 @@ export default function MediaTab(props: MediaTabProps) {
         const selected = Array.isArray(media) ? media[0] || null : media;
         
         if (isFormApproach) {
-            // Set در form برای validation
             setValue?.("featuredImage", selected, { shouldValidate: true });
         } else {
-            // Call the manual change handler if provided
             onFeaturedImageChange?.(selected);
         }
         
-        // Set در blogMedia برای نمایش (backward compatibility)
         setBlogMedia?.({
             ...blogMedia,
             featuredImage: selected
@@ -114,9 +97,7 @@ export default function MediaTab(props: MediaTabProps) {
         <TabsContent value="media" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
 
-                {/* Left Column: Galleries */}
                 <div className="flex-1 min-w-0 space-y-6">
-                    {/* Image Gallery Card */}
                     <CardWithIcon
                         icon={ImageIcon}
                         title="گالری تصاویر"
@@ -135,7 +116,6 @@ export default function MediaTab(props: MediaTabProps) {
                             />
                     </CardWithIcon>
 
-                    {/* Video Card */}
                     <CardWithIcon
                         icon={Video}
                         title="ویدیو"
@@ -155,7 +135,6 @@ export default function MediaTab(props: MediaTabProps) {
                             />
                     </CardWithIcon>
 
-                    {/* Audio Card */}
                     <CardWithIcon
                         icon={Music}
                         title="فایل صوتی"
@@ -175,7 +154,6 @@ export default function MediaTab(props: MediaTabProps) {
                             />
                     </CardWithIcon>
 
-                    {/* PDF Card */}
                     <CardWithIcon
                         icon={FileText}
                         title="مستندات (PDF)"
@@ -196,7 +174,6 @@ export default function MediaTab(props: MediaTabProps) {
                     </CardWithIcon>
                 </div>
 
-                {/* Right Column: Featured Image */}
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
                     <CardWithIcon
                         icon={ImageIcon}
@@ -256,7 +233,6 @@ export default function MediaTab(props: MediaTabProps) {
                                 </div>
                             )}
                             
-                            {/* نمایش خطا */}
                             {(formState.errors as any)?.featuredImage?.message && (
                                 <div className="flex items-start gap-2 text-red-2">
                                     <AlertCircle className="w-4 h-4 flex-shrink-0" />

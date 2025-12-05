@@ -28,14 +28,11 @@ export function MediaInfoTab({ blog }: MediaInfoTabProps) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {mediaArray.map((item: any) => {
           const media = item.media_detail || item.media;
-          
-          // For images, use file_url directly
-          // For videos, audios, and documents, prioritize cover_image_url, then fallback to file_url
+
           let mediaUrl: string | null = null;
           if (type === "image") {
             mediaUrl = media?.file_url || null;
           } else {
-            // For video, audio, and document: prioritize cover_image_url
             mediaUrl = media?.cover_image_url || media?.file_url || null;
           }
           

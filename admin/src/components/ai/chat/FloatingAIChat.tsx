@@ -8,7 +8,6 @@ import { useAIChat } from './AIChatContext';
 import { useCanManageAIChat } from '@/core/permissions/hooks/useUIPermissions';
 import { cn } from '@/core/utils/cn';
 
-// Lazy load chat component for better performance
 const AIChat = lazy(() => import('./AIChat').then(module => ({ default: module.AIChat })));
 
 export function FloatingAIChat() {
@@ -32,7 +31,6 @@ export function FloatingAIChat() {
                 "overflow-hidden"
             )}
         >
-                    {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-br bg-bg/50">
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 bg-green-1 rounded-full animate-pulse" />
@@ -83,7 +81,6 @@ export function FloatingAIChat() {
                         </div>
                     </div>
 
-                    {/* Chat Content */}
                     {!isMinimized && (
                         <div className="flex-1 overflow-hidden">
                             <Suspense

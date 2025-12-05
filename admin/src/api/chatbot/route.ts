@@ -44,7 +44,6 @@ export interface UpdateChatbotSettingsData {
 }
 
 export const chatbotApi = {
-  // FAQ endpoints
   getFAQList: async (): Promise<ApiResponse<FAQ[]>> => {
     return fetchApi.get<FAQ[]>("/admin/chatbot/faq/");
   },
@@ -65,7 +64,6 @@ export const chatbotApi = {
     return fetchApi.delete<void>(`/admin/chatbot/faq/${id}/`);
   },
 
-  // Settings endpoints
   getSettings: async (): Promise<ApiResponse<ChatbotSettings>> => {
     return fetchApi.get<ChatbotSettings>("/admin/chatbot/settings/");
   },

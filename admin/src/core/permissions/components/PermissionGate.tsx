@@ -5,26 +5,11 @@ import { usePermission } from '../context/PermissionContext';
 
 interface Props {
   permission: string | string[];
-  requireAll?: boolean; // default: false (any)
+  requireAll?: boolean;
   fallback?: React.ReactNode;
   children: React.ReactNode;
 }
 
-/**
- * ✅ Conditional render component based on permissions
- * 🔥 Optimized: Uses memoized permission checks from Context (cached for 5 minutes)
- * 
- * Industry Standard Pattern (used by React Admin, Material-UI Admin, etc.)
- * 
- * @example
- * <PermissionGate permission="media.upload">
- *   <UploadButton />
- * </PermissionGate>
- * 
- * <PermissionGate permission={['media.upload', 'media.delete']} requireAll>
- *   <AdvancedSection />
- * </PermissionGate>
- */
 export const PermissionGate: React.FC<Props> = ({
   permission,
   requireAll = false,
@@ -33,13 +18,11 @@ export const PermissionGate: React.FC<Props> = ({
 }) => {
   const { hasPermission, hasAllPermissions, hasAnyPermission, isLoading } = usePermission();
 
-  // 🔥 Memoize permissions array to avoid recreating on every render
   const permissions = useMemo(
     () => Array.isArray(permission) ? permission : [permission],
     [permission]
   );
 
-  // 🔥 Memoize access check to avoid recalculating on every render
   const hasAccess = useMemo(() => {
     if (isLoading) return false;
     return requireAll

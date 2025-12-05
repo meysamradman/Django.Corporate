@@ -152,12 +152,10 @@ export const Statistics: React.FC = () => {
     </div>
   );
 
-  // اگر در حال بارگذاری permissions است، loading نمایش بده
   if (permissionLoading) {
     return renderLoadingCards();
   }
 
-  // ✅ اگر دسترسی به آمار ندارد، AccessDenied نمایش بده
   if (!hasAnyStatisticsPermission) {
     return (
       <AccessDenied

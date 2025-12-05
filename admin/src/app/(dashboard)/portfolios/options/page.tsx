@@ -41,7 +41,6 @@ export default function OptionPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
@@ -50,7 +49,6 @@ export default function OptionPage() {
     is_public: undefined,
   });
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     optionId?: number;
@@ -61,25 +59,22 @@ export default function OptionPage() {
     isBulk: false,
   });
 
-  // Build query parameters
   const queryParams: any = {
     search: searchValue,
     page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
-    // Add boolean filters - use string values directly
     is_active: clientFilters.is_active as string || undefined,
     is_public: clientFilters.is_public as string || undefined,
   };
 
-  // Use React Query for data fetching
   const { data: options, isLoading, error } = useQuery({
     queryKey: ['options', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
       return await portfolioApi.getOptions(queryParams);
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
   });
 
   const data: PortfolioOption[] = Array.isArray(options?.data) ? options.data : [];
@@ -112,7 +107,6 @@ export default function OptionPage() {
     },
   });
 
-  // تابع حذف گزینه
   const handleDeleteOption = (optionId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -121,7 +115,6 @@ export default function OptionPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -130,7 +123,6 @@ export default function OptionPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.optionIds) {
@@ -139,12 +131,10 @@ export default function OptionPage() {
         await deleteOptionMutation.mutateAsync(deleteConfirm.optionId);
       }
     } catch (error) {
-      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
   const rowActions: DataTableRowAction<PortfolioOption>[] = [
     {
       label: "ویرایش",
@@ -161,11 +151,9 @@ export default function OptionPage() {
   
   const columns = useOptionColumns(rowActions) as ColumnDef<PortfolioOption>[];
 
-  // Load filters from URL on initial load
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Load pagination from URL
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       if (!isNaN(page) && page > 0) {
@@ -179,19 +167,16 @@ export default function OptionPage() {
       }
     }
     
-    // Load sorting from URL
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     }
     
-    // Load search from URL
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
     
-    // Load filters from URL
     const newClientFilters: Record<string, unknown> = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active');
@@ -210,7 +195,6 @@ export default function OptionPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -220,14 +204,12 @@ export default function OptionPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      // Handle other filters
       setClientFilters(prev => ({
         ...prev,
         [filterId]: value
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(String(filterId), String(value));
@@ -239,7 +221,6 @@ export default function OptionPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -247,14 +228,12 @@ export default function OptionPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -262,7 +241,6 @@ export default function OptionPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -274,7 +252,6 @@ export default function OptionPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -296,7 +273,6 @@ export default function OptionPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -317,7 +293,6 @@ export default function OptionPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -343,7 +318,6 @@ export default function OptionPage() {
         filterConfig={optionFilterConfig}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

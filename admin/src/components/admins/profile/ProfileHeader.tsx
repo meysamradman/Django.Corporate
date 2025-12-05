@@ -33,7 +33,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
     const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
 
-    // Load admin roles
     useEffect(() => {
         if (admin?.id) {
             loadAdminRoles();
@@ -53,35 +52,28 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                 : [];
             setAdminRoles(adminRolesData);
         } catch (error) {
-            // Error loading admin roles
         }
     };
 
-    // Use formData.profileImage first (updated immediately), then fallback to admin profile
     const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
     
-    // Debug logs
         const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
                 if (onProfileImageChange) {
             const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
                         onProfileImageChange(selectedImage);
             
-            // خودکار ذخیره عکس پروفایل
             try {
                 const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                                // Import adminApi dynamically
                 const { adminApi } = await import('@/api/admins/route');
                 
                 await adminApi.updateProfile({
                     profile_picture: profilePictureId,
                 } as any);
                 
-                                // Invalidate admin profile cache to refresh the page
                 await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
                 await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
                 await queryClient.refetchQueries({ queryKey: ['admin-profile'] });
                 
-                // Invalidate the specific admin query by ID (from the edit page)
                 const adminIdMatch = window.location.pathname.match(/\/admins\/(\d+)\//);
                 if (adminIdMatch) {
                     const adminId = adminIdMatch[1];
@@ -89,10 +81,8 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                     await queryClient.refetchQueries({ queryKey: ['admin', adminId] });
                                     }
                 
-                                // Refresh AuthContext to update user data everywhere
                 await refreshUser();
                 
-                                // Show success message
                 toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
             } catch (error) {
                 toast.error("خطا در ذخیره عکس پروفایل");
@@ -106,7 +96,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
     };
 
     const handleUploadComplete = () => {
-        // بعد از آپلود، تب انتخاب را فعال کن
         setActiveTab("select");
     };
 
@@ -142,7 +131,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                             </div>
                         )}
                         
-                        {/* دکمه تغییر عکس پروفایل */}
                         <Button
                             variant="outline"
                             size="sm"
@@ -217,7 +205,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
                 </div>
             </CardContent>
 
-            {/* MediaLibraryModal برای تغییر عکس پروفایل */}
             <MediaLibraryModal
                 isOpen={showMediaSelector}
                 onClose={() => setShowMediaSelector(false)}

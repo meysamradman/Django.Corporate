@@ -1,7 +1,6 @@
 import { FilterConfig } from "@/types/shared/table";
 import { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 
-// Filter options
 export const usePortfolioFilterOptions = () => {
   const statusFilterOptions = [
     { label: "منتشر شده", value: "published" },
@@ -19,11 +18,10 @@ export const usePortfolioFilterOptions = () => {
   };
 };
 
-// Filter configuration
 export const getPortfolioFilterConfig = (
   statusFilterOptions: { label: string; value: string }[],
   booleanFilterOptions: { label: string; value: boolean }[],
-  categoryOptions: { label: string; value: string }[] = [] // تغییر نوع value به string
+  categoryOptions: { label: string; value: string }[] = []
 ): FilterConfig[] => [
   {
     columnId: "status",
@@ -47,17 +45,17 @@ export const getPortfolioFilterConfig = (
     placeholder: "عمومی",
   },
   {
-    columnId: "is_active", // اضافه کردن فیلتر فعال بودن
+    columnId: "is_active",
     title: "فعال",
     type: "select",
     options: booleanFilterOptions,
     placeholder: "فعال",
   },
   {
-    columnId: "categories", // استفاده از نام ستون واقعی
+    columnId: "categories",
     title: "دسته‌بندی",
     type: "hierarchical",
-    options: categoryOptions, // استفاده از گزینه‌های دسته‌بندی
+    options: categoryOptions,
     placeholder: "دسته‌بندی",
   },
 ];

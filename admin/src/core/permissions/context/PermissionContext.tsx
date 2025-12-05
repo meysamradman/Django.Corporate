@@ -76,7 +76,7 @@ export interface PermissionContextValue {
   hasAllPermissions: (permissionIds: string[]) => boolean;
   canUploadInContext: (context: 'portfolio' | 'blog' | 'media_library') => boolean;
   refresh: () => Promise<void>;
-  ui: UIPermissions; // 🔥 Pre-computed UI flags
+  ui: UIPermissions;
 }
 
 const PermissionContext = createContext<PermissionContextValue | undefined>(undefined);
@@ -284,7 +284,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       hasAllPermissions,
       canUploadInContext,
       refresh,
-      ui: uiPermissions, // 🔥 Pre-computed flags
+      ui: uiPermissions,
     }),
     [permissionMap, isLoading, error, hasPermission, hasAnyPermission, hasAllPermissions, canUploadInContext, refresh, uiPermissions]
   );

@@ -30,7 +30,6 @@ export function ImageSmallSelector({
     context: overrideContext,
     contextId: overrideContextId
 }: ImageSmallSelectorProps) {
-    // اگر context پاس داده نشه، از route تشخیص بده
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
     
     const [showMediaSelector, setShowMediaSelector] = useState(false);
@@ -78,7 +77,6 @@ export function ImageSmallSelector({
                     </div>
                 )}
                 
-                {/* دکمه تغییر تصویر */}
                 <Button
                     type="button"
                     variant="outline"
@@ -90,7 +88,6 @@ export function ImageSmallSelector({
                     <Camera className="h-3 w-3" />
                 </Button>
                 
-                {/* دکمه حذف تصویر */}
                 {selectedMedia && (
                     <Button
                         type="button"
@@ -105,7 +102,6 @@ export function ImageSmallSelector({
                 )}
             </div>
 
-            {/* Media Library Modal */}
             <MediaLibraryModal
                 isOpen={showMediaSelector}
                 onClose={() => setShowMediaSelector(false)}

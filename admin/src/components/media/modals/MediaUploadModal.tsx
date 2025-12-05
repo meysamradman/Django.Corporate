@@ -39,7 +39,6 @@ export function MediaUploadModal({
   context: overrideContext,
   contextId: overrideContextId
 }: MediaUploadModalProps) {
-  // اگر context پاس داده نشه، از route تشخیص بده
   const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
   
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -86,7 +85,6 @@ export function MediaUploadModal({
     }
     setUploadProgress(0);
     
-    // Simulate progress for better UX
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
         if (prev >= 90) return prev;
@@ -100,7 +98,6 @@ export function MediaUploadModal({
     setUploadProgress(100);
 
     if (result.successCount === result.totalCount && result.successCount > 0) {
-        // ✅ Clear files before closing
         clearFiles();
         setTimeout(() => {
           onUploadComplete();
@@ -108,7 +105,6 @@ export function MediaUploadModal({
           setUploadProgress(0);
         }, 1500);
     } else if (result.successCount > 0) {
-        // ✅ Some files uploaded successfully - still refresh and clear
         clearFiles();
         setTimeout(() => {
           onUploadComplete();
@@ -132,7 +128,6 @@ export function MediaUploadModal({
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0" showCloseButton={false}>
         <DialogTitle className="sr-only">آپلود رسانه</DialogTitle>
         
-        {/* Header */}
         <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-b px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -155,11 +150,9 @@ export function MediaUploadModal({
           </div>
         </div>
         
-        {/* Content */}
         <div className="space-y-6 py-6">
           {canUploadMedia ? (
             <>
-              {/* File Dropzone */}
               <div className="px-6 space-y-3">
                 {isLoadingSettings ? (
                   <div className="border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center">
@@ -184,7 +177,6 @@ export function MediaUploadModal({
                       disabled={!canUploadMedia || isUploading || isLoadingSettings}
                     />
                     
-                    {/* نمایش خطاهای validation در popup */}
                     {validationErrors && validationErrors.length > 0 && (
                       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-2">
                         <div className="flex items-start gap-2">
@@ -204,7 +196,6 @@ export function MediaUploadModal({
                 )}
               </div>
 
-              {/* Progress Bar */}
               {isUploading && (
                 <div className="px-6 space-y-3">
                   <div className="flex justify-between text-sm">
@@ -215,7 +206,6 @@ export function MediaUploadModal({
                 </div>
               )}
 
-              {/* File List */}
               {files.length > 0 && (
                 <div className="px-6">
                   <FileList
@@ -241,7 +231,6 @@ export function MediaUploadModal({
           )}
         </div>
         
-        {/* Footer */}
         {canUploadMedia && files.length > 0 && (
           <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t px-6 py-4">
             <div className="flex gap-3 justify-between">

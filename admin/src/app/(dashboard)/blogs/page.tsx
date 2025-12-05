@@ -35,12 +35,9 @@ import type { DataTableRowAction } from "@/types/shared/table";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { env } from '@/core/config/environment';
 
-// تابع تبدیل دسته‌بندی‌ها به فرمت سلسله مراتبی
 const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
-  // ابتدا دسته‌بندی‌های ریشه را پیدا می‌کنیم
   const rootCategories = categories.filter(cat => !cat.parent_id);
   
-  // تابع بازگشتی برای ساخت درخت
   const buildTree = (category: BlogCategory): any => {
     const children = categories.filter(cat => cat.parent_id === category.id);
     
@@ -53,7 +50,6 @@ const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
     };
   };
   
-  // ساخت درخت برای هر دسته‌بندی ریشه
   return rootCategories.map(buildTree);
 };
 
@@ -62,11 +58,9 @@ export default function BlogPage() {
   const queryClient = useQueryClient();
   const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
   
-  // استیت برای دسته‌بندی‌ها
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   
-  // Initialize state from URL params
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -82,7 +76,6 @@ export default function BlogPage() {
       pageSize: 10,
     };
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState(() => {
@@ -103,16 +96,14 @@ export default function BlogPage() {
       if (urlParams.get('categories__in')) {
         const categoryIds = urlParams.get('categories__in')?.split(',').map(Number);
         if (categoryIds && categoryIds.length > 0) {
-          // Store as comma-separated string to match the API format
           filters.categories = categoryIds.join(',') as any;
         }
       }
       return filters;
     }
-    return {};
+    return {    };
   });
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     blogId?: number;
@@ -123,13 +114,12 @@ export default function BlogPage() {
     isBulk: false,
   });
 
-  // دریافت دسته‌بندی‌ها
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await blogApi.getCategories({
           page: 1,
-          size: 1000, // دریافت همه دسته‌بندی‌ها
+          size: 1000,
           is_active: true,
           is_public: true
         });
@@ -137,44 +127,39 @@ export default function BlogPage() {
         setCategories(response.data);
         setCategoryOptions(convertCategoriesToHierarchical(response.data));
       } catch (error) {
-        // Error handled silently
       }
     };
     
     fetchCategories();
   }, []);
 
-  // ساخت کانفیگ فیلترها
   const blogFilterConfig = getBlogFilterConfig(
     statusFilterOptions, 
     booleanFilterOptions,
     categoryOptions
   );
 
-  // Build query parameters
   const queryParams = {
     search: searchValue,
-    page: pagination.pageIndex + 1, // Convert zero-based to one-based indexing
+    page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
-    // Add filter parameters
     status: clientFilters.status as string,
     is_featured: clientFilters.is_featured as boolean | undefined,
     is_public: clientFilters.is_public as boolean | undefined,
-    is_active: clientFilters.is_active as boolean | undefined, // اضافه کردن فیلتر فعال بودن
-    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined, // تبدیل دسته‌بندی به رشته
+    is_active: clientFilters.is_active as boolean | undefined,
+    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
   };
 
-  // Use React Query for data fetching
   const { data: blogs, isLoading, error } = useQuery({
     queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
     queryFn: async () => {
       const response = await blogApi.getBlogList(queryParams);
       return response;
     },
-    staleTime: 0, // Always fetch fresh data
-    retry: 1, // Retry once on failure
+    staleTime: 0,
+    retry: 1,
   });
 
   const data: Blog[] = blogs?.data || [];
@@ -203,7 +188,6 @@ export default function BlogPage() {
     },
   });
 
-  // Toggle active status mutation
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
       return blogApi.partialUpdateBlog(id, { is_active });
@@ -217,7 +201,6 @@ export default function BlogPage() {
     },
   });
 
-  // Handle toggle active status
   const handleToggleActive = (blog: Blog) => {
     toggleActiveMutation.mutate({
       id: blog.id,
@@ -225,7 +208,6 @@ export default function BlogPage() {
     });
   };
 
-  // تابع حذف بلاگ
   const handleDeleteBlog = (blogId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -234,7 +216,6 @@ export default function BlogPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -243,7 +224,6 @@ export default function BlogPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.blogIds) {
@@ -252,12 +232,10 @@ export default function BlogPage() {
         await deleteBlogMutation.mutateAsync(deleteConfirm.blogId);
       }
     } catch (error) {
-      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
   const rowActions: DataTableRowAction<Blog>[] = [
     {
       label: "ویرایش",
@@ -276,7 +254,6 @@ export default function BlogPage() {
   
   const columns = useBlogColumns(rowActions, handleToggleActive) as ColumnDef<Blog>[];
 
-  // Export handlers
   const handleExportExcel = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
     try {
       const exportParams: any = {
@@ -334,22 +311,20 @@ export default function BlogPage() {
   };
 
   const handlePrint = async (printAll: boolean = false) => {
-    // Create print window with table design similar to PDF
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error("لطفاً popup blocker را غیرفعال کنید");
       return;
     }
 
-    // اگر printAll باشد، همه داده‌ها را از API بگیر
     let printData = data;
-    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS; // از env خوانده می‌شود (فقط برای دریافت داده)
+    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS;
     if (printAll) {
       try {
         const allParams = {
           search: searchValue || undefined,
           page: 1,
-          size: MAX_PRINT_ITEMS, // حداکثر آیتم‌ها (از env)
+          size: MAX_PRINT_ITEMS,
           order_by: sorting.length > 0 ? sorting[0].id : "created_at",
           order_desc: sorting.length > 0 ? sorting[0].desc : true,
           status: clientFilters.status as string | undefined,
@@ -372,7 +347,6 @@ export default function BlogPage() {
       }
     }
 
-    // Format date to Persian
     const formatDate = (dateString: string) => {
       const date = new Date(dateString);
       const year = date.getFullYear() - 621;
@@ -384,7 +358,6 @@ export default function BlogPage() {
       return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
     };
 
-    // Format status
     const getStatusText = (status: string) => {
       if (status === 'published') return 'منتشر شده';
       if (status === 'draft') return 'پیش‌نویس';
@@ -392,7 +365,6 @@ export default function BlogPage() {
       return status;
     };
 
-    // Build table rows
     const tableRows = printData.map((blog) => {
       const categories = blog.categories?.map(c => c.name).join(', ') || '-';
       const tags = blog.tags?.map(t => t.name).join(', ') || '-';
@@ -416,7 +388,6 @@ export default function BlogPage() {
       `;
     }).join('');
 
-    // Create HTML content
     const htmlContent = `
       <!DOCTYPE html>
       <html dir="rtl">
@@ -516,7 +487,6 @@ export default function BlogPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -526,21 +496,17 @@ export default function BlogPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      // Handle other filters
       setClientFilters(prev => ({
         ...prev,
         [filterKey]: value as string | boolean | number | undefined
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
-        // For boolean values, convert to string
         if (typeof value === 'boolean') {
           url.searchParams.set(filterKey, value.toString());
         } else if (filterKey === 'categories' && value !== undefined) {
-          // For categories, we need to handle the value correctly
           if (value === 'all' || value === '') {
             url.searchParams.delete('categories');
           } else {
@@ -557,7 +523,6 @@ export default function BlogPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -565,14 +530,12 @@ export default function BlogPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -580,7 +543,6 @@ export default function BlogPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -592,8 +554,6 @@ export default function BlogPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -614,7 +574,6 @@ export default function BlogPage() {
           <Button 
             variant="outline"
             onClick={() => {
-              // Clear any cached data and retry
               queryClient.invalidateQueries({ queryKey: ['blogs'] });
               window.location.reload();
             }}
@@ -629,7 +588,6 @@ export default function BlogPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -648,7 +606,6 @@ export default function BlogPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -709,7 +666,6 @@ export default function BlogPage() {
         filterConfig={blogFilterConfig}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

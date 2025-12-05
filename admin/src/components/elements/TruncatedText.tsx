@@ -10,10 +10,6 @@ interface TruncatedTextProps {
   showTooltip?: boolean;
 }
 
-/**
- * Component برای نمایش متن طولانی با Tooltip
- * سریع و بدون overhead - فقط CSS
- */
 export function TruncatedText({ 
   text, 
   maxLength = 30, 
@@ -22,7 +18,6 @@ export function TruncatedText({
 }: TruncatedTextProps) {
   const isTruncated = text.length > maxLength;
   
-  // همیشه truncate CSS را اعمال می‌کنیم تا در inspect هم کار کند
   if (!showTooltip) {
     return (
       <span className={cn("truncate block min-w-0 w-full", className)} title={isTruncated ? text : undefined}>

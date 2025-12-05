@@ -6,49 +6,16 @@ import { Button } from '@/components/elements/Button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/elements/Popover';
 import { cn } from '@/core/utils/cn';
 
-// Lazy load content to avoid blocking
 const HelpGuideContent = lazy(() => import('./HelpGuideContent').then(m => ({ default: m.HelpGuideContent })));
 
 export interface HelpGuideProps {
-    /**
-     * Title of the help guide
-     */
     title?: string;
-    
-    /**
-     * Content to display in the guide
-     * Can be string or React node
-     */
     content: string | React.ReactNode;
-    
-    /**
-     * Optional icon (default: HelpCircle)
-     */
     icon?: React.ComponentType<{ className?: string }>;
-    
-    /**
-     * Size of the help icon
-     */
     size?: 'sm' | 'md' | 'lg';
-    
-    /**
-     * Position of the popover
-     */
     position?: 'top' | 'bottom' | 'left' | 'right';
-    
-    /**
-     * Custom className
-     */
     className?: string;
-    
-    /**
-     * Variant: 'icon' (just icon), 'button' (button with text), or 'badge' (small badge next to title)
-     */
     variant?: 'icon' | 'button' | 'badge';
-    
-    /**
-     * Button text (only for variant='button')
-     */
     buttonText?: string;
 }
 
@@ -97,7 +64,6 @@ export function HelpGuide({
                         aria-label="نمایش راهنما"
                     >
                         <Icon className={cn(iconSizes.sm, "group-hover:scale-110 transition-transform")} />
-                        {/* Subtle indicator dot */}
                         <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-primary rounded-full border border-card" />
                     </button>
                 ) : variant === 'icon' ? (
@@ -140,7 +106,6 @@ export function HelpGuide({
                 )}
                 dir="rtl"
             >
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-br bg-bg/30 rounded-t-xl">
                     <h3 className="text-sm font-semibold text-font-p text-right flex-1">
                         {title}
@@ -155,7 +120,6 @@ export function HelpGuide({
                         <X className="h-3.5 w-3.5 text-font-s" />
                     </Button>
                 </div>
-                {/* Content */}
                 <div className="p-4 max-h-[400px] overflow-y-auto text-right bg-card rounded-b-xl">
                     <Suspense
                         fallback={

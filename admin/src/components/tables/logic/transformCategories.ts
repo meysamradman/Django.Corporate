@@ -1,11 +1,6 @@
 import { CategoryItem, FilterOption } from "@/types/shared/table";
 
-/**
- * @param options A flat array of filter options that may have parent_id
- * @returns A tree structure of categories with parent-child relationships
- */
 export function transformCategoriesToHierarchical(options: (FilterOption & { parent_id?: string | number | null })[]): CategoryItem[] {
-  // First convert to appropriate format
   const items: CategoryItem[] = options.map(option => ({
     id: typeof option.value === 'string' ? option.value : String(option.value),
     label: option.label,
@@ -35,12 +30,6 @@ export function transformCategoriesToHierarchical(options: (FilterOption & { par
   return rootItems;
 }
 
-/**
- * Convert API categories to filter options compatible with DataTable
- * 
- * @param categories An array of categories received from the API
- * @returns An array of filter options compatible with FilterOption structure
- */
 export function mapCategoriesToFilterOptions(categories: { id: string | number, name: string, parent_id?: string | number | null }[]): (FilterOption & { parent_id?: string | number | null })[] {
   return categories.map(category => ({
     label: category.name,

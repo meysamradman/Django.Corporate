@@ -42,7 +42,6 @@ export function TipTapEditor({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Memoize extensions array to prevent recreation on every render
   const extensions = useMemo(() => [
     StarterKit,
     TextStyle,
@@ -73,10 +72,8 @@ export function TipTapEditor({
     }),
   ], []);
 
-  // Memoize placeholder to prevent unnecessary re-renders
   const placeholderText = useMemo(() => placeholder || 'توضیحات را وارد کنید...', [placeholder]);
 
-  // Memoize editor props to prevent recreation
   const editorProps = useMemo(() => ({
     attributes: {
       class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-3 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md [&_img]:my-4',
@@ -85,7 +82,6 @@ export function TipTapEditor({
     },
   }), [placeholderText]);
 
-  // Memoize onUpdate handler
   const handleUpdate = useCallback(({ editor }: { editor: any }) => {
     onChange(editor.getHTML());
   }, [onChange]);
@@ -98,7 +94,6 @@ export function TipTapEditor({
     editorProps,
   });
 
-  // Sync content when it changes externally (only if different to prevent infinite loops)
   useEffect(() => {
     if (editor) {
       const currentContent = editor.getHTML();
@@ -108,18 +103,15 @@ export function TipTapEditor({
     }
   }, [content, editor]);
 
-  // Optimized image upload handler with useCallback
   const handleImageUpload = useCallback(async (file: File) => {
     if (!editor) return;
     
-    // Validate file type early
     if (!file.type.startsWith('image/')) {
       toast.error('فقط فایل‌های تصویری مجاز هستند');
       return;
     }
 
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error('حجم فایل نباید از 5 مگابایت بیشتر باشد');
       return;
@@ -158,7 +150,6 @@ export function TipTapEditor({
     if (file) {
       handleImageUpload(file);
     }
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -174,7 +165,6 @@ export function TipTapEditor({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-1 border rounded-md p-2 bg-bg">
         <Button
           type="button"
@@ -349,7 +339,6 @@ export function TipTapEditor({
 
         <div className="w-px h-6 bg-br mx-1" />
 
-        {/* Highlight */}
         <Button
           type="button"
           variant={editor.isActive('highlight') ? 'default' : 'outline'}
@@ -360,17 +349,14 @@ export function TipTapEditor({
           <Highlighter className="h-4 w-4" />
         </Button>
 
-        {/* Link */}
         <Button
           type="button"
           variant={editor.isActive('link') ? 'default' : 'outline'}
           size="sm"
           onClick={() => {
             if (editor.isActive('link')) {
-              // اگر لینک فعال است، آن را حذف کن
               editor.chain().focus().unsetLink().run();
             } else {
-              // اگر لینک فعال نیست، لینک جدید اضافه کن
               const url = window.prompt('لینک را وارد کنید:');
               if (url) {
                 editor.chain().focus().setLink({ href: url }).run();
@@ -407,7 +393,6 @@ export function TipTapEditor({
 
         <div className="w-px h-6 bg-br mx-1" />
 
-        {/* Text Colors */}
         <div className="flex items-center gap-1">
           <Button
             type="button"
@@ -482,7 +467,6 @@ export function TipTapEditor({
             style={{ backgroundColor: '#ec4899' }}
           />
           
-          {/* Custom Color Picker */}
           <input
             type="color"
             className="w-6 h-6 border rounded cursor-pointer"
@@ -493,7 +477,6 @@ export function TipTapEditor({
 
         <div className="w-px h-6 bg-br mx-1" />
 
-        {/* Text Alignment */}
         <Button
           type="button"
           variant={editor.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
@@ -559,7 +542,6 @@ export function TipTapEditor({
         </Button>
       </div>
 
-      {/* Editor */}
       <div className="border rounded-md min-h-[200px] bg-card">
         <EditorContent 
           editor={editor} 

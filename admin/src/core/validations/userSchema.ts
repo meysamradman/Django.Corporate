@@ -73,41 +73,31 @@ export const userFormSchema = z.object({
     .optional()
     .nullable(),
   
-  // ❌ اختیاری: شهر ID (عدد)
   profile_city_id: z
     .number()
     .optional()
     .nullable(),
   
-  // ❌ اختیاری: آدرس
   profile_address: z
     .string()
     .max(500, { message: msg.validation("addressMaxLength") })
     .optional()
     .or(z.literal("")),
   
-  // ❌ اختیاری: بیوگرافی
   profile_bio: z
     .string()
     .max(1000, { message: msg.validation("bioMaxLength") })
     .optional()
     .or(z.literal("")),
   
-  // ❌ اختیاری: تصویر پروفایل
   profile_picture: z
     .any()
     .nullable()
     .optional(),
 });
 
-/**
- * TypeScript Type از Zod Schema
- */
 export type UserFormValues = z.infer<typeof userFormSchema>;
 
-/**
- * Default Values برای فرم
- */
 export const userFormDefaults: Partial<UserFormValues> = {
   mobile: "",
   email: "",

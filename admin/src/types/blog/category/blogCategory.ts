@@ -12,7 +12,7 @@ export interface BlogCategory extends Base {
     level?: number | null;
     parent?: Pick<BlogCategory, 'id' | 'public_id'> | null;
     image?: Media | null;
-    image_url?: string | null; // Add this field to match the API response
+    image_url?: string | null;
     seo?: BlogSEOMeta | null;
     description?: string;
 }

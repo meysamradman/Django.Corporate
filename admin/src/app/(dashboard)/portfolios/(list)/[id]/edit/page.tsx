@@ -19,7 +19,6 @@ import { generateSlug } from '@/core/utils/slugUtils';
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/core/utils/portfolioMediaUtils";
 
-// Extend Portfolio interface to include category and tag IDs for API calls
 interface PortfolioUpdateData extends Partial<Portfolio> {
   categories_ids?: number[];
   tags_ids?: number[];
@@ -63,7 +62,6 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     is_active: true,
   });
   
-  // Category and tag state for edit page
   const [selectedCategories, setSelectedCategories] = useState<PortfolioCategory[]>([]);
   const [selectedTags, setSelectedTags] = useState<PortfolioTag[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<PortfolioOption[]>([]);
@@ -81,7 +79,6 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
       const portfolioData = await portfolioApi.getPortfolioById(Number(id));
       setPortfolio(portfolioData);
       
-      // Set form data
       setFormData({
         name: portfolioData.title || "",
         slug: portfolioData.slug || "",
@@ -98,46 +95,38 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         is_active: portfolioData.is_active ?? true,
       });
       
-      // Set categories if available
       if (portfolioData.categories) {
         setSelectedCategories(portfolioData.categories);
       }
       
-      // Set tags if available
       if (portfolioData.tags) {
         setSelectedTags(portfolioData.tags);
       }
       
-      // Set options if available
       if (portfolioData.options) {
         setSelectedOptions(portfolioData.options);
       }
       
-      // Set media data if available
       if (portfolioData.portfolio_media) {
         const parsedMedia = parsePortfolioMedia(portfolioData.portfolio_media);
         setPortfolioMedia(parsedMedia);
       }
     } catch (error) {
-      // Error fetching portfolio data
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleInputChange = (field: string, value: string | Media | boolean | null) => {
-    // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
       
-      // Update both name and slug
       setFormData(prev => ({
         ...prev,
         [field]: value,
         slug: generatedSlug
       }));
     } else {
-      // Update only the specified field
       setFormData(prev => ({
         ...prev,
         [field]: value
@@ -160,7 +149,6 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
   };
 
   const handleTagToggle = (tag: PortfolioTag) => {
-    // Toggle tag selection
     setSelectedTags(prev => {
       if (prev.some(t => t.id === tag.id)) {
         return prev.filter(t => t.id !== tag.id);
@@ -200,25 +188,21 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     
     setIsSaving(true);
     try {
-      // Ensure the slug is properly formatted before sending to backend
       let formattedSlug = formData.slug;
       if (formattedSlug) {
         formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '') // Trim - from start and end
-          .substring(0, 60); // Ensure it doesn't exceed max length
+          .replace(/^-+|-+$/g, '')
+          .substring(0, 60);
       }
       
-      // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
       const optionIds = selectedOptions.map(option => option.id);
       
-      // Collect all media IDs and covers using utility functions
       const allMediaIds = collectMediaIds(portfolioMedia);
       const mainImageId = portfolioMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(portfolioMedia);
       
-      // Prepare update data with extended interface
       const updateData: PortfolioUpdateData = {
         title: formData.name,
         slug: formattedSlug,
@@ -242,13 +226,10 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         is_active: formData.is_active,
       };
       
-      // Update portfolio (includes media sync with cover images)
       const updatedPortfolio = await portfolioApi.updatePortfolio(portfolio.id, updateData);
       
-      // Redirect to portfolio list after saving
       router.push("/portfolios");
     } catch (error) {
-      // Error updating portfolio
     } finally {
       setIsSaving(false);
     }
@@ -259,25 +240,21 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     
     setIsSaving(true);
     try {
-      // Ensure the slug is properly formatted before sending to backend
       let formattedSlug = formData.slug;
       if (formattedSlug) {
         formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '') // Trim - from start and end
-          .substring(0, 60); // Ensure it doesn't exceed max length
+          .replace(/^-+|-+$/g, '')
+          .substring(0, 60);
       }
       
-      // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
       const optionIds = selectedOptions.map(option => option.id);
       
-      // Collect all media IDs and covers using utility functions
       const allMediaIds = collectMediaIds(portfolioMedia);
       const mainImageId = portfolioMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(portfolioMedia);
       
-      // Prepare update data with extended interface
       const updateData: PortfolioUpdateData = {
         title: formData.name,
         slug: formattedSlug,
@@ -301,13 +278,10 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         is_active: formData.is_active,
       };
       
-      // Update portfolio as draft (includes media sync with cover images)
       const updatedPortfolio = await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
       
-      // Redirect to portfolio list after saving draft
       router.push("/portfolios");
     } catch (error) {
-      // Error saving portfolio draft
     } finally {
       setIsSaving(false);
     }
@@ -424,7 +398,6 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
         </Suspense>
       </Tabs>
 
-      {/* Sticky Save Buttons Footer */}
       {editMode && (
         <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
           <Button 

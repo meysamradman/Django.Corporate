@@ -15,7 +15,6 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const { id } = await Promise.resolve(params);
   
   if (!id) {
-    // No valid ID in URL params
     return notFound();
   }
   
@@ -34,12 +33,10 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
 
     return (
       <div className="space-y-6">
-        {/* Header Section */}
         <div>
           <h1 className="page-title">ویرایش کاربر</h1>
         </div>
 
-        {/* Main Content Card */}
         <Suspense fallback={<div className="p-6">در حال بارگذاری فرم...</div>}>
             <EditUserForm userData={userData} />
         </Suspense>

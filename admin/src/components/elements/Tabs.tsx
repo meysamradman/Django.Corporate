@@ -44,11 +44,8 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         "inline-flex items-center gap-1.5 whitespace-nowrap px-0 py-3 text-base transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
-        // Default state (inactive)
         "text-font-s font-normal",
-        // Active state
         "data-[state=active]:text-font-p data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-static-b data-[state=active]:mb-[-2px]",
-        // Hover state
         "hover:text-font-p",
         className
       )}

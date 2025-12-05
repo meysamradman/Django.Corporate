@@ -34,10 +34,8 @@ export function MediaPlayer({
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Get media URL (از سرویس مرکزی - URL کامل برمیگردونه)
   const mediaUrl = mediaService.getMediaUrlFromObject(media);
 
-  // Handle play/pause
   const togglePlayPause = () => {
     if (!mediaRef.current) return;
     
@@ -49,7 +47,6 @@ export function MediaPlayer({
     setIsPlaying(!isPlaying);
   };
 
-  // Handle volume change
   const handleVolumeChange = (newVolume: number) => {
     if (!mediaRef.current) return;
     
@@ -58,7 +55,6 @@ export function MediaPlayer({
     setIsMuted(newVolume === 0);
   };
 
-  // Handle mute toggle
   const toggleMute = () => {
     if (!mediaRef.current) return;
     
@@ -71,7 +67,6 @@ export function MediaPlayer({
     }
   };
 
-  // Handle fullscreen toggle
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     
@@ -87,7 +82,6 @@ export function MediaPlayer({
     setIsFullscreen(!isFullscreen);
   };
 
-  // Handle seek
   const handleSeek = (time: number) => {
     if (!mediaRef.current) return;
     
@@ -95,14 +89,12 @@ export function MediaPlayer({
     setCurrentTime(time);
   };
 
-  // Format time
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Handle media events
   useEffect(() => {
     const mediaElement = mediaRef.current;
     if (!mediaElement) return;
@@ -158,7 +150,6 @@ export function MediaPlayer({
     };
   }, [mediaUrl]);
 
-  // Handle fullscreen change
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -170,7 +161,6 @@ export function MediaPlayer({
     };
   }, []);
 
-  // Render different media types
   const renderMedia = () => {
     if (media.media_type === 'video') {
       return (
@@ -199,13 +189,11 @@ export function MediaPlayer({
     return null;
   };
 
-  // Custom controls for better UX
   const renderCustomControls = () => {
     if (!showControls || controls) return null;
 
     return (
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-        {/* Progress Bar */}
         <div className="mb-3">
           <input
             type="range"
@@ -220,7 +208,6 @@ export function MediaPlayer({
           />
         </div>
 
-        {/* Controls */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button

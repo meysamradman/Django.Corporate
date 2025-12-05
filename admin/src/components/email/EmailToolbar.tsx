@@ -59,7 +59,6 @@ export function EmailToolbar({
   );
 }
 
-// Separate component to avoid hydration issues with DropdownMenu inside ProtectedButton
 function EmailActionsDropdown({
   onMarkAsRead,
   onMarkAsUnread,

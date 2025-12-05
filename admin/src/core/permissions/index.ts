@@ -1,13 +1,6 @@
-/**
- * ✅ Centralized Permission & Role System
- * تمام hook‌ها، component‌ها، و utility های مربوط به permission و role از اینجا export می‌شن
- */
-
-// Context & Provider
 export { PermissionProvider, usePermission } from './context/PermissionContext';
 export type { PermissionContextValue, UIPermissions } from './context/PermissionContext';
 
-// Hooks
 export { useHasPermission } from './hooks/useHasPermission';
 export { useCanUpload } from './hooks/useCanUpload';
 export { useHasAccess } from './hooks/useHasAccess';
@@ -50,7 +43,6 @@ export {
   useBasePermissions,
 } from './hooks/useRoles';
 
-// Components
 export { PermissionGate } from './components/PermissionGate';
 export { PermissionLocked } from './components/PermissionLocked';
 export { ProtectedButton } from './components/ProtectedButton';
@@ -65,7 +57,6 @@ export {
   usePermissionProps,
 } from './components/PermissionGateLegacy';
 
-// Utils
 export {
   parsePermission,
   hasPermission,
@@ -82,7 +73,6 @@ export {
   type UserPermissions,
 } from './utils/permissionUtils';
 
-// Config
 export {
   SYSTEM_ROLES,
   getRoleConfig,
@@ -104,7 +94,6 @@ export {
   type RouteRule,
 } from './config/accessControl';
 
-// Types
 export type {
   PermissionMeta,
   PermissionMap,

@@ -20,9 +20,6 @@ interface ProtectedActionProps {
   renderFallback?: () => React.ReactNode;
 }
 
-/**
- * Gate component that renders children only if user has the required permission
- */
 export function PermissionGate({ permission, children, fallback = null }: PermissionGateProps) {
   const { hasPermission } = useUserPermissions();
 
@@ -33,9 +30,6 @@ export function PermissionGate({ permission, children, fallback = null }: Permis
   return <>{children}</>;
 }
 
-/**
- * Gate component for multiple permissions
- */
 export function PermissionMultiGate({ 
   permissions, 
   mode = 'any', 
@@ -55,9 +49,6 @@ export function PermissionMultiGate({
   return <>{children}</>;
 }
 
-/**
- * Higher-order component for protecting actions
- */
 export function ProtectedAction({ permission, children, renderFallback }: ProtectedActionProps) {
   const { hasPermission } = useUserPermissions();
 
@@ -68,29 +59,17 @@ export function ProtectedAction({ permission, children, renderFallback }: Protec
   return <>{children}</>;
 }
 
-/**
- * Hook for getting permission-based component props
- */
 export function usePermissionProps() {
   const { hasPermission, getResourceAccess } = useUserPermissions();
 
-  /**
-   * Get disabled state based on permission
-   */
   const getDisabledByPermission = (permission: string) => ({
     disabled: !hasPermission(permission),
   });
 
-  /**
-   * Get conditional props based on permission
-   */
   const getConditionalProps = (permission: string, props: Record<string, unknown>, fallbackProps?: Record<string, unknown>) => {
     return hasPermission(permission) ? props : (fallbackProps || {});
   };
 
-  /**
-   * Get CRUD action availability for a resource
-   */
   const getCRUDProps = (resource: string) => {
     const access = getResourceAccess(resource);
     

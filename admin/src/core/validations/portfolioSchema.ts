@@ -87,14 +87,8 @@ export const portfolioFormSchema = z.object({
     .or(z.literal("")),
 });
 
-/**
- * TypeScript Type از Zod Schema
- */
 export type PortfolioFormValues = z.infer<typeof portfolioFormSchema>;
 
-/**
- * Default Values برای فرم
- */
 export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   name: "",
   slug: "",

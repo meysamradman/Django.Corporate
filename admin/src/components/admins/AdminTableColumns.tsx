@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - فعال: green
- * - غیرفعال: red
- * - سوپر ادمین: default (blue/primary)
- * - ادمین عادی: outline
- */
 "use client"
 
 import * as React from "react";
@@ -138,7 +131,6 @@ export const useAdminColumns = (
         const isSuper = admin.is_superuser;
         const roles = admin.roles || [];
         
-        // Super admin always shows as super admin
         if (isSuper) {
           return (
             <div className="table-badge-container">
@@ -147,7 +139,6 @@ export const useAdminColumns = (
           );
         }
         
-        // If has specific roles, show them
         if (roles.length > 0) {
           return (
             <div className="table-badge-container flex flex-wrap gap-1">
@@ -162,7 +153,6 @@ export const useAdminColumns = (
           );
         }
         
-        // Default admin role
         return (
           <div className="table-badge-container">
             <Badge variant="outline">ادمین عادی</Badge>
@@ -180,7 +170,6 @@ export const useAdminColumns = (
         const admin = row.original;
         const isSuper = admin.is_superuser;
         
-        // Super admin always shows as super admin
         if (isSuper) {
           return (
             <div className="table-badge-container">
@@ -189,7 +178,6 @@ export const useAdminColumns = (
           );
         }
         
-        // Regular admin
         return (
           <div className="table-badge-container">
             <Badge variant="outline">ادمین عادی</Badge>
@@ -200,12 +188,10 @@ export const useAdminColumns = (
         const admin = row.original;
         const isSuper = admin.is_superuser;
         
-        // Check if super admin matches filter (value = true)
         if (value.includes(true) && isSuper) {
           return true;
         }
         
-        // Check if regular admin matches filter (value = false)
         if (value.includes(false) && !isSuper) {
           return true;
         }

@@ -18,7 +18,6 @@ import { generateSlug } from '@/core/utils/slugUtils';
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/core/utils/blogMediaUtils";
 
-// Extend Blog interface to include category and tag IDs for API calls
 interface BlogUpdateData extends Partial<Blog> {
   categories_ids?: number[];
   tags_ids?: number[];
@@ -61,7 +60,6 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     is_active: true,
   });
   
-  // Category and tag state for edit page
   const [selectedCategories, setSelectedCategories] = useState<BlogCategory[]>([]);
   const [selectedTags, setSelectedTags] = useState<BlogTag[]>([]);
   const [blog, setBlog] = useState<Blog | null>(null);
@@ -78,7 +76,6 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
       const blogData = await blogApi.getBlogById(Number(id));
       setBlog(blogData);
       
-      // Set form data
       setFormData({
         name: blogData.title || "",
         slug: blogData.slug || "",
@@ -95,41 +92,34 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         is_active: blogData.is_active ?? true,
       });
       
-      // Set categories if available
       if (blogData.categories) {
         setSelectedCategories(blogData.categories);
       }
       
-      // Set tags if available
       if (blogData.tags) {
         setSelectedTags(blogData.tags);
       }
       
-      // Set media data if available
       if (blogData.blog_media) {
         const parsedMedia = parseBlogMedia(blogData.blog_media);
         setBlogMedia(parsedMedia);
       }
     } catch (error) {
-      // Error fetching blog data
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleInputChange = (field: string, value: string | Media | boolean | null) => {
-    // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
       
-      // Update both name and slug
       setFormData(prev => ({
         ...prev,
         [field]: value,
         slug: generatedSlug
       }));
     } else {
-      // Update only the specified field
       setFormData(prev => ({
         ...prev,
         [field]: value
@@ -152,7 +142,6 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
   };
 
   const handleTagToggle = (tag: BlogTag) => {
-    // Toggle tag selection
     setSelectedTags(prev => {
       if (prev.some(t => t.id === tag.id)) {
         return prev.filter(t => t.id !== tag.id);
@@ -178,24 +167,20 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     
     setIsSaving(true);
     try {
-      // Ensure the slug is properly formatted before sending to backend
       let formattedSlug = formData.slug;
       if (formattedSlug) {
         formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '') // Trim - from start and end
-          .substring(0, 60); // Ensure it doesn't exceed max length
+          .replace(/^-+|-+$/g, '')
+          .substring(0, 60);
       }
       
-      // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
       
-      // Collect all media IDs and covers using utility functions
       const allMediaIds = collectMediaIds(blogMedia);
       const mainImageId = blogMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(blogMedia);
       
-      // Prepare update data with extended interface
       const updateData: BlogUpdateData = {
         title: formData.name,
         slug: formattedSlug,
@@ -218,13 +203,10 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         is_active: formData.is_active,
       };
       
-      // Update blog (includes media sync with cover images)
       const updatedBlog = await blogApi.updateBlog(blog.id, updateData);
       
-      // Redirect to blog list after saving
       router.push("/blogs");
     } catch (error) {
-      // Error updating blog
     } finally {
       setIsSaving(false);
     }
@@ -235,24 +217,20 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     
     setIsSaving(true);
     try {
-      // Ensure the slug is properly formatted before sending to backend
       let formattedSlug = formData.slug;
       if (formattedSlug) {
         formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '') // Trim - from start and end
-          .substring(0, 60); // Ensure it doesn't exceed max length
+          .replace(/^-+|-+$/g, '')
+          .substring(0, 60);
       }
       
-      // Prepare category and tag IDs for the backend
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
       
-      // Collect all media IDs and covers using utility functions
       const allMediaIds = collectMediaIds(blogMedia);
       const mainImageId = blogMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(blogMedia);
       
-      // Prepare update data with extended interface
       const updateData: BlogUpdateData = {
         title: formData.name,
         slug: formattedSlug,
@@ -275,13 +253,10 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         is_active: formData.is_active,
       };
       
-      // Update blog as draft (includes media sync with cover images)
       const updatedBlog = await blogApi.partialUpdateBlog(blog.id, updateData);
       
-      // Redirect to blog list after saving draft
       router.push("/blogs");
     } catch (error) {
-      // Error saving blog draft
     } finally {
       setIsSaving(false);
     }
@@ -395,7 +370,6 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         </Suspense>
       </Tabs>
 
-      {/* Sticky Save Buttons Footer */}
       {editMode && (
         <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
           <Button 

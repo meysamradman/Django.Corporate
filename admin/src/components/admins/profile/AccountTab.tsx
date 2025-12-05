@@ -19,26 +19,21 @@ import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { formatDate } from "@/core/utils/format";
 
-// Function to prevent non-numeric input
 const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  // Allow: backspace, delete, tab, escape, enter
+
   if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
-    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
     (e.keyCode === 65 && e.ctrlKey === true) ||
     (e.keyCode === 67 && e.ctrlKey === true) ||
     (e.keyCode === 86 && e.ctrlKey === true) ||
     (e.keyCode === 88 && e.ctrlKey === true) ||
-    // Allow: home, end, left, right
     (e.keyCode >= 35 && e.keyCode <= 39)) {
-    return; // let it happen, don't do anything
-  }
-  // Ensure that it is a number and stop the keypress
+    return;
+
   if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
     e.preventDefault();
   }
 };
 
-// Function to prevent non-numeric paste
 const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
   const paste = e.clipboardData.getData('text');
   if (!/^\d*$/.test(paste)) {
@@ -57,7 +52,7 @@ interface FormData {
     province: string;
     city: string;
     bio: string;
-    birthDate: string; // Add birthDate field
+    birthDate: string;
 }
 
 interface AccountTabProps {
@@ -90,7 +85,6 @@ export function AccountTab({
     const [loadingProvinces, setLoadingProvinces] = useState(false);
     const [loadingCities, setLoadingCities] = useState(false);
 
-    // Fetch provinces on component mount
     useEffect(() => {
         const fetchProvinces = async () => {
             setLoadingProvinces(true);
@@ -98,7 +92,6 @@ export function AccountTab({
                 const provinces = await locationApi.getProvincesCompact();
                 setProvinces(provinces);
             } catch (error) {
-                // Error handled silently
             } finally {
                 setLoadingProvinces(false);
             }
@@ -107,20 +100,17 @@ export function AccountTab({
         fetchProvinces();
     }, []);
 
-    // Fetch cities when province changes
     useEffect(() => {
         if (formData.province && provinces.length > 0) {
             const fetchCities = async () => {
                 setLoadingCities(true);
                 try {
-                // Find province ID by name
                 const selectedProvince = provinces.find(p => p.name === formData.province);
                 if (selectedProvince) {
                     const cities = await locationApi.getCitiesCompactByProvince(selectedProvince.id);
                     setCities(cities);
                 }
                 } catch (error) {
-                    // Error handled silently
                 } finally {
                     setLoadingCities(false);
                 }
@@ -133,29 +123,24 @@ export function AccountTab({
     }, [formData.province, provinces]);
 
     const handleProvinceChange = (provinceName: string) => {
-        // پیدا کردن ID از روی نام
         const selectedProvince = provinces.find(p => p.name === provinceName);
         if (selectedProvince && onProvinceChange) {
             onProvinceChange(provinceName, selectedProvince.id);
         } else {
-            // Fallback به روش قدیمی
             handleInputChange("province", provinceName);
             handleInputChange("city", "");
         }
     };
 
     const handleCityChange = (cityName: string) => {
-        // پیدا کردن ID از روی نام
         const selectedCity = cities.find(c => c.name === cityName);
         if (selectedCity && onCityChange) {
             onCityChange(cityName, selectedCity.id);
         } else {
-            // Fallback به روش قدیمی
             handleInputChange("city", cityName);
         }
     };
 
-    // Handle birth date change
     const handleBirthDateChange = (dateString: string) => {
         handleInputChange("birthDate", dateString);
     };
@@ -163,7 +148,6 @@ export function AccountTab({
     return (
         <TabsContent value="account">
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-                {/* Left Column: Details */}
                 <div className="lg:col-span-2 space-y-6">
                     <CardWithIcon
                         icon={User}
@@ -293,7 +277,6 @@ export function AccountTab({
                     </CardWithIcon>
                 </div>
 
-                {/* Right Column: Edit Form */}
                 <div className="lg:col-span-4 space-y-6">
                     <CardWithIcon
                         icon={Edit2}

@@ -6,7 +6,6 @@ import { Input } from '@/components/elements/Input';
 import { Badge } from '@/components/elements/Badge';
 import { Search, CheckCircle2, Zap, DollarSign } from 'lucide-react';
 
-// Helper function
 function cn(...classes: (string | boolean | undefined)[]) {
     return classes.filter(Boolean).join(' ');
 }
@@ -30,7 +29,7 @@ interface AIProviderSelectorProps {
     selectedProvider: string | null;
     onSelect: (providerValue: string) => void;
     capabilities?: Record<string, Capabilities>;
-    activeProviders?: string[];  // لیست Provider های فعال (Personal API دارند)
+    activeProviders?: string[];
 }
 
 export function AIProviderSelector({
@@ -42,7 +41,6 @@ export function AIProviderSelector({
 }: AIProviderSelectorProps) {
     const [searchQuery, setSearchQuery] = useState('');
 
-    // فیلتر کردن Provider ها بر اساس جستجو
     const filteredProviders = useMemo(() => {
         if (!searchQuery) return providers;
         
@@ -56,7 +54,6 @@ export function AIProviderSelector({
 
     return (
         <div className="space-y-4">
-            {/* Search Bar */}
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -68,7 +65,6 @@ export function AIProviderSelector({
                 />
             </div>
 
-            {/* Providers Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredProviders.map((provider) => {
                     const isSelected = selectedProvider === provider.value;
@@ -86,7 +82,6 @@ export function AIProviderSelector({
                             onClick={() => onSelect(provider.value)}
                         >
                             <CardContent className="p-4">
-                                {/* Header */}
                                 <div className="flex items-start gap-3 mb-3">
                                     <div className="text-2xl flex-shrink-0">
                                         {provider.icon}
@@ -106,7 +101,6 @@ export function AIProviderSelector({
                                     </div>
                                 </div>
 
-                                {/* Capabilities & Status */}
                                 <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t">
                                     {isActive && (
                                         <Badge variant="green" className="text-xs h-5">
@@ -145,7 +139,6 @@ export function AIProviderSelector({
                 })}
             </div>
 
-            {/* No Results */}
             {filteredProviders.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                     <Search className="h-12 w-12 mx-auto mb-2 opacity-20" />

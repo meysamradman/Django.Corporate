@@ -30,7 +30,6 @@ export function MediaUploadButton({
     context: overrideContext,
     contextId: overrideContextId
 }: MediaUploadButtonProps) {
-    // اگر context پاس داده نشه، از route تشخیص بده
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
     
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -86,7 +85,6 @@ export function QuickMediaUploadButton({
     context?: 'media_library' | 'portfolio' | 'blog';
     contextId?: number | string;
 }) {
-    // اگر context پاس داده نشه، از route تشخیص بده
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
     
     const [showUploadModal, setShowUploadModal] = useState(false);

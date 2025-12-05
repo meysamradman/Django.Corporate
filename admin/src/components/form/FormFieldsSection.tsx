@@ -1,9 +1,3 @@
-/**
- * رنگ‌های استاندارد فیلدهای فرم:
- * - فعال: blue
- * - غیرفعال: gray
- * - الزامی: red
- */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -59,7 +53,6 @@ export function FormFieldsSection() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
     
-    // 🚀 Pre-computed permission flag
     const { canManageForms } = useUIPermissions();
     
     const [fieldKey, setFieldKey] = useState("");
@@ -203,7 +196,6 @@ export function FormFieldsSection() {
         } catch (error: any) {
             let errorMessage = "خطا در ذخیره فیلد";
             
-            // بررسی خطاهای validation
             if (error?.response?.data?.errors) {
                 const errors = error.response.data.errors;
                 if (errors.field_key) {

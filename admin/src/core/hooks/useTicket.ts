@@ -16,7 +16,7 @@ export function useTicketStats() {
     queryFn: async () => {
       return { new_tickets_count: 0, assigned_to_me_count: 0, total_new: 0 };
     },
-    refetchInterval: 30000, // Auto-refetch every 30 seconds
+    refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
 }
@@ -25,8 +25,8 @@ export function useTicketList(params: TicketListParams = {}) {
   return useQuery({
     queryKey: ['tickets', params],
     queryFn: () => ticketApi.getList(params),
-    refetchInterval: 30000, // Auto-refetch every 30 seconds
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 }
 

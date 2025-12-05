@@ -18,18 +18,15 @@ export function TermsPageForm() {
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState("base");
     const [page, setPage] = useState<TermsPage | null>(null);
-    
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [shortDescription, setShortDescription] = useState("");
-    
     const [metaTitle, setMetaTitle] = useState("");
     const [metaDescription, setMetaDescription] = useState("");
     const [ogTitle, setOgTitle] = useState("");
     const [ogDescription, setOgDescription] = useState("");
     const [canonicalUrl, setCanonicalUrl] = useState("");
     const [robotsMeta, setRobotsMeta] = useState("index,follow");
-    
     const [featuredImage, setFeaturedImage] = useState<Media | null>(null);
     const [ogImage, setOgImage] = useState<Media | null>(null);
 
@@ -178,7 +175,6 @@ export function TermsPageForm() {
                 )}
             </Tabs>
 
-            {/* Sticky Save Buttons Footer */}
             <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                 <ProtectedButton 
                     onClick={handleSave} 

@@ -32,7 +32,6 @@ export default function CreateTagPage() {
     onSuccess: () => {
       toast.success("تگ با موفقیت ایجاد شد");
       queryClient.invalidateQueries();
-      // Redirect to tag list page after successful creation
       router.push("/portfolios/tags");
     },
     onError: (error) => {
@@ -40,34 +39,29 @@ export default function CreateTagPage() {
     },
   });
 
-  // Automatically generate slug from name (only if slug is empty)
   useEffect(() => {
     if (formData.name && !formData.slug) {
-      // Use custom implementation for Persian characters with extended Unicode range
       const generatedSlug = formData.name
           .toLowerCase()
-          .replace(/[^\w\u0600-\u06FF\s-]/g, '') // Allow Persian characters and word characters
-          .replace(/\s+/g, '-') // Replace spaces with -
-          .replace(/-+/g, '-') // Replace multiple - with single -
-          .replace(/^-+|-+$/g, '') // Trim - from start and end
-          .substring(0, 60); // Ensure it doesn't exceed max length
+          .replace(/[^\w\u0600-\u06FF\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .substring(0, 60);
       setFormData(prev => ({ ...prev, slug: generatedSlug }));
     }
   }, [formData.name, formData.slug]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
       
-      // Update both name and slug
       setFormData(prev => ({
         ...prev,
         [field]: value,
         slug: generatedSlug
       }));
     } else {
-      // Update only the specified field
       setFormData(prev => ({
         ...prev,
         [field]: value
@@ -180,7 +174,6 @@ export default function CreateTagPage() {
         </CardWithIcon>
       </form>
 
-      {/* Sticky Save Buttons Footer */}
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
           type="button"

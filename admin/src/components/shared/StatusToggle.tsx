@@ -9,9 +9,9 @@ import { usePermissions } from "@/core/permissions/utils/permissionUtils";
 interface StatusToggleProps {
   itemId: number | string;
   initialStatus: boolean;
-  editPermission: string; // e.g., 'admin.edit', 'portfolio.edit'
-  updateStatusFn: (id: number | string, status: boolean) => Promise<unknown>; // API function to call
-  entityName: string; // e.g., 'Admin', 'Portfolio' for messages
+  editPermission: string;
+  updateStatusFn: (id: number | string, status: boolean) => Promise<unknown>;
+  entityName: string;
 }
 
 export const StatusToggle: React.FC<StatusToggleProps> = ({
@@ -28,7 +28,6 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
   const canEdit = hasPermission(editPermission);
 
   const handleToggleStatus = async (checked: boolean) => {
-    // Double-check permission just in case
     if (!canEdit) {
       toast.warning(`Permission denied to change ${entityName.toLowerCase()} status.`);
       return;
@@ -41,7 +40,6 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
               toast.success(`وضعیت ${entityName} با موفقیت به ${checked ? 'فعال' : 'غیرفعال'} تغییر یافت`);
     } catch (error) {
       toast.error(`Failed to update ${entityName.toLowerCase()} status.`);
-      // Revert state on error
       setIsChecked(!checked);
     } finally {
       setIsLoading(false);
@@ -52,9 +50,8 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
     <Switch
       checked={isChecked}
       onCheckedChange={handleToggleStatus}
-      disabled={isLoading || !canEdit} // Disable if loading or no permission
+      disabled={isLoading || !canEdit}
       aria-label={`Toggle ${entityName.toLowerCase()} status`}
-
     />
   );
 }; 

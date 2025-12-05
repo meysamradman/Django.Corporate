@@ -1,21 +1,10 @@
 import { fetchApi } from "@/core/config/fetch";
 import { PortfolioListParams } from "@/types/portfolio/portfolioListParams";
 
-/**
- * Extended params for export (includes export_all flag)
- */
 interface ExportParams extends PortfolioListParams {
   export_all?: boolean;
 }
 
-/**
- * Export API functions for portfolios
- * Separated from main route.ts for better organization
- */
-
-/**
- * Export single portfolio to PDF
- */
 export const exportPortfolioPdf = async (portfolioId: number): Promise<void> => {
   const url = `/admin/portfolio/${portfolioId}/export-pdf/`;
   const timestamp = new Date().toISOString().split('T')[0];
@@ -24,11 +13,6 @@ export const exportPortfolioPdf = async (portfolioId: number): Promise<void> => 
   await fetchApi.downloadFile(url, filename);
 };
 
-/**
- * Export portfolios to Excel or PDF
- * @param filters - Portfolio filters and pagination
- * @param format - Export format: 'excel' or 'pdf'
- */
 export const exportPortfolios = async (
   filters?: ExportParams, 
   format: 'excel' | 'pdf' = 'excel'
@@ -70,8 +54,6 @@ export const exportPortfolios = async (
     ? `portfolios_${timestamp}.pdf`
     : `portfolios_${timestamp}.xlsx`;
   
-  // اگر export_all=true باشد، از fetch استفاده کن تا error message را بگیریم
-  // در غیر این صورت از iframe برای سرعت بیشتر
   const useFetchForErrorHandling = filters?.export_all === true;
   
   await fetchApi.downloadFile(url, filename, 'GET', null, { 

@@ -18,7 +18,6 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { Loader2, Save, User, UserCircle, ShieldCheck, List } from "lucide-react";
 import { Media } from "@/types/shared/media";
 
-// Dynamic Imports با Next.js 15.5
 const BaseInfoTab = lazy(() => import("@/components/admins/create/BaseInfoTab"));
 const ProfileTab = lazy(() => import("@/components/admins/create/ProfileTab"));
 const PermissionsTab = lazy(() => import("@/components/admins/create/PermissionsTab"));
@@ -34,16 +33,14 @@ export default function CreateAdminPage() {
     const [loadingRoles, setLoadingRoles] = useState(true);
     const [rolesError, setRolesError] = useState<string | null>(null);
 
-    // React Hook Form با Zod validation
     const form = useForm<AdminFormValues>({
         resolver: zodResolver(adminFormSchema) as any,
         defaultValues: adminFormDefaults as any,
-        mode: "onSubmit", // Validation فقط موقع submit
+        mode: "onSubmit",
     });
 
     const createAdminMutation = useMutation({
         mutationFn: async (data: AdminFormValues) => {
-            // آماده کردن دیتا برای API
             const profileData: Partial<{
                 first_name: string | null;
                 last_name: string | null;
@@ -135,7 +132,6 @@ export default function CreateAdminPage() {
             setLoadingRoles(true);
             setRolesError(null);
             try {
-                // Get all roles by fetching all pages
                 const fetchedRoles = await roleApi.getAllRoles();
                 setRoles(fetchedRoles);
             } catch (error) {
@@ -148,7 +144,6 @@ export default function CreateAdminPage() {
         fetchRoles();
     }, []);
 
-    // Handler برای ذخیره فرم
     const handleSubmit = async () => {
         const isValid = await form.trigger();
         if (!isValid) return;
@@ -238,7 +233,6 @@ export default function CreateAdminPage() {
                     </Suspense>
                 </Tabs>
 
-                {/* Sticky Save Buttons Footer */}
                 {editMode && (
                     <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                         <Button 

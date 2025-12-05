@@ -8,12 +8,10 @@ interface HelpGuideContentProps {
 
 export function HelpGuideContent({ content }: HelpGuideContentProps) {
     if (typeof content === 'string') {
-        // Simple text content - support markdown-like formatting
         const lines = content.split('\n');
         return (
             <div className="text-sm text-font-s leading-relaxed space-y-2 text-right" dir="rtl">
                 {lines.map((line, idx) => {
-                    // Check for bold markers (**text**)
                     const parts = line.split(/(\*\*.*?\*\*)/g);
                     return (
                         <p key={idx} className="text-right">
@@ -34,7 +32,6 @@ export function HelpGuideContent({ content }: HelpGuideContentProps) {
         );
     }
 
-    // React node content
     return <div className="text-sm text-font-s leading-relaxed text-right" dir="rtl">{content}</div>;
 }
 

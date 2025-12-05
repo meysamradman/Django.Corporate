@@ -42,16 +42,15 @@ export default function CategoryPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
+
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({
-    is_active: undefined, // اضافه کردن مقدار پیش‌فرض
-    is_public: undefined, // اضافه کردن مقدار پیش‌فرض
+    is_active: undefined,
+    is_public: undefined,
   });
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     categoryId?: number;
@@ -62,25 +61,22 @@ export default function CategoryPage() {
     isBulk: false,
   });
 
-  // Build query parameters
   const queryParams: any = {
     search: searchValue,
     page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
-    // Add boolean filters - use string values directly
-    is_active: clientFilters.is_active as string || undefined, // استفاده مستقیم از مقدار string
-    is_public: clientFilters.is_public as string || undefined, // استفاده مستقیم از مقدار string
+    is_active: clientFilters.is_active as string || undefined,
+    is_public: clientFilters.is_public as string || undefined,
   };
 
-  // Use React Query for data fetching
   const { data: categories, isLoading, error } = useQuery({
     queryKey: ['categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
       return await portfolioApi.getCategories(queryParams);
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
   });
 
   const data: PortfolioCategory[] = Array.isArray(categories?.data) ? categories.data : [];
@@ -113,7 +109,6 @@ export default function CategoryPage() {
     },
   });
 
-  // تابع حذف دسته‌بندی
   const handleDeleteCategory = (categoryId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -122,7 +117,6 @@ export default function CategoryPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -131,7 +125,6 @@ export default function CategoryPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.categoryIds) {
@@ -140,12 +133,10 @@ export default function CategoryPage() {
         await deleteCategoryMutation.mutateAsync(deleteConfirm.categoryId);
       }
     } catch (error) {
-      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
   const rowActions: DataTableRowAction<PortfolioCategory>[] = [
     {
       label: "ویرایش",
@@ -162,11 +153,9 @@ export default function CategoryPage() {
   
   const columns = useCategoryColumns(rowActions) as ColumnDef<PortfolioCategory>[];
 
-  // Load filters from URL on initial load
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Load pagination from URL
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       if (!isNaN(page) && page > 0) {
@@ -180,25 +169,22 @@ export default function CategoryPage() {
       }
     }
     
-    // Load sorting from URL
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     }
     
-    // Load search from URL
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
     
-    // Load filters from URL
     const newClientFilters: Record<string, unknown> = {};
     if (urlParams.get('is_active') !== null) {
-      newClientFilters.is_active = urlParams.get('is_active'); // استفاده مستقیم از مقدار string
+      newClientFilters.is_active = urlParams.get('is_active');
     }
     if (urlParams.get('is_public') !== null) {
-      newClientFilters.is_public = urlParams.get('is_public'); // استفاده مستقیم از مقدار string
+      newClientFilters.is_public = urlParams.get('is_public');
     }
     
     if (Object.keys(newClientFilters).length > 0) {
@@ -211,7 +197,6 @@ export default function CategoryPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -221,14 +206,12 @@ export default function CategoryPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      // Handle other filters
       setClientFilters(prev => ({
         ...prev,
         [filterId]: value
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(String(filterId), String(value));
@@ -240,7 +223,6 @@ export default function CategoryPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -248,14 +230,12 @@ export default function CategoryPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -263,7 +243,6 @@ export default function CategoryPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -275,7 +254,6 @@ export default function CategoryPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -297,7 +275,6 @@ export default function CategoryPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -318,7 +295,6 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -344,7 +320,6 @@ export default function CategoryPage() {
         filterConfig={categoryFilterConfig}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

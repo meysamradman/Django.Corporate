@@ -393,7 +393,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
       <CardFooter className="border-t">
         <PaginationControls
           currentPage={table.getState().pagination.pageIndex + 1}
-          totalPages={pageCount} // Use the pageCount prop from API instead of table.getPageCount()
+          totalPages={pageCount}
           onPageChange={(page: number) => {
             const newPageIndex = page - 1;
             const newPagination = {

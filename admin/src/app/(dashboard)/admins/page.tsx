@@ -33,7 +33,7 @@ import {
 export default function AdminsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user } = useAuth(); // Get current user from auth context
+  const { user } = useAuth();
   const { booleanFilterOptions, roleFilterOptions } = useAdminFilterOptions();
   const adminFilterConfig = getAdminFilterConfig(booleanFilterOptions, roleFilterOptions);
 
@@ -41,17 +41,14 @@ export default function AdminsPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<AdminFilters>({});
 
-  // Load filters from URL on initial load
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Load pagination from URL
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -61,22 +58,18 @@ export default function AdminsPage() {
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
     
-    // Load sorting from URL
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     } else {
-      // ✅ FIX: If no sorting in URL, use default from initSortingFromURL
       setSorting(initSortingFromURL());
     }
     
-    // Load search from URL
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
     
-    // Load filters from URL
     const newClientFilters: typeof clientFilters = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
@@ -90,7 +83,6 @@ export default function AdminsPage() {
     }
   }, []);
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     adminId?: number;
@@ -101,7 +93,6 @@ export default function AdminsPage() {
     isBulk: false,
   });
 
-  // Build query parameters
   const queryParams: AdminListParams = {
     search: searchValue,
     page: pagination.pageIndex + 1,
@@ -112,19 +103,17 @@ export default function AdminsPage() {
     is_superuser: clientFilters.is_superuser,
   };
 
-  // Use React Query for data fetching
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['admins', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser],
     queryFn: async () => {
       return await adminApi.getAdminList(queryParams);
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
   });
 
   const data = response?.data || [];
   const pageCount = response?.pagination?.total_pages || 1;
 
-  // Delete mutations
   const deleteAdminMutation = useMutation({
     mutationFn: (adminId: number) => adminApi.deleteAdmin(adminId),
     onSuccess: () => {
@@ -148,9 +137,6 @@ export default function AdminsPage() {
     },
   });
 
-
-
-  // تابع حذف ادمین
   const handleDeleteAdmin = (adminId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -159,7 +145,6 @@ export default function AdminsPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -168,7 +153,6 @@ export default function AdminsPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.adminIds) {
@@ -177,30 +161,23 @@ export default function AdminsPage() {
         await deleteAdminMutation.mutateAsync(deleteConfirm.adminId);
       }
     } catch (error) {
-      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // Cache current user info for permission checks
   const currentUserId = user?.id;
   const isSuperAdmin = user?.is_superuser || user?.is_admin_full;
 
-  // Define table columns with access control
   const columns = useAdminColumns(
     React.useMemo(() => {
       const actions: DataTableRowAction<AdminWithProfile>[] = [];
       
-      // Edit button - only for super admin or own profile
       actions.push({
         label: "ویرایش",
         icon: <Edit className="h-4 w-4" />,
         onClick: (admin: AdminWithProfile) => {
           router.push(`/admins/${admin.id}/edit`);
         },
-        // Enabled only if:
-        // 1. Super admin (can edit all)
-        // 2. Own profile (can edit own profile only)
         isDisabled: (admin: AdminWithProfile) => {
           if (!currentUserId) return true;
           const isOwnProfile = currentUserId === admin.id;
@@ -208,13 +185,11 @@ export default function AdminsPage() {
         },
       });
       
-      // Delete button - only for super admin
       actions.push({
         label: "حذف",
         icon: <Trash2 className="h-4 w-4" />,
         onClick: (admin: AdminWithProfile) => handleDeleteAdmin(admin.id),
         isDestructive: true,
-        // Enabled only if super admin
         isDisabled: () => !isSuperAdmin,
       });
       
@@ -227,7 +202,6 @@ export default function AdminsPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -237,7 +211,6 @@ export default function AdminsPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      // Handle is_superuser filter
       const filterKey = filterId;
       
       setClientFilters(prev => ({
@@ -246,7 +219,6 @@ export default function AdminsPage() {
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(String(filterKey), String(value));
@@ -258,7 +230,6 @@ export default function AdminsPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -266,14 +237,12 @@ export default function AdminsPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -281,7 +250,6 @@ export default function AdminsPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -293,7 +261,6 @@ export default function AdminsPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -315,7 +282,6 @@ export default function AdminsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -338,7 +304,6 @@ export default function AdminsPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -365,7 +330,6 @@ export default function AdminsPage() {
         pageSizeOptions={[10, 20, 50]}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

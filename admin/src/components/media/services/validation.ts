@@ -183,7 +183,5 @@ export const validateFileComplete = async (file: File): Promise<ValidationResult
         basicValidation.errors.push(`نوع MIME فایل (${file.type}) مجاز نیست`);
     }
     
-    // TODO: Add magic bytes validation for enhanced security
-    
     return basicValidation;
 };

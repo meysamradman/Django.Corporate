@@ -63,13 +63,10 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const [generatedContent, setGeneratedContent] = useState<AIContentGenerationResponse | null>(null);
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isSample, setIsSample] = useState(false);
-    const providersFetched = useRef(false); // ✅ CRITICAL: Prevent double fetch
+    const providersFetched = useRef(false);
 
     useEffect(() => {
-        // ✅ CRITICAL: Only fetch providers if user has ai.manage permission
-        // ✅ CRITICAL: Prevent double fetch with ref
         if (user && !providersFetched.current) {
-            // Check if user has ai.manage, any ai.* permission, or "all" permission
             const hasAIPermission = user?.permissions?.some((p: string) => 
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
@@ -78,18 +75,14 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 providersFetched.current = true;
                 fetchAvailableProviders();
             } else {
-                // If no AI permission, stop loading
                 setLoadingProviders(false);
             }
         } else if (!user) {
-            // If user not loaded yet, keep loading
             setLoadingProviders(true);
         }
     }, [user]);
 
     useEffect(() => {
-        // ✅ REMOVED: Auto-loading sample content
-        // Sample content should only be shown when explicitly requested, not automatically
     }, [loadingProviders, availableProviders.length, generatedContent, isSample]);
 
     const fetchAvailableProviders = async () => {
@@ -105,8 +98,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 setAvailableProviders(providersData);
             }
         } catch (error: any) {
-            // ✅ اگر 404 بود، فقط providers را خالی بگذار (Toast توسط aiApi نشان داده می‌شود)
-            // ✅ برای سایر خطاها هم Toast توسط aiApi نشان داده می‌شود
             if (error?.response?.AppStatusCode === 404) {
                 setAvailableProviders([]);
             }
@@ -142,7 +133,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 toast.success(msg.ai('contentGenerated'));
             }
         } catch (error: any) {
-            // Toast already shown by aiApi
         } finally {
             setGenerating(false);
         }

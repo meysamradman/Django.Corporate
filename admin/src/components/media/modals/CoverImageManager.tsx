@@ -26,29 +26,23 @@ export function CoverImageManager({
   const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
   const [newCoverImage, setNewCoverImage] = useState<Media | null>(null);
 
-  // Get the URL for the current cover image using the shared service
   const getCoverImageUrl = () => {
     if (!currentCoverImage) return null;
     
-    // If it's a Media object, use the service to get the URL
     if (typeof currentCoverImage === 'object' && currentCoverImage !== null && 'id' in currentCoverImage) {
       return mediaService.getMediaUrlFromObject(currentCoverImage);
     }
     
-    // If it's a string URL, return it directly
     if (typeof currentCoverImage === 'string') {
       return currentCoverImage;
     }
     
-    // If it's a number (ID), we can't get the URL without fetching the media object
-    // In a real implementation, we would fetch the media object by ID
     return null;
   };
 
   const handleSelectFromLibrary = (selectedMedia: Media | Media[]) => {
     const media = Array.isArray(selectedMedia) ? selectedMedia[0] : selectedMedia;
     
-    // Check if selected media is an image
     if (media.media_type !== 'image') {
       toast.error('فایل انتخاب شده باید یک تصویر باشد');
       return;
@@ -60,7 +54,6 @@ export function CoverImageManager({
   };
 
   const handleUploadComplete = () => {
-    // After upload, switch to select tab to show newly uploaded media
     setIsLibraryOpen(true);
     setActiveTab("select");
   };

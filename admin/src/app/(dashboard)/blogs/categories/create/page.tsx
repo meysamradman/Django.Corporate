@@ -35,17 +35,15 @@ export default function CreateCategoryPage() {
     description: "",
   });
 
-  // Fetch all categories for parent selection
   const { data: categories } = useQuery({
     queryKey: ['categories-all'],
     queryFn: async () => {
       return await portfolioApi.getCategories({ size: 1000 });
     },
-    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
-    gcTime: 0, // No cache retention
+    staleTime: 0,
+    gcTime: 0,
   });
 
-  // Get selected category display info
   const getSelectedCategoryDisplay = () => {
     if (!formData.parent_id) {
       return {
@@ -66,7 +64,6 @@ export default function CreateCategoryPage() {
     };
   };
 
-  // Function to render category with indentation based on level
   const renderCategoryOption = (category: PortfolioCategory) => {
     const level = category.level || 1;
     const indentPx = (level - 1) * 24;
@@ -127,18 +124,15 @@ export default function CreateCategoryPage() {
   });
 
   const handleInputChange = (field: string, value: string | boolean | number | null) => {
-    // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
       
-      // Update both name and slug
       setFormData(prev => ({
         ...prev,
         [field]: value,
         slug: generatedSlug
       }));
     } else {
-      // Update only the specified field
       setFormData(prev => ({
         ...prev,
         [field]: value
@@ -147,7 +141,6 @@ export default function CreateCategoryPage() {
   };
 
   const handleParentChange = (value: string) => {
-    // According to project specifications, check for both existence and non-null string value
     const parentId = value && value !== "null" ? parseInt(value) : null;
     setFormData(prev => ({ ...prev, parent_id: parentId }));
   };
@@ -165,7 +158,6 @@ export default function CreateCategoryPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Add image ID to form data if selected
     const formDataWithImage = {
       ...formData,
       ...(selectedMedia?.id && { image_id: selectedMedia.id })
@@ -189,7 +181,6 @@ export default function CreateCategoryPage() {
 
       <form id="category-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          {/* Left Column: Form Fields */}
           <div className="lg:col-span-4 space-y-6">
             <div className="space-y-6">
             <CardWithIcon
@@ -359,7 +350,6 @@ export default function CreateCategoryPage() {
             </div>
           </div>
 
-          {/* Right Column: Featured Image */}
           <div className="lg:col-span-2">
             <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
             <CardWithIcon
@@ -430,7 +420,6 @@ export default function CreateCategoryPage() {
         context="blog"
       />
 
-      {/* Sticky Save Buttons Footer */}
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
           type="button"

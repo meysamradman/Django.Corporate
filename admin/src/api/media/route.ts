@@ -93,16 +93,12 @@ export const mediaApi = {
             let message = "Failed to fetch media list";
             let statusCode = 500;
 
-            // Check if it's a FetchError instance
             if (error instanceof ApiError) {
-                message = error.message; // Use the message from FetchError
+                message = error.message;
                 statusCode = error.response.AppStatusCode;
             } else if (error instanceof Error) {
-                // Handle generic Error instances
                 message = error.message;
             }
-
-            // Return a structured error response
             return {
                  metaData: {
                      status: 'error',
@@ -113,7 +109,7 @@ export const mediaApi = {
                  data: [] as Media[],
                  pagination: {
                      count: 0, next: null, previous: null,
-                     page_size: filters?.size || DEFAULT_MEDIA_PAGE_SIZE, // Use default
+                     page_size: filters?.size || DEFAULT_MEDIA_PAGE_SIZE,
                      current_page: filters?.page || 1,
                      total_pages: 1
                  } as Pagination
@@ -121,38 +117,27 @@ export const mediaApi = {
         }
     },
 
-    /**
-     * Fetches details for a single media item by its ID.
-     * @param mediaId The ID of the media item.
-     * @param options Optional fetch options.
-     */
     getMediaDetails: async (
         mediaId: number | string,
         options?: {
             cookieHeader?: string;
         }
-    ): Promise<ApiResponse<Media>> => { // Return a single Media object
+    ): Promise<ApiResponse<Media>> => {
         try {
-            // Ensure mediaId is a number
             const mediaIdNumber = typeof mediaId === 'string' ? parseInt(mediaId, 10) : mediaId;
             
             if (isNaN(mediaIdNumber)) {
                 throw new Error(`Invalid media ID: ${mediaId}`);
             }
             
-            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
                 cookieHeader: options?.cookieHeader,
             };
-
-            // First try using the detail endpoint
             const endpoint = `${BASE_MEDIA_PATH}/${mediaIdNumber}`;
             
             try {
                 const response = await fetchApi.get<Media>(endpoint, fetchOptions);
                 
-                // Note: Assuming the backend returns ApiResponse<Media>
-                // If it just returns Media, we need to wrap it
                 if (response && typeof response === 'object' && !('metaData' in response)) {
                                           return {
                          metaData: { status: 'success', message: 'Details fetched', AppStatusCode: 200, timestamp: new Date().toISOString() },
@@ -162,17 +147,14 @@ export const mediaApi = {
 
                 return response;
             } catch (metadataError) {
-                // If metadata endpoint fails with 404, try fetching from list endpoint
-                                // Create a filter to get just this media item
                 const listFilter: MediaFilter = {
                     page: 1,
-                    size: 100, // Fetch enough to find the item
+                    size: 100,
                 };
                 
                 const listResponse = await mediaApi.getMediaList(listFilter, fetchOptions);
                 
                 if (listResponse.metaData.status === 'success' && Array.isArray(listResponse.data)) {
-                    // Find the media item with matching ID
                     const mediaItem = listResponse.data.find((item: Media) => item.id === mediaIdNumber);
                     
                     if (mediaItem) {
@@ -189,7 +171,6 @@ export const mediaApi = {
                     }
                 }
                 
-                // If we couldn't find the item in the list either, re-throw the original error
                 throw metadataError;
             }
         } catch (error: unknown) {
@@ -205,16 +186,11 @@ export const mediaApi = {
 
             return {
                 metaData: { status: 'error', message: message, AppStatusCode: statusCode, timestamp: new Date().toISOString() },
-                data: null as unknown as Media // Return null data on error
+                data: null as unknown as Media
             };
         }
     },
 
-    /**
-     * Uploads a new media file with progress tracking
-     * @param formData FormData containing the file and metadata
-     * @param options Optional options including progress callback
-     */
     uploadMedia: async (
         formData: FormData,
         options?: {
@@ -334,7 +310,6 @@ export const mediaApi = {
                 message = error.message;
             }
 
-            // Return a structured error response
             return {
                 metaData: {
                     status: 'error',
@@ -347,10 +322,6 @@ export const mediaApi = {
         }
     },
 
-    /**
-     * Deletes a media item by ID
-     * @param mediaId The ID of the media to delete
-     */
     deleteMedia: async (
         mediaId: number | string
     ): Promise<ApiResponse<{ deleted: boolean }>> => {
@@ -382,18 +353,12 @@ export const mediaApi = {
         }
     },
 
-    /**
-     * Updates a media item
-     * @param mediaId The ID of the media to update
-     * @param updateData The data to update
-     */
     updateMedia: async (
         mediaId: number | string,
         updateData: Partial<Media>
     ): Promise<ApiResponse<Media>> => {
         try {
             const endpoint = `${BASE_MEDIA_PATH}/${mediaId}`;
-            // Use PUT for full updates
             return await fetchApi.put<Media>(endpoint, updateData);
         } catch (error: unknown) {
             showErrorToast(error, `Failed to update media item`);
@@ -420,11 +385,6 @@ export const mediaApi = {
         }
     },
 
-    /**
-     * Updates the cover image for a media item
-     * @param mediaId The ID of the media to update
-     * @param coverImageId The ID of the cover image media, or null to remove
-     */
     updateCoverImage: async (
         mediaId: number | string,
         coverImageId: number | null
@@ -434,11 +394,8 @@ export const mediaApi = {
             const updateData = {
                 cover_image: coverImageId
             };
-            // Use PATCH for partial updates
             const response = await fetchApi.patch<Media>(endpoint, updateData);
-                        // Ensure the response contains all necessary data
             if (response.metaData.status === 'success' && response.data) {
-                // Make sure cover_image and cover_image_url are properly set
                 if (coverImageId === null) {
                     response.data.cover_image = null;
                     response.data.cover_image_url = undefined;
@@ -471,20 +428,14 @@ export const mediaApi = {
         }
     },
 
-    /**
-     * Bulk delete multiple media items
-     * @param mediaItems Array of media items to delete
-     */
     bulkDeleteMedia: async (
         mediaItems: Media[]
     ): Promise<ApiResponse<{ deleted_count: number }>> => {
         try {
             const endpoint = `${BASE_MEDIA_PATH}/bulk-delete`;
-            // Fix: Send the correct data structure expected by the backend
-            // Backend expects media_data as array of {id, type} objects
             const mediaData = mediaItems.map(item => ({ 
                 id: item.id, 
-                type: item.media_type || 'image' // Use media_type from the item or default to image
+                type: item.media_type || 'image'
             }));
             
             return await fetchApi.post<{ deleted_count: number }>(endpoint, { media_data: mediaData });
@@ -513,16 +464,11 @@ export const mediaApi = {
         }
     },
 
-    /**
-     * دریافت تنظیمات آپلود media از بک‌اند
-     * این تنظیمات از .env در بک‌اند خوانده می‌شود
-     */
     getUploadSettings: async (clearCache: boolean = false): Promise<MediaUploadSettings> => {
         const url = clearCache 
             ? '/core/upload-settings/?clear_cache=true'
             : '/core/upload-settings/';
         
-        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
         const response = await fetchApi.get<MediaUploadSettings>(url);
         
         if (!response.data) {

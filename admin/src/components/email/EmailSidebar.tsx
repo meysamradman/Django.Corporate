@@ -1,12 +1,3 @@
-/**
- * رنگ‌های استاندارد صندوق‌های ایمیل:
- * - صندوق ورودی: default (blue/primary)
- * - ارسال شده: green
- * - پیش‌نویس: orange
- * - ستاره‌دار: amber
- * - هرزنامه: red
- * - سطل زباله: gray
- */
 "use client";
 
 import React from "react";
@@ -46,7 +37,6 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
   
   return (
     <aside className="w-full flex flex-col h-full overflow-hidden">
-      {/* Compose Button */}
       <div className="p-5 border-b flex-shrink-0">
         <ProtectedButton
           permission="email.create"
@@ -59,7 +49,6 @@ export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick,
         </ProtectedButton>
       </div>
 
-      {/* Mailboxes */}
       <nav className="flex-1 overflow-y-auto min-h-0">
         {mailboxes.map((mailbox) => {
           const getMailboxColors = (id: string, isSelected: boolean) => {

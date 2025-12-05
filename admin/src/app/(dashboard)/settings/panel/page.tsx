@@ -15,7 +15,6 @@ export default function PanelSettingsPage() {
             </div>
             <PanelSettingsForm ref={formRef} />
             
-            {/* Sticky Save Buttons Footer */}
             <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                 <ProtectedButton 
                     onClick={() => formRef.current?.handleSubmit()}

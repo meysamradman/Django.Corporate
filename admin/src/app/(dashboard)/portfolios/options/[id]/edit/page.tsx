@@ -29,14 +29,12 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
     description: "",
   });
 
-  // Fetch option data
   const { data: option, isLoading, error } = useQuery({
     queryKey: ['option', optionId],
     queryFn: () => portfolioApi.getOptionById(optionId),
     enabled: !!optionId,
   });
 
-  // Update form data when option data is fetched
   useEffect(() => {
     if (option) {
       setFormData({
@@ -62,18 +60,15 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
       
-      // Update both name and slug
       setFormData(prev => ({
         ...prev,
         [field]: value,
         slug: generatedSlug
       }));
     } else {
-      // Update only the specified field
       setFormData(prev => ({
         ...prev,
         [field]: value
@@ -193,7 +188,6 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
         </Card>
       </form>
 
-      {/* Sticky Save Buttons Footer */}
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
           type="button"

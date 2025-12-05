@@ -30,7 +30,6 @@ export function MediaSelector({
     context: overrideContext,
     contextId: overrideContextId
 }: MediaSelectorProps) {
-    // اگر context پاس داده نشه، از route تشخیص بده
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
     
     const [showMediaSelector, setShowMediaSelector] = useState(false);
@@ -46,7 +45,6 @@ export function MediaSelector({
     };
 
     const handleUploadComplete = () => {
-        // بعد از آپلود، مودال انتخاب را باز کن
         setShowMediaSelector(true);
         setActiveTab("select");
     };
@@ -126,7 +124,6 @@ export function MediaSelector({
                 </div>
             </div>
 
-            {/* Media Library Modal with Tabs */}
             <MediaLibraryModal
                 isOpen={showMediaSelector}
                 onClose={() => setShowMediaSelector(false)}

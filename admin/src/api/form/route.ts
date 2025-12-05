@@ -10,7 +10,6 @@ class FormApi {
     private baseUrl = '/form/';
 
     async getFields(params?: { is_active?: boolean; platform?: string }): Promise<ContactFormField[]> {
-        // Add limit to get all fields (disable pagination)
         const queryParams = new URLSearchParams();
         if (params?.is_active !== undefined) {
             queryParams.append('is_active', String(params.is_active));
@@ -18,16 +17,12 @@ class FormApi {
         if (params?.platform) {
             queryParams.append('platform', params.platform);
         }
-        // Add a large limit to get all fields
         queryParams.append('limit', '1000');
         
         const queryString = queryParams.toString();
         const url = `${this.baseUrl}fields/${queryString ? '?' + queryString : ''}`;
         const response = await fetchApi.get<ContactFormField[]>(url);
         
-        // Response structure from APIResponse: { metaData: {...}, data: [...], pagination?: {...} }
-        // When paginated: response.data is the array from pagination results
-        // When not paginated: response.data is the array directly
         if (!response || !response.data) {
             return [];
         }

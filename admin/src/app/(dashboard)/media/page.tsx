@@ -108,7 +108,6 @@ export default function MediaPage() {
   const [mounted, setMounted] = useState(false);
   const { getResourceAccess, hasModuleAction } = useUserPermissions();
   const mediaAccess = getResourceAccess('media');
-  // ✅ FIX: Use context-aware upload check - supports both media.upload AND type-specific permissions
   const canUploadMedia = useCanUpload('media_library');
   const aiAccess = getResourceAccess('ai');
   const canDeleteMedia = mediaAccess.delete || mediaAccess.manage;
@@ -132,13 +131,11 @@ export default function MediaPage() {
     };
 
     try {
-      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
         forceRefresh: true
       } : undefined);
 
       if (response.metaData.status === 'success') {
-        // Ensure we're getting the data correctly from the response
         const mediaData = Array.isArray(response.data) ? response.data : [];
         setMediaItems(mediaData);
         setTotalCount(response.pagination?.count || mediaData.length || 0);
@@ -146,9 +143,8 @@ export default function MediaPage() {
         setError(response.metaData.message || "خطا در دریافت رسانه‌ها");
       }
     } catch (error) {
-      // Error fetching media handled by toast
       setError("خطا در دریافت رسانه‌ها");
-      setMediaItems([]); // Clear items on error
+      setMediaItems([]);
       setTotalCount(0);
     } finally {
       setIsLoading(false);
@@ -274,7 +270,6 @@ export default function MediaPage() {
       toast.error("شما اجازه حذف رسانه‌ها را ندارید");
       return;
     }
-    // Get the selected media items
     const selectedMediaItems = mediaItems.filter(item => selectedItems[item.id]);
 
     if (selectedMediaItems.length === 0) return;
@@ -315,7 +310,6 @@ export default function MediaPage() {
   };
 
   const handleUploadComplete = () => {
-    // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
     fetchMedia({ ...filters, page: 1 }, true);
   };
 
@@ -325,22 +319,17 @@ export default function MediaPage() {
   };
 
   const handleEditMedia = (media: Media) => {
-    // For now, just close the detail modal
     setDetailModalOpen(false);
   };
 
   const handleMediaUpdated = (updatedMedia: Media) => {
-    // Update the media item in the list
     setMediaItems(prev => prev.map(item =>
       item.id === updatedMedia.id ? updatedMedia : item
     ));
 
-    // Also update the detail media if it's the same item
     if (detailMedia && detailMedia.id === updatedMedia.id) {
       setDetailMedia(updatedMedia);
     }
-
-    // Toast is shown in MediaDetailsModal - no need to show again here
   };
 
   useEffect(() => {
@@ -355,7 +344,6 @@ export default function MediaPage() {
           <h1 className="page-title">کتابخانه رسانه</h1>
         </div>
         <div className="flex items-center gap-2">
-          {/* AI Generate Button - فقط Disable (باز کردن مودال) */}
           <ProtectedButton
             permission="ai.create"
             size="sm"
@@ -367,7 +355,6 @@ export default function MediaPage() {
             تولید با AI
           </ProtectedButton>
 
-          {/* Upload Button - فقط Disable (باز کردن مودال) */}
           <ProtectedButton
             permission={['media.upload', 'media.image.upload', 'media.video.upload', 'media.audio.upload', 'media.document.upload']}
             requireAll={false}
@@ -381,8 +368,6 @@ export default function MediaPage() {
           </ProtectedButton>
         </div>
       </div>
-
-      {/* Main Content */}
 
       {error && (
         <div className="text-center text-destructive bg-destructive/10 border border-destructive/20 p-4 rounded">
@@ -480,7 +465,6 @@ export default function MediaPage() {
               {mediaItems.map((item) => {
                 const displayName = item.title || item.original_file_name || item.file_name || 'بدون عنوان';
 
-                // Use the shared service to get cover image URL
                 const coverImageUrl = mediaService.getMediaCoverUrl(item);
                 const hasCoverImage = !!coverImageUrl && coverImageUrl.length > 0;
 
@@ -493,7 +477,6 @@ export default function MediaPage() {
                     )}
                     onClick={() => handleMediaClick(item)}
                   >
-                    {/* Image Container */}
                     <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
                       {hasCoverImage ? (
                         <MediaImage
@@ -522,7 +505,6 @@ export default function MediaPage() {
                         </div>
                       )}
 
-                      {/* Video/Audio icon overlay */}
                       {(item.media_type === 'video' || item.media_type === 'audio') && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <div className="bg-static-b/50 rounded-full p-3">
@@ -536,7 +518,6 @@ export default function MediaPage() {
                       )}
                     </div>
 
-                    {/* Checkbox - Top Right */}
                     <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         id={`select-${item.id}`}
@@ -547,7 +528,6 @@ export default function MediaPage() {
                       />
                     </div>
 
-                    {/* Title Overlay - Bottom */}
                     <div className={cn(
                       "absolute bottom-0 left-0 right-0 p-3 text-xs z-0 transition-all duration-300 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none",
                       selectedItems[item.id] ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -608,7 +588,6 @@ export default function MediaPage() {
         context="media_library"
       />
 
-      {/* AI Generate Modal */}
       {canUseAI && (
         <Dialog open={isAIGenerateModalOpen} onOpenChange={setIsAIGenerateModalOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

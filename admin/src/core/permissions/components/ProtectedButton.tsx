@@ -13,22 +13,10 @@ interface Props extends React.ComponentProps<typeof Button> {
   denyMessage?: string;
 }
 
-/**
- * ✅ Protected Button component with permission check
- * 🔥 Optimized: Uses memoized permission checks from Context (cached for 5 minutes)
- * @example
- * <ProtectedButton
- *   permission="media.upload"
- *   onClick={handleUpload}
- *   showDenyToast
- * >
- *   آپلود رسانه
- * </ProtectedButton>
- */
 export const ProtectedButton: React.FC<Props> = ({
   permission,
   requireAll = false,
-  showDenyToast = false, // ✅ FIX: Default to false - disable is better than toast
+  showDenyToast = false,
   denyMessage = 'شما دسترسی لازم برای این عملیات را ندارید',
   onClick,
   children,
@@ -38,7 +26,6 @@ export const ProtectedButton: React.FC<Props> = ({
 }) => {
   const { hasPermission, hasAllPermissions, hasAnyPermission, isLoading } = usePermission();
 
-  // ✅ FIX: Use hasPermission function which checks wildcards, manage, and synonyms
   const hasAccess = useMemo(() => {
     if (isLoading) return false;
     
@@ -56,7 +43,6 @@ export const ProtectedButton: React.FC<Props> = ({
     if (!hasAccess) {
       e.preventDefault();
       e.stopPropagation();
-      // ✅ FIX: Show toast only if showDenyToast is true
       if (showDenyToast) {
         toast.error(denyMessage);
       }
@@ -66,9 +52,7 @@ export const ProtectedButton: React.FC<Props> = ({
     onClick?.(e);
   };
 
-  // اگر asChild هست و دسترسی نداره، محتوای Link رو extract کنیم
   if (asChild && !hasAccess) {
-    // Extract children from Link component
     let linkChildren = children;
     if (React.isValidElement(children)) {
       linkChildren = (children.props as any).children;

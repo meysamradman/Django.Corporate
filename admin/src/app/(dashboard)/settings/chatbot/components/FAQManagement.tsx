@@ -29,13 +29,11 @@ export function FAQManagement() {
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
   const [deletingFAQ, setDeletingFAQ] = useState<FAQ | null>(null);
 
-  // Pagination state
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
 
-  // Sorting state
   const [sorting, setSorting] = useState<SortingState>([
     { id: "order", desc: false },
   ]);
@@ -43,9 +41,7 @@ export function FAQManagement() {
   const { data: allFAQs = [], isLoading } = useFAQList();
   const deleteFAQ = useDeleteFAQ();
 
-  // Client-side pagination and sorting
   const { paginatedFAQs, pageCount } = useMemo(() => {
-    // Sort data
     const sorted = [...allFAQs].sort((a, b) => {
       const sortColumn = sorting[0];
       if (!sortColumn) return 0;
@@ -69,7 +65,6 @@ export function FAQManagement() {
       return aStr.localeCompare(bStr, "fa");
     });
 
-    // Calculate pagination
     const totalPages = Math.ceil(sorted.length / pagination.pageSize);
     const startIndex = pagination.pageIndex * pagination.pageSize;
     const endIndex = startIndex + pagination.pageSize;
@@ -81,7 +76,6 @@ export function FAQManagement() {
     };
   }, [allFAQs, pagination, sorting]);
 
-  // Handle pagination change
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (
     updaterOrValue
   ) => {
@@ -92,7 +86,6 @@ export function FAQManagement() {
     setPagination(newPagination);
   };
 
-  // Handle sorting change
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting =
       typeof updaterOrValue === "function"
@@ -260,7 +253,6 @@ export function FAQManagement() {
   return (
     <>
       <div className="space-y-6">
-        {/* Content Area */}
         {allFAQs.length === 0 ? (
           <div className="text-center py-12 border border-br rounded-lg bg-card">
             <MessageSquare className="h-12 w-12 text-font-s mx-auto mb-4" />

@@ -56,7 +56,6 @@ export const roleApi = {
     let currentPage = 1;
     let totalPages = 1;
 
-    // Fetch first page
     const firstResponse = await roleApi.getRoleList({
       ...params,
       page: currentPage,

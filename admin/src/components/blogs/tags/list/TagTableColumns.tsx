@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - فعال: green
- * - غیرفعال: red
- * - عمومی: blue
- * - خصوصی: gray
- */
 import { ColumnDef } from "@tanstack/react-table";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { Edit, Trash2 } from "lucide-react";
@@ -138,9 +131,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (tag) => {
-              // Delete tag functionality would go here
-            },
+            onClick: (tag) => {},
             isDestructive: true,
           },
         ];

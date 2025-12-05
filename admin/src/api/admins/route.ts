@@ -95,7 +95,6 @@ export const adminApi = {
             
             const { limit, offset } = convertToLimitOffset(normalizedParams.page, normalizedParams.size);
             
-            // Create API filters with limit/offset instead of page/size
             const apiFilters = { ...finalFilters };
             delete apiFilters.page;
             delete apiFilters.size;
@@ -113,7 +112,6 @@ export const adminApi = {
                 endpointUrl = `/admin/users-management/?${queryString}`;
             }
             
-            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
                 cookieHeader: options?.cookieHeader,
             };
@@ -124,12 +122,10 @@ export const adminApi = {
             let data: AdminWithProfile[] = [];
             let pagination: Pagination = { count: 0, next: null, previous: null, page_size: finalFilters.size, current_page: finalFilters.page, total_pages: 0 };
 
-            // Check for new API response format with pagination
             if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data) && response.pagination) {
                 data = response.data;
                 pagination = response.pagination;
             } 
-            // Check for new API response format without pagination
             else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
                 data = response.data;
                                 pagination = {
@@ -141,12 +137,10 @@ export const adminApi = {
                     total_pages: 1
                 };
             }
-            // Check for custom paginated response (old format)
             else if (response && typeof response === 'object' && Array.isArray((response as any).data) && (response as any).pagination && typeof (response as any).pagination.count === 'number') {
                 data = (response as any).data;
                 pagination = (response as any).pagination;
             } 
-            // Check for DRF paginated response (old format)
             else if (response && typeof response === 'object' && Array.isArray((response as any).results) && typeof (response as any).count === 'number') {
                  data = (response as any).results;
                  pagination.count = (response as any).count;
@@ -154,7 +148,6 @@ export const adminApi = {
                  pagination.previous = (response as any).previous ?? null;
                  pagination.total_pages = Math.ceil((response as any).count / (pagination.page_size || 10));
             } 
-            // Check for simple data array in metaData (fallback)
             else if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data)) {
                 const apiResponse = response as ApiResponse<AdminWithProfile[]>;
                 data = apiResponse.data;
@@ -199,7 +192,6 @@ export const adminApi = {
         try {
             const endpointUrl = `/admin/management/?no_pagination=true&user_type=${userType}`;
 
-            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
                 cookieHeader: options?.cookieHeader,
             };
@@ -220,12 +212,10 @@ export const adminApi = {
         }
     ): Promise<AdminWithProfile> => {
         try {
-            // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
             const fetchOptions = {
                 cookieHeader: options?.cookieHeader,
             };
             
-            // Determine endpoint based on user type
             const endpointUrl = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
     
             const response = await fetchApi.get<AdminWithProfile>(endpointUrl, fetchOptions);
@@ -243,8 +233,6 @@ export const adminApi = {
                 is_superuser: userType === 'admin' ? (flattenedUserData.is_superuser ?? false) : false
             };
 
-            // Normalize location keys for regular users: province/city -> province_id/city_id
-            // Only do this if province_id/city_id are not already set
             if (userType === 'user') {
                 if (dataToSend.province !== undefined && dataToSend.province_id === undefined) {
                     dataToSend.province_id = dataToSend.province;
@@ -256,10 +244,8 @@ export const adminApi = {
                 }
             }
 
-            // Determine endpoint based on user type
             const endpoint = userType === 'admin' ? '/admin/management/' : '/admin/users-management/';
             
-            // Directly send JSON data, assume profile_picture_id is already part of flattenedUserData
             const response = await fetchApi.post<AdminWithProfile>(endpoint, dataToSend);
             return response.data;
         } catch (error) {
@@ -269,12 +255,9 @@ export const adminApi = {
 
     updateUserByType: async (userId: number, flattenedUserData: Record<string, any>, userType: UserType): Promise<AdminWithProfile> => {
         try {
-            // Extract role_id before sending to API
             const { role_id, ...rest } = flattenedUserData;
             const dataToSend: Record<string, any> = { ...rest };
 
-            // Normalize location keys for regular users: province/city -> province_id/city_id
-            // Only do this if province_id/city_id are not already set
             if (userType === 'user') {
                 if (dataToSend.province !== undefined && dataToSend.province_id === undefined) {
                     dataToSend.province_id = dataToSend.province;
@@ -286,28 +269,21 @@ export const adminApi = {
                 }
             }
             
-            // Determine endpoint based on user type
             const endpoint = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
             
-            // Directly send JSON data, assume profile_picture_id is already part of flattenedUserData
             const response = await fetchApi.put<AdminWithProfile>(endpoint, dataToSend);
             
-            // Handle role assignment if provided
             if (role_id !== undefined && userType === 'admin') {
                 try {
-                    // If role_id is 'none' or empty, we should remove all roles
                     if (role_id === 'none' || role_id === '' || role_id === null) {
-                        // Get current roles and remove them
                         const currentRoles = await adminApi.getAdminRoles(userId);
                         for (const role of currentRoles) {
                             await adminApi.removeRoleFromAdmin(userId, role.role);
                         }
                     } else {
-                        // Assign the new role
                         await adminApi.assignRoleToAdmin(userId, Number(role_id));
                     }
                 } catch (roleError) {
-                    // Don't fail the entire update if role assignment fails
                 }
             }
             
@@ -323,10 +299,8 @@ export const adminApi = {
 
     deleteUserByType: async (userId: number): Promise<void> => {
         try {
-            // Determine endpoint based on context
             let endpoint = `/admin/management/${userId}/`;
             
-            // Check if we're in users page context
             if (typeof window !== 'undefined') {
                 const currentPath = window.location.pathname;
                 if (currentPath.includes('/users')) {
@@ -342,7 +316,6 @@ export const adminApi = {
 
     updateUserStatusByType: async (userId: number, isActive: boolean, userType: UserType): Promise<AdminWithProfile> => {
         try {
-            // Determine endpoint based on user type
             const endpointUrl = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
             const payload = { is_active: isActive };
     
@@ -359,10 +332,8 @@ export const adminApi = {
 
     bulkDeleteUsersByType: async (userIds: number[], userType?: 'admin' | 'user'): Promise<void> => {
         try {
-            // Determine endpoint based on context
             let endpoint = '/admin/management/bulk-delete/';
             
-            // Check if we're in users page context
             if (typeof window !== 'undefined') {
                 const currentPath = window.location.pathname;
                 if (currentPath.includes('/users')) {
@@ -382,7 +353,6 @@ export const adminApi = {
 
     getAdminRoles: async (adminId: number): Promise<any[]> => {
         try {
-            // ✅ NO CACHE: Always fetch fresh data - add timestamp to prevent caching
             const timestamp = Date.now();
             const response = await fetchApi.get<{roles: any[]}>(`/admin/roles/user_roles/?user_id=${adminId}&_t=${timestamp}`);
             return response.data?.roles || [];
@@ -440,7 +410,6 @@ export const adminApi = {
     },
 
     getCurrentAdminManagedProfile: async (): Promise<AdminWithProfile> => {
-        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
         const response = await fetchApi.get<AdminWithProfile>('/admin/management/me/');
         return response.data;
     },

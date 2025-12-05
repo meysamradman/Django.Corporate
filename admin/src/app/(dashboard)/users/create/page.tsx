@@ -9,7 +9,6 @@ import { adminApi } from "@/api/admins/route";
 import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
 import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
 import { msg } from "@/core/messages/message";
-// @ts-ignore - TypeScript caching issue, file exists
 import { userFormSchema, userFormDefaults, UserFormValues } from "@/core/validations/userSchema";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
@@ -17,7 +16,6 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { Loader2, Save, User, UserCircle, List } from "lucide-react";
 import { Media } from "@/types/shared/media";
 
-// Dynamic Imports با Next.js 15.5
 const BaseInfoTab = lazy(() => import("@/components/users/create/BaseInfoTab"));
 const ProfileTab = lazy(() => import("@/components/users/create/ProfileTab"));
 
@@ -28,18 +26,16 @@ export default function CreateUserPage() {
     const [editMode] = useState(true);
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
 
-    // React Hook Form با Zod validation
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userFormSchema) as any,
         defaultValues: userFormDefaults as any,
-        mode: "onSubmit", // Validation فقط موقع submit
+        mode: "onSubmit",
     });
 
     const createUserMutation = useMutation({
         mutationFn: async (data: UserFormValues) => {
-            // آماده کردن دیتا برای API - CORRECTED STRUCTURE
             const userDataToSubmit: Record<string, unknown> = {
-                identifier: data.mobile, // ✅ تغییر از mobile به identifier
+                identifier: data.mobile,
                 full_name: data.full_name,
                 password: data.password,
                 is_active: true,
@@ -48,12 +44,10 @@ export default function CreateUserPage() {
                 user_type: 'regular',
             };
 
-            // Add email only if it's provided
             if (data.email) {
                 userDataToSubmit.email = data.email;
             }
 
-            // Add profile fields directly to the main object (not nested)
             if (data.profile_first_name) {
                 userDataToSubmit.first_name = data.profile_first_name;
             }
@@ -74,7 +68,6 @@ export default function CreateUserPage() {
                 userDataToSubmit.phone = data.profile_phone;
             }
             
-            // Use province_id and city_id directly (they are already numbers)
             if (data.profile_province_id) {
                 userDataToSubmit.province_id = data.profile_province_id;
             }
@@ -91,7 +84,6 @@ export default function CreateUserPage() {
                 userDataToSubmit.bio = data.profile_bio;
             }
 
-            // Add profile picture ID if selected
             if (selectedMedia?.id) {
                 userDataToSubmit.profile_picture_id = selectedMedia.id;
             }
@@ -135,7 +127,6 @@ export default function CreateUserPage() {
         },
     });
 
-    // Handler برای ذخیره فرم
     const handleSubmit = async () => {
         const isValid = await form.trigger();
         if (!isValid) return;
@@ -212,7 +203,6 @@ export default function CreateUserPage() {
                     </Suspense>
                 </Tabs>
 
-                {/* Sticky Save Buttons Footer */}
                 {editMode && (
                     <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                         <Button 

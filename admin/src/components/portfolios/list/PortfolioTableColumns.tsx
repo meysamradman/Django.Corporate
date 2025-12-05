@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - منتشر شده: green
- * - پیش‌نویس: yellow
- * - فعال: green
- * - غیرفعال: red
- */
 import { ColumnDef } from "@tanstack/react-table";
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { Button } from "@/components/elements/Button";
@@ -66,7 +59,6 @@ export const usePortfolioColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const portfolio = row.original;
-        // Use the main_image object directly from the API response
         const imageUrl = portfolio.main_image?.file_url 
           ? mediaService.getMediaUrlFromObject({ file_url: portfolio.main_image.file_url } as any)
           : "";
@@ -166,8 +158,7 @@ export const usePortfolioColumns = (
             </div>
           );
         }
-        
-        // نمایش دسته‌بندی‌ها به صورت سلسله مراتبی
+
         const renderCategoryPath = (category: any) => {
           if (category.parent) {
             return `${category.parent.name} > ${category.name}`;
@@ -242,7 +233,6 @@ export const usePortfolioColumns = (
     {
       id: "actions",
       cell: ({ row }) => {
-        // Default actions if none provided
         const defaultActions: DataTableRowAction<Portfolio>[] = [
           {
             label: "ویرایش",
@@ -252,9 +242,7 @@ export const usePortfolioColumns = (
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (portfolio) => {
-              // Delete portfolio functionality would go here
-            },
+            onClick: (portfolio) => {},
             isDestructive: true,
           },
         ];

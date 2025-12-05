@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - فعال: green
- * - غیرفعال: red
- * - عمومی: blue
- * - خصوصی: gray
- */
 import { ColumnDef } from "@tanstack/react-table";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { Edit, Trash2 } from "lucide-react";
@@ -60,7 +53,6 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
         const category = row.original;
-        // Use image_url field from API response
         const imageUrl = category.image_url 
           ? mediaService.getMediaUrlFromObject({ file_url: category.image_url } as any)
           : category.image 
@@ -140,7 +132,6 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
     {
       id: "actions",
       cell: ({ row }) => {
-        // Default actions if none provided
         const defaultActions: DataTableRowAction<PortfolioCategory>[] = [
           {
             label: "ویرایش",
@@ -151,7 +142,6 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (category) => {
-              // Delete category functionality would go here
             },
             isDestructive: true,
           },

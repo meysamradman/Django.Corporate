@@ -220,9 +220,6 @@ export const getAvailableRoles = (currentUserLevel: number = 10): RoleConfig[] =
   return getSystemRoles().filter(role => role.level > currentUserLevel);
 };
 
-/**
- * رنگ‌های استاندارد برای نقش‌ها
- */
 export const ROLE_COLORS = {
   yellow: {
     bg: 'bg-yellow',
@@ -256,9 +253,6 @@ export const ROLE_COLORS = {
   }
 };
 
-/**
- * دریافت کلاس‌های CSS برای رنگ نقش
- */
 export const getRoleColorClasses = (roleName: string) => {
   const color = getRoleColor(roleName);
   return ROLE_COLORS[color as keyof typeof ROLE_COLORS] || ROLE_COLORS.gray;

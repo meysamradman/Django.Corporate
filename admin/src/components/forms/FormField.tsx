@@ -17,22 +17,6 @@ interface FormFieldProps {
   className?: string;
 }
 
-/**
- * FormField Component
- * 
- * کامپوننت یکپارچه برای نمایش فیلد فرم با لیبل، خطا و توضیحات
- * 
- * @example
- * ```tsx
- * <FormField 
- *   label="نام" 
- *   error={errors.name?.message}
- *   required
- * >
- *   <Input {...register("name")} />
- * </FormField>
- * ```
- */
 export function FormField({
   label,
   error,
@@ -73,9 +57,6 @@ export function FormField({
   );
 }
 
-/**
- * FormFieldInput - FormField + Input یکپارچه
- */
 interface FormFieldInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'children'> {
   label: string;
   error?: string;
@@ -110,9 +91,6 @@ export function FormFieldInput({
   );
 }
 
-/**
- * FormFieldTextarea - FormField + Textarea یکپارچه
- */
 interface FormFieldTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'children'> {
   label: string;
   error?: string;

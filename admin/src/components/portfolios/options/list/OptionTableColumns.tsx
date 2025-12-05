@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - فعال: green
- * - غیرفعال: red
- * - عمومی: blue
- * - خصوصی: gray
- */
 import { ColumnDef } from "@tanstack/react-table";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { Edit, Trash2 } from "lucide-react";
@@ -127,7 +120,6 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
     {
       id: "actions",
       cell: ({ row }) => {
-        // Default actions if none provided
         const defaultActions: DataTableRowAction<PortfolioOption>[] = [
           {
             label: "ویرایش",
@@ -137,9 +129,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (option) => {
-              // Delete option functionality would go here
-            },
+            onClick: (option) => {},
             isDestructive: true,
           },
         ];

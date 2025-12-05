@@ -42,7 +42,6 @@ export function FileItem({
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   
   const fileCategory = getFileCategory(file.file);
-  // ✅ کاور برای video، audio و pdf (document) نمایش داده می‌شود
   const needsCover = ['video', 'audio', 'document'].includes(fileCategory);
 
   const getFileIcon = (file: File) => {

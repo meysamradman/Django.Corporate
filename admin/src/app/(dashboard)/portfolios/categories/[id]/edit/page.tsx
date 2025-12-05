@@ -34,30 +34,24 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     description: "",
   });
 
-  // Fetch category data
   const { data: category, isLoading, error } = useQuery({
     queryKey: ['category', categoryId],
     queryFn: () => portfolioApi.getCategoryById(categoryId),
     enabled: !!categoryId,
   });
 
-  // Fetch all categories for parent selection (excluding current category)
   const { data: categories } = useQuery({
     queryKey: ['categories-all'],
     queryFn: async () => {
       return await portfolioApi.getCategories({ size: 1000 });
     },
-    staleTime: 0, // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
-    gcTime: 0, // No cache retention
+    staleTime: 0,
+    gcTime: 0,
   });
 
-  // Function to render category with indentation based on level
   const renderCategoryOption = (category: PortfolioCategory) => {
-    // Calculate indentation based on category level
     const level = category.level || 1;
-    const indentation = " ".repeat(level - 1); // Using em space for better alignment
-    
-    // Add indicator for root categories
+    const indentation = " ".repeat(level - 1);    
     const prefix = level === 1 ? "📂 " : "├─ ";
     
     return (
@@ -67,7 +61,6 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     );
   };
 
-  // Update form data when category data is fetched
   useEffect(() => {
     if (category) {
       setFormData({
@@ -79,7 +72,6 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
         description: category.description || "",
       });
       
-      // Set selected media if category has an image
       if (category.image) {
         setSelectedMedia(category.image);
       }
@@ -93,23 +85,19 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       router.push("/portfolios/categories");
     },
     onError: (error) => {
-      // Error handled by toast
     },
   });
 
   const handleInputChange = (field: string, value: string | boolean | number | null) => {
-    // If we're updating the name field, always generate/update slug
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
       
-      // Update both name and slug
       setFormData(prev => ({
         ...prev,
         [field]: value,
         slug: generatedSlug
       }));
     } else {
-      // Update only the specified field
       setFormData(prev => ({
         ...prev,
         [field]: value
@@ -118,7 +106,6 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
   };
 
   const handleParentChange = (value: string) => {
-    // According to project specifications, check for both existence and non-null string value
     const parentId = value && value !== "null" ? parseInt(value) : null;
     setFormData(prev => ({ ...prev, parent_id: parentId }));
   };
@@ -126,7 +113,6 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Add image ID to form data if selected
     const formDataWithImage = {
       ...formData,
       ...(selectedMedia?.id && { image_id: selectedMedia.id })
@@ -228,7 +214,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                 <SelectContent>
                   <SelectItem value="null">بدون والد (دسته‌بندی مادر)</SelectItem>
                   {categories?.data
-                    ?.filter(cat => cat.id !== categoryId) // Exclude current category
+                    ?.filter(cat => cat.id !== categoryId)
                     .map((category) => renderCategoryOption(category))}
                 </SelectContent>
               </Select>
@@ -270,7 +256,6 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
         </Card>
       </form>
 
-      {/* Sticky Save Buttons Footer */}
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
           type="button"

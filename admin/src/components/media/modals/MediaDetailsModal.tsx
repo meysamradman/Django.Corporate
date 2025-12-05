@@ -46,7 +46,6 @@ export function MediaDetailsModal({
   const [isSaving, setIsSaving] = useState(false);
   const [newCoverImage, setNewCoverImage] = useState<Media | number | null>(null);
 
-  // Reset editing state when media changes
   React.useEffect(() => {
     if (media) {
       setEditedMedia({ ...media });
@@ -59,7 +58,6 @@ export function MediaDetailsModal({
 
   const handleDownload = () => {
     setIsDownloading(true);
-    // Create a temporary link to trigger download
     const link = document.createElement('a');
     link.href = mediaService.getMediaUrlFromObject(media);
     link.download = media.original_file_name || media.file_name || 'download';
@@ -93,7 +91,6 @@ export function MediaDetailsModal({
     setIsSaving(true);
     
     try {
-      // Prepare update data
       const updateData: any = {
         title: editedMedia.title || '',
         alt_text: editedMedia.alt_text || '',
@@ -101,23 +98,18 @@ export function MediaDetailsModal({
 
       let updatedMediaData = { ...editedMedia };
 
-      // Handle cover image changes
       if (newCoverImage !== media.cover_image) {
-        // Use the dedicated updateCoverImage function
         if (newCoverImage === null) {
-          // Remove cover image
           const response = await mediaApi.updateCoverImage(media.id, null);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         } else if (typeof newCoverImage === 'object' && 'id' in newCoverImage) {
-          // Set cover image to an existing media
           const response = await mediaApi.updateCoverImage(media.id, newCoverImage.id);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         } else if (typeof newCoverImage === 'number') {
-          // Set cover image by ID
           const response = await mediaApi.updateCoverImage(media.id, newCoverImage);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
@@ -125,19 +117,16 @@ export function MediaDetailsModal({
         }
       }
 
-      // Update other fields
       const response = await mediaApi.updateMedia(media.id, updateData);
       
       if (response.metaData.status === 'success' && response.data) {
         toast.success('تغییرات با موفقیت ذخیره شد');
         setIsEditing(false);
-        setNewCoverImage(null); // Reset newCoverImage after saving
+        setNewCoverImage(null);
         
-        // Use the updated media data from the API responses
         const finalUpdatedMedia = { ...updatedMediaData, ...response.data };
         setEditedMedia(finalUpdatedMedia);
         
-        // Notify parent component of update
         if (onMediaUpdated) {
           onMediaUpdated(finalUpdatedMedia);
         }
@@ -156,7 +145,6 @@ export function MediaDetailsModal({
   };
 
   const renderMediaContent = () => {
-    // For videos and audio, use MediaPlayer
     if (media.media_type === 'video' || media.media_type === 'audio') {
       return (
         <MediaPlayer
@@ -168,7 +156,6 @@ export function MediaDetailsModal({
       );
     }
     
-    // For images and other media types, use MediaThumbnail
     return (
       <MediaThumbnail
         media={media}
@@ -184,23 +171,17 @@ export function MediaDetailsModal({
   const renderCoverImageSection = () => {
     const coverImage = isEditing ? newCoverImage : media.cover_image;
     
-    // Function to extract URL from cover image using the shared service
     const getCoverImageUrl = (): string | null => {
-      // For editing mode, use the new cover image
       if (isEditing) {
         if (!newCoverImage) return null;
         
-        // If it's a Media object
         if (typeof newCoverImage === 'object' && newCoverImage !== null && 'id' in newCoverImage) {
           return mediaService.getMediaUrlFromObject(newCoverImage);
         }
         
-        // If it's an ID, we need to find the media object
-        // This should ideally be handled by fetching the media object
         return null;
       }
       
-      // For view mode, use the media's cover image
       return mediaService.getMediaCoverUrl(media);
     };
 
@@ -262,7 +243,6 @@ export function MediaDetailsModal({
           جزئیات رسانه شامل اطلاعات فایل، نوع رسانه، اندازه و کاور رسانه می‌باشد.
         </DialogDescription>
         
-        {/* Header */}
         <div className="bg-bg/50 border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -281,17 +261,13 @@ export function MediaDetailsModal({
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex flex-col lg:flex-row">
-          {/* Right Pane - Media Preview */}
           <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l">
             <div className="space-y-4">
-              {/* Media Preview */}
               <div className="relative w-full aspect-square lg:aspect-video min-h-[400px] lg:min-h-[500px] bg-bg rounded-lg overflow-hidden border">
                 {renderMediaContent()}
               </div>
               
-              {/* Action Buttons */}
               <div className="flex gap-2 justify-center">
                 <Button
                   variant="outline"
@@ -307,11 +283,9 @@ export function MediaDetailsModal({
             </div>
           </div>
 
-          {/* Left Pane - Media Details */}
           <div className="w-full lg:w-1/2 p-4 lg:p-6 space-y-6">
             {isEditing ? (
               <>
-                {/* Editable Fields Section */}
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="media-title" className="text-sm font-medium">نام فایل</Label>
@@ -343,7 +317,6 @@ export function MediaDetailsModal({
               </>
             ) : (
               <>
-                {/* Metadata Section */}
                 <div className="bg-bg/30 rounded-lg border p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="sm:col-span-2 flex gap-2">
@@ -393,7 +366,6 @@ export function MediaDetailsModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="bg-bg/50 border-t px-6 py-4">
           <div className="flex gap-3 justify-between">
             {isEditing ? (

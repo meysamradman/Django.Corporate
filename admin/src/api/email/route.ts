@@ -68,7 +68,7 @@ class EmailApi {
 
   async create(data: EmailMessageCreate): Promise<EmailMessage> {
     const response = await fetchApi.post<EmailMessage>(
-      this.baseUrl,  // حذف اسلش اضافی
+      this.baseUrl,
       data as unknown as Record<string, unknown>
     );
 

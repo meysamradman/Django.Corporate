@@ -14,7 +14,7 @@ export interface Portfolio extends Base {
     description: string;
     is_featured: boolean;
     is_public: boolean;
-    is_active: boolean; // اضافه کردن فیلد فعال بودن
+    is_active: boolean;
     main_image?: {
         id: number;
         file_url: string;
@@ -33,7 +33,6 @@ export interface Portfolio extends Base {
         total: number;
         status: string;
     };
-    // Add separate media arrays for list view
     images?: Array<{
         id: number;
         title: string;
@@ -58,13 +57,11 @@ export interface Portfolio extends Base {
         cover_url?: string | null;
         order: number;
     }>;
-    // is_active: boolean; // Removed because it's inherited from Base and not used in the UI
     categories: PortfolioCategory[];
     options: PortfolioOption[];
     tags: PortfolioTag[];
     portfolio_media?: PortfolioMedia[];
     
-    // SEO fields
     meta_title?: string | null;
     meta_description?: string | null;
     og_title?: string | null;
@@ -76,6 +73,5 @@ export interface Portfolio extends Base {
     structured_data?: Record<string, any> | null;
     hreflang_data?: Record<string, any> | null;
     
-    // SEO meta (optional)
     seo?: PortfolioSEOMeta;
 }

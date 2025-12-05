@@ -84,7 +84,6 @@ export function FAQDialog({ isOpen, onClose, faq }: FAQDialogProps) {
       }
       onClose();
     } catch (error) {
-      // Error handling is done in the hook
     }
   };
 

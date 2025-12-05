@@ -28,7 +28,6 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
     const queryClient = useQueryClient();
 
-    // Use formData.profileImage first (updated immediately), then fallback to user profile
     const currentProfileImage = formData.profileImage || user?.profile?.profile_picture;
 
     const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
@@ -36,10 +35,8 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
             const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
                         onProfileImageChange(selectedImage);
             
-            // خودکار ذخیره عکس پروفایل
             try {
                 const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                                // Import adminApi dynamically
                 const { adminApi } = await import('@/api/admins/route');
                 
                 await adminApi.updateUserByType(user.id, {
@@ -48,12 +45,10 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                     }
                 }, 'user');
                 
-                                // Invalidate user profile cache to refresh the page
                 await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
                 await queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
                 await queryClient.refetchQueries({ queryKey: ['user-profile'] });
                 
-                // Invalidate the specific user query by ID (from the edit page)
                 const userIdMatch = window.location.pathname.match(/\/users\/(\d+)\//);
                 if (userIdMatch) {
                     const userId = userIdMatch[1];
@@ -74,7 +69,6 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
     };
 
     const handleUploadComplete = () => {
-        // After upload, activate the selection tab
         setActiveTab("select");
     };
 
@@ -107,7 +101,6 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                             </div>
                         )}
                         
-                        {/* Change profile picture button */}
                         <Button
                             variant="outline"
                             size="sm"
@@ -163,7 +156,6 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                 </div>
             </CardContent>
 
-            {/* MediaLibraryModal for changing profile picture */}
             <MediaLibraryModal
                 isOpen={showMediaSelector}
                 onClose={() => setShowMediaSelector(false)}

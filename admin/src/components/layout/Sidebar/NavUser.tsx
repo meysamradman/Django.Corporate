@@ -15,8 +15,6 @@ interface NavUserProps {
 export function NavUser({ className, showName = false, size = 'md' }: NavUserProps) {
   const { user } = useAuth();
 
-
-  // Show immediate fallback while auth loads
   const displayUser = user || {
     full_name: "کاربر",
     email: 'user@example.com',
@@ -24,7 +22,6 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
     profile: null
   };
 
-  // Get user display name
   const getDisplayName = () => {
     if (displayUser.profile?.full_name) {
       return displayUser.profile.full_name;
@@ -38,7 +35,6 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
     return displayUser.email || 'کاربر';
   };
 
-  // Get user initials
   const getInitials = () => {
     const name = getDisplayName();
     const words = name.trim().split(' ');
@@ -50,7 +46,6 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
     return name.charAt(0).toUpperCase();
   };
 
-  // Get profile image URL
   const getProfileImageUrl = () => {
     if (displayUser.profile?.profile_picture?.file_url) {
       return mediaService.getMediaUrlFromObject(displayUser.profile.profile_picture);

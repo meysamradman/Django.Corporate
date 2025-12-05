@@ -44,7 +44,6 @@ export function ProviderSelector({
 
     if (!providers.length) return null;
 
-    // Compact mode - استفاده از Select dropdown
     if (compact) {
         return (
             <Select
@@ -68,7 +67,6 @@ export function ProviderSelector({
         );
     }
 
-    // Full mode - Grid layout (با اندازه‌های اصلی)
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
             {providers.map((provider) => {

@@ -1,9 +1,3 @@
-// ========================================
-// Common Permission Types for Auth System
-// Shared between Admin, User, and Role modules
-// ========================================
-
-// Basic Permission Interface
 export interface Permission {
   id: number;
   resource: string;
@@ -12,7 +6,6 @@ export interface Permission {
   is_standalone?: boolean;
 }
 
-// Permission Category for grouping
 export interface PermissionCategory {
   [category: string]: {
     code: string;
@@ -20,7 +13,6 @@ export interface PermissionCategory {
   }[];
 }
 
-// Basic Role Interface (for admin/user references)
 export interface Role {
   id: number;
   public_id: string;
@@ -36,14 +28,12 @@ export interface Role {
   updated_at?: string;
 }
 
-// Permission Group for display
 export interface PermissionGroup {
   resource: string;
   display_name: string;
   permissions: Permission[];
 }
 
-// Raw data interfaces for API responses
 export interface RawPermissionGroupData {
   resource: string;
   display_name: string;
@@ -97,7 +87,6 @@ export interface PermissionProfile {
   base_permissions?: BasePermissionDescriptor[];
 }
 
-// API Request/Response Types
 export interface RoleListParams {
   search?: string;
   page?: number;
@@ -108,14 +97,12 @@ export interface RoleListParams {
   is_system_role?: boolean;
 }
 
-// Role permissions response
 export interface RolePermissionsResponse {
   role_id: number;
   role_name: string;
   permissions: RawPermissionGroupData[];
 }
 
-// Role with permissions for management pages
 export interface RoleWithPermissions {
   id: number;
   name: string;

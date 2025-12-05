@@ -22,7 +22,7 @@ interface AIPermissionsCardProps {
   onToggleAllAI: (checked: boolean, aiPermIds: number[]) => void;
   isPermissionSelected: (permissionId: number | undefined) => boolean;
   getResourceIcon: (resourceKey: string) => React.ReactElement;
-  allPermissions?: any[]; // ✅ اضافه شد - برای چک کردن media permission
+  allPermissions?: any[];
 }
 
 export function AIPermissionsCard({
@@ -34,7 +34,7 @@ export function AIPermissionsCard({
   onToggleAllAI,
   isPermissionSelected,
   getResourceIcon,
-  allPermissions = [], // ✅ Default value
+  allPermissions = [],
 }: AIPermissionsCardProps) {
   if (permissions.length === 0) {
     return null;
@@ -54,7 +54,6 @@ export function AIPermissionsCard({
     isPermissionSelected(p.id)
   ).length;
 
-  // ✅ Check if ai.manage is selected - if yes, disable other AI permissions
   const aiManagePermission = filteredPermissions.find(
     (p) => p.original_key === "ai.manage"
   );
@@ -62,32 +61,26 @@ export function AIPermissionsCard({
     ? isPermissionSelected(aiManagePermission.id)
     : false;
   
-  // ✅ NEW: Check if ai.image.manage is selected
   const hasImagePermission = filteredPermissions.some(
     (p) => (p.original_key === "ai.image.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
   );
   
-  // ✅ NEW: Check if ai.content.manage is selected
   const hasContentPermission = filteredPermissions.some(
     (p) => (p.original_key === "ai.content.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
   );
   
-  // ✅ NEW: Check if ai.audio.manage is selected
   const hasAudioPermission = filteredPermissions.some(
     (p) => (p.original_key === "ai.audio.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
   );
   
-  // ✅ NEW: Check if media permission is selected
   const hasMediaPermission = allPermissions.some(
     (p: any) => (p.original_key === "media.manage" || p.resource === "media") && isPermissionSelected(p.id)
   );
   
-  // ✅ NEW: Check if blog permission is selected
   const hasBlogPermission = allPermissions.some(
     (p: any) => (p.original_key === "blog.manage" || p.resource === "blog") && isPermissionSelected(p.id)
   );
   
-  // ✅ NEW: Check if portfolio permission is selected
   const hasPortfolioPermission = allPermissions.some(
     (p: any) => (p.original_key === "portfolio.manage" || p.resource === "portfolio") && isPermissionSelected(p.id)
   );
@@ -125,7 +118,6 @@ export function AIPermissionsCard({
         </div>
       </CardHeader>
       <CardContent>
-        {/* ✅ Warning 1: AI Content without Blog/Portfolio */}
         {hasContentPermission && !hasBlogPermission && !hasPortfolioPermission && (
           <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <div className="flex items-start gap-2">
@@ -144,7 +136,6 @@ export function AIPermissionsCard({
           </div>
         )}
         
-        {/* ✅ Warning 2: AI Image without Media */}
         {hasImagePermission && !hasMediaPermission && (
           <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <div className="flex items-start gap-2">
@@ -163,7 +154,6 @@ export function AIPermissionsCard({
           </div>
         )}
         
-        {/* ✅ Warning 3: AI Audio without Media */}
         {hasAudioPermission && !hasMediaPermission && (
           <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <div className="flex items-start gap-2">
@@ -192,7 +182,6 @@ export function AIPermissionsCard({
             })
             .map((perm) => {
               const isSelected = isPermissionSelected(perm.id);
-              // ✅ Disable if ai.manage is selected and this is not ai.manage
               const isDisabled =
                 isAiManageSelected &&
                 perm.original_key !== "ai.manage" &&
@@ -203,7 +192,7 @@ export function AIPermissionsCard({
                   key={perm.id}
                   onClick={() => {
                     if (perm.requires_superadmin && !isSuperAdmin) return;
-                    if (isDisabled) return; // ✅ Don't allow toggling if disabled
+                    if (isDisabled) return;
                     onTogglePermission(perm.id);
                   }}
                   className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 ${

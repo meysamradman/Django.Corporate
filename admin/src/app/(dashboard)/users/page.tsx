@@ -40,17 +40,14 @@ export default function UsersPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<Filter>({});
 
-  // Load filters from URL on initial load
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Load pagination from URL
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -60,22 +57,18 @@ export default function UsersPage() {
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
     
-    // Load sorting from URL
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     } else {
-      // ✅ FIX: If no sorting in URL, use default from initSortingFromURL
       setSorting(initSortingFromURL());
     }
     
-    // Load search from URL
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
     
-    // Load filters from URL
     const newClientFilters: typeof clientFilters = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
@@ -89,7 +82,6 @@ export default function UsersPage() {
     }
   }, []);
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     userId?: number;
@@ -100,7 +92,6 @@ export default function UsersPage() {
     isBulk: false,
   });
 
-  // Build query parameters
   const queryParams: Filter = {
     search: searchValue,
     page: pagination.pageIndex + 1,
@@ -111,20 +102,18 @@ export default function UsersPage() {
     is_verified: clientFilters.is_verified,
   };
 
-  // Use React Query for data fetching
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['users', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_verified],
     queryFn: async () => {
       return await adminApi.fetchUsersList('user', queryParams);
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
   });
 
   const data = (response?.data || []) as UserWithProfile[];
   const totalCount = response?.pagination?.count || 0;
   const pageCount = response?.pagination?.total_pages || Math.ceil(totalCount / pagination.pageSize) || 1;
 
-  // Delete mutations
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => adminApi.deleteUserByType(userId),
     onSuccess: () => {
@@ -148,7 +137,6 @@ export default function UsersPage() {
     },
   });
 
-  // تابع حذف کاربر
   const handleDeleteUser = (userId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -157,7 +145,6 @@ export default function UsersPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -166,7 +153,6 @@ export default function UsersPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.userIds) {
@@ -175,12 +161,10 @@ export default function UsersPage() {
         await deleteUserMutation.mutateAsync(deleteConfirm.userId);
       }
     } catch (error) {
-      // Error in delete
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
   const columns = useUserColumns([
     {
       label: "ویرایش",
@@ -202,7 +186,6 @@ export default function UsersPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -218,7 +201,6 @@ export default function UsersPage() {
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(String(filterId), String(value));
@@ -230,7 +212,6 @@ export default function UsersPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -238,14 +219,12 @@ export default function UsersPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -253,7 +232,6 @@ export default function UsersPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -265,7 +243,6 @@ export default function UsersPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -287,7 +264,6 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -295,7 +271,6 @@ export default function UsersPage() {
           </h1>
         </div>
         <div className="flex items-center">
-          {/* ✅ دکمه navigation به صفحه ایجاد - با Toast */}
           <ProtectedButton
             permission="users.create"
             size="sm"
@@ -307,7 +282,6 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -333,7 +307,6 @@ export default function UsersPage() {
         pageSizeOptions={[10, 20, 50]}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

@@ -1,12 +1,10 @@
 import { FilterConfig } from "@/types/shared/table";
 
-// Define option filter types
 export interface OptionFilters {
   is_active?: string;
   is_public?: string;
 }
 
-// Filter options
 export const useOptionFilterOptions = () => {
   const booleanFilterOptions = [
     { label: "بله", value: "true" },
@@ -18,7 +16,6 @@ export const useOptionFilterOptions = () => {
   };
 };
 
-// Filter configuration
 export const getOptionFilterConfig = (
   booleanFilterOptions: { label: string; value: string }[]
 ): FilterConfig[] => [

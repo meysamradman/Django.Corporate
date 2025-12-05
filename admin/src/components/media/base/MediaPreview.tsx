@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد نوع مدیا:
- * - تصویر: blue (پیش‌فرض)
- * - ویدیو: red
- * - صدا: blue
- * - سند/PDF: orange
- */
 "use client";
 
 import React, { useState } from 'react';
@@ -28,8 +21,6 @@ export function MediaPreview({
 }: MediaPreviewProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-
-  // Get appropriate background color for media type
   const getMediaBgColor = () => {
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
@@ -45,7 +36,6 @@ export function MediaPreview({
     }
   };
 
-  // Get play icon color
   const getPlayIconColor = () => {
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
@@ -72,7 +62,6 @@ export function MediaPreview({
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
     >
-      {/* Media Thumbnail */}
       <MediaThumbnail
         media={media}
         alt={media.alt_text || media.title || 'Media preview'}
@@ -82,7 +71,6 @@ export function MediaPreview({
         showIcon={true}
       />
 
-      {/* Play Icon Overlay for Video/Audio */}
       {((media.media_type || '') === 'video' || (media.media_type || '') === 'audio') && showPlayIcon && (
         <div className={cn(
           "absolute inset-0 flex items-center justify-center bg-static-b/20 transition-opacity duration-300",
@@ -98,7 +86,6 @@ export function MediaPreview({
       )}
 
 
-      {/* Hover Overlay */}
       <div className={cn(
         "absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300",
         isHovered ? "opacity-100" : "opacity-0"

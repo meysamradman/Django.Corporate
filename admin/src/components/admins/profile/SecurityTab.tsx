@@ -38,7 +38,6 @@ export function SecurityTab() {
 
     return (
         <TabsContent value="security">
-            {/* Change Password */}
             <CardWithIcon
                 icon={Lock}
                 title="امنیت"

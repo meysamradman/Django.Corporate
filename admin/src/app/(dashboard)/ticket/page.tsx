@@ -39,7 +39,6 @@ export default function TicketPage() {
 
   const tickets = ticketsData?.data || [];
 
-  // Refresh all ticket-related data including notifications
   const handleRefresh = useCallback(() => {
     refetch();
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -47,10 +46,8 @@ export default function TicketPage() {
     toast.success('داده‌ها به‌روزرسانی شدند');
   }, [refetch, queryClient]);
 
-  // Mark ticket as read when selected and has unread messages
   useEffect(() => {
     if (selectedTicket && selectedTicket.unread_messages_count && selectedTicket.unread_messages_count > 0) {
-      // Mark as read after a small delay to ensure user actually sees it
       const timer = setTimeout(() => {
         markTicketAsRead.mutate(selectedTicket.id);
       }, 1000);
@@ -58,13 +55,11 @@ export default function TicketPage() {
     }
   }, [selectedTicket?.id, selectedTicket?.unread_messages_count]);
 
-  // Auto-select ticket from URL query param (from notification)
   useEffect(() => {
     if (ticketIdFromUrl && tickets.length > 0) {
       const ticket = tickets.find(t => t.id.toString() === ticketIdFromUrl);
       if (ticket) {
         setSelectedTicket(ticket);
-        // Clear the URL param after selecting
         window.history.replaceState({}, '', '/ticket');
       }
     }
@@ -114,7 +109,6 @@ export default function TicketPage() {
       setSelectedTicket(null);
       refetch();
     } catch (error) {
-      // Error handled by hook
     }
   }, [deleteTicket, refetch]);
 
@@ -126,7 +120,6 @@ export default function TicketPage() {
         setSelectedTicket({ ...selectedTicket, status });
       }
     } catch (error) {
-      // Error handled by hook
     }
   }, [updateStatus, refetch, selectedTicket]);
 
@@ -147,7 +140,6 @@ export default function TicketPage() {
         refetch();
       }
     } catch (error) {
-      // Error handled by hook
     }
   }, [replyToTicket, createMessage, refetch, selectedTicket]);
 

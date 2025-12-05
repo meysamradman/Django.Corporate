@@ -35,7 +35,6 @@ export default function RolesPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
@@ -44,11 +43,9 @@ export default function RolesPage() {
     is_system_role?: boolean;
   }>({});
 
-  // Load filters from URL on initial load
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Load pagination from URL
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -58,22 +55,18 @@ export default function RolesPage() {
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
     
-    // Load sorting from URL
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     } else {
-      // ✅ FIX: If no sorting in URL, use default from initSortingFromURL
       setSorting(initSortingFromURL());
     }
     
-    // Load search from URL
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
     
-    // Load filters from URL
     const newClientFilters: typeof clientFilters = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
@@ -87,7 +80,6 @@ export default function RolesPage() {
     }
   }, []);
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     roleId?: number;
@@ -98,7 +90,6 @@ export default function RolesPage() {
     isBulk: false,
   });
 
-  // Build query parameters
   const queryParams = React.useMemo(() => {
     const params = {
       search: searchValue,
@@ -113,7 +104,6 @@ export default function RolesPage() {
     return params;
   }, [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role]);
 
-  // Use React Query for data fetching
   const { data: response, isLoading, error, refetch } = useRoles(queryParams);
 
   const data = response?.data || [];
@@ -121,11 +111,7 @@ export default function RolesPage() {
 
   const deleteRoleMutation = useDeleteRole();
   const bulkDeleteMutation = useBulkDeleteRoles();
-  
 
-
-
-  // Row actions for each role
   const rowActions: DataTableRowAction<Role>[] = [
     {
       label: "مشاهده",
@@ -150,12 +136,9 @@ export default function RolesPage() {
     },
   ];
 
-  // Define table columns
   const columns = useRoleColumns(rowActions);
 
-  // Delete role function
   const handleDeleteRole = (roleId: number) => {
-    // Check if it's a system role
     const role = data.find(r => r.id === roleId);
     if (role?.is_system_role) {
       toast.warning('نقش‌های سیستمی قابل حذف نیستند');
@@ -169,9 +152,7 @@ export default function RolesPage() {
     });
   };
 
-  // Bulk delete function - filter out system roles
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    // Convert all IDs to numbers for proper comparison
     const numericSelectedIds = selectedIds.map(id => Number(id));
     const selectedRoles = data.filter(role => numericSelectedIds.includes(Number(role.id)));
     const deletableRoles = selectedRoles.filter(role => !role.is_system_role);
@@ -181,7 +162,6 @@ export default function RolesPage() {
       return;
     }
     
-    // If some system roles were selected, warn user
     if (deletableRoles.length < selectedRoles.length) {
       toast.warning(`تنها ${deletableRoles.length} نقش غیرسیستمی حذف خواهد شد`);
     }
@@ -193,7 +173,6 @@ export default function RolesPage() {
     });
   };
 
-  // Confirm delete function
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.roleIds) {
@@ -203,19 +182,15 @@ export default function RolesPage() {
         await deleteRoleMutation.mutateAsync(deleteConfirm.roleId);
       }
     } catch (error: any) {
-      // Error is handled by mutation, but we can provide additional context here if needed
-
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // Handle filter changes
   const handleFilterChange = (filterId: string, value: unknown) => {
     if (filterId === "search") {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -231,7 +206,6 @@ export default function RolesPage() {
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(filterId, String(value));
@@ -243,7 +217,6 @@ export default function RolesPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<PaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -251,14 +224,12 @@ export default function RolesPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -266,7 +237,6 @@ export default function RolesPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -278,7 +248,6 @@ export default function RolesPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Show error state
   if (error) {
     return (
       <div className="space-y-6">
@@ -300,7 +269,6 @@ export default function RolesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -308,7 +276,6 @@ export default function RolesPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {/* ✅ دکمه navigation به صفحه ایجاد - با Toast */}
           <ProtectedButton
             permission="admin.create"
             size="sm"
@@ -322,7 +289,6 @@ export default function RolesPage() {
         </div>
       </div>
 
-      {/* Data Table */}
       <DataTable
         columns={columns}
         data={data}
@@ -349,7 +315,6 @@ export default function RolesPage() {
         pageSizeOptions={[10, 20, 50]}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

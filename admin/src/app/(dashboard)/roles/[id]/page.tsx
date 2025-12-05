@@ -32,7 +32,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
   const { data: basePermissions } = useBasePermissions();
   const { data: permissions } = usePermissions();
 
-  // Match permissions with display names from API
   const permissionDisplayNames = useMemo(() => {
     if (!permissions || !Array.isArray(permissions)) return {} as Record<string, string>;
     
@@ -100,7 +99,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  // Count permissions for display
   const basePermsCount = basePermissions && Array.isArray(basePermissions) ? basePermissions.length : 0;
   const specificPermsCount = role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions) 
     ? role.permissions.specific_permissions.length 
@@ -109,7 +107,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-8">
-      {/* Hero Header Section */}
       <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-0 via-purple-0 to-blue-0 p-8 shadow-lg">
         <div 
           className="absolute inset-0 opacity-20"
@@ -180,7 +177,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Stats Cards with Creative Design */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-0 to-emerald-0 p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-b-4 border-b-green-1">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-1/10 rounded-full -mr-16 -mt-16"></div>
@@ -231,9 +227,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Role Information - Left Column */}
         <div className="lg:col-span-1">
           <CardWithIcon
             icon={Info}
@@ -295,9 +289,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
           </CardWithIcon>
         </div>
 
-        {/* Permissions - Right Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Base Permissions */}
           <CardWithIcon
             icon={CheckCircle2}
             title="دسترسی‌های پایه"
@@ -326,7 +318,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                     </Badge>
                   ))
                 ) : (
-                  // Fallback اگر API در دسترس نباشد
                   <>
                     <Badge variant="blue" className="text-xs font-medium px-3 py-1.5 shadow-sm">مشاهده Dashboard</Badge>
                     <Badge variant="blue" className="text-xs font-medium px-3 py-1.5 shadow-sm">مشاهده Media</Badge>
@@ -338,7 +329,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
             </div>
           </CardWithIcon>
 
-          {/* Role-specific Permissions */}
           <CardWithIcon
             icon={Sparkles}
             title="دسترسی‌های اختصاصی این نقش"
@@ -354,21 +344,17 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
             }
           >
             {(() => {
-              // ✅ NEW: Support specific_permissions format (new format)
               if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions) && role.permissions.specific_permissions.length > 0) {
                 const specificPerms = role.permissions.specific_permissions;
                 
                 const matchedPermissions = specificPerms.map((perm: any) => {
-                  // Try multiple key formats to find the display name
                   const permKey = perm.permission_key || `${perm.module}.${perm.action}`;
                   const moduleActionKey = `${perm.module}.${perm.action}`;
                   
-                  // Try to find display_name using different key formats
                   let displayName = permissionDisplayNames[permKey] || 
                                    permissionDisplayNames[moduleActionKey] ||
                                    permissionDisplayNames[perm.permission_key || ''];
                   
-                  // If we found display_name from API, use it; otherwise construct a readable name
                   const finalDisplayName = displayName || `${perm.module}.${perm.action}`;
                   
                   return {
@@ -387,9 +373,7 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                     </p>
                     <div className="flex flex-wrap gap-2.5">
                       {matchedPermissions.map((perm, index) => {
-                        // Try to translate using description type (like in form components)
                         const translated = getPermissionTranslation(perm.displayName, "description");
-                        // If translation found, use it; otherwise try resource type; otherwise use original
                         const finalText = translated || getPermissionTranslation(perm.displayName, "resource") || perm.displayName;
                         
                         return (
@@ -407,7 +391,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                 );
               }
               
-              // ✅ OLD FORMAT: modules/actions (backward compatibility)
               if (role.permissions && Object.keys(role.permissions).length > 0) {
                 return (
                   <div className="space-y-4">
@@ -415,7 +398,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                       دسترسی‌های اختصاصی که فقط به این نقش تعلق دارد.
                     </p>
                     
-                    {/* Modules */}
                     {role.permissions.modules && Array.isArray(role.permissions.modules) && role.permissions.modules.length > 0 && (
                       <div>
                         <h5 className="font-medium text-sm mb-2 text-font-p">ماژول‌ها</h5>
@@ -435,7 +417,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                       </div>
                     )}
                     
-                    {/* Actions */}
                     {role.permissions.actions && Array.isArray(role.permissions.actions) && role.permissions.actions.length > 0 && (
                       <div>
                         <h5 className="font-medium text-sm mb-2 text-font-p">عملیات</h5>
@@ -454,7 +435,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                       </div>
                     )}
                     
-                    {/* Special Permissions */}
                     {role.permissions.special && Array.isArray(role.permissions.special) && role.permissions.special.length > 0 && (
                       <div>
                         <h5 className="font-medium text-sm mb-2 text-font-p">دسترسی‌های ویژه</h5>
@@ -469,7 +449,6 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
                       </div>
                     )}
                     
-                    {/* Restrictions */}
                     {role.permissions.restrictions && Array.isArray(role.permissions.restrictions) && role.permissions.restrictions.length > 0 && (
                       <div>
                         <h5 className="font-medium text-sm mb-2 text-font-p">محدودیت‌ها</h5>

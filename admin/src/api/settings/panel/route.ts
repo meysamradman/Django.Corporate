@@ -6,7 +6,6 @@ const BASE_URL = '/admin/panel-settings';
 
 export const getPanelSettings = async (options?: {}): Promise<PanelSettings> => {
     try {
-        // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
         const response = await fetchApi.get<PanelSettings>(`${BASE_URL}/`, options);
         if (!response || !response.data) {
             throw new Error("API response missing panel settings data.");

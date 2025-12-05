@@ -396,7 +396,6 @@ const settingsRoutes: RouteRule[] = [
     module: "panel",
     action: "manage",
     description: "تنظیمات پنل",
-    // ✅ ادمین عادی با permission می‌تواند
   }),
   createRule({
     id: "settings-ai",

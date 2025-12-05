@@ -41,12 +41,10 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             const data = await settingsApi.getGeneralSettings();
             setSettings(data);
             
-            // ✅ Set form fields
             setSiteName(data.site_name || "");
             setCopyrightText(data.copyright_text || "");
             setCopyrightLink(data.copyright_link || "");
             
-            // ✅ Set images
             if (data.logo_image_data) {
                 setLogoImage(data.logo_image_data);
             }

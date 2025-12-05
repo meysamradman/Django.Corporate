@@ -33,7 +33,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
   return (
     <TabsContent value="seo" className="mt-0">
       <div className="space-y-6">
-        {/* Meta Tags Section */}
         <CardWithIcon
           icon={Search}
           title="برچسب‌های Meta"
@@ -43,7 +42,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
           contentClassName="space-y-6 pt-6"
         >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Meta Title */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-font-s">
                   <FileText className="w-4 h-4" />
@@ -61,8 +59,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
                   )}
                 </div>
               </div>
-
-              {/* Meta Description */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-font-s">
                   <FileText className="w-4 h-4" />
@@ -80,8 +76,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
                   )}
                 </div>
               </div>
-
-              {/* Canonical URL */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-font-s">
                   <ExternalLink className="w-4 h-4" />
@@ -99,8 +93,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
                   )}
                 </div>
               </div>
-
-              {/* Robots Meta */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-font-s">
                   <Bot className="w-4 h-4" />
@@ -120,8 +112,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
               </div>
             </div>
         </CardWithIcon>
-
-        {/* Open Graph Preview Section */}
         <CardWithIcon
           icon={Globe}
           title="پیش‌نمایش Open Graph"
@@ -131,7 +121,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
           contentClassName="pt-6"
         >
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              {/* OG Title & Description - Left Side */}
               <div className="lg:col-span-2 space-y-6">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-font-s">
@@ -169,8 +158,6 @@ export function SEOInfoTab({ blog }: SEOInfoTabProps) {
                   </div>
                 </div>
               </div>
-
-              {/* OG Image Preview - Right Side */}
               <div className="lg:col-span-1 space-y-3">
                 <label className="flex items-center gap-2 text-font-s">
                   <ImageIcon className="w-4 h-4" />

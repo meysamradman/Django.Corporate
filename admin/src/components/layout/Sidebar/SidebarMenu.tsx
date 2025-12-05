@@ -32,7 +32,7 @@ export interface MenuAccessConfig {
     readOnlyLabel?: string;
     limitedLabel?: string;
     requireSuperAdmin?: boolean;
-    hideForSuperAdmin?: boolean; // Hide this menu item for super admins
+    hideForSuperAdmin?: boolean;
     roles?: string[];
 }
 
@@ -146,7 +146,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                 access: { 
                     module: "admin", 
                     actions: ["read", "view"], 
-                    requireSuperAdmin: true,  // ✅ Admin management requires super admin
+                    requireSuperAdmin: true,
                     allowReadOnly: true 
                 },
                 items: [
@@ -156,7 +156,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                         access: { 
                             module: "admin", 
                             actions: ["read", "view"], 
-                            requireSuperAdmin: true,  // ✅ Admin management requires super admin
+                            requireSuperAdmin: true,
                             allowReadOnly: true 
                         } 
                     },
@@ -381,7 +381,6 @@ export const useMenuData = () => {
 
     const groups = useMemo(() => {
         const processItem = (item: MenuItemConfig): MenuItem | null => {
-            // Handle isTitle items separately - they don't have access config
             if (item.isTitle) {
                 return {
                     ...item,
@@ -399,12 +398,10 @@ export const useMenuData = () => {
                 ?.map(processItem)
                 .filter(Boolean) as MenuItem[] | undefined;
 
-            // Filter out isTitle items that don't have any visible children after them
             const filteredChildItems = childItems?.filter((child, index) => {
                 if (!child.isTitle) {
                     return true;
                 }
-                // Check if there are any visible non-title items after this title
                 const itemsAfter = childItems.slice(index + 1);
                 return itemsAfter.some(item => !item.isTitle);
             }) as MenuItem[] | undefined;

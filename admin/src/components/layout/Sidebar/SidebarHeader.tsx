@@ -15,7 +15,6 @@ export function SidebarHeader({
   onContentToggle 
 }: SidebarHeaderProps) {
   
-  // Get title for selected section
   const getTitle = () => {
     if (!selectedItem) return '';
     return selectedItem.title;
@@ -25,7 +24,6 @@ export function SidebarHeader({
 
   return (
     <div className="relative flex h-16 items-center justify-between px-4 border-b">
-      {/* Section Title - positioned based on RTL */}
       <div className={cn(
         "flex-1",
         "text-right"
@@ -37,7 +35,6 @@ export function SidebarHeader({
         )}
       </div>
 
-      {/* Toggle Button - در لبه header */}
       {onContentToggle && (
         <div className={cn(
           "absolute top-1/2 -translate-y-1/2 z-50",

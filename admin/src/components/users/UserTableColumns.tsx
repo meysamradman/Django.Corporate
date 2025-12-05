@@ -1,8 +1,3 @@
-/**
- * رنگ‌های استاندارد Badge:
- * - فعال: green
- * - غیرفعال: red
- */
 "use client"
 
 import * as React from "react";

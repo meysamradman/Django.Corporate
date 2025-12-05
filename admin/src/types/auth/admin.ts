@@ -3,7 +3,6 @@ import { Base } from "@/types/shared/base";
 import { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 
-// Admin Base Interface
 export interface Admin extends Base {
     mobile: string;
     email: string | null;
@@ -13,7 +12,6 @@ export interface Admin extends Base {
     full_name: string;
 }
 
-// Admin Profile Interface
 export interface AdminProfile extends Base {
     first_name: string;
     last_name: string;
@@ -28,7 +26,6 @@ export interface AdminProfile extends Base {
     profile_picture: Media | null;
 }
 
-// Admin With Profile Interface
 export interface AdminWithProfile extends Base {
     mobile: string;
     email: string;
@@ -46,7 +43,6 @@ export interface AdminWithProfile extends Base {
     full_name: string;
 }
 
-// Admin Creation Request Interface
 export interface AdminCreateRequest {
     mobile: string;
     email?: string;
@@ -58,7 +54,6 @@ export interface AdminCreateRequest {
     user_type: string;
     role_id?: number;
     
-    // Profile fields
     first_name?: string;
     last_name?: string;
     birth_date?: string;
@@ -74,7 +69,6 @@ export interface AdminCreateRequest {
     profile_picture_id?: number;
 }
 
-// Admin Update Request Interface
 export interface AdminUpdateRequest {
     mobile?: string;
     email?: string;
@@ -84,7 +78,6 @@ export interface AdminUpdateRequest {
     is_superuser?: boolean;
     role_id?: number;
     
-    // Profile fields
     first_name?: string;
     last_name?: string;
     birth_date?: string;
@@ -100,7 +93,6 @@ export interface AdminUpdateRequest {
     profile_picture_id?: number;
 }
 
-// API Request/Response Types
 export interface AdminListParams {
     search?: string;
     page?: number;
@@ -139,7 +131,6 @@ export interface AdminStatusUpdate {
     is_active: boolean;
 }
 
-// Filter Types
 export interface AdminFilters {
     search?: string;
     is_active?: boolean;
@@ -148,14 +139,11 @@ export interface AdminFilters {
     [key: string]: string | number | boolean | string[] | undefined;
 }
 
-// Table Column Types
 export interface AdminTableData extends AdminWithProfile {
-    // Additional fields for table display
     role_count: number;
     permission_count: number;
 }
 
-// Form Types
 export interface AdminFormData {
     mobile: string;
     email: string;

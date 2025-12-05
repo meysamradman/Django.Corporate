@@ -34,7 +34,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
     const [editMode, setEditMode] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     
-    // Mock available roles
     const availableRoles: Role[] = [
         {
             id: 1,
@@ -77,10 +76,8 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
         },
     ];
 
-    // Mock admin roles (based on admin.roles)
     const adminRoles: Role[] = admin.roles && admin.roles.length > 0 ? admin.roles : [];
 
-    // Mock base permissions
     const basePermissions: BasePermission[] = [
         { id: "1", resource: "dashboard", action: "view", display_name: "مشاهده داشبورد", description: "دسترسی به صفحه اصلی", is_base: true },
         { id: "2", resource: "profile", action: "view", display_name: "مشاهده پروفایل", description: "مشاهده پروفایل شخصی", is_base: true },
@@ -88,7 +85,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
         { id: "4", resource: "media", action: "view", display_name: "مشاهده مدیا", description: "مشاهده کتابخانه رسانه", is_base: true },
     ];
 
-    // Initialize role assignments based on admin roles
     const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>(() =>
         availableRoles.map((role) => ({
             roleId: role.id,
@@ -114,7 +110,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
     };
 
     const handleCancel = () => {
-        // Reset role assignments
         const originalAssignments = availableRoles.map((role) => ({
             roleId: role.id,
             assigned: adminRoles.some((adminRole) => adminRole.id === role.id)
@@ -139,7 +134,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                 پروفایل ادمین (استاتیک)
             </h1>
 
-            {/* Admin Settings Card */}
             <Card>
                 <CardHeader>
                     <CardTitle>تنظیمات پیشرفته</CardTitle>
@@ -172,7 +166,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                         />
                     </div>
 
-                    {/* Admin Roles Display */}
                     {adminRoles.length > 0 && (
                         <div className="rounded-lg border p-4">
                             <Label className="text-base">نقش‌های فعلی</Label>
@@ -189,7 +182,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                         </div>
                     )}
 
-                    {/* Base Permissions Display */}
                     {basePermissions.length > 0 && (
                         <div className="rounded-lg border p-4 bg-green/50">
                             <div className="flex items-center gap-2 mb-2">
@@ -217,7 +209,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                 </CardContent>
             </Card>
 
-            {/* Role Assignment Card */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
@@ -246,7 +237,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {/* Super Admin Info */}
                     {admin.is_superuser && (
                         <div className="mb-4 p-4 bg-green border border-green-1 rounded-lg">
                             <div className="flex items-center gap-2">

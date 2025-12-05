@@ -1,8 +1,3 @@
-/**
- * رنگ‌های استاندارد:
- * - برچسب‌های Meta: emerald
- * - Open Graph: blue
- */
 "use client";
 
 import { useState } from "react";
@@ -18,49 +13,40 @@ import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
 import { UploadCloud, X, AlertCircle, Search, Image as ImageIcon, Globe } from "lucide-react";
 
-// Props interface for react-hook-form approach (create page)
 interface SEOTabFormProps {
     form: UseFormReturn<BlogFormValues>;
     editMode: boolean;
-    blogId?: number | string; // Blog ID for context-aware permissions
+    blogId?: number | string;
 }
 
-// Props interface for manual state approach (edit page)
 interface SEOTabManualProps {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
     editMode: boolean;
-    blogId?: number | string; // Blog ID for context-aware permissions
+    blogId?: number | string;
 }
 
-// Union type for both approaches
 type SEOTabProps = SEOTabFormProps | SEOTabManualProps;
 
 export default function SEOTab(props: SEOTabProps) {
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
     
-    // Check which approach is being used
     const isFormApproach = 'form' in props;
     
-    // Get form state based on approach
     const formState = isFormApproach ? props.form.formState : { errors: {} };
     const register = isFormApproach ? props.form.register : null;
     const watch = isFormApproach ? props.form.watch : null;
     const setValue = isFormApproach ? props.form.setValue : null;
     
-    // Get blogId from props (both approaches may have it)
     const blogId = isFormApproach ? props.blogId : props.blogId;
     
-    // Get editMode from props (both approaches have it)
     const editMode = isFormApproach ? props.editMode : props.editMode;
     
-    // For manual approach, use props directly
     const {
         formData,
         handleInputChange
     } = isFormApproach ? {} as any : props;
     
-    // Watch values for form approach
     const metaTitleValue = isFormApproach ? watch?.("meta_title") : formData?.meta_title;
     const metaDescriptionValue = isFormApproach ? watch?.("meta_description") : formData?.meta_description;
     const ogTitleValue = isFormApproach ? watch?.("og_title") : formData?.og_title;
@@ -69,11 +55,9 @@ export default function SEOTab(props: SEOTabProps) {
     const robotsMetaValue = isFormApproach ? watch?.("robots_meta") : formData?.robots_meta;
     const ogImageValue = isFormApproach ? watch?.("og_image") : formData?.og_image;
 
-    // Handle input changes for manual approach
     const handleMetaTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("meta_title", value);
         }
@@ -82,7 +66,6 @@ export default function SEOTab(props: SEOTabProps) {
     const handleMetaDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("meta_description", value);
         }
@@ -91,7 +74,6 @@ export default function SEOTab(props: SEOTabProps) {
     const handleOgTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("og_title", value);
         }
@@ -100,7 +82,6 @@ export default function SEOTab(props: SEOTabProps) {
     const handleOgDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("og_description", value);
         }
@@ -109,7 +90,6 @@ export default function SEOTab(props: SEOTabProps) {
     const handleCanonicalUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("canonical_url", value);
         }
@@ -118,7 +98,6 @@ export default function SEOTab(props: SEOTabProps) {
     const handleRobotsMetaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
-            // For form approach, let react-hook-form handle it
         } else {
             handleInputChange?.("robots_meta", value);
         }
@@ -147,9 +126,7 @@ export default function SEOTab(props: SEOTabProps) {
     return (
         <TabsContent value="seo" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
-                {/* Left Column: Meta Tags & Open Graph Fields */}
                 <div className="flex-1 min-w-0 space-y-6">
-                    {/* Meta Tags Section */}
                     <CardWithIcon
                         icon={Search}
                         title="برچسب‌های Meta"
@@ -272,7 +249,6 @@ export default function SEOTab(props: SEOTabProps) {
                             </div>
                     </CardWithIcon>
 
-                    {/* Open Graph Preview Section */}
                     <CardWithIcon
                         icon={Globe}
                         title="پیش‌نمایش Open Graph"
@@ -340,7 +316,6 @@ export default function SEOTab(props: SEOTabProps) {
                     </CardWithIcon>
                 </div>
 
-                {/* Right Column: OG Image Sidebar */}
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
                     <CardWithIcon
                         icon={ImageIcon}
@@ -395,7 +370,6 @@ export default function SEOTab(props: SEOTabProps) {
                                 </div>
                             )}
                             
-                            {/* نمایش خطا */}
                             {(formState.errors as any)?.og_image?.message && (
                                 <div className="flex items-start gap-2 text-red-2">
                                     <AlertCircle className="w-4 h-4 flex-shrink-0" />

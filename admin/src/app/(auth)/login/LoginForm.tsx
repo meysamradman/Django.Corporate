@@ -37,14 +37,11 @@ export function LoginForm() {
     const [resendTimer, setResendTimer] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
 
-    // --- CAPTCHA State ---
     const [captchaId, setCaptchaId] = useState<string>('');
     const [captchaDigits, setCaptchaDigits] = useState<string>('');
     const [captchaLoading, setCaptchaLoading] = useState<boolean>(true);
     const [captchaError, setCaptchaError] = useState<string | null>(null);
-    // --- End CAPTCHA State ---
 
-    // React Hook Form setup
     const passwordForm = useForm<PasswordLoginForm>({
         resolver: zodResolver(passwordLoginSchema),
         defaultValues: {
@@ -63,7 +60,6 @@ export function LoginForm() {
         },
     });
 
-    // --- Function to fetch CAPTCHA ---
     const fetchCaptchaChallenge = async () => {
         setCaptchaLoading(true);
         setCaptchaError(null);
@@ -78,7 +74,6 @@ export function LoginForm() {
             setCaptchaLoading(false);
         }
     };
-    // --- End Function to fetch CAPTCHA ---
 
     useEffect(() => {
         const fetchOTPSettings = async () => {
@@ -111,7 +106,6 @@ export function LoginForm() {
         };
     }, [resendTimer, otpSent]);
 
-    // Reset isRedirecting when pathname changes (redirect completed)
     useEffect(() => {
         if (isRedirecting && pathname !== '/login') {
             setIsRedirecting(false);
@@ -129,17 +123,13 @@ export function LoginForm() {
         try {
             await login(data.mobile, data.password, captchaId, data.captchaAnswer);
             showSuccessToast(msg.auth("loginSuccess"));
-            // Show redirecting overlay while navigating
             setIsRedirecting(true);
-            // Navigation is handled by AuthContext after successful login
         } catch (error) {
-            // Handle specific error types
             let errorMessage = msg.auth("invalidCredentials");
             
             if (error instanceof ApiError) {
                 const backendMessage = error.response?.message || '';
                 
-                // Check for captcha errors
                 if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
                     errorMessage = backendMessage || msg.validation("captchaRequired");
                     fetchCaptchaChallenge();
@@ -151,7 +141,6 @@ export function LoginForm() {
                 errorMessage = error.message || msg.auth("invalidCredentials");
             }
             
-            // Show error toast only once
             showErrorToast(new Error(errorMessage));
         } finally {
             setIsLoading(false);
@@ -179,7 +168,6 @@ export function LoginForm() {
             setResendTimer(60);
             showSuccessToast(msg.auth("otpSent"));
         } catch (error) {
-            // Handle specific error types
             let errorMessage = msg.auth("otpSendFailed");
             
             if (error instanceof ApiError) {
@@ -188,7 +176,6 @@ export function LoginForm() {
                 errorMessage = error.message || msg.auth("otpSendFailed");
             }
             
-            // Show error toast only once
             showErrorToast(new Error(errorMessage));
         } finally {
             setIsLoading(false);
@@ -206,17 +193,13 @@ export function LoginForm() {
         try {
             await loginWithOTP(data.mobile, data.otp, captchaId, data.captchaAnswer);
             showSuccessToast(msg.auth("loginSuccess"));
-            // Show redirecting overlay while navigating
             setIsRedirecting(true);
-            // Navigation is handled by AuthContext after successful login
         } catch (error) {
-            // Handle specific error types
             let errorMessage = msg.auth("invalidCredentials");
             
             if (error instanceof ApiError) {
                 const backendMessage = error.response?.message || '';
                 
-                // Check for captcha errors
                 if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
                     errorMessage = backendMessage || msg.validation("captchaRequired");
                     fetchCaptchaChallenge();
@@ -228,26 +211,22 @@ export function LoginForm() {
                 errorMessage = error.message || msg.auth("invalidCredentials");
             }
             
-            // Show error toast only once
             showErrorToast(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Format the resend timer to MM:SS format
     const formatResendTimer = () => {
         const minutes = Math.floor(resendTimer / 60);
         const seconds = resendTimer % 60;
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    // وضعیت بارگذاری کلی (از AuthContext یا state محلی)
     const loading = isLoading || authLoading || captchaLoading;
 
     return (
         <>
-            {/* Full-screen loading overlay when redirecting after successful login */}
             {isRedirecting && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-4">
@@ -285,7 +264,6 @@ export function LoginForm() {
                         maxLength={11}
                         {...passwordForm.register("mobile", {
                             onChange: (e) => {
-                                // فقط عدد بپذیر
                                 const filteredValue = filterNumericOnly(e.target.value);
                                 e.target.value = filteredValue;
                                 passwordForm.setValue("mobile", filteredValue);
@@ -327,7 +305,6 @@ export function LoginForm() {
                         </div>
                     </FormField>
 
-                    {/* CAPTCHA */}
                     {captchaId && (
                         <FormField
                             label="کپچا"
@@ -393,7 +370,6 @@ export function LoginForm() {
                         maxLength={11}
                         {...otpForm.register("mobile", {
                             onChange: (e) => {
-                                // فقط عدد بپذیر
                                 const filteredValue = filterNumericOnly(e.target.value);
                                 e.target.value = filteredValue;
                                 otpForm.setValue("mobile", filteredValue);
@@ -412,7 +388,6 @@ export function LoginForm() {
                         maxLength={otpLength}
                         {...otpForm.register("otp", {
                             onChange: (e) => {
-                                // فقط عدد بپذیر
                                 const filteredValue = filterNumericOnly(e.target.value);
                                 e.target.value = filteredValue;
                                 otpForm.setValue("otp", filteredValue);
@@ -424,7 +399,6 @@ export function LoginForm() {
                         disabled={loading}
                     />
 
-                    {/* CAPTCHA */}
                     {captchaId && (
                         <FormField
                             label="کپچا"

@@ -12,13 +12,9 @@ interface BlogMediaGalleryProps {
   maxSelection?: number;
   isGallery?: boolean;
   disabled?: boolean;
-  contextId?: number | string; // Blog ID for context-aware permissions
+  contextId?: number | string;
 }
 
-/**
- * ✅ Wrapper component برای Blog Media Gallery
- * از کامپوننت مشترک MediaGallery استفاده می‌کند
- */
 export function BlogMediaGallery({
   mediaItems,
   onMediaSelect,

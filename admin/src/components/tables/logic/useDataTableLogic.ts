@@ -7,8 +7,7 @@ import {
   RowSelectionState,
 } from '@tanstack/react-table';
 import { toast } from '@/components/elements/Sonner';
-import { useDebounceValue } from '@/core/hooks/useDebounce'; 
-
+import { useDebounceValue } from '@/core/hooks/useDebounce';
 
 import { ApiPagination } from '@/types/shared/pagination';
 import { ApiResponse } from '@/types/api/apiResponse';
@@ -191,16 +190,14 @@ export function useDataTableLogic<
     );
 
     try {
-      
       const response = await fetchDataFn(apiFilters);
-      
 
       if (response && typeof response === 'object' && 'pagination' in response && 'data' in response) {
         const { data: responseData, pagination: responsePagination } = response as ApiResponse<TData>;
-        
+
         if (Array.isArray(responseData)) {
           setData(responseData);
-          
+
           if (responsePagination && typeof responsePagination.count === 'number') {
             setTotalItems(responsePagination.count);
             

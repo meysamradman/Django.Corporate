@@ -73,7 +73,6 @@ export function MediaLibraryModal({
   context: overrideContext,
   contextId: overrideContextId,
 }: MediaLibraryModalProps) {
-  // اگر context پاس داده نشه، از route تشخیص بده
   const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
   
   const [internalActiveTab, setInternalActiveTab] = useState<"select" | "upload">(activeTab || "select");
@@ -107,7 +106,6 @@ export function MediaLibraryModal({
     return canUploadInMediaLibrary || canUploadMediaLegacy;
   }, [context, canUploadInMediaLibrary, canUploadMediaLegacy]);
 
-  // Upload functionality with context
   const {
     files,
     isUploading,
@@ -135,7 +133,6 @@ export function MediaLibraryModal({
     };
 
     try {
-      // ✅ NO CACHE: Admin panel is CSR only - caching handled by backend Redis
       const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
         forceRefresh: true
       } : undefined);
@@ -248,25 +245,21 @@ export function MediaLibraryModal({
     setUploadProgress(100);
 
     if (result.successCount === result.totalCount && result.successCount > 0) {
-      // ✅ Clear files immediately
       clearFiles();
       setTimeout(() => {
         onUploadComplete?.();
         handleTabChange("select");
         setUploadProgress(0);
-        // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
         setTimeout(() => {
           fetchMedia(filters, true);
         }, 1000);
       }, 1500);
     } else if (result.successCount > 0) {
-      // ✅ Some files uploaded successfully - still refresh and clear
       clearFiles();
       setTimeout(() => {
         onUploadComplete?.();
         handleTabChange("select");
         setUploadProgress(0);
-        // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
         setTimeout(() => {
           fetchMedia(filters, true);
         }, 1000);
@@ -275,34 +268,26 @@ export function MediaLibraryModal({
   };
 
   const handleMediaUpdated = (updatedMedia: Media) => {
-    // Update the media item in the list
     setMediaItems(prev => prev.map(item => 
       item.id === updatedMedia.id ? updatedMedia : item
     ));
     
-    // Also update the detail media if it's the same item
     if (detailMedia && detailMedia.id === updatedMedia.id) {
       setDetailMedia(updatedMedia);
     }
-    
-    // Removed duplicate toast notification to prevent showing two toasts
-    // The MediaDetailsModal already shows a toast notification
   };
 
   const handleMediaClick = (media: Media) => {
-    // Open media details modal
     setDetailMedia(media);
     setIsDetailModalOpen(true);
   };
 
   const handleEditMedia = (media: Media) => {
-    // For now, just close the detail modal
     setIsDetailModalOpen(false);
   };
 
   const selectedIds = Object.keys(selectedMedia);
 
-  // Get icon for media type
   const getMediaTypeIcon = (mediaType: string) => {
     switch (mediaType) {
       case 'video':
@@ -338,12 +323,10 @@ export function MediaLibraryModal({
               </div>
           </DialogHeader>
           
-          {/* Hidden description for accessibility */}
           <div id="media-library-description" className="sr-only">
             کتابخانه رسانه برای انتخاب فایل‌های موجود یا آپلود فایل جدید استفاده می‌شود.
           </div>
 
-          {/* Tabs */}
           {showTabs && (
             <div className="border-b">
               <div className="flex space-x-1 px-4 py-2">
@@ -371,12 +354,9 @@ export function MediaLibraryModal({
             </div>
           )}
 
-          {/* Content based on active tab */}
           {currentActiveTab === "upload" ? (
             <div className="flex-grow flex flex-col min-h-0 overflow-hidden">
-              {/* Upload Content */}
               <div className="flex-1 overflow-y-auto space-y-6 py-4">
-                {/* File Dropzone */}
                 <div className="px-6 space-y-3">
                   {isLoadingSettings ? (
                     <div className="border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center">
@@ -401,7 +381,6 @@ export function MediaLibraryModal({
                         disabled={isUploading || !canUploadMedia || isLoadingSettings}
                       />
                       
-                      {/* نمایش خطاهای validation در popup */}
                       {validationErrors && validationErrors.length > 0 && (
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-2">
                           <div className="flex items-start gap-2">
@@ -421,7 +400,6 @@ export function MediaLibraryModal({
                   )}
                 </div>
 
-                {/* Progress Bar */}
                 {isUploading && (
                   <div className="px-6 space-y-2">
                     <div className="flex justify-between text-sm text-font-s">
@@ -432,7 +410,6 @@ export function MediaLibraryModal({
                   </div>
                 )}
 
-                {/* File List */}
                 {files.length > 0 && (
                   <div className="px-6">
                     <FileList
@@ -449,7 +426,6 @@ export function MediaLibraryModal({
                 )}
               </div>
 
-              {/* Upload Footer */}
               {files.length > 0 && canUploadMedia && (
                 <div className="bg-bg/50 border-t px-6 py-4">
                   <div className="flex gap-3 justify-between">
@@ -596,7 +572,6 @@ export function MediaLibraryModal({
   );
 
   const handleUploadComplete = () => {
-    // ✅ بعد از آپلود، force refresh برای بروزرسانی لیست
     fetchMedia(filters, true);
     onUploadComplete?.();
   };

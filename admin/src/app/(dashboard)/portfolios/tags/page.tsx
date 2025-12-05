@@ -41,13 +41,11 @@ export default function TagPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  // ✅ FIX: Default sorting: created_at descending (newest first)
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({});
 
-  // Confirm dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     tagId?: number;
@@ -58,7 +56,6 @@ export default function TagPage() {
     isBulk: false,
   });
 
-  // Build query parameters
   const queryParams = {
     search: searchValue,
     page: pagination.pageIndex + 1,
@@ -67,13 +64,12 @@ export default function TagPage() {
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
   };
 
-  // Use React Query for data fetching
   const { data: tags, isLoading, error } = useQuery({
     queryKey: ['tags', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
     queryFn: async () => {
       return await portfolioApi.getTags(queryParams);
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
   });
 
   const data: PortfolioTag[] = Array.isArray(tags?.data) ? tags.data : [];
@@ -106,7 +102,6 @@ export default function TagPage() {
     },
   });
 
-  // تابع حذف تگ
   const handleDeleteTag = (tagId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -115,7 +110,6 @@ export default function TagPage() {
     });
   };
 
-  // تابع حذف دسته‌جمعی
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -124,7 +118,6 @@ export default function TagPage() {
     });
   };
 
-  // تابع تایید حذف
   const handleConfirmDelete = async () => {
     try {
       if (deleteConfirm.isBulk && deleteConfirm.tagIds) {
@@ -133,12 +126,10 @@ export default function TagPage() {
         await deleteTagMutation.mutateAsync(deleteConfirm.tagId);
       }
     } catch (error) {
-      // Error handled by mutation
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  // تعریف ستون‌های جدول
   const rowActions: DataTableRowAction<PortfolioTag>[] = [
     {
       label: "ویرایش",
@@ -160,7 +151,6 @@ export default function TagPage() {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with search value
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -170,14 +160,12 @@ export default function TagPage() {
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else {
-      // Handle other filters
       setClientFilters(prev => ({
         ...prev,
         [filterId]: value
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
       
-      // Update URL with filter value
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(String(filterId), String(value));
@@ -189,7 +177,6 @@ export default function TagPage() {
     }
   };
 
-  // Handle pagination change with URL sync
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -197,14 +184,12 @@ export default function TagPage() {
     
     setPagination(newPagination);
     
-    // Update URL with pagination
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Handle sorting change with URL sync
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const newSorting = typeof updaterOrValue === 'function' 
       ? updaterOrValue(sorting) 
@@ -212,7 +197,6 @@ export default function TagPage() {
     
     setSorting(newSorting);
     
-    // Update URL with sorting
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -224,7 +208,6 @@ export default function TagPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  // Show error state - but keep header visible
   if (error) {
     return (
       <div className="space-y-6">
@@ -246,7 +229,6 @@ export default function TagPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">
@@ -267,7 +249,6 @@ export default function TagPage() {
         </div>
       </div>
 
-      {/* Content Area */}
       <DataTable
         columns={columns}
         data={data}
@@ -293,7 +274,6 @@ export default function TagPage() {
         filterConfig={tagFilterConfig}
       />
 
-      {/* Confirm Delete Dialog */}
       <AlertDialog 
         open={deleteConfirm.open} 
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

@@ -62,11 +62,9 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
     if (newValue === "all") {
       onChange(undefined)
     } else {
-      // Find the original value type (number or string) from the items
       const findItemValue = (items: CategoryItem[]): TValue | undefined => {
         for (const item of items) {
           if (item.value === newValue) {
-            // Return the original id type (number or string)
             const id = item.id;
             return (typeof value === 'number' && typeof id === 'number') ? id as TValue : String(id) as TValue;
           }

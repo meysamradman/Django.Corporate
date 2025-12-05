@@ -77,7 +77,6 @@ export function GeneratedAudioDisplay({
             headerClassName="pb-3 border-b"
         >
             <div className="space-y-4">
-                {/* Audio Player */}
                 <div className="bg-bg/40 border border-br rounded-lg p-4">
                     <audio
                         ref={audioRef}
@@ -119,7 +118,6 @@ export function GeneratedAudioDisplay({
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2">
                     {generatedMedia ? (
                         <>

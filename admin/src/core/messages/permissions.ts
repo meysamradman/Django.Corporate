@@ -1,8 +1,4 @@
-// Permission translations for the admin panel
-// This file contains all Persian translations for permission-related terms
-
 export const PERMISSION_TRANSLATIONS = {
-  // Resource translations
   resources: {
     'All Modules': 'تمام ماژول‌ها',
     'User Management': 'کاربران',
@@ -42,7 +38,6 @@ export const PERMISSION_TRANSLATIONS = {
     'Blog': 'وبلاگ',
   },
 
-  // Role name translations
   roleNames: {
     'super_admin': 'سوپر ادمین',
     'content_manager': 'مدیر محتوا',
@@ -61,7 +56,6 @@ export const PERMISSION_TRANSLATIONS = {
     'user_manager': 'مدیر کاربران',
   },
 
-  // Role descriptions
   roleDescriptions: {
     'super_admin': 'دسترسی کامل به تمام سیستم. می‌تواند تمام کاربران، محتوا و تنظیمات سیستم را مدیریت کند.',
     'content_manager': 'مدیریت کامل محتوای وبلاگ و نمونه‌کار شامل دسته‌بندی‌ها، برچسب‌ها و گزینه‌ها.',
@@ -80,14 +74,12 @@ export const PERMISSION_TRANSLATIONS = {
     'user_manager': 'مدیریت کاربران وب‌سایت. می‌تواند پروفایل‌ها را مشاهده و ویرایش کند اما دسترسی به ادمین‌ها ندارد.',
   },
 
-  // Card descriptions for role creation/edit pages
   cardDescriptions: {
     'statistics': 'دسترسی به آمارهای مختلف سیستم',
     'ai': 'دسترسی به امکانات هوش مصنوعی',
     'management': 'دسترسی مدیریت کلی به تنظیمات و ماژول‌های سیستم',
   },
 
-  // Action translations
   actions: {
     'view': 'مشاهده',
     'list': 'لیست',
@@ -105,33 +97,23 @@ export const PERMISSION_TRANSLATIONS = {
     'export': 'خروجی',
   },
 
-  // Description translations
   descriptions: {
-    // Chatbot permissions
     'Manage Chatbot': 'مدیریت چت‌بات',
     'Allow full access to chatbot settings and FAQs': 'دسترسی کامل به تنظیمات چت‌بات و سوالات متداول',
-    // Ticket permissions
     'Manage Tickets': 'مدیریت تیکت',
     'View Tickets': 'مشاهده تیکت‌ها',
     'Allow full access to ticket management and responses': 'دسترسی کامل به مدیریت تیکت‌ها و پاسخ‌ها',
-    // Email permissions
     'View Email Messages': 'مشاهده پیام‌های ایمیل',
     'Manage Email': 'مدیریت ایمیل',
-    // Forms permissions
     'Manage Forms': 'مدیریت فرم‌ها',
-    // Portfolio permissions
     'View Portfolios': 'مشاهده نمونه کار',
     'View Portfolio': 'مشاهده نمونه کار',
-    // Blog permissions
     'View Blogs': 'مشاهده وبلاگ',
     'View Blog': 'مشاهده وبلاگ',
-    // Media permissions
     'View Media Library': 'مشاهده رسانه',
     'View Media': 'مشاهده رسانه',
-    // User permissions
     'View Users': 'مشاهده کاربران',
     'View User': 'مشاهده کاربران',
-    // Statistics permissions
     'View Dashboard Overview': 'مشاهده داشبورد کلی',
     'View Users Statistics': 'مشاهده آمار کاربران',
     'View Admins Statistics': 'مشاهده آمار ادمین‌ها',
@@ -139,7 +121,6 @@ export const PERMISSION_TRANSLATIONS = {
     'View Financial Statistics': 'مشاهده آمار مالی',
     'Export Statistics': 'خروجی آمار',
     'Manage Statistics': 'دسترسی کامل به آمار',
-    // AI permissions
     'AI Chat': 'چت هوشمند',
     'Access to AI chat and smart responses': 'دسترسی به چت هوشمند و پاسخ‌های خودکار',
     'AI Content Generation': 'تولید محتوا با AI',
@@ -152,7 +133,6 @@ export const PERMISSION_TRANSLATIONS = {
     'Full access to all AI features (chat, content, image, audio)': 'دسترسی کامل به تمام امکانات هوش مصنوعی (چت، محتوا، تصویر، پادکست)',
     'Manage Personal API Key': 'مدیریت API شخصی',
     'Manage personal API Key for exclusive use': 'مدیریت کلید API شخصی برای استفاده اختصاصی',
-    // Complete phrases
     'Can view admin users': 'امکان مشاهده کاربران ادمین',
     'Can manage admin users': 'امکان مدیریت کاربران ادمین',
     'Can create admin users': 'امکان ایجاد کاربران ادمین',
@@ -179,7 +159,6 @@ export const PERMISSION_TRANSLATIONS = {
     'Can edit admin roles': 'امکان ویرایش نقش‌های ادمین',
     'Can delete admin roles': 'امکان حذف نقش‌های ادمین',
     
-    // Keywords
     'Can view': 'امکان مشاهده',
     'Can list': 'امکان لیست کردن',
     'Can create': 'امکان ایجاد',
@@ -201,7 +180,6 @@ export const PERMISSION_TRANSLATIONS = {
     'admin roles': 'نقش‌های ادمین',
   },
   
-  // Role error messages
   roleErrors: {
     'Cannot delete role. It is assigned to {count} users.': 'نقش به {count} کاربر اختصاص دارد. ابتدا نقش را از کاربران جدا کنید.',
     'Cannot delete {count} roles that are assigned to users': 'نقش‌ها به کاربران اختصاص دارند. ابتدا نقش‌ها را از کاربران جدا کنید.',
@@ -209,14 +187,12 @@ export const PERMISSION_TRANSLATIONS = {
     'No role IDs provided': 'شناسه‌های نقش برای حذف ارائه نشده است.',
   },
   
-  // Role success messages
   roleSuccess: {
     'Successfully deleted {deleted_count} admin roles': '{deleted_count} نقش با موفقیت حذف شدند.',
     'Role deleted successfully': 'نقش با موفقیت حذف شد.',
   }
 } as const;
 
-// Helper function to get translation
 export function getPermissionTranslation(
   text: string, 
   type: 'resource' | 'action' | 'description' | 'role' | 'roleDescription' | 'roleError' | 'roleSuccess' = 'resource'
@@ -226,7 +202,6 @@ export function getPermissionTranslation(
   const normalizedText = text.trim();
   const translations = PERMISSION_TRANSLATIONS;
   
-  // Try exact match based on type
   switch (type) {
     case 'resource':
       if (translations.resources[normalizedText as keyof typeof translations.resources]) {
@@ -254,19 +229,15 @@ export function getPermissionTranslation(
       }
       break;
     case 'roleError':
-      // Check for exact match first
       if (translations.roleErrors[normalizedText as keyof typeof translations.roleErrors]) {
         return translations.roleErrors[normalizedText as keyof typeof translations.roleErrors];
       }
-      // Check for partial match with parameter replacement
       for (const [key, value] of Object.entries(translations.roleErrors)) {
-        // Create regex pattern to match the key with numbers
         const escapedKey = key.replace(/{count}|{deleted_count}/g, '(\\d+)');
         const regex = new RegExp(escapedKey);
         const match = normalizedText.match(regex);
         
         if (match) {
-          // Replace parameters in the message
           let result = value as string;
           if (match[1]) {
             result = result.replace(/{count}|{deleted_count}/g, match[1]);
@@ -276,19 +247,15 @@ export function getPermissionTranslation(
       }
       break;
     case 'roleSuccess':
-      // Check for exact match first
       if (translations.roleSuccess[normalizedText as keyof typeof translations.roleSuccess]) {
         return translations.roleSuccess[normalizedText as keyof typeof translations.roleSuccess];
       }
-      // Check for partial match with parameter replacement
       for (const [key, value] of Object.entries(translations.roleSuccess)) {
-        // Create regex pattern to match the key with numbers
         const escapedKey = key.replace(/{deleted_count}/g, '(\\d+)');
         const regex = new RegExp(escapedKey);
         const match = normalizedText.match(regex);
         
         if (match) {
-          // Replace parameters in the message
           let result = value as string;
           if (match[1]) {
             result = result.replace(/{deleted_count}/g, match[1]);
@@ -299,7 +266,6 @@ export function getPermissionTranslation(
       break;
   }
   
-  // Try case insensitive match
   const lowerText = normalizedText.toLowerCase();
   
   switch (type) {
@@ -340,7 +306,6 @@ export function getPermissionTranslation(
       break;
   }
   
-  // Try partial matching for longer texts
   if (normalizedText.length > 5) {
     switch (type) {
       case 'resource':
@@ -381,6 +346,5 @@ export function getPermissionTranslation(
     }
   }
   
-  // Return original text if no translation found
   return text;
 }

@@ -1,10 +1,3 @@
-/**
- * رنگ‌های استاندارد نوع مدیا:
- * - تصویر: blue (پیش‌فرض)
- * - ویدیو: red
- * - صدا: blue
- * - سند/PDF: orange
- */
 "use client";
 
 import React from 'react';
@@ -45,27 +38,22 @@ export function MediaThumbnail({
   const [hasError, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Get the appropriate URL for thumbnail
   const getThumbnailUrl = () => {
-    // For images, use the file URL
     if ((media.media_type || '') === 'image') {
       return mediaService.getMediaUrlFromObject(media);
     }
     
-    // For non-images, use cover image if available
     const coverUrl = mediaService.getMediaCoverUrl(media);
     if (coverUrl) {
       return coverUrl;
     }
     
-    // Fallback: no thumbnail available
     return null;
   };
 
   const thumbnailUrl = getThumbnailUrl();
   const hasThumbnail = thumbnailUrl && !hasError;
 
-  // Get appropriate icon for media type
   const getMediaIcon = () => {
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
@@ -81,7 +69,6 @@ export function MediaThumbnail({
     }
   };
 
-  // Get appropriate background color for media type
   const getMediaBgColor = () => {
     const mediaType = media.media_type || 'file';
     switch (mediaType) {
@@ -98,7 +85,6 @@ export function MediaThumbnail({
   };
 
   if (!hasThumbnail) {
-    // No thumbnail available - show icon with background
     return (
       <div 
         className={cn(
@@ -120,7 +106,6 @@ export function MediaThumbnail({
     );
   }
 
-  // Has thumbnail - show image with overlay icon
   const imageClasses = cn(
     "transition-opacity duration-300 object-cover",
     !loaded ? "opacity-0" : "opacity-100",

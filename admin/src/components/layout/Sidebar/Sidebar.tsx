@@ -104,7 +104,6 @@ export function Sidebar({
         setSelectedItem(activeItem);
         const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
         setSelectedItemHasSubMenu(hasSubMenu);
-        // Open the content panel if the active item has a submenu
         if (hasSubMenu) {
             setContentCollapsed(false);
         }
@@ -140,9 +139,7 @@ export function Sidebar({
     const handleLogout = async () => {
         try {
             await logout();
-            // Don't show toast here - let AuthContext or page handle logout notifications
         } catch (error) {
-            // Only show error toast if logout fails
             toast.error(msg.error('unauthorized'));
         }
     };
@@ -249,7 +246,6 @@ export function Sidebar({
                                     <div className="space-y-1">
                                         {(
                                             [
-                                                // Add title at the beginning if first item is not a title
                                                 ...(selectedItem.items && selectedItem.items.length > 0 && 
                                                     !selectedItem.items[0]?.isTitle && 
                                                     selectedItem.title.trim()

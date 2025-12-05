@@ -21,7 +21,6 @@ import {
 import { PaginationControlsProps } from '@/types/shared/pagination';
 
 const generatePaginationRange = (currentPage: number, totalPages: number, siblingCount: number): (number | '...')[] => {
-  // Handle edge cases
   if (totalPages <= 0) {
     return [];
   }
@@ -82,11 +81,9 @@ export function PaginationControls({
   showFirstLast = true,
   showPageNumbers = true
 }: PaginationControlsProps) {
-  // Handle edge cases
   if (totalPages <= 0) {
     return (
       <div className={cn("flex w-full flex-col items-center justify-between gap-4 overflow-auto px-0 sm:flex-row sm:gap-8", className)} dir="rtl">
-        {/* Info Section */}
         {showInfo && (
           <div className="flex-1 whitespace-nowrap text-sm text-font-s">
             {infoText || `${selectedCount} از ${totalCount} انتخاب شده`}
@@ -94,7 +91,6 @@ export function PaginationControls({
         )}
 
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
-          {/* Page Size Selector */}
           {showPageSize && onPageSizeChange && pageSize && (
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium text-font-s whitespace-nowrap">تعداد در صفحه</p>
@@ -120,14 +116,12 @@ export function PaginationControls({
     );
   }
 
-  // Make sure currentPage is within valid range
   const validCurrentPage = Math.max(1, Math.min(currentPage, totalPages));
   
   const paginationRange = generatePaginationRange(validCurrentPage, totalPages, siblingCount);
 
   return (
     <div className={cn("flex w-full items-center justify-between gap-4 px-0", className)} dir="rtl">
-      {/* Left section - Page Size Selector */}
       {showPageSize && onPageSizeChange && pageSize && (
         <div className="flex items-center gap-2">
           <p className="text-sm text-font-s whitespace-nowrap">تعداد در صفحه</p>
@@ -149,18 +143,14 @@ export function PaginationControls({
         </div>
       )}
 
-      {/* Right section - Info + Pagination Navigation */}
       <div className="flex items-center gap-4">
-        {/* Info */}
         {showInfo && (
           <div className="text-sm text-font-s">
             {infoText || `${((validCurrentPage - 1) * (pageSize || 10)) + 1} - ${Math.min(validCurrentPage * (pageSize || 10), totalCount)} از ${totalCount}`}
           </div>
         )}
 
-        {/* Pagination Navigation */}
         <div className="flex items-center gap-1">
-          {/* Previous Page Button */}
           <button
             onClick={() => onPageChange(validCurrentPage - 1)}
             disabled={validCurrentPage === 1}
@@ -170,7 +160,6 @@ export function PaginationControls({
             <ChevronRight className="h-4 w-4" />
           </button>
 
-          {/* Page Numbers */}
           {showPageNumbers && paginationRange.map((pageNumber, index) => {
             if (pageNumber === '...') {
               return (
@@ -196,7 +185,6 @@ export function PaginationControls({
             );
           })}
 
-          {/* Next Page Button */}
           <button
             onClick={() => onPageChange(validCurrentPage + 1)}
             disabled={validCurrentPage === totalPages}

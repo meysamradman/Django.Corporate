@@ -39,8 +39,6 @@ export function ImageInputForm({
     compact = false,
 }: ImageInputFormProps) {
     const { user } = useAuth();
-    
-    // ✅ CRITICAL: چک کردن دسترسی media - اگر نداره checkbox رو disable کن
     const hasMediaPermission = user?.permissions?.some((p: string) => 
         p === 'all' || p === 'media.manage' || p.startsWith('media.')
     ) || false;

@@ -32,7 +32,7 @@ interface AIModelSelectorProps {
     selectedModel?: string;
     onModelChange: (modelId: string) => void;
     label?: string;
-    hasDynamicModels?: boolean;  // آیا Provider مدل‌های زیادی داره (مثل OpenRouter)
+    hasDynamicModels?: boolean;
 }
 
 export function AIModelSelector({
@@ -45,9 +45,7 @@ export function AIModelSelector({
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState<'recommended' | 'free' | 'all'>('recommended');
 
-    // ✅ دسته‌بندی مدل‌ها
     const categorizedModels = useMemo(() => {
-        // مدل‌های پیشنهادی (محبوب و سریع)
         const recommendedIds = [
             'google/gemini-2.0-flash-exp',
             'google/gemini-1.5-pro',
@@ -69,7 +67,6 @@ export function AIModelSelector({
         return { recommended, free, all: models };
     }, [models]);
 
-    // فیلتر بر اساس جستجو
     const filteredModels = useMemo(() => {
         const modelsToFilter = categorizedModels[activeTab];
         if (!searchQuery) return modelsToFilter;
@@ -82,7 +79,6 @@ export function AIModelSelector({
         );
     }, [categorizedModels, activeTab, searchQuery]);
 
-    // ✅ برای Provider های ساده (5-10 مدل): Dropdown معمولی
     if (!hasDynamicModels || models.length < 15) {
         return (
             <div className="space-y-2">
@@ -105,7 +101,6 @@ export function AIModelSelector({
         );
     }
 
-    // ✅ برای OpenRouter (200+ مدل): UI پیشرفته با Tab ها
     return (
         <div className="space-y-3">
             <Label>{label}</Label>
@@ -125,7 +120,6 @@ export function AIModelSelector({
                     </TabsTrigger>
                 </TabsList>
 
-                {/* Search - فقط در Tab "همه" */}
                 {activeTab === 'all' && (
                     <div className="relative mt-2">
                         <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
@@ -139,7 +133,6 @@ export function AIModelSelector({
                     </div>
                 )}
 
-                {/* Model List */}
                 <TabsContent value={activeTab} className="mt-2">
                     <Select value={selectedModel} onValueChange={onModelChange}>
                         <SelectTrigger className="h-9">
@@ -175,7 +168,6 @@ export function AIModelSelector({
                         </SelectContent>
                     </Select>
 
-                    {/* Model Info */}
                     {selectedModel && (
                         <div className="mt-2 p-2 bg-muted/50 rounded text-xs text-muted-foreground">
                             مدل انتخاب شده: <code className="text-foreground">{selectedModel}</code>

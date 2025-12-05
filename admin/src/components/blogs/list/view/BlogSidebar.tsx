@@ -1,12 +1,3 @@
-/**
- * رنگ‌های استاندارد:
- * - منتشر شده: green
- * - پیش‌نویس: yellow
- * - فعال: blue
- * - غیرفعال: red
- * - ویژه: orange
- * - عادی: gray
- */
 "use client";
 
 import { Card, CardContent } from "@/components/elements/Card";

@@ -40,13 +40,11 @@ export default function PermissionsManagementPage() {
   const roles = rolesData?.data || [];
   const permissionGroups = permissionsData || [];
 
-  // Filter roles based on search
   const filteredRoles = (roles as unknown as RoleWithPermissions[]).filter((role: RoleWithPermissions) =>
     role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (role.description?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Group permissions by resource
   const groupedPermissions = React.useMemo(() => {
     if (!Array.isArray(permissionGroups)) return {};
     
@@ -54,7 +52,6 @@ export default function PermissionsManagementPage() {
     
     permissionGroups.forEach((group: PermissionGroup) => {
       if (group.permissions && Array.isArray(group.permissions)) {
-        // Ensure each permission has the is_standalone property
         const permissionsWithStandalone = group.permissions.map(perm => ({
           ...perm,
           is_standalone: perm.is_standalone || false
@@ -66,12 +63,10 @@ export default function PermissionsManagementPage() {
     return groups;
   }, [permissionGroups]);
 
-  // Check if role has specific permission
   const roleHasPermission = (role: RoleWithPermissions, permissionId: number): boolean => {
     return role.permissions?.some(perm => perm.id === permissionId) || false;
   };
 
-  // Toggle permission for selected role
   const togglePermission = (permissionId: number) => {
     if (!selectedRole) return;
 
@@ -79,7 +74,6 @@ export default function PermissionsManagementPage() {
     newModified.add(permissionId);
     setModifiedPermissions(newModified);
 
-    // Update selected role permissions in state
     const currentHasPermission = roleHasPermission(selectedRole, permissionId);
     const updatedPermissions = currentHasPermission
       ? selectedRole.permissions.filter(p => p.id !== permissionId)
@@ -91,15 +85,11 @@ export default function PermissionsManagementPage() {
     });
   };
 
-  // Save permission changes
   const handleSaveChanges = async () => {
     if (!selectedRole || modifiedPermissions.size === 0) return;
 
     setIsSaving(true);
     try {
-      // Here you would call the API to update role permissions
-      // await updateRolePermissions(selectedRole.id, selectedRole.permissions);
-      
       toast.success("تغییرات با موفقیت ذخیره شد");
       setModifiedPermissions(new Set());
       setSaveDialogOpen(false);
@@ -110,7 +100,6 @@ export default function PermissionsManagementPage() {
     }
   };
 
-  // Permission resource icons
   const getResourceIcon = (resource: string) => {
     switch (resource) {
       case 'admin':
@@ -126,7 +115,6 @@ export default function PermissionsManagementPage() {
     }
   };
 
-  // Permission action colors
   const getActionColor = (action: string) => {
     switch (action) {
       case 'view':
@@ -182,7 +170,6 @@ export default function PermissionsManagementPage() {
       }
     >
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="page-title">مدیریت دسترسی‌ها</h1>
@@ -200,7 +187,6 @@ export default function PermissionsManagementPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Roles List */}
           <div className="space-y-4">
             <CardWithIcon
               icon={Users}
@@ -210,7 +196,6 @@ export default function PermissionsManagementPage() {
               borderColor="border-b-blue-1"
               headerClassName="pb-3"
             >
-                {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-font-s" />
                   <Input
@@ -221,7 +206,6 @@ export default function PermissionsManagementPage() {
                   />
                 </div>
 
-                {/* Roles */}
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {filteredRoles.map((role: RoleWithPermissions) => (
                     <div
@@ -263,7 +247,6 @@ export default function PermissionsManagementPage() {
             </CardWithIcon>
           </div>
 
-          {/* Permissions */}
           <div className="lg:col-span-2">
             {selectedRole ? (
               <CardWithIcon
@@ -300,7 +283,6 @@ export default function PermissionsManagementPage() {
                           const hasPermission = roleHasPermission(selectedRole, permission.id);
                           const isModified = modifiedPermissions.has(permission.id);
                           
-                          // If this is a standalone permission, show it with a special style
                           if (permission.is_standalone) {
                             return (
                               <div
@@ -345,7 +327,6 @@ export default function PermissionsManagementPage() {
                             );
                           }
                           
-                          // Regular permission display
                           return (
                             <div
                               key={permission.id}
@@ -407,7 +388,6 @@ export default function PermissionsManagementPage() {
           </div>
         </div>
 
-        {/* Save Changes Dialog */}
         <AlertDialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>

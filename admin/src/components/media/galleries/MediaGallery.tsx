@@ -22,16 +22,12 @@ interface MediaGalleryProps {
   mediaType: "image" | "video" | "audio" | "pdf";
   title: string;
   maxSelection?: number;
-  isGallery?: boolean; // New prop to distinguish between single item with cover vs gallery
+  isGallery?: boolean;
   disabled?: boolean;
-  context: "portfolio" | "blog" | "media_library"; // Context for permissions
-  contextId?: number | string; // Context ID for context-aware permissions
+  context: "portfolio" | "blog" | "media_library";
+  contextId?: number | string;
 }
 
-/**
- * ✅ کامپوننت مشترک برای گالری media
- * استفاده شده در Portfolio و Blog
- */
 export function MediaGallery({
   mediaItems,
   onMediaSelect,
@@ -49,7 +45,6 @@ export function MediaGallery({
   const handleMediaSelect = (selectedMedia: Media | Media[]) => {
     const newMedia = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
     
-    // Filter by media type to ensure only correct media types are added
     const filteredMedia = newMedia.filter(media => {
       if (mediaType === "pdf") {
         return media.media_type === "document" || media.media_type === "pdf";
@@ -57,7 +52,6 @@ export function MediaGallery({
       return media.media_type === mediaType;
     });
     
-    // Apply max selection limit if specified
     const finalMedia = maxSelection 
       ? [...mediaItems, ...filteredMedia].slice(0, maxSelection)
       : [...mediaItems, ...filteredMedia];
@@ -73,7 +67,6 @@ export function MediaGallery({
   };
 
   const handleUploadComplete = () => {
-    // After upload, switch to select tab to show newly uploaded media
     setShowMediaLibrary(true);
     setActiveTab("select");
   };
@@ -88,7 +81,6 @@ export function MediaGallery({
     }
   };
 
-  // For single items with cover (video, audio, pdf), we show a cover image selector
   if (!isGallery && mediaType !== "image" && mediaItems.length > 0) {
     return (
       <div className="space-y-4">
@@ -110,7 +102,6 @@ export function MediaGallery({
         </div>
         
         <div className="space-y-4">
-          {/* Main media item */}
           <div className="flex items-center gap-3 p-3 border rounded-lg">
             <div className="flex-shrink-0 w-10 h-10 bg-blue rounded-full flex items-center justify-center">
               {mediaType === "video" && <Play className="w-5 h-5 text-blue-2" />}
@@ -125,7 +116,6 @@ export function MediaGallery({
             </div>
           </div>
           
-          {/* Cover image selector */}
           <div className="space-y-2">
             <label className="text-sm font-medium">تصویر کاور</label>
             <div className="flex items-center gap-4">
@@ -164,14 +154,12 @@ export function MediaGallery({
           </div>
         </div>
 
-        {/* Media Library Modal for cover image */}
         <MediaLibraryModal
           isOpen={showMediaLibrary}
           onClose={() => setShowMediaLibrary(false)}
           onSelect={(selectedMedia) => {
             const coverMedia = Array.isArray(selectedMedia) ? selectedMedia[0] : selectedMedia;
             if (coverMedia) {
-              // Update the cover image of the main media item
               const updatedMedia = [...mediaItems];
               updatedMedia[0] = {
                 ...updatedMedia[0],
@@ -222,7 +210,6 @@ export function MediaGallery({
         }>
           {mediaItems.map((media, index) => (
             mediaType === "audio" ? (
-              // Audio items as list
               <div key={`audio-item-${media.media_type}-${media.id}`} className="flex items-center gap-3 p-3 border rounded-lg">
                 <div className="flex-shrink-0 w-10 h-10 bg-blue rounded-full flex items-center justify-center">
                   <Music className="w-5 h-5 text-blue-2" />
@@ -244,7 +231,6 @@ export function MediaGallery({
                 )}
               </div>
             ) : mediaType === "pdf" ? (
-              // PDF items as list
               <div key={`pdf-item-${media.media_type}-${media.id}`} className="flex items-center gap-3 p-3 border rounded-lg">
                 <div className="flex-shrink-0 w-10 h-10 bg-orange rounded-full flex items-center justify-center">
                   <PDFIcon className="w-5 h-5 text-orange-2" />
@@ -266,7 +252,6 @@ export function MediaGallery({
                 )}
               </div>
             ) : (
-              // Image/Video items as grid
               <div key={`media-item-${media.media_type}-${media.id}`} className="relative group">
                 <MediaThumbnail
                   media={media}
@@ -312,7 +297,6 @@ export function MediaGallery({
         </div>
       )}
 
-      {/* Media Library Modal */}
       <MediaLibraryModal
         isOpen={showMediaLibrary}
         onClose={() => setShowMediaLibrary(false)}

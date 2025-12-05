@@ -1,12 +1,10 @@
 import { FilterConfig } from "@/types/shared/table";
 
-// Define tag filter types
 export interface TagFilters {
   is_active?: boolean;
   is_public?: boolean;
 }
 
-// Filter options
 export const useTagFilterOptions = () => {
   const booleanFilterOptions = [
     { label: "بله", value: "true" },
@@ -18,7 +16,6 @@ export const useTagFilterOptions = () => {
   };
 };
 
-// Filter configuration
 export const getTagFilterConfig = (
   booleanFilterOptions: { label: string; value: string }[]
 ): FilterConfig[] => [

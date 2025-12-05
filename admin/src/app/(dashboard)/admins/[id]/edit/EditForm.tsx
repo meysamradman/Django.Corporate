@@ -64,7 +64,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const router = useRouter();
     const { user, refreshUser } = useAuth();
     
-    // Fetch admin data with React Query for automatic updates
     const isMeRoute = adminId === "me";
     const isNumericId = !Number.isNaN(Number(adminId));
     const queryKey = ['admin', isMeRoute ? 'me' : adminId];
@@ -80,7 +79,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             }
             return adminApi.getAdminById(Number(adminId));
         },
-        staleTime: 0, // Always fetch fresh data
+        staleTime: 0,
         retry: (failureCount, requestError) => {
             if (requestError instanceof ApiError && requestError.response.AppStatusCode === 403) {
                 return false;
@@ -109,7 +108,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
     const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
 
-    // Initialize formData when adminData is loaded
     useEffect(() => {
         if (adminData) {
             setFormData({
@@ -129,13 +127,11 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             setSelectedProvinceId(adminData.profile?.province?.id || null);
             setSelectedCityId(adminData.profile?.city?.id || null);
         }
-    }, [adminData?.id]); // Only initialize once when adminData first loads
+    }, [adminData?.id]);
 
-    // Sync formData with adminData changes after successful update (only when not in edit mode)
     useEffect(() => {
-        if (!adminData || editMode) return; // Don't sync if in edit mode to prevent overwriting user's changes
+        if (!adminData || editMode) return;
         
-        // Sync all form fields with adminData after refetch
         setFormData(prev => ({
             ...prev,
             firstName: adminData.profile?.first_name || "",
@@ -153,7 +149,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         }));
         setSelectedProvinceId(adminData.profile?.province?.id || null);
         setSelectedCityId(adminData.profile?.city?.id || null);
-    }, [adminData, editMode]); // Sync when adminData changes and not in edit mode
+    }, [adminData, editMode]);
 
     const handleInputChange = (field: string, value: string | any) => {
         if (field === "cancel") {
@@ -166,7 +162,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         return newData;
         });
         
-        // پاک کردن خطای فیلد وقتی کاربر شروع به تایپ می‌کند
         if (fieldErrors[field]) {
             setFieldErrors(prev => {
                 const newErrors = { ...prev };
@@ -178,7 +173,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     const handleProvinceChange = (provinceName: string, provinceId: number) => {
         handleInputChange("province", provinceName);
-        handleInputChange("city", ""); // Reset city when province changes
+        handleInputChange("city", "");
         setSelectedProvinceId(provinceId);
         setSelectedCityId(null);
     };
@@ -192,26 +187,24 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         if (isSaving) return;
         
         setIsSaving(true);
-        setFieldErrors({}); // پاک کردن خطاهای قبلی
+        setFieldErrors({});
         
         try {
-            // آماده کردن دیتا برای API - با profile object و validation
             const profileData: Record<string, any> = {
                 profile: {
                     first_name: formData.firstName || null,
                     last_name: formData.lastName || null,
                     phone: formData.phone || null,
                     address: formData.address || null,
-                    province: selectedProvinceId || null, // ID بجای نام
-                    city: selectedCityId || null, // ID بجای نام
+                    province: selectedProvinceId || null,
+                    city: selectedCityId || null,
                     bio: formData.bio || null,
                     national_id: formData.nationalId && formData.nationalId.trim() !== '' ? formData.nationalId : null,
                     profile_picture: formData.profileImage?.id || null,
-                    birth_date: formData.birthDate || null, // Add birth_date field
+                    birth_date: formData.birthDate || null,
                 }
             };
             
-            // اضافه کردن فیلدهای user (email, mobile) در سطح اصلی
             if (formData.email) {
                 profileData.email = formData.email;
             }
@@ -227,30 +220,24 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             }
             
             const result = await adminApi.updateUserByType(adminData.id, profileData, 'admin');
-                        // Close edit mode first to allow formData sync
             setEditMode(false);
             
-            // Invalidate React Query cache for this admin
             await queryClient.invalidateQueries({ queryKey: ['admin', adminId] });
             await queryClient.refetchQueries({ queryKey: ['admin', adminId] });
             
-            // Invalidate general admin profile queries
             await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
             await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
             
-            // If user is editing their own profile, refresh AuthContext to update sidebar
             if (user?.id && (isMeRoute || Number(adminId) === user.id)) {
                 await refreshUser();
                             }
             
             toast.success(getUIMessage('adminProfileUpdated'));
         } catch (error: any) {
-            // بررسی خطاهای فیلدها
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
                 const newFieldErrors: Record<string, string> = {};
                 
-                // بررسی خطاهای فیلدهای خاص
                 if (errorData.mobile) {
                     newFieldErrors.mobile = getValidationMessage('auth_mobile_invalid');
                 }
@@ -258,7 +245,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     newFieldErrors.email = getValidationMessage('auth_email_invalid');
                 }
                 if (errorData.profile?.national_id) {
-                    // بررسی نوع خطای کد ملی
                     if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
                         newFieldErrors.nationalId = getValidationMessage('national_id_exists');
                     } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
@@ -274,21 +260,17 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     newFieldErrors.lastName = getValidationMessage('last_name_required');
                 }
                 
-                // بررسی خطاهای کلی
                 if (errorData.detail) {
-                    // اگر خطای کلی وجود داشت، آن را در toast نمایش بده
                     toast.error(errorData.detail);
                     return;
                 }
                 
-                // اگر خطاهای فیلد وجود داشت، آنها را نمایش بده
                 if (Object.keys(newFieldErrors).length > 0) {
                     setFieldErrors(newFieldErrors);
-                    return; // از نمایش toast جلوگیری کن
+                    return;
                 }
             }
             
-            // نمایش پیام خطای کلی
             const errorMessage = getValidationMessage('adminProfileUpdateFailed');
             toast.error(errorMessage);
         } finally {
@@ -316,7 +298,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         );
     }
 
-    // Show loading state while data is being fetched
     if (isLoading || !adminData) {
         return (
             <div className="space-y-6">

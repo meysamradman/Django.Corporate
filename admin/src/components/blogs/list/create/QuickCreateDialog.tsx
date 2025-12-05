@@ -72,7 +72,6 @@ export function QuickCreateDialog({
         const value = e.target.value;
         setName(value);
         
-        // Auto-generate slug whenever name changes
         const generatedSlug = generateSlug(value);
         setSlug(generatedSlug);
     };

@@ -25,7 +25,7 @@ export default function EmailPage() {
     try {
       setLoading(true);
       const statusMap: Record<MailboxType, string | undefined> = {
-        inbox: undefined,  // نمایش همه ایمیل‌ها (new و read)
+        inbox: undefined,
         draft: "draft",
         starred: "replied",
         spam: "archived",
@@ -48,7 +48,6 @@ export default function EmailPage() {
   }, [selectedMailbox, searchQuery]);
 
   useEffect(() => {
-    // دریافت ایمیل‌ها از API واقعی
     fetchEmails();
   }, [fetchEmails]);
 
@@ -84,15 +83,12 @@ export default function EmailPage() {
   const handleEmailClick = useCallback(async (email: EmailMessage) => {
     setSelectedEmail(email);
     
-    // اگر ایمیل جدید بود، mark as read کن
     if (email.status === 'new') {
       try {
         await emailApi.markAsRead(email.id);
-        // به‌روزرسانی لیست ایمیل‌ها
         setEmails(prev => prev.map(e => 
           e.id === email.id ? { ...e, status: 'read' as const, is_new: false } : e
         ));
-        // Invalidate notification count
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       } catch (error) {
       }
@@ -144,12 +140,10 @@ export default function EmailPage() {
 
   const handleSendEmail = useCallback(async (data: ComposeEmailData) => {
     try {
-      // اگه ریپلای به ایمیل هست، از endpoint mark_as_replied استفاده کن
       if (replyToEmail) {
         await emailApi.markAsReplied(replyToEmail.id, data.message);
         toast.success("پاسخ با موفقیت ارسال شد");
       } else {
-        // ایمیل جدید
         await emailApi.create({
           name: data.to.split("@")[0],
           email: data.to,
@@ -214,23 +208,18 @@ export default function EmailPage() {
   const filteredEmails = useMemo(() => {
     switch (selectedMailbox) {
       case "inbox":
-        // صندوق ورودی: فقط ایمیل‌های دریافتی از کاربران (source=website یا mobile_app)
         return emails.filter(e => 
           e.status !== 'draft' && 
           e.status !== 'archived' &&
-          (e.source === 'website' || e.source === 'mobile_app')  // فقط ایمیل‌های دریافتی
+          (e.source === 'website' || e.source === 'mobile_app')
         );
       case "sent":
-        // ارسال شده: فقط ایمیل‌هایی که از پنل ادمین ارسال شده (source=email)
         return emails.filter(e => e.source === 'email' && e.status !== 'draft');
       case "draft":
-        // پیش‌نویس: فقط draft ها
         return emails.filter(e => e.status === 'draft' || e.is_draft);
       case "starred":
-        // ستاره‌دار: فقط ایمیل‌های ستاره‌دار
         return emails.filter(e => e.is_starred === true);
       case "spam":
-        // هرزنامه: archived با کلمه spam
         return emails.filter(e => 
           e.status === 'archived' && (
             e.subject?.toLowerCase().includes('هرزنامه') || 
@@ -239,7 +228,6 @@ export default function EmailPage() {
           )
         );
       case "trash":
-        // سطل زباله: archived با کلمه deleted
         return emails.filter(e => 
           e.status === 'archived' && (
             e.subject?.toLowerCase().includes('حذف') || 
@@ -281,7 +269,6 @@ export default function EmailPage() {
 
   return (
     <div className="flex h-[calc(100vh-4rem-4rem)] bg-card overflow-hidden rounded-lg border shadow-[rgb(0_0_0/2%)_0px_6px_24px_0px,rgb(0_0_0/2%)_0px_0px_0px_1px]">
-      {/* Sidebar */}
       <div className="w-64 flex-shrink-0 h-full overflow-hidden bg-card">
         <EmailSidebar
           selectedMailbox={selectedMailbox}
@@ -291,10 +278,8 @@ export default function EmailPage() {
         />
       </div>
 
-      {/* Divider */}
       <div className="w-[1px] h-full bg-gray-200 dark:bg-gray-700 flex-shrink-0"></div>
 
-      {/* Main Content - List or Detail */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {selectedEmail ? (
           <EmailDetailView
@@ -307,10 +292,8 @@ export default function EmailPage() {
           />
         ) : (
           <>
-            {/* Header with Toolbar and Search */}
             <div className="border-b p-4 flex-shrink-0">
               <div className="flex items-center gap-4">
-                {/* Search and Select All - Left side */}
                 <div className="flex items-center gap-3 flex-1">
                   <Checkbox
                     checked={
@@ -326,7 +309,6 @@ export default function EmailPage() {
                   <EmailSearch value={searchQuery} onChange={setSearchQuery} />
                 </div>
 
-                {/* Toolbar Icons - Right side */}
                 <div className="flex items-center gap-2">
                   <EmailToolbar
                     selectedCount={selectedEmails.size}
@@ -341,7 +323,6 @@ export default function EmailPage() {
               </div>
             </div>
 
-            {/* Email List */}
             <EmailList
               emails={filteredEmails}
               selectedEmails={selectedEmails}
@@ -355,7 +336,6 @@ export default function EmailPage() {
         )}
       </div>
 
-      {/* Compose Email Dialog */}
       <ComposeEmailDialog
         open={composeOpen}
         onOpenChange={(open) => {

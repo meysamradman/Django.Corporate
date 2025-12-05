@@ -55,11 +55,8 @@ function PaginationLink({
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
-        // Base styles
         "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
-        // Size styles
         size === "icon" ? "h-9 w-9" : "h-9 px-3",
-        // Active state - like the image
         isActive 
           ? "bg-gray text-font-p rounded-md" 
           : "text-font-s hover:text-font-p",

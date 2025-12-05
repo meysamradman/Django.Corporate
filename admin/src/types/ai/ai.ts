@@ -1,4 +1,3 @@
-// ✅ Global Control Setting - تنظیمات کنترل دسترسی ادمین‌های معمولی
 export interface GlobalControlSetting {
   id: number;
   provider_name: string;
@@ -7,7 +6,6 @@ export interface GlobalControlSetting {
   updated_at: string;
 }
 
-// ✅ AI Provider List (از AIProviderListSerializer)
 export interface AIProviderList {
   id: number;
   name: string;
@@ -24,7 +22,6 @@ export interface AIProviderList {
   created_at: string;
 }
 
-// ✅ AI Provider Detail (از AIProviderDetailSerializer)
 export interface AIProviderDetail extends AIProviderList {
   website: string;
   api_base_url: string;
@@ -34,7 +31,6 @@ export interface AIProviderDetail extends AIProviderList {
   updated_at: string;
 }
 
-// ✅ AI Model List (از AIModelListSerializer)
 export interface AIModelList {
   id: number;
   name: string;
@@ -55,13 +51,11 @@ export interface AIModelList {
   sort_order: number;
 }
 
-// ✅ AI Model Detail (از AIModelDetailSerializer) - با Computed Fields
 export interface AIModelDetail extends AIModelList {
   provider: AIProviderList;
   config: Record<string, any>;
   created_at: string;
   updated_at: string;
-  // Computed Fields از backend
   access_state: 'available_shared' | 'available_personal' | 'no_access' | 'disabled';
   api_config: {
     current_source: 'shared' | 'personal' | 'none';
@@ -84,7 +78,6 @@ export interface AIModelDetail extends AIModelList {
   };
 }
 
-// ✅ Admin Provider Settings (از AdminProviderSettingsSerializer)
 export interface AdminProviderSettings {
   id: number;
   provider_name: string;
@@ -117,7 +110,6 @@ export interface AdminProviderSettings {
   is_active: boolean;
 }
 
-// Legacy interfaces - برای backward compatibility
 export interface AdminAISetting {
   id: number;
   provider_name: string;
@@ -144,7 +136,6 @@ export interface AIProvider {
   updated_at: string;
 }
 
-// Existing interfaces
 export interface AIContentGenerationRequest {
     provider_name: string;
     topic: string;

@@ -12,13 +12,9 @@ interface PortfolioMediaGalleryProps {
   maxSelection?: number;
   isGallery?: boolean;
   disabled?: boolean;
-  contextId?: number | string; // Portfolio ID for context-aware permissions
+  contextId?: number | string;
 }
 
-/**
- * ✅ Wrapper component برای Portfolio Media Gallery
- * از کامپوننت مشترک MediaGallery استفاده می‌کند
- */
 export function PortfolioMediaGallery({
   mediaItems,
   onMediaSelect,
