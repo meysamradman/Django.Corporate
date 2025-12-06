@@ -22,6 +22,7 @@ import { mediaApi } from '@/api/media/route';
 import { toast } from '@/core/toast';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { TruncatedText } from '@/components/elements/TruncatedText';
+import { ProtectedButton, usePermission } from '@/core/permissions';
 
 interface MediaDetailsModalProps {
   media: Media | null;
@@ -45,6 +46,21 @@ export function MediaDetailsModal({
   const [editedMedia, setEditedMedia] = useState<Media | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [newCoverImage, setNewCoverImage] = useState<Media | number | null>(null);
+  const { hasPermission } = usePermission();
+  
+  const getUpdatePermission = React.useCallback(() => {
+    if (!media) return 'media.update';
+    if (media.media_type === 'image') return 'media.image.update';
+    if (media.media_type === 'video') return 'media.video.update';
+    if (media.media_type === 'audio') return 'media.audio.update';
+    if (media.media_type === 'pdf' || media.media_type === 'document') return 'media.document.update';
+    return 'media.update';
+  }, [media]);
+  
+  const canUpdateMedia = React.useMemo(() => {
+    if (!media) return false;
+    return hasPermission(getUpdatePermission());
+  }, [media, hasPermission, getUpdatePermission]);
 
   React.useEffect(() => {
     if (media) {
@@ -377,9 +393,12 @@ export function MediaDetailsModal({
                 >
                   انصراف
                 </Button>
-                <Button 
+                <ProtectedButton
+                  permission={getUpdatePermission()}
                   onClick={handleSaveEdit}
-                  disabled={isSaving}
+                  disabled={isSaving || !canUpdateMedia}
+                  showDenyToast={true}
+                  denyMessage="شما دسترسی ذخیره تغییرات این رسانه را ندارید"
                 >
                   {isSaving ? (
                     <>
@@ -392,7 +411,7 @@ export function MediaDetailsModal({
                       ذخیره
                     </>
                   )}
-                </Button>
+                </ProtectedButton>
               </>
             ) : (
               <>
@@ -402,10 +421,15 @@ export function MediaDetailsModal({
                   </Button>
                 </div>
                 {showEditButton && (
-                  <Button onClick={handleStartEdit}>
+                  <ProtectedButton
+                    permission={getUpdatePermission()}
+                    onClick={handleStartEdit}
+                    showDenyToast={true}
+                    denyMessage="شما دسترسی ویرایش این رسانه را ندارید"
+                  >
                     <Edit3 className="h-4 w-4 ml-2" />
                     ویرایش
-                  </Button>
+                  </ProtectedButton>
                 )}
               </>
             )}
