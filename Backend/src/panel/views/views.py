@@ -2,10 +2,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.cache import cache
+from django.http import StreamingHttpResponse, HttpResponse
 
 from src.user.authorization.admin_permission import RequirePermission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.panel.services import PanelSettingsService
+from src.panel.services.database_export_service import (
+    export_database_to_sql,
+    get_database_export_filename,
+    get_database_size_info,
+)
 from src.panel.serializers import PanelSettingsSerializer
 from src.core.responses.response import APIResponse
 from src.panel.messages.messages import PANEL_SUCCESS, PANEL_ERRORS
@@ -85,3 +91,45 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             data=response_serializer.data,
             status_code=status.HTTP_200_OK
         )
+    
+    @action(detail=False, methods=['get'], url_path='database-export/info')
+    def get_database_export_info(self, request):
+        try:
+            db_info = get_database_size_info()
+            
+            return APIResponse.success(
+                message='Database information retrieved successfully',
+                data=db_info,
+                status_code=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return APIResponse.error(
+                message=f'Error retrieving database information: {str(e)}',
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'], url_path='database-export/download')
+    def download_database_export(self, request):
+        try:
+            buffer = export_database_to_sql()
+            filename = get_database_export_filename()
+            
+            buffer.seek(0)
+            file_content = buffer.read()
+            buffer_size = len(file_content)
+            
+            response = HttpResponse(
+                file_content,
+                content_type='application/sql; charset=utf-8'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response['Content-Length'] = str(buffer_size)
+            response['X-Content-Type-Options'] = 'nosniff'
+            
+            return response
+            
+        except Exception as e:
+            return APIResponse.error(
+                message=f'Error exporting database: {str(e)}',
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

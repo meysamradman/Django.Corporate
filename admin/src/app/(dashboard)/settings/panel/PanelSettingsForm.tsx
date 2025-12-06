@@ -19,8 +19,11 @@ import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { 
     Image as ImageIcon, 
     FileText,
-    Save
+    Save,
+    Database,
+    Download
 } from 'lucide-react';
+import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/settings/panel/route';
 
 const formSchema = z.object({
     panel_title: z.string().min(1, "عنوان پنل الزامی است.").max(100),
@@ -242,6 +245,41 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
                                 </FormItem>
                             )}
                         />
+                </CardWithIcon>
+
+                <CardWithIcon
+                    icon={Database}
+                    title="پشتیبان‌گیری دیتابیس"
+                    iconBgColor="bg-green"
+                    iconColor="stroke-green-2"
+                    borderColor="border-b-green-1"
+                    className="hover:shadow-lg transition-all duration-300"
+                    headerClassName="pb-3"
+                >
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <p className="text-font-s">
+                                می‌توانید یک نسخه پشتیبان کامل از تمام داده‌های دیتابیس PostgreSQL را به صورت فایل SQL استاندارد دانلود کنید.
+                            </p>
+                            <p className="text-xs text-font-s/80">
+                                این فایل SQL قابل استفاده در هر سرور PostgreSQL دیگر است و شامل تمام جداول، داده‌ها، ساختارها و روابط می‌شود.
+                            </p>
+                        </div>
+                        <ProtectedButton
+                            onClick={async () => {
+                                try {
+                                    await downloadDatabaseExport();
+                                } catch (error) {
+                                }
+                            }}
+                            permission="panel.manage"
+                            variant="outline"
+                            className="w-full gap-2"
+                        >
+                            <Download className="h-5 w-5" />
+                            دانلود پشتیبان دیتابیس (SQL)
+                        </ProtectedButton>
+                    </div>
                 </CardWithIcon>
 
             </form>
