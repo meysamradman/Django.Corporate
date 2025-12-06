@@ -65,7 +65,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             
             serializer = self.get_serializer(queryset, many=True)
             return APIResponse.success(
-                message=FORM_FIELD_SUCCESS['field_list_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -81,7 +80,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(instance)
             
             return APIResponse.success(
-                message=FORM_FIELD_SUCCESS['field_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -222,7 +220,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             
             if cached_data is not None:
                 return APIResponse.success(
-                    message=FORM_FIELD_SUCCESS['platform_fields_retrieved'],
                     data=cached_data,
                     status_code=status.HTTP_200_OK
                 )
@@ -234,7 +231,6 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
             cache.set(cache_key, serialized_data, 300)
             
             return APIResponse.success(
-                message=FORM_FIELD_SUCCESS['platform_fields_retrieved'],
                 data=serialized_data,
                 status_code=status.HTTP_200_OK
             )

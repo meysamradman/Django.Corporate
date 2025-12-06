@@ -10,12 +10,12 @@ import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { toast } from "@/components/elements/Sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { portfolioApi } from "@/api/portfolios/route";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import { blogApi } from "@/api/blogs/route";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
 import { Media } from "@/types/shared/media";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { Loader2, Save, List } from "lucide-react";
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,21 +35,21 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
   });
 
   const { data: category, isLoading, error } = useQuery({
-    queryKey: ['category', categoryId],
-    queryFn: () => portfolioApi.getCategoryById(categoryId),
+    queryKey: ['blog-category', categoryId],
+    queryFn: () => blogApi.getCategoryById(categoryId),
     enabled: !!categoryId,
   });
 
   const { data: categories } = useQuery({
-    queryKey: ['categories-all'],
+    queryKey: ['blog-categories-all'],
     queryFn: async () => {
-      return await portfolioApi.getCategories({ size: 1000 });
+      return await blogApi.getCategories({ size: 1000 });
     },
     staleTime: 0,
     gcTime: 0,
   });
 
-  const renderCategoryOption = (category: PortfolioCategory) => {
+  const renderCategoryOption = (category: BlogCategory) => {
     const level = category.level || 1;
     const indentation = " ".repeat(level - 1);    
     const prefix = level === 1 ? "📂 " : "├─ ";
@@ -79,12 +79,15 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
   }, [category]);
 
   const updateCategoryMutation = useMutation({
-    mutationFn: (data: Partial<PortfolioCategory>) => portfolioApi.updateCategory(categoryId, data),
+    mutationFn: (data: Partial<BlogCategory>) => blogApi.updateCategory(categoryId, data),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['category', categoryId] });
+      queryClient.invalidateQueries({ queryKey: ['blog-category', categoryId] });
+      queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
+      toast.success("دسته‌بندی با موفقیت به‌روزرسانی شد");
       router.push("/blogs/categories");
     },
     onError: (error) => {
+      toast.error("خطا در به‌روزرسانی دسته‌بندی");
     },
   });
 

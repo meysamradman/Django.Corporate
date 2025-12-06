@@ -30,18 +30,25 @@ class BlogTagAdminService:
     @staticmethod
     def get_tag_by_id(tag_id):
         cache_key = TagCacheKeys.tag(tag_id)
-        tag = cache.get(cache_key)
+        cached_data = cache.get(cache_key)
         
-        if tag is None:
+        if cached_data:
             try:
-                tag = BlogTag.objects.annotate(
+                return BlogTag.objects.annotate(
                     blog_count=Count('blog_tags')
                 ).get(id=tag_id)
-                cache.set(cache_key, tag, 3600)
             except BlogTag.DoesNotExist:
+                cache.delete(cache_key)
                 return None
         
-        return tag
+        try:
+            tag = BlogTag.objects.annotate(
+                blog_count=Count('blog_tags')
+            ).get(id=tag_id)
+            cache.set(cache_key, True, 3600)
+            return tag
+        except BlogTag.DoesNotExist:
+            return None
 
     @staticmethod
     def create_tag(validated_data, created_by=None):

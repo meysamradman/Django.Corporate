@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { roleApi } from '@/api/roles/route'
+import { roleApi } from '@/api/admins/roles/route'
 import { RoleListParams } from '@/types/auth/permission'
 import { toast } from '@/components/elements/Sonner';
 import { getPermissionTranslation } from '@/core/messages/permissions';

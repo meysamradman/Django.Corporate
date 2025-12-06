@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useFAQList, useDeleteFAQ } from "@/core/hooks/useChatbot";
+import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import { FAQ } from "@/api/chatbot/route";
 import { DataTable } from "@/components/tables/DataTable";
 import { ColumnDef } from "@tanstack/react-table";

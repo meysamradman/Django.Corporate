@@ -59,8 +59,10 @@ export function AboutPageForm() {
                 setOgImage(data.og_image_data);
             }
         } catch (error: any) {
-            const errorMessage = error?.message || error?.response?.message || "خطا در دریافت صفحه درباره ما";
-            toast.error(errorMessage);
+            // ✅ Only show toast for critical errors, not 404
+            if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
+                toast.error("خطا در بارگذاری صفحه");
+            }
         } finally {
             setLoading(false);
         }
@@ -101,11 +103,10 @@ export function AboutPageForm() {
             }
 
             await pageApi.updateAboutPage(updateData);
-            toast.success("صفحه درباره ما با موفقیت به‌روزرسانی شد");
+            // ✅ Backend sends success message - no need for manual toast
             await fetchPage();
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || "خطا در به‌روزرسانی صفحه درباره ما";
-            toast.error(errorMessage);
+            // ✅ fetch.ts already shows error toast
         } finally {
             setSaving(false);
         }

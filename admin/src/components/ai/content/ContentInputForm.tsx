@@ -8,7 +8,7 @@ import { Textarea } from '@/components/elements/Textarea';
 import { ProviderSelector } from '../shared/ProviderSelector';
 import { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Brain, Type } from 'lucide-react';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 
 interface ContentInputFormProps {
     providers: AvailableProvider[];

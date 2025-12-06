@@ -1,48 +1,34 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { showErrorToast, showSuccessToast } from '@/core/config/errorHandler';
-import { PanelSettings } from '@/types/settings/panelSettings';
 import { getPanelSettings, updatePanelSettings } from '@/api/settings/panel/route';
-import { adminApi } from '@/api/admins/route';
-import { useAuth } from '@/core/auth/AuthContext';
+import { PanelSettings } from '@/types/settings/panelSettings';
+import { fetchApi } from '@/core/config/fetch';
 
-export const useAdminProfile = () => {
-  return useQuery({
-    queryKey: ['admin-profile'],
-    queryFn: () => adminApi.getProfile(),
-    staleTime: 0,
-    gcTime: 0,
-  });
-};
-
-export const usePanelSettings = () => {
+export function usePanelSettings() {
   return useQuery({
     queryKey: ['panel-settings'],
-    queryFn: () => getPanelSettings(),
-    staleTime: 0,
-    gcTime: 0,
+    queryFn: getPanelSettings,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
-};
+}
 
-export const useUpdatePanelSettings = () => {
+export function useUpdatePanelSettings() {
   const queryClient = useQueryClient();
-  const { updatePanelSettingsInContext } = useAuth();
-  
+
   return useMutation({
-    mutationFn: (data: Partial<PanelSettings> | FormData) => updatePanelSettings(data as any),
-    onSuccess: (response) => {
-      const updatedData = response.data;
+    mutationFn: async (data: Partial<PanelSettings> | FormData) => {
+      const response = await fetchApi.put<PanelSettings>('/admin/panel-settings/update/', data, {
+        successMessage: 'تنظیمات پنل با موفقیت به‌روزرسانی شد',
+      });
+      return response.data;
+    },
+    onSuccess: (updatedData) => {
       if (updatedData) {
         queryClient.setQueryData(['panel-settings'], updatedData);
-        updatePanelSettingsInContext(updatedData);
       }
-      showSuccessToast('تنظیمات با موفقیت به‌روزرسانی شد');
-    },
-    onError: (error) => {
-      showErrorToast(error, 'خطا در به‌روزرسانی تنظیمات');
+      queryClient.invalidateQueries({ queryKey: ['panel-settings'] });
     },
   });
-};
-
- 
+}

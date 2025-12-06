@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from "@/components/elements/Sonner";
+import { showSuccess, showError } from '@/core/toast';
 import { AdminWithProfile } from "@/types/auth/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound, Share2, Settings2 } from "lucide-react";
@@ -10,7 +10,7 @@ import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
 import dynamic from "next/dynamic";
-import { getErrorMessage, getUIMessage, getValidationMessage } from "@/core/messages/message";
+import { msg } from '@/core/messages';
 import { useAuth } from "@/core/auth/AuthContext";
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
@@ -215,7 +215,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             
             
                                     if (!adminData) {
-                toast.error('اطلاعات ادمین یافت نشد');
+                showError('اطلاعات ادمین یافت نشد');
                 return;
             }
             
@@ -232,36 +232,36 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 await refreshUser();
                             }
             
-            toast.success(getUIMessage('adminProfileUpdated'));
+            showSuccess(msg.crud('updated', { item: 'پروفایل ادمین' }));
         } catch (error: any) {
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
                 const newFieldErrors: Record<string, string> = {};
                 
                 if (errorData.mobile) {
-                    newFieldErrors.mobile = getValidationMessage('auth_mobile_invalid');
+                    newFieldErrors.mobile = msg.validation('mobileInvalid');
                 }
                 if (errorData.email) {
-                    newFieldErrors.email = getValidationMessage('auth_email_invalid');
+                    newFieldErrors.email = msg.validation('emailInvalid');
                 }
                 if (errorData.profile?.national_id) {
                     if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
-                        newFieldErrors.nationalId = getValidationMessage('national_id_exists');
+                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
                     } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
-                        newFieldErrors.nationalId = getValidationMessage('nationalIdLength');
+                        newFieldErrors.nationalId = msg.validation('nationalIdLength');
                     } else {
-                        newFieldErrors.nationalId = getValidationMessage('nationalIdInvalid');
+                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
                     }
                 }
                 if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = getValidationMessage('first_name_required');
+                    newFieldErrors.firstName = msg.validation('firstNameRequired');
                 }
                 if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = getValidationMessage('last_name_required');
+                    newFieldErrors.lastName = msg.validation('lastNameRequired');
                 }
                 
                 if (errorData.detail) {
-                    toast.error(errorData.detail);
+                    showError(errorData.detail);
                     return;
                 }
                 
@@ -271,8 +271,8 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 }
             }
             
-            const errorMessage = getValidationMessage('adminProfileUpdateFailed');
-            toast.error(errorMessage);
+            const errorMessage = msg.error('serverError');
+            showError(errorMessage);
         } finally {
             setIsSaving(false);
         }

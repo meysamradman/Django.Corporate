@@ -5,7 +5,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { UseFormReturn } from "react-hook-form";
-import { AdminFormValues } from "@/core/validations/adminSchema";
+import { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { User } from "lucide-react";
 
 const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {

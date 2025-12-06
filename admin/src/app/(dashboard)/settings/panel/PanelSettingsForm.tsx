@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import LogoUploader from './LogoUploader';
 import { usePanelSettings, useUpdatePanelSettings } from '@/core/hooks/useAdminData';
-import { showSuccessToast } from '@/core/config/errorHandler';
+import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Media } from '@/types/shared/media';
 import { PanelSettings } from '@/types/settings/panelSettings';
@@ -108,7 +108,7 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
             }
 
             if (!hasChanges) {
-                showSuccessToast("تغییری یافت نشد.");
+                showSuccess("تغییری یافت نشد.");
                 return;
             }
 

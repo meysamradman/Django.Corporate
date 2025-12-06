@@ -2,7 +2,7 @@
 
 import { Media } from '@/types/shared/media';
 import { MediaType } from './config';
-import { mediaConfig } from '@/core/config/media';
+import { mediaConfig } from '../mediaConfig';
 
 export interface ValidationResult {
   isValid: boolean;

@@ -5,7 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { MediaUploadModal } from "@/components/media/modals/MediaUploadModal";
 import { Upload, Plus } from "lucide-react";
 import { Media } from "@/types/shared/media";
-import { useMediaContext } from '@/core/media/MediaContext';
+import { useMediaContext } from '../MediaContext';
 
 interface MediaUploadButtonProps {
     onUploadComplete?: () => void;

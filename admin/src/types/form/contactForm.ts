@@ -26,6 +26,7 @@ export interface ContactFormFieldCreate {
     validation_rules?: Record<string, any>;
     order?: number;
     is_active?: boolean;
+    [key: string]: unknown;
 }
 
 export interface ContactFormFieldUpdate {
@@ -38,10 +39,12 @@ export interface ContactFormFieldUpdate {
     validation_rules?: Record<string, any>;
     order?: number;
     is_active?: boolean;
+    [key: string]: unknown;
 }
 
 export interface ContactFormSubmissionCreate {
     form_data: Record<string, any>;
     platform: 'website' | 'mobile_app';
+    [key: string]: unknown;
 }
 

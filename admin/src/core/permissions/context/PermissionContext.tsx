@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useMemo, useCallback, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { permissionApi } from '@/api/permissions/route';
-import type { PermissionMapResponse } from '@/api/permissions/route';
+import { permissionApi } from '@/api/admins/permissions/route';
+import type { PermissionMapResponse } from '@/api/admins/permissions/route';
 
 export interface UIPermissions {
   canManagePanel: boolean;

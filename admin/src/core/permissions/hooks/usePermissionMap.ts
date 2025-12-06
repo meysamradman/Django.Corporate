@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { permissionApi } from '@/api/permissions/route'
+import { permissionApi } from '@/api/admins/permissions/route'
 import type { PermissionSnapshot } from '../types'
 
 export const usePermissionMap = () => {

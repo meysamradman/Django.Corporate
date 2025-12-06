@@ -9,7 +9,7 @@ import { PortfolioMediaGallery } from "@/components/portfolios/list/PortfolioMed
 import { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
+import { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";

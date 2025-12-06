@@ -7,7 +7,7 @@ import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Media } from "@/types/shared/media";
 import { Camera, X } from "lucide-react";
-import { useMediaContext } from '@/core/media/MediaContext';
+import { useMediaContext } from '../MediaContext';
 
 interface ImageSmallSelectorProps {
     selectedMedia: Media | null;

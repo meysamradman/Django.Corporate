@@ -8,7 +8,7 @@ import { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/route';
 import { Media } from '@/types/shared/media';
 import { toast } from '@/components/elements/Sonner';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
 import { EmptyProvidersCard } from './EmptyProvidersCard';

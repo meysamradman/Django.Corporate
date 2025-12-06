@@ -19,7 +19,7 @@ import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { mediaApi } from '@/api/media/route';
-import { toast } from 'sonner';
+import { toast } from '@/core/toast';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { TruncatedText } from '@/components/elements/TruncatedText';
 

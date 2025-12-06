@@ -14,10 +14,10 @@ import { Media } from "@/types/shared/media";
 import { User, Camera, UserCircle, MapPin, FileText } from "lucide-react";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { UserFormValues } from "@/core/validations/userSchema";
+import { UserFormValues } from "@/components/users/validations/userSchema";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { locationApi } from "@/api/location/route";
+import { locationApi } from "@/api/shared/location/route";
 import { useEffect } from "react";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 

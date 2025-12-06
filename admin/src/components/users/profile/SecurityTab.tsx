@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormField } from "@/components/forms/FormField";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from '@/core/toast';
 
 export function SecurityTab() {
     const [showNewPassword, setShowNewPassword] = useState(false);

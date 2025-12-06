@@ -36,7 +36,7 @@ import { useHasAccess } from '@/core/permissions/hooks/useHasAccess';
 import { mediaService } from '@/components/media/services';
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
-import { useMediaContext } from '@/core/media/MediaContext';
+import { useMediaContext } from '../MediaContext';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;

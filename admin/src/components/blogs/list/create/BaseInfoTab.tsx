@@ -16,8 +16,8 @@ import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText, Globe, Power
 import { blogApi } from "@/api/blogs/route";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { BlogTag } from "@/types/blog/tags/blogTag";
-import { BlogFormValues } from "@/core/validations/blogSchema";
-import { formatSlug, generateSlug } from '@/core/utils/slugUtils';
+import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
+import { formatSlug, generateSlug } from '@/components/shared/utils/slugUtils';
 import { QuickCreateDialog } from "./QuickCreateDialog";
 
 interface BaseInfoTabFormProps {

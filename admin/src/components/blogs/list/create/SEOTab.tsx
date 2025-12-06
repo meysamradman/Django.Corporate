@@ -7,7 +7,7 @@ import { Button } from "@/components/elements/Button";
 import { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { BlogFormValues } from "@/core/validations/blogSchema";
+import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";

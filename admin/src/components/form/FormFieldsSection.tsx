@@ -71,15 +71,10 @@ export function FormFieldsSection() {
     }, []);
 
     const fetchFields = async () => {
-        try {
-            setLoading(true);
-            const data = await formApi.getFields();
-            setFields(Array.isArray(data) ? data : []);
-        } catch (error) {
-            toast.error("خطا در دریافت فیلدهای فرم");
-        } finally {
-            setLoading(false);
-        }
+        setLoading(true);
+        const data = await formApi.getFields();
+        setFields(Array.isArray(data) ? data : []);
+        setLoading(false);
     };
 
     const handleOpenDialog = (field?: ContactFormField) => {
@@ -165,56 +160,35 @@ export function FormFieldsSection() {
             return;
         }
 
+        setSaving(true);
+        
+        const fieldData: ContactFormFieldCreate = {
+            field_key: fieldKey.trim(),
+            field_type: fieldType,
+            label: label.trim(),
+            placeholder: placeholder.trim() || null,
+            required,
+            platforms,
+            order,
+            is_active: isActive,
+        };
+
+        if (fieldType === 'select' || fieldType === 'radio') {
+            fieldData.options = options.filter(opt => opt.value && opt.label);
+        }
+
         try {
-            setSaving(true);
-            
-            const fieldData: ContactFormFieldCreate = {
-                field_key: fieldKey.trim(),
-                field_type: fieldType,
-                label: label.trim(),
-                placeholder: placeholder.trim() || null,
-                required,
-                platforms,
-                order,
-                is_active: isActive,
-            };
-
-            if (fieldType === 'select' || fieldType === 'radio') {
-                fieldData.options = options.filter(opt => opt.value && opt.label);
-            }
-
             if (editingField) {
                 await formApi.updateField(editingField.id, fieldData);
-                toast.success("فیلد با موفقیت به‌روزرسانی شد");
             } else {
                 await formApi.createField(fieldData);
-                toast.success("فیلد با موفقیت ایجاد شد");
             }
-            
             handleCloseDialog();
             await fetchFields();
-        } catch (error: any) {
-            let errorMessage = "خطا در ذخیره فیلد";
+        } catch {
             
-            if (error?.response?.data?.errors) {
-                const errors = error.response.data.errors;
-                if (errors.field_key) {
-                    errorMessage = Array.isArray(errors.field_key) 
-                        ? errors.field_key[0] 
-                        : errors.field_key;
-                } else if (error?.response?.data?.message) {
-                    errorMessage = error.response.data.message;
-                }
-            } else if (error?.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error?.message) {
-                errorMessage = error.message;
-            }
-            
-            toast.error(errorMessage);
-        } finally {
-            setSaving(false);
         }
+        setSaving(false);
     };
 
     const handleDeleteClick = (id: number) => {
@@ -225,15 +199,10 @@ export function FormFieldsSection() {
     const handleDelete = async () => {
         if (!fieldToDelete) return;
 
-        try {
-            await formApi.deleteField(fieldToDelete);
-            toast.success("فیلد با موفقیت حذف شد");
-            await fetchFields();
-            setDeleteDialogOpen(false);
-            setFieldToDelete(null);
-        } catch (error) {
-            toast.error("خطا در حذف فیلد");
-        }
+        await formApi.deleteField(fieldToDelete);
+        await fetchFields();
+        setDeleteDialogOpen(false);
+        setFieldToDelete(null);
     };
 
     const getFieldTypeLabel = (type: ContactFormField['field_type']) => {

@@ -13,14 +13,14 @@ import {
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/route";
-import { blogFormSchema, blogFormDefaults, BlogFormValues } from "@/core/validations/blogSchema";
-import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
-import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { msg } from "@/core/messages/message";
+import { blogFormSchema, blogFormDefaults, BlogFormValues } from "@/components/blogs/validations/blogSchema";
+import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { showSuccess, showError } from '@/core/toast';
+import { getCrud, getStatus } from '@/core/messages';
 import { env } from "@/core/config/environment";
 import { Blog } from "@/types/blog/blog";
 import { BlogMedia } from "@/types/blog/blogMedia";
-import { collectMediaFilesAndIds } from "@/core/utils/blogMediaUtils";
+import { collectMediaFilesAndIds } from "@/components/blogs/utils/blogMediaUtils";
 
 import BaseInfoTab from "@/components/blogs/list/create/BaseInfoTab";
 import MediaTab from "@/components/blogs/list/create/MediaTab";
@@ -94,9 +94,9 @@ export default function CreateBlogPage() {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
       
       const successMessage = variables.status === "draft" 
-        ? msg.ui("blogDraftSaved")
-        : msg.ui("blogCreated");
-      showSuccessToast(successMessage);
+        ? getCrud('saved', { item: 'بلاگ درافت' })
+        : getCrud('created', { item: 'بلاگ' });
+      showSuccess(successMessage);
       
       router.push("/blogs");
       router.push("/blogs");
@@ -120,9 +120,9 @@ export default function CreateBlogPage() {
           });
         });
         
-        showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
-        showErrorToast(error);
+        showError(error);
       }
     },
   });

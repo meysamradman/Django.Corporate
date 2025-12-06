@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { authApi } from '@/api/auth/route';
 import { Button } from "@/components/elements/Button";
 import { Input} from '@/components/elements/Input';
-import { showSuccessToast, showErrorToast } from '@/core/config/errorHandler';
+import { showSuccess, showError } from '@/core/toast';
 import { Label} from '@/components/elements/Label';
 import { RadioGroup, RadioGroupItem } from '@/components/elements/RadioGroup';
 import { FormField, FormFieldInput } from "@/components/forms/FormField";
@@ -21,7 +21,7 @@ import {
   type PasswordLoginForm, 
   type OtpLoginForm 
 } from '@/core/validations/loginSchema';
-import { msg } from '@/core/messages/message';
+import { msg } from '@/core/messages';
 import { usePathname } from 'next/navigation';
 import { Spinner } from '@/components/elements/Spinner';
 
@@ -69,7 +69,7 @@ export function LoginForm() {
             setCaptchaDigits(digits);
         } catch (error) {
             setCaptchaError(msg.error("network"));
-            showErrorToast(error, msg.error("network"));
+            showError(error, msg.error("network"));
         } finally {
             setCaptchaLoading(false);
         }
@@ -114,7 +114,7 @@ export function LoginForm() {
 
     const handlePasswordLogin = async (data: PasswordLoginForm) => {
         if (!captchaId) {
-            showErrorToast(new Error(msg.validation("captchaRequired")));
+            showError(new Error(msg.validation("captchaRequired")));
             return;
         }
 
@@ -122,7 +122,7 @@ export function LoginForm() {
 
         try {
             await login(data.mobile, data.password, captchaId, data.captchaAnswer);
-            showSuccessToast(msg.auth("loginSuccess"));
+            showSuccess(msg.auth("loginSuccess"));
             setIsRedirecting(true);
         } catch (error) {
             let errorMessage = msg.auth("invalidCredentials");
@@ -141,7 +141,7 @@ export function LoginForm() {
                 errorMessage = error.message || msg.auth("invalidCredentials");
             }
             
-            showErrorToast(new Error(errorMessage));
+            showError(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }
@@ -151,12 +151,12 @@ export function LoginForm() {
         const mobile = otpForm.getValues('mobile');
         
         if (!mobile) {
-            showErrorToast(new Error(msg.validation("mobileRequired")));
+            showError(new Error(msg.validation("mobileRequired")));
             return;
         }
 
         if (!/^09[0-9]{9}$/.test(mobile)) {
-            showErrorToast(new Error(msg.validation("mobileInvalid")));
+            showError(new Error(msg.validation("mobileInvalid")));
             return;
         }
 
@@ -166,7 +166,7 @@ export function LoginForm() {
             await authApi.sendOTP(mobile);
             setOtpSent(true);
             setResendTimer(60);
-            showSuccessToast(msg.auth("otpSent"));
+            showSuccess(msg.auth("otpSent"));
         } catch (error) {
             let errorMessage = msg.auth("otpSendFailed");
             
@@ -176,7 +176,7 @@ export function LoginForm() {
                 errorMessage = error.message || msg.auth("otpSendFailed");
             }
             
-            showErrorToast(new Error(errorMessage));
+            showError(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }
@@ -184,7 +184,7 @@ export function LoginForm() {
 
     const handleOTPLogin = async (data: OtpLoginForm) => {
         if (!otpSent) {
-            showErrorToast(new Error(msg.validation("otpRequired")));
+            showError(new Error(msg.validation("otpRequired")));
             return;
         }
 
@@ -192,7 +192,7 @@ export function LoginForm() {
 
         try {
             await loginWithOTP(data.mobile, data.otp, captchaId, data.captchaAnswer);
-            showSuccessToast(msg.auth("loginSuccess"));
+            showSuccess(msg.auth("loginSuccess"));
             setIsRedirecting(true);
         } catch (error) {
             let errorMessage = msg.auth("invalidCredentials");
@@ -211,7 +211,7 @@ export function LoginForm() {
                 errorMessage = error.message || msg.auth("invalidCredentials");
             }
             
-            showErrorToast(new Error(errorMessage));
+            showError(new Error(errorMessage));
         } finally {
             setIsLoading(false);
         }

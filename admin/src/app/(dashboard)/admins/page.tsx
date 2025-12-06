@@ -13,12 +13,12 @@ import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import Link from "next/link";
-import { toast } from '@/components/elements/Sonner';
+import { showSuccess, showError } from '@/core/toast';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { getConfirmMessage } from "@/core/messages/message";
+import { getConfirm, getCrud } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -118,10 +118,10 @@ export default function AdminsPage() {
     mutationFn: (adminId: number) => adminApi.deleteAdmin(adminId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admins'] });
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 
@@ -129,11 +129,11 @@ export default function AdminsPage() {
     mutationFn: (adminIds: number[]) => adminApi.bulkDeleteAdmins(adminIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admins'] });
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 
@@ -339,8 +339,8 @@ export default function AdminsPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirmMessage('bulkDeleteAdmins', { count: deleteConfirm.adminIds?.length || 0 })
-                : getConfirmMessage('deleteAdmin')
+                ? getConfirm('bulkDelete', { item: 'ادمین', count: deleteConfirm.adminIds?.length || 0 })
+                : getConfirm('delete', { item: 'ادمین' })
               }
             </AlertDialogDescription>
           </AlertDialogHeader>

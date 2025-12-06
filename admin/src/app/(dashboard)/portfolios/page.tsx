@@ -15,7 +15,7 @@ import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { getConfirmMessage, msg } from "@/core/messages/message";
+import { getCrud, getConfirm, getStatus } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -169,10 +169,10 @@ export default function PortfolioPage() {
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(msg.ui("deleted"));
+      toast.success(getCrud('deleted', { item: 'نمونه‌کار' }));
     },
     onError: (error) => {
-      toast.error(msg.error("serverError"));
+      toast.error('خطای سرور رخ داد');
     },
   });
 
@@ -180,11 +180,11 @@ export default function PortfolioPage() {
     mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(msg.ui("deleted"));
+      toast.success(getCrud('deleted', { item: 'نمونه‌کارها' }));
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error(msg.error("serverError"));
+      toast.error('خطای سرور رخ داد');
     },
   });
 
@@ -194,10 +194,10 @@ export default function PortfolioPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(data.is_active ? msg.ui("portfolioActivated") : msg.ui("portfolioDeactivated"));
+      toast.success(data.is_active ? getStatus('active') : getStatus('inactive'));
     },
     onError: (error) => {
-      toast.error(msg.ui("statusChangeError"));
+      toast.error(getStatus('statusChangeError'));
     },
   });
 
@@ -676,8 +676,8 @@ export default function PortfolioPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirmMessage('bulkDeleteAdmins', { count: deleteConfirm.portfolioIds?.length || 0 })
-                : getConfirmMessage('deleteAdmin')
+                ? getConfirm('bulkDelete', { item: 'نمونه‌کار', count: deleteConfirm.portfolioIds?.length || 0 })
+                : getConfirm('delete', { item: 'نمونه‌کار' })
               }
             </AlertDialogDescription>
           </AlertDialogHeader>

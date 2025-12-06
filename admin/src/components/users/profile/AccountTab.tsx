@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { UserWithProfile } from "@/types/auth/user";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
-import { locationApi } from "@/api/location/route";
+import { locationApi } from "@/api/shared/location/route";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 

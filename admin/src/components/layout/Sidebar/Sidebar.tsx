@@ -20,7 +20,7 @@ import {SubMenuItem} from "./SubMenuItem";
 import {useAuth} from "@/core/auth/AuthContext";
 import {usePathname, useRouter} from "next/navigation";
 import {toast} from "@/components/elements/Sonner";
-import {msg} from "@/core/messages/message";
+import { getError } from "@/core/messages/errors";
 import { useAdminStore } from "@/components/layout/Sidebar/stores/sidebarStore";
 import { getUserRoleDisplayText } from "@/core/permissions/config/roles";
 
@@ -140,7 +140,7 @@ export function Sidebar({
         try {
             await logout();
         } catch (error) {
-            toast.error(msg.error('unauthorized'));
+            toast.error(getError('unauthorized'));
         }
     };
 

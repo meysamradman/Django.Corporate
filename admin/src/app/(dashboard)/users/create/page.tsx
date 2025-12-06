@@ -6,10 +6,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/route";
-import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
-import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { msg } from "@/core/messages/message";
-import { userFormSchema, userFormDefaults, UserFormValues } from "@/core/validations/userSchema";
+import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { showSuccess, showError } from '@/core/toast';
+import { getCrud } from '@/core/messages';
+import { userFormSchema, userFormDefaults, UserFormValues } from "@/components/users/validations/userSchema";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -92,7 +92,7 @@ export default function CreateUserPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
-            showSuccessToast(msg.ui("created"));
+            showSuccess(getCrud('created', { item: 'کاربر' }));
             router.push("/users");
         },
         onError: (error: any) => {
@@ -120,9 +120,9 @@ export default function CreateUserPage() {
                     });
                 });
                 
-                showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+                showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
             } else {
-                showErrorToast(error);
+                showError(error);
             }
         },
     });

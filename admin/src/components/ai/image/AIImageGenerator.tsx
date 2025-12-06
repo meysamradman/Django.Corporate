@@ -8,7 +8,7 @@ import { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/route';
 import { Media } from '@/types/shared/media';
 import { toast } from '@/components/elements/Sonner';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { ImageInputForm } from './ImageInputForm';
 import { GeneratedImageDisplay } from './GeneratedImageDisplay';
 import { EmptyProvidersCard } from './EmptyProvidersCard';

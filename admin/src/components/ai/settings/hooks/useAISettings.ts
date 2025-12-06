@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
-import { showSuccessToast, showErrorToast } from '@/core/config/errorHandler';
+import { showSuccess, showError } from '@/core/toast';
 import { 
   PROVIDER_METADATA, 
   getProviderMetadata,
@@ -218,10 +218,10 @@ export function useAISettings() {
       });
       
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
-      showSuccessToast('تنظیمات با موفقیت به‌روزرسانی شد');
+      showSuccess('تنظیمات با موفقیت به‌روزرسانی شد');
     },
     onError: (error: any) => {
-      showErrorToast(error?.message || 'خطا در به‌روزرسانی تنظیمات');
+      showError(error?.message || 'خطا در به‌روزرسانی تنظیمات');
     },
   });
 

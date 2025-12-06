@@ -6,12 +6,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/route";
-import { roleApi } from "@/api/roles/route";
+import { roleApi } from "@/api/admins/roles/route";
 import { Role } from "@/types/auth/permission";
-import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
-import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { msg } from "@/core/messages/message";
-import { adminFormSchema, adminFormDefaults, AdminFormValues } from "@/core/validations/adminSchema";
+import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { showSuccess, showError } from '@/core/toast';
+import { getCrud } from '@/core/messages';
+import { adminFormSchema, adminFormDefaults, AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -91,7 +91,7 @@ export default function CreateAdminPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
-            showSuccessToast(msg.ui("created"));
+            showSuccess(getCrud('created', { item: 'ادمین' }));
             router.push("/admins");
         },
         onError: (error: any) => {
@@ -120,9 +120,9 @@ export default function CreateAdminPage() {
                     });
                 });
                 
-                showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+                showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
             } else {
-                showErrorToast(error);
+                showError(error);
             }
         },
     });
@@ -136,7 +136,7 @@ export default function CreateAdminPage() {
                 setRoles(fetchedRoles);
             } catch (error) {
                 setRolesError('بارگذاری نقش‌ها ناموفق بود.');
-                showErrorToast(error, 'بارگذاری نقش‌ها ناموفق بود');
+                showError(error, { customMessage: 'بارگذاری نقش‌ها ناموفق بود' });
             } finally {
                 setLoadingRoles(false);
             }

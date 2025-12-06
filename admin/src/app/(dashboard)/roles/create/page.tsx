@@ -16,10 +16,10 @@ import { Button } from "@/components/elements/Button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
-import { roleFormSchema, roleFormDefaults, RoleFormValues } from "@/core/validations/roleSchema";
+import { roleFormSchema, roleFormDefaults, RoleFormValues } from "@/components/roles/validations/roleSchema";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { extractFieldErrors, hasFieldErrors, showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { msg } from "@/core/messages/message";
+import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
 import {
   StandardPermissionsTable,
@@ -195,9 +195,9 @@ export default function CreateRolePage() {
           });
         });
         
-        showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+        showError(error, "لطفاً خطاهای فرم را بررسی کنید");
       } else {
-        showErrorToast(error);
+        showError(error);
       }
     }
   };

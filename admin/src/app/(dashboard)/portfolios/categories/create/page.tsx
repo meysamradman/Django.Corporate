@@ -14,7 +14,7 @@ import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Media } from "@/types/shared/media";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { toast } from "@/components/elements/Sonner";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";

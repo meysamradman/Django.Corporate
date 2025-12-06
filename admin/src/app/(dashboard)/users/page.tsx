@@ -18,7 +18,7 @@ import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
-import { getConfirmMessage } from "@/core/messages/message";
+import { getConfirm, getCrud } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -316,8 +316,8 @@ export default function UsersPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirmMessage('bulkDeleteUsers', { count: deleteConfirm.userIds?.length || 0 })
-                : getConfirmMessage('deleteUser')
+                ? getConfirm('bulkDelete', { item: 'کاربر', count: deleteConfirm.userIds?.length || 0 })
+                : getConfirm('delete', { item: 'کاربر' })
               }
             </AlertDialogDescription>
           </AlertDialogHeader>

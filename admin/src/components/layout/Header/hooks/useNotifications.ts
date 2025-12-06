@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { notificationsApi } from '@/api/notifications/route';
+import { notificationsApi } from '@/api/shared/notifications/route';
 
 export function useNotifications() {
   return useQuery({

@@ -13,7 +13,7 @@ import { useRoles, usePermissions } from "@/core/permissions/hooks/useRoles";
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
 import { PermissionGate as PermissionGateLegacy } from "@/core/permissions/components/PermissionGateLegacy";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { toast } from "@/components/elements/Sonner";
+import { showSuccess, showError } from '@/core/toast';
 import { PermissionGroup, Permission, RoleWithPermissions } from "@/types/auth/permission";
 import {
   AlertDialog,
@@ -90,11 +90,11 @@ export default function PermissionsManagementPage() {
 
     setIsSaving(true);
     try {
-      toast.success("تغییرات با موفقیت ذخیره شد");
+      showSuccess("تغییرات با موفقیت ذخیره شد");
       setModifiedPermissions(new Set());
       setSaveDialogOpen(false);
     } catch (error) {
-      toast.error("خطا در ذخیره تغییرات");
+      showError("خطا در ذخیره تغییرات");
     } finally {
       setIsSaving(false);
     }

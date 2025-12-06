@@ -7,7 +7,7 @@ import { Badge } from '@/components/elements/Badge';
 import { Button } from '@/components/elements/Button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
-import { showSuccessToast, showErrorToast } from '@/core/config/errorHandler';
+import { showSuccess, showError } from '@/core/toast';
 
 interface ModelSelectorProps {
     models: any[];
@@ -93,19 +93,19 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ai-models', capability] });
-            showSuccessToast('وضعیت مدل با موفقیت تغییر کرد');
+            showSuccess('وضعیت مدل با موفقیت تغییر کرد');
         },
         onError: (error: any, variables, context) => {
             if (context?.previousModels) {
                 queryClient.setQueryData(['ai-models', capability], context.previousModels);
             }
-            showErrorToast(error?.message || 'خطا در تغییر وضعیت مدل');
+            showError(error?.message || 'خطا در تغییر وضعیت مدل');
         },
     });
 
     const handleToggleModel = (modelId: number | string, currentStatus: boolean, isOpenRouter?: boolean) => {
         if (isOpenRouter) {
-            showErrorToast('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');
+            showError('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');
             return;
         }
         toggleModelMutation.mutate({

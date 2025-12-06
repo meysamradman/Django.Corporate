@@ -13,14 +13,13 @@ import {
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
-import { portfolioFormSchema, portfolioFormDefaults, PortfolioFormValues } from "@/core/validations/portfolioSchema";
-import { extractFieldErrors, hasFieldErrors } from "@/core/config/errorHandler";
-import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { msg } from "@/core/messages/message";
+import { portfolioFormSchema, portfolioFormDefaults, PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
+import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
+import { getCrud, getStatus } from '@/core/messages';
 import { env } from "@/core/config/environment";
 import { Portfolio } from "@/types/portfolio/portfolio";
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
-import { collectMediaFilesAndIds } from "@/core/utils/portfolioMediaUtils";
+import { collectMediaFilesAndIds } from "@/components/portfolios/utils/portfolioMediaUtils";
 
 import BaseInfoTab from "@/components/portfolios/list/create/BaseInfoTab";
 import MediaTab from "@/components/portfolios/list/create/MediaTab";
@@ -95,9 +94,9 @@ export default function CreatePortfolioPage() {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       
       const successMessage = variables.status === "draft" 
-        ? msg.ui("portfolioDraftSaved")
-        : msg.ui("portfolioCreated");
-      showSuccessToast(successMessage);
+        ? getCrud('saved', { item: 'نمونه‌کار درافت' })
+        : getCrud('created', { item: 'نمونه‌کار' });
+      showSuccess(successMessage);
       
       router.push("/portfolios");
     },
@@ -120,9 +119,9 @@ export default function CreatePortfolioPage() {
           });
         });
         
-        showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
-        showErrorToast(error);
+        showError(error);
       }
     },
   });

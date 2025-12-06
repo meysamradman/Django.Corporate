@@ -1,7 +1,7 @@
 import { fetchApi } from '@/core/config/fetch';
 import { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
-import { showErrorToast } from '@/core/config/errorHandler';
+import { showError } from '@/core/toast';
 import { Media } from '@/types/shared/media';
 import {
     AIContentGenerationRequest,
@@ -22,7 +22,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/';
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Provider ها');
+                showError(error?.message || 'خطا در دریافت لیست Provider ها');
                 throw error;
             }
         },
@@ -33,7 +33,7 @@ export const aiApi = {
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
-                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                    showError(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
                 throw error;
             }
@@ -44,7 +44,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/${id}/`;
                 return await fetchApi.get<any>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت اطلاعات Provider');
+                showError(error?.message || 'خطا در دریافت اطلاعات Provider');
                 throw error;
             }
         },
@@ -65,7 +65,7 @@ export const aiApi = {
                 const method = data.id ? 'patch' : 'post';
                 return await fetchApi[method]<any>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در ذخیره Provider');
+                showError(error?.message || 'خطا در ذخیره Provider');
                 throw error;
             }
         },
@@ -80,7 +80,7 @@ export const aiApi = {
                     },
                 });
             } catch (error: any) {
-                showErrorToast(error?.message || `خطا در ${activate ? 'فعال' : 'غیرفعال'} کردن Provider`);
+                showError(error?.message || `خطا در ${activate ? 'فعال' : 'غیرفعال'} کردن Provider`);
                 throw error;
             }
         },
@@ -95,7 +95,7 @@ export const aiApi = {
                     },
                 });
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در بررسی اعتبار API key');
+                showError(error?.message || 'خطا در بررسی اعتبار API key');
                 throw error;
             }
         },
@@ -131,7 +131,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-generate/generate/';
                 return await fetchApi.post<Media>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در تولید تصویر');
+                showError(error?.message || 'خطا در تولید تصویر');
                 throw error;
             }
         },
@@ -144,7 +144,7 @@ export const aiApi = {
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
-                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                    showError(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
                 throw error;
             }
@@ -166,7 +166,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-content/generate/';
                 return await fetchApi.post<AIContentGenerationResponse>(endpoint, data as unknown as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در تولید محتوا');
+                showError(error?.message || 'خطا در تولید محتوا');
                 throw error;
             }
         },
@@ -179,7 +179,7 @@ export const aiApi = {
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
-                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                    showError(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
                 throw error;
             }
@@ -199,7 +199,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-audio/generate/';
                 return await fetchApi.post<Media | { audio_data_url: string; saved: boolean }>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در تولید فایل صوتی');
+                showError(error?.message || 'خطا در تولید فایل صوتی');
                 throw error;
             }
         },
@@ -212,7 +212,7 @@ export const aiApi = {
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
-                    showErrorToast(error?.message || 'خطا در دریافت لیست Provider های فعال');
+                    showError(error?.message || 'خطا در دریافت لیست Provider های فعال');
                 }
                 throw error;
             }
@@ -259,7 +259,7 @@ export const aiApi = {
                     generation_time_ms: number;
                 }>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در ارسال پیام');
+                showError(error?.message || 'خطا در ارسال پیام');
                 throw error;
             }
         },
@@ -270,7 +270,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/';
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت تنظیمات شخصی');
+                showError(error?.message || 'خطا در دریافت تنظیمات شخصی');
                 throw error;
             }
         },
@@ -292,7 +292,7 @@ export const aiApi = {
                 const method = data.id ? 'patch' : 'post';
                 return await fetchApi[method]<any>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در ذخیره تنظیمات شخصی');
+                showError(error?.message || 'خطا در ذخیره تنظیمات شخصی');
                 throw error;
             }
         },
@@ -302,7 +302,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-settings/${id}/`;
                 return await fetchApi.delete<any>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در حذف تنظیمات شخصی');
+                showError(error?.message || 'خطا در حذف تنظیمات شخصی');
                 throw error;
             }
         },
@@ -312,7 +312,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/global-control/';
                 return await fetchApi.get<{ allow_regular_admins_use_shared_api: boolean }>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت تنظیمات Global Control');
+                showError(error?.message || 'خطا در دریافت تنظیمات Global Control');
                 throw error;
             }
         },
@@ -324,7 +324,7 @@ export const aiApi = {
                     allow_regular_admins_use_shared_api: allowRegularAdmins,
                 } as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در به‌روزرسانی تنظیمات Global Control');
+                showError(error?.message || 'خطا در به‌روزرسانی تنظیمات Global Control');
                 throw error;
             }
         },
@@ -336,7 +336,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/';
                 return await fetchApi.get<AIProviderList[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Provider ها');
+                showError(error?.message || 'خطا در دریافت لیست Provider ها');
                 throw error;
             }
         },
@@ -346,7 +346,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/${id}/`;
                 return await fetchApi.get<AIProviderDetail>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت اطلاعات Provider');
+                showError(error?.message || 'خطا در دریافت اطلاعات Provider');
                 throw error;
             }
         },
@@ -360,7 +360,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/stats/';
                 return await fetchApi.get(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت آمار');
+                showError(error?.message || 'خطا در دریافت آمار');
                 throw error;
             }
         },
@@ -381,7 +381,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/${params.toString() ? `?${params.toString()}` : ''}`;
                 return await fetchApi.get<AIModelList[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت لیست Model ها');
+                showError(error?.message || 'خطا در دریافت لیست Model ها');
                 throw error;
             }
         },
@@ -391,7 +391,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/${id}/`;
                 return await fetchApi.get<AIModelDetail>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت اطلاعات Model');
+                showError(error?.message || 'خطا در دریافت اطلاعات Model');
                 throw error;
             }
         },
@@ -401,7 +401,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/by_capability/?capability=${capability}&include_inactive=${includeInactive}`;
                 return await fetchApi.get<AIModelList[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت Model ها');
+                showError(error?.message || 'خطا در دریافت Model ها');
                 throw error;
             }
         },
@@ -414,7 +414,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/by_provider/?${params.toString()}`;
                 return await fetchApi.get<AIModelList[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت Model ها');
+                showError(error?.message || 'خطا در دریافت Model ها');
                 throw error;
             }
         },
@@ -424,7 +424,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/${id}/`;
                 return await fetchApi.patch<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در به‌روزرسانی Model');
+                showError(error?.message || 'خطا در به‌روزرسانی Model');
                 throw error;
             }
         },
@@ -434,7 +434,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-models/';
                 return await fetchApi.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در ایجاد Model');
+                showError(error?.message || 'خطا در ایجاد Model');
                 throw error;
             }
         },
@@ -446,7 +446,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/my_settings/';
                 return await fetchApi.get<AdminProviderSettings[]>(endpoint);
             } catch (error: any) {
-                showErrorToast(error?.message || 'خطا در دریافت تنظیمات');
+                showError(error?.message || 'خطا در دریافت تنظیمات');
                 throw error;
             }
         },

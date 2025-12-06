@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { msg } from "@/core/messages/message";
+import { msg } from "@/core/messages";
 
 export const passwordLoginSchema = z.object({
   mobile: z

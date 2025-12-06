@@ -15,7 +15,7 @@ import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { getConfirmMessage } from "@/core/messages/message";
+import { getConfirm, getCrud } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -675,8 +675,8 @@ export default function BlogPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirmMessage('bulkDeleteAdmins', { count: deleteConfirm.blogIds?.length || 0 })
-                : getConfirmMessage('deleteAdmin')
+                ? getConfirm('bulkDelete', { item: 'بلاگ', count: deleteConfirm.blogIds?.length || 0 })
+                : getConfirm('delete', { item: 'بلاگ' })
               }
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -27,9 +27,9 @@ class SettingsApi {
     }
 
     async updateGeneralSettings(data: GeneralSettingsUpdate): Promise<GeneralSettings> {
-        const settings = await this.getGeneralSettings();
+        // ✅ Direct PATCH without extra GET - settings ID is always 1
         const response = await fetchApi.patch<GeneralSettings>(
-            `${this.baseUrl}general/${settings.id}/`,
+            `${this.baseUrl}general/1/`,
             data as unknown as Record<string, unknown>
         );
         return response.data;

@@ -15,7 +15,7 @@ import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
 import { Media } from "@/types/shared/media";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { Loader2, Save, List } from "lucide-react";
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {

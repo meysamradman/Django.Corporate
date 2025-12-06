@@ -8,17 +8,10 @@ from src.form.utils.cache import FormCacheKeys, FormCacheManager
 
 
 def get_contact_form_fields(is_active=None):
-    cache_key = FormCacheKeys.active_fields() if is_active else FormCacheKeys.all_fields()
-    fields = cache.get(cache_key)
-    
-    if fields is None:
-        queryset = ContactFormField.objects.all()
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active)
-        fields = list(queryset.order_by('order', 'field_key'))
-        cache.set(cache_key, fields, 3600)  # 1 hour cache
-    
-    return fields
+    queryset = ContactFormField.objects.all()
+    if is_active is not None:
+        queryset = queryset.filter(is_active=is_active)
+    return queryset.order_by('order', 'field_key')
 
 
 def get_contact_form_field(field_id=None, public_id=None, field_key=None):
@@ -56,17 +49,10 @@ def get_active_fields_for_platform(platform):
     if platform not in ['website', 'mobile_app']:
         raise ValidationError(FORM_FIELD_ERRORS['invalid_platform'])
     
-    cache_key = FormCacheKeys.fields_for_platform(platform)
-    fields = cache.get(cache_key)
-    
-    if fields is None:
-        fields = list(ContactFormField.objects.filter(
-            is_active=True,
-            platforms__contains=[platform]
-        ).order_by('order', 'field_key'))
-        cache.set(cache_key, fields, 3600)  # 1 hour cache
-    
-    return fields
+    return ContactFormField.objects.filter(
+        is_active=True,
+        platforms__contains=[platform]
+    ).order_by('order', 'field_key')
 
 
 @transaction.atomic

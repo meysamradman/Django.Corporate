@@ -6,7 +6,7 @@ import {Header} from "@/components/layout/Header/Header";
 import {cn} from "@/core/utils/cn";
 import {useAdminStore} from "@/components/layout/Sidebar/stores/sidebarStore";
 import { RoutePermissionGuard } from "@/core/permissions/components/RoutePermissionGuard";
-import { MediaContextProvider } from "@/core/media/MediaContext";
+import { MediaContextProvider } from "@/components/media/MediaContext";
 import { PermissionProvider } from "@/core/permissions/context/PermissionContext";
 import { FloatingAIChat } from "@/components/ai/chat/FloatingAIChat";
 import { AIChatProvider } from "@/components/ai/chat/AIChatContext";

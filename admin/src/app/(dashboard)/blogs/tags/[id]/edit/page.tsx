@@ -9,14 +9,15 @@ import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { toast } from "@/components/elements/Sonner";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { portfolioApi } from "@/api/portfolios/route";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { blogApi } from "@/api/blogs/route";
+import { BlogTag } from "@/types/blog/tags/blogTag";
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { Loader2, Save, List } from "lucide-react";
 
 export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const unwrappedParams = React.use(params);
   const tagId = Number(unwrappedParams.id);
   
@@ -29,8 +30,8 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
   });
 
   const { data: tag, isLoading, error } = useQuery({
-    queryKey: ['tag', tagId],
-    queryFn: () => portfolioApi.getTagById(tagId),
+    queryKey: ['blog-tag', tagId],
+    queryFn: () => blogApi.getTagById(tagId),
     enabled: !!tagId,
   });
 
@@ -47,9 +48,12 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
   }, [tag]);
 
   const updateTagMutation = useMutation({
-    mutationFn: (data: Partial<PortfolioTag>) => portfolioApi.updateTag(tagId, data),
+    mutationFn: (data: Partial<BlogTag>) => blogApi.updateTag(tagId, data),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['blog-tag', tagId] });
+      queryClient.invalidateQueries({ queryKey: ['blog-tags'] });
       toast.success("تگ با موفقیت به‌روزرسانی شد");
+      router.push("/blogs/tags");
     },
     onError: (error) => {
       toast.error("خطا در به‌روزرسانی تگ");

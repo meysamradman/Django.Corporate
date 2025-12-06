@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/route";
 import dynamic from "next/dynamic";
 import { Media } from "@/types/shared/media";
-import { getErrorMessage, getUIMessage, getValidationMessage } from "@/core/messages/message";
+import { getCrud, getValidation } from '@/core/messages';
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -155,7 +155,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             }
             
                                     const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
-                        toast.success(getUIMessage('userProfileUpdated'));
+                        toast.success(getCrud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
         } catch (error: any) {
             if (error?.response?.errors) {
@@ -163,25 +163,26 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 const newFieldErrors: Record<string, string> = {};
                 
                 if (errorData.mobile) {
-                    newFieldErrors.mobile = getValidationMessage('auth_mobile_invalid');
+                    newFieldErrors.mobile = getValidation('mobileInvalid');
                 }
                 if (errorData.email) {
-                    newFieldErrors.email = getValidationMessage('auth_email_invalid');
+                    newFieldErrors.email = getValidation('emailInvalid');
                 }
                 if (errorData.profile?.national_id) {
                     if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
-                        newFieldErrors.nationalId = getValidationMessage('national_id_exists');
+                        newFieldErrors.nationalId = getValidation('nationalIdInvalid');
+                        toast.error('کد ملی تکراری است');
                     } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
-                        newFieldErrors.nationalId = getValidationMessage('nationalIdLength');
+                        newFieldErrors.nationalId = getValidation('nationalIdLength');
                     } else {
-                        newFieldErrors.nationalId = getValidationMessage('nationalIdInvalid');
+                        newFieldErrors.nationalId = getValidation('nationalIdInvalid');
                     }
                 }
                 if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = getValidationMessage('first_name_required');
+                    newFieldErrors.firstName = getValidation('firstNameRequired');
                 }
                 if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = getValidationMessage('last_name_required');
+                    newFieldErrors.lastName = getValidation('lastNameRequired');
                 }
                 
                 if (errorData.detail) {
@@ -195,8 +196,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 }
             }
             
-            const errorMessage = getValidationMessage('userProfileUpdateFailed');
-            toast.error(errorMessage);
+            toast.error('خطا در به‌روزرسانی پروفایل');
         } finally {
             setIsSaving(false);
         }

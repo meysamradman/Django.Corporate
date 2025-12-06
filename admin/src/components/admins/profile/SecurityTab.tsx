@@ -10,7 +10,7 @@ import { Label } from "@/components/elements/Label";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from '@/core/toast';
 
 
 

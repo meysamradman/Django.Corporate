@@ -14,13 +14,12 @@ import {
 } from "lucide-react";
 import { AdminWithProfile } from "@/types/auth/admin";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
-import { locationApi } from "@/api/location/route";
+import { locationApi } from "@/api/shared/location/route";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { formatDate } from "@/core/utils/format";
 
 const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
-
   if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
     (e.keyCode === 65 && e.ctrlKey === true) ||
     (e.keyCode === 67 && e.ctrlKey === true) ||
@@ -28,7 +27,7 @@ const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
     (e.keyCode === 88 && e.ctrlKey === true) ||
     (e.keyCode >= 35 && e.keyCode <= 39)) {
     return;
-
+  }
   if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
     e.preventDefault();
   }

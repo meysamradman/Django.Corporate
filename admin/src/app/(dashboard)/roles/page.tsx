@@ -13,7 +13,7 @@ import { toast } from "@/components/elements/Sonner";
 import Link from "next/link";
 import { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useMutation } from "@tanstack/react-query";
-import { getConfirmMessage } from "@/core/messages/message";
+import { getConfirm, getCrud } from '@/core/messages';
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import type { DataTableRowAction } from "@/types/shared/table";
 import {
@@ -324,8 +324,8 @@ export default function RolesPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirmMessage('bulkDeleteRoles', { count: deleteConfirm.roleIds?.length || 0 })
-                : getConfirmMessage('deleteRole')
+                ? getConfirm('bulkDelete', { item: 'نقش', count: deleteConfirm.roleIds?.length || 0 })
+                : getConfirm('delete', { item: 'نقش' })
               }
             </AlertDialogDescription>
           </AlertDialogHeader>

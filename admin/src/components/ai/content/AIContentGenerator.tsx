@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/route';
 import { AvailableProvider, AIContentGenerationResponse } from '@/types/ai/ai';
 import { toast } from '@/components/elements/Sonner';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { ContentInputForm } from './ContentInputForm';
 import { SEOInfoCard } from './SEOInfoCard';
 import { ContentDisplay } from './ContentDisplay';

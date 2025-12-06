@@ -58,8 +58,10 @@ export function TermsPageForm() {
                 setOgImage(data.og_image_data);
             }
         } catch (error: any) {
-            const errorMessage = error?.message || error?.response?.message || "خطا در دریافت صفحه قوانین و مقررات";
-            toast.error(errorMessage);
+            // ✅ Only show toast for critical errors, not 404
+            if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
+                toast.error("خطا در بارگذاری صفحه");
+            }
         } finally {
             setLoading(false);
         }
@@ -100,11 +102,10 @@ export function TermsPageForm() {
             }
 
             await pageApi.updateTermsPage(updateData);
-            toast.success("صفحه قوانین و مقررات با موفقیت به‌روزرسانی شد");
+            // ✅ Backend sends success message - no need for manual toast
             await fetchPage();
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || "خطا در به‌روزرسانی صفحه قوانین و مقررات";
-            toast.error(errorMessage);
+            // ✅ fetch.ts already shows error toast
         } finally {
             setSaving(false);
         }

@@ -55,8 +55,10 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                 setEnamadImage(data.enamad_image_data);
             }
         } catch (error: any) {
-            const errorMessage = error?.message || error?.response?.message || "خطا در دریافت تنظیمات";
-            toast.error(errorMessage);
+            // ✅ Only show toast for critical errors, not 404
+            if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
+                toast.error("خطا در بارگذاری تنظیمات");
+            }
         } finally {
             setLoading(false);
         }
@@ -92,10 +94,10 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             }
 
             await settingsApi.updateGeneralSettings(updateData);
-            toast.success("تنظیمات با موفقیت به‌روزرسانی شد");
+            // ✅ Backend sends success message - no need for manual toast
             await fetchSettings();
         } catch (error) {
-            toast.error("خطا در به‌روزرسانی تنظیمات");
+            // ✅ fetch.ts already shows error toast
         } finally {
             setSaving(false);
         }

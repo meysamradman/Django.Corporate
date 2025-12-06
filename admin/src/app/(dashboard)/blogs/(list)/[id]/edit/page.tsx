@@ -14,9 +14,9 @@ import { Blog } from "@/types/blog/blog";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { blogApi } from "@/api/blogs/route";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { BlogMedia } from "@/types/blog/blogMedia";
-import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/core/utils/blogMediaUtils";
+import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/components/blogs/utils/blogMediaUtils";
 
 interface BlogUpdateData extends Partial<Blog> {
   categories_ids?: number[];

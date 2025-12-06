@@ -4,7 +4,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useChatbotSettings, useUpdateChatbotSettings } from "@/core/hooks/useChatbot";
+import { useChatbotSettings, useUpdateChatbotSettings } from "@/components/ai/chatbot/hooks/useChatbot";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/elements/Form";
 import { Input } from "@/components/elements/Input";

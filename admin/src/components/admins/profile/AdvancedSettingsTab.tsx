@@ -11,7 +11,7 @@ import { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
 import { toast } from "sonner";
-import { roleApi } from "@/api/roles/route";
+import { roleApi } from "@/api/admins/roles/route";
 import { adminApi } from "@/api/admins/route";
 import { useAuth } from "@/core/auth/AuthContext";
 import { hasPermission } from "@/core/permissions/utils/permissionUtils";
@@ -283,7 +283,12 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 toast.warning(
                     getPermissionTranslation('بعضی نقش‌ها با خطا مواجه شدند', 'description'),
                     {
-                        description: `موفق: ${totalSuccess}\nناموفق: ${totalFailed}\n\n${allErrors.join('\n')}`
+                        description: [
+                            `موفق: ${totalSuccess}`,
+                            `ناموفق: ${totalFailed}`,
+                            '',
+                            ...allErrors
+                        ].join('\n')
                     }
                 );
             }

@@ -16,7 +16,7 @@ import { useAISettings } from './hooks/useAISettings';
 import { ProviderCard } from './components/ProviderCard';
 import { aiApi } from '@/api/ai/route';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { showSuccessToast, showErrorToast } from '@/core/config/errorHandler';
+import { showSuccess, showError } from '@/core/toast';
 import { frontendToBackendProviderMap, backendToFrontendIdMap } from './hooks/useAISettings';
 import { useRouter } from 'next/navigation';
 
@@ -147,7 +147,7 @@ export default function AISettingsPage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
-      showSuccessToast('API key با موفقیت ذخیره شد');
+      showSuccess('API key با موفقیت ذخیره شد');
       setApiKeys(prev => ({
         ...prev,
         [variables.providerId]: variables.apiKey
@@ -158,7 +158,7 @@ export default function AISettingsPage() {
       }));
     },
     onError: (error: any) => {
-      showErrorToast(error?.message || 'خطا در ذخیره API key');
+      showError(error?.message || 'خطا در ذخیره API key');
     },
   });
 
@@ -168,7 +168,7 @@ export default function AISettingsPage() {
     const useSharedApi = setting?.use_shared_api ?? false;
 
     if (!useSharedApi && !apiKey.trim()) {
-      showErrorToast('لطفاً API key را وارد کنید');
+      showError('لطفاً API key را وارد کنید');
       return;
     }
 
@@ -258,7 +258,7 @@ export default function AISettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
-      showSuccessToast('وضعیت با موفقیت تغییر کرد');
+      showSuccess('وضعیت با موفقیت تغییر کرد');
     },
     onError: (error: any, variables, context) => {
       if (context?.previousPersonalSettings) {
@@ -267,7 +267,7 @@ export default function AISettingsPage() {
       if (context?.previousBackendProviders) {
         queryClient.setQueryData(['ai-backend-providers'], context.previousBackendProviders);
       }
-      showErrorToast(error?.message || 'خطا در تغییر وضعیت');
+      showError(error?.message || 'خطا در تغییر وضعیت');
     },
   });
 

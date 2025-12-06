@@ -17,8 +17,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
-import { extractFieldErrors, hasFieldErrors, showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { msg } from "@/core/messages/message";
+import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
 import {
@@ -434,9 +434,9 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             message: message as string
           });
         });
-        showErrorToast(error, "لطفاً خطاهای فرم را بررسی کنید");
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
-        showErrorToast(error);
+        showError(error);
       }
     }
   };

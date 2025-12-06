@@ -12,7 +12,7 @@ import { toast } from "@/components/elements/Sonner";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { Loader2, Save, List } from "lucide-react";
 
 export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {

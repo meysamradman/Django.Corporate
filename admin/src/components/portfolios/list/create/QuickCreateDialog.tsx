@@ -16,8 +16,8 @@ import { FormFieldInput } from "@/components/forms/FormField";
 import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
 import { Media } from "@/types/shared/media";
 import { Loader2 } from "lucide-react";
-import { showSuccessToast, showErrorToast } from "@/core/config/errorHandler";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { showSuccess, showError } from '@/core/toast';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 
 interface QuickCreateDialogProps {
     open: boolean;
@@ -49,13 +49,13 @@ export function QuickCreateDialog({
     const createMutation = useMutation({
         mutationFn: (data: { name: string; slug: string; image_id?: number; is_active?: boolean; is_public?: boolean }) => onSubmit(data),
         onSuccess: (data) => {
-            showSuccessToast(`با موفقیت اضافه شد`);
+            showSuccess(`با موفقیت اضافه شد`);
             onSuccess?.(data);
             refetchList();
             handleClose();
         },
         onError: (error: any) => {
-            showErrorToast(error?.response?.data?.detail || "خطا در اضافه کردن");
+            showError(error?.response?.data?.detail || "خطا در اضافه کردن");
         }
     });
 

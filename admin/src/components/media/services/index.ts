@@ -1,6 +1,6 @@
 "use client";
 
-import { getUploadSettings, clearCache, getUploadConfig, useUploadSettings } from './config';
+import { getUploadSettings, getUploadConfig, useUploadSettings } from './config';
 import { 
     getFileCategory,
     getImageAcceptTypes,
@@ -18,11 +18,20 @@ import {
     GetUserProfileImageUrl
 } from './urlBuilder';
 
+/**
+ * 🎯 سرویس مرکزی مدیا - تمام فانکشنالیتی‌های مدیا در یک جا
+ * 
+ * مزایا:
+ * ✅ یک منبع واحد برای تمام پاپ‌آپ‌ها
+ * ✅ سرعت بالا - بدون API call
+ * ✅ تمیز و حرفه‌ای
+ */
 export const mediaService = {
+    // ⚙️ تنظیمات آپلود
     getUploadSettings,
-    clearCache,
     getUploadConfig,
     
+    // ✅ Validation
     getImageAcceptTypes,
     validateFileSize,
     validateFileType,
@@ -30,6 +39,7 @@ export const mediaService = {
     formatBytes,
     validateFileAdvanced,
     
+    // 🔗 URL Builders
     getImageUrl: GetImageUrl,
     getVideoUrl: GetVideoUrl,
     getMediaUrlFromObject: GetMediaUrlFromObject,

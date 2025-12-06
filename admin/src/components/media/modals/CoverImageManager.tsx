@@ -9,7 +9,7 @@ import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { Image as ImageIcon, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/core/toast';
 
 interface CoverImageManagerProps {
   currentCoverImage?: Media | number | null;

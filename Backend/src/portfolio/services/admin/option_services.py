@@ -29,18 +29,25 @@ class PortfolioOptionAdminService:
     @staticmethod
     def get_option_by_id(option_id):
         cache_key = OptionCacheKeys.option(option_id)
-        option = cache.get(cache_key)
+        cached_data = cache.get(cache_key)
         
-        if option is None:
+        if cached_data:
             try:
-                option = PortfolioOption.objects.annotate(
+                return PortfolioOption.objects.annotate(
                     portfolio_count=Count('portfolio_options')
                 ).get(id=option_id)
-                cache.set(cache_key, option, 3600)
             except PortfolioOption.DoesNotExist:
+                cache.delete(cache_key)
                 return None
         
-        return option
+        try:
+            option = PortfolioOption.objects.annotate(
+                portfolio_count=Count('portfolio_options')
+            ).get(id=option_id)
+            cache.set(cache_key, True, 3600)
+            return option
+        except PortfolioOption.DoesNotExist:
+            return None
 
     @staticmethod
     def create_option(validated_data, created_by=None):

@@ -1,10 +1,9 @@
 "use client";
-
 import { useState, useCallback } from 'react';
 import { getFileCategory, formatBytes, mediaService, useUploadSettings } from '@/components/media/services';
 import { toast } from "@/components/elements/Sonner";
 import { fetchApi } from '@/core/config/fetch';
-import { useMediaContext } from '@/core/media/MediaContext';
+import { useMediaContext } from '../MediaContext';
 
 export interface MediaFile {
   file: File;
@@ -47,39 +46,32 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
   const [isUploading, setIsUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
-  const { data: apiSettings, isLoading: isLoadingSettings } = useUploadSettings();
+  // ✅ تنظیمات مستقیماً از config - بدون API call برای سرعت بالا
+  const settings = mediaService.getUploadSettings();
   
-  const uploadSettings = (() => {
-    const settings = apiSettings || mediaService.getUploadSettings();
-    return {
-      sizeLimit: {
-        image: settings.MEDIA_IMAGE_SIZE_LIMIT,
-        video: settings.MEDIA_VIDEO_SIZE_LIMIT,
-        audio: settings.MEDIA_AUDIO_SIZE_LIMIT,
-        document: settings.MEDIA_DOCUMENT_SIZE_LIMIT,
-      },
-      allowedTypes: {
-        image: settings.MEDIA_ALLOWED_IMAGE_EXTENSIONS,
-        video: settings.MEDIA_ALLOWED_VIDEO_EXTENSIONS,
-        audio: settings.MEDIA_ALLOWED_AUDIO_EXTENSIONS,
-        document: settings.MEDIA_ALLOWED_PDF_EXTENSIONS,
-      },
-      sizeLimitFormatted: {
-        image: formatBytes(settings.MEDIA_IMAGE_SIZE_LIMIT),
-        video: formatBytes(settings.MEDIA_VIDEO_SIZE_LIMIT),
-        audio: formatBytes(settings.MEDIA_AUDIO_SIZE_LIMIT),
-        document: formatBytes(settings.MEDIA_DOCUMENT_SIZE_LIMIT),
-      }
-    };
-  })();
+  const uploadSettings = {
+    sizeLimit: {
+      image: settings.MEDIA_IMAGE_SIZE_LIMIT,
+      video: settings.MEDIA_VIDEO_SIZE_LIMIT,
+      audio: settings.MEDIA_AUDIO_SIZE_LIMIT,
+      document: settings.MEDIA_DOCUMENT_SIZE_LIMIT,
+    },
+    allowedTypes: {
+      image: settings.MEDIA_ALLOWED_IMAGE_EXTENSIONS,
+      video: settings.MEDIA_ALLOWED_VIDEO_EXTENSIONS,
+      audio: settings.MEDIA_ALLOWED_AUDIO_EXTENSIONS,
+      document: settings.MEDIA_ALLOWED_PDF_EXTENSIONS,
+    },
+    sizeLimitFormatted: {
+      image: formatBytes(settings.MEDIA_IMAGE_SIZE_LIMIT),
+      video: formatBytes(settings.MEDIA_VIDEO_SIZE_LIMIT),
+      audio: formatBytes(settings.MEDIA_AUDIO_SIZE_LIMIT),
+      document: formatBytes(settings.MEDIA_DOCUMENT_SIZE_LIMIT),
+    }
+  };
 
   const processFiles = useCallback((filesToProcess: File[]) => {
     setValidationErrors([]);
-    
-    if (isLoadingSettings) {
-      setValidationErrors(['در حال بارگذاری تنظیمات... لطفا صبر کنید']);
-      return;
-    }
     
     const errors: string[] = [];
     const validFiles = filesToProcess.filter(file => {
@@ -148,7 +140,7 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     
     
     setFiles(prev => [...prev, ...newFiles]);
-  }, [uploadSettings, isLoadingSettings]);
+  }, [uploadSettings]);
 
   const updateFileMetadata = useCallback((id: string, field: keyof MediaFile, value: string | boolean | File | null) => {
     setFiles(prev => prev.map(file => 
@@ -202,6 +194,7 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
           formData.append('context_action', contextAction);
         }
 
+        // ✅ Upload بدون toast خودکار - خودمان در انتها toast می‌زنیم
         await fetchApi.post('/admin/media/', formData);
 
         setFiles(prev => prev.map(f => 
@@ -240,7 +233,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     files,
     isUploading,
     uploadSettings,
-    isLoadingSettings,
     validationErrors,
     processFiles,
     updateFileMetadata,

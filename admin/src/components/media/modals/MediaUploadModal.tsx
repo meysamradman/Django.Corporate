@@ -20,7 +20,7 @@ import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { Media } from '@/types/shared/media';
 import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
-import { useMediaContext } from '@/core/media/MediaContext';
+import { useMediaContext } from '../MediaContext';
 
 interface MediaUploadModalProps {
   isOpen: boolean;

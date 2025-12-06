@@ -9,7 +9,7 @@ import { BlogMediaGallery } from "@/components/blogs/list/BlogMediaGallery";
 import { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { BlogFormValues } from "@/core/validations/blogSchema";
+import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
 import { BlogMedia } from "@/types/blog/blogMedia";

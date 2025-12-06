@@ -17,8 +17,8 @@ import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { PortfolioFormValues } from "@/core/validations/portfolioSchema";
-import { formatSlug, generateSlug } from '@/core/utils/slugUtils';
+import { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
+import { formatSlug, generateSlug } from '@/components/shared/utils/slugUtils';
 import { QuickCreateDialog } from "./QuickCreateDialog";
 
 interface BaseInfoTabFormProps {

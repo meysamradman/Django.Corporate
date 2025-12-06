@@ -9,7 +9,7 @@ import { Textarea } from '@/components/elements/Textarea';
 import { AIContentGenerationResponse } from '@/types/ai/ai';
 import { FileText, Copy, Check } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 
 interface SEOInfoCardProps {
     content: AIContentGenerationResponse;

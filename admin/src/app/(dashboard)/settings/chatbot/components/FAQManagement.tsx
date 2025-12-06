@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useFAQList, useDeleteFAQ } from "@/core/hooks/useChatbot";
+import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import { FAQ } from "@/api/chatbot/route";
 import { DataTable } from "@/components/tables/DataTable";
 import { ColumnDef, SortingState, OnChangeFn } from "@tanstack/react-table";

@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/elements/Checkbox';
 import { ProviderSelector } from '../shared/ProviderSelector';
 import { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Wand2, Brain, AlertCircle } from 'lucide-react';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface ImageInputFormProps {

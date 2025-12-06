@@ -18,7 +18,7 @@ import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Mic, Papercl
 import { HelpGuide } from '@/components/elements/HelpGuide';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { getProviderDisplayName, getProviderIcon } from '../shared/utils';
 import { useAuth } from '@/core/auth/AuthContext';
 import { mediaService } from '@/components/media/services';

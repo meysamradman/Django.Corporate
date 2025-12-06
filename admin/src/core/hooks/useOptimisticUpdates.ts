@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { showErrorToast, showSuccessToast } from '@/core/config/errorHandler';
+import { showError, showSuccess } from '@/core/toast';
 
 export const useOptimisticUpdate = () => {
   const queryClient = useQueryClient();
@@ -28,7 +28,7 @@ export const useOptimisticUpdate = () => {
         queryClient.setQueryData<T>(queryKey, data);
         options?.onSuccess?.(data);
         if (options?.successMessage) {
-          showSuccessToast(options.successMessage);
+          showSuccess(options.successMessage);
         }
         return data;
       })
@@ -36,7 +36,7 @@ export const useOptimisticUpdate = () => {
         queryClient.setQueryData<T>(queryKey, previousData);
         options?.onError?.(error);
         if (options?.errorMessage) {
-          showErrorToast(error, options.errorMessage);
+          showError(error, { customMessage: options.errorMessage });
         }
         throw error;
       });

@@ -1,7 +1,7 @@
 import {fetchApi} from '@/core/config/fetch';
 import {LoginRequest, LoginResponse} from '@/types/auth/auth';
 import {AdminWithProfile} from '@/types/auth/admin';
-import {showErrorToast} from '@/core/config/errorHandler';
+import { showError } from '@/core/toast';
 
 export const authApi = {
     getCSRFToken: async (): Promise<{csrf_token: string}> => {
@@ -9,7 +9,7 @@ export const authApi = {
             const response = await fetchApi.get<{csrf_token: string}>('/admin/login/');
             return response.data;
         } catch (error) {
-            showErrorToast(error, 'Failed to get CSRF token');
+            showError(error, 'Failed to get CSRF token');
             throw error;
         }
     },
@@ -28,7 +28,7 @@ export const authApi = {
         try {
             await fetchApi.post('/mobile/send-otp/', {mobile});
         } catch (error) {
-            showErrorToast(error, 'Failed to send verification code');
+            showError(error, 'Failed to send verification code');
             throw error;
         }
     },
@@ -37,7 +37,7 @@ export const authApi = {
         try {
             await fetchApi.post('/mobile/verify-otp/', {identifier, otp});
         } catch (error) {
-            showErrorToast(error, 'Invalid verification code');
+            showError(error, 'Invalid verification code');
             throw error;
         }
     },

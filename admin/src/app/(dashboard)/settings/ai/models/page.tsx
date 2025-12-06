@@ -15,8 +15,8 @@ import { OpenRouterModelSelectorContent } from '@/components/ai/settings/OpenRou
 import { HuggingFaceModelSelectorContent } from '@/components/ai/settings/HuggingFaceModelSelector';
 import { useUserPermissions } from '@/core/permissions';
 import { useRouter } from 'next/navigation';
-import { showErrorToast, showSuccessToast } from '@/core/config/errorHandler';
-import { toast } from 'sonner';
+import { showError, showSuccess } from '@/core/toast';
+import { toast } from '@/core/toast';
 
 type Capability = 'chat' | 'content' | 'image' | 'audio';
 
@@ -51,7 +51,7 @@ export default function AIModelsPage() {
 
     useEffect(() => {
         if (!hasAccess) {
-            showErrorToast('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
+            showError('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
             router.push('/settings/ai');
         }
     }, [hasAccess, router]);
@@ -119,7 +119,7 @@ export default function AIModelsPage() {
 
             if (!targetProvider) {
                 toast.dismiss(toastId);
-                showErrorToast(`Provider '${providerName}' یافت نشد`);
+                showError(`Provider '${providerName}' یافت نشد`);
                 return;
             }
 
@@ -162,19 +162,19 @@ export default function AIModelsPage() {
                 if (updatedCount > 0) {
                     message += ` (${updatedCount} مدل به‌روزرسانی شد)`;
                 }
-                showSuccessToast(message);
+                showSuccess(message);
                 queryClient.invalidateQueries({ queryKey: ['ai-models'] });
             }
 
             if (failCount > 0) {
-                showErrorToast(`${failCount} مدل ذخیره نشد`);
+                showError(`${failCount} مدل ذخیره نشد`);
             }
 
             setShowOpenRouterModal(false);
             setShowHuggingFaceModal(false);
 
         } catch (error) {
-            showErrorToast('خطا در ذخیره مدل‌ها');
+            showError('خطا در ذخیره مدل‌ها');
         }
     };
 

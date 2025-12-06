@@ -12,7 +12,7 @@ import { toast } from "@/components/elements/Sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { Loader2, Save, List } from "lucide-react";
 
 export default function EditOptionPage({ params }: { params: Promise<{ id: string }> }) {

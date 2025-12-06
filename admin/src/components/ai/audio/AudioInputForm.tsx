@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ProviderSelector } from '../shared/ProviderSelector';
 import { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Brain, Mic, Volume2, AlertCircle } from 'lucide-react';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 
 interface AudioInputFormProps {
     providers: AvailableProvider[];

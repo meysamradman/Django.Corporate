@@ -30,18 +30,25 @@ class PortfolioTagAdminService:
     @staticmethod
     def get_tag_by_id(tag_id):
         cache_key = TagCacheKeys.tag(tag_id)
-        tag = cache.get(cache_key)
+        cached_data = cache.get(cache_key)
         
-        if tag is None:
+        if cached_data:
             try:
-                tag = PortfolioTag.objects.annotate(
+                return PortfolioTag.objects.annotate(
                     portfolio_count=Count('portfolio_tags')
                 ).get(id=tag_id)
-                cache.set(cache_key, tag, 3600)
             except PortfolioTag.DoesNotExist:
+                cache.delete(cache_key)
                 return None
         
-        return tag
+        try:
+            tag = PortfolioTag.objects.annotate(
+                portfolio_count=Count('portfolio_tags')
+            ).get(id=tag_id)
+            cache.set(cache_key, True, 3600)
+            return tag
+        except PortfolioTag.DoesNotExist:
+            return None
 
     @staticmethod
     def create_tag(validated_data, created_by=None):

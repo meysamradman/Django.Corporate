@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, TicketDetailView, type ReplyTicketData } from "@/components/ticket";
 import { ReplyTicketDialog } from "@/components/ticket/ReplyTicketDialog";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/core/hooks/useTicket";
+import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
 import { Ticket, TicketStatusType, TicketMessage } from "@/types/ticket/ticket";
 import { toast } from "@/components/elements/Sonner";
 

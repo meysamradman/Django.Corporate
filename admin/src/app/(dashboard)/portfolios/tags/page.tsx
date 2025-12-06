@@ -14,7 +14,7 @@ import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { getConfirmMessage } from "@/core/messages/message";
+import { msg } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,

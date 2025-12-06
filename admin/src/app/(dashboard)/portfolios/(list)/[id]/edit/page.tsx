@@ -15,9 +15,9 @@ import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { portfolioApi } from "@/api/portfolios/route";
-import { generateSlug } from '@/core/utils/slugUtils';
+import { generateSlug } from '@/components/shared/utils/slugUtils';
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
-import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/core/utils/portfolioMediaUtils";
+import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/components/portfolios/utils/portfolioMediaUtils";
 
 interface PortfolioUpdateData extends Partial<Portfolio> {
   categories_ids?: number[];

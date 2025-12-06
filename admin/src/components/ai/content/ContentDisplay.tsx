@@ -6,7 +6,7 @@ import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
 import { AIContentGenerationResponse } from '@/types/ai/ai';
 import { FileText, Copy, Check } from 'lucide-react';
-import { msg } from '@/core/messages/message';
+import { getAI, getAIUI } from '@/core/messages/modules/ai';
 
 interface ContentDisplayProps {
     content: AIContentGenerationResponse;
