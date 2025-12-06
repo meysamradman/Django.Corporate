@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.core.cache import cache
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
-from src.user.messages import AUTH_ERRORS
+from src.user.messages import AUTH_ERRORS, PROTECTED_ADMIN_ID
 from src.user.utils import validate_identifier, validate_register_password
 from src.user.models import User, AdminProfile, AdminUserRole, AdminRole
 from src.media.models import ImageMedia
@@ -234,6 +234,9 @@ class AdminManagementService:
         try:
             admin = User.objects.get(id=admin_id)
             
+            if PROTECTED_ADMIN_ID is not None and admin.id == PROTECTED_ADMIN_ID:
+                raise ValidationError(AUTH_ERRORS["admin_protected_delete_forbidden"])
+            
             if admin_user is not None and admin.is_staff and not (admin_user.is_superuser or admin_user.is_admin_full):
                 raise AuthenticationFailed(AUTH_ERRORS["auth_not_superuser"])
             
@@ -275,6 +278,11 @@ class AdminManagementService:
             ).exclude(
                 is_admin_full=True
             ).values_list('id', flat=True))
+        
+        if PROTECTED_ADMIN_ID is not None:
+            if PROTECTED_ADMIN_ID in admin_ids_to_delete:
+                raise ValidationError(AUTH_ERRORS["admin_protected_delete_forbidden"])
+            admin_ids_to_delete = [aid for aid in admin_ids_to_delete if aid != PROTECTED_ADMIN_ID]
 
         deleted_count, _ = User.objects.filter(id__in=admin_ids_to_delete).delete()
 

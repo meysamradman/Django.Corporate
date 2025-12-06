@@ -254,7 +254,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                     { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
                     { title: "تنظیمات عمومی", url: "/settings/general", access: { module: "settings", actions: ["manage"] } },
                     { title: "چت‌بات", url: "/settings/chatbot", access: { module: "chatbot", actions: ["manage"] } },
-                    { title: "فرم‌ها", url: "/settings/form", access: { module: "forms", allowReadOnly: true } },
+                    { title: "فرم‌ها", url: "/settings/form-builder", access: { module: "forms", allowReadOnly: true } },
                     { title: "درباره ما", url: "/settings/page/about", access: { module: "pages", actions: ["manage"] } },
                     { title: "قوانین و مقررات", url: "/settings/page/terms", access: { module: "pages", actions: ["manage"] } },
                 ],

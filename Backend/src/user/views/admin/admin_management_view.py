@@ -230,6 +230,10 @@ class AdminManagementView(UserAuthMixin, APIView):
             if admin.is_admin_full:
                 return self._forbidden_response(AUTH_ERRORS["admin_superadmin_delete_forbidden"])
             
+            from src.user.messages import PROTECTED_ADMIN_ID
+            if PROTECTED_ADMIN_ID is not None and admin.id == PROTECTED_ADMIN_ID:
+                return self._forbidden_response(AUTH_ERRORS["admin_protected_delete_forbidden"])
+            
             AdminManagementService.delete_admin(admin_id, admin_user=request.user)
             
             return APIResponse.success(

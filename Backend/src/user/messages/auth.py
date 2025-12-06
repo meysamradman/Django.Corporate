@@ -1,3 +1,5 @@
+PROTECTED_ADMIN_ID = None
+
 AUTH_SUCCESS = {
     "auth_created": "Authentication entry created successfully.",
     "auth_logged_in": "Signed in successfully.",
@@ -92,6 +94,7 @@ AUTH_ERRORS = {
     "admin_cannot_self_delete": "You cannot delete your own account.",
     "admin_delete_superadmin_required": "Only a super admin can delete admins.",
     "admin_superadmin_delete_forbidden": "Super admins cannot be deleted.",
+    "admin_protected_delete_forbidden": "This admin account is protected and cannot be deleted.",
     "phone_digits_only": "Phone number must contain digits only.",
     "phone_min_length": "Phone number must contain at least 3 digits.",
     "phone_max_length": "Phone number must not exceed 15 digits.",
