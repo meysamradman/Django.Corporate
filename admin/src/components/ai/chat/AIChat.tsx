@@ -20,6 +20,7 @@ import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { msg, getAI, getAIUI } from '@/core/messages';
 import { getProviderDisplayName, getProviderIcon } from '../shared/utils';
+import { EmptyProvidersCard } from '../shared';
 import { useAuth } from '@/core/auth/AuthContext';
 import { mediaService } from '@/components/media/services';
 
@@ -236,6 +237,10 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
             }
         }
     };
+
+    if (!loadingProviders && availableProviders.length === 0) {
+        return <EmptyProvidersCard type="chat" />;
+    }
 
     if (compact) {
         return (
@@ -490,21 +495,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                 <p className="text-sm">
                                     {msg.aiUI('chatDescription')}
                                 </p>
-                                {availableProviders.length === 0 && (
-                                    <div className="mt-4 p-3 bg-yellow border border-yellow-1 rounded-lg">
-                                        <div className="flex items-start gap-2">
-                                            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-yellow mt-0.5">
-                                                <AlertCircle className="h-4 w-4 stroke-yellow-1" />
-                                            </div>
-                                            <div className="text-sm text-yellow-2">
-                                                <p className="font-medium mb-1">{getAIUI('noActiveProviders')}</p>
-                                                <p>
-                                                    {getAIUI('chatInstructionsFull')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         ) : (
                             messages.map((msg, idx) => (
@@ -609,11 +599,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                             </Button>
                         </div>
                     </div>
-                    {availableProviders.length === 0 && (
-                        <p className="text-xs text-font-s mt-2 text-center w-full">
-                            {getAIUI('chatInstructions')}
-                        </p>
-                    )}
                     {compact && (
                         <div className="mt-3 px-1">
                             <p className="text-xs text-font-s text-center leading-relaxed">
