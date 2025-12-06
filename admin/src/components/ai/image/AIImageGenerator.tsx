@@ -8,10 +8,10 @@ import { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/route';
 import { Media } from '@/types/shared/media';
 import { toast } from '@/components/elements/Sonner';
-import { getAI, getAIUI } from '@/core/messages/modules/ai';
+import { msg } from '@/core/messages';
 import { ImageInputForm } from './ImageInputForm';
 import { GeneratedImageDisplay } from './GeneratedImageDisplay';
-import { EmptyProvidersCard } from './EmptyProvidersCard';
+import { EmptyProvidersCard } from '../shared';
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIImageGeneratorProps {
@@ -181,7 +181,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
     }
 
     if (availableProviders.length === 0) {
-        return <EmptyProvidersCard onNavigateToSettings={onNavigateToSettings} />;
+        return <EmptyProvidersCard type="image" onNavigateToSettings={onNavigateToSettings} />;
     }
 
     return (

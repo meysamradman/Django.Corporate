@@ -3,7 +3,7 @@
 import { AvailableProvider } from '@/types/ai/ai';
 import { getProviderDisplayName, getProviderDescription, getProviderIcon } from './utils';
 import { ArrowRight, Check } from 'lucide-react';
-import { getAI, getAIUI } from '@/core/messages/modules/ai';
+import { msg } from '@/core/messages';
 import {
     Select,
     SelectContent,

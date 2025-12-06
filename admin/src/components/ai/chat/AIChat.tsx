@@ -18,7 +18,7 @@ import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Mic, Papercl
 import { HelpGuide } from '@/components/elements/HelpGuide';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { getAI, getAIUI } from '@/core/messages/modules/ai';
+import { msg, getAI, getAIUI } from '@/core/messages';
 import { getProviderDisplayName, getProviderIcon } from '../shared/utils';
 import { useAuth } from '@/core/auth/AuthContext';
 import { mediaService } from '@/components/media/services';
@@ -256,7 +256,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                 <SelectContent>
                                     {availableProviders.length === 0 ? (
                                         <div className="p-2 text-sm text-font-s text-center">
-                                            {msg.aiUI('noActiveProviders')}
+                                            {getAIUI('noActiveProviders')}
                                         </div>
                                     ) : (
                                         availableProviders.map((provider) => (
@@ -304,9 +304,9 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     {messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center text-font-s">
                             <Sparkles className="h-8 w-8 mb-3 opacity-50" />
-                            <p className="text-sm font-medium mb-1">{msg.aiUI('startConversation')}</p>
+                            <p className="text-sm font-medium mb-1">{getAIUI('startConversation')}</p>
                             <p className="text-xs">
-                                {msg.aiUI('chatDescription')}
+                                {getAIUI('chatDescription')}
                             </p>
                         </div>
                     ) : (
@@ -359,7 +359,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                             <div className="bg-bg text-font-s rounded-lg px-3 py-2 border border-br">
                                 <div className="flex items-center gap-2">
                                     <Loader2 className="h-3 w-3 animate-spin" />
-                                    <span className="text-xs">{msg.aiUI('responding')}</span>
+                                    <span className="text-xs">{getAIUI('responding')}</span>
                                 </div>
                             </div>
                         </div>
@@ -444,12 +444,12 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                     onValueChange={setSelectedProvider}
                                 >
                                     <SelectTrigger className="w-auto min-w-[140px] border-0 bg-bg hover:bg-bg/80 shadow-sm px-4 py-1.5">
-                                        <SelectValue placeholder={msg.aiUI('selectModelPlaceholder')} />
+                                        <SelectValue placeholder={getAIUI('selectModelPlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableProviders.length === 0 ? (
                                             <div className="p-2 text-sm text-font-s text-center">
-                                                {msg.aiUI('noActiveProviders')}
+                                                {getAIUI('noActiveProviders')}
                                             </div>
                                         ) : (
                                             availableProviders.map((provider) => (
@@ -497,9 +497,9 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                                 <AlertCircle className="h-4 w-4 stroke-yellow-1" />
                                             </div>
                                             <div className="text-sm text-yellow-2">
-                                                <p className="font-medium mb-1">{msg.aiUI('noActiveProviders')}</p>
+                                                <p className="font-medium mb-1">{getAIUI('noActiveProviders')}</p>
                                                 <p>
-                                                    {msg.aiUI('chatInstructionsFull')}
+                                                    {getAIUI('chatInstructionsFull')}
                                                 </p>
                                             </div>
                                         </div>
@@ -556,7 +556,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                 <div className="bg-bg text-font-s rounded-lg px-4 py-2">
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span className="text-sm">{msg.aiUI('responding')}</span>
+                                        <span className="text-sm">{getAIUI('responding')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -611,7 +611,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     </div>
                     {availableProviders.length === 0 && (
                         <p className="text-xs text-font-s mt-2 text-center w-full">
-                            {msg.aiUI('chatInstructions')}
+                            {getAIUI('chatInstructions')}
                         </p>
                     )}
                     {compact && (

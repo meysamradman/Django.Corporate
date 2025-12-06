@@ -11,7 +11,7 @@ import { toast } from '@/components/elements/Sonner';
 import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
-import { EmptyProvidersCard } from './EmptyProvidersCard';
+import { EmptyProvidersCard } from '../shared';
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIAudioGeneratorProps {
@@ -233,7 +233,7 @@ export function AIAudioGenerator({
     }
 
     if (availableProviders.length === 0) {
-        return <EmptyProvidersCard onNavigateToSettings={onNavigateToSettings} />;
+        return <EmptyProvidersCard type="audio" onNavigateToSettings={onNavigateToSettings} />;
     }
 
     return (
