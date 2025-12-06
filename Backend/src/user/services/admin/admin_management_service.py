@@ -16,7 +16,8 @@ class AdminManagementService:
     @staticmethod
     def get_admins_list(search=None, is_active=None, is_superuser=None, request=None):
         queryset = User.objects.select_related('admin_profile').prefetch_related(
-            'admin_profile__profile_picture'
+            'admin_profile__profile_picture',
+            'admin_user_roles__role'
         ).filter(user_type='admin', is_staff=True, is_admin_active=True)
         
         filters = {}
@@ -43,7 +44,8 @@ class AdminManagementService:
     def get_admin_detail(admin_id):
         try:
             return User.objects.select_related('admin_profile').prefetch_related(
-                'admin_profile__profile_picture'
+                'admin_profile__profile_picture',
+                'admin_user_roles__role'
             ).get(id=admin_id, user_type='admin', is_staff=True, is_admin_active=True)
         except User.DoesNotExist:
             raise NotFound(AUTH_ERRORS["not_found"])

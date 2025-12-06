@@ -149,11 +149,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(mobile__isnull=False) | models.Q(email__isnull=False),
+                condition=models.Q(mobile__isnull=False) | models.Q(email__isnull=False),
                 name='user_mobile_or_email_required'
             ),
             models.CheckConstraint(
-                check=models.Q(is_admin_full=False) | 
+                condition=models.Q(is_admin_full=False) | 
                       (models.Q(is_admin_full=True) & models.Q(is_staff=True) & models.Q(is_admin_active=True)),
                 name='super_admin_must_be_staff_with_panel_access'
             ),

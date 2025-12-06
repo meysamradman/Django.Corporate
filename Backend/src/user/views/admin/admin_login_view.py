@@ -80,9 +80,8 @@ class AdminLoginView(APIView):
                         else:
                             assigned_roles = []
                             try:
-                                if hasattr(admin, 'adminuserrole_set'):
-                                    user_role_assignments = AdminUserRole.objects.filter(
-                                        user=admin,
+                                if hasattr(admin, 'admin_user_roles'):
+                                    user_role_assignments = admin.admin_user_roles.filter(
                                         is_active=True
                                     ).select_related('role')
                                     assigned_roles = [ur.role.name for ur in user_role_assignments]

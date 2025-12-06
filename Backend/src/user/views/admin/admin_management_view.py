@@ -255,7 +255,7 @@ class AdminManagementView(UserAuthMixin, APIView):
 
     def _has_role(self, user, role_name: str) -> bool:
         try:
-            return hasattr(user, 'adminuserrole_set') and user.adminuserrole_set.filter(
+            return hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
                 role__name=role_name,
                 is_active=True
             ).exists()

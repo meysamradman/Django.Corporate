@@ -30,17 +30,38 @@ try:
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
+    colors = None
+    A4 = None
+    landscape = None
+    getSampleStyleSheet = None
+    ParagraphStyle = None
+    inch = None
+    SimpleDocTemplate = None
+    Paragraph = None
+    Table = None
+    TableStyle = None
+    pdfmetrics = None
+    TTFont = None
 
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS, PDF_LABELS
 
 
 class PortfolioPDFListExportService:
     
-    PRIMARY_COLOR = colors.HexColor('#2563eb')
-    LIGHT_BG = colors.HexColor('#f8fafc')
-    BORDER_COLOR = colors.HexColor('#e2e8f0')
-    TEXT_PRIMARY = colors.HexColor('#0f172a')
-    TEXT_SECONDARY = colors.HexColor('#475569')
+    if REPORTLAB_AVAILABLE and colors:
+        PRIMARY_COLOR = colors.HexColor('#2563eb')
+        LIGHT_BG = colors.HexColor('#f8fafc')
+        BORDER_COLOR = colors.HexColor('#e2e8f0')
+        TEXT_PRIMARY = colors.HexColor('#0f172a')
+        TEXT_SECONDARY = colors.HexColor('#475569')
+        WHITE_COLOR = colors.white
+    else:
+        PRIMARY_COLOR = None
+        LIGHT_BG = None
+        BORDER_COLOR = None
+        TEXT_PRIMARY = None
+        TEXT_SECONDARY = None
+        WHITE_COLOR = None
     
     @staticmethod
     def _register_persian_font():
@@ -244,7 +265,7 @@ class PortfolioPDFListExportService:
                 ('LINEBELOW', (0, 0), (-1, 0), 1, PortfolioPDFListExportService.BORDER_COLOR),
                 ('LINEBELOW', (0, 1), (-1, -1), 0.5, PortfolioPDFListExportService.BORDER_COLOR),
                 
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, PortfolioPDFListExportService.LIGHT_BG]),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [PortfolioPDFListExportService.WHITE_COLOR, PortfolioPDFListExportService.LIGHT_BG]),
                 
                 ('LEFTPADDING', (0, 0), (-1, -1), 6),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 6),

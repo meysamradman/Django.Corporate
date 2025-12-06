@@ -51,8 +51,8 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         assigned_roles = []
         try:
-            if hasattr(obj, 'adminuserrole_set'):
-                user_role_assignments = obj.adminuserrole_set.filter(
+            if hasattr(obj, 'admin_user_roles'):
+                user_role_assignments = obj.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')
                 assigned_roles = [
@@ -86,8 +86,8 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         assigned_roles = []
         try:
-            if hasattr(user, 'adminuserrole_set'):
-                user_role_assignments = user.adminuserrole_set.filter(
+            if hasattr(user, 'admin_user_roles'):
+                user_role_assignments = user.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')
                 assigned_roles = [ur.role.name for ur in user_role_assignments]
@@ -176,8 +176,8 @@ class AdminDetailSerializer(serializers.ModelSerializer):
         actions = set()
         
         try:
-            if hasattr(user, 'adminuserrole_set'):
-                user_role_assignments = user.adminuserrole_set.filter(
+            if hasattr(user, 'admin_user_roles'):
+                user_role_assignments = user.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')
                 

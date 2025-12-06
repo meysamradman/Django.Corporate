@@ -32,22 +32,50 @@ try:
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
+    colors = None
+    A4 = None
+    getSampleStyleSheet = None
+    ParagraphStyle = None
+    inch = None
+    SimpleDocTemplate = None
+    Paragraph = None
+    Spacer = None
+    Table = None
+    TableStyle = None
+    Image = None
+    HRFlowable = None
+    pdfmetrics = None
+    TTFont = None
 
 from src.blog.messages.messages import BLOG_ERRORS, PDF_LABELS
 
 
 class BlogPDFExportService:
     
-    PRIMARY_COLOR = colors.HexColor('#2563eb')
-    SECONDARY_COLOR = colors.HexColor('#64748b')
-    SUCCESS_COLOR = colors.HexColor('#10b981')
-    WARNING_COLOR = colors.HexColor('#f59e0b')
-    DANGER_COLOR = colors.HexColor('#ef4444')
-    LIGHT_BG = colors.HexColor('#f8fafc')
-    MEDIUM_BG = colors.HexColor('#f1f5f9')
-    BORDER_COLOR = colors.HexColor('#e2e8f0')
-    TEXT_PRIMARY = colors.HexColor('#0f172a')
-    TEXT_SECONDARY = colors.HexColor('#475569')
+    if REPORTLAB_AVAILABLE and colors:
+        PRIMARY_COLOR = colors.HexColor('#2563eb')
+        SECONDARY_COLOR = colors.HexColor('#64748b')
+        SUCCESS_COLOR = colors.HexColor('#10b981')
+        WARNING_COLOR = colors.HexColor('#f59e0b')
+        DANGER_COLOR = colors.HexColor('#ef4444')
+        LIGHT_BG = colors.HexColor('#f8fafc')
+        MEDIUM_BG = colors.HexColor('#f1f5f9')
+        BORDER_COLOR = colors.HexColor('#e2e8f0')
+        TEXT_PRIMARY = colors.HexColor('#0f172a')
+        TEXT_SECONDARY = colors.HexColor('#475569')
+        WHITE_COLOR = colors.white
+    else:
+        PRIMARY_COLOR = None
+        SECONDARY_COLOR = None
+        SUCCESS_COLOR = None
+        WARNING_COLOR = None
+        DANGER_COLOR = None
+        LIGHT_BG = None
+        MEDIUM_BG = None
+        BORDER_COLOR = None
+        TEXT_PRIMARY = None
+        TEXT_SECONDARY = None
+        WHITE_COLOR = None
     
     @staticmethod
     def _register_persian_font():
@@ -172,7 +200,7 @@ class BlogPDFExportService:
         elements.append(Spacer(1, 0.15*inch))
     
     @staticmethod
-    def _add_image_to_pdf(image_file, max_width=5*inch, max_height=4*inch):
+    def _add_image_to_pdf(image_file, max_width=None, max_height=None):
         try:
             if not image_file or not hasattr(image_file, 'file'):
                 return None
@@ -224,7 +252,7 @@ class BlogPDFExportService:
         info_table = Table(escaped_info_data, colWidths=[4*inch, 2*inch])
         info_table.setStyle(TableStyle([
             ('BACKGROUND', (1, 0), (1, -1), BlogPDFExportService.PRIMARY_COLOR),
-            ('TEXTCOLOR', (1, 0), (1, -1), colors.white),
+            ('TEXTCOLOR', (1, 0), (1, -1), BlogPDFExportService.WHITE_COLOR),
             ('FONTNAME', (1, 0), (1, -1), persian_font_name),
             ('FONTSIZE', (1, 0), (1, -1), 11),
             ('FONTNAME', (0, 0), (0, -1), persian_font_name),
@@ -238,7 +266,7 @@ class BlogPDFExportService:
             ('LEFTPADDING', (0, 0), (-1, -1), 15),
             ('GRID', (0, 0), (-1, -1), 1, BlogPDFExportService.BORDER_COLOR),
             ('LINEBELOW', (0, 0), (-1, 0), 2, BlogPDFExportService.PRIMARY_COLOR),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, BlogPDFExportService.LIGHT_BG]),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [BlogPDFExportService.WHITE_COLOR, BlogPDFExportService.LIGHT_BG]),
         ]))
         
         elements.append(info_table)
@@ -272,7 +300,7 @@ class BlogPDFExportService:
             seo_table = Table(escaped_seo_data, colWidths=[4*inch, 2*inch])
             seo_table.setStyle(TableStyle([
                 ('BACKGROUND', (1, 0), (1, -1), BlogPDFExportService.SECONDARY_COLOR),
-                ('TEXTCOLOR', (1, 0), (1, -1), colors.white),
+                ('TEXTCOLOR', (1, 0), (1, -1), BlogPDFExportService.WHITE_COLOR),
                 ('FONTNAME', (0, 0), (-1, -1), persian_font_name),
                 ('FONTSIZE', (0, 0), (-1, -1), 10),
                 ('TEXTCOLOR', (0, 0), (0, -1), BlogPDFExportService.TEXT_PRIMARY),
@@ -284,7 +312,7 @@ class BlogPDFExportService:
                 ('LEFTPADDING', (0, 0), (-1, -1), 12),
                 ('GRID', (0, 0), (-1, -1), 1, BlogPDFExportService.BORDER_COLOR),
                 ('LINEBELOW', (0, 0), (-1, 0), 2, BlogPDFExportService.SECONDARY_COLOR),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, BlogPDFExportService.LIGHT_BG]),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [BlogPDFExportService.WHITE_COLOR, BlogPDFExportService.LIGHT_BG]),
             ]))
             
             elements.append(seo_table)

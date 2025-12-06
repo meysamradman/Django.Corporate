@@ -17,7 +17,7 @@ def _demote_removed_system_roles(valid_role_names: set[str], verbose: bool = Tru
     ).exclude(name__in=valid_role_names)
 
     for role in legacy_roles:
-        has_assignments = role.adminuserrole_set.filter(is_active=True).exists()
+        has_assignments = role.admin_user_roles.filter(is_active=True).exists()
 
         if has_assignments:
             role.is_system_role = False
@@ -123,7 +123,7 @@ def get_role_summary():
                     'display_name': role.display_name,
                     'level': role.level,
                     'is_system_role': role.is_system_role,
-                    'users_count': role.adminuserrole_set.filter(is_active=True).count()
+                    'users_count': role.admin_user_roles.filter(is_active=True).count()
                 }
                 for role in roles
             ]

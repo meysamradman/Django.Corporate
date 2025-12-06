@@ -213,8 +213,8 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
         
         roles = []
         try:
-            if hasattr(user, 'adminuserrole_set'):
-                user_role_assignments = user.adminuserrole_set.filter(
+            if hasattr(user, 'admin_user_roles'):
+                user_role_assignments = user.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')
                 

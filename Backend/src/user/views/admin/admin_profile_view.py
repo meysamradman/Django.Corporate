@@ -50,7 +50,8 @@ class AdminProfileView(APIView):
                 'admin_profile__profile_picture'
             ).prefetch_related(
                 'groups__permissions',
-                'user_permissions'
+                'user_permissions',
+                'admin_user_roles__role'
             ).get(id=request.user.id)
             
             serializer = self.serializer_class(user, context={'request': request})

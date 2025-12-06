@@ -189,7 +189,7 @@ class AdminPermissionView(viewsets.ViewSet):
                     'level': role.level,
                     'is_system_role': role.is_system_role,
                     'permissions': permissions,
-                    'user_count': role.adminuserrole_set.filter(is_active=True).count()
+                    'user_count': role.admin_user_roles.filter(is_active=True).count()
                 })
             
             return APIResponse.success(
@@ -256,7 +256,7 @@ class AdminPermissionView(viewsets.ViewSet):
             roles = AdminRole.objects.filter(is_active=True).order_by('level')
             
             for role in roles:
-                user_count = role.adminuserrole_set.filter(is_active=True).count()
+                user_count = role.admin_user_roles.filter(is_active=True).count()
                 role_distribution.append({
                     'role_name': role.name,
                     'role_display_name': role.display_name,

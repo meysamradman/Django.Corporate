@@ -71,9 +71,8 @@ class TicketAttachment(BaseModel):
             models.Index(fields=['ticket_message', 'created_at']),
         ]
         constraints = [
-            # Ensure exactly one media type is selected
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(image__isnull=False) & models.Q(video__isnull=True) & 
                     models.Q(audio__isnull=True) & models.Q(document__isnull=True)
                 ) | (
