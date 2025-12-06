@@ -1,7 +1,7 @@
 "use client";
 
 import {useState, useEffect, useCallback, useMemo} from "react";
-import {User, LogOut, Settings} from "lucide-react";
+import {User, LogOut} from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -210,13 +210,6 @@ export function Sidebar({
                                 >
                                     <User className="h-4 w-4"/>
                                     <span>پروفایل</span>
-                                </DropdownMenuItem>
-
-                                <DropdownMenuItem
-                                    className="cursor-pointer"
-                                >
-                                    <Settings className="h-4 w-4"/>
-                                    <span>تنظیمات</span>
                                 </DropdownMenuItem>
 
                                 <DropdownMenuSeparator/>
