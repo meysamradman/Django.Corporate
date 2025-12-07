@@ -3,6 +3,9 @@ import { Base } from "@/types/shared/base";
 import { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
 
+export type UserStatus = 'active' | 'inactive' | 'all';
+export type UserType = 'admin' | 'user';
+
 export interface Admin extends Base {
     mobile: string;
     email: string | null;

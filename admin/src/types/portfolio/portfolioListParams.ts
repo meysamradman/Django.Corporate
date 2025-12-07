@@ -38,3 +38,7 @@ export interface TagListParams {
   is_public?: boolean;
 }
 
+export interface PortfolioExportParams extends PortfolioListParams {
+  export_all?: boolean;
+}
+

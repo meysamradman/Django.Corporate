@@ -1,47 +1,12 @@
 import { fetchApi } from '@/core/config/fetch';
-
-export interface NotificationCounts {
-  tickets: {
-    new_count: number;
-    assigned_to_me_count: number;
-    total_new: number;
-    recent_tickets: Array<{
-      id: number;
-      public_id: string;
-      subject: string;
-      status: string;
-      priority: string;
-      created_at: string;
-    }>;
-  };
-  emails: {
-    new_count: number;
-    total: number;
-  };
-  total: number;
-}
+import { NotificationCounts, TicketNotificationData, EmailNotificationData } from '@/types/shared/notifications';
 
 export const notificationsApi = {
   getNotificationCounts: async (): Promise<NotificationCounts> => {
     try {
       const [ticketsResponse, emailsResponse] = await Promise.allSettled([
-        fetchApi.get<{
-          new_tickets_count: number;
-          assigned_to_me_count: number;
-          total_new: number;
-          recent_tickets: Array<{
-            id: number;
-            public_id: string;
-            subject: string;
-            status: string;
-            priority: string;
-            created_at: string;
-          }>;
-        }>('/admin/tickets/stats/'),
-        fetchApi.get<{
-          new: number;
-          total: number;
-        }>('/email/messages/stats/'),
+        fetchApi.get<TicketNotificationData>('/admin/tickets/stats/'),
+        fetchApi.get<EmailNotificationData>('/email/messages/stats/'),
       ]);
 
       const tickets = ticketsResponse.status === 'fulfilled' 

@@ -1,9 +1,5 @@
 import { fetchApi } from "@/core/config/fetch";
-import { BlogListParams } from "@/types/blog/blogListParams";
-
-interface ExportParams extends BlogListParams {
-  export_all?: boolean;
-}
+import { BlogExportParams } from "@/types/blog/blogListParams";
 
 export const exportBlogPdf = async (blogId: number): Promise<void> => {
   const url = `/admin/blog/${blogId}/export-pdf/`;
@@ -14,7 +10,7 @@ export const exportBlogPdf = async (blogId: number): Promise<void> => {
 };
 
 export const exportBlogs = async (
-  filters?: ExportParams, 
+  filters?: BlogExportParams, 
   format: 'excel' | 'pdf' = 'excel'
 ): Promise<void> => {
   let url = '/admin/blog/export/';

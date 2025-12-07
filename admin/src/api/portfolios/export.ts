@@ -1,9 +1,5 @@
 import { fetchApi } from "@/core/config/fetch";
-import { PortfolioListParams } from "@/types/portfolio/portfolioListParams";
-
-interface ExportParams extends PortfolioListParams {
-  export_all?: boolean;
-}
+import { PortfolioExportParams } from "@/types/portfolio/portfolioListParams";
 
 export const exportPortfolioPdf = async (portfolioId: number): Promise<void> => {
   const url = `/admin/portfolio/${portfolioId}/export-pdf/`;
@@ -14,7 +10,7 @@ export const exportPortfolioPdf = async (portfolioId: number): Promise<void> => 
 };
 
 export const exportPortfolios = async (
-  filters?: ExportParams, 
+  filters?: PortfolioExportParams, 
   format: 'excel' | 'pdf' = 'excel'
 ): Promise<void> => {
   let url = '/admin/portfolio/export/';

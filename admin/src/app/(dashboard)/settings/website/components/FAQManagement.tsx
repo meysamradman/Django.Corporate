@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
-import { FAQ } from "@/api/chatbot/route";
+import { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/elements/Button";

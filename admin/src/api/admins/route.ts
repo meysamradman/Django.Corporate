@@ -1,10 +1,8 @@
 import { fetchApi } from '@/core/config/fetch'
 import { ApiResponse, Pagination } from '@/types/api/apiResponse'
-import { AdminWithProfile, AdminCreateRequest, AdminUpdateRequest } from '@/types/auth/admin';
+import { AdminWithProfile, AdminCreateRequest, AdminUpdateRequest, UserStatus, UserType } from '@/types/auth/admin';
 import { Filter, AdminFilter, UserFilter } from '@/types/auth/adminFilter';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
-
-export type UserStatus = 'active' | 'inactive' | 'all';
 
 export function createQueryString(params: Record<string, any>, additionalParams?: Record<string, any>): string {
     const queryParams = new URLSearchParams();
@@ -29,9 +27,6 @@ export function createQueryString(params: Record<string, any>, additionalParams?
     
     return queryParams.toString();
 }
-
-
-export type UserType = 'admin' | 'user';
 
 export const SERVER_PAGINATION_CONFIG = {
     DEFAULT_LIMIT: 10,

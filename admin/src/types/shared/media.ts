@@ -24,3 +24,14 @@ export interface MediaFilter {
     date_to?: string;
     [key: string]: unknown;
 }
+
+export interface MediaUploadSettings {
+  MEDIA_IMAGE_SIZE_LIMIT: number;
+  MEDIA_VIDEO_SIZE_LIMIT: number;
+  MEDIA_AUDIO_SIZE_LIMIT: number;
+  MEDIA_DOCUMENT_SIZE_LIMIT: number;
+  MEDIA_ALLOWED_IMAGE_EXTENSIONS: string[];
+  MEDIA_ALLOWED_VIDEO_EXTENSIONS: string[];
+  MEDIA_ALLOWED_AUDIO_EXTENSIONS: string[];
+  MEDIA_ALLOWED_PDF_EXTENSIONS: string[];
+}

@@ -110,3 +110,24 @@ export interface RoleWithPermissions {
   is_protected: boolean;
   permissions: Permission[];
 }
+
+export interface PermissionMapResponse {
+  all_permissions: {
+    permissions: Record<
+      string,
+      {
+        id: string;
+        module: string;
+        action: string;
+        display_name: string;
+        description: string;
+        requires_superadmin: boolean;
+        is_standalone: boolean;
+      }
+    >;
+    modules: string[];
+  };
+  user_permissions: string[];
+  base_permissions: string[];
+  is_superadmin: boolean;
+}

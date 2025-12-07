@@ -1,22 +1,11 @@
 import { fetchApi } from '@/core/config/fetch';
-import { Media, MediaFilter } from '@/types/shared/media';
+import { Media, MediaFilter, MediaUploadSettings } from '@/types/shared/media';
 import { ApiResponse, Pagination } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import { showError } from '@/core/toast';
 import { csrfTokenStore } from '@/core/auth/csrfToken';
 import { env } from '@/core/config/environment';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
-
-export interface MediaUploadSettings {
-  MEDIA_IMAGE_SIZE_LIMIT: number;
-  MEDIA_VIDEO_SIZE_LIMIT: number;
-  MEDIA_AUDIO_SIZE_LIMIT: number;
-  MEDIA_DOCUMENT_SIZE_LIMIT: number;
-  MEDIA_ALLOWED_IMAGE_EXTENSIONS: string[];
-  MEDIA_ALLOWED_VIDEO_EXTENSIONS: string[];
-  MEDIA_ALLOWED_AUDIO_EXTENSIONS: string[];
-  MEDIA_ALLOWED_PDF_EXTENSIONS: string[];
-}
 
 export const VALID_MEDIA_PAGE_SIZES = [12, 24, 36, 48];
 export const DEFAULT_MEDIA_PAGE_SIZE = 12;

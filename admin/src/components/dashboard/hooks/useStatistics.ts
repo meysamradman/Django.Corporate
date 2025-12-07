@@ -1,7 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { statsApi, SystemStats } from '@/api/statistics/route';
+import { statsApi } from '@/api/statistics/route';
+import { SystemStats } from '@/types/statistics/systemStats';
 
 export const useStatistics = () => {
   return useQuery({

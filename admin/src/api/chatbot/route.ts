@@ -1,47 +1,12 @@
 import { ApiResponse } from "@/types/api/apiResponse";
 import { fetchApi } from "@/core/config/fetch";
-
-export interface FAQ {
-  id: number;
-  public_id: string;
-  question: string;
-  answer: string;
-  keywords: string;
-  patterns: string;
-  order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ChatbotSettings {
-  id: number;
-  public_id: string;
-  is_enabled: boolean;
-  welcome_message: string;
-  default_message: string;
-  rate_limit_per_minute: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateFAQData {
-  question: string;
-  answer: string;
-  keywords?: string;
-  patterns?: string;
-  order?: number;
-  is_active?: boolean;
-}
-
-export interface UpdateFAQData extends Partial<CreateFAQData> {}
-
-export interface UpdateChatbotSettingsData {
-  is_enabled?: boolean;
-  welcome_message?: string;
-  default_message?: string;
-  rate_limit_per_minute?: number;
-}
+import {
+  FAQ,
+  ChatbotSettings,
+  CreateFAQData,
+  UpdateFAQData,
+  UpdateChatbotSettingsData,
+} from "@/types/chatbot/chatbot";
 
 export const chatbotApi = {
   getFAQList: async (): Promise<ApiResponse<FAQ[]>> => {

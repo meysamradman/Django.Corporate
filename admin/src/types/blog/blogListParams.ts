@@ -38,3 +38,7 @@ export interface TagListParams {
   is_public?: boolean;
 }
 
+export interface BlogExportParams extends BlogListParams {
+  export_all?: boolean;
+}
+
