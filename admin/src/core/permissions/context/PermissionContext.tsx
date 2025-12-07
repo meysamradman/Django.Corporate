@@ -61,8 +61,6 @@ export interface UIPermissions {
   canViewTicketsStats: boolean;
   canViewEmailsStats: boolean;
   canViewSystemStats: boolean;
-  canViewFinancialStats: boolean;
-  canExportStats: boolean;
   canManageStatistics: boolean;
   
   canViewEmail: boolean;
@@ -270,8 +268,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canViewTicketsStats: check('statistics.tickets.read'),
       canViewEmailsStats: check('statistics.emails.read'),
       canViewSystemStats: check('statistics.system.read'),
-      canViewFinancialStats: check('statistics.financial.read'),
-      canExportStats: check('statistics.export'),
       canManageStatistics: check('statistics.manage'),
       
       canViewEmail: check('email.read') || check('email.view'),

@@ -554,7 +554,11 @@ class AdminRoleView(viewsets.ViewSet):
                 'statistics.manage',
                 'statistics.users.read',
                 'statistics.admins.read',
-                'statistics.content.read'
+                'statistics.content.read',
+                'statistics.tickets.read',
+                'statistics.emails.read',
+                'statistics.system.read',
+                'statistics.dashboard.read'
             }
             
             for module_key, module_info in modules.items():

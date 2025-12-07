@@ -41,22 +41,10 @@ STATISTICS_PERMISSIONS = {
         'display_name': 'View System Statistics',
         'description': 'View system-level statistics (server, performance, logs)',
     },
-    'statistics.financial.read': {
-        'module': 'statistics',
-        'action': 'read',
-        'display_name': 'View Financial Statistics',
-        'description': 'View revenue, sales, financial data (future-proof)',
-    },
-    'statistics.export': {
-        'module': 'statistics',
-        'action': 'export',
-        'display_name': 'Export Statistics',
-        'description': 'Export statistics data to Excel/CSV',
-    },
     'statistics.manage': {
         'module': 'statistics',
         'action': 'manage',
         'display_name': 'Manage Statistics',
-        'description': 'Full access to all statistics features (view, export)',
+        'description': 'Full access to all statistics features (view)',
     },
 }

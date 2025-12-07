@@ -35,7 +35,11 @@ const STATISTICS_USED_PERMISSIONS: readonly string[] = [
   'statistics.manage',
   'statistics.users.read',
   'statistics.admins.read',
-  'statistics.content.read'
+  'statistics.content.read',
+  'statistics.tickets.read',
+  'statistics.emails.read',
+  'statistics.system.read',
+  'statistics.dashboard.read'
 ];
 
 const AI_USED_PERMISSIONS: readonly string[] = [

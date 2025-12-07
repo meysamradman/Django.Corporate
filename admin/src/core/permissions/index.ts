@@ -28,7 +28,6 @@ export {
   useCanViewUsersStats,
   useCanViewAdminsStats,
   useCanViewContentStats,
-  useCanExportStats,
   useCanManageStatistics,
 } from './hooks/useUIPermissions';
 export {

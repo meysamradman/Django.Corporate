@@ -21,7 +21,7 @@ class EmailStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
-        # بررسی وجود اپ email
+
         if not apps.is_installed('src.email'):
             return {
                 'total_emails': 0,
@@ -44,7 +44,6 @@ class EmailStatsService:
                 'generated_at': timezone.now().isoformat(),
             }
         
-        # Import فقط اگر اپ نصب باشه
         from src.email.models.email_message import EmailMessage
         
         status_counts = {

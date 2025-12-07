@@ -39,8 +39,6 @@ const STATISTICS_USED_PERMISSIONS: readonly string[] = [
   'statistics.tickets.read',
   'statistics.emails.read',
   'statistics.system.read',
-  'statistics.financial.read',
-  'statistics.export',
   'statistics.dashboard.read'
 ];
 

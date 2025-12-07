@@ -23,7 +23,6 @@ class ContentStatsService:
             'generated_at': timezone.now().isoformat(),
         }
         
-        # Portfolio stats - اختیاری (CORPORATE APP)
         if apps.is_installed('src.portfolio'):
             from src.portfolio.models.portfolio import Portfolio
             from src.portfolio.models.category import PortfolioCategory
@@ -40,7 +39,6 @@ class ContentStatsService:
                 'categories': 0,
             }
         
-        # Blog stats - اختیاری (CORPORATE APP)
         if apps.is_installed('src.blog'):
             from src.blog.models.blog import Blog
             from src.blog.models.category import BlogCategory
@@ -57,7 +55,6 @@ class ContentStatsService:
                 'categories': 0,
             }
         
-        # Media stats - همیشه موجود (CORE APP)
         if apps.is_installed('src.media'):
             from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
             

@@ -41,7 +41,6 @@ class TicketStatsService:
                 'generated_at': timezone.now().isoformat(),
             }
         
-        # Import فقط اگر اپ نصب باشه
         from src.ticket.models.ticket import Ticket
         
         status_counts = {

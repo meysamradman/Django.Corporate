@@ -38,7 +38,6 @@ class DashboardStatsService:
             is_admin_active=True
         ).count()
         
-        # Media stats - همیشه موجود (CORE APP)
         if apps.is_installed('src.media'):
             from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
             stats['total_media'] = (
@@ -50,7 +49,6 @@ class DashboardStatsService:
         else:
             stats['total_media'] = 0
         
-        # Portfolio stats - اختیاری (CORPORATE APP)
         if apps.is_installed('src.portfolio'):
             from src.portfolio.models.portfolio import Portfolio
             from src.portfolio.models.category import PortfolioCategory
@@ -67,7 +65,6 @@ class DashboardStatsService:
             stats['total_portfolio_tags'] = 0
             stats['total_portfolio_options'] = 0
         
-        # Blog stats - اختیاری (CORPORATE APP)
         if apps.is_installed('src.blog'):
             from src.blog.models.blog import Blog
             from src.blog.models.category import BlogCategory
@@ -81,7 +78,6 @@ class DashboardStatsService:
             stats['total_blog_categories'] = 0
             stats['total_blog_tags'] = 0
         
-        # Email stats - اختیاری (CORPORATE APP)
         if apps.is_installed('src.email'):
             from src.email.models.email_message import EmailMessage
             
@@ -95,7 +91,6 @@ class DashboardStatsService:
             stats['new_emails'] = 0
             stats['unanswered_emails'] = 0
         
-        # Ticket stats - اختیاری (CORPORATE APP)
         if apps.is_installed('src.ticket'):
             from src.ticket.models.ticket import Ticket
             

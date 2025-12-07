@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/core/auth/AuthContext";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { useStatistics, useSystemStats } from "@/components/dashboard/hooks/useStatistics";
 import { 
@@ -17,8 +16,7 @@ import {
   HardDrive,
   Activity,
   TrendingUp,
-  Server,
-  RefreshCw
+  Server
 } from "lucide-react";
 import { useMemo } from "react";
 import { formatNumber } from "@/core/utils/format";
@@ -57,9 +55,8 @@ const COLORS = {
 };
 
 export const DashboardMain = () => {
-  const { user } = useAuth();
   const { hasPermission } = usePermission();
-  const { data: stats, isLoading, refetch } = useStatistics();
+  const { data: stats, isLoading } = useStatistics();
   const { data: systemStats, isLoading: systemLoading } = useSystemStats();
 
   const { date, time, greeting } = useMemo(() => {
@@ -297,7 +294,7 @@ export const DashboardMain = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="text-right">
             <h1 className="text-2xl font-bold text-font-p mb-1">
-              {greeting}، {user?.full_name || 'کاربر'} 👋
+              {greeting}
             </h1>
             <p className="text-sm text-font-s">به پنل مدیریت خوش آمدید</p>
           </div>
@@ -310,13 +307,6 @@ export const DashboardMain = () => {
               <Clock className="w-4 h-4 text-font-s" />
               <span>{time}</span>
             </div>
-            <button
-              onClick={() => refetch()}
-              className="p-2 rounded-lg hover:bg-bg transition-colors"
-              title="به‌روزرسانی"
-            >
-              <RefreshCw className="w-4 h-4 text-font-s" />
-            </button>
           </div>
         </div>
       </div>

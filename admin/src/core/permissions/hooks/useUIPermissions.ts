@@ -108,11 +108,6 @@ export function useCanViewContentStats() {
   return canViewContentStats;
 }
 
-export function useCanExportStats() {
-  const { canExportStats } = useUIPermissions();
-  return canExportStats;
-}
-
 export function useCanManageStatistics() {
   const { canManageStatistics } = useUIPermissions();
   return canManageStatistics;
