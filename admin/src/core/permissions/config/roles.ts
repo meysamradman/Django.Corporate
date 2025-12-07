@@ -10,6 +10,9 @@ export interface RoleConfig {
 }
 
 export const SYSTEM_ROLES: Record<string, RoleConfig> = {
+  // ============================================
+  // 🔵 CORE ROLES - همیشه لازم (نگه دارید)
+  // ============================================
   super_admin: {
     name: 'super_admin',
     display_name: 'Super Admin',
@@ -20,6 +23,61 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     level: 1,
     is_system_role: true
   },
+  media_manager: {
+    name: 'media_manager',
+    display_name: 'Media Manager',
+    display_name_short: 'Media',
+    description: 'Handles uploads and the media library.',
+    icon: 'Image',
+    color: 'orange',
+    level: 4,
+    is_system_role: true
+  },
+  settings_manager: {
+    name: 'settings_manager',
+    display_name: 'Settings Manager',
+    display_name_short: 'Settings',
+    description: 'Controls global configuration, integrations, and security preferences.',
+    icon: 'Settings',
+    color: 'gray',
+    level: 6,
+    is_system_role: true
+  },
+  panel_manager: {
+    name: 'panel_manager',
+    display_name: 'Panel Manager',
+    display_name_short: 'Panel',
+    description: 'Manages admin panel branding, appearance, and panel-level toggles.',
+    icon: 'LayoutDashboard',
+    color: 'blue',
+    level: 6,
+    is_system_role: true
+  },
+  statistics_viewer: {
+    name: 'statistics_viewer',
+    display_name: 'Statistics Viewer',
+    display_name_short: 'Stats',
+    description: 'Read-only access to dashboards, statistics, and analytics.',
+    icon: 'BarChart3',
+    color: 'green',
+    level: 7,
+    is_system_role: true
+  },
+  user_manager: {
+    name: 'user_manager',
+    display_name: 'User Manager',
+    display_name_short: 'Users',
+    description: 'Manages regular website users and profiles without admin access.',
+    icon: 'Users',
+    color: 'gray',
+    level: 7,
+    is_system_role: true
+  },
+
+  // ============================================
+  // 🟠 CORPORATE ROLES - برای وب‌سایت شرکتی
+  // اگر این ماژول‌ها رو ندارید، حذف کنید
+  // ============================================
   content_manager: {
     name: 'content_manager',
     display_name: 'Content Manager',
@@ -48,16 +106,6 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     icon: 'Briefcase',
     color: 'purple',
     level: 3,
-    is_system_role: true
-  },
-  media_manager: {
-    name: 'media_manager',
-    display_name: 'Media Manager',
-    display_name_short: 'Media',
-    description: 'Handles uploads and the media library.',
-    icon: 'Image',
-    color: 'orange',
-    level: 4,
     is_system_role: true
   },
   forms_manager: {
@@ -120,46 +168,9 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     level: 5,
     is_system_role: true
   },
-  settings_manager: {
-    name: 'settings_manager',
-    display_name: 'Settings Manager',
-    display_name_short: 'Settings',
-    description: 'Controls global configuration, integrations, and security preferences.',
-    icon: 'Settings',
-    color: 'gray',
-    level: 6,
-    is_system_role: true
-  },
-  panel_manager: {
-    name: 'panel_manager',
-    display_name: 'Panel Manager',
-    display_name_short: 'Panel',
-    description: 'Manages admin panel branding, appearance, and panel-level toggles.',
-    icon: 'LayoutDashboard',
-    color: 'blue',
-    level: 6,
-    is_system_role: true
-  },
-  statistics_viewer: {
-    name: 'statistics_viewer',
-    display_name: 'Statistics Viewer',
-    display_name_short: 'Stats',
-    description: 'Read-only access to dashboards, statistics, and analytics.',
-    icon: 'BarChart3',
-    color: 'green',
-    level: 7,
-    is_system_role: true
-  },
-  user_manager: {
-    name: 'user_manager',
-    display_name: 'User Manager',
-    display_name_short: 'Users',
-    description: 'Manages regular website users and profiles without admin access.',
-    icon: 'Users',
-    color: 'gray',
-    level: 7,
-    is_system_role: true
-  }
+  // ============================================
+  // End of CORPORATE ROLES
+  // ============================================
 };
 
 export const getRoleConfig = (roleName: string): RoleConfig | null => {

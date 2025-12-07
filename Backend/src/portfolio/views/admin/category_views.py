@@ -15,14 +15,15 @@ from src.portfolio.serializers.admin.category_serializer import (
 from src.portfolio.services.admin.category_services import PortfolioCategoryAdminService
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import PortfolioManagerAccess
+from src.user.authorization.admin_permission import RequireModuleAccess
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 from src.user.permissions import PermissionValidator
 
 
 class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
-    permission_classes = [PortfolioManagerAccess]
+    # Use generic module access for portfolio
+    permission_classes = [lambda: RequireModuleAccess('portfolio')]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioCategoryAdminFilter
     search_fields = ['name', 'description']

@@ -82,6 +82,9 @@ ROLE_TEXT = {
         "display_name_short": "Super Admin",
         "description": "Full system access with all permissions.",
     },
+    # NOTE: The following roles are app-specific (Corporate apps)
+    # They are kept here for backward compatibility and display purposes
+    # In a fully modular setup, these would be defined in corporate/blog/portfolio apps
     "content_manager": {
         "display_name": "Content Manager",
         "display_name_short": "Content",

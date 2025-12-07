@@ -57,21 +57,13 @@ class PermissionValidator:
         if not context_type or context_type == 'media_library':
             return False
         
-        if context_type == 'portfolio':
-            required_perm = f'portfolio.{context_action}'
-            user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
-            has_portfolio_module = "all" in user_modules or "portfolio" in user_modules
-            has_context_action = "all" in user_actions or context_action in user_actions
-            return has_portfolio_module and has_context_action
-        
-        if context_type == 'blog':
-            required_perm = f'blog.{context_action}'
-            user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
-            has_blog_module = "all" in user_modules or "blog" in user_modules
-            has_context_action = "all" in user_actions or context_action in user_actions
-            return has_blog_module and has_context_action
-        
-        return False
+        # Generic context-based permission check
+        # Checks if user has module access for the context type
+        required_perm = f'{context_type}.{context_action}'
+        user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
+        has_context_module = "all" in user_modules or context_type in user_modules
+        has_context_action = "all" in user_actions or context_action in user_actions
+        return has_context_module and has_context_action
 
     @staticmethod
     def has_any_permission(user, permission_ids: List[str], context: Optional[Dict] = None) -> bool:

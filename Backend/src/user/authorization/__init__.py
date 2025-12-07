@@ -17,8 +17,10 @@ _permission_classes = {}
 for class_name in permission_factory.__all__:
     _permission_classes[class_name] = getattr(permission_factory, class_name)
 
-BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
-PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
+# NOTE: Blog and Portfolio manager access classes removed
+# These are app-specific and should be imported from their respective apps
+# BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
+# PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
 UsersManagerAccess = _permission_classes.get('UsersManagerAccess')
 MediaManagerAccess = _permission_classes.get('MediaManagerAccess')
 FormsManagerAccess = _permission_classes.get('FormsManagerAccess')
@@ -33,7 +35,7 @@ ChatbotManagerAccess = _permission_classes.get('ChatbotManagerAccess')
 TicketManagerAccess = _permission_classes.get('TicketManagerAccess')
 AdminManagerAccess = _permission_classes.get('AdminManagerAccess')
 
-ContentManagerAccess = BlogManagerAccess
+# ContentManagerAccess = BlogManagerAccess  # Removed - app-specific
 UserManagerAccess = UsersManagerAccess
 AnalyticsViewerAccess = StatisticsManagerAccess
 SupportAdminAccess = UsersManagerAccess
@@ -73,8 +75,10 @@ __all__ = [
     "require_admin_roles",
     "require_module_access",
     "AdminPermissionCache",
-    "BlogManagerAccess",
-    "PortfolioManagerAccess",
+    # NOTE: Blog/Portfolio manager access removed - app-specific
+    # "BlogManagerAccess",
+    # "PortfolioManagerAccess",
+    # "ContentManagerAccess",
     "UsersManagerAccess",
     "MediaManagerAccess",
     "FormsManagerAccess",
@@ -88,7 +92,6 @@ __all__ = [
     "ChatbotManagerAccess",
     "TicketManagerAccess",
     "AdminManagerAccess",
-    "ContentManagerAccess",
     "UserManagerAccess",
     "AnalyticsViewerAccess",
     "SupportAdminAccess",

@@ -16,7 +16,7 @@ from src.portfolio.serializers.admin.tag_serializer import (
 from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import PortfolioManagerAccess
+from src.user.authorization.admin_permission import RequireModuleAccess
 from src.user.authorization.admin_permission import SimpleAdminPermission
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
@@ -24,7 +24,8 @@ from src.user.permissions import PermissionValidator
 
 
 class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
-    permission_classes = [PortfolioManagerAccess]
+    # Use generic module access for portfolio
+    permission_classes = [lambda: RequireModuleAccess('portfolio')]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioTagAdminFilter
     search_fields = ['name', 'description']

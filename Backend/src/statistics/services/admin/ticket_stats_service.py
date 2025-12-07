@@ -1,8 +1,7 @@
+from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Count
-from src.ticket.models.ticket import Ticket
-from src.ticket.utils.cache import TicketCacheKeys
 from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManager
 
 
@@ -21,6 +20,30 @@ class TicketStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
+        # بررسی وجود اپ ticket
+        if not apps.is_installed('src.ticket'):
+            return {
+                'total_tickets': 0,
+                'status_counts': {
+                    'open': 0,
+                    'in_progress': 0,
+                    'resolved': 0,
+                    'closed': 0,
+                },
+                'active_tickets': 0,
+                'priority_distribution': {
+                    'low': 0,
+                    'medium': 0,
+                    'high': 0,
+                    'urgent': 0,
+                },
+                'unanswered_tickets': 0,
+                'generated_at': timezone.now().isoformat(),
+            }
+        
+        # Import فقط اگر اپ نصب باشه
+        from src.ticket.models.ticket import Ticket
+        
         status_counts = {
             'open': Ticket.objects.filter(status='open').count(),
             'in_progress': Ticket.objects.filter(status='in_progress').count(),

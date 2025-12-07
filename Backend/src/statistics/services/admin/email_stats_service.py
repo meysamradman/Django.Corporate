@@ -1,8 +1,8 @@
+from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Count, Avg, Q, F
 from datetime import timedelta
-from src.email.models.email_message import EmailMessage
 from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManager
 
 
@@ -21,6 +21,32 @@ class EmailStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
+        # بررسی وجود اپ email
+        if not apps.is_installed('src.email'):
+            return {
+                'total_emails': 0,
+                'status_counts': {
+                    'new': 0,
+                    'read': 0,
+                    'replied': 0,
+                    'archived': 0,
+                    'draft': 0,
+                },
+                'active_emails': 0,
+                'source_distribution': {
+                    'website': 0,
+                    'mobile_app': 0,
+                    'email': 0,
+                    'api': 0,
+                },
+                'average_response_time': None,
+                'unanswered_emails': 0,
+                'generated_at': timezone.now().isoformat(),
+            }
+        
+        # Import فقط اگر اپ نصب باشه
+        from src.email.models.email_message import EmailMessage
+        
         status_counts = {
             'new': EmailMessage.objects.filter(status='new').count(),
             'read': EmailMessage.objects.filter(status='read').count(),
@@ -56,7 +82,7 @@ class EmailStatsService:
                 (email.replied_at - email.created_at).total_seconds()
                 for email in replied_emails
             )
-            avg_response_seconds =             total_seconds / replied_emails.count()
+            avg_response_seconds = total_seconds / replied_emails.count()
         
         avg_response_time = None
         if avg_response_seconds:

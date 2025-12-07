@@ -7,7 +7,8 @@ from .modules.base import BASE_PERMISSIONS
 from .modules.panel import PANEL_PERMISSIONS
 from .modules.media import MEDIA_PERMISSIONS
 from .modules.users import USERS_PERMISSIONS
-from .modules.content import CONTENT_PERMISSIONS
+# NOTE: CONTENT_PERMISSIONS moved to blog/portfolio apps
+# from .modules.content import CONTENT_PERMISSIONS
 from .modules.communication import COMMUNICATION_PERMISSIONS
 from .modules.ai import AI_PERMISSIONS
 from .modules.statistics import STATISTICS_PERMISSIONS
@@ -44,7 +45,7 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
     **PANEL_PERMISSIONS,
     **MEDIA_PERMISSIONS,
     **USERS_PERMISSIONS,
-    **CONTENT_PERMISSIONS,
+    # **CONTENT_PERMISSIONS,  # Moved to blog/portfolio apps
     **COMMUNICATION_PERMISSIONS,
     **AI_PERMISSIONS,
     **STATISTICS_PERMISSIONS,
@@ -95,6 +96,10 @@ def _build_role_config(
     )
 
 
+# ========================================
+# SYSTEM ROLES - Core roles only
+# Blog/Portfolio specific roles moved to their respective apps
+# ========================================
 SYSTEM_ROLES: Dict[str, RoleConfig] = {
     'super_admin': _build_role_config(
         'super_admin',
@@ -105,49 +110,8 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'special': ['user_management', 'system_settings', 'role_management']
         },
     ),
-    'content_manager': _build_role_config(
-        'content_manager',
-        level=2,
-        permissions={
-            'modules': [
-                'portfolio',
-                'blog',
-                'media',
-                'blog_categories',
-                'blog_tags',
-                'portfolio_categories',
-                'portfolio_tags',
-                'portfolio_options',
-                'portfolio_option_values'
-            ],
-            'actions': ['create', 'read', 'update', 'delete'],
-            'restrictions': ['no_user_management', 'no_system_settings']
-        },
-    ),
-    'blog_manager': _build_role_config(
-        'blog_manager',
-        level=3,
-        permissions={
-            'modules': ['blog', 'blog_categories', 'blog_tags'],
-            'actions': ['create', 'read', 'update', 'delete'],
-            'restrictions': ['no_portfolio_access', 'no_user_management']
-        },
-    ),
-    'portfolio_manager': _build_role_config(
-        'portfolio_manager',
-        level=3,
-        permissions={
-            'modules': [
-                'portfolio',
-                'portfolio_categories',
-                'portfolio_tags',
-                'portfolio_options',
-                'portfolio_option_values'
-            ],
-            'actions': ['create', 'read', 'update', 'delete'],
-            'restrictions': ['no_blog_access', 'no_user_management']
-        },
-    ),
+    # NOTE: content_manager, blog_manager, portfolio_manager removed
+    # These are app-specific and should be defined in blog/portfolio apps
     'media_manager': _build_role_config(
         'media_manager',
         level=4,
@@ -250,6 +214,10 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
 }
 
 
+# ========================================
+# AVAILABLE MODULES - Core modules only
+# Blog/Portfolio modules moved to their respective apps
+# ========================================
 AVAILABLE_MODULES = {
     'all': {
         'name': 'all',
@@ -281,46 +249,15 @@ AVAILABLE_MODULES = {
         'display_name': 'Media Library',
         'description': 'Manage uploads, files, and the media library.'
     },
-    'blog': {
-        'name': 'blog',
-        'display_name': 'Blog Management',
-        'description': 'Manage blog posts, drafts, and editorial workflow.'
-    },
-    'blog_categories': {
-        'name': 'blog_categories',
-        'display_name': 'Blog Categories',
-        'description': 'Manage blog category taxonomy.'
-    },
-    'blog_tags': {
-        'name': 'blog_tags',
-        'display_name': 'Blog Tags',
-        'description': 'Manage blog tags and keywords.'
-    },
-    'portfolio': {
-        'name': 'portfolio',
-        'display_name': 'Portfolio Management',
-        'description': 'Manage portfolio items, projects, and collections.'
-    },
-    'portfolio_categories': {
-        'name': 'portfolio_categories',
-        'display_name': 'Portfolio Categories',
-        'description': 'Manage portfolio category taxonomy.'
-    },
-    'portfolio_tags': {
-        'name': 'portfolio_tags',
-        'display_name': 'Portfolio Tags',
-        'description': 'Manage portfolio tags and labels.'
-    },
-    'portfolio_options': {
-        'name': 'portfolio_options',
-        'display_name': 'Portfolio Options',
-        'description': 'Manage portfolio option definitions.'
-    },
-    'portfolio_option_values': {
-        'name': 'portfolio_option_values',
-        'display_name': 'Portfolio Option Values',
-        'description': 'Manage portfolio option value entries.'
-    },
+    # NOTE: Blog and Portfolio modules removed - app-specific
+    # 'blog': {...},
+    # 'blog_categories': {...},
+    # 'blog_tags': {...},
+    # 'portfolio': {...},
+    # 'portfolio_categories': {...},
+    # 'portfolio_tags': {...},
+    # 'portfolio_options': {...},
+    # 'portfolio_option_values': {...},
     'email': {
         'name': 'email',
         'display_name': 'Email Center',

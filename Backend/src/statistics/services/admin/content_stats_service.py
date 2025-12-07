@@ -1,8 +1,6 @@
+from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
-from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.models.category import PortfolioCategory
-from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.statistics.utils.cache import StatisticsCacheKeys, StatisticsCacheManager
 
 
@@ -21,28 +19,72 @@ class ContentStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
-        total_media = (
-            ImageMedia.objects.count() +
-            VideoMedia.objects.count() +
-            AudioMedia.objects.count() +
-            DocumentMedia.objects.count()
-        )
+        stats = {
+            'generated_at': timezone.now().isoformat(),
+        }
         
-        return {
-            'portfolios': {
+        # Portfolio stats - اختیاری (CORPORATE APP)
+        if apps.is_installed('src.portfolio'):
+            from src.portfolio.models.portfolio import Portfolio
+            from src.portfolio.models.category import PortfolioCategory
+            
+            stats['portfolios'] = {
                 'total': Portfolio.objects.count(),
                 'published': Portfolio.objects.filter(is_published=True).count(),
                 'categories': PortfolioCategory.objects.count(),
-            },
-            'media': {
+            }
+        else:
+            stats['portfolios'] = {
+                'total': 0,
+                'published': 0,
+                'categories': 0,
+            }
+        
+        # Blog stats - اختیاری (CORPORATE APP)
+        if apps.is_installed('src.blog'):
+            from src.blog.models.blog import Blog
+            from src.blog.models.category import BlogCategory
+            
+            stats['blog'] = {
+                'total': Blog.objects.count(),
+                'published': Blog.objects.filter(is_published=True).count(),
+                'categories': BlogCategory.objects.count(),
+            }
+        else:
+            stats['blog'] = {
+                'total': 0,
+                'published': 0,
+                'categories': 0,
+            }
+        
+        # Media stats - همیشه موجود (CORE APP)
+        if apps.is_installed('src.media'):
+            from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+            
+            total_media = (
+                ImageMedia.objects.count() +
+                VideoMedia.objects.count() +
+                AudioMedia.objects.count() +
+                DocumentMedia.objects.count()
+            )
+            
+            stats['media'] = {
                 'total': total_media,
                 'images': ImageMedia.objects.count(),
                 'videos': VideoMedia.objects.count(),
                 'audios': AudioMedia.objects.count(),
                 'documents': DocumentMedia.objects.count(),
-            },
-            'generated_at': timezone.now().isoformat(),
-        }
+            }
+        else:
+            stats['media'] = {
+                'total': 0,
+                'images': 0,
+                'videos': 0,
+                'audios': 0,
+                'documents': 0,
+            }
+        
+        return stats
     
     @classmethod
     def clear_cache(cls):

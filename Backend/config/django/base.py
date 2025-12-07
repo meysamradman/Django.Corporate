@@ -28,21 +28,38 @@ LOGGING = {
     },
 }
 APPEND_SLASH = False
+# ========================================
+# 🔵 CORE APPS (همیشه لازم هستند)
+# ========================================
+CORE_APPS = [
+    'src.core.apps.CoreConfig',        # Core functionality
+    'src.user.apps.UserConfig',        # User & Admin management
+    'src.media.apps.MediaConfig',      # Media Library (centralized)
+    'src.statistics.apps.StatisticsConfig',  # Stats & Analytics
+    'src.panel.apps.PanelConfig',      # Panel Settings
+    'src.settings.apps.SettingsConfig', # System Settings
+]
+
+# ========================================
+# 🟠 CORPORATE APPS (برای وب‌سایت شرکتی)
+# ========================================
+CORPORATE_APPS = [
+    'src.blog.apps.BlogConfig',        # Blog Management
+    'src.portfolio.apps.PortfolioConfig',  # Portfolio Management
+    'src.page.apps.PageConfig',        # Pages (About, Contact, etc.)
+    'src.form.apps.FormConfig',        # Forms Builder
+    'src.chatbot.apps.ChatbotConfig',  # Chatbot Management
+    'src.ticket.apps.TicketConfig',    # Ticket System
+    'src.email.apps.EmailConfig',      # Email Management
+    'src.ai.apps.AiConfig',            # AI Tools
+]
+
+# ========================================
+# 📦 تمام اپ‌های محلی
+# ========================================
 LOCAL_APPS = [
-    'src.core.apps.CoreConfig',
-    'src.user.apps.UserConfig',
-    'src.blog.apps.BlogConfig',
-    'src.portfolio.apps.PortfolioConfig',
-    'src.media.apps.MediaConfig',
-    'src.ai.apps.AiConfig',
-    'src.chatbot.apps.ChatbotConfig',
-    'src.ticket.apps.TicketConfig',
-    'src.email.apps.EmailConfig',
-    'src.statistics.apps.StatisticsConfig',
-    'src.panel.apps.PanelConfig',
-    'src.settings.apps.SettingsConfig',
-    'src.page.apps.PageConfig',
-    'src.form.apps.FormConfig',
+    *CORE_APPS,
+    *CORPORATE_APPS,
 ]
 INSTALLED_APPS = [
      'django.contrib.auth',

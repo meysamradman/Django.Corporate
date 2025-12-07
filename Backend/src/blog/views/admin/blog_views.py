@@ -31,14 +31,15 @@ from src.blog.services.admin import (
 )
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import BlogManagerAccess
+from src.user.authorization.admin_permission import RequireModuleAccess
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
 from src.user.permissions import PermissionValidator
 
 
 class BlogAdminViewSet(viewsets.ModelViewSet):
-    permission_classes = [BlogManagerAccess]
+    # Use generic module access for blog
+    permission_classes = [lambda: RequireModuleAccess('blog')]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']

@@ -13,6 +13,10 @@ const ID_SEGMENT = "[0-9a-zA-Z-]+";
 
 const createRule = (config: RouteRule): RouteRule => config;
 
+// ============================================
+// 🔵 CORE ROUTES - همیشه لازم (نگه دارید)
+// ============================================
+
 const dashboardRoutes: RouteRule[] = [
   createRule({
     id: "dashboard-home",
@@ -37,6 +41,156 @@ const mediaRoutes: RouteRule[] = [
     description: "Media details - requires media.update permission",
   }),
 ];
+
+const adminManagementRoutes: RouteRule[] = [
+  createRule({
+    id: "admins-list",
+    pattern: /^\/admins\/?$/,
+    module: "admin",
+    action: "read",
+    description: "Admin List",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "admins-create",
+    pattern: /^\/admins\/create\/?$/,
+    module: "admin",
+    action: "create",
+    description: "Create Admin",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "admins-edit",
+    pattern: new RegExp(`^/admins/${ID_SEGMENT}/edit/?$`),
+    module: "admin",
+    action: "update",
+    description: "Edit Admin",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "admins-permissions",
+    pattern: /^\/admins\/permissions\/?$/,
+    module: "admin",
+    action: "manage",
+    description: "مدیریت دسترسی ادمین",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "admins-self-edit",
+    pattern: /^\/admins\/me\/edit\/?$/,
+    module: "admin",
+    action: "update",
+    description: "ویرایش پروفایل من",
+  }),
+];
+
+const userManagementRoutes: RouteRule[] = [
+  createRule({
+    id: "users-list",
+    pattern: /^\/users\/?$/,
+    module: "users",
+    action: "read",
+    description: "لیست کاربران",
+  }),
+  createRule({
+    id: "users-create",
+    pattern: /^\/users\/create\/?$/,
+    module: "users",
+    action: "create",
+    description: "ایجاد کاربر",
+  }),
+  createRule({
+    id: "users-edit",
+    pattern: new RegExp(`^/users/${ID_SEGMENT}/edit/?$`),
+    module: "users",
+    action: "update",
+    description: "ویرایش کاربر",
+  }),
+];
+
+const roleRoutes: RouteRule[] = [
+  createRule({
+    id: "roles-list",
+    pattern: /^\/roles\/?$/,
+    module: "admin",
+    action: "read",
+    description: "لیست نقش‌ها",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "roles-create",
+    pattern: /^\/roles\/create\/?$/,
+    module: "admin",
+    action: "create",
+    description: "ایجاد نقش",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "roles-detail",
+    pattern: new RegExp(`^/roles/${ID_SEGMENT}/?$`),
+    module: "admin",
+    action: "read",
+    description: "جزئیات نقش",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "roles-edit",
+    pattern: new RegExp(`^/roles/${ID_SEGMENT}/edit/?$`),
+    module: "admin",
+    action: "update",
+    description: "ویرایش نقش",
+    requireSuperAdmin: true,
+  }),
+];
+
+const settingsRoutes: RouteRule[] = [
+  createRule({
+    id: "settings-panel",
+    pattern: /^\/settings\/panel\/?$/,
+    module: "panel",
+    action: "manage",
+    description: "تنظیمات پنل",
+  }),
+  createRule({
+    id: "settings-general",
+    pattern: /^\/settings\/general\/?$/,
+    module: "settings",
+    action: "manage",
+    description: "تنظیمات عمومی",
+  }),
+];
+
+const miscRoutes: RouteRule[] = [
+  createRule({
+    id: "badges-lab",
+    pattern: /^\/badges\/?$/,
+    module: "panel",
+    action: "read",
+    description: "آزمایش طراحی",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "test-button",
+    pattern: /^\/test-button\/?$/,
+    module: "panel",
+    action: "read",
+    description: "صفحه تست",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "test-toast",
+    pattern: /^\/test-toast\/?$/,
+    module: "panel",
+    action: "read",
+    description: "صفحه تست توست",
+    requireSuperAdmin: true,
+  }),
+];
+
+// ============================================
+// 🟠 CORPORATE ROUTES - برای وب‌سایت شرکتی
+// اگر این ماژول‌ها رو ندارید، حذف کنید
+// ============================================
 
 const blogRoutes: RouteRule[] = [
   createRule({
@@ -212,107 +366,6 @@ const portfolioRoutes: RouteRule[] = [
   }),
 ];
 
-const adminManagementRoutes: RouteRule[] = [
-  createRule({
-    id: "admins-list",
-    pattern: /^\/admins\/?$/,
-    module: "admin",
-    action: "read",
-    description: "Admin List",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "admins-create",
-    pattern: /^\/admins\/create\/?$/,
-    module: "admin",
-    action: "create",
-    description: "Create Admin",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "admins-edit",
-    pattern: new RegExp(`^/admins/${ID_SEGMENT}/edit/?$`),
-    module: "admin",
-    action: "update",
-    description: "Edit Admin",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "admins-permissions",
-    pattern: /^\/admins\/permissions\/?$/,
-    module: "admin",
-    action: "manage",
-    description: "مدیریت دسترسی ادمین",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "admins-self-edit",
-    pattern: /^\/admins\/me\/edit\/?$/,
-    module: "admin",
-    action: "update",
-    description: "ویرایش پروفایل من",
-  }),
-];
-
-const userManagementRoutes: RouteRule[] = [
-  createRule({
-    id: "users-list",
-    pattern: /^\/users\/?$/,
-    module: "users",
-    action: "read",
-    description: "لیست کاربران",
-  }),
-  createRule({
-    id: "users-create",
-    pattern: /^\/users\/create\/?$/,
-    module: "users",
-    action: "create",
-    description: "ایجاد کاربر",
-  }),
-  createRule({
-    id: "users-edit",
-    pattern: new RegExp(`^/users/${ID_SEGMENT}/edit/?$`),
-    module: "users",
-    action: "update",
-    description: "ویرایش کاربر",
-  }),
-];
-
-const roleRoutes: RouteRule[] = [
-  createRule({
-    id: "roles-list",
-    pattern: /^\/roles\/?$/,
-    module: "admin",
-    action: "read",
-    description: "لیست نقش‌ها",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "roles-create",
-    pattern: /^\/roles\/create\/?$/,
-    module: "admin",
-    action: "create",
-    description: "ایجاد نقش",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "roles-detail",
-    pattern: new RegExp(`^/roles/${ID_SEGMENT}/?$`),
-    module: "admin",
-    action: "read",
-    description: "جزئیات نقش",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "roles-edit",
-    pattern: new RegExp(`^/roles/${ID_SEGMENT}/edit/?$`),
-    module: "admin",
-    action: "update",
-    description: "ویرایش نقش",
-    requireSuperAdmin: true,
-  }),
-];
-
 const aiRoutes: RouteRule[] = [
   createRule({
     id: "ai-chat",
@@ -389,27 +442,13 @@ const communicationRoutes: RouteRule[] = [
   }),
 ];
 
-const settingsRoutes: RouteRule[] = [
-  createRule({
-    id: "settings-panel",
-    pattern: /^\/settings\/panel\/?$/,
-    module: "panel",
-    action: "manage",
-    description: "تنظیمات پنل",
-  }),
+const corporateSettingsRoutes: RouteRule[] = [
   createRule({
     id: "settings-ai",
     pattern: /^\/settings\/ai\/?$/,
     module: "ai",
     action: "manage",
     description: "تنظیمات هوش مصنوعی (API مشترک و شخصی)",
-  }),
-  createRule({
-    id: "settings-general",
-    pattern: /^\/settings\/general\/?$/,
-    module: "settings",
-    action: "manage",
-    description: "تنظیمات عمومی",
   }),
   createRule({
     id: "settings-form",
@@ -441,45 +480,26 @@ const settingsRoutes: RouteRule[] = [
   }),
 ];
 
-const miscRoutes: RouteRule[] = [
-  createRule({
-    id: "badges-lab",
-    pattern: /^\/badges\/?$/,
-    module: "panel",
-    action: "read",
-    description: "آزمایش طراحی",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "test-button",
-    pattern: /^\/test-button\/?$/,
-    module: "panel",
-    action: "read",
-    description: "صفحه تست",
-    requireSuperAdmin: true,
-  }),
-  createRule({
-    id: "test-toast",
-    pattern: /^\/test-toast\/?$/,
-    module: "panel",
-    action: "read",
-    description: "صفحه تست توست",
-    requireSuperAdmin: true,
-  }),
-];
+// ============================================
+// End of CORPORATE ROUTES
+// ============================================
 
 const routeRules: RouteRule[] = [
+  // 🔵 CORE ROUTES - همیشه لازم
   ...dashboardRoutes,
   ...mediaRoutes,
-  ...blogRoutes,
-  ...portfolioRoutes,
   ...adminManagementRoutes,
   ...userManagementRoutes,
   ...roleRoutes,
-  ...aiRoutes,
-  ...communicationRoutes,
   ...settingsRoutes,
   ...miscRoutes,
+  
+  // 🟠 CORPORATE ROUTES - اختیاری (اگر ندارید حذف کنید)
+  ...blogRoutes,
+  ...portfolioRoutes,
+  ...aiRoutes,
+  ...communicationRoutes,
+  ...corporateSettingsRoutes,
 ];
 
 const normalizePathname = (pathname: string): string => {

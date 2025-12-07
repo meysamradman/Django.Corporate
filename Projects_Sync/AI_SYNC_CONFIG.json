@@ -1,0 +1,41 @@
+{
+  "source_project": {
+    "name": "Corporate",
+    "path": "C:\\Users\\HP\\Desktop\\Programing\\Apps\\Monolingual\\Django\\Corporate"
+  },
+  "target_projects": [
+    {
+      "name": "RealEstate",
+      "path": "",
+      "enabled": false,
+      "description": "آدرس کامل پروژه RealEstate را اینجا وارد کن",
+      "note": "مثال: C:\\Users\\HP\\Desktop\\Programing\\Apps\\Monolingual\\Django\\RealEstate"
+    },
+    {
+      "name": "Shop",
+      "path": "",
+      "enabled": false,
+      "description": "آدرس کامل پروژه Shop را اینجا وارد کن",
+      "note": "مثال: C:\\Users\\HP\\Desktop\\Programing\\Apps\\Monolingual\\Django\\Store"
+    }
+  ],
+  "sync_rules": {
+    "backend": {
+      "folders": [
+        "Backend/src/core",
+        "Backend/src/user",
+        "Backend/src/media",
+        "Backend/src/statistics",
+        "Backend/src/panel",
+        "Backend/src/settings"
+      ]
+    },
+    "frontend": {
+      "folders": [
+        "admin/src/core",
+        "admin/src/components/elements",
+        "admin/src/types/shared"
+      ]
+    }
+  }
+}
