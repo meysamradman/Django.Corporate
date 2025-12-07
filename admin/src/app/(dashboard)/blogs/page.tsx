@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/tables/DataTable";
+import dynamic from "next/dynamic";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
 import { BlogFilters } from "@/types/blog/blogListParams";
@@ -15,6 +15,22 @@ import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+
+const DataTable = dynamic(
+  () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
+  { 
+    ssr: false, 
+    loading: () => (
+      <div className="rounded-md border">
+        <div className="p-4 space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+);
 import { getConfirm, getCrud } from '@/core/messages';
 import {
   AlertDialog,
@@ -630,25 +646,25 @@ export default function BlogPage() {
         }}
         exportConfigs={[
           {
-            onExport: (filters, search) => handleExportExcel(filters, search, false),
+            onExport: (filters, search) => handleExportExcel(filters as BlogFilters, search, false),
             buttonText: "خروجی اکسل (صفحه فعلی)",
             value: "excel",
             variant: "outline",
           },
           {
-            onExport: (filters, search) => handleExportExcel(filters, search, true),
+            onExport: (filters, search) => handleExportExcel(filters as BlogFilters, search, true),
             buttonText: "خروجی اکسل (همه)",
             value: "excel_all",
             variant: "outline",
           },
           {
-            onExport: (filters, search) => handleExportPDF(filters, search, false),
+            onExport: (filters, search) => handleExportPDF(filters as BlogFilters, search, false),
             buttonText: "خروجی PDF (صفحه فعلی)",
             value: "pdf",
             variant: "outline",
           },
           {
-            onExport: (filters, search) => handleExportPDF(filters, search, true),
+            onExport: (filters, search) => handleExportPDF(filters as BlogFilters, search, true),
             buttonText: "خروجی PDF (همه)",
             value: "pdf_all",
             variant: "outline",

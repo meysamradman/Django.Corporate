@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import { ProtectedButton } from '@/core/permissions';
 import { Save, Loader2 } from 'lucide-react';
-import PanelSettingsForm, { PanelSettingsFormRef } from './PanelSettingsForm';
+import PanelSettingsForm, { PanelSettingsFormRef } from '@/components/panel/PanelSettingsForm';
 
 export default function PanelSettingsPage() {
     const formRef = useRef<PanelSettingsFormRef>(null);

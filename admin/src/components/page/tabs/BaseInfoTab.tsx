@@ -7,7 +7,7 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
-import LogoUploader from "@/app/(dashboard)/settings/panel/LogoUploader";
+import LogoUploader from "@/components/panel/LogoUploader";
 import { Media } from "@/types/shared/media";
 import { FileText, Image as ImageIcon } from "lucide-react";
 

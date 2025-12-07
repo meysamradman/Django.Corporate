@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { mediaApi, VALID_MEDIA_PAGE_SIZES, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/route';
 import { Media, MediaFilter } from '@/types/shared/media';
@@ -77,9 +78,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/elements/Select"
-import { MediaUploadModal } from '@/components/media/modals/MediaUploadModal';
-import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
-import { AIImageGenerator } from '@/components/ai/image';
+const MediaUploadModal = dynamic(
+  () => import('@/components/media/modals/MediaUploadModal').then(mod => ({ default: mod.MediaUploadModal })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+);
+
+const MediaDetailsModal = dynamic(
+  () => import('@/components/media/modals/MediaDetailsModal').then(mod => ({ default: mod.MediaDetailsModal })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+);
+
+const AIImageGenerator = dynamic(
+  () => import('@/components/ai/image').then(mod => ({ default: mod.AIImageGenerator })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+);
 import { Sparkles } from 'lucide-react';
 import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 

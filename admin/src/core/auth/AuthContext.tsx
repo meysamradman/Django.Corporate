@@ -12,7 +12,7 @@ import { csrfManager } from '@/core/auth/csrfToken';
 import { LoginRequest } from '@/types/auth/auth';
 import { ApiResponse, MetaData } from '@/types/api/apiResponse';
 import { PanelSettings } from '@/types/settings/panelSettings';
-import { getPanelSettings } from '@/api/settings/panel/route';
+import { getPanelSettings } from '@/api/panel/route';
 import { getQueryClient } from '@/core/utils/queryClient';
 import { FaviconManager } from '@/components/layout/FaviconManager';
 import { PermissionProfile } from '@/types/auth/permission';

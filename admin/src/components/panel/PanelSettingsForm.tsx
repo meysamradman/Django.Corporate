@@ -23,7 +23,7 @@ import {
     Database,
     Download
 } from 'lucide-react';
-import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/settings/panel/route';
+import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/panel/route';
 
 const formSchema = z.object({
     panel_title: z.string().min(1, "عنوان پنل الزامی است.").max(100),

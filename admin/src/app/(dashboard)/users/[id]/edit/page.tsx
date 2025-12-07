@@ -1,4 +1,4 @@
-import { EditUserForm } from "./EditForm";
+import { EditUserForm } from "@/components/users/edit/EditForm";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { adminApi } from "@/api/admins/route";

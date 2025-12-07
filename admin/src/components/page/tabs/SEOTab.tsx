@@ -6,7 +6,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
-import LogoUploader from "@/app/(dashboard)/settings/panel/LogoUploader";
+import LogoUploader from "@/components/panel/LogoUploader";
 import { Media } from "@/types/shared/media";
 import { Search, Image as ImageIcon } from "lucide-react";
 

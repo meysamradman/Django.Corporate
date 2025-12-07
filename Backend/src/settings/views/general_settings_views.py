@@ -111,7 +111,13 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
         try:
             settings = get_general_settings()
             serializer = self.get_serializer(settings, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
+            
+            if not serializer.is_valid():
+                return APIResponse.error(
+                    message=SETTINGS_ERRORS['validation_error'],
+                    errors=serializer.errors,
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
             
             updated_settings = update_general_settings(serializer.validated_data)
             SettingsCacheManager.invalidate_general_settings()
@@ -122,19 +128,13 @@ class GeneralSettingsViewSet(viewsets.ModelViewSet):
                 data=response_serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
-            error_msg = str(e)
-            if error_msg == "database_error":
-                message = SETTINGS_ERRORS['settings_table_not_found']
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-            elif error_msg == "retrieve_failed":
-                message = SETTINGS_ERRORS['settings_retrieve_failed']
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-            else:
-                message = SETTINGS_ERRORS['validation_error']
-                status_code = status.HTTP_400_BAD_REQUEST
-            
+        except ValidationError:
             return APIResponse.error(
-                message=message,
-                status_code=status_code
+                message=SETTINGS_ERRORS['validation_error'],
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception:
+            return APIResponse.error(
+                message=SETTINGS_ERRORS['settings_update_failed'],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

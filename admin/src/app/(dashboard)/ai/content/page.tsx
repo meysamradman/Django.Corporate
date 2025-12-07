@@ -2,7 +2,12 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { AIContentGenerator } from '@/components/ai/content';
+import dynamic from 'next/dynamic';
+
+const AIContentGenerator = dynamic(
+  () => import('@/components/ai/content').then(mod => ({ default: mod.AIContentGenerator })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+);
 
 export default function AIContentPage() {
     const router = useRouter();

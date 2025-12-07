@@ -22,7 +22,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
-import { settingsApi } from "@/api/settings/general/route";
+import { settingsApi } from "@/api/settings/route";
 import { ContactMobile } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Smartphone, Loader2 } from "lucide-react";

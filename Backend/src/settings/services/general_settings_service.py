@@ -7,7 +7,13 @@ from src.settings.messages.messages import SETTINGS_ERRORS
 
 def get_general_settings():
     try:
-        return GeneralSettings.get_settings()
+        settings = GeneralSettings.objects.first()
+        if not settings:
+            settings = GeneralSettings.objects.create(
+                site_name="System Name",
+                copyright_text="All rights reserved"
+            )
+        return settings
     except OperationalError:
         raise ValidationError(SETTINGS_ERRORS["settings_database_error"])
     except Exception:
@@ -15,7 +21,13 @@ def get_general_settings():
 
 
 def update_general_settings(validated_data):
-    settings = GeneralSettings.get_settings()
+    settings = GeneralSettings.objects.first()
+    
+    if not settings:
+        settings = GeneralSettings.objects.create(
+            site_name="System Name",
+            copyright_text="All rights reserved"
+        )
     
     for field, value in validated_data.items():
         setattr(settings, field, value)

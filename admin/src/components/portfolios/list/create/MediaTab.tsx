@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { UseFormReturn } from "react-hook-form";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
@@ -8,11 +9,15 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { PortfolioMediaGallery } from "@/components/portfolios/list/PortfolioMediaGallery";
 import { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+
+const MediaLibraryModal = dynamic(
+  () => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+);
 
 interface MediaTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;

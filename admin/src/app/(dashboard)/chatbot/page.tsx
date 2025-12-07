@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { MessageSquare, Settings as SettingsIcon } from "lucide-react";
-import { FAQManagement } from "./components/FAQManagement";
-import { ChatbotSettingsForm } from "./components/ChatbotSettingsForm";
+import { FAQManagement } from "@/components/chatbot/FAQManagement";
+import { ChatbotSettingsForm } from "@/components/chatbot/ChatbotSettingsForm";
 
 export default function ChatbotSettingsPage() {
   const [activeTab, setActiveTab] = useState("faq");

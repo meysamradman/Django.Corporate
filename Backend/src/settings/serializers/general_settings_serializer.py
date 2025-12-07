@@ -8,6 +8,13 @@ class GeneralSettingsSerializer(serializers.ModelSerializer):
     logo_image_data = ImageMediaSerializer(source='logo_image', read_only=True)
     favicon_image_data = ImageMediaSerializer(source='favicon_image', read_only=True)
     
+    copyright_link = serializers.URLField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=500
+    )
+    
     class Meta:
         model = GeneralSettings
         fields = [
@@ -27,3 +34,15 @@ class GeneralSettingsSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'enamad_image': {'required': False, 'allow_null': True},
+            'logo_image': {'required': False, 'allow_null': True},
+            'favicon_image': {'required': False, 'allow_null': True},
+            'copyright_text': {'required': False, 'allow_blank': True},
+            'site_name': {'required': False},
+        }
+    
+    def validate_copyright_link(self, value):
+        if value == '' or value is None:
+            return None
+        return value

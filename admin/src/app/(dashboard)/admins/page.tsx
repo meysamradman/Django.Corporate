@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/tables/DataTable";
+import dynamic from "next/dynamic";
 import { useAdminColumns } from "@/components/admins/AdminTableColumns";
 import { useAdminFilterOptions, getAdminFilterConfig } from "@/components/admins/AdminTableFilters";
 import { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
@@ -18,6 +18,22 @@ import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+
+const DataTable = dynamic(
+  () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
+  { 
+    ssr: false, 
+    loading: () => (
+      <div className="rounded-md border">
+        <div className="p-4 space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+);
 import { getConfirm, getCrud } from '@/core/messages';
 import {
   AlertDialog,

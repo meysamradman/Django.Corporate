@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPanelSettings } from '@/api/settings/panel/route';
+import { getPanelSettings } from '@/api/panel/route';
 import { PanelSettings } from '@/types/settings/panelSettings';
 import { fetchApi } from '@/core/config/fetch';
 import { toast } from '@/components/elements/Sonner';

@@ -23,7 +23,7 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
-import { settingsApi } from "@/api/settings/general/route";
+import { settingsApi } from "@/api/settings/route";
 import { SocialMedia } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";

@@ -10,7 +10,7 @@ import { Button } from '@/components/elements/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/elements/Dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
-import { ModelSelector } from './components/ModelSelector';
+import { ModelSelector } from '../../../../components/ai/models/ModelSelector';
 import { OpenRouterModelSelectorContent } from '@/components/ai/settings/OpenRouterModelSelector';
 import { HuggingFaceModelSelectorContent } from '@/components/ai/settings/HuggingFaceModelSelector';
 import { useUserPermissions } from '@/core/permissions';
