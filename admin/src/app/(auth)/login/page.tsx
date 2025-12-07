@@ -1,16 +1,23 @@
-import { Metadata } from "next";
-import { LoginForm } from "./LoginForm";
+"use client";
+
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Spinner } from "@/components/elements/Spinner";
 
 
-export const metadata: Metadata = {
-  title: "ورود به پنل مدیریت",
-  description: "اطلاعات کاربری خود را برای دسترسی به پنل مدیریت وارد کنید.",
-};
+const LoginForm = dynamic(
+  () => import("@/components/auth/LoginForm").then((mod) => mod.LoginForm),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <Spinner className="size-8 text-primary" />
+      </div>
+    ),
+  }
+);
 
 export default function LoginPage() {
-
-  
   return (
     <div className="min-h-screen flex items-center justify-center grow p-4 bg-bg">
       <div className="w-full max-w-md">
