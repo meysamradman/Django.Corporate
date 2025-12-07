@@ -143,27 +143,55 @@ export function FormFieldsSection() {
     };
 
     const handleSave = async () => {
-        if (!fieldKey.trim()) {
+        // Validate field_key
+        const trimmedFieldKey = fieldKey.trim();
+        if (!trimmedFieldKey) {
             toast.error("کلید فیلد الزامی است");
             return;
         }
+        
+        // Validate field_key format (must start with letter or underscore, only letters, numbers, underscores)
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmedFieldKey)) {
+            toast.error("کلید فیلد باید با حرف یا underscore شروع شود و فقط شامل حروف انگلیسی، اعداد و underscore باشد");
+            return;
+        }
+        
+        if (trimmedFieldKey.length < 2) {
+            toast.error("کلید فیلد باید حداقل 2 کاراکتر باشد");
+            return;
+        }
+        
         if (!label.trim()) {
             toast.error("برچسب فیلد الزامی است");
             return;
         }
+        
         if (platforms.length === 0) {
             toast.error("حداقل یک پلتفرم باید انتخاب شود");
             return;
         }
-        if ((fieldType === 'select' || fieldType === 'radio') && options.length === 0) {
-            toast.error("فیلدهای انتخابی باید حداقل یک گزینه داشته باشند");
-            return;
+        
+        // Validate options for select/radio fields
+        if (fieldType === 'select' || fieldType === 'radio') {
+            const validOptions = options.filter(opt => opt.value && opt.label);
+            if (validOptions.length === 0) {
+                toast.error("فیلدهای انتخابی باید حداقل یک گزینه معتبر (با مقدار و برچسب) داشته باشند");
+                return;
+            }
+            
+            // Check for duplicate values
+            const values = validOptions.map(opt => opt.value.trim().toLowerCase());
+            const uniqueValues = new Set(values);
+            if (values.length !== uniqueValues.size) {
+                toast.error("مقادیر گزینه‌ها نمی‌توانند تکراری باشند");
+                return;
+            }
         }
 
         setSaving(true);
         
         const fieldData: ContactFormFieldCreate = {
-            field_key: fieldKey.trim(),
+            field_key: trimmedFieldKey,
             field_type: fieldType,
             label: label.trim(),
             placeholder: placeholder.trim() || null,
@@ -174,7 +202,13 @@ export function FormFieldsSection() {
         };
 
         if (fieldType === 'select' || fieldType === 'radio') {
-            fieldData.options = options.filter(opt => opt.value && opt.label);
+            // Filter and trim options
+            fieldData.options = options
+                .filter(opt => opt.value && opt.label)
+                .map(opt => ({
+                    value: opt.value.trim(),
+                    label: opt.label.trim()
+                }));
         }
 
         try {
@@ -185,10 +219,18 @@ export function FormFieldsSection() {
             }
             handleCloseDialog();
             await fetchFields();
-        } catch {
-            
+        } catch (error: any) {
+            // Error is already shown by fetchApi, but we can add additional handling if needed
+            if (error?.response?.errors) {
+                const errorMessages = Object.values(error.response.errors).flat();
+                if (errorMessages.length > 0) {
+                    // Additional error details if needed
+                    console.error('Field creation/update errors:', errorMessages);
+                }
+            }
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const handleDeleteClick = (id: number) => {
@@ -359,13 +401,19 @@ export function FormFieldsSection() {
                                 <Input
                                     id="field_key"
                                     value={fieldKey}
-                                    onChange={(e) => setFieldKey(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Only allow valid characters
+                                        if (/^[a-zA-Z0-9_]*$/.test(value)) {
+                                            setFieldKey(value);
+                                        }
+                                    }}
                                     placeholder="مثال: name, email, phone_number"
                                     disabled={!!editingField}
                                     className="font-mono"
                                 />
                                 <p className="text-xs text-font-s">
-                                    فقط حروف انگلیسی، اعداد و underscore
+                                    باید با حرف یا underscore شروع شود. فقط حروف انگلیسی، اعداد و underscore مجاز است.
                                 </p>
                             </div>
 
@@ -475,48 +523,85 @@ export function FormFieldsSection() {
                         </div>
 
                         {(fieldType === 'select' || fieldType === 'radio') && (
-                            <div className="space-y-2 border-t pt-4">
+                            <div className="space-y-3 border-t pt-4 bg-bg/30 p-4 rounded-lg">
                                 <div className="flex items-center justify-between">
-                                    <Label>گزینه‌ها *</Label>
+                                    <div>
+                                        <Label className="text-base font-semibold">گزینه‌ها *</Label>
+                                        <p className="text-xs text-font-s mt-1">
+                                            برای فیلدهای {fieldType === 'select' ? 'انتخابی' : 'رادیو'} باید حداقل یک گزینه تعریف کنید
+                                        </p>
+                                    </div>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={handleAddOption}
                                     >
-                                        <Plus />
+                                        <Plus className="h-4 w-4" />
                                         افزودن گزینه
                                     </Button>
                                 </div>
-                                <div className="space-y-2">
-                                    {options.map((option, index) => (
-                                        <div key={index} className="flex gap-2">
-                                            <Input
-                                                placeholder="مقدار (value)"
-                                                value={option.value}
-                                                onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
-                                                className="flex-1"
-                                            />
-                                            <Input
-                                                placeholder="برچسب (label)"
-                                                value={option.label}
-                                                onChange={(e) => handleOptionChange(index, 'label', e.target.value)}
-                                                className="flex-1"
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleRemoveOption(index)}
-                                            >
-                                                <Trash2 />
-                                            </Button>
-                                        </div>
-                                    ))}
+                                <div className="space-y-3">
+                                    {options.map((option, index) => {
+                                        const validOptions = options.filter(opt => opt.value && opt.label);
+                                        const duplicateValue = validOptions.filter(opt => 
+                                            opt.value.trim().toLowerCase() === option.value.trim().toLowerCase()
+                                        ).length > 1;
+                                        
+                                        return (
+                                            <div key={index} className="flex gap-2 items-start p-3 bg-white dark:bg-gray-800 rounded-md border">
+                                                <div className="flex-1 space-y-2">
+                                                    <div>
+                                                        <Label className="text-xs text-font-s mb-1 block">مقدار (Value) *</Label>
+                                                        <Input
+                                                            placeholder="مثال: iran, usa, uk"
+                                                            value={option.value}
+                                                            onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                                                            className={duplicateValue && option.value ? "border-red-500" : ""}
+                                                        />
+                                                        {duplicateValue && option.value && (
+                                                            <p className="text-xs text-red-500 mt-1">مقدار تکراری است</p>
+                                                        )}
+                                                        <p className="text-xs text-font-s mt-1">مقداری که در کد استفاده می‌شود</p>
+                                                    </div>
+                                                    <div>
+                                                        <Label className="text-xs text-font-s mb-1 block">برچسب (Label) *</Label>
+                                                        <Input
+                                                            placeholder="مثال: ایران, آمریکا, انگلیس"
+                                                            value={option.label}
+                                                            onChange={(e) => handleOptionChange(index, 'label', e.target.value)}
+                                                        />
+                                                        <p className="text-xs text-font-s mt-1">متن نمایش داده شده به کاربر</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveOption(index)}
+                                                    className="mt-6"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        );
+                                    })}
                                     {options.length === 0 && (
-                                        <p className="text-sm text-font-s">
-                                            حداقل یک گزینه اضافه کنید
-                                        </p>
+                                        <div className="text-center py-6 border-2 border-dashed rounded-lg bg-bg/50">
+                                            <p className="text-sm text-font-s mb-2">
+                                                هنوز گزینه‌ای اضافه نشده است
+                                            </p>
+                                            <p className="text-xs text-font-s">
+                                                روی دکمه "افزودن گزینه" کلیک کنید
+                                            </p>
+                                        </div>
+                                    )}
+                                    {options.length > 0 && options.filter(opt => opt.value && opt.label).length === 0 && (
+                                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                                            <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                                ⚠️ حداقل یک گزینه معتبر (با مقدار و برچسب) اضافه کنید
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>

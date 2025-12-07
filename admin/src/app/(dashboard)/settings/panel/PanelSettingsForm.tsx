@@ -10,7 +10,7 @@ import { Input } from "@/components/elements/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import LogoUploader from './LogoUploader';
-import { usePanelSettings, useUpdatePanelSettings } from '@/core/hooks/useAdminData';
+import { usePanelSettings, useUpdatePanelSettings } from './hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Media } from '@/types/shared/media';
@@ -121,6 +121,7 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
             setFaviconDeleted(false);
 
         } catch (error) {
+            // Error is handled in mutation onError
         }
     };
 

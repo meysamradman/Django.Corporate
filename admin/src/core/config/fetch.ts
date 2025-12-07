@@ -3,7 +3,7 @@ import { ApiError } from '@/types/api/apiError';
 import { csrfTokenStore } from '@/core/auth/csrfToken';
 import { env } from '@/core/config/environment';
 import { showError as toastError, showSuccess as toastSuccess } from '@/core/toast';
-import { METHOD_TOAST_DEFAULTS, type HttpMethod } from '@/types/messages/toast';
+import { METHOD_TOAST_DEFAULTS, type HttpMethod } from '@/core/toast/types';
 import { getNetworkError } from '@/core/messages/errors';
 
 const isServer = typeof window === 'undefined';

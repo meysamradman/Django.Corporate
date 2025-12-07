@@ -1,9 +1,10 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPanelSettings, updatePanelSettings } from '@/api/settings/panel/route';
+import { getPanelSettings } from '@/api/settings/panel/route';
 import { PanelSettings } from '@/types/settings/panelSettings';
 import { fetchApi } from '@/core/config/fetch';
+import { toast } from '@/components/elements/Sonner';
 
 export function usePanelSettings() {
   return useQuery({
@@ -19,9 +20,7 @@ export function useUpdatePanelSettings() {
 
   return useMutation({
     mutationFn: async (data: Partial<PanelSettings> | FormData) => {
-      const response = await fetchApi.put<PanelSettings>('/admin/panel-settings/update/', data, {
-        successMessage: 'تنظیمات پنل با موفقیت به‌روزرسانی شد',
-      });
+      const response = await fetchApi.put<PanelSettings>('/admin/panel-settings/update/', data);
       return response.data;
     },
     onSuccess: (updatedData) => {
@@ -29,6 +28,10 @@ export function useUpdatePanelSettings() {
         queryClient.setQueryData(['panel-settings'], updatedData);
       }
       queryClient.invalidateQueries({ queryKey: ['panel-settings'] });
+      toast.success('تنظیمات پنل با موفقیت به‌روزرسانی شد');
+    },
+    onError: (error) => {
+      toast.error('خطا در به‌روزرسانی تنظیمات پنل');
     },
   });
 }

@@ -1,4 +1,5 @@
-import { toast as sonnerToast, type ExternalToast } from 'sonner';
+import { type ExternalToast } from 'sonner';
+import { toast as sonnerToast } from '@/components/elements/Sonner';
 import { getHttpError, getNetworkError, shouldUseBackendMessage, isSilentError } from '@/core/messages/errors';
 import { ApiError } from '@/types/api/apiError';
 
