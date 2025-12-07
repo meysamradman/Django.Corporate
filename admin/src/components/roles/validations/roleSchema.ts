@@ -4,13 +4,13 @@ import { msg } from "@/core/messages";
 export const roleFormSchema = z.object({
   name: z
     .string()
-    .min(1, { message: msg.role("nameRequired") })
-    .min(2, { message: msg.role("nameMinLength") })
-    .max(100, { message: msg.role("nameMaxLength") }),
+    .min(1, { message: msg.validation("required", { field: "نام نقش" }) })
+    .min(2, { message: msg.validation("minLength", { field: "نام نقش", min: 2 }) })
+    .max(100, { message: msg.validation("maxLength", { field: "نام نقش", max: 100 }) }),
   
   description: z
     .string()
-    .max(300, { message: msg.role("descMaxLength") })
+    .max(300, { message: msg.validation("roleDescMaxLength") })
     .optional()
     .or(z.literal("")),
   
@@ -18,7 +18,7 @@ export const roleFormSchema = z.object({
     .array(z.number())
     .default([])
     .refine((val) => val.length > 0, {
-      message: msg.role("permissionsRequired")
+      message: msg.validation("permissionsRequired")
     }),
 });
 

@@ -17,7 +17,8 @@ import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelec
 import { Media } from "@/types/shared/media";
 import { Loader2 } from "lucide-react";
 import { showSuccess, showError } from '@/core/toast';
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 
 interface QuickCreateDialogProps {
     open: boolean;
@@ -78,13 +79,20 @@ export function QuickCreateDialog({
 
     const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const formattedSlug = generateSlug(value);
+        const formattedSlug = formatSlug(value);
         setSlug(formattedSlug);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
+        
+        const slugValidation = validateSlug(slug.trim(), true);
+        if (!slugValidation.isValid) {
+            showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
+            return;
+        }
+        
         const submitData: { name: string; slug: string; image_id?: number; is_active?: boolean; is_public?: boolean } = {
             name: name.trim(),
             slug: slug.trim(),

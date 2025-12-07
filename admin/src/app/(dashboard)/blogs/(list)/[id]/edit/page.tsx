@@ -14,7 +14,9 @@ import { Blog } from "@/types/blog/blog";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { blogApi } from "@/api/blogs/route";
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
+import { showError } from '@/core/toast';
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/components/blogs/utils/blogMediaUtils";
 
@@ -167,12 +169,14 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     
     setIsSaving(true);
     try {
-      let formattedSlug = formData.slug;
-      if (formattedSlug) {
-        formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '')
-          .substring(0, 60);
+      const slugValidation = validateSlug(formData.slug, true);
+      if (!slugValidation.isValid) {
+        showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
+        setIsSaving(false);
+        return;
       }
+      
+      let formattedSlug = formatSlug(formData.slug);
       
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
@@ -217,12 +221,14 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
     
     setIsSaving(true);
     try {
-      let formattedSlug = formData.slug;
-      if (formattedSlug) {
-        formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '')
-          .substring(0, 60);
+      const slugValidation = validateSlug(formData.slug, true);
+      if (!slugValidation.isValid) {
+        showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
+        setIsSaving(false);
+        return;
       }
+      
+      let formattedSlug = formatSlug(formData.slug);
       
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);

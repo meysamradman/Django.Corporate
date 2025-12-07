@@ -14,7 +14,8 @@ import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Media } from "@/types/shared/media";
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { toast } from "@/components/elements/Sonner";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
@@ -132,6 +133,12 @@ export default function CreateCategoryPage() {
         [field]: value,
         slug: generatedSlug
       }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -157,6 +164,12 @@ export default function CreateCategoryPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      return;
+    }
     
     const formDataWithImage = {
       ...formData,

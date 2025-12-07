@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { msg } from "@/core/messages";
+import { validateSlug } from "@/core/slug/validate";
 
 export const blogFormSchema = z.object({
   name: z
@@ -10,10 +11,14 @@ export const blogFormSchema = z.object({
   
   slug: z
     .string()
-    .min(1, { message: msg.blog("slugRequired") })
-    .max(60, { message: msg.blog("slugMaxLength") })
-    .regex(/^[\u0600-\u06FFa-z0-9]+(?:-[\u0600-\u06FFa-z0-9]+)*$/, { 
-      message: msg.blog("slugInvalid") 
+    .superRefine((val, ctx) => {
+      const result = validateSlug(val, true);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.blog("slugInvalid"),
+        });
+      }
     }),
   
   short_description: z

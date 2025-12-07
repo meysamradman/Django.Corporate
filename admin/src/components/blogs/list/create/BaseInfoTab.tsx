@@ -17,7 +17,7 @@ import { blogApi } from "@/api/blogs/route";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
-import { formatSlug, generateSlug } from '@/components/shared/utils/slugUtils';
+import { formatSlug, generateSlug } from '@/core/slug/generate';
 import { QuickCreateDialog } from "./QuickCreateDialog";
 
 interface BaseInfoTabFormProps {
@@ -133,12 +133,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         } else {
             handleInputChange?.("name", value);
             if (value && !formData?.slug) {
-                const slug = value
-                    .toLowerCase()
-                    .replace(/\s+/g, '-')
-                    .replace(/[^\u0600-\u06FFa-z0-9-]/g, '')
-                    .replace(/--+/g, '-')
-                    .replace(/^-+|-+$/g, '');
+                const slug = generateSlug(value);
                 handleInputChange?.("slug", slug);
             }
         }
@@ -148,6 +143,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         const value = e.target.value;
         const formattedSlug = formatSlug(value);
         if (isFormApproach) {
+            setValue?.("slug", formattedSlug);
         } else {
             handleInputChange?.("slug", formattedSlug);
         }
@@ -214,7 +210,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             error={errors.slug?.message}
                                             placeholder="وبلاگ-من یا my-blog-post"
                                             disabled={!editMode}
-                                            {...register!("slug")}
+                                            {...register!("slug", {
+                                                onChange: (e) => {
+                                                    const formattedSlug = formatSlug(e.target.value);
+                                                    e.target.value = formattedSlug;
+                                                    setValue?.("slug", formattedSlug);
+                                                }
+                                            })}
                                         />
                                     ) : (
                                         <FormFieldInput

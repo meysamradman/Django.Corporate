@@ -10,6 +10,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { FormField } from "@/components/forms/FormField";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { toast } from '@/core/toast';
+import { validatePassword } from '@/core/validation/password';
 
 export function SecurityTab() {
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -28,7 +29,7 @@ export function SecurityTab() {
     };
 
     const passwordStrength = newPassword.length > 0 ? (
-        newPassword.length >= 8 && /[A-Z]/.test(newPassword) && /[^A-Za-z0-9]/.test(newPassword)
+        validatePassword(newPassword).isValid
             ? 100
             : newPassword.length >= 6 ? 60 : 30
     ) : 0;

@@ -20,27 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { locationApi } from "@/api/shared/location/route";
 import { useEffect } from "react";
 import { ProvinceCompact, CityCompact } from "@/types/shared/location";
-
-const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
-    (e.keyCode === 65 && e.ctrlKey === true) ||
-    (e.keyCode === 67 && e.ctrlKey === true) ||
-    (e.keyCode === 86 && e.ctrlKey === true) ||
-    (e.keyCode === 88 && e.ctrlKey === true) ||
-    (e.keyCode >= 35 && e.keyCode <= 39)) {
-    return;
-  }
-  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-    e.preventDefault();
-  }
-};
-
-const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-  const paste = e.clipboardData.getData('text');
-  if (!/^\d*$/.test(paste)) {
-    e.preventDefault();
-  }
-};
+import { filterNumericOnly } from "@/core/filters/numeric";
 
 interface ProfileTabProps {
   form: UseFormReturn<UserFormValues>;
@@ -229,9 +209,13 @@ export default function ProfileTab({
                     placeholder="کد ملی 10 رقمی"
                     maxLength={10}
                     disabled={!editMode}
-                    {...register("profile_national_id")}
-                    onKeyDown={preventNonNumeric}
-                    onPaste={preventNonNumericPaste}
+                    {...register("profile_national_id", {
+                      onChange: (e) => {
+                        const filteredValue = filterNumericOnly(e.target.value);
+                        e.target.value = filteredValue;
+                        form.setValue("profile_national_id", filteredValue);
+                      }
+                    })}
                   />
                 </FormField>
                 
@@ -246,9 +230,13 @@ export default function ProfileTab({
                     inputMode="tel"
                     placeholder="تلفن ثابت"
                     disabled={!editMode}
-                    {...register("profile_phone")}
-                    onKeyDown={preventNonNumeric}
-                    onPaste={preventNonNumericPaste}
+                    {...register("profile_phone", {
+                      onChange: (e) => {
+                        const filteredValue = filterNumericOnly(e.target.value);
+                        e.target.value = filteredValue;
+                        form.setValue("profile_phone", filteredValue);
+                      }
+                    })}
                   />
                 </FormField>
               </div>

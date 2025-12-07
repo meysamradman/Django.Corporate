@@ -13,7 +13,8 @@ import { toast } from "@/components/elements/Sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { Tag, Loader2, Save, List } from "lucide-react";
 
 export default function CreateTagPage() {
@@ -41,13 +42,7 @@ export default function CreateTagPage() {
 
   useEffect(() => {
     if (formData.name && !formData.slug) {
-      const generatedSlug = formData.name
-          .toLowerCase()
-          .replace(/[^\w\u0600-\u06FF\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-+|-+$/g, '')
-          .substring(0, 60);
+      const generatedSlug = generateSlug(formData.name);
       setFormData(prev => ({ ...prev, slug: generatedSlug }));
     }
   }, [formData.name, formData.slug]);
@@ -61,6 +56,12 @@ export default function CreateTagPage() {
         [field]: value,
         slug: generatedSlug
       }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -71,6 +72,13 @@ export default function CreateTagPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      return;
+    }
+    
     createTagMutation.mutate(formData);
   };
 

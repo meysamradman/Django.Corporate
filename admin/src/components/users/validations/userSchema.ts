@@ -1,41 +1,66 @@
 import { z } from "zod";
 import { msg } from "@/core/messages";
+import { validateMobile } from "@/core/validation/mobile";
+import { validateEmail } from "@/core/validation/email";
+import { validatePassword } from "@/core/validation/password";
+import { validateNationalId } from "@/core/validation/nationalId";
+import { validatePhone } from "@/core/validation/phone";
 
 export const userFormSchema = z.object({
   mobile: z
     .string()
-    .min(1, { message: msg.validation("mobileRequired") })
-    .regex(/^09\d{9}$/, { message: msg.validation("mobileInvalid") }),
+    .superRefine((val, ctx) => {
+      const result = validateMobile(val);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("mobileInvalid"),
+        });
+      }
+    }),
   
   email: z
     .string()
-    .email({ message: msg.validation("emailInvalid") })
+    .superRefine((val, ctx) => {
+      if (!val || val === "") return;
+      const result = validateEmail(val, false);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("emailInvalid"),
+        });
+      }
+    })
     .optional()
     .or(z.literal("")),
   
   password: z
     .string()
-    .min(1, { message: msg.validation("passwordRequired") })
-    .min(8, { message: msg.validation("passwordMinLength") })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/, {
-      message: msg.validation("passwordComplexity")
+    .superRefine((val, ctx) => {
+      const result = validatePassword(val);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("passwordRequired"),
+        });
+      }
     }),
   
   full_name: z
     .string()
-    .min(1, { message: msg.user("fullNameRequired") })
-    .min(2, { message: msg.user("fullNameMinLength") })
-    .max(100, { message: msg.user("fullNameMaxLength") }),
+    .min(1, { message: msg.validation("required", { field: "نام کامل" }) })
+    .min(2, { message: msg.validation("minLength", { field: "نام کامل", min: 2 }) })
+    .max(100, { message: msg.validation("maxLength", { field: "نام کامل", max: 100 }) }),
   
   profile_first_name: z
     .string()
-    .max(50, { message: msg.user("firstNameMaxLength") })
+    .max(50, { message: msg.validation("maxLength", { field: "نام", max: 50 }) })
     .optional()
     .or(z.literal("")),
   
   profile_last_name: z
     .string()
-    .max(50, { message: msg.user("lastNameMaxLength") })
+    .max(50, { message: msg.validation("maxLength", { field: "نام خانوادگی", max: 50 }) })
     .optional()
     .or(z.literal("")),
   
@@ -46,24 +71,31 @@ export const userFormSchema = z.object({
   
   profile_national_id: z
     .string()
-    .refine((val) => {
-      if (!val || val === "") return true;
-      if (val.length !== 10) return false;
-      return /^\d{10}$/.test(val);
-    }, {
-      message: msg.validation("nationalIdInvalid")
+    .superRefine((val, ctx) => {
+      if (!val || val === "") return;
+      // Use strict: false to match original schema behavior (only length and format check)
+      const result = validateNationalId(val, false, false);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("nationalIdInvalid"),
+        });
+      }
     })
     .optional()
     .or(z.literal("")),
   
   profile_phone: z
     .string()
-    .max(15, { message: msg.user("phoneMaxLength") })
-    .refine((val) => {
-      if (!val || val === "") return true;
-      return /^\d+$/.test(val);
-    }, {
-      message: msg.user("phoneInvalid")
+    .superRefine((val, ctx) => {
+      if (!val || val === "") return;
+      const result = validatePhone(val, false);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("phoneInvalid"),
+        });
+      }
     })
     .optional()
     .or(z.literal("")),
@@ -80,13 +112,13 @@ export const userFormSchema = z.object({
   
   profile_address: z
     .string()
-    .max(500, { message: msg.user("addressMaxLength") })
+    .max(500, { message: msg.validation("addressMaxLength") })
     .optional()
     .or(z.literal("")),
   
   profile_bio: z
     .string()
-    .max(1000, { message: msg.user("bioMaxLength") })
+    .max(1000, { message: msg.validation("bioMaxLength") })
     .optional()
     .or(z.literal("")),
   

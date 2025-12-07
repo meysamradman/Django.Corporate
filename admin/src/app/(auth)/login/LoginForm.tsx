@@ -14,13 +14,14 @@ import { RotateCw, Loader2, Eye, EyeOff } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { filterNumericOnly } from '@/core/utils/validations';
+import { filterNumericOnly } from '@/core/filters/numeric';
+import { validateMobile } from '@/core/validation/mobile';
 import { 
   passwordLoginSchema, 
   otpLoginSchema, 
   type PasswordLoginForm, 
   type OtpLoginForm 
-} from '@/core/validations/loginSchema';
+} from '@/components/auth/validations/loginSchema';
 import { msg } from '@/core/messages';
 import { usePathname } from 'next/navigation';
 import { Spinner } from '@/components/elements/Spinner';
@@ -150,13 +151,9 @@ export function LoginForm() {
     const handleSendOTP = async () => {
         const mobile = otpForm.getValues('mobile');
         
-        if (!mobile) {
-            showError(new Error(msg.validation("mobileRequired")));
-            return;
-        }
-
-        if (!/^09[0-9]{9}$/.test(mobile)) {
-            showError(new Error(msg.validation("mobileInvalid")));
+        const mobileValidation = validateMobile(mobile);
+        if (!mobileValidation.isValid) {
+            showError(new Error(mobileValidation.error || msg.validation("mobileInvalid")));
             return;
         }
 

@@ -1,11 +1,19 @@
 import { z } from "zod";
 import { msg } from "@/core/messages";
+import { validateMobile } from "@/core/validation/mobile";
 
 export const passwordLoginSchema = z.object({
   mobile: z
     .string()
-    .min(1, { message: msg.validation("mobileRequired") })
-    .regex(/^09\d{9}$/, { message: msg.validation("mobileInvalid") }),
+    .superRefine((val, ctx) => {
+      const result = validateMobile(val);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("mobileInvalid"),
+        });
+      }
+    }),
   
   password: z
     .string()
@@ -19,8 +27,15 @@ export const passwordLoginSchema = z.object({
 export const otpLoginSchema = z.object({
   mobile: z
     .string()
-    .min(1, { message: msg.validation("mobileRequired") })
-    .regex(/^09\d{9}$/, { message: msg.validation("mobileInvalid") }),
+    .superRefine((val, ctx) => {
+      const result = validateMobile(val);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("mobileInvalid"),
+        });
+      }
+    }),
   
   otp: z
     .string()

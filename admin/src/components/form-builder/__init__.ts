@@ -1,2 +1,2 @@
-export * from "./FormFieldsSection";
+export { FormFieldsSection } from "./FormFieldsSection";
 

@@ -7,27 +7,7 @@ import { FormField } from "@/components/forms/FormField";
 import { UseFormReturn } from "react-hook-form";
 import { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { User } from "lucide-react";
-
-const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
-    (e.keyCode === 65 && e.ctrlKey === true) ||
-    (e.keyCode === 67 && e.ctrlKey === true) ||
-    (e.keyCode === 86 && e.ctrlKey === true) ||
-    (e.keyCode === 88 && e.ctrlKey === true) ||
-    (e.keyCode >= 35 && e.keyCode <= 39)) {
-    return;
-  }
-  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-    e.preventDefault();
-  }
-};
-
-const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-  const paste = e.clipboardData.getData('text');
-  if (!/^\d*$/.test(paste)) {
-    e.preventDefault();
-  }
-};
+import { filterNumericOnly } from "@/core/filters/numeric";
 
 interface BaseInfoTabProps {
   form: UseFormReturn<AdminFormValues>;
@@ -38,7 +18,7 @@ export default function BaseInfoTab({
   form,
   editMode,
 }: BaseInfoTabProps) {
-  const { register, formState: { errors } } = form;
+  const { register, formState: { errors }, setValue } = form;
   return (
     <div className="space-y-6">
       <CardWithIcon
@@ -62,9 +42,13 @@ export default function BaseInfoTab({
                 inputMode="tel"
                 placeholder="09xxxxxxxxx"
                 disabled={!editMode}
-                {...register("mobile")}
-                onKeyDown={preventNonNumeric}
-                onPaste={preventNonNumericPaste}
+                {...register("mobile", {
+                  onChange: (e) => {
+                    const filteredValue = filterNumericOnly(e.target.value);
+                    e.target.value = filteredValue;
+                    form.setValue("mobile", filteredValue);
+                  }
+                })}
               />
             </FormField>
 

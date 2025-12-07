@@ -15,7 +15,9 @@ import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { portfolioApi } from "@/api/portfolios/route";
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
+import { showError } from '@/core/toast';
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/components/portfolios/utils/portfolioMediaUtils";
 
@@ -188,12 +190,14 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     
     setIsSaving(true);
     try {
-      let formattedSlug = formData.slug;
-      if (formattedSlug) {
-        formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '')
-          .substring(0, 60);
+      const slugValidation = validateSlug(formData.slug, true);
+      if (!slugValidation.isValid) {
+        showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
+        setIsSaving(false);
+        return;
       }
+      
+      let formattedSlug = formatSlug(formData.slug);
       
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);
@@ -240,12 +244,14 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
     
     setIsSaving(true);
     try {
-      let formattedSlug = formData.slug;
-      if (formattedSlug) {
-        formattedSlug = formattedSlug
-          .replace(/^-+|-+$/g, '')
-          .substring(0, 60);
+      const slugValidation = validateSlug(formData.slug, true);
+      if (!slugValidation.isValid) {
+        showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
+        setIsSaving(false);
+        return;
       }
+      
+      let formattedSlug = formatSlug(formData.slug);
       
       const categoryIds = selectedCategories.map(category => category.id);
       const tagIds = selectedTags.map(tag => tag.id);

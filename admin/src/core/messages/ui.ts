@@ -45,8 +45,20 @@ export const STATUS_MESSAGES = {
   statusChangeError: 'خطا در تغییر وضعیت',
 } as const;
 
+export const AUTH_MESSAGES = {
+  loginSuccess: 'ورود موفقیت‌آمیز',
+  logoutSuccess: 'خروج موفقیت‌آمیز',
+  loginFailed: 'ورود ناموفق',
+  invalidCredentials: 'نام کاربری یا رمز عبور اشتباه است',
+  sessionExpired: 'جلسه کاری منقضی شده است',
+  accessDenied: 'دسترسی غیر مجاز',
+  otpSent: 'کد یکبار مصرف ارسال شد',
+  otpSendFailed: 'خطا در ارسال کد یکبار مصرف',
+} as const;
+
 export const getCrud = createMessageGetter(CRUD_MESSAGES);
 export const getAction = createMessageGetter(ACTION_MESSAGES);
 export const getConfirm = createMessageGetter(CONFIRM_MESSAGES);
 export const getExport = createMessageGetter(EXPORT_MESSAGES);
 export const getStatus = createMessageGetter(STATUS_MESSAGES);
+export const getAuth = createMessageGetter(AUTH_MESSAGES);

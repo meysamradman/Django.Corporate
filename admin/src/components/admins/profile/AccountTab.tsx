@@ -18,27 +18,7 @@ import { locationApi } from "@/api/shared/location/route";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { formatDate } from "@/core/utils/format";
-
-const preventNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
-    (e.keyCode === 65 && e.ctrlKey === true) ||
-    (e.keyCode === 67 && e.ctrlKey === true) ||
-    (e.keyCode === 86 && e.ctrlKey === true) ||
-    (e.keyCode === 88 && e.ctrlKey === true) ||
-    (e.keyCode >= 35 && e.keyCode <= 39)) {
-    return;
-  }
-  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-    e.preventDefault();
-  }
-};
-
-const preventNonNumericPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-  const paste = e.clipboardData.getData('text');
-  if (!/^\d*$/.test(paste)) {
-    e.preventDefault();
-  }
-};
+import { filterNumericOnly } from "@/core/filters/numeric";
 
 interface FormData {
     firstName: string;
@@ -347,12 +327,13 @@ export function AccountTab({
                                     <Input
                                         id="nationalId"
                                         value={formData.nationalId || ""}
-                                        onChange={(e) => handleInputChange("nationalId", e.target.value)}
+                                        onChange={(e) => {
+                                            const filteredValue = filterNumericOnly(e.target.value);
+                                            handleInputChange("nationalId", filteredValue);
+                                        }}
                                         disabled={!editMode}
                                         placeholder="کد ملی خود را وارد کنید"
                                         inputMode="numeric"
-                                        onKeyDown={preventNonNumeric}
-                                        onPaste={preventNonNumericPaste}
                                     />
                                 </FormField>
                                 <FormField
@@ -363,12 +344,13 @@ export function AccountTab({
                                         id="phone"
                                         type="tel"
                                         value={formData.phone || ""}
-                                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                                        onChange={(e) => {
+                                            const filteredValue = filterNumericOnly(e.target.value);
+                                            handleInputChange("phone", filteredValue);
+                                        }}
                                         disabled={!editMode}
                                         placeholder="تلفن ثابت را وارد کنید"
                                         inputMode="tel"
-                                        onKeyDown={preventNonNumeric}
-                                        onPaste={preventNonNumericPaste}
                                     />
                                 </FormField>
                             </div>
@@ -383,12 +365,13 @@ export function AccountTab({
                                         id="mobile"
                                         type="tel"
                                         value={formData.mobile || ""}
-                                        onChange={(e) => handleInputChange("mobile", e.target.value)}
+                                        onChange={(e) => {
+                                            const filteredValue = filterNumericOnly(e.target.value);
+                                            handleInputChange("mobile", filteredValue);
+                                        }}
                                         disabled={!editMode}
                                         placeholder="شماره موبایل خود را وارد کنید"
                                         inputMode="tel"
-                                        onKeyDown={preventNonNumeric}
-                                        onPaste={preventNonNumericPaste}
                                     />
                                 </FormField>
                                 <FormField

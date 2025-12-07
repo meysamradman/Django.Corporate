@@ -15,7 +15,8 @@ import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
 import { Media } from "@/types/shared/media";
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { Loader2, Save, List } from "lucide-react";
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -100,6 +101,12 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
         [field]: value,
         slug: generatedSlug
       }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -115,6 +122,12 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      return;
+    }
     
     const formDataWithImage = {
       ...formData,

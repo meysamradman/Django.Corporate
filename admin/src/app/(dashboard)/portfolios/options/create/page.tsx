@@ -13,7 +13,8 @@ import { toast } from "@/components/elements/Sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { generateSlug } from '@/components/shared/utils/slugUtils';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { Settings, Loader2, Save, List } from "lucide-react";
 
 export default function CreateOptionPage() {
@@ -48,6 +49,12 @@ export default function CreateOptionPage() {
         [field]: value,
         slug: generatedSlug
       }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -58,6 +65,13 @@ export default function CreateOptionPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      return;
+    }
+    
     createOptionMutation.mutate(formData);
   };
 

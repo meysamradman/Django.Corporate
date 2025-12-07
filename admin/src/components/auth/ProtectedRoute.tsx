@@ -1,1 +1,0 @@
-export { ProtectedRoute } from '@/core/permissions/components/ProtectedRoute'; 

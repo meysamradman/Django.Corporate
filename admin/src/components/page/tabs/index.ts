@@ -1,3 +1,3 @@
-export * from "./BaseInfoTab";
-export * from "./SEOTab";
+export { BaseInfoTab } from "./BaseInfoTab";
+export { SEOTab } from "./SEOTab";
 

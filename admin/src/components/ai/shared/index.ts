@@ -1,4 +1,4 @@
 export { ProviderSelector } from './ProviderSelector';
 export { EmptyProvidersCard } from './EmptyProvidersCard';
-export * from './utils';
+export { getProviderDisplayName, getProviderDescription, getProviderIcon } from './utils';
 
