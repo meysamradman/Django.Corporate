@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.cache import cache
 from django.http import StreamingHttpResponse, HttpResponse
 
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.panel.services import PanelSettingsService
 from src.panel.services.database_export_service import (

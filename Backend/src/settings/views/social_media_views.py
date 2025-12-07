@@ -13,7 +13,7 @@ from src.settings.services.social_media_service import (
     delete_social_media,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 
 
 class SocialMediaViewSet(viewsets.ModelViewSet):

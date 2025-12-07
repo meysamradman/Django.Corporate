@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from src.user.authorization.admin_permission import AdminRolePermission, RequirePermission
+from src.user.access_control import AdminRolePermission, RequirePermission
 from src.core.responses.response import APIResponse
 from src.statistics.messages.messages import STATISTICS_SUCCESS
 from src.statistics.services.admin import (

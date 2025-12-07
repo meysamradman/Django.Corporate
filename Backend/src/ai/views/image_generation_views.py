@@ -15,8 +15,7 @@ from src.ai.serializers.image_generation_serializer import (
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
-from src.user.authorization import AiManagerAccess, SuperAdminOnly
-from src.user.permissions import PermissionValidator
+from src.user.access_control import AiManagerAccess, SuperAdminOnly, PermissionValidator
 from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.huggingface import HuggingFaceProvider

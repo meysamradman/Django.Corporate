@@ -5,14 +5,14 @@ from src.user.views.admin import (
     AdminLoginView, AdminRegisterView, AdminLogoutView, 
     AdminManagementView, AdminProfileView, UserManagementView
 )
-from src.user.authorization import AdminRoleView, AdminPermissionView
+from src.user.access_control import AdminRoleView, AdminPermissionView
 from src.user.views.otp_views import SendOTPView, VerifyOTPView, OTPSettingsView
 from src.user.views.user.user_login_view import UserLoginView
 from src.user.views.user.user_logout_view import UserLogoutView
 from src.user.views.user.user_register_view import UserRegisterView
 from src.user.views.user.user_profile_view import UserProfileView
 from src.user.views.location_views import ProvinceViewSet, CityViewSet
-from src.user.permissions.api import get_permission_map, check_permission
+from src.user.access_control.definitions.api import get_permission_map, check_permission
 
 app_name = 'user'
 

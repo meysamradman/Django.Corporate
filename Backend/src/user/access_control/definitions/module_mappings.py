@@ -6,9 +6,8 @@ Defines which modules are related to each main module.
 from typing import Dict, List
 
 MODULE_MAPPINGS: Dict[str, List[str]] = {
-    # NOTE: Blog and Portfolio mappings moved to their respective apps
-    # 'blog': ['blog', 'blog_categories', 'blog_tags', 'media'],
-    # 'portfolio': ['portfolio', 'portfolio_categories', 'portfolio_tags', 'portfolio_options', 'portfolio_option_values', 'media'],
+    'blog': ['blog', 'blog_categories', 'blog_tags', 'media'],
+    'portfolio': ['portfolio', 'portfolio_categories', 'portfolio_tags', 'portfolio_options', 'portfolio_option_values', 'media'],
     'users': ['users'],
     'media': ['media'],
     'panel': ['panel'],

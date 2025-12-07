@@ -16,8 +16,7 @@ from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoM
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.user.permissions import PermissionValidator
-from src.user.authorization.admin_permission import MediaManagerAccess
+from src.user.access_control import PermissionValidator, MediaManagerAccess
 
 
 class MediaAdminViewSet(viewsets.ModelViewSet):

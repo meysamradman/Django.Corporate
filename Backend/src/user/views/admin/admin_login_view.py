@@ -11,7 +11,7 @@ from django.middleware.csrf import get_token
 from src.core.security.captcha.services import CaptchaService
 from src.core.security.captcha.messages import CAPTCHA_ERRORS
 from src.core.security.throttling import AdminLoginThrottle
-from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
+from src.user.access_control import BASE_ADMIN_PERMISSIONS
 
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 from src.user.models import AdminUserRole

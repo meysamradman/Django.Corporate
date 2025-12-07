@@ -8,7 +8,7 @@ from src.ticket.services import TicketMessageService
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.statistics.utils.cache import StatisticsCacheManager
-from src.user.permissions import PermissionValidator
+from src.user.access_control import PermissionValidator
 
 
 class AdminTicketMessageViewSet(viewsets.ModelViewSet):

@@ -13,7 +13,7 @@ from src.settings.services.contact_phone_service import (
     delete_contact_phone,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 
 
 class ContactPhoneViewSet(viewsets.ModelViewSet):

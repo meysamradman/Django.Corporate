@@ -5,7 +5,7 @@ from .module_mappings import MODULE_MAPPINGS
 
 
 def _create_permission_classes():
-    from src.user.authorization.admin_permission import RequireModuleAccess
+    from src.user.access_control.classes.admin_permission import RequireModuleAccess
     
     for module_name, related_modules in MODULE_MAPPINGS.items():
         class_name = f"{module_name.capitalize()}ManagerAccess"

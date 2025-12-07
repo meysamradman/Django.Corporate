@@ -17,7 +17,7 @@ from src.ai.serializers.ai_provider_serializer import (
     AdminProviderSettingsUpdateSerializer,
 )
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
-from src.user.permissions.validator import PermissionValidator
+from src.user.access_control import PermissionValidator
 from src.core.responses.response import APIResponse
 
 

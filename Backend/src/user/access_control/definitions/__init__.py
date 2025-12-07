@@ -1,5 +1,6 @@
 from .registry import Permission, PermissionRegistry
 from .validator import PermissionValidator
+from .helpers import PermissionHelper
 from .config import (
     PERMISSIONS,
     SYSTEM_ROLES,
@@ -29,6 +30,7 @@ __all__ = [
     "Permission",
     "PermissionRegistry",
     "PermissionValidator",
+    "PermissionHelper",
     "PERMISSIONS",
     "SYSTEM_ROLES",
     "AVAILABLE_MODULES",

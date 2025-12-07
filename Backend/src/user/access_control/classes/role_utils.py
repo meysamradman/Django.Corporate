@@ -1,6 +1,6 @@
 from django.db import transaction, models
 from src.user.models import AdminRole
-from src.user.permissions.config import get_all_role_configs
+from src.user.access_control.definitions.config import get_all_role_configs
 
 LEGACY_ROLE_NAMES = {
     'taxonomy_editor',

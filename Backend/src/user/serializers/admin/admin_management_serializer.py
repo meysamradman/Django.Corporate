@@ -8,7 +8,7 @@ from src.media.models import ImageMedia
 from src.media.utils.validators import validate_image_file
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
-from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
+from src.user.access_control import BASE_ADMIN_PERMISSIONS
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer

@@ -19,15 +19,15 @@ from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User, UserProfile
 from src.user.auth.auth_mixin import UserAuthMixin
 from src.user.services.user.user_register_service import UserRegisterService
-from src.user.authorization import (
+from src.user.access_control import (
     AdminRolePermission,
     UserManagementPermission,
     SimpleAdminPermission,
     require_admin_roles,
     SuperAdminOnly,
-    UserManagerAccess
+    UserManagerAccess,
+    PermissionValidator
 )
-from src.user.permissions import PermissionValidator
 from src.core.pagination.pagination import StandardLimitPagination
 
 

@@ -9,7 +9,7 @@ from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationResponseSerializer
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-from src.user.permissions import PermissionValidator
+from src.user.access_control import PermissionValidator
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider

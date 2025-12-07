@@ -10,7 +10,7 @@ from src.chatbot.serializers.faq_serializer import FAQSerializer, FAQListSeriali
 from src.chatbot.serializers.settings_serializer import ChatbotSettingsSerializer
 from src.chatbot.services.rule_based_service import RuleBasedChatService
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 

@@ -16,11 +16,10 @@ from src.portfolio.serializers.admin.tag_serializer import (
 from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireModuleAccess
-from src.user.authorization.admin_permission import SimpleAdminPermission
+from src.user.access_control import RequireModuleAccess, SimpleAdminPermission
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
-from src.user.permissions import PermissionValidator
+from src.user.access_control import PermissionValidator
 
 
 class PortfolioTagAdminViewSet(viewsets.ModelViewSet):

@@ -25,11 +25,11 @@ from .admin_permission import (
     require_admin_roles,
     AdminPermissionCache
 )
-from src.user.permissions.config import BASE_ADMIN_PERMISSIONS, AVAILABLE_MODULES, AVAILABLE_ACTIONS, get_permissions_by_module
-from src.user.permissions.validator import PermissionValidator
-from src.user.permissions.helpers import PermissionHelper
+from src.user.access_control.definitions.config import BASE_ADMIN_PERMISSIONS, AVAILABLE_MODULES, AVAILABLE_ACTIONS, get_permissions_by_module
+from src.user.access_control.definitions.validator import PermissionValidator
+from src.user.access_control.definitions.helpers import PermissionHelper
 from src.user.utils.cache import UserCacheManager
-from src.user.authorization.role_utils import create_default_admin_roles, get_role_summary
+from .role_utils import create_default_admin_roles, get_role_summary
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -377,18 +377,19 @@ class AdminRoleView(viewsets.ViewSet):
             
             system_role_names = [
                 'super_admin',
-                'content_manager',
                 'blog_manager',
                 'portfolio_manager',
                 'media_manager',
                 'forms_manager',
                 'pages_manager',
+                'chatbot_manager',
                 'email_manager',
+                'ticket_manager',
                 'ai_manager',
                 'settings_manager',
                 'panel_manager',
                 'statistics_viewer',
-                'user_manager'
+                'user_manager',
             ]
             
             incorrect_roles = AdminRole.objects.filter(

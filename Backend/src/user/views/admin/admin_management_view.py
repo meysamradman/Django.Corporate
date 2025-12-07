@@ -19,7 +19,7 @@ from src.user.services.admin.admin_register_service import AdminRegisterService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
 from src.user.auth.auth_mixin import UserAuthMixin
-from src.user.authorization import SimpleAdminPermission
+from src.user.access_control import SimpleAdminPermission
 from src.core.pagination.pagination import StandardLimitPagination
 
 

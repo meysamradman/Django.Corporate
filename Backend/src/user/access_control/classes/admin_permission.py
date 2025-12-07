@@ -4,11 +4,11 @@ from django.utils import timezone
 from django.conf import settings
 from typing import List, Dict, Any
 from src.user.messages import AUTH_ERRORS
-from src.user.permissions.config import BASE_ADMIN_PERMISSIONS
-from src.user.permissions.module_mappings import MODULE_MAPPINGS
+from src.user.access_control.definitions.config import BASE_ADMIN_PERMISSIONS
+from src.user.access_control.definitions.module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
-from src.user.permissions import PermissionValidator
+from src.user.access_control.definitions import PermissionValidator
 
 
 class AdminRolePermission(permissions.BasePermission):
@@ -307,9 +307,6 @@ def require_module_access(*modules):
 def super_admin_only():
     return RequireAdminRole('super_admin')
 
-def content_managers_only():
-    return RequireAdminRole('super_admin', 'content_manager')
-
 def user_managers_only():
     return RequireAdminRole('super_admin', 'user_manager')
 
@@ -435,7 +432,7 @@ class AdminPermissionCache:
 
 def _import_permission_classes():
     try:
-        import src.user.permissions.permission_factory as pf
+        import src.user.access_control.definitions.permission_factory as pf
         
         for class_name in pf.__all__:
             globals()[class_name] = getattr(pf, class_name)

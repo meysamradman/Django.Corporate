@@ -23,7 +23,7 @@ from src.form.services.contact_form_field_service import (
     get_active_fields_for_platform,
 )
 from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 from src.form.utils.cache import FormCacheKeys, FormCacheManager
 
 

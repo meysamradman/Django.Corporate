@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
-from src.user.authorization import AdminRolePermission
+from src.user.access_control import AdminRolePermission
 from src.user.auth.auth_mixin import UserAuthMixin
 from src.user.serializers.user.user_profile_serializer import UserProfileSerializer, UserProfileUpdateSerializer
 from src.user.services.user.user_profile_service import UserProfileService

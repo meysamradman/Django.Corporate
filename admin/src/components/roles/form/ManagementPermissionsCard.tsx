@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Switch } from "@/components/elements/Switch";
 import { Settings, Shield } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
 
@@ -70,7 +71,7 @@ export function ManagementPermissionsCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {resources.map((resource) => {
             const managePerm =
               resource.permissions.find(
@@ -80,61 +81,66 @@ export function ManagementPermissionsCard({
             if (!managePerm || !managePerm.id) return null;
 
             const isSelected = isPermissionSelected(managePerm.id);
+            const canToggle = !(managePerm.requires_superadmin && !isSuperAdmin);
 
             return (
               <div
                 key={`${resource.resource}-${managePerm.id}`}
-                onClick={() => {
-                  if (managePerm.requires_superadmin && !isSuperAdmin) return;
-                  onTogglePermission(managePerm.id!);
-                }}
-                className={`group relative flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 ${
-                  managePerm.requires_superadmin && !isSuperAdmin
-                    ? "cursor-not-allowed opacity-50"
-                    : "cursor-pointer hover:scale-105"
-                } ${
+                className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
                   isSelected
                     ? "border-blue-1 bg-blue-0"
-                    : "border-br bg-card hover:border-blue-0"
-                }`}
+                    : "border-br bg-card"
+                } ${!canToggle ? "opacity-50" : ""}`}
               >
-                <div
-                  className={`p-2 rounded-lg transition-colors ${
-                    isSelected ? "bg-blue-1/20" : "bg-bg group-hover:bg-blue-0/50"
-                  }`}
-                >
-                  {getResourceIcon(resource.resource)}
-                </div>
-                <span
-                  className={`text-center text-sm font-medium leading-tight ${
-                    isSelected ? "text-blue-1" : "text-font-p"
-                  }`}
-                >
-                  {getPermissionTranslation(resource.display_name, "resource")}
-                </span>
-                {managePerm.requires_superadmin && (
+                <div className="flex-shrink-0">
                   <div
-                    className="absolute top-2 right-2 text-amber-500"
-                    title="نیازمند دسترسی سوپر ادمین"
+                    className={`p-2 rounded-lg transition-colors ${
+                      isSelected
+                        ? "bg-blue-1/20"
+                        : "bg-bg"
+                    }`}
                   >
-                    <Shield className="h-3 w-3" />
+                    {getResourceIcon(resource.resource)}
                   </div>
-                )}
-                {isSelected && (
-                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-1 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 text-wt"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <h3 className={`text-sm font-medium leading-tight ${
+                        isSelected ? "text-blue-1" : "text-font-p"
+                      }`}>
+                        {getPermissionTranslation(resource.display_name, "resource")}
+                      </h3>
+                      {(() => {
+                        const descriptionKey = resource.display_name as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
+                        const description = PERMISSION_TRANSLATIONS.descriptions[descriptionKey];
+                        return description && description !== getPermissionTranslation(resource.display_name, "resource") ? (
+                          <p className="text-xs text-font-s mt-1">
+                            {description}
+                          </p>
+                        ) : null;
+                      })()}
+                    </div>
+                    
+                    <div className="flex-shrink-0 flex items-center gap-2">
+                      {managePerm.requires_superadmin && !isSuperAdmin && (
+                        <div title="نیازمند دسترسی سوپر ادمین">
+                          <Shield className="h-4 w-4 text-amber-500" />
+                        </div>
+                      )}
+                      <Switch
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                          if (!canToggle) return;
+                          onTogglePermission(managePerm.id!);
+                        }}
+                        disabled={!canToggle}
+                        aria-label={getPermissionTranslation(resource.display_name, "resource")}
                       />
-                    </svg>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}

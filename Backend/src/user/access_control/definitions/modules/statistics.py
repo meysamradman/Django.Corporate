@@ -23,6 +23,24 @@ STATISTICS_PERMISSIONS = {
         'display_name': 'View Content Statistics',
         'description': 'View portfolio, blog, media statistics',
     },
+    'statistics.tickets.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Tickets Statistics',
+        'description': 'View support tickets statistics and analytics',
+    },
+    'statistics.emails.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View Emails Statistics',
+        'description': 'View email messages statistics and analytics',
+    },
+    'statistics.system.read': {
+        'module': 'statistics',
+        'action': 'read',
+        'display_name': 'View System Statistics',
+        'description': 'View system-level statistics (server, performance, logs)',
+    },
     'statistics.financial.read': {
         'module': 'statistics',
         'action': 'read',

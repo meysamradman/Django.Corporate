@@ -15,10 +15,9 @@ from src.portfolio.serializers.admin.category_serializer import (
 from src.portfolio.services.admin.category_services import PortfolioCategoryAdminService
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireModuleAccess
+from src.user.access_control import RequireModuleAccess, PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
-from src.user.permissions import PermissionValidator
 
 
 class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):

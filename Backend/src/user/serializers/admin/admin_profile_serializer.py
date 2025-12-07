@@ -9,8 +9,7 @@ from src.user.utils.national_id_validator import validate_national_id_format, va
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
-from src.user.permissions.config import get_role_config, is_super_admin_role
-from src.user.permissions.helpers import PermissionHelper
+from src.user.access_control import get_role_config, is_super_admin_role, PermissionHelper
 
 
 class ProfilePictureSerializer(serializers.ModelSerializer):

@@ -31,10 +31,9 @@ from src.blog.services.admin import (
 )
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireModuleAccess
+from src.user.access_control import RequireModuleAccess, PermissionValidator
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
-from src.user.permissions import PermissionValidator
 
 
 class BlogAdminViewSet(viewsets.ModelViewSet):

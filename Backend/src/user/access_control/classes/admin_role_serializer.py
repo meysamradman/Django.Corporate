@@ -3,8 +3,8 @@ from src.user.models import AdminRole, AdminUserRole, User
 from django.core.exceptions import ValidationError
 from src.user.messages import AUTH_ERRORS, ROLE_ERRORS
 from src.user.messages.permission import PERMISSION_ERRORS
-from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
-from src.user.permissions.registry import PermissionRegistry
+from src.user.access_control.definitions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
+from src.user.access_control.definitions.registry import PermissionRegistry
 
 
 class AdminRoleSerializer(serializers.ModelSerializer):

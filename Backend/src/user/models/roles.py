@@ -151,9 +151,9 @@ class AdminUserRole(BaseModel):
         
         super(AdminUserRole, self).save(update_fields=['permissions_cache', 'last_cache_update'])
         
-        from src.user.authorization.admin_permission import AdminPermissionCache
-        from src.user.permissions.validator import PermissionValidator
-        from src.user.permissions.helpers import PermissionHelper
+        from src.user.access_control.classes.admin_permission import AdminPermissionCache
+        from src.user.access_control.definitions.validator import PermissionValidator
+        from src.user.access_control.definitions.helpers import PermissionHelper
         
         AdminPermissionCache.clear_user_cache(self.user_id)
         PermissionValidator.clear_user_cache(self.user_id)
@@ -177,9 +177,7 @@ def validate_admin_user_role(sender, instance, **kwargs):
 
 @receiver([post_save, post_delete], sender=AdminUserRole, dispatch_uid="clear_admin_user_cache")
 def clear_admin_user_cache(sender, instance, **kwargs):
-    from src.user.authorization.admin_permission import AdminPermissionCache
-    from src.user.permissions.validator import PermissionValidator
-    from src.user.permissions.helpers import PermissionHelper
+    from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
     
     user_id = instance.user_id
     
@@ -192,9 +190,7 @@ def clear_admin_user_cache(sender, instance, **kwargs):
 
 @receiver([post_save, post_delete], sender=AdminRole, dispatch_uid="clear_admin_role_cache")
 def clear_admin_role_cache(sender, instance, **kwargs):
-    from src.user.authorization.admin_permission import AdminPermissionCache
-    from src.user.permissions.validator import PermissionValidator
-    from src.user.permissions.helpers import PermissionHelper
+    from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
     
     user_roles = AdminUserRole.objects.filter(role=instance, is_active=True).values_list('user_id', flat=True).distinct()
     

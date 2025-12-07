@@ -10,7 +10,7 @@ from src.settings.services.general_settings_service import (
     update_general_settings,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 
 

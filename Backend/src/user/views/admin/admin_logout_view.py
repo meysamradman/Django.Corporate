@@ -4,7 +4,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.user.authorization.admin_permission import SimpleAdminPermission
+from src.user.access_control import SimpleAdminPermission
 from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.services.admin.admin_auth_service import AdminAuthService

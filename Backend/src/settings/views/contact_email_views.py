@@ -13,7 +13,7 @@ from src.settings.services.contact_email_service import (
     delete_contact_email,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 
 
 class ContactEmailViewSet(viewsets.ModelViewSet):

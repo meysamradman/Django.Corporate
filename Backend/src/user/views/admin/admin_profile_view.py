@@ -6,16 +6,13 @@ from src.user.serializers.admin.admin_profile_serializer import AdminCompletePro
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.user.authorization.admin_permission import SimpleAdminPermission
+from src.user.access_control import SimpleAdminPermission, PermissionHelper, PermissionValidator, AdminPermissionCache
 from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from django.http import Http404
 from django.core.exceptions import ValidationError
 from src.user.models import User, AdminProfile, AdminUserRole
-from src.user.permissions.helpers import PermissionHelper
-from src.user.permissions.validator import PermissionValidator
 from src.user.utils.cache import UserCacheKeys
-from src.user.authorization.admin_permission import AdminPermissionCache
 from django.core.cache import cache
 
 @method_decorator(csrf_exempt, name='dispatch')

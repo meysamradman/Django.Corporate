@@ -16,11 +16,10 @@ from src.blog.serializers.admin.tag_serializer import (
 from src.blog.services.admin.tag_services import BlogTagAdminService
 from src.blog.filters.admin.tag_filters import BlogTagAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireModuleAccess
-from src.user.authorization.admin_permission import SimpleAdminPermission
+from src.user.access_control import RequireModuleAccess, SimpleAdminPermission
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import TAG_SUCCESS, TAG_ERRORS
-from src.user.permissions import PermissionValidator
+from src.user.access_control import PermissionValidator
 
 
 class BlogTagAdminViewSet(viewsets.ModelViewSet):

@@ -11,7 +11,7 @@ from src.portfolio.services.admin.excel_export_service import PortfolioExcelExpo
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.authorization.admin_permission import RequireModuleAccess
+from src.user.access_control import RequireModuleAccess
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 

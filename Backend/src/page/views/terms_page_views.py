@@ -13,7 +13,7 @@ from src.page.services.terms_page_service import (
     update_terms_page,
 )
 from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
-from src.user.authorization.admin_permission import RequirePermission
+from src.user.access_control import RequirePermission
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
 

@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from src.user.messages import ROLE_TEXT
 
 from .modules.base import BASE_PERMISSIONS
-from .modules.panel import PANEL_PERMISSIONS
 from .modules.media import MEDIA_PERMISSIONS
 from .modules.users import USERS_PERMISSIONS
-# NOTE: CONTENT_PERMISSIONS moved to blog/portfolio apps
-# from .modules.content import CONTENT_PERMISSIONS
-from .modules.communication import COMMUNICATION_PERMISSIONS
+from .modules.blog import BLOG_PERMISSIONS
+from .modules.portfolio import PORTFOLIO_PERMISSIONS
+from .modules.email import EMAIL_PERMISSIONS
+from .modules.ticket import TICKET_PERMISSIONS
 from .modules.ai import AI_PERMISSIONS
 from .modules.statistics import STATISTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
@@ -42,16 +42,16 @@ BASE_ADMIN_PERMISSIONS = {
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
     **BASE_ADMIN_PERMISSIONS,
     **BASE_PERMISSIONS,
-    **PANEL_PERMISSIONS,
     **MEDIA_PERMISSIONS,
     **USERS_PERMISSIONS,
-    # **CONTENT_PERMISSIONS,  # Moved to blog/portfolio apps
-    **COMMUNICATION_PERMISSIONS,
+    **BLOG_PERMISSIONS,
+    **PORTFOLIO_PERMISSIONS,
+    **EMAIL_PERMISSIONS,
+    **TICKET_PERMISSIONS,
     **AI_PERMISSIONS,
     **STATISTICS_PERMISSIONS,
     **MANAGEMENT_PERMISSIONS,
 }
-
 
 @dataclass
 class RoleConfig:
@@ -96,10 +96,6 @@ def _build_role_config(
     )
 
 
-# ========================================
-# SYSTEM ROLES - Core roles only
-# Blog/Portfolio specific roles moved to their respective apps
-# ========================================
 SYSTEM_ROLES: Dict[str, RoleConfig] = {
     'super_admin': _build_role_config(
         'super_admin',
@@ -110,8 +106,24 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'special': ['user_management', 'system_settings', 'role_management']
         },
     ),
-    # NOTE: content_manager, blog_manager, portfolio_manager removed
-    # These are app-specific and should be defined in blog/portfolio apps
+    'blog_manager': _build_role_config(
+        'blog_manager',
+        level=3,
+        permissions={
+            'modules': ['blog'],
+            'actions': ['create', 'read', 'update', 'delete'],
+            'restrictions': ['no_user_management', 'no_system_settings']
+        },
+    ),
+    'portfolio_manager': _build_role_config(
+        'portfolio_manager',
+        level=3,
+        permissions={
+            'modules': ['portfolio'],
+            'actions': ['create', 'read', 'update', 'delete'],
+            'restrictions': ['no_user_management', 'no_system_settings']
+        },
+    ),
     'media_manager': _build_role_config(
         'media_manager',
         level=4,
@@ -180,7 +192,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         level=6,
         permissions={
             'modules': ['settings'],
-            'actions': ['read', 'update', 'manage'],
+            'actions': ['manage'],
             'restrictions': ['no_delete', 'audit_required']
         },
     ),
@@ -189,7 +201,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         level=6,
         permissions={
             'modules': ['panel'],
-            'actions': ['read', 'update', 'manage'],
+            'actions': ['manage'],
             'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
@@ -213,11 +225,6 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
     ),
 }
 
-
-# ========================================
-# AVAILABLE MODULES - Core modules only
-# Blog/Portfolio modules moved to their respective apps
-# ========================================
 AVAILABLE_MODULES = {
     'all': {
         'name': 'all',
@@ -249,15 +256,16 @@ AVAILABLE_MODULES = {
         'display_name': 'Media Library',
         'description': 'Manage uploads, files, and the media library.'
     },
-    # NOTE: Blog and Portfolio modules removed - app-specific
-    # 'blog': {...},
-    # 'blog_categories': {...},
-    # 'blog_tags': {...},
-    # 'portfolio': {...},
-    # 'portfolio_categories': {...},
-    # 'portfolio_tags': {...},
-    # 'portfolio_options': {...},
-    # 'portfolio_option_values': {...},
+    'blog': {
+        'name': 'blog',
+        'display_name': 'Blog Management',
+        'description': 'Manage blog posts, categories, and tags.'
+    },
+    'portfolio': {
+        'name': 'portfolio',
+        'display_name': 'Portfolio Management',
+        'description': 'Manage portfolio items, categories, tags, and options.'
+    },
     'email': {
         'name': 'email',
         'display_name': 'Email Center',

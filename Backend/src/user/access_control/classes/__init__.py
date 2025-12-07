@@ -11,16 +11,15 @@ from .admin_permission import (
     AdminPermissionCache,
 )
 
-import src.user.permissions.permission_factory as permission_factory
+import src.user.access_control.definitions.permission_factory as permission_factory
 
 _permission_classes = {}
 for class_name in permission_factory.__all__:
     _permission_classes[class_name] = getattr(permission_factory, class_name)
 
-# NOTE: Blog and Portfolio manager access classes removed
-# These are app-specific and should be imported from their respective apps
-# BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
-# PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
+# NOTE: Blog and Portfolio manager access classes are now auto-generated from MODULE_MAPPINGS
+BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
+PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
 UsersManagerAccess = _permission_classes.get('UsersManagerAccess')
 MediaManagerAccess = _permission_classes.get('MediaManagerAccess')
 FormsManagerAccess = _permission_classes.get('FormsManagerAccess')
@@ -45,7 +44,7 @@ AIManagerAccess = AiManagerAccess
 from .admin_role_view import AdminRoleView
 from .admin_permission_view import AdminPermissionView
 
-from src.user.permissions.config import (
+from src.user.access_control.definitions.config import (
     SYSTEM_ROLES,
     AVAILABLE_MODULES,
     AVAILABLE_ACTIONS,
@@ -58,7 +57,7 @@ from src.user.permissions.config import (
 
 ADMIN_ROLE_PERMISSIONS = SYSTEM_ROLES
 
-from src.user.authorization.role_utils import (
+from .role_utils import (
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary
@@ -75,10 +74,8 @@ __all__ = [
     "require_admin_roles",
     "require_module_access",
     "AdminPermissionCache",
-    # NOTE: Blog/Portfolio manager access removed - app-specific
-    # "BlogManagerAccess",
-    # "PortfolioManagerAccess",
-    # "ContentManagerAccess",
+    "BlogManagerAccess",
+    "PortfolioManagerAccess",
     "UsersManagerAccess",
     "MediaManagerAccess",
     "FormsManagerAccess",

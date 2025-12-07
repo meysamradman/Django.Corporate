@@ -14,7 +14,7 @@ from .admin_permission import (
     require_admin_roles,
     AdminPermissionCache
 )
-from src.user.permissions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
+from src.user.access_control.definitions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AdminPermissionView(viewsets.ViewSet):

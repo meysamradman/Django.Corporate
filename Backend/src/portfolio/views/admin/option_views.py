@@ -16,10 +16,9 @@ from src.portfolio.serializers.admin.option_serializer import (
 from src.portfolio.services.admin.option_services import PortfolioOptionAdminService
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.authorization.admin_permission import RequireModuleAccess
+from src.user.access_control import RequireModuleAccess, PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
-from src.user.permissions import PermissionValidator
 
 
 class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):

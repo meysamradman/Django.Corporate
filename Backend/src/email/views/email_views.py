@@ -13,8 +13,7 @@ from src.email.serializers.email_serializer import (
     EmailMessageSerializer
 )
 from src.email.services.email_service import EmailService
-from src.user.authorization import EmailManagerAccess
-from src.user.permissions import PermissionValidator
+from src.user.access_control import EmailManagerAccess, PermissionValidator
 
 
 class EmailMessageViewSet(viewsets.ModelViewSet):

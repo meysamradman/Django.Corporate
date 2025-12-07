@@ -11,7 +11,7 @@ from src.blog.services.admin.excel_export_service import BlogExcelExportService
 from src.blog.services.admin.pdf_list_export_service import BlogPDFListExportService
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.authorization.admin_permission import RequireModuleAccess
+from src.user.access_control import RequireModuleAccess
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.blog.messages.messages import BLOG_ERRORS
 

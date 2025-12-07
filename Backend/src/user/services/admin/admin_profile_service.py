@@ -5,9 +5,7 @@ from src.user.models import User, AdminProfile
 from src.user.models.location import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models import ImageMedia
-from src.user.authorization.admin_permission import AdminPermissionCache
-from src.user.permissions.validator import PermissionValidator
-from src.user.permissions.helpers import PermissionHelper
+from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
 
 
 class AdminProfileService:

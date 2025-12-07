@@ -1,23 +1,14 @@
-"""
-Admin Roles Setup Script
-Executes role creation/update using utility functions
-Usage: python scripts/create_admin_roles.py [--force-update]
-"""
-
 import os
 import sys
 import django
 
-# Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-# Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 django.setup()
 
-# Import utility functions
-from src.user.authorization.role_utils import (
+from src.user.access_control import (
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary

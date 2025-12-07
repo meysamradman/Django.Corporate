@@ -1,15 +1,9 @@
-"""
-Redis Cache Clear Script
-Clear all Redis cache entries or specific patterns
-Usage: python scripts/clear_cache.py [--all|--app APP_NAME|--pattern PATTERN]
-"""
 import os
 import sys
 import django
 import argparse
 import logging
 
-# Setup Django
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 django.setup()
@@ -21,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 def clear_all_cache():
-    """Clear all cache entries"""
     redis_client = get_redis_connection('default')
     print('⚠️  Clearing ALL cache entries...')
     redis_client.flushdb()
@@ -30,7 +23,6 @@ def clear_all_cache():
 
 
 def clear_pattern(pattern):
-    """Clear cache entries matching pattern"""
     redis_client = get_redis_connection('default')
     print(f'⚠️  Clearing cache entries matching pattern: {pattern}')
     keys = redis_client.keys(pattern)
