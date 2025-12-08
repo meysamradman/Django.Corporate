@@ -19,7 +19,7 @@ class PageApi {
     async updateAboutPage(data: AboutPageUpdate): Promise<AboutPage> {
         const response = await fetchApi.patch<AboutPage>(
             `${this.baseUrl}about/`,
-            data
+            data as Record<string, unknown>
         );
         return response.data;
     }
@@ -34,7 +34,7 @@ class PageApi {
     async updateTermsPage(data: TermsPageUpdate): Promise<TermsPage> {
         const response = await fetchApi.patch<TermsPage>(
             `${this.baseUrl}terms/`,
-            data
+            data as Record<string, unknown>
         );
         return response.data;
     }

@@ -254,10 +254,10 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     }
                 }
                 if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = msg.validation('firstNameRequired');
+                    newFieldErrors.firstName = msg.validation('required', { field: 'نام' });
                 }
                 if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = msg.validation('lastNameRequired');
+                    newFieldErrors.lastName = msg.validation('required', { field: 'نام خانوادگی' });
                 }
                 
                 if (errorData.detail) {

@@ -6,9 +6,9 @@ import { cookies } from 'next/headers';
 import { createCookieHeader } from "@/components/shared/searchParamsUtils";
 
 interface EditUserPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditUserPage({ params }: EditUserPageProps) {
@@ -38,7 +38,7 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
         </div>
 
         <Suspense fallback={<div className="p-6">در حال بارگذاری فرم...</div>}>
-            <EditUserForm userData={userData} />
+            <EditUserForm userData={userData as any} />
         </Suspense>
       </div>
     );

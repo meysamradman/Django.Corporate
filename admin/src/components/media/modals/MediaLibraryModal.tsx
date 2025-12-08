@@ -110,7 +110,6 @@ export function MediaLibraryModal({
     files,
     isUploading,
     uploadSettings,
-    isLoadingSettings,
     validationErrors,
     processFiles,
     updateFileMetadata,
@@ -119,6 +118,8 @@ export function MediaLibraryModal({
     uploadFiles,
     clearFiles
   } = useMediaUpload(context, contextId);
+  
+  const isLoadingSettings = false;
 
   const fetchMedia = useCallback(async (currentFilters: typeof filters, forceRefresh: boolean = false) => {
     setIsLoading(true);

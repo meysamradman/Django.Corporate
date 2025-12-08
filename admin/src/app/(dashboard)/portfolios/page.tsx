@@ -624,7 +624,7 @@ export default function PortfolioPage() {
       </div>
 
       <DataTable
-        columns={columns}
+        columns={columns as any}
         data={data}
         pageCount={pageCount}
         isLoading={isLoading}

@@ -55,7 +55,7 @@ export function ProviderSelector({
                 </SelectTrigger>
                 <SelectContent>
                     {providers.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.provider_name}>
+                        <SelectItem key={provider.id} value={provider.provider_name || `provider-${provider.id}`}>
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">{getProviderIcon(provider)}</span>
                                 <span>مدل {getProviderDisplayName(provider)}</span>
@@ -70,11 +70,12 @@ export function ProviderSelector({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
             {providers.map((provider) => {
-                const isSelected = selectedProvider === provider.provider_name;
+                const providerName = provider.provider_name || `provider-${provider.id}`;
+                const isSelected = selectedProvider === providerName;
                 return (
                     <div
                         key={provider.provider_name}
-                        onClick={() => onSelectProvider(provider.provider_name)}
+                        onClick={() => onSelectProvider(providerName)}
                         className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             isSelected 
                                 ? 'border-primary bg-primary/5 shadow-md' 

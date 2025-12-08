@@ -33,7 +33,7 @@ export function GeneratedAudioDisplay({
         return null;
     }
 
-    const audioUrl = generatedMedia?.file || generatedAudioUrl;
+    const audioUrl = generatedMedia?.file_url || generatedAudioUrl;
 
     const handlePlayPause = () => {
         if (audioRef.current) {

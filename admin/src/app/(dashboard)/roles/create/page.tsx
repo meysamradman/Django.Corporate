@@ -199,7 +199,7 @@ export default function CreateRolePage() {
           });
         });
         
-        showError(error, "لطفاً خطاهای فرم را بررسی کنید");
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
         showError(error);
       }

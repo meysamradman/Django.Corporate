@@ -25,8 +25,8 @@ export const getFileCategory = (input: File | Media): MediaType => {
         ext = input.name.split('.').pop()?.toLowerCase() || '';
         mimeType = input.type;
     } else {
-        ext = input.file_name.split('.').pop()?.toLowerCase() || '';
-        mimeType = input.mime_type;
+        ext = input.file_name?.split('.').pop()?.toLowerCase() || '';
+        mimeType = input.mime_type || '';
 
         if (input.media_type) {
             const mediaTypeMap: Record<string, MediaType> = {

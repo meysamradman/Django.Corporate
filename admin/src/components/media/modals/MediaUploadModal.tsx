@@ -49,7 +49,6 @@ export function MediaUploadModal({
     files,
     isUploading,
     uploadSettings,
-    isLoadingSettings,
     validationErrors,
     processFiles,
     updateFileMetadata,
@@ -58,6 +57,8 @@ export function MediaUploadModal({
     uploadFiles,
     clearFiles
   } = useMediaUpload(context, contextId);
+  
+  const isLoadingSettings = false;
 
   const handleCoverFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>, mediaFileId: string) => {
     const selectedCoverFile = event.target.files?.[0];

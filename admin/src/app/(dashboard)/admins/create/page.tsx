@@ -61,8 +61,8 @@ export default function CreateAdminPage() {
             profileData.birth_date = data.profile_birth_date || null;
             profileData.national_id = data.profile_national_id || null;
             profileData.phone = data.profile_phone || null;
-            profileData.province_id = data.profile_province_id || null;
-            profileData.city_id = data.profile_city_id || null;
+            (profileData as any).province_id = data.profile_province_id || null;
+            (profileData as any).city_id = data.profile_city_id || null;
             profileData.address = data.profile_address || null;
             profileData.department = data.profile_department || null;
             profileData.position = data.profile_position || null;
@@ -87,7 +87,7 @@ export default function CreateAdminPage() {
                 adminDataToSubmit.profile_picture_id = selectedMedia.id;
             }
 
-            return await adminApi.createAdmin(adminDataToSubmit, undefined);
+            return await adminApi.createAdmin(adminDataToSubmit as any, undefined);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });

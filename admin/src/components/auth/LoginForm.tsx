@@ -70,7 +70,7 @@ export function LoginForm() {
             setCaptchaDigits(digits);
         } catch (error) {
             setCaptchaError(msg.error("network"));
-            showError(error, msg.error("network"));
+            showError(error, { customMessage: msg.error("network") });
         } finally {
             setCaptchaLoading(false);
         }

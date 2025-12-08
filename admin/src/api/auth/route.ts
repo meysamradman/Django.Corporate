@@ -9,7 +9,7 @@ export const authApi = {
             const response = await fetchApi.get<{csrf_token: string}>('/admin/login/');
             return response.data;
         } catch (error) {
-            showError(error, 'Failed to get CSRF token');
+            showError(error);
             throw error;
         }
     },
@@ -28,7 +28,7 @@ export const authApi = {
         try {
             await fetchApi.post('/mobile/send-otp/', {mobile});
         } catch (error) {
-            showError(error, 'Failed to send verification code');
+            showError(error);
             throw error;
         }
     },
@@ -37,7 +37,7 @@ export const authApi = {
         try {
             await fetchApi.post('/mobile/verify-otp/', {identifier, otp});
         } catch (error) {
-            showError(error, 'Invalid verification code');
+            showError(error);
             throw error;
         }
     },

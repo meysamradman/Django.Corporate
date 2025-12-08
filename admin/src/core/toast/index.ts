@@ -86,13 +86,13 @@ export function showPromise<T>(
 ): void {
   toast.promise(promise, {
     loading: messages.loading,
-    success: (data) => {
+    success: (data: T) => {
       if (typeof messages.success === 'function') {
         return messages.success(data);
       }
       return messages.success;
     },
-    error: (error) => {
+    error: (error: unknown) => {
       if (messages.error) {
         if (typeof messages.error === 'function') {
           return messages.error(error);

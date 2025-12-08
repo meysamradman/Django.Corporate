@@ -321,7 +321,7 @@ export default function AdminsPage() {
       </div>
 
       <DataTable
-        columns={columns}
+        columns={columns as any}
         data={data}
         pageCount={pageCount}
         isLoading={isLoading}

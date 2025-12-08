@@ -120,8 +120,8 @@ export const portfolioApi = {
       formData.append('media_files', file);
     });
     
-    if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
-      formData.append('media_ids', data.media_ids.join(','));
+    if ((data as any).media_ids && Array.isArray((data as any).media_ids) && (data as any).media_ids.length > 0) {
+      formData.append('media_ids', (data as any).media_ids.join(','));
     }
     
     const response = await fetchApi.post<Portfolio>('/admin/portfolio/', formData);

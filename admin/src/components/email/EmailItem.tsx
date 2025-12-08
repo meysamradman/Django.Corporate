@@ -16,7 +16,7 @@ interface EmailItemProps {
 }
 
 export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }: EmailItemProps) {
-  const getInitials = (name: string, email?: string, source?: string) => {
+  const getInitials = (name?: string | null, email?: string | null, source?: string | null) => {
     if (name && name.trim()) {
       const words = name.trim().split(" ");
       if (words.length >= 2) {
@@ -33,14 +33,14 @@ export function EmailItem({ email, isSelected, onSelect, onClick, onToggleStar }
     return "?";
   };
 
-  const getDisplayName = (name: string, emailAddr: string, source: string, sourceDisplay?: string) => {
+  const getDisplayName = (name?: string | null, emailAddr?: string | null, source?: string | null, sourceDisplay?: string | null) => {
     if (name && name.trim()) {
       return name;
     }
     if (emailAddr) {
       return emailAddr.split("@")[0];
     }
-    return sourceDisplay || source;
+    return sourceDisplay || source || '???';
   };
 
   const getAvatarColor = (text: string) => {

@@ -40,19 +40,19 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
           label="نام"
           id="name"
           required
-          error={errors.name?.message}
+          error={errors.name?.message as string}
           placeholder="نام نقش را وارد کنید"
-          {...register("name")}
+          {...register("name" as any)}
         />
 
         <FormFieldTextarea
           label="توضیحات"
           id="description"
-          error={errors.description?.message}
+          error={errors.description?.message as string}
           placeholder="توضیحات نقش را وارد کنید (حداکثر ۳۰۰ کاراکتر)"
           rows={3}
           maxLength={300}
-          {...register("description")}
+          {...register("description" as any)}
         />
 
         {!hideSubmitButton && (

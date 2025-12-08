@@ -318,7 +318,7 @@ export const mediaApi = {
             const endpoint = `${BASE_MEDIA_PATH}/${mediaId}`;
             return await fetchApi.delete<{ deleted: boolean }>(endpoint);
         } catch (error: unknown) {
-            showError(error, `Failed to delete media item`);
+            showError(error);
             
             let message = "Failed to delete media";
             let statusCode = 500;
@@ -350,7 +350,7 @@ export const mediaApi = {
             const endpoint = `${BASE_MEDIA_PATH}/${mediaId}`;
             return await fetchApi.put<Media>(endpoint, updateData);
         } catch (error: unknown) {
-            showError(error, `Failed to update media item`);
+            showError(error);
             
             let message = "Failed to update media";
             let statusCode = 500;
@@ -393,7 +393,7 @@ export const mediaApi = {
             
             return response;
         } catch (error: unknown) {
-            showError(error, `Failed to update cover image`);
+            showError(error);
             
             let message = "Failed to update cover image";
             let statusCode = 500;
@@ -429,7 +429,7 @@ export const mediaApi = {
             
             return await fetchApi.post<{ deleted_count: number }>(endpoint, { media_data: mediaData });
         } catch (error: unknown) {
-            showError(error, `Failed to delete media items`);
+            showError(error);
             
             let message = "Failed to delete media items";
             let statusCode = 500;

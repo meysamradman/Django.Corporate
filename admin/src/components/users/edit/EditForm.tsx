@@ -179,10 +179,10 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                     }
                 }
                 if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = getValidation('firstNameRequired');
+                    newFieldErrors.firstName = getValidation('required', { field: 'نام' });
                 }
                 if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = getValidation('lastNameRequired');
+                    newFieldErrors.lastName = getValidation('required', { field: 'نام خانوادگی' });
                 }
                 
                 if (errorData.detail) {

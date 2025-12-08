@@ -91,7 +91,7 @@ export default function ProfileTab({
         
         const { adminApi } = await import('@/api/admins/route');
         
-        const adminId = form.getValues('id') || form.getValues('admin_id');
+        const adminId = (form.getValues as any)('id') || (form.getValues as any)('admin_id');
         if (adminId) {
           await adminApi.updateProfile({
             profile_picture: profilePictureId,
@@ -373,7 +373,7 @@ export default function ProfileTab({
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onUploadComplete={handleUploadComplete}
-        context="admin"
+        context={"media_library" as any}
       />
     </div>
   );

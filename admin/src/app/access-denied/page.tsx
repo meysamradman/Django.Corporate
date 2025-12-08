@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AccessDenied } from "@/core/permissions/components/AccessDenied";
 
-export default function AccessDeniedPage() {
+function AccessDeniedContent() {
   const searchParams = useSearchParams();
   const permission = searchParams.get('permission') || undefined;
   const module = searchParams.get('module') || undefined;
@@ -17,6 +18,14 @@ export default function AccessDeniedPage() {
       module={module}
       action={action}
     />
+  );
+}
+
+export default function AccessDeniedPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">در حال بارگذاری...</div>}>
+      <AccessDeniedContent />
+    </Suspense>
   );
 }
 

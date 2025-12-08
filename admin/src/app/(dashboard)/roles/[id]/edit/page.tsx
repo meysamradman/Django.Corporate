@@ -207,17 +207,17 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       
       let newPermissions: number[];
       
-      if (toggledPerm?.original_key === 'ai.manage') {
+      if ((toggledPerm as any)?.original_key === 'ai.manage') {
         if (isCurrentlySelected) {
           newPermissions = prev.filter(id => id !== permissionId);
         } else {
           const aiPermissionIds = allPermissions
-            .filter((p: any) => p.original_key?.startsWith('ai.') && p.original_key !== 'ai.manage')
+            .filter((p: any) => (p as any).original_key?.startsWith('ai.') && (p as any).original_key !== 'ai.manage')
             .map((p: any) => p.id);
           newPermissions = [...prev.filter(id => !aiPermissionIds.includes(id)), permissionId];
         }
-      } else if (toggledPerm?.original_key?.startsWith('ai.')) {
-        const aiManagePerm = allPermissions.find((p: any) => p.original_key === 'ai.manage');
+      } else if ((toggledPerm as any)?.original_key?.startsWith('ai.')) {
+        const aiManagePerm = allPermissions.find((p: any) => (p as any).original_key === 'ai.manage');
         const isAiManageSelected = aiManagePerm && prev.includes(aiManagePerm.id);
         
         if (isAiManageSelected) {
@@ -394,11 +394,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         permissions.forEach((group: any) => {
           group.permissions.forEach((perm: any) => {
             if (userSelectedPermissions.includes(perm.id)) {
-              if (perm.original_key) {
+              if ((perm as any).original_key) {
                 selectedPermsData.push({
                   module: perm.resource,
                   action: perm.action.toLowerCase(),
-                  permission_key: perm.original_key
+                  permission_key: (perm as any).original_key
                 });
               } else {
                 selectedPermsData.push({

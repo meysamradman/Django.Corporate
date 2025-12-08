@@ -97,7 +97,7 @@ export default function ProfileTab({
         
         const { adminApi } = await import('@/api/admins/route');
         
-        const userId = form.getValues('id') || form.getValues('user_id');
+        const userId = (form.getValues as any)('id') || (form.getValues as any)('user_id');
         if (userId) {
           await adminApi.updateUserByType(userId, {
             profile: {

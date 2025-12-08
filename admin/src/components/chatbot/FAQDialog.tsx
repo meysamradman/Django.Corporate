@@ -25,8 +25,8 @@ const formSchema = z.object({
   answer: z.string().min(1, "پاسخ الزامی است"),
   keywords: z.string().optional(),
   patterns: z.string().optional(),
-  order: z.number().int().min(0).default(0),
-  is_active: z.boolean().default(true),
+  order: z.number().int().min(0).optional(),
+  is_active: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
