@@ -31,15 +31,16 @@ import {
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
 
-const STATISTICS_USED_PERMISSIONS: readonly string[] = [
-  'statistics.manage',
-  'statistics.users.read',
-  'statistics.admins.read',
-  'statistics.content.read',
-  'statistics.tickets.read',
-  'statistics.emails.read',
-  'statistics.system.read',
-  'statistics.dashboard.read'
+const ANALYTICS_USED_PERMISSIONS: readonly string[] = [
+  'analytics.manage',  // Website visit analytics (page views)
+  'analytics.stats.manage',  // Full access to all app statistics
+  'analytics.users.read',
+  'analytics.admins.read',
+  'analytics.content.read',
+  'analytics.tickets.read',
+  'analytics.emails.read',
+  'analytics.system.read',
+  'analytics.dashboard.read'
 ];
 
 const AI_USED_PERMISSIONS: readonly string[] = [
@@ -115,7 +116,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 return perm.permission_key === permOriginalKey;
               }
               
-              if (permission.resource === 'statistics' && permOriginalKey) {
+              if (permission.resource === 'analytics' && permOriginalKey) {
                 return perm.permission_key === permOriginalKey;
               }
               
@@ -342,8 +343,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     return organizedPermissions.filter((r: any) => isManagementResource(r));
   }, [organizedPermissions]);
 
-  const statisticsResources = useMemo(() => {
-    return organizedPermissions.filter((r: any) => r.resource === 'statistics');
+  const analyticsResources = useMemo(() => {
+    return organizedPermissions.filter((r: any) => r.resource === 'analytics');
   }, [organizedPermissions]);
 
   const aiResources = useMemo(() => {
@@ -351,7 +352,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   }, [organizedPermissions]);
 
   const standardResources = useMemo(() => {
-    return organizedPermissions.filter((r: any) => !isManagementResource(r) && r.resource !== 'statistics' && r.resource !== 'ai');
+    return organizedPermissions.filter((r: any) => !isManagementResource(r) && r.resource !== 'analytics' && r.resource !== 'ai');
   }, [organizedPermissions]);
 
   const hasManageOnlyResources = manageOnlyResources.length > 0;
@@ -578,12 +579,12 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   getResourceIcon={getResourceIcon}
                 />
 
-                {statisticsResources.length > 0 && statisticsResources[0]?.permissions?.length > 0 && (
+                {analyticsResources.length > 0 && analyticsResources[0]?.permissions?.length > 0 && (
                   <StatisticsPermissionsCard
-                    permissions={statisticsResources[0].permissions}
+                    permissions={analyticsResources[0].permissions}
                     selectedPermissions={selectedPermissions}
                     isSuperAdmin={isSuperAdmin}
-                    statisticsUsedPermissions={STATISTICS_USED_PERMISSIONS}
+                    statisticsUsedPermissions={ANALYTICS_USED_PERMISSIONS}
                     onTogglePermission={togglePermission}
                     onToggleAllStatistics={(checked, statsPermIds) => {
                               const newSelected = checked

@@ -1,6 +1,6 @@
 BASE_PERMISSIONS = {
     'dashboard.read': {
-        'module': 'statistics',
+        'module': 'analytics',
         'action': 'read',
         'display_name': 'View Dashboard',
         'description': 'Access the admin dashboard (also in base permissions)',

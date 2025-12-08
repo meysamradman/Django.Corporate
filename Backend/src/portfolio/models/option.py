@@ -3,7 +3,7 @@ from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.utils.cache import OptionCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioOptionQuerySet
 
 
@@ -72,14 +72,14 @@ class PortfolioOption(BaseModel, SEOMixin):
         
         if self.pk:
             OptionCacheManager.invalidate_option(self.pk)
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         option_id = self.pk
         super().delete(*args, **kwargs)
         if option_id:
             OptionCacheManager.invalidate_option(option_id)
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
         return {

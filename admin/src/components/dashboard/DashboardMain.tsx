@@ -8,6 +8,7 @@ import { SummaryCards } from "@/components/dashboard/widgets/SummaryCards";
 import { ContentDistribution } from "@/components/dashboard/widgets/ContentDistribution";
 import { SystemStats } from "@/components/dashboard/widgets/SystemStats";
 import { SupportStats } from "@/components/dashboard/widgets/SupportStats";
+import { AnalyticsWidget } from "@/components/dashboard/widgets/AnalyticsWidget";
 
 export const DashboardMain = () => {
   const { data: stats, isLoading } = useStatistics();
@@ -86,6 +87,8 @@ export const DashboardMain = () => {
         <SystemStats systemStats={systemStats} isLoading={systemLoading || isLoading} />
         <SupportStats stats={stats} isLoading={isLoading} />
       </div>
+
+      <AnalyticsWidget isLoading={isLoading} />
     </div>
   );
 };

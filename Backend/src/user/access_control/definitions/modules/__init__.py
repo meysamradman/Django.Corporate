@@ -6,7 +6,7 @@ from .portfolio import PORTFOLIO_PERMISSIONS
 from .email import EMAIL_PERMISSIONS
 from .ticket import TICKET_PERMISSIONS
 from .ai import AI_PERMISSIONS
-from .statistics import STATISTICS_PERMISSIONS
+from .analytics import ANALYTICS_PERMISSIONS
 from .management import MANAGEMENT_PERMISSIONS
 
 __all__ = [
@@ -18,6 +18,6 @@ __all__ = [
     'EMAIL_PERMISSIONS',
     'TICKET_PERMISSIONS',
     'AI_PERMISSIONS',
-    'STATISTICS_PERMISSIONS',
+    'ANALYTICS_PERMISSIONS',
     'MANAGEMENT_PERMISSIONS',
 ]

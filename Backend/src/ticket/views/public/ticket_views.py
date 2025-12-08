@@ -9,7 +9,7 @@ from src.ticket.serializers.ticket_serializer import TicketDetailSerializer, Tic
 from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 
 
 class PublicTicketViewSet(viewsets.ModelViewSet):
@@ -52,7 +52,7 @@ class PublicTicketViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         ticket = serializer.save(user=request.user, status='open')
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
         
         message_data = request.data.get('message')
         attachment_ids = request.data.get('attachment_ids', [])
@@ -123,7 +123,7 @@ class PublicTicketViewSet(viewsets.ModelViewSet):
         message = message_serializer.save()
         
         TicketCacheManager.invalidate_ticket(ticket.id)
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
         
         return APIResponse.success(
             message=TICKET_SUCCESS['message_sent'],

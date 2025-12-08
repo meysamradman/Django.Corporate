@@ -63,10 +63,10 @@ export function StatisticsPermissionsCard({
             </div>
             <div>
               <CardTitle>
-                {getPermissionTranslation("Statistics Center", "resource")}
+                {getPermissionTranslation("Analytics", "resource")}
               </CardTitle>
               <p className="text-sm text-font-s mt-1">
-                {PERMISSION_TRANSLATIONS.cardDescriptions.statistics}
+                {PERMISSION_TRANSLATIONS.cardDescriptions.analytics}
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export function StatisticsPermissionsCard({
                           : "bg-bg"
                       }`}
                     >
-                      {getResourceIcon("statistics")}
+                      {getResourceIcon("analytics")}
                     </div>
                   </div>
                   

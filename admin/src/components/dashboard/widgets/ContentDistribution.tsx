@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { LayoutList } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Statistics } from "@/types/statistics/statisticsWidget";
+import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 import {
   ChartContainer,
@@ -19,7 +19,7 @@ import {
 } from "recharts";
 
 interface ContentDistributionProps {
-  stats: Statistics | undefined;
+  stats: DashboardStats | undefined;
   isLoading?: boolean;
 }
 

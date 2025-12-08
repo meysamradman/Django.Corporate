@@ -1,6 +1,6 @@
 from django.core.cache import cache
 
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 
 
 class TicketCacheKeys:
@@ -39,7 +39,7 @@ class TicketCacheManager:
     @staticmethod
     def invalidate_stats():
         cache.delete(TicketCacheKeys.stats())
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
     
     @staticmethod
     def invalidate_all(ticket_id=None):

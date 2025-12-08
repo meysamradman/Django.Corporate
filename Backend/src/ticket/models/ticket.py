@@ -4,7 +4,7 @@ from src.core.models import BaseModel
 from src.user.models.user import User
 from src.user.models.admin_profile import AdminProfile
 from src.ticket.utils.cache import TicketCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 
 TICKET_STATUS_CHOICES = [
     ('open', 'Open'),
@@ -108,11 +108,11 @@ class Ticket(BaseModel):
         super().save(*args, **kwargs)
         if self.pk:
             TicketCacheManager.invalidate_all(ticket_id=self.id)
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         ticket_id = self.id
         super().delete(*args, **kwargs)
         TicketCacheManager.invalidate_all(ticket_id=ticket_id)
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
 

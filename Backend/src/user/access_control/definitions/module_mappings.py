@@ -17,7 +17,7 @@ MODULE_MAPPINGS: Dict[str, List[str]] = {
     'ai': ['ai'],
     'chatbot': ['chatbot'],
     'ticket': ['ticket'],
-    'statistics': ['statistics'],
     'forms': ['forms'],
     'admin': ['admin'],
+    'analytics': ['analytics'],
 }

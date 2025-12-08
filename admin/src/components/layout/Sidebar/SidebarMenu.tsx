@@ -11,6 +11,7 @@ import {
     Mail,
     Ticket,
     List,
+    BarChart3,
     type LucideIcon
 } from "lucide-react"
 import { useMemo, useCallback } from "react"

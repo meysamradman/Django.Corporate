@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Server, Database, HardDrive, Activity } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
-import { SystemStats as SystemStatsType } from "@/types/statistics/systemStats";
+import { SystemStats as SystemStatsType } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 
 interface SystemStatsProps {
@@ -29,7 +29,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
     })).filter(item => item.value > 0);
   }, [systemStats]);
 
-  if (!hasPermission('statistics.system.read')) {
+  if (!hasPermission('analytics.system.read')) {
     return null;
   }
 

@@ -145,11 +145,6 @@ ROLE_TEXT = {
         "display_name_short": "Panel",
         "description": "Manages admin panel branding, appearance, and panel-level toggles.",
     },
-    "statistics_viewer": {
-        "display_name": "Statistics Viewer",
-        "display_name_short": "Stats",
-        "description": "Read-only access to dashboards, statistics, and analytics.",
-    },
     "user_manager": {
         "display_name": "User Manager",
         "display_name_short": "Users",

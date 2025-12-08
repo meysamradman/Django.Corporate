@@ -388,7 +388,6 @@ class AdminRoleView(viewsets.ViewSet):
                 'ai_manager',
                 'settings_manager',
                 'panel_manager',
-                'statistics_viewer',
                 'user_manager',
             ]
             
@@ -550,15 +549,16 @@ class AdminRoleView(viewsets.ViewSet):
             
             base_permission_keys = set(BASE_ADMIN_PERMISSIONS.keys())
             
-            STATISTICS_USED_PERMISSIONS = {
-                'statistics.manage',
-                'statistics.users.read',
-                'statistics.admins.read',
-                'statistics.content.read',
-                'statistics.tickets.read',
-                'statistics.emails.read',
-                'statistics.system.read',
-                'statistics.dashboard.read'
+            ANALYTICS_USED_PERMISSIONS = {
+                'analytics.manage',  # Website visit analytics (page views)
+                'analytics.stats.manage',  # Full access to all app statistics
+                'analytics.users.read',
+                'analytics.admins.read',
+                'analytics.content.read',
+                'analytics.tickets.read',
+                'analytics.emails.read',
+                'analytics.system.read',
+                'analytics.dashboard.read'
             }
             
             for module_key, module_info in modules.items():
@@ -576,7 +576,7 @@ class AdminRoleView(viewsets.ViewSet):
                     if perm_key in base_permission_keys:
                         continue
                     
-                    if module_key == 'statistics' and perm_key not in STATISTICS_USED_PERMISSIONS:
+                    if module_key == 'analytics' and perm_key not in ANALYTICS_USED_PERMISSIONS:
                         continue
                     
                     permissions_for_module.append({

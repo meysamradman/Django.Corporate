@@ -11,13 +11,13 @@ from .modules.portfolio import PORTFOLIO_PERMISSIONS
 from .modules.email import EMAIL_PERMISSIONS
 from .modules.ticket import TICKET_PERMISSIONS
 from .modules.ai import AI_PERMISSIONS
-from .modules.statistics import STATISTICS_PERMISSIONS
+from .modules.analytics import ANALYTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
 
 
 BASE_ADMIN_PERMISSIONS = {
     'dashboard.read': {
-        'module': 'statistics',
+        'module': 'analytics',
         'action': 'read',
         'display_name': 'View Dashboard',
         'description': 'Access the admin dashboard overview (safe, general info)',
@@ -49,7 +49,7 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
     **EMAIL_PERMISSIONS,
     **TICKET_PERMISSIONS,
     **AI_PERMISSIONS,
-    **STATISTICS_PERMISSIONS,
+    **ANALYTICS_PERMISSIONS,
     **MANAGEMENT_PERMISSIONS,
 }
 
@@ -205,11 +205,11 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
-    'statistics_viewer': _build_role_config(
-        'statistics_viewer',
+    'analytics_viewer': _build_role_config(
+        'analytics_viewer',
         level=7,
         permissions={
-            'modules': ['statistics'],
+            'modules': ['analytics'],
             'actions': ['read'],
             'restrictions': ['read_only', 'no_user_management']
         },
@@ -235,11 +235,6 @@ AVAILABLE_MODULES = {
         'name': 'dashboard',
         'display_name': 'Dashboard',
         'description': 'Main admin dashboard and overview.'
-    },
-    'statistics': {
-        'name': 'statistics',
-        'display_name': 'Statistics Center',
-        'description': 'View KPI dashboards and system metrics.'
     },
     'admin': {
         'name': 'admin',
@@ -305,7 +300,12 @@ AVAILABLE_MODULES = {
         'name': 'panel',
         'display_name': 'Panel Settings',
         'description': 'Manage admin panel branding and configuration.'
-    }
+    },
+    'analytics': {
+        'name': 'analytics',
+        'display_name': 'Analytics',
+        'description': 'View website and app visit analytics and statistics.'
+    },
 }
 
 AVAILABLE_ACTIONS = {

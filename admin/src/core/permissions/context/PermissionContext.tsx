@@ -62,6 +62,7 @@ export interface UIPermissions {
   canViewEmailsStats: boolean;
   canViewSystemStats: boolean;
   canManageStatistics: boolean;
+  canManageAllStats: boolean;
   
   canViewEmail: boolean;
   canViewAI: boolean;
@@ -261,14 +262,15 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canDeleteAudio: check('media.audio.delete'),
       canDeleteDocument: check('media.document.delete'),
       
-      canViewDashboardStats: check('statistics.dashboard.read'),
-      canViewUsersStats: check('statistics.users.read'),
-      canViewAdminsStats: check('statistics.admins.read'),
-      canViewContentStats: check('statistics.content.read'),
-      canViewTicketsStats: check('statistics.tickets.read'),
-      canViewEmailsStats: check('statistics.emails.read'),
-      canViewSystemStats: check('statistics.system.read'),
-      canManageStatistics: check('statistics.manage'),
+      canViewDashboardStats: check('analytics.dashboard.read') || check('analytics.stats.manage'),
+      canViewUsersStats: check('analytics.users.read') || check('analytics.stats.manage'),
+      canViewAdminsStats: check('analytics.admins.read') || check('analytics.stats.manage'),
+      canViewContentStats: check('analytics.content.read') || check('analytics.stats.manage'),
+      canViewTicketsStats: check('analytics.tickets.read') || check('analytics.stats.manage'),
+      canViewEmailsStats: check('analytics.emails.read') || check('analytics.stats.manage'),
+      canViewSystemStats: check('analytics.system.read') || check('analytics.stats.manage'),
+      canManageStatistics: check('analytics.manage'),
+      canManageAllStats: check('analytics.stats.manage'),
       
       canViewEmail: check('email.read') || check('email.view'),
       canViewAI: check('ai.read') || check('ai.view'),

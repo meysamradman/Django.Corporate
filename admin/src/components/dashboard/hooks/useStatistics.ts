@@ -1,13 +1,19 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { statsApi } from '@/api/statistics/route';
-import { SystemStats } from '@/types/statistics/systemStats';
+import { fetchApi } from '@/core/config/fetch';
+import { DashboardStats, SystemStats } from '@/types/analytics/analytics';
 
 export const useStatistics = () => {
-  return useQuery({
-    queryKey: ['statistics'],
-    queryFn: () => statsApi.getStatistics(),
+  return useQuery<DashboardStats>({
+    queryKey: ['analytics', 'dashboard'],
+    queryFn: async () => {
+      const response = await fetchApi.get<DashboardStats>('/analytics/admin/stats/dashboard/');
+      if (!response.data) {
+        throw new Error("API returned success but no dashboard stats data found.");
+      }
+      return response.data;
+    },
     staleTime: 0,
     gcTime: 0,
     refetchInterval: 10 * 60 * 1000,
@@ -15,9 +21,15 @@ export const useStatistics = () => {
 };
 
 export const useSystemStats = () => {
-  return useQuery({
-    queryKey: ['system_stats'],
-    queryFn: () => statsApi.getSystemStats(),
+  return useQuery<SystemStats>({
+    queryKey: ['analytics', 'system_stats'],
+    queryFn: async () => {
+      const response = await fetchApi.get<SystemStats>('/analytics/admin/stats/system_stats/');
+      if (!response.data) {
+        throw new Error("API returned success but no system stats data found.");
+      }
+      return response.data;
+    },
     staleTime: 0,
     gcTime: 0,
     refetchInterval: 10 * 60 * 1000,

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Activity, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
-import { Statistics } from "@/types/statistics/statisticsWidget";
+import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 import {
   ChartContainer,
@@ -20,7 +20,7 @@ import {
 } from "recharts";
 
 interface SupportStatsProps {
-  stats: Statistics | undefined;
+  stats: DashboardStats | undefined;
   isLoading?: boolean;
 }
 
@@ -108,8 +108,8 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
     },
   } satisfies ChartConfig), []);
 
-  const hasEmailPermission = hasPermission('statistics.emails.read');
-  const hasTicketPermission = hasPermission('statistics.tickets.read');
+  const hasEmailPermission = hasPermission('analytics.emails.read');
+  const hasTicketPermission = hasPermission('analytics.tickets.read');
 
   if (isLoading) {
     return (

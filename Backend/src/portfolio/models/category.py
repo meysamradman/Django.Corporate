@@ -5,7 +5,7 @@ from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.media.models.media import ImageMedia
 from src.portfolio.utils.cache import CategoryCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioCategoryQuerySet
 
 class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
@@ -88,12 +88,12 @@ class PortfolioCategory(MP_Node, BaseModel, SEOMixin):
         super().save(*args, **kwargs)
         
         CategoryCacheManager.invalidate_all()
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         CategoryCacheManager.invalidate_all()
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
         return {

@@ -8,7 +8,7 @@ from src.ticket.models.ticket_message import TicketMessage
 from src.ticket.serializers.ticket_serializer import TicketSerializer, TicketListSerializer, TicketDetailSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import PermissionValidator
 
 
@@ -88,7 +88,7 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         response = super().update(request, *args, **kwargs)
         ticket = self.get_object()
         TicketCacheManager.invalidate_ticket(ticket.id)
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
         if response.status_code == status.HTTP_200_OK:
             return APIResponse.success(
                 message=TICKET_SUCCESS['ticket_updated'],
@@ -106,7 +106,7 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         ticket_id = self.get_object().id
         response = super().destroy(request, *args, **kwargs)
         TicketCacheManager.invalidate_ticket(ticket_id)
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
         if response.status_code == status.HTTP_204_NO_CONTENT:
             return APIResponse.success(
                 message=TICKET_SUCCESS['ticket_deleted'],
@@ -135,7 +135,7 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             unread_messages.update(is_read=True)
             
             TicketCacheManager.invalidate_ticket(ticket.id)
-            StatisticsCacheManager.invalidate_tickets()
+            AnalyticsCacheManager.invalidate_tickets()
             
             serializer = TicketDetailSerializer(ticket)
             
@@ -179,7 +179,7 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
             ticket.save(update_fields=['status', 'updated_at'])
             
             TicketCacheManager.invalidate_ticket(ticket.id)
-            StatisticsCacheManager.invalidate_tickets()
+            AnalyticsCacheManager.invalidate_tickets()
             
             serializer = TicketDetailSerializer(ticket)
             

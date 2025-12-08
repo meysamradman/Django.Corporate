@@ -2,7 +2,7 @@ from django.db import models
 from src.core.models import BaseModel
 from src.blog.models.seo import SEOMixin
 from src.blog.utils.cache import TagCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import BlogTagQuerySet
 
 class BlogTag(BaseModel, SEOMixin):
@@ -70,14 +70,14 @@ class BlogTag(BaseModel, SEOMixin):
         
         if self.pk:
             TagCacheManager.invalidate_tag(self.pk)
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def delete(self, *args, **kwargs):
         tag_id = self.pk
         super().delete(*args, **kwargs)
         if tag_id:
             TagCacheManager.invalidate_tag(tag_id)
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     def generate_structured_data(self):
         return {

@@ -97,6 +97,7 @@ export const PERMISSION_TRANSLATIONS = {
 
   cardDescriptions: {
     'statistics': 'دسترسی به آمارهای مختلف سیستم',
+    'analytics': 'دسترسی به آمارهای مختلف سیستم و تحلیل‌ها',
     'ai': 'دسترسی به امکانات هوش مصنوعی',
     'management': 'دسترسی مدیریت کلی به تنظیمات و ماژول‌های سیستم',
   },

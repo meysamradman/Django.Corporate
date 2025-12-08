@@ -21,7 +21,6 @@ class AdminRole(BaseModel):
         ('ai_manager', 'AI Manager'),
         ('settings_manager', 'Settings Manager'),
         ('panel_manager', 'Panel Manager'),
-        ('statistics_viewer', 'Statistics Viewer'),
         ('user_manager', 'User Manager'),
     )
     

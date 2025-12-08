@@ -1,6 +1,6 @@
 from django.core.cache import cache
 
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 
 
 class EmailCacheKeys:
@@ -26,14 +26,14 @@ class EmailCacheManager:
     @staticmethod
     def invalidate_message(message_id):
         cache.delete(EmailCacheKeys.message(message_id))
-        StatisticsCacheManager.invalidate_emails()
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_emails()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     @staticmethod
     def invalidate_stats():
         cache.delete(EmailCacheKeys.stats())
-        StatisticsCacheManager.invalidate_emails()
-        StatisticsCacheManager.invalidate_dashboard()
+        AnalyticsCacheManager.invalidate_emails()
+        AnalyticsCacheManager.invalidate_dashboard()
     
     @staticmethod
     def invalidate_all(message_id=None):

@@ -28,15 +28,14 @@ SettingsManagerAccess = _permission_classes.get('SettingsManagerAccess')
 PanelManagerAccess = _permission_classes.get('PanelManagerAccess')
 EmailManagerAccess = _permission_classes.get('EmailManagerAccess')
 AiManagerAccess = _permission_classes.get('AiManagerAccess')
-StatisticsManagerAccess = _permission_classes.get('StatisticsManagerAccess')
-StatisticsViewerAccess = _permission_classes.get('StatisticsViewerAccess')
 ChatbotManagerAccess = _permission_classes.get('ChatbotManagerAccess')
 TicketManagerAccess = _permission_classes.get('TicketManagerAccess')
 AdminManagerAccess = _permission_classes.get('AdminManagerAccess')
+AnalyticsManagerAccess = _permission_classes.get('AnalyticsManagerAccess')
 
 # ContentManagerAccess = BlogManagerAccess  # Removed - app-specific
 UserManagerAccess = UsersManagerAccess
-AnalyticsViewerAccess = StatisticsManagerAccess
+AnalyticsViewerAccess = AnalyticsManagerAccess
 SupportAdminAccess = UsersManagerAccess
 PanelSettingsAccess = PanelManagerAccess
 AIManagerAccess = AiManagerAccess
@@ -84,8 +83,6 @@ __all__ = [
     "PanelManagerAccess",
     "EmailManagerAccess",
     "AiManagerAccess",
-    "StatisticsManagerAccess",
-    "StatisticsViewerAccess",
     "ChatbotManagerAccess",
     "TicketManagerAccess",
     "AdminManagerAccess",

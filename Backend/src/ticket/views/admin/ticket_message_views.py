@@ -7,7 +7,7 @@ from src.ticket.serializers.ticket_message_serializer import TicketMessageSerial
 from src.ticket.services import TicketMessageService
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
-from src.statistics.utils.cache import StatisticsCacheManager
+from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import PermissionValidator
 
 
@@ -69,7 +69,7 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         )
         
         TicketCacheManager.invalidate_ticket(ticket.id)
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
         
         return APIResponse.success(
             message=TICKET_SUCCESS['message_sent'],
@@ -104,7 +104,7 @@ class AdminTicketMessageViewSet(viewsets.ModelViewSet):
         ticket_id = message.ticket.id
         super().destroy(request, *args, **kwargs)
         TicketCacheManager.invalidate_ticket(ticket_id)
-        StatisticsCacheManager.invalidate_tickets()
+        AnalyticsCacheManager.invalidate_tickets()
         return APIResponse.success(
             message=TICKET_SUCCESS['message_deleted'],
             status_code=status.HTTP_200_OK

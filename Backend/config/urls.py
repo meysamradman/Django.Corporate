@@ -17,9 +17,9 @@ urlpatterns = [
     path('api/core/', include('src.core.urls', namespace='core')),
     path('api/', include('src.user.urls')),
     path('api/', include('src.media.urls')),
-    path('api/', include('src.statistics.urls')),
     path('api/', include('src.panel.urls')),
     path('api/settings/', include('src.settings.urls')),
+    path('api/analytics/', include('src.analytics.urls')),  # Analytics
     
     # ========================================
     # CORPORATE APPS - Optional (comment out to disable)

@@ -35,9 +35,9 @@ CORE_APPS = [
     'src.core.apps.CoreConfig',        # Core functionality
     'src.user.apps.UserConfig',        # User & Admin management
     'src.media.apps.MediaConfig',      # Media Library (centralized)
-    'src.statistics.apps.StatisticsConfig',  # Stats & Analytics
     'src.panel.apps.PanelConfig',      # Panel Settings
     'src.settings.apps.SettingsConfig', # System Settings
+    'src.analytics.apps.AnalyticsConfig',  # Analytics & Tracking
 ]
 
 # ========================================
@@ -91,6 +91,7 @@ MIDDLEWARE = [
      'django.contrib.auth.middleware.AuthenticationMiddleware',
      'django.contrib.messages.middleware.MessageMiddleware',
      'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     'src.analytics.middleware.AnalyticsMiddleware',  # Analytics tracking
 ]
 ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
@@ -342,6 +343,9 @@ MEDIA_ALLOWED_EXTENSIONS = {
     'pdf': os.getenv('MEDIA_PDF_EXTENSIONS', 'pdf').split(','),
     'audio': os.getenv('MEDIA_AUDIO_EXTENSIONS', 'mp3,ogg').split(','),
 }
+
+# GeoIP Settings
+GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
 
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
