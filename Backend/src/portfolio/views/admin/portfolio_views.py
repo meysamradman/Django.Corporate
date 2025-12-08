@@ -90,6 +90,7 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
+        """لیست نمونه‌کارها - بدون کش، فقط با query optimization"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_not_authorized"],

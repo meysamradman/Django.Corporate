@@ -8,6 +8,15 @@ class PortfolioCacheKeys:
         return f"portfolio:{portfolio_id}"
     
     @staticmethod
+    def list_admin(params):
+        """کلید کش برای لیست نمونه‌کارها"""
+        import hashlib
+        import json
+        params_str = json.dumps(params, sort_keys=True)
+        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
+        return f"portfolio_list_admin:{params_hash}"
+    
+    @staticmethod
     def main_image(portfolio_id):
         return f"portfolio:main_image:{portfolio_id}"
     
@@ -69,6 +78,18 @@ class PortfolioCacheManager:
             all_keys.extend(additional_keys)
         if all_keys:
             cache.delete_many(all_keys)
+    
+    @staticmethod
+    def invalidate_all_lists():
+        """پاک کردن تمام کش‌های لیست"""
+        try:
+            from django_redis import get_redis_connection
+            redis_conn = get_redis_connection("default")
+            list_keys = redis_conn.keys("*portfolio_list_admin:*")
+            if list_keys:
+                redis_conn.delete(*list_keys)
+        except:
+            pass
 
 
 class CategoryCacheKeys:
@@ -90,6 +111,16 @@ class CategoryCacheKeys:
         return f"popular_categories_{limit}"
     
     @staticmethod
+    def list_admin(params):
+        """کلید کش برای لیست با pagination و filtering"""
+        import hashlib
+        import json
+        # ساخت کلید یکتا بر اساس پارامترها
+        params_str = json.dumps(params, sort_keys=True)
+        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
+        return f"portfolio_category_list_admin:{params_hash}"
+    
+    @staticmethod
     def all_keys():
         return [
             CategoryCacheKeys.root_categories(),
@@ -108,10 +139,22 @@ class CategoryCacheManager:
     
     @staticmethod
     def invalidate_all():
+        """پاک کردن تمام کش‌های category شامل لیست‌ها"""
         all_keys = CategoryCacheKeys.all_keys()
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
+        
+        # پاک کردن تمام کش‌های لیست با pattern
+        try:
+            from django_redis import get_redis_connection
+            redis_conn = get_redis_connection("default")
+            # پاک کردن تمام کش‌های لیست با pattern
+            list_keys = redis_conn.keys("*portfolio_category_list_admin:*")
+            if list_keys:
+                redis_conn.delete(*list_keys)
+        except:
+            pass
     
     @staticmethod
     def invalidate_popular():

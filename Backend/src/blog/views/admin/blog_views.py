@@ -89,6 +89,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
+        """لیست وبلاگ‌ها - بدون کش، فقط با query optimization"""
         if not PermissionValidator.has_permission(request.user, 'blog.read'):
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_not_authorized"],
@@ -429,7 +430,7 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     def add_media(self, request, pk=None):
         if not PermissionValidator.has_permission(request.user, 'blog.update'):
             return APIResponse.error(
-                message=BLOG_ERRORS.get("blog_not_authorized"),
+                message=BLOG_ERRORS["blog_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
         media_files = request.FILES.getlist('media_files')

@@ -428,30 +428,30 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
         date_to = request.query_params.get('date_to')
         
         if not file_type or file_type == 'all':
-            image_qs = ImageMedia.objects.filter(is_active=True)
-            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True)
-            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True)
-            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True)
+            image_qs = ImageMedia.objects.filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at')
+            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
+            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
+            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'cover_image__id', 'cover_image__file', 'cover_image__title')
         elif file_type == 'image':
-            image_qs = ImageMedia.objects.filter(is_active=True)
+            image_qs = ImageMedia.objects.filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at')
             video_qs = VideoMedia.objects.none()
             audio_qs = AudioMedia.objects.none()
             document_qs = DocumentMedia.objects.none()
         elif file_type == 'video':
             image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True)
+            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
             audio_qs = AudioMedia.objects.none()
             document_qs = DocumentMedia.objects.none()
         elif file_type == 'audio':
             image_qs = ImageMedia.objects.none()
             video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True)
+            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
             document_qs = DocumentMedia.objects.none()
         elif file_type in ['document', 'pdf']:
             image_qs = ImageMedia.objects.none()
             video_qs = VideoMedia.objects.none()
             audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True)
+            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'cover_image__id', 'cover_image__file', 'cover_image__title')
         else:
             image_qs = ImageMedia.objects.none()
             video_qs = VideoMedia.objects.none()

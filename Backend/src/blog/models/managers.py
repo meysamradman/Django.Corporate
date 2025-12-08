@@ -18,7 +18,7 @@ class BlogQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        from src.blog.models.media import BlogImage
+        from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags',
@@ -32,11 +32,18 @@ class BlogQuerySet(models.QuerySet):
                 queryset=BlogImage.objects.select_related('image').filter(is_main=True),
                 to_attr='main_images'
             ),
-            'videos__video',
-            'videos__video__cover_image',
-            'audios__audio',
-            'audios__audio__cover_image',
-            'documents__document'
+            Prefetch(
+                'videos',
+                queryset=BlogVideo.objects.select_related('video', 'video__cover_image').order_by('order', 'created_at')
+            ),
+            Prefetch(
+                'audios',
+                queryset=BlogAudio.objects.select_related('audio', 'audio__cover_image').order_by('order', 'created_at')
+            ),
+            Prefetch(
+                'documents',
+                queryset=BlogDocument.objects.select_related('document', 'document__cover_image').order_by('order', 'created_at')
+            )
         ).annotate(
             total_media_count=Count('images', distinct=True) + 
                              Count('videos', distinct=True) +

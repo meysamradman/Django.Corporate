@@ -18,7 +18,7 @@ class PortfolioQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        from src.portfolio.models.media import PortfolioImage
+        from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags',
@@ -32,11 +32,18 @@ class PortfolioQuerySet(models.QuerySet):
                 queryset=PortfolioImage.objects.select_related('image').filter(is_main=True),
                 to_attr='main_images'
             ),
-            'videos__video',
-            'videos__video__cover_image',
-            'audios__audio',
-            'audios__audio__cover_image',
-            'documents__document'
+            Prefetch(
+                'videos',
+                queryset=PortfolioVideo.objects.select_related('video', 'video__cover_image').order_by('order', 'created_at')
+            ),
+            Prefetch(
+                'audios',
+                queryset=PortfolioAudio.objects.select_related('audio', 'audio__cover_image').order_by('order', 'created_at')
+            ),
+            Prefetch(
+                'documents',
+                queryset=PortfolioDocument.objects.select_related('document', 'document__cover_image').order_by('order', 'created_at')
+            )
         ).annotate(
             total_media_count=Count('images', distinct=True) + 
                              Count('videos', distinct=True) +

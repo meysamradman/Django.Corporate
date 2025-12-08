@@ -19,7 +19,10 @@ class MediaAdminService:
             raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         try:
-            return model.objects.get(id=media_id)
+            if model in [VideoMedia, AudioMedia, DocumentMedia]:
+                return model.objects.select_related('cover_image').get(id=media_id)
+            else:
+                return model.objects.get(id=media_id)
         except model.DoesNotExist:
             raise model.DoesNotExist(MEDIA_ERRORS["media_not_found"])
 
@@ -37,7 +40,10 @@ class MediaAdminService:
             raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         try:
-            media = model.objects.get(id=media_id)
+            if model in [VideoMedia, AudioMedia, DocumentMedia]:
+                media = model.objects.select_related('cover_image').get(id=media_id)
+            else:
+                media = model.objects.get(id=media_id)
             
             if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and 'cover_image' in data:
                 cover_image_value = data['cover_image']

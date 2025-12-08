@@ -118,6 +118,10 @@ class Portfolio(BaseModel, SEOMixin):
         return f"/portfolio/p/{self.public_id}/"
     
     def get_main_image(self):
+        # استفاده از prefetch شده اگر موجود باشه
+        if hasattr(self, 'main_image_media') and self.main_image_media:
+            return self.main_image_media[0].image if self.main_image_media[0].image else None
+        
         if hasattr(self, 'all_images'):
             all_images = getattr(self, 'all_images', [])
             main_images = [m for m in all_images if m.is_main]
@@ -125,32 +129,44 @@ class Portfolio(BaseModel, SEOMixin):
                 return main_images[0].image if main_images[0].image else None
             return None
         
+        # فقط اگر prefetch نداریم از کش استفاده کن
         cache_key = PortfolioCacheKeys.main_image(self.pk)
-        main_image = cache.get(cache_key)
+        main_image_id = cache.get(cache_key)
         
-        if main_image is None:
+        if main_image_id is None:
             try:
+                from src.media.models.media import ImageMedia
                 main_media = self.images.select_related('image').filter(is_main=True).first()
                 if main_media:
-                    main_image = main_media.image
+                    main_image_id = main_media.image.id if main_media.image else False
                 else:
                     video = self.videos.select_related('video__cover_image').first()
                     if video and video.video.cover_image:
-                        main_image = video.video.cover_image
+                        main_image_id = video.video.cover_image.id
                     else:
                         audio = self.audios.select_related('audio__cover_image').first()
                         if audio and audio.audio.cover_image:
-                            main_image = audio.audio.cover_image
+                            main_image_id = audio.audio.cover_image.id
                         else:
                             document = self.documents.select_related('document__cover_image').first()
                             if document and document.document.cover_image:
-                                main_image = document.document.cover_image
+                                main_image_id = document.document.cover_image.id
+                            else:
+                                main_image_id = False
             except Exception:
-                main_image = False
+                main_image_id = False
             
-            cache.set(cache_key, main_image, 1800)
+            cache.set(cache_key, main_image_id, 1800)
         
-        return main_image if main_image else None
+        if main_image_id and main_image_id is not False:
+            try:
+                from src.media.models.media import ImageMedia
+                return ImageMedia.objects.get(id=main_image_id)
+            except ImageMedia.DoesNotExist:
+                cache.delete(cache_key)
+                return None
+        
+        return None
     
     def get_main_media(self):
         main_image = self.get_main_image()

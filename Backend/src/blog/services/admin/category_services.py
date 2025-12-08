@@ -19,6 +19,18 @@ class BlogCategoryAdminService:
         ).order_by('path')
     
     @staticmethod
+    def get_list_queryset(filters=None, order_by='created_at', order_desc=True):
+        """دریافت لیست دسته‌بندی‌ها - بدون کش، فقط با query optimization"""
+        queryset = BlogCategoryAdminService.get_tree_queryset()
+        
+        # اعمال ordering
+        if order_by:
+            order_field = f"-{order_by}" if order_desc else order_by
+            queryset = queryset.order_by(order_field)
+        
+        return queryset
+    
+    @staticmethod
     def get_category_by_id(category_id):
         try:
             return BlogCategoryAdminService.get_tree_queryset().get(id=category_id)

@@ -24,11 +24,10 @@ class BlogAdminService:
                 'images',
                 queryset=BlogImage.objects.filter(is_main=True).select_related('image'),
                 to_attr='main_image_media'
-            ),
-            'images',
-            'videos',
-            'audios',
-            'documents'
+            )
+        ).annotate(
+            categories_count=Count('categories', distinct=True),
+            tags_count=Count('tags', distinct=True)
         )
         
         if filters:
@@ -77,13 +76,6 @@ class BlogAdminService:
             queryset = queryset.order_by(ordering_field)
         else:
             queryset = queryset.order_by('-created_at')
-        
-        queryset = queryset.annotate(
-            categories_count=Count('categories', distinct=True),
-            tags_count=Count('tags', distinct=True),
-            media_count=Count('images', distinct=True) + Count('videos', distinct=True) + 
-                       Count('audios', distinct=True) + Count('documents', distinct=True)
-        )
         
         return queryset
     
@@ -172,6 +164,7 @@ class BlogAdminService:
             )
         
         BlogCacheManager.invalidate_blog(blog.id)
+        BlogCacheManager.invalidate_all_lists()  # پاک کردن کش لیست‌ها
         
         return blog
 

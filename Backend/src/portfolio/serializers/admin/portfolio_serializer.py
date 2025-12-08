@@ -68,7 +68,7 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
     
-    media_count = serializers.IntegerField(source='total_media_count', read_only=True)
+    media_count = serializers.SerializerMethodField()
     categories_count = serializers.IntegerField(read_only=True)
     tags_count = serializers.IntegerField(read_only=True)
     
@@ -88,48 +88,37 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_media(self, obj):
-        media_limit = _MEDIA_LIST_LIMIT
+        # برای لیست، فقط main image کافیه - سریع‌تر
+        # media کامل فقط در detail نمایش داده میشه
+        return []
+    
+    def get_media_count(self, obj):
+        # محاسبه تعداد واقعی media ها بدون query اضافی
+        # استفاده از annotate شده از queryset اگر موجود باشه
+        if hasattr(obj, 'total_media_count'):
+            return obj.total_media_count
         
-        if hasattr(obj, 'all_images'):
-            all_images = getattr(obj, 'all_images', [])[:media_limit]
-        else:
-            all_images = list(obj.images.select_related('image').all()[:media_limit])
-        
-        videos = list(obj.videos.select_related('video', 'video__cover_image').all()[:media_limit])
-        audios = list(obj.audios.select_related('audio', 'audio__cover_image').all()[:media_limit])
-        documents = list(obj.documents.select_related('document', 'document__cover_image').all()[:media_limit])
-        for item in videos:
-            if item.video and hasattr(item.video, 'cover_image') and item.video.cover_image:
-                if hasattr(item.video.cover_image, 'file') and item.video.cover_image.file:
-                    try:
-                        _ = item.video.cover_image.file.url
-                    except:
-                        pass
-        for item in audios:
-            if item.audio and hasattr(item.audio, 'cover_image') and item.audio.cover_image:
-                if hasattr(item.audio.cover_image, 'file') and item.audio.cover_image.file:
-                    try:
-                        _ = item.audio.cover_image.file.url
-                    except:
-                        pass
-        for item in documents:
-            if item.document and hasattr(item.document, 'cover_image') and item.document.cover_image:
-                if hasattr(item.document.cover_image, 'file') and item.document.cover_image.file:
-                    try:
-                        _ = item.document.cover_image.file.url
-                    except:
-                        pass
-            if item.document and hasattr(item.document, 'file') and item.document.file:
-                try:
-                    _ = item.document.file.url
-                except:
-                    pass
-        
-        all_media = list(all_images) + videos + audios + documents
-        all_media.sort(key=lambda x: (x.order, x.created_at))
-        
-        serializer = PortfolioMediaAdminSerializer(context=self.context)
-        return [serializer.to_representation(media) for media in all_media]
+        # اگر annotate نداشت، از related manager استفاده کن
+        try:
+            count = 0
+            # بررسی prefetched cache برای جلوگیری از query اضافی
+            if hasattr(obj, '_prefetched_objects_cache'):
+                cache = obj._prefetched_objects_cache
+                count += len(cache.get('images', []))
+                count += len(cache.get('videos', []))
+                count += len(cache.get('audios', []))
+                count += len(cache.get('documents', []))
+            else:
+                # در صورت نبود cache، از count() استفاده کن
+                count = (
+                    obj.images.count() + 
+                    obj.videos.count() + 
+                    obj.audios.count() + 
+                    obj.documents.count()
+                )
+            return count
+        except:
+            return 0
 
     def get_main_image(self, obj):
         return obj.get_main_image_details()

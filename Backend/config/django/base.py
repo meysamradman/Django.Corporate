@@ -76,9 +76,11 @@ INSTALLED_APPS = [
      'django_redis',
      'django_mailbox',
      'post_office',
+     'silk',
      *LOCAL_APPS,
 ]
 MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware',
      'django.middleware.security.SecurityMiddleware',
      'src.core.security.middleware.SecurityLoggingMiddleware',
      'src.core.security.middleware.CSRFExemptAdminMiddleware',

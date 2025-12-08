@@ -51,7 +51,21 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         assigned_roles = []
         try:
-            if hasattr(obj, 'admin_user_roles'):
+            # استفاده از prefetched data
+            if hasattr(obj, '_prefetched_objects_cache') and 'admin_user_roles' in obj._prefetched_objects_cache:
+                user_role_assignments = [
+                    ur for ur in obj._prefetched_objects_cache['admin_user_roles']
+                    if ur.is_active
+                ]
+                assigned_roles = [
+                    {
+                        'id': ur.role.id,
+                        'name': ur.role.name,
+                        'display_name': ur.role.display_name
+                    } 
+                    for ur in user_role_assignments
+                ]
+            elif hasattr(obj, 'admin_user_roles'):
                 user_role_assignments = obj.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')
@@ -86,7 +100,14 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         assigned_roles = []
         try:
-            if hasattr(user, 'admin_user_roles'):
+            # استفاده از prefetched data
+            if hasattr(user, '_prefetched_objects_cache') and 'admin_user_roles' in user._prefetched_objects_cache:
+                user_role_assignments = [
+                    ur for ur in user._prefetched_objects_cache['admin_user_roles']
+                    if ur.is_active
+                ]
+                assigned_roles = [ur.role.name for ur in user_role_assignments]
+            elif hasattr(user, 'admin_user_roles'):
                 user_role_assignments = user.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')

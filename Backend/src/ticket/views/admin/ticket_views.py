@@ -17,8 +17,20 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
     serializer_class = TicketSerializer
     
     def get_queryset(self):
-        queryset = Ticket.objects.select_related('user', 'assigned_admin').prefetch_related(
-            'messages', 'messages__attachments'
+        from django.db.models import Count, Q
+        queryset = Ticket.objects.select_related(
+            'user', 
+            'assigned_admin'
+        ).prefetch_related(
+            'messages', 
+            'messages__attachments'
+        ).annotate(
+            messages_count=Count('messages', distinct=True),
+            unread_messages_count=Count(
+                'messages',
+                filter=Q(messages__is_read=False, messages__sender_type='user'),
+                distinct=True
+            )
         ).all()
         
         status_filter = self.request.query_params.get('status')
