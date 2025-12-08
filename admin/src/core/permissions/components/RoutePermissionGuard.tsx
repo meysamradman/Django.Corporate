@@ -84,6 +84,12 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
                 "/ai/chat": ["ai.chat.manage", "ai.manage"],
                 "/ai/content": ["ai.content.manage", "ai.manage"],
                 "/ai/image": ["ai.image.manage", "ai.manage"],
+                "/ai/audio": ["ai.audio.manage", "ai.manage"],
+                "/ai/settings": [
+                    "ai.settings.personal.manage",
+                    "ai.settings.shared.manage",
+                    "ai.manage"
+                ],
                 "/settings/my-ai": [
                     "ai.settings.personal.manage",
                     "ai.chat.manage",

@@ -505,12 +505,23 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     );
   }
 
+  const handleFormSubmit = () => {
+    handleSubmit(onSubmit)();
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-6 pb-28 relative">
+      <div className="flex items-center justify-between">
         <h1 className="page-title">
           ویرایش نقش: {role.name}
         </h1>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/roles")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          بازگشت
+        </Button>
       </div>
 
       <div className="space-y-6">
@@ -641,7 +652,29 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           form={form}
           onSubmit={onSubmit}
           isSubmitting={updateRoleMutation.isPending}
+          submitButtonText="ذخیره"
+          hideSubmitButton={true}
         />
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+        <Button 
+          onClick={handleFormSubmit} 
+          size="lg"
+          disabled={updateRoleMutation.isPending}
+        >
+          {updateRoleMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              در حال ذخیره...
+            </>
+          ) : (
+            <>
+              <Save className="h-5 w-5" />
+              ذخیره تغییرات
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

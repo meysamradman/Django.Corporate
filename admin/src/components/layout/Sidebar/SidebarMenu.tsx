@@ -403,7 +403,11 @@ export const useMenuData = () => {
                     return true;
                 }
                 const itemsAfter = childItems.slice(index + 1);
-                return itemsAfter.some(item => !item.isTitle);
+                const nextTitleIndex = itemsAfter.findIndex(item => item.isTitle);
+                const itemsInSection = nextTitleIndex === -1 
+                    ? itemsAfter 
+                    : itemsAfter.slice(0, nextTitleIndex);
+                return itemsInSection.some(item => !item.isTitle && (item.url || (item.items && item.items.length > 0)));
             }) as MenuItem[] | undefined;
 
             const hasActionableChild = filteredChildItems?.some(child => 
