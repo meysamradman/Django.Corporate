@@ -111,6 +111,14 @@ const nextConfig: NextConfig = {
       use: ["@svgr/webpack"],
     });
 
+    // ✅ بهینه‌سازی Tree Shaking
+    if (!dev && !isServer) {
+      // فعال کردن Tree Shaking برای ES Modules
+      config.optimization = config.optimization || {};
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = true;
+    }
+
     // ✅ بهینه‌سازی فقط برای production و client-side
     if (!dev && !isServer) {
       config.optimization = {

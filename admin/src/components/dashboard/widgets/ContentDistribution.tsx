@@ -84,10 +84,17 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
           </div>
         </div>
         <Skeleton className="w-full aspect-square max-h-[250px] rounded-lg mb-3" />
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           {[...Array(3)].map((_, i) => (
             <Skeleton key={i} className="h-16 rounded-lg" />
           ))}
+        </div>
+        <div className="pt-4 border-t border-br">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-14 rounded-lg" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -143,6 +150,66 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
           </div>
         ))}
       </div>
+
+      {/* Detailed Statistics */}
+      {(stats?.total_portfolio_categories || stats?.total_portfolio_tags || stats?.total_portfolio_options || 
+        stats?.total_blog_categories || stats?.total_blog_tags) && (
+        <div className="mt-4 pt-4 border-t border-br">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {/* Portfolio Details */}
+            {stats.total_portfolios > 0 && (
+              <>
+                {stats.total_portfolio_categories > 0 && (
+                  <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
+                    <p className="text-xs text-font-s mb-0.5">دسته‌بندی نمونه کارها</p>
+                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.portfolio }}>
+                      {formatNumber(stats.total_portfolio_categories)}
+                    </p>
+                  </div>
+                )}
+                {stats.total_portfolio_tags > 0 && (
+                  <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
+                    <p className="text-xs text-font-s mb-0.5">تگ نمونه کارها</p>
+                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.portfolio }}>
+                      {formatNumber(stats.total_portfolio_tags)}
+                    </p>
+                  </div>
+                )}
+                {stats.total_portfolio_options > 0 && (
+                  <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
+                    <p className="text-xs text-font-s mb-0.5">گزینه نمونه کارها</p>
+                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.portfolio }}>
+                      {formatNumber(stats.total_portfolio_options)}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Blog Details */}
+            {stats.total_posts > 0 && (
+              <>
+                {stats.total_blog_categories > 0 && (
+                  <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
+                    <p className="text-xs text-font-s mb-0.5">دسته‌بندی بلاگ</p>
+                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.blog }}>
+                      {formatNumber(stats.total_blog_categories)}
+                    </p>
+                  </div>
+                )}
+                {stats.total_blog_tags > 0 && (
+                  <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
+                    <p className="text-xs text-font-s mb-0.5">تگ بلاگ</p>
+                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.blog }}>
+                      {formatNumber(stats.total_blog_tags)}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

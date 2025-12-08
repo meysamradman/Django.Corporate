@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { Users, ShieldUser, LayoutList, Image, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { Card } from "@/components/elements/Card";
+import { cn } from "@/core/utils/cn";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { formatNumber } from "@/core/utils/format";
 import { Statistics } from "@/types/statistics/statisticsWidget";
@@ -29,6 +31,16 @@ const COLORS = {
   media: '#8B5CF6',
   email: '#EC4899',
   ticket: '#06B6D4',
+};
+
+// Map colors to Tailwind border classes
+const COLOR_BORDER_CLASSES: Record<string, string> = {
+  '#3B82F6': 'border-b-blue-1',
+  '#10B981': 'border-b-emerald-1',
+  '#F59E0B': 'border-b-amber-1',
+  '#8B5CF6': 'border-b-purple-1',
+  '#EC4899': 'border-b-rose-1',
+  '#06B6D4': 'border-b-cyan-1',
 };
 
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = false }) => {
@@ -98,16 +110,20 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[...Array(6)].map((_, i) => (
-          <div
+          <Card
             key={i}
-            className="bg-card border border-br rounded-xl p-5"
+            className="!py-5 p-5 border-b-4 border-b-gray-1"
           >
-            <div className="flex items-center justify-between mb-3">
-              <Skeleton className="w-12 h-12 rounded-lg" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <Skeleton className="w-12 h-12 rounded-lg" />
+                <div className="flex-1">
+                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </div>
             </div>
-            <Skeleton className="h-8 w-16 mb-2" />
-            <Skeleton className="h-4 w-20" />
-          </div>
+          </Card>
         ))}
       </div>
     );
@@ -117,29 +133,38 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {summaryCards.map((card) => {
         const Icon = card.icon;
+        const borderClass = COLOR_BORDER_CLASSES[card.color] || 'border-b-gray-1';
         return (
-          <div
+          <Card
             key={card.id}
-            className="bg-card border border-br rounded-xl p-5 hover:shadow-md hover:border-primary/20 transition-all duration-200"
+            className={cn(
+              "!py-5 p-5 hover:shadow-md hover:border-primary/20 transition-all duration-200 border-b-4",
+              borderClass
+            )}
+            style={{ borderBottomColor: card.color }}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div 
-                className="p-2.5 rounded-lg" 
-                style={{ backgroundColor: `${card.color}15` }}
-              >
-                <Icon className="w-5 h-5" style={{ color: card.color }} />
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <div 
+                  className="p-2.5 rounded-lg flex-shrink-0" 
+                  style={{ backgroundColor: `${card.color}15` }}
+                >
+                  <Icon className="w-5 h-5" style={{ color: card.color }} />
+                </div>
+                <div className="flex-1">
+                  <div className="text-2xl font-bold text-font-p leading-none mb-1">
+                    {formatNumber(card.value)}
+                  </div>
+                  <div className="text-xs text-font-s font-medium">{card.label}</div>
+                </div>
               </div>
               {card.trend && (
-                <div className="text-xs text-font-s bg-primary/10 text-primary px-2 py-1 rounded-md font-medium">
+                <div className="text-xs text-font-s bg-primary/10 text-primary px-2 py-1 rounded-md font-medium whitespace-nowrap flex-shrink-0">
                   {card.trend.value} {card.trend.label}
                 </div>
               )}
             </div>
-            <div className="text-2xl font-bold text-font-p mb-1 text-right">
-              {formatNumber(card.value)}
-            </div>
-            <div className="text-xs text-font-s font-medium text-right">{card.label}</div>
-          </div>
+          </Card>
         );
       })}
     </div>
