@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Activity, Mail, Ticket } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { Statistics } from "@/types/statistics/statisticsWidget";
 import { formatNumber } from "@/core/utils/format";
@@ -20,9 +21,10 @@ import {
 
 interface SupportStatsProps {
   stats: Statistics | undefined;
+  isLoading?: boolean;
 }
 
-export const SupportStats: React.FC<SupportStatsProps> = ({ stats }) => {
+export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = false }) => {
   const { hasPermission } = usePermission();
 
   const supportStats = useMemo(() => {
@@ -108,6 +110,25 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats }) => {
 
   const hasEmailPermission = hasPermission('statistics.emails.read');
   const hasTicketPermission = hasPermission('statistics.tickets.read');
+
+  if (isLoading) {
+    return (
+      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <Skeleton className="w-9 h-9 rounded-lg" />
+          <div className="text-right flex-1">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+        </div>
+        <div className="flex gap-3 mb-3">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <Skeleton className="w-full h-[300px] rounded-lg" />
+      </div>
+    );
+  }
 
   if (supportStats.length === 0 || (!hasEmailPermission && !hasTicketPermission)) {
     return null;

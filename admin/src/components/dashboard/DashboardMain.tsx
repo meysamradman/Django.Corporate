@@ -2,6 +2,7 @@
 
 import { Calendar, Clock } from "lucide-react";
 import { useMemo } from "react";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { useStatistics, useSystemStats } from "@/components/dashboard/hooks/useStatistics";
 import { SummaryCards } from "@/components/dashboard/widgets/SummaryCards";
 import { ContentDistribution } from "@/components/dashboard/widgets/ContentDistribution";
@@ -37,36 +38,43 @@ export const DashboardMain = () => {
   }, []);
 
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-font-s">در حال بارگذاری...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="text-right">
-            <h1 className="text-2xl font-bold text-font-p mb-1">
-              {greeting}
-            </h1>
-            <p className="text-sm text-font-s">به پنل مدیریت خوش آمدید</p>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-8 w-32 mb-2" />
+                <Skeleton className="h-4 w-40" />
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold text-font-p mb-1">
+                  {greeting}
+                </h1>
+                <p className="text-sm text-font-s">به پنل مدیریت خوش آمدید</p>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-font-s">
-              <Calendar className="w-4 h-4 text-font-s" />
-              <span>{date}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-font-s">
-              <Clock className="w-4 h-4 text-font-s" />
-              <span>{time}</span>
-            </div>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-20" />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-sm text-font-s">
+                  <Calendar className="w-4 h-4 text-font-s" />
+                  <span>{date}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-font-s">
+                  <Clock className="w-4 h-4 text-font-s" />
+                  <span>{time}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -74,9 +82,9 @@ export const DashboardMain = () => {
       <SummaryCards stats={stats} isLoading={isLoading} />
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <ContentDistribution stats={stats} />
-        <SystemStats systemStats={systemStats} isLoading={systemLoading} />
-        <SupportStats stats={stats} />
+        <ContentDistribution stats={stats} isLoading={isLoading} />
+        <SystemStats systemStats={systemStats} isLoading={systemLoading || isLoading} />
+        <SupportStats stats={stats} isLoading={isLoading} />
       </div>
     </div>
   );

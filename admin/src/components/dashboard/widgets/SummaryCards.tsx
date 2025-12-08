@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Users, ShieldUser, LayoutList, Image, Mail, Ticket } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { formatNumber } from "@/core/utils/format";
 import { Statistics } from "@/types/statistics/statisticsWidget";
@@ -99,13 +100,13 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="bg-card border border-br rounded-xl p-5 animate-pulse"
+            className="bg-card border border-br rounded-xl p-5"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 rounded-lg bg-br" />
+              <Skeleton className="w-12 h-12 rounded-lg" />
             </div>
-            <div className="h-8 w-16 bg-br rounded mb-1" />
-            <div className="h-4 w-20 bg-br rounded" />
+            <Skeleton className="h-8 w-16 mb-2" />
+            <Skeleton className="h-4 w-20" />
           </div>
         ))}
       </div>

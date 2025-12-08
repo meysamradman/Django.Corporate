@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Server, Database, HardDrive, Activity } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { SystemStats as SystemStatsType } from "@/types/statistics/systemStats";
 import { formatNumber } from "@/core/utils/format";
@@ -32,6 +33,45 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
     return null;
   }
 
+  if (isLoading) {
+    return (
+      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <Skeleton className="w-9 h-9 rounded-lg" />
+          <div className="text-right flex-1">
+            <Skeleton className="h-6 w-28 mb-2" />
+            <Skeleton className="h-4 w-36" />
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-lg border border-br bg-bg">
+              <Skeleton className="h-4 w-24 mb-2" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+            <div className="p-3 rounded-lg border border-br bg-bg">
+              <Skeleton className="h-4 w-24 mb-2" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+          </div>
+          <div className="p-3 rounded-lg border border-br bg-bg">
+            <Skeleton className="h-4 w-20 mb-2" />
+            <Skeleton className="h-5 w-12 mb-2" />
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[...Array(2)].map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
@@ -51,13 +91,9 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
               <Database className="w-4 h-4 text-blue-1" />
               <span className="text-xs text-font-s font-medium text-right">حجم دیتابیس</span>
             </div>
-            {isLoading ? (
-              <div className="h-5 w-16 bg-br animate-pulse rounded" />
-            ) : (
-              <p className="text-base font-bold text-font-p text-right">
-                {systemStats?.database?.size_formatted || 'N/A'}
-              </p>
-            )}
+            <p className="text-base font-bold text-font-p text-right">
+              {systemStats?.database?.size_formatted || 'N/A'}
+            </p>
           </div>
 
           <div className="p-3 rounded-lg border border-br bg-bg">
@@ -65,13 +101,9 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
               <HardDrive className="w-4 h-4 text-purple-1" />
               <span className="text-xs text-font-s font-medium text-right">ذخیره‌سازی کل</span>
             </div>
-            {isLoading ? (
-              <div className="h-5 w-16 bg-br animate-pulse rounded" />
-            ) : (
-              <p className="text-base font-bold text-font-p text-right">
-                {systemStats?.storage?.total_formatted || '0 B'}
-              </p>
-            )}
+            <p className="text-base font-bold text-font-p text-right">
+              {systemStats?.storage?.total_formatted || '0 B'}
+            </p>
           </div>
         </div>
 
@@ -80,19 +112,15 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
             <Activity className="w-4 h-4 text-emerald-1" />
             <span className="text-xs text-font-s font-medium text-right">وضعیت کش</span>
           </div>
-          {isLoading ? (
-            <div className="h-5 w-16 bg-br animate-pulse rounded" />
-          ) : (
-            <div>
-              <p className="text-base font-bold text-font-p mb-1 text-right">
-                {systemStats?.cache?.status === 'connected' ? 'متصل' : 'خطا'}
-              </p>
-              <div className="flex items-center justify-between text-xs text-font-s">
-                <span>حافظه: {systemStats?.cache?.used_memory_formatted || '0B'}</span>
-                <span>Hit: {systemStats?.cache?.hit_rate ? `${systemStats.cache.hit_rate.toFixed(1)}%` : '0%'}</span>
-              </div>
+          <div>
+            <p className="text-base font-bold text-font-p mb-1 text-right">
+              {systemStats?.cache?.status === 'connected' ? 'متصل' : 'خطا'}
+            </p>
+            <div className="flex items-center justify-between text-xs text-font-s">
+              <span>حافظه: {systemStats?.cache?.used_memory_formatted || '0B'}</span>
+              <span>Hit: {systemStats?.cache?.hit_rate ? `${systemStats.cache.hit_rate.toFixed(1)}%` : '0%'}</span>
             </div>
-          )}
+          </div>
         </div>
 
         {storageData.length > 0 && (
