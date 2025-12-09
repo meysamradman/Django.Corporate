@@ -19,6 +19,7 @@ class AdminRole(BaseModel):
         ('pages_manager', 'Pages Manager'),
         ('email_manager', 'Email Manager'),
         ('ai_manager', 'AI Manager'),
+        ('analytics_manager', 'Analytics Manager'),
         ('settings_manager', 'Settings Manager'),
         ('panel_manager', 'Panel Manager'),
         ('user_manager', 'User Manager'),

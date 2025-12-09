@@ -6,13 +6,13 @@ import { DashboardStats, SystemStats } from '@/types/analytics/analytics';
 
 export const useStatistics = () => {
   return useQuery<DashboardStats>({
-    queryKey: ['analytics', 'dashboard'],
+    queryKey: ['analytics', 'stats', 'dashboard'],
     queryFn: async () => {
       const response = await fetchApi.get<DashboardStats>('/analytics/admin/stats/dashboard/');
-      if (!response.data) {
+      if (!response || !response.data) {
         throw new Error("API returned success but no dashboard stats data found.");
       }
-      return response.data;
+      return response.data as DashboardStats;
     },
     staleTime: 0,
     gcTime: 0,

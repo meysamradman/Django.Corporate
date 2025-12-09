@@ -58,3 +58,28 @@ export function formatInputDate(date: string | Date | undefined | null): string 
     return ''
   }
 }
+
+/**
+ * Get Persian (Jalali) year from date
+ */
+export function getPersianYear(date?: Date | string | null): string {
+  if (!date) {
+    const d = new Date()
+    try {
+      return format(d, 'yyyy', { locale: faIR })
+    } catch {
+      return String(d.getFullYear() - 621)
+    }
+  }
+  
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(d.getTime())) {
+      return String(new Date().getFullYear() - 621)
+    }
+    return format(d, 'yyyy', { locale: faIR })
+  } catch (error) {
+    const d = typeof date === 'string' ? new Date(date) : date
+    return String(d.getFullYear() - 621)
+  }
+}

@@ -5,6 +5,7 @@ export type PermissionMeta = {
   display_name: string
   description: string
   requires_superadmin: boolean
+  is_standalone?: boolean
 }
 
 export type PermissionMap = {

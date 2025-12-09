@@ -1,4 +1,11 @@
 AI_PERMISSIONS = {
+    'ai.manage': {
+        'module': 'ai',
+        'action': 'manage',
+        'display_name': 'Full AI Access',
+        'description': 'Access to all AI features (chat, content, image, audio)',
+        'is_standalone': True,
+    },
     'ai.chat.manage': {
         'module': 'ai',
         'action': 'manage',
@@ -22,12 +29,6 @@ AI_PERMISSIONS = {
         'action': 'manage',
         'display_name': 'AI Audio Generation',
         'description': 'Access to text-to-speech and audio generation with AI',
-    },
-    'ai.manage': {
-        'module': 'ai',
-        'action': 'manage',
-        'display_name': 'Full AI Access',
-        'description': 'Access to all AI features (chat, content, image, audio)',
     },
     'ai.settings.shared.manage': {
         'module': 'ai',

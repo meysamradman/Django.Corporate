@@ -143,6 +143,23 @@ const roleRoutes: RouteRule[] = [
   }),
 ];
 
+const analyticsRoutes: RouteRule[] = [
+  createRule({
+    id: "analytics-page-views",
+    pattern: /^\/analytics\/?$/,
+    module: "analytics",
+    action: "manage",
+    description: "آمار بازدید وب‌سایت و اپلیکیشن",
+  }),
+  createRule({
+    id: "analytics-stats",
+    pattern: /^\/analytics\/stats\/?$/,
+    module: "analytics",
+    action: "manage",
+    description: "آمار سیستم و اپلیکیشن‌ها",
+  }),
+];
+
 const settingsRoutes: RouteRule[] = [
   createRule({
     id: "settings-panel",
@@ -498,6 +515,7 @@ const routeRules: RouteRule[] = [
   ...adminManagementRoutes,
   ...userManagementRoutes,
   ...roleRoutes,
+  ...analyticsRoutes,
   ...settingsRoutes,
   ...miscRoutes,
   

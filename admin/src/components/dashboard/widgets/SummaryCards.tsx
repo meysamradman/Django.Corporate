@@ -63,7 +63,8 @@ const CARD_COLORS = {
 };
 
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = false }) => {
-  const { hasPermission } = usePermission();
+  const { hasPermission, permissionMap } = usePermission();
+  const isSuperAdmin = permissionMap?.is_superadmin || false;
 
   const summaryCards = useMemo(() => {
     const cards: SummaryCard[] = [
@@ -122,8 +123,9 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
         trend: stats?.open_tickets ? { value: stats.open_tickets, label: 'باز' } : null
       },
     ];
-    return cards.filter(card => hasPermission(card.permission));
-  }, [stats, hasPermission]);
+    // Super admin sees all cards, others filtered by permission
+    return cards.filter(card => isSuperAdmin || hasPermission(card.permission));
+  }, [stats, hasPermission, isSuperAdmin]);
 
   if (isLoading) {
     return (

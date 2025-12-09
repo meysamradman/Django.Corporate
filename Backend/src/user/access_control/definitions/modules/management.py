@@ -34,11 +34,4 @@ MANAGEMENT_PERMISSIONS = {
         'description': 'Allow full access to static pages (view, update)',
         'is_standalone': True,
     },
-    'analytics.manage': {
-        'module': 'analytics',
-        'action': 'manage',
-        'display_name': 'Manage Website Analytics',
-        'description': 'Allow full access to view website and app visit analytics (page views, top pages, countries)',
-        'is_standalone': True,
-    },
 }

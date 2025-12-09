@@ -15,32 +15,9 @@ from .modules.analytics import ANALYTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
 
 
-BASE_ADMIN_PERMISSIONS = {
-    'dashboard.read': {
-        'module': 'analytics',
-        'action': 'read',
-        'display_name': 'View Dashboard',
-        'description': 'Access the admin dashboard overview (safe, general info)',
-        'is_base': True,
-    },
-    'profile.read': {
-        'module': 'admin',
-        'action': 'read',
-        'display_name': 'View Personal Profile',
-        'description': 'View own admin profile information',
-        'is_base': True,
-    },
-    'profile.update': {
-        'module': 'admin',
-        'action': 'update',
-        'display_name': 'Update Personal Profile',
-        'description': 'Update own admin profile information',
-        'is_base': True,
-    },
-}
+BASE_ADMIN_PERMISSIONS = BASE_PERMISSIONS
 
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
-    **BASE_ADMIN_PERMISSIONS,
     **BASE_PERMISSIONS,
     **MEDIA_PERMISSIONS,
     **USERS_PERMISSIONS,
@@ -205,13 +182,13 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
-    'analytics_viewer': _build_role_config(
-        'analytics_viewer',
-        level=7,
+    'analytics_manager': _build_role_config(
+        'analytics_manager',
+        level=5,
         permissions={
             'modules': ['analytics'],
-            'actions': ['read'],
-            'restrictions': ['read_only', 'no_user_management']
+            'actions': ['manage'],
+            'restrictions': ['no_user_management', 'no_system_settings']
         },
     ),
     'user_manager': _build_role_config(

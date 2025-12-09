@@ -25,7 +25,8 @@ interface SupportStatsProps {
 }
 
 export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = false }) => {
-  const { hasPermission } = usePermission();
+  const { hasPermission, permissionMap } = usePermission();
+  const isSuperAdmin = permissionMap?.is_superadmin || false;
 
   const supportStats = useMemo(() => {
     if (!stats) return [];
@@ -108,8 +109,8 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
     },
   } satisfies ChartConfig), []);
 
-  const hasEmailPermission = hasPermission('analytics.emails.read');
-  const hasTicketPermission = hasPermission('analytics.tickets.read');
+  const hasEmailPermission = isSuperAdmin || hasPermission('analytics.emails.read');
+  const hasTicketPermission = isSuperAdmin || hasPermission('analytics.tickets.read');
 
   if (isLoading) {
     return (

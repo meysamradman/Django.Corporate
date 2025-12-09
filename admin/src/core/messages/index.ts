@@ -11,6 +11,7 @@ import { getCrud, getAction, getConfirm, getExport, getStatus, getAuth } from '.
 import { getPortfolio } from './modules/portfolio';
 import { getBlog } from './modules/blog';
 import { getAI, getAIUI } from './modules/ai';
+import { translatePagePath, PAGE_PATH_TRANSLATIONS } from './analytics';
 
 // ============================================
 // 🔵 CORE EXPORTS - همیشه لازم (نگه دارید)
@@ -26,6 +27,7 @@ export { createMessageGetter } from './utils';
 export { PORTFOLIO_MESSAGES, getPortfolio } from './modules/portfolio';
 export { BLOG_MESSAGES, getBlog } from './modules/blog';
 export { AI_MESSAGES, AI_UI_MESSAGES, getAI, getAIUI } from './modules/ai';
+export { PAGE_PATH_TRANSLATIONS, translatePagePath } from './analytics';
 
 // ============================================
 // 📦 MESSAGE GETTER OBJECT
@@ -48,4 +50,5 @@ export const msg = {
   blog: getBlog,
   ai: getAI,
   aiUI: getAIUI,
+  pagePath: translatePagePath,
 } as const;

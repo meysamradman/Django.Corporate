@@ -241,6 +241,22 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         ]
     },
     {
+        title: "آمار و گزارش‌ها",
+        items: [
+            {
+                title: "آمار بازدید",
+                icon: BarChart3,
+                url: "/analytics",
+                access: { 
+                    module: "analytics", 
+                    actions: ["manage"],
+                    allowReadOnly: true,
+                    readOnlyLabel: "فقط مشاهده"
+                }
+            },
+        ]
+    },
+    {
         title: "تنظیمات",
         items: [
             {

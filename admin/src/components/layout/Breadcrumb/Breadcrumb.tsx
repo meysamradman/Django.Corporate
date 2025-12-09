@@ -58,7 +58,8 @@ export function Breadcrumb() {
                 'image': 'تولید تصویر',
                 'chatbot': 'چت بات',
                 'models': 'مدلهای ai',
-                'form-builder': 'فرم'
+                'form-builder': 'فرم',
+                'analytics': 'آمار'
             };
             
             return segmentMap[normalizedSegment] || 
