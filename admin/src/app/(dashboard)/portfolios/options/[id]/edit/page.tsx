@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
+import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { toast } from "@/components/elements/Sonner";
@@ -14,7 +14,9 @@ import { portfolioApi } from "@/api/portfolios/route";
 import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Loader2, Save, List } from "lucide-react";
+import { Loader2, Save, List, Settings } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
 export default function EditOptionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -97,13 +99,46 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ویرایش گزینه</h1>
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/portfolios/options")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
         </div>
-        <div className="text-center py-8">
-          <p>در حال بارگذاری...</p>
-        </div>
+
+        <CardWithIcon
+          icon={Settings}
+          title="اطلاعات گزینه"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-6 w-10" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        </CardWithIcon>
       </div>
     );
   }
@@ -141,14 +176,21 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <form id="option-edit-form" onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>اطلاعات گزینه</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">نام *</Label>
+        <CardWithIcon
+          icon={Settings}
+          title="اطلاعات گزینه"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
+          className="hover:shadow-lg transition-all duration-300"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="نام"
+                htmlFor="name"
+                required
+              >
                 <Input
                   id="name"
                   value={formData.name}
@@ -156,9 +198,12 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
                   placeholder="نام گزینه"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">اسلاگ *</Label>
+              </FormField>
+              <FormField
+                label="اسلاگ"
+                htmlFor="slug"
+                required
+              >
                 <Input
                   id="slug"
                   value={formData.slug}
@@ -166,11 +211,13 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
                   placeholder="نام-گزینه"
                   required
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">توضیحات</Label>
+            <FormField
+              label="توضیحات"
+              htmlFor="description"
+            >
               <Textarea
                 id="description"
                 value={formData.description}
@@ -178,28 +225,41 @@ export default function EditOptionPage({ params }: { params: Promise<{ id: strin
                 placeholder="توضیحات گزینه"
                 rows={4}
               />
-            </div>
+            </FormField>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Switch
                 id="is_active"
                 checked={formData.is_active}
                 onCheckedChange={(checked) => handleInputChange("is_active", checked)}
               />
-              <Label htmlFor="is_active">فعال</Label>
+              <label htmlFor="is_active" className="text-sm font-medium cursor-pointer">
+                فعال
+              </label>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Switch
                 id="is_public"
                 checked={formData.is_public}
                 onCheckedChange={(checked) => handleInputChange("is_public", checked)}
               />
-              <Label htmlFor="is_public">عمومی</Label>
+              <label htmlFor="is_public" className="text-sm font-medium cursor-pointer">
+                عمومی
+              </label>
             </div>
 
-          </CardContent>
-        </Card>
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+              >
+                انصراف
+              </Button>
+            </div>
+          </div>
+        </CardWithIcon>
       </form>
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">

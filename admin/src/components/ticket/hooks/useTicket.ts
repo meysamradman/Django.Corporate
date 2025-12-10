@@ -16,8 +16,9 @@ export function useTicketStats() {
     queryFn: async () => {
       return { new_tickets_count: 0, assigned_to_me_count: 0, total_new: 0 };
     },
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds for ticket stats
+    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
+    refetchOnMount: false, // Don't refetch on mount - only use interval
   });
 }
 
@@ -25,8 +26,9 @@ export function useTicketList(params: TicketListParams = {}) {
   return useQuery({
     queryKey: ['tickets', params],
     queryFn: () => ticketApi.getList(params),
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds for ticket list
+    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
+    refetchOnMount: false, // Don't refetch on mount - only use interval
   });
 }
 

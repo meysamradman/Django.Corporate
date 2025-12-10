@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
 import { BlogFilters } from "@/types/blog/blogListParams";
-import { Loader } from "@/components/elements/Loader";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
@@ -20,8 +19,7 @@ import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 const DataTable = dynamic(
   () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
   { 
-    ssr: false,
-    loading: () => <Loader size="lg" className="min-h-[600px]" />
+    ssr: false
   }
 );
 import { getConfirm, getCrud } from '@/core/messages';

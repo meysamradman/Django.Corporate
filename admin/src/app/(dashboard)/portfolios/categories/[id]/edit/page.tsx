@@ -20,7 +20,8 @@ import { validateSlug } from '@/core/slug/validate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
-import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List } from "lucide-react";
+import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List, Settings } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -208,12 +209,63 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ویرایش دسته‌بندی</h1>
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/portfolios/categories")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
         </div>
-        <div className="text-center py-8">
-          <p>در حال بارگذاری...</p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+          <div className="lg:col-span-4">
+            <CardWithIcon
+              icon={FolderTree}
+              title="اطلاعات دسته‌بندی"
+              iconBgColor="bg-blue"
+              iconColor="stroke-blue-2"
+              borderColor="border-b-blue-1"
+            >
+              <div className="space-y-6">
+                <Skeleton className="h-32 w-full rounded-lg" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              </div>
+            </CardWithIcon>
+          </div>
+
+          <div className="lg:col-span-2">
+            <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
+              <CardWithIcon
+                icon={ImageIcon}
+                title="تصویر شاخص"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="lg:sticky lg:top-20"
+              >
+                <div className="space-y-6">
+                  <Skeleton className="h-32 w-full rounded-lg" />
+                </div>
+              </CardWithIcon>
+            </div>
+          </div>
         </div>
       </div>
     );

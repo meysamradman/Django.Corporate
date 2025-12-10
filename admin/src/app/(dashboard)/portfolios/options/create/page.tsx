@@ -16,10 +16,12 @@ import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { Settings, Loader2, Save, List } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateOptionPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [isInitialLoading, setIsInitialLoading] = React.useState(true);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -39,6 +41,14 @@ export default function CreateOptionPage() {
       toast.error("خطا در ایجاد گزینه");
     },
   });
+
+  useEffect(() => {
+    // Simulate initial loading for consistency
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === "name" && typeof value === "string") {
@@ -74,6 +84,52 @@ export default function CreateOptionPage() {
     
     createOptionMutation.mutate(formData);
   };
+
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6 pb-28 relative">
+        <div className="flex items-center justify-between">
+          <h1 className="page-title">ایجاد گزینه جدید</h1>
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/portfolios/options")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
+        </div>
+
+        <CardWithIcon
+          icon={Settings}
+          title="اطلاعات گزینه"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-6 w-10" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        </CardWithIcon>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-28 relative">

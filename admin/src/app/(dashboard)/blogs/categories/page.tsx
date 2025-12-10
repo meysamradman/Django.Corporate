@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import { Loader } from "@/components/elements/Loader";
+import { DataTable } from "@/components/tables/DataTable";
 import { useCategoryColumns } from "@/components/blogs/categories/list/CategoryTableColumns";
 import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/blogs/categories/list/CategoryTableFilters";
 import { Edit, Trash2 } from "lucide-react";
@@ -32,15 +31,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/route";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { CategoryListParams } from "@/types/blog/blogListParams";
-
-// Dynamic import برای DataTable
-const DataTable = dynamic(
-  () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
-  { 
-    ssr: false,
-    loading: () => <Loader size="lg" className="min-h-[600px]" />
-  }
-);
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -81,7 +71,7 @@ export default function CategoryPage() {
   };
 
   const { data: categories, isLoading, error } = useQuery({
-    queryKey: ['categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
+    queryKey: ['blog-categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
       return await blogApi.getCategories(queryParams as CategoryListParams);
     },

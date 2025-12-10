@@ -11,8 +11,8 @@ import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { toast } from "@/components/elements/Sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { portfolioApi } from "@/api/portfolios/route";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import { blogApi } from "@/api/blogs/route";
+import { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { Tag, Loader2, Save, List } from "lucide-react";
@@ -31,11 +31,11 @@ export default function CreateTagPage() {
   });
 
   const createTagMutation = useMutation({
-    mutationFn: (data: Partial<PortfolioTag>) => portfolioApi.createTag(data),
+    mutationFn: (data: Partial<BlogTag>) => blogApi.createTag(data),
     onSuccess: () => {
       toast.success("تگ با موفقیت ایجاد شد");
       queryClient.invalidateQueries();
-      router.push("/portfolios/tags");
+      router.push("/blogs/tags");
     },
     onError: (error) => {
       toast.error("خطا در ایجاد تگ");
@@ -97,7 +97,13 @@ export default function CreateTagPage() {
       <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ایجاد تگ جدید</h1>
-          <Skeleton className="h-10 w-32" />
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/blogs/tags")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
         </div>
 
         <CardWithIcon

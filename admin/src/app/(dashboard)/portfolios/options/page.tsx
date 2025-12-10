@@ -70,7 +70,7 @@ export default function OptionPage() {
   };
 
   const { data: options, isLoading, error } = useQuery({
-    queryKey: ['options', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
+    queryKey: ['portfolio-options', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
       return await portfolioApi.getOptions(queryParams);
     },
@@ -85,7 +85,7 @@ export default function OptionPage() {
       return portfolioApi.deleteOption(optionId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['portfolio-options'] });
       toast.success("با موفقیت حذف شد");
     },
     onError: (error) => {

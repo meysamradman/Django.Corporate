@@ -65,7 +65,7 @@ export default function TagPage() {
   };
 
   const { data: tags, isLoading, error } = useQuery({
-    queryKey: ['tags', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
+    queryKey: ['portfolio-tags', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
     queryFn: async () => {
       return await portfolioApi.getTags(queryParams);
     },
@@ -80,7 +80,7 @@ export default function TagPage() {
       return portfolioApi.deleteTag(tagId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] });
       toast.success("با موفقیت حذف شد");
     },
     onError: (error) => {

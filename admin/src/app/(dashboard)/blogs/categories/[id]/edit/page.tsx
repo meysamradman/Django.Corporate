@@ -212,7 +212,13 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ویرایش دسته‌بندی</h1>
-          <Skeleton className="h-10 w-32" />
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/blogs/categories")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
@@ -245,25 +251,20 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
           </div>
 
           <div className="lg:col-span-2">
-            <CardWithIcon
-              icon={Settings}
-              title="تنظیمات"
-              iconBgColor="bg-blue"
-              iconColor="stroke-blue-2"
-              borderColor="border-b-blue-1"
-              className="lg:sticky lg:top-20"
-            >
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-10 w-full" />
+            <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
+              <CardWithIcon
+                icon={ImageIcon}
+                title="تصویر شاخص"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="lg:sticky lg:top-20"
+              >
+                <div className="space-y-6">
+                  <Skeleton className="h-32 w-full rounded-lg" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-6 w-10" />
-                  <Skeleton className="h-4 w-12" />
-                </div>
-              </div>
-            </CardWithIcon>
+              </CardWithIcon>
+            </div>
           </div>
         </div>
       </div>

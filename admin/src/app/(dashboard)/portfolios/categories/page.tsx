@@ -72,7 +72,7 @@ export default function CategoryPage() {
   };
 
   const { data: categories, isLoading, error } = useQuery({
-    queryKey: ['categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
+    queryKey: ['portfolio-categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
     queryFn: async () => {
       return await portfolioApi.getCategories(queryParams);
     },

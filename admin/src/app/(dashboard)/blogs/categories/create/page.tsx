@@ -185,7 +185,13 @@ export default function CreateCategoryPage() {
       <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
-          <Skeleton className="h-10 w-32" />
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/blogs/categories")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
