@@ -269,7 +269,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canViewTicketsStats: check('analytics.tickets.read') || check('analytics.stats.manage'),
       canViewEmailsStats: check('analytics.emails.read') || check('analytics.stats.manage'),
       canViewSystemStats: check('analytics.system.read') || check('analytics.stats.manage'),
-      canManageStatistics: check('analytics.manage'),
+      canManageStatistics: check('analytics.manage') || check('analytics.stats.manage'),
       canManageAllStats: check('analytics.stats.manage'),
       
       canViewEmail: check('email.read') || check('email.view'),

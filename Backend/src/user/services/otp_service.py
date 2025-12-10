@@ -82,8 +82,8 @@ class OTPService:
             self._send_sms(mobile, otp)
             return True
 
-        except Exception as e:
-            raise Exception(str(e))
+        except Exception:
+            raise Exception(AUTH_ERRORS["otp_send_failed"])
 
     def verify_otp(self, identifier, otp):
         try:
@@ -110,8 +110,8 @@ class OTPService:
             
             return user
 
-        except Exception as e:
-            raise Exception(str(e))
+        except Exception:
+            raise Exception(AUTH_ERRORS["otp_verification_failed"])
             
     def get_tokens(self, user):
         return generate_jwt_tokens(user)

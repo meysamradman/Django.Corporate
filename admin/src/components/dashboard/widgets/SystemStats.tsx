@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Server, Database, HardDrive, Activity } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { usePermission } from "@/core/permissions/context/PermissionContext";
+import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
 import { SystemStats as SystemStatsType } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 
@@ -17,8 +17,6 @@ const COLORS = {
 };
 
 export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading = false }) => {
-  const { hasPermission } = usePermission();
-
   const storageData = useMemo(() => {
     if (!systemStats?.storage?.by_type) return [];
     return Object.entries(systemStats.storage.by_type).map(([type, data]) => ({
@@ -28,10 +26,6 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
       formatted: data.formatted || '0 B'
     })).filter(item => item.value > 0);
   }, [systemStats]);
-
-  if (!hasPermission('analytics.system.read')) {
-    return null;
-  }
 
   if (isLoading) {
     return (
@@ -73,7 +67,15 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
   }
 
   return (
-    <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
+    <PermissionLocked
+      permission={['analytics.system.read', 'analytics.stats.manage']}
+      requireAll={false}
+      lockedMessage="دسترسی به آمار سیستم"
+      borderColorClass="border-primary"
+      iconBgColorClass="bg-primary/10"
+      iconColorClass="text-primary"
+    >
+      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <Server className="w-5 h-5 text-primary" />
@@ -138,6 +140,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </PermissionLocked>
   );
 };

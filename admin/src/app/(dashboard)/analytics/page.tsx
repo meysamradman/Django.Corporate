@@ -7,9 +7,13 @@ import { ClearAnalyticsButton } from "@/components/analytics/ClearAnalyticsButto
 import { PermissionGate } from "@/core/permissions/components/PermissionGate";
 
 export default function AnalyticsPage() {
-  const { hasPermission } = usePermission();
+  const { hasPermission, hasAnyPermission } = usePermission();
 
-  if (!hasPermission('analytics.manage')) {
+  if (!hasAnyPermission([
+    'analytics.manage',
+    'analytics.stats.manage',
+    'analytics.dashboard.read',
+  ])) {
     return <AccessDenied />;
   }
 

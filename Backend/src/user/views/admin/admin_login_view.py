@@ -95,7 +95,7 @@ class AdminLoginView(APIView):
                                 "has_permissions": len(assigned_roles) > 0,
                                 "base_permissions": BASE_ADMIN_PERMISSIONS_SIMPLE
                             }
-                    except Exception as e:
+                    except Exception:
                         pass
                 
                 response = APIResponse.success(
@@ -124,5 +124,5 @@ class AdminLoginView(APIView):
                     message=AUTH_ERRORS["auth_invalid_credentials"],
                     status_code=401
                 )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(message=AUTH_ERRORS["auth_invalid_credentials"])

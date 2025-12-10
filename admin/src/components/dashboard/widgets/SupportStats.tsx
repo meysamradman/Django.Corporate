@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Activity, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { usePermission } from "@/core/permissions/context/PermissionContext";
+import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
 import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 import {
@@ -25,9 +25,6 @@ interface SupportStatsProps {
 }
 
 export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = false }) => {
-  const { hasPermission, permissionMap } = usePermission();
-  const isSuperAdmin = permissionMap?.is_superadmin || false;
-
   const supportStats = useMemo(() => {
     if (!stats) return [];
     const replied = (stats.total_emails || 0) - (stats.new_emails || 0) - (stats.unanswered_emails || 0);
@@ -109,9 +106,6 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
     },
   } satisfies ChartConfig), []);
 
-  const hasEmailPermission = isSuperAdmin || hasPermission('analytics.emails.read');
-  const hasTicketPermission = isSuperAdmin || hasPermission('analytics.tickets.read');
-
   if (isLoading) {
     return (
       <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
@@ -131,12 +125,20 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
     );
   }
 
-  if (supportStats.length === 0 || (!hasEmailPermission && !hasTicketPermission)) {
+  if (supportStats.length === 0) {
     return null;
   }
 
   return (
-    <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
+    <PermissionLocked
+      permission={['analytics.emails.read', 'analytics.tickets.read']}
+      requireAll={false}
+      lockedMessage="دسترسی به آمار پشتیبانی"
+      borderColorClass="border-b-primary"
+      iconBgColorClass="bg-primary/10"
+      iconColorClass="stroke-primary"
+    >
+      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <Activity className="w-5 h-5 text-primary" />
@@ -147,18 +149,14 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
         </div>
       </div>
       <div className="flex items-center gap-3 mb-3 text-xs text-font-s">
-        {hasEmailPermission && (
-          <div className="flex items-center gap-1">
-            <Mail className="w-3.5 h-3.5 text-rose-1" />
-            <span>ایمیل: {formatNumber(stats?.total_emails || 0)}</span>
-          </div>
-        )}
-        {hasTicketPermission && (
-          <div className="flex items-center gap-1">
-            <Ticket className="w-3.5 h-3.5 text-cyan-1" />
-            <span>تیکت: {formatNumber(stats?.total_tickets || 0)}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          <Mail className="w-3.5 h-3.5 text-rose-1" />
+          <span>ایمیل: {formatNumber(stats?.total_emails || 0)}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Ticket className="w-3.5 h-3.5 text-cyan-1" />
+          <span>تیکت: {formatNumber(stats?.total_tickets || 0)}</span>
+        </div>
       </div>
       <ChartContainer 
         config={supportStatsConfig} 
@@ -178,26 +176,19 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
             cursor={false}
             content={<ChartTooltipContent indicator="dashed" />}
           />
-          {hasEmailPermission && (
-            <>
-              <Bar dataKey="newEmails" stackId="a" fill="var(--color-newEmails)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="unansweredEmails" stackId="a" fill="var(--color-unansweredEmails)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="repliedEmails" stackId="a" fill="var(--color-repliedEmails)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="openEmails" stackId="a" fill="var(--color-openEmails)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="activeEmails" stackId="a" fill="var(--color-activeEmails)" radius={[0, 0, 4, 4]} />
-            </>
-          )}
-          {hasTicketPermission && (
-            <>
-              <Bar dataKey="newTickets" stackId="a" fill="var(--color-newTickets)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="unansweredTickets" stackId="a" fill="var(--color-unansweredTickets)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="repliedTickets" stackId="a" fill="var(--color-repliedTickets)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="openTickets" stackId="a" fill="var(--color-openTickets)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="activeTickets" stackId="a" fill="var(--color-activeTickets)" radius={[4, 4, 0, 0]} />
-            </>
-          )}
+          <Bar dataKey="newEmails" stackId="a" fill="var(--color-newEmails)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="unansweredEmails" stackId="a" fill="var(--color-unansweredEmails)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="repliedEmails" stackId="a" fill="var(--color-repliedEmails)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="openEmails" stackId="a" fill="var(--color-openEmails)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="activeEmails" stackId="a" fill="var(--color-activeEmails)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="newTickets" stackId="a" fill="var(--color-newTickets)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="unansweredTickets" stackId="a" fill="var(--color-unansweredTickets)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="repliedTickets" stackId="a" fill="var(--color-repliedTickets)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="openTickets" stackId="a" fill="var(--color-openTickets)" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="activeTickets" stackId="a" fill="var(--color-activeTickets)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ChartContainer>
     </div>
+  </PermissionLocked>
   );
 };

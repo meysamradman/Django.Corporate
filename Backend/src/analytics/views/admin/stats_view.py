@@ -23,7 +23,7 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     def get_permissions(self):
         permission_map = {
-            'dashboard': [analytics_any_permission()],
+            'dashboard': [RequirePermission('analytics.dashboard.read')],
             'users_stats': [RequirePermission('analytics.users.read')],
             'admins_stats': [RequirePermission('analytics.admins.read')],
             'content_stats': [RequirePermission('analytics.content.read')],
@@ -42,8 +42,8 @@ class AdminStatsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
         """
-        Get dashboard statistics - returns all stats, frontend filters based on permissions
-        Requires: RequireModuleAccess('analytics') (base permission for analytics module)
+        Get dashboard statistics
+        Requires: analytics.dashboard.read permission
         """
         clear_cache = request.query_params.get('clear_cache', '').lower() == 'true'
         

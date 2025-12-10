@@ -5,6 +5,7 @@ import { LayoutList } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
+import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
 import {
   ChartContainer,
   ChartTooltip,
@@ -105,7 +106,15 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
   }
 
   return (
-    <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
+    <PermissionLocked
+      permission={['analytics.content.read', 'analytics.stats.manage']}
+      requireAll={false}
+      lockedMessage="دسترسی به آمار محتوا"
+      borderColorClass="border-primary"
+      iconBgColorClass="bg-primary/10"
+      iconColorClass="text-primary"
+    >
+      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <LayoutList className="w-5 h-5 text-primary" />
@@ -211,5 +220,6 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
         </div>
       )}
     </div>
+    </PermissionLocked>
   );
 };
