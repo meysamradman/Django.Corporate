@@ -2,6 +2,8 @@
 
 import { Calendar, Clock } from "lucide-react";
 import { useMemo } from "react";
+import { format } from 'date-fns-jalali';
+import { faIR } from 'date-fns-jalali/locale';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useStatistics, useSystemStats } from "@/components/dashboard/hooks/useStatistics";
 import { SummaryCards } from "@/components/dashboard/widgets/SummaryCards";
@@ -24,16 +26,18 @@ export const DashboardMain = () => {
     else if (hour >= 17 && hour < 21) greetingText = "عصر بخیر";
     else greetingText = "شب بخیر";
 
+    // Format date in Persian (Jalali) calendar
+    const persianDate = format(now, 'd MMMM yyyy', { locale: faIR });
+    
+    // Format time in Persian locale
+    const persianTime = now.toLocaleTimeString('fa-IR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
     return {
-      date: now.toLocaleDateString('fa-IR', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      time: now.toLocaleTimeString('fa-IR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }),
+      date: persianDate,
+      time: persianTime,
       greeting: greetingText
     };
   }, []);

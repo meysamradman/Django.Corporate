@@ -10,8 +10,8 @@ import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { portfolioApi } from "@/api/portfolios/route";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import { blogApi } from "@/api/blogs/route";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
@@ -38,9 +38,9 @@ export default function CreateCategoryPage() {
   });
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
-    queryKey: ['categories-all'],
+    queryKey: ['blog-categories-all'],
     queryFn: async () => {
-      return await portfolioApi.getCategories({ size: 1000 });
+      return await blogApi.getCategories({ size: 1000 });
     },
     staleTime: 0,
     gcTime: 0,
@@ -66,7 +66,7 @@ export default function CreateCategoryPage() {
     };
   };
 
-  const renderCategoryOption = (category: PortfolioCategory) => {
+  const renderCategoryOption = (category: BlogCategory) => {
     const level = category.level || 1;
     const indentPx = (level - 1) * 24;
     const Icon = level === 1 ? FolderOpen : Folder;
@@ -114,11 +114,11 @@ export default function CreateCategoryPage() {
   };
 
   const createCategoryMutation = useMutation({
-    mutationFn: (data: Partial<PortfolioCategory>) => portfolioApi.createCategory(data),
+    mutationFn: (data: Partial<BlogCategory>) => blogApi.createCategory(data),
     onSuccess: (data) => {
       toast.success("دسته‌بندی با موفقیت ایجاد شد");
       queryClient.invalidateQueries();
-      router.push("/portfolios/categories");
+      router.push("/blogs/categories");
     },
     onError: (error) => {
       toast.error("خطا در ایجاد دسته‌بندی");

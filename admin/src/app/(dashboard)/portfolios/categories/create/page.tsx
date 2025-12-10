@@ -37,7 +37,7 @@ export default function CreateCategoryPage() {
   });
 
   const { data: categories } = useQuery({
-    queryKey: ['categories-all'],
+    queryKey: ['portfolio-categories-all'],
     queryFn: async () => {
       return await portfolioApi.getCategories({ size: 1000 });
     },
