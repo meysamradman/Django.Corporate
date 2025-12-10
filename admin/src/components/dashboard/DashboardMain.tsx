@@ -9,7 +9,6 @@ import { ContentDistribution } from "@/components/dashboard/widgets/ContentDistr
 import { SystemStats } from "@/components/dashboard/widgets/SystemStats";
 import { SupportStats } from "@/components/dashboard/widgets/SupportStats";
 import { AnalyticsWidget } from "@/components/dashboard/widgets/AnalyticsWidget";
-import { ComprehensiveVisitorStats } from "@/components/dashboard/widgets/ComprehensiveVisitorStats";
 
 export const DashboardMain = () => {
   const { data: stats, isLoading } = useStatistics();
@@ -90,8 +89,6 @@ export const DashboardMain = () => {
       </div>
 
       <AnalyticsWidget isLoading={isLoading} />
-      
-      <ComprehensiveVisitorStats />
     </div>
   );
 };

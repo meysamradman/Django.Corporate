@@ -201,7 +201,7 @@ class AdminPermissionView(viewsets.ViewSet):
                 }
             )
             
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=ROLE_ERRORS["permission_matrix_retrieve_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -227,7 +227,7 @@ class AdminPermissionView(viewsets.ViewSet):
             
             return APIResponse.success(message=message)
             
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=ROLE_ERRORS["cache_clear_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -279,7 +279,7 @@ class AdminPermissionView(viewsets.ViewSet):
                 }
             )
             
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=ROLE_ERRORS["system_permissions_retrieve_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -334,8 +334,8 @@ class AdminPermissionView(viewsets.ViewSet):
                     ]
                 }
                 
-        except Exception as e:
-            return False, {'reason': f'Error checking permissions: {str(e)}'}
+        except Exception:
+            return False, {'reason': 'Error checking permissions'}
 
     def can_delete_admin(self, admin_to_delete, current_admin):
         if admin_to_delete.is_admin_full:

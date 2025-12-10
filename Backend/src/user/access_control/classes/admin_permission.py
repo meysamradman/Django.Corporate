@@ -9,6 +9,7 @@ from src.user.access_control.definitions.module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
 from src.user.access_control.definitions import PermissionValidator
+from src.user.access_control.core.cache_strategy import PermissionCacheStrategy
 
 
 class AdminRolePermission(permissions.BasePermission):
@@ -87,9 +88,18 @@ class AdminRolePermission(permissions.BasePermission):
     def _check_admin_role_permissions(self, user, method: str, view) -> bool:
         cache_key = UserCacheKeys.admin_perm_check(user.id, method, view.__class__.__name__)
         
+        # بررسی Cache
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
+        # محاسبه permission
         has_permission = self._calculate_admin_permission(user, method, view)
         
-        cache.set(cache_key, has_permission, self.cache_timeout)
+        # استفاده از Cache Strategy برای timeout دینامیک
+        timeout = PermissionCacheStrategy.get_cache_timeout(user, method)
+        cache.set(cache_key, has_permission, timeout)
+        
         return has_permission
     
     def _calculate_admin_permission(self, user, method: str, view) -> bool:
@@ -102,7 +112,14 @@ class AdminRolePermission(permissions.BasePermission):
             user_roles = AdminUserRole.objects.filter(
                 user=user,
                 is_active=True
-            ).select_related('role').prefetch_related()
+            ).select_related(
+                'role'
+            ).only(
+                'role__name',
+                'role__permissions',
+                'permissions_cache',
+                'is_active'
+            )
             
             if not user_roles.exists() and user.is_admin_full:
                 return True
@@ -117,7 +134,7 @@ class AdminRolePermission(permissions.BasePermission):
             
             return False
             
-        except Exception as e:
+        except Exception:
             return False
     
     def _role_has_permission(self, permissions: Dict[str, Any], action: str, method: str, view) -> bool:
@@ -172,7 +189,7 @@ class AdminRolePermission(permissions.BasePermission):
                 return False
             
             return str(target_id) == str(request.user.id)
-        except Exception as exc:
+        except Exception:
             return False
 
 
@@ -199,7 +216,7 @@ class RequireAdminRole(AdminRolePermission):
             
             return super()._calculate_admin_permission(user, method, view)
             
-        except Exception as e:
+        except Exception:
             return False
 
 
@@ -414,10 +431,7 @@ class AdminPermissionCache:
             
             cache.delete_many(cache_keys_to_clear)
             
-            try:
-                UserCacheManager.invalidate_permissions(user_id)
-            except Exception:
-                pass
+            UserCacheManager.invalidate_permissions(user_id)
             
         except Exception:
             pass

@@ -29,7 +29,7 @@ const CardWithIcon = React.memo(function CardWithIcon({
   titleExtra,
 }: CardWithIconProps) {
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-300 border-b-4", borderColor, className)}>
+    <Card className={cn("border-b-4", borderColor, className)}>
       <CardHeader className={headerClassName}>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-3">

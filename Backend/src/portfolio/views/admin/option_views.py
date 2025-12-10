@@ -16,14 +16,14 @@ from src.portfolio.serializers.admin.option_serializer import (
 from src.portfolio.services.admin.option_services import PortfolioOptionAdminService
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import RequireModuleAccess, PermissionValidator
+from src.user.access_control import portfolio_permission, PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 
 
 class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
-    # Use generic module access for portfolio
-    permission_classes = [lambda: RequireModuleAccess('portfolio')]
+    # ✅ استفاده از permission instance - بدون lambda
+    permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioOptionAdminFilter
     search_fields = ['name', 'slug', 'description']

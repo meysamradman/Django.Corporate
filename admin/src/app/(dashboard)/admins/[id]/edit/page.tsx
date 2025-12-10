@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/components/elements/Button";
-import { Spinner } from "@/components/elements/Spinner";
+import { Loader } from "@/components/elements/Loader";
 
 const EditAdminForm = dynamic(
   () => import("@/components/admins/edit/EditForm").then((mod) => mod.EditAdminForm),
@@ -13,7 +13,7 @@ const EditAdminForm = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex items-center justify-center py-12">
-        <Spinner className="size-8 text-primary" />
+        <Loader />
       </div>
     ),
   }

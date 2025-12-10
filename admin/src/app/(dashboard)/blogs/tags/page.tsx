@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/tables/DataTable";
+import dynamic from "next/dynamic";
+import { Loader } from "@/components/elements/Loader";
 import { useTagColumns } from "@/components/blogs/tags/list/TagTableColumns";
 import { useTagFilterOptions, getTagFilterConfig } from "@/components/blogs/tags/list/TagTableFilters";
 import { Edit, Trash2 } from "lucide-react";
@@ -30,6 +31,15 @@ import { BlogTag } from "@/types/blog/tags/blogTag";
 import { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/route";
 import type { DataTableRowAction } from "@/types/shared/table";
+
+// Dynamic import برای DataTable  
+const DataTable = dynamic(
+  () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
+  { 
+    ssr: false,
+    loading: () => <Loader size="lg" className="min-h-[600px]" />
+  }
+);
 
 export default function TagPage() {
   const router = useRouter();

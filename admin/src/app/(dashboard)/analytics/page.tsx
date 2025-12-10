@@ -4,6 +4,7 @@ import { AnalyticsOverview } from "@/components/analytics";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
 import { AccessDenied } from "@/core/permissions/components/AccessDenied";
 import { ClearAnalyticsButton } from "@/components/analytics/ClearAnalyticsButton";
+import { PermissionGate } from "@/core/permissions/components/PermissionGate";
 
 export default function AnalyticsPage() {
   const { hasPermission } = usePermission();

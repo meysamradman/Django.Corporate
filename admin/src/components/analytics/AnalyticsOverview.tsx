@@ -7,6 +7,7 @@ import { SummaryCards } from "./SummaryCards";
 import { VisitorChart } from "./VisitorChart";
 import { TopPages } from "./TopPages";
 import { TopCountries } from "./TopCountries";
+import { PermissionGate } from "@/core/permissions/components/PermissionGate";
 
 // ============================================
 // 📊 داده‌های Mock برای نمایش و تست
@@ -82,29 +83,35 @@ export function AnalyticsOverview() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <SummaryCards 
-        analytics={displayAnalytics} 
-        monthlyStats={monthlyStats}
-      />
+      <PermissionGate permission="analytics.manage">
+        <SummaryCards 
+          analytics={displayAnalytics} 
+          monthlyStats={monthlyStats}
+        />
+      </PermissionGate>
 
       {/* Main Chart */}
-      <VisitorChart 
-        monthlyStats={monthlyStats}
-        analytics={displayAnalytics}
-        isLoading={isLoading}
-      />
+      <PermissionGate permission="analytics.manage">
+        <VisitorChart 
+          monthlyStats={monthlyStats}
+          analytics={displayAnalytics}
+          isLoading={isLoading}
+        />
+      </PermissionGate>
 
       {/* Top Pages & Countries */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <TopPages 
-          topPages={displayAnalytics.top_pages}
-          isLoading={isLoading}
-        />
-        <TopCountries 
-          topCountries={displayAnalytics.top_countries}
-          isLoading={isLoading}
-        />
-      </div>
+      <PermissionGate permission="analytics.manage">
+        <div className="grid md:grid-cols-2 gap-4">
+          <TopPages 
+            topPages={displayAnalytics.top_pages}
+            isLoading={isLoading}
+          />
+          <TopCountries 
+            topCountries={displayAnalytics.top_countries}
+            isLoading={isLoading}
+          />
+        </div>
+      </PermissionGate>
     </div>
   );
 }

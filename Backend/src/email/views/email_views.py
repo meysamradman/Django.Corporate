@@ -13,7 +13,7 @@ from src.email.serializers.email_serializer import (
     EmailMessageSerializer
 )
 from src.email.services.email_service import EmailService
-from src.user.access_control import EmailManagerAccess, PermissionValidator
+from src.user.access_control import email_permission, PermissionValidator
 
 
 class EmailMessageViewSet(viewsets.ModelViewSet):
@@ -54,7 +54,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
-        return [EmailManagerAccess()]
+        return [email_permission()]  # ✅ instantiate می‌کند
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={'request': request})
@@ -167,7 +167,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
+    @action(detail=True, methods=['post'], permission_classes=[email_permission])
     def mark_as_read(self, request, pk=None):
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
@@ -197,7 +197,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
+    @action(detail=True, methods=['post'], permission_classes=[email_permission])
     def mark_as_replied(self, request, pk=None):
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(
@@ -235,7 +235,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=False, methods=['get'], permission_classes=[EmailManagerAccess])
+    @action(detail=False, methods=['get'], permission_classes=[email_permission])
     def stats(self, request):
         if not PermissionValidator.has_permission(request.user, 'email.read'):
             return APIResponse.error(
@@ -257,7 +257,7 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    @action(detail=True, methods=['post'], permission_classes=[EmailManagerAccess])
+    @action(detail=True, methods=['post'], permission_classes=[email_permission])
     def save_as_draft(self, request, pk=None):
         if not PermissionValidator.has_permission(request.user, 'email.update'):
             return APIResponse.error(

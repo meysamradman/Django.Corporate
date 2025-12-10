@@ -6,7 +6,6 @@ import { useAuth } from "@/core/auth/AuthContext";
 import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
 import { findRouteRule } from "../config/accessControl";
-import { Spinner } from "@/components/elements/Spinner";
 import { AccessDenied } from "./AccessDenied";
 
 interface RoutePermissionGuardProps {
@@ -40,12 +39,9 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
 
     const isLoading = authLoading || permissionLoading;
 
+    // Loading را به کامپوننت‌های خود صفحه واگذار می‌کنیم
     if (isLoading) {
-        return (
-            <div className="w-full h-full min-h-[50vh] flex items-center justify-center">
-                <Spinner className="size-8 text-primary" />
-            </div>
-        );
+        return <>{children}</>;
     }
 
     if (!rule) {

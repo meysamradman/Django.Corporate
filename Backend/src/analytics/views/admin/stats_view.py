@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from src.user.access_control import AdminRolePermission, RequirePermission
+from src.user.access_control import analytics_any_permission, RequirePermission
 from src.user.access_control.definitions import PermissionValidator
 from rest_framework import status
 from src.analytics.messages.messages import ANALYTICS_ERRORS
@@ -19,11 +19,11 @@ from src.analytics.services.stats import (
 
 
 class AdminStatsViewSet(viewsets.ViewSet):
-    permission_classes = [AdminRolePermission]
+    permission_classes = [analytics_any_permission]
     
     def get_permissions(self):
         permission_map = {
-            'dashboard': [AdminRolePermission()],  # Base permission - all admins can access dashboard stats
+            'dashboard': [analytics_any_permission()],
             'users_stats': [RequirePermission('analytics.users.read')],
             'admins_stats': [RequirePermission('analytics.admins.read')],
             'content_stats': [RequirePermission('analytics.content.read')],
@@ -33,14 +33,17 @@ class AdminStatsViewSet(viewsets.ViewSet):
         }
         
         action = getattr(self, 'action', None)
-        permissions = permission_map.get(action, [AdminRolePermission()])
+        if action and action in permission_map:
+            permissions = permission_map[action]
+        else:
+            permissions = [analytics_any_permission()]
         return permissions
     
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
         """
         Get dashboard statistics - returns all stats, frontend filters based on permissions
-        Requires: AdminRolePermission (base permission for all admins)
+        Requires: RequireModuleAccess('analytics') (base permission for analytics module)
         """
         clear_cache = request.query_params.get('clear_cache', '').lower() == 'true'
         

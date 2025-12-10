@@ -31,14 +31,14 @@ from src.portfolio.services.admin import (
 )
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import RequireModuleAccess, PermissionValidator
+from src.user.access_control import portfolio_permission, PermissionValidator
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheManager
 
 
 class PortfolioAdminViewSet(viewsets.ModelViewSet):
-    # Use generic module access instead of app-specific permission class
-    permission_classes = [lambda: RequireModuleAccess('portfolio')]
+    # ✅ استفاده از permission instance - بدون lambda
+    permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioAdminFilter
     search_fields = ['title', 'short_description', 'meta_title', 'meta_description']

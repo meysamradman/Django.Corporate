@@ -25,7 +25,7 @@ from src.user.access_control import (
     SimpleAdminPermission,
     require_admin_roles,
     SuperAdminOnly,
-    UserManagerAccess,
+    user_permission,  # ✅ استفاده از instance
     PermissionValidator
 )
 from src.core.pagination.pagination import StandardLimitPagination
@@ -38,7 +38,7 @@ class UserManagementView(UserAuthMixin, APIView):
     pagination_class = StandardLimitPagination
 
     def get_permissions(self):
-        return [UserManagerAccess()]
+        return [user_permission()]  # ✅ instantiate می‌کند
 
     def get(self, request, user_id=None):
         if not PermissionValidator.has_permission(request.user, 'users.read'):

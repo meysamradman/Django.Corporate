@@ -12,12 +12,12 @@ class BaseProvider(ABC):
         self.api_key = api_key
         self.config = config or {}
         self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(90.0, connect=10.0),
+            timeout=90.0,  # timeout کلی (connect + read)
             limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
         )
     
-    def get_timeout(self) -> httpx.Timeout:
-        return httpx.Timeout(90.0, connect=10.0)
+    def get_timeout(self) -> float:
+        return 90.0
     
     @abstractmethod
     def get_provider_name(self) -> str:

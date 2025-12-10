@@ -1,10 +1,4 @@
 MEDIA_PERMISSIONS = {
-    'media.read': {
-        'module': 'media',
-        'action': 'read',
-        'display_name': 'View Media Library',
-        'description': 'View all media items (images, videos, audio, documents)',
-    },
     'media.image.upload': {
         'module': 'media',
         'action': 'create',

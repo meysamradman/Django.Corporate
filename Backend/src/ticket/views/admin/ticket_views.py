@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from django.db.models import Exists, OuterRef
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket import Ticket
@@ -9,11 +8,11 @@ from src.ticket.serializers.ticket_serializer import TicketSerializer, TicketLis
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
-from src.user.access_control import PermissionValidator
+from src.user.access_control import ticket_permission, PermissionValidator
 
 
 class AdminTicketViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ticket_permission]
     serializer_class = TicketSerializer
     
     def get_queryset(self):

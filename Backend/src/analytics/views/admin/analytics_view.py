@@ -10,17 +10,14 @@ import logging
 from src.core.responses.response import APIResponse
 from src.analytics.models import DailyStats, PageView
 from src.analytics.messages import ANALYTICS_SUCCESS, ANALYTICS_ERRORS
-from src.user.access_control import RequirePermission, AdminRolePermission
+from src.user.access_control import analytics_permission
 
 logger = logging.getLogger(__name__)
 
 
 class PageViewsAnalyticsView(APIView):
     """API آمار بازدید صفحات - پنل ادمین"""
-    permission_classes = [AdminRolePermission]
-    
-    def get_permissions(self):
-        return [RequirePermission('analytics.manage')]
+    permission_classes = [analytics_permission]
     
     def get(self, request):
         cache_key = 'analytics:dashboard'
@@ -95,10 +92,7 @@ class PageViewsAnalyticsView(APIView):
 
 class MonthlyStatsAnalyticsView(APIView):
     """API آمار ماهانه بازدید - برای نمودار"""
-    permission_classes = [AdminRolePermission]
-    
-    def get_permissions(self):
-        return [RequirePermission('analytics.manage')]
+    permission_classes = [analytics_permission]
     
     def get(self, request):
         cache_key = 'analytics:monthly_stats'
@@ -169,10 +163,7 @@ class MonthlyStatsAnalyticsView(APIView):
 
 class ClearAnalyticsView(APIView):
     """API پاک کردن بازدیدها - پنل ادمین"""
-    permission_classes = [AdminRolePermission]
-    
-    def get_permissions(self):
-        return [RequirePermission('analytics.manage')]
+    permission_classes = [analytics_permission]
     
     def post(self, request):
         """

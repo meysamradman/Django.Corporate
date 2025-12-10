@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { Loader } from "@/components/elements/Loader";
 import { 
   FileText, Edit2, Image, Search,
-  Loader2, Save, List
+  Loader2, Save, List, Settings
 } from "lucide-react";
 import { Media } from "@/types/shared/media";
 import { Blog } from "@/types/blog/blog";
@@ -270,15 +271,84 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64 mt-2" />
+          <h1 className="page-title">ویرایش وبلاگ</h1>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
           </div>
-          <Skeleton className="h-10 w-32" />
         </div>
-        <Skeleton className="h-96 w-full" />
+
+        <div className="flex gap-3 mb-4">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-20" />
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1 min-w-0">
+            <div className="space-y-6">
+              <div className="rounded-lg border border-br overflow-hidden">
+                <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+                      <FileText className="h-5 w-5 stroke-blue-2" />
+                    </div>
+                    <Skeleton className="h-6 w-32" />
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-20 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-64 w-full rounded-lg" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+            <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
+              <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+                    <Settings className="h-5 w-5 stroke-blue-2" />
+                  </div>
+                  <Skeleton className="h-6 w-24" />
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

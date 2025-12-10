@@ -14,7 +14,10 @@ import { blogApi } from "@/api/blogs/route";
 import { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Loader2, Save, List } from "lucide-react";
+import { Loader2, Save, List, Tag } from "lucide-react";
+import { Loader } from "@/components/elements/Loader";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
 export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -98,13 +101,40 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ویرایش تگ</h1>
+          <Skeleton className="h-10 w-32" />
         </div>
-        <div className="text-center py-8">
-          <p>در حال بارگذاری...</p>
-        </div>
+
+        <CardWithIcon
+          icon={Tag}
+          title="اطلاعات تگ"
+          iconBgColor="bg-indigo"
+          iconColor="stroke-indigo-2"
+          borderColor="border-b-indigo-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-6 w-10" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        </CardWithIcon>
       </div>
     );
   }

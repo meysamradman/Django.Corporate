@@ -2,7 +2,6 @@ from django.db.models import Q, Count
 from src.ai.utils.cache import AICacheManager
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from src.ai.models import AIProvider, AIModel, AdminProviderSettings
@@ -17,12 +16,12 @@ from src.ai.serializers.ai_provider_serializer import (
     AdminProviderSettingsUpdateSerializer,
 )
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
-from src.user.access_control import PermissionValidator
+from src.user.access_control import ai_permission, ai_any_permission, PermissionValidator, RequirePermission
 from src.core.responses.response import APIResponse
 
 
 class AIProviderViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ai_any_permission]  # هر نوع دسترسی AI
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'display_name', 'description']
     ordering_fields = ['name', 'sort_order', 'total_requests', 'created_at']
@@ -150,7 +149,7 @@ class AIProviderViewSet(viewsets.ModelViewSet):
 
 
 class AIModelViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ai_any_permission]  # هر نوع دسترسی AI
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['provider', 'is_active']
     search_fields = ['name', 'display_name', 'description', 'model_id']
@@ -256,7 +255,7 @@ class AIModelViewSet(viewsets.ModelViewSet):
 
 
 class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ai_any_permission]  # هر نوع دسترسی AI
     serializer_class = AdminProviderSettingsSerializer
     
     def get_queryset(self):

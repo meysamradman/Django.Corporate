@@ -21,21 +21,16 @@ class AdminLogoutView(APIView):
             cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
             cookie_path = getattr(settings, 'SESSION_COOKIE_PATH', '/')
             cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-            cookie_samesite = getattr(settings, 'SESSION_COOKIE_SAMESITE', 'Lax')
-            cookie_secure = getattr(settings, 'SESSION_COOKIE_SECURE', False)
         else:
             cookie_name = getattr(settings, 'CSRF_COOKIE_NAME', 'csrftoken')
             cookie_path = getattr(settings, 'CSRF_COOKIE_PATH', '/')
             cookie_domain = getattr(settings, 'CSRF_COOKIE_DOMAIN', None)
-            cookie_samesite = getattr(settings, 'CSRF_COOKIE_SAMESITE', 'Lax')
-            cookie_secure = getattr(settings, 'CSRF_COOKIE_SECURE', False)
         
+        # Django 6.0 delete_cookie() only accepts: key, path, domain
         response.delete_cookie(
             cookie_name,
             path=cookie_path,
-            domain=cookie_domain,
-            samesite=cookie_samesite,
-            secure=cookie_secure
+            domain=cookie_domain
         )
         return response
 
@@ -43,10 +38,18 @@ class AdminLogoutView(APIView):
         try:
             session_key = request.session.session_key
             
+            # Delete session from backend BEFORE flush
             if session_key:
                 AdminAuthService.logout_admin(session_key)
             
+            # Flush session to clear all data and delete from storage
             request.session.flush()
+            
+            # Explicitly delete session from cache (double-check)
+            if session_key:
+                from django.core.cache import cache
+                cache_key = f"admin_session_{session_key}"
+                cache.delete(cache_key)
             
             response = APIResponse.success(
                 message=AUTH_SUCCESS["auth_logged_out"]

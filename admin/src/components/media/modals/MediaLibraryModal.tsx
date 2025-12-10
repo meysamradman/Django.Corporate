@@ -18,7 +18,7 @@ import { MediaPreview } from '@/components/media/base/MediaPreview';
 import { Input } from '@/components/elements/Input';
 import { PaginationControls } from '@/components/shared/Pagination';
 import { ImageOff, CheckSquare, Square, FolderOpen, Upload, Loader2, X, Play, FileAudio, FileText, AlertCircle } from 'lucide-react';
-import { TableLoadingCompact } from '@/components/elements/TableLoading';
+import { Loader } from '@/components/elements/Loader';
 import { cn } from '@/core/utils/cn';
 import {
   Select,
@@ -480,7 +480,7 @@ export function MediaLibraryModal({
                   )}
                   {isLoading ? (
                       <div className="flex justify-center items-center h-full">
-                          <TableLoadingCompact />
+                          <Loader />
                       </div>
                   ) : mediaItems.length === 0 ? (
                       <div className="text-center text-font-s py-10">

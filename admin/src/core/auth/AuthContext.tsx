@@ -235,10 +235,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const checkUserStatus = useCallback(async () => {
+    // Skip auth check for public paths
+    if (publicPaths.includes(pathname)) {
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const userData = await authApi.getCurrentAdminUser({ refresh: true }); 
+      
       if (userData) {
         setUser(serializeUser(userData));
         
@@ -250,9 +257,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } else {
         setUser(null);
         setPanelSettings(null);
-        if (!publicPaths.includes(pathname)) {
-          router.push('/login');
-        }
+        router.push('/login');
       }
     } catch (error) {
       if (error instanceof ApiError && error.response.AppStatusCode === 401) {
@@ -264,11 +269,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
         
-        if (!publicPaths.includes(pathname)) {
-          const currentPath = window.location.pathname + window.location.search;
-          const returnToParam = currentPath !== '/' ? `?return_to=${encodeURIComponent(currentPath)}` : '';
-          router.push(`/login${returnToParam}`);
-        }
+        const currentPath = window.location.pathname + window.location.search;
+        const returnToParam = currentPath !== '/' ? `?return_to=${encodeURIComponent(currentPath)}` : '';
+        router.push(`/login${returnToParam}`);
       } else {
         setUser(null);
         setPanelSettings(null);
@@ -413,18 +416,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
-    startTransition(async () => {
     setIsLoading(true);
+    
     try {
-      
       await authApi.logout();
       
     } catch (error) {
-      
+      // Silent error - continue with cleanup
     } finally {
-      
-      
-      clearAuthCookies();
+      // Clear cookies manually
+      if (typeof document !== 'undefined') {
+        // Delete sessionid cookie
+        document.cookie = 'sessionid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        // Delete csrftoken cookie  
+        document.cookie = 'csrftoken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
       
       setUser(null);
       setPanelSettings(null);
@@ -435,11 +441,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         sessionStorage.clear();
       }
       
+      // Clear React Query cache
+      try {
+        const queryClient = getQueryClient();
+        queryClient.clear();
+      } catch (error) {
+        // Silent error
+      }
+      
       setIsLoading(false);
       
-      window.location.href = '/login';
+      // Use Next.js router to prevent page refresh
+      router.push('/login');
     }
-    });
   };
 
   const refreshUser = async () => {

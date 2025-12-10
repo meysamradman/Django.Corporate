@@ -21,12 +21,12 @@ class HuggingFaceProvider(BaseProvider):
         self.image_model = config.get('image_model', 'stabilityai/stable-diffusion-xl-base-1.0') if config else 'stabilityai/stable-diffusion-xl-base-1.0'
         self.content_model = config.get('content_model', 'gpt2') if config else 'gpt2'
         self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(180.0, connect=10.0, read=180.0),
+            timeout=180.0,  # timeout کلی برای HuggingFace (نیاز به timeout بیشتر)
             limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
         )
     
-    def get_timeout(self) -> httpx.Timeout:
-        return httpx.Timeout(180.0, connect=10.0, read=180.0)
+    def get_timeout(self) -> float:
+        return 180.0
     
     def get_provider_name(self) -> str:
         return 'huggingface'

@@ -11,15 +11,15 @@ from src.blog.services.admin.excel_export_service import BlogExcelExportService
 from src.blog.services.admin.pdf_list_export_service import BlogPDFListExportService
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.access_control import RequireModuleAccess
+from src.user.access_control import blog_permission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.blog.messages.messages import BLOG_ERRORS
 
 
 class BlogExportView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    # Use generic module access for blog
-    permission_classes = [lambda: RequireModuleAccess('blog')]
+    # ✅ استفاده از permission instance - بدون lambda
+    permission_classes = [blog_permission]
     format_suffix_kwarg = None
     
     def options(self, request, *args, **kwargs):

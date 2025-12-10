@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { toast } from '@/components/elements/Sonner';
-import { Skeleton } from "@/components/elements/Skeleton";
+import { Loader } from "@/components/elements/Loader";
 import { blogApi } from "@/api/blogs/route";
 import { BlogSidebar } from "@/components/blogs/list/view/BlogSidebar";
-import { OverviewTab } from "@/components/blogs/list/view/OverviewTab";
-import { MediaInfoTab } from "@/components/blogs/list/view/MediaInfoTab";
-import { SEOInfoTab } from "@/components/blogs/list/view/SEOInfoTab";
+
+// Dynamic imports برای Tab Components
+const OverviewTab = lazy(() => import("@/components/blogs/list/view/OverviewTab").then(m => ({ default: m.OverviewTab })));
+const MediaInfoTab = lazy(() => import("@/components/blogs/list/view/MediaInfoTab").then(m => ({ default: m.MediaInfoTab })));
+const SEOInfoTab = lazy(() => import("@/components/blogs/list/view/SEOInfoTab").then(m => ({ default: m.SEOInfoTab })));
 
 export default function BlogViewPage() {
   const params = useParams();
@@ -40,22 +43,8 @@ export default function BlogViewPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          <div className="lg:col-span-2">
-            <Skeleton className="h-96 w-full rounded-xl" />
-          </div>
-          <div className="lg:col-span-4 space-y-6">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-64 w-full rounded-xl" />
-          </div>
-        </div>
+      <div className="w-full h-full min-h-[50vh] flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
@@ -128,9 +117,38 @@ export default function BlogViewPage() {
               </TabsTrigger>
             </TabsList>
 
-            <OverviewTab blog={blogData} />
-            <MediaInfoTab blog={blogData} />
-            <SEOInfoTab blog={blogData} />
+            <Suspense fallback={
+              <div className="mt-6 space-y-4">
+                <div className="rounded-lg border p-6">
+                  <div className="space-y-4">
+                    <Skeleton className="h-6 w-32" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-5 w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-5 w-full" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-32 w-full" />
+                  </div>
+                </div>
+                <div className="rounded-lg border p-6">
+                  <Skeleton className="h-6 w-24 mb-4" />
+                  <div className="grid grid-cols-3 gap-4">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                  </div>
+                </div>
+              </div>
+            }>
+              <OverviewTab blog={blogData} />
+              <MediaInfoTab blog={blogData} />
+              <SEOInfoTab blog={blogData} />
+            </Suspense>
           </Tabs>
         </div>
       </div>

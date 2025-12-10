@@ -34,7 +34,7 @@ import { DataTableHierarchicalFilter } from "./DataTableHierarchicalFilter"
 import { CategoryItem } from "@/types/shared/table";
 import { DataTableDateFilter } from "./DataTableDateFilter"
 import { Trash, Search, Download, Printer, FileSpreadsheet, FileText } from "lucide-react"
-import { TableLoadingCompact } from "@/components/elements/TableLoading"
+import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select"
 import {
@@ -377,7 +377,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                         className="h-24 text-center p-0"
                       >
                         {isLoading ? (
-                          <TableLoadingCompact />
+                          <Loader />
                         ) : (
                           <div className="py-8 text-font-s">
                             داده‌ای یافت نشد

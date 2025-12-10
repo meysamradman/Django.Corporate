@@ -1,3 +1,6 @@
+"""Permission Classes - تمام کلاس‌ها و instance های permission"""
+
+# Base Permission Classes
 from .admin_permission import (
     AdminRolePermission,
     RequireModuleAccess,
@@ -11,98 +14,71 @@ from .admin_permission import (
     AdminPermissionCache,
 )
 
-import src.user.access_control.definitions.permission_factory as permission_factory
-
-_permission_classes = {}
-for class_name in permission_factory.__all__:
-    _permission_classes[class_name] = getattr(permission_factory, class_name)
-
-# NOTE: Blog and Portfolio manager access classes are now auto-generated from MODULE_MAPPINGS
-BlogManagerAccess = _permission_classes.get('BlogManagerAccess')
-PortfolioManagerAccess = _permission_classes.get('PortfolioManagerAccess')
-UsersManagerAccess = _permission_classes.get('UsersManagerAccess')
-MediaManagerAccess = _permission_classes.get('MediaManagerAccess')
-FormsManagerAccess = _permission_classes.get('FormsManagerAccess')
-PagesManagerAccess = _permission_classes.get('PagesManagerAccess')
-SettingsManagerAccess = _permission_classes.get('SettingsManagerAccess')
-PanelManagerAccess = _permission_classes.get('PanelManagerAccess')
-EmailManagerAccess = _permission_classes.get('EmailManagerAccess')
-AiManagerAccess = _permission_classes.get('AiManagerAccess')
-ChatbotManagerAccess = _permission_classes.get('ChatbotManagerAccess')
-TicketManagerAccess = _permission_classes.get('TicketManagerAccess')
-AdminManagerAccess = _permission_classes.get('AdminManagerAccess')
-AnalyticsManagerAccess = _permission_classes.get('AnalyticsManagerAccess')
-
-# ContentManagerAccess = BlogManagerAccess  # Removed - app-specific
-UserManagerAccess = UsersManagerAccess
-AnalyticsViewerAccess = AnalyticsManagerAccess
-SupportAdminAccess = UsersManagerAccess
-PanelSettingsAccess = PanelManagerAccess
-AIManagerAccess = AiManagerAccess
-
+# Views
 from .admin_role_view import AdminRoleView
 from .admin_permission_view import AdminPermissionView
 
-from src.user.access_control.definitions.config import (
-    SYSTEM_ROLES,
-    AVAILABLE_MODULES,
-    AVAILABLE_ACTIONS,
-    get_role_config,
-    get_role_display_name,
-    get_default_permissions,
-    get_all_role_configs,
-    validate_role_permissions
-)
-
-ADMIN_ROLE_PERMISSIONS = SYSTEM_ROLES
-
+# Utilities
 from .role_utils import (
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary
 )
 
+# Permission Instances - برای استفاده مستقیم در ViewSets
+from .instances import (
+    blog_permission,
+    portfolio_permission,
+    analytics_permission,
+    analytics_any_permission,  # جدید
+    media_permission,
+    user_permission,
+    admin_permission,
+    ai_permission,
+    ai_any_permission,  # جدید: هر نوع دسترسی AI
+    panel_permission,
+    email_permission,
+    ticket_permission,
+    chatbot_permission,
+    form_permission,
+    page_permission,
+    super_admin_permission,
+)
+
 __all__ = [
+    # Base Permission Classes
     "AdminRolePermission",
+    "RequireModuleAccess",
+    "RequireAdminRole",
     "UserManagementPermission",
     "SimpleAdminPermission",
     "SuperAdminOnly",
-    "RequireModuleAccess",
-    "RequireAdminRole",
-    "RequirePermission",
     "require_admin_roles",
     "require_module_access",
+    "RequirePermission",
     "AdminPermissionCache",
-    "BlogManagerAccess",
-    "PortfolioManagerAccess",
-    "UsersManagerAccess",
-    "MediaManagerAccess",
-    "FormsManagerAccess",
-    "PagesManagerAccess",
-    "SettingsManagerAccess",
-    "PanelManagerAccess",
-    "EmailManagerAccess",
-    "AiManagerAccess",
-    "ChatbotManagerAccess",
-    "TicketManagerAccess",
-    "AdminManagerAccess",
-    "UserManagerAccess",
-    "AnalyticsViewerAccess",
-    "SupportAdminAccess",
-    "PanelSettingsAccess",
-    "AIManagerAccess",
+    # Views
     "AdminRoleView",
     "AdminPermissionView",
-    "SYSTEM_ROLES",
-    "AVAILABLE_MODULES",
-    "AVAILABLE_ACTIONS",
-    "ADMIN_ROLE_PERMISSIONS",
-    "get_role_config",
-    "get_role_display_name",
-    "get_default_permissions",
-    "get_all_role_configs",
-    "validate_role_permissions",
+    # Utilities
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",
+    # Permission Instances
+    "blog_permission",
+    "portfolio_permission",
+    "analytics_permission",
+    "analytics_any_permission",  # جدید
+    "media_permission",
+    "user_permission",
+    "admin_permission",
+    "ai_permission",
+    "ai_any_permission",  # جدید
+    "panel_permission",
+    "email_permission",
+    "ticket_permission",
+    "chatbot_permission",
+    "form_permission",
+    "page_permission",
+    "super_admin_permission",
 ]

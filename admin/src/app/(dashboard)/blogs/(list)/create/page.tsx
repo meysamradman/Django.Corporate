@@ -6,10 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { 
-  FileText, Edit2, Image, 
-  Loader2, Save, Search, List
+import {
+  FileText, Edit2, Image,
+  Loader2, Save, Search, List, Settings
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/route";
@@ -21,10 +20,95 @@ import { env } from "@/core/config/environment";
 import { Blog } from "@/types/blog/blog";
 import { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaFilesAndIds } from "@/components/blogs/utils/blogMediaUtils";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import dynamic from "next/dynamic";
 
-import BaseInfoTab from "@/components/blogs/list/create/BaseInfoTab";
-import MediaTab from "@/components/blogs/list/create/MediaTab";
-import SEOTab from "@/components/blogs/list/create/SEOTab";
+// Skeleton دقیقاً شبیه فرم واقعی با CardWithIcon
+const TabSkeleton = () => (
+  <div className="mt-0 space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6">
+      {/* بخش چپ - اطلاعات پایه */}
+      <div className="flex-1 min-w-0">
+        <CardWithIcon
+          icon={FileText}
+          title="اطلاعات پایه"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          <div className="space-y-6">
+            {/* Grid دو ستونی */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+
+            {/* Editor */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+          </div>
+        </CardWithIcon>
+      </div>
+
+      {/* بخش راست - تنظیمات */}
+      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          className="lg:sticky lg:top-20"
+        >
+          <div className="space-y-8">
+            {/* دسته‌بندی */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            {/* تگ */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </CardWithIcon>
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const BaseInfoTab = dynamic(
+  () => import("@/components/blogs/list/create/BaseInfoTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+const MediaTab = dynamic(
+  () => import("@/components/blogs/list/create/MediaTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+const SEOTab = dynamic(
+  () => import("@/components/blogs/list/create/SEOTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
 
 export default function CreateBlogPage() {
   const router = useRouter();
@@ -38,11 +122,11 @@ export default function CreateBlogPage() {
     audioGallery: [],
     pdfDocuments: []
   });
-  
+
   const form = useForm<BlogFormValues>({
     resolver: zodResolver(blogFormSchema) as any,
     defaultValues: blogFormDefaults as any,
-        mode: "onSubmit",
+    mode: "onSubmit",
   });
 
   const createBlogMutation = useMutation({
@@ -51,13 +135,13 @@ export default function CreateBlogPage() {
         blogMedia,
         data.featuredImage
       );
-      
+
       const uploadMax = env.PORTFOLIO_MEDIA_UPLOAD_MAX;
       const totalMedia = allMediaFiles.length + allMediaIds.length;
       if (totalMedia > uploadMax) {
         throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
       }
-      
+
       const blogData: any = {
         title: data.name,
         slug: data.slug,
@@ -76,50 +160,50 @@ export default function CreateBlogPage() {
         categories_ids: data.selectedCategories ? data.selectedCategories.map((cat: any) => typeof cat === 'number' ? cat : cat.id) : [],
         tags_ids: data.selectedTags.map(tag => tag.id),
       };
-      
+
       if (allMediaIds.length > 0) {
         blogData.media_ids = allMediaIds;
       }
-      
+
       let blog: Blog;
       if (allMediaFiles.length > 0) {
         blog = await blogApi.createBlogWithMedia(blogData, allMediaFiles);
       } else {
         blog = await blogApi.createBlog(blogData);
       }
-      
+
       return blog;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      
-      const successMessage = variables.status === "draft" 
+
+      const successMessage = variables.status === "draft"
         ? getCrud('saved', { item: 'بلاگ درافت' })
         : getCrud('created', { item: 'بلاگ' });
       showSuccess(successMessage);
-      
+
       router.push("/blogs");
       router.push("/blogs");
     },
     onError: (error: any) => {
-      
+
       if (hasFieldErrors(error)) {
         const fieldErrors = extractFieldErrors(error);
-        
+
         Object.entries(fieldErrors).forEach(([field, message]) => {
           const fieldMap: Record<string, any> = {
             'title': 'name',
             'categories_ids': 'selectedCategories',
             'tags_ids': 'selectedTags',
           };
-          
+
           const formField = fieldMap[field] || field;
           form.setError(formField as any, {
             type: 'server',
             message: message as string
           });
         });
-        
+
         showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
         showError(error);
@@ -130,7 +214,7 @@ export default function CreateBlogPage() {
   const handleSave = async () => {
     const isValid = await form.trigger();
     if (!isValid) return;
-    
+
     const data = form.getValues();
     createBlogMutation.mutate({
       ...data,
@@ -141,7 +225,7 @@ export default function CreateBlogPage() {
   const handleSaveDraft = async () => {
     const isValid = await form.trigger();
     if (!isValid) return;
-    
+
     const data = form.getValues();
     createBlogMutation.mutate({
       ...data,
@@ -156,7 +240,7 @@ export default function CreateBlogPage() {
           <h1 className="page-title">ایجاد وبلاگ جدید</h1>
         </div>
         <div className="flex gap-2">
-          <Button 
+          <Button
             variant="outline"
             onClick={() => router.push("/blogs")}
           >
@@ -188,33 +272,27 @@ export default function CreateBlogPage() {
           </TabsTrigger>
         </TabsList>
 
-        {activeTab === "account" && (
-          <BaseInfoTab 
-            form={form as any}
-            editMode={editMode}
-          />
-        )}
-        {activeTab === "media" && (
-          <MediaTab 
-            form={form as any}
-            blogMedia={blogMedia}
-            setBlogMedia={setBlogMedia}
-            editMode={editMode}
-          />
-        )}
-        {activeTab === "seo" && (
-          <SEOTab 
-            form={form as any}
-            editMode={editMode}
-          />
-        )}
+        <BaseInfoTab
+          form={form as any}
+          editMode={editMode}
+        />
+        <MediaTab
+          form={form as any}
+          blogMedia={blogMedia}
+          setBlogMedia={setBlogMedia}
+          editMode={editMode}
+        />
+        <SEOTab
+          form={form as any}
+          editMode={editMode}
+        />
       </Tabs>
 
       {editMode && (
         <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-          <Button 
-            onClick={handleSaveDraft} 
-            variant="outline" 
+          <Button
+            onClick={handleSaveDraft}
+            variant="outline"
             size="lg"
             disabled={createBlogMutation.isPending}
           >
@@ -230,8 +308,8 @@ export default function CreateBlogPage() {
               </>
             )}
           </Button>
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             size="lg"
             disabled={createBlogMutation.isPending}
           >

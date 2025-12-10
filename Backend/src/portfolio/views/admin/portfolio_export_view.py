@@ -11,15 +11,15 @@ from src.portfolio.services.admin.excel_export_service import PortfolioExcelExpo
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.access_control import RequireModuleAccess
+from src.user.access_control import portfolio_permission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
 class PortfolioExportView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    # Use generic module access for portfolio
-    permission_classes = [lambda: RequireModuleAccess('portfolio')]
+    # ✅ استفاده از permission instance - بدون lambda
+    permission_classes = [portfolio_permission]
     format_suffix_kwarg = None
     
     def options(self, request, *args, **kwargs):

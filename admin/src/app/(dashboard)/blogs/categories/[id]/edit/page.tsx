@@ -17,7 +17,10 @@ import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelec
 import { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Loader2, Save, List } from "lucide-react";
+import { Loader2, Save, List, FolderTree, Settings } from "lucide-react";
+import { Loader } from "@/components/elements/Loader";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -139,12 +142,62 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <h1 className="page-title">ویرایش دسته‌بندی</h1>
+          <Skeleton className="h-10 w-32" />
         </div>
-        <div className="text-center py-8">
-          <p>در حال بارگذاری...</p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+          <div className="lg:col-span-4">
+            <CardWithIcon
+              icon={FolderTree}
+              title="اطلاعات دسته‌بندی"
+              iconBgColor="bg-blue"
+              iconColor="stroke-blue-2"
+              borderColor="border-b-blue-1"
+            >
+              <div className="space-y-6">
+                <Skeleton className="h-32 w-full rounded-lg" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              </div>
+            </CardWithIcon>
+          </div>
+
+          <div className="lg:col-span-2">
+            <CardWithIcon
+              icon={Settings}
+              title="تنظیمات"
+              iconBgColor="bg-blue"
+              iconColor="stroke-blue-2"
+              borderColor="border-b-blue-1"
+              className="lg:sticky lg:top-20"
+            >
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-6 w-10" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+              </div>
+            </CardWithIcon>
+          </div>
         </div>
       </div>
     );

@@ -356,4 +356,82 @@ export const fetchApi = {
   ): Promise<void> => {
     return downloadFile(url, filename, method, body, options);
   },
+
+  /**
+   * Public API call without credentials
+   * Used for OTP settings and CAPTCHA generation to prevent session creation
+   */
+  getPublic: async <T>(url: string, options?: Omit<FetchOptions, 'cookieHeader'>): Promise<ApiResponse<T>> => {
+    const controller = new AbortController();
+    const timeout = options?.timeout || 30000;
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    };
+
+    const fetchOptions: RequestInit = {
+      method: 'GET',
+      headers,
+      credentials: 'omit', // ✅ NO credentials - prevents session creation
+      signal: controller.signal,
+      cache: 'no-store',
+    };
+
+    try {
+      let fullUrl = url;
+      if (!url.startsWith(env.API_BASE_URL)) {
+        fullUrl = `${env.API_BASE_URL}${url}`;
+      }
+
+      const response = await fetch(fullUrl, fetchOptions);
+      clearTimeout(timeoutId);
+
+      const contentType = response.headers.get('content-type');
+      const data = contentType?.includes('application/json') ? await response.json() : null;
+
+      if (!response.ok) {
+        throw new ApiError({
+          response: {
+            AppStatusCode: data?.metaData?.AppStatusCode || response.status,
+            _data: data,
+            ok: false,
+            message: data?.metaData?.message || `Error: ${response.status}`,
+            errors: data?.errors || null,
+          },
+        });
+      }
+
+      return data as ApiResponse<T>;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError({
+          response: {
+            AppStatusCode: 504,
+            _data: null,
+            ok: false,
+            message: getNetworkError('timeout'),
+            errors: null,
+          },
+        });
+      }
+
+      if (!(error instanceof ApiError)) {
+        throw new ApiError({
+          response: {
+            AppStatusCode: 503,
+            _data: null,
+            ok: false,
+            message: error instanceof Error ? error.message : getNetworkError('network'),
+            errors: null,
+          },
+        });
+      }
+
+      throw error;
+    }
+  },
 };

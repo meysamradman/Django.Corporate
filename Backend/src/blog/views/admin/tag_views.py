@@ -16,15 +16,15 @@ from src.blog.serializers.admin.tag_serializer import (
 from src.blog.services.admin.tag_services import BlogTagAdminService
 from src.blog.filters.admin.tag_filters import BlogTagAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import RequireModuleAccess, SimpleAdminPermission
+from src.user.access_control import blog_permission, SimpleAdminPermission
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import TAG_SUCCESS, TAG_ERRORS
 from src.user.access_control import PermissionValidator
 
 
 class BlogTagAdminViewSet(viewsets.ModelViewSet):
-    # Use generic module access for blog
-    permission_classes = [lambda: RequireModuleAccess('blog')]
+    # ✅ استفاده از permission instance - بدون lambda
+    permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogTagAdminFilter
     search_fields = ['name', 'description']

@@ -16,12 +16,12 @@ from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoM
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.user.access_control import PermissionValidator, MediaManagerAccess
+from src.user.access_control import PermissionValidator, media_permission
 
 
 class MediaAdminViewSet(viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [MediaManagerAccess]
+    permission_classes = [media_permission]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = MediaAdminSerializer
     pagination_class = StandardLimitPagination

@@ -35,7 +35,6 @@ import {
   PaginationLink,
 } from "@/components/elements/Pagination";
 import { ImageOff, Trash2, Upload, Search, ChevronRight, ChevronLeft, Filter, X, Play, FileAudio } from 'lucide-react';
-import { TableLoadingCompact } from '@/components/elements/TableLoading';
 import {
   Card,
   CardContent,
@@ -78,19 +77,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/elements/Select"
+import { Loader } from '@/components/elements/Loader';
+
 const MediaUploadModal = dynamic(
   () => import('@/components/media/modals/MediaUploadModal').then(mod => ({ default: mod.MediaUploadModal })),
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><Loader /></div> }
 );
 
 const MediaDetailsModal = dynamic(
   () => import('@/components/media/modals/MediaDetailsModal').then(mod => ({ default: mod.MediaDetailsModal })),
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><Loader /></div> }
 );
 
 const AIImageGenerator = dynamic(
   () => import('@/components/ai/image').then(mod => ({ default: mod.AIImageGenerator })),
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><Loader /></div> }
 );
 import { Sparkles } from 'lucide-react';
 import { PersianDatePicker } from '@/components/elements/PersianDatePicker';

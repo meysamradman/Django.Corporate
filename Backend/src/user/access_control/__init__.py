@@ -1,40 +1,46 @@
+"""Access Control System - سیستم مدیریت دسترسی و Permission ها"""
+
+# Permission Classes
 from .classes import (
+    # Base Classes
     AdminRolePermission,
     RequireModuleAccess,
     RequireAdminRole,
     UserManagementPermission,
     SimpleAdminPermission,
     SuperAdminOnly,
-    require_admin_roles,
-    require_module_access,
     RequirePermission,
     AdminPermissionCache,
-    BlogManagerAccess,
-    PortfolioManagerAccess,
-    UsersManagerAccess,
-    MediaManagerAccess,
-    FormsManagerAccess,
-    PagesManagerAccess,
-    SettingsManagerAccess,
-    PanelManagerAccess,
-    EmailManagerAccess,
-    AiManagerAccess,
-    ChatbotManagerAccess,
-    TicketManagerAccess,
-    AdminManagerAccess,
-    UserManagerAccess,
-    AnalyticsViewerAccess,
-    SupportAdminAccess,
-    PanelSettingsAccess,
-    AIManagerAccess,
+    # Decorators
+    require_admin_roles,
+    require_module_access,
+    # Views
     AdminRoleView,
     AdminPermissionView,
+    # Utilities
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary,
+    # Permission Instances - توصیه می‌شود
+    blog_permission,
+    portfolio_permission,
+    analytics_permission,
+    analytics_any_permission,  # جدید
+    media_permission,
+    user_permission,
+    admin_permission,
+    ai_permission,
+    ai_any_permission,  # جدید: هر نوع دسترسی AI
+    panel_permission,
+    email_permission,
+    ticket_permission,
+    chatbot_permission,
+    form_permission,
+    page_permission,
+    super_admin_permission,
 )
 
-# Export from definitions (Permission Definitions)
+# Permission Definitions & Validators
 from .definitions import (
     Permission,
     PermissionRegistry,
@@ -64,44 +70,46 @@ from .definitions import (
     get_all_role_configs,
 )
 
+# Backward compatibility
 ADMIN_ROLE_PERMISSIONS = SYSTEM_ROLES
 
 __all__ = [
-    # Permission Classes
+    # ==================== Permission Classes ====================
     "AdminRolePermission",
     "RequireModuleAccess",
     "RequireAdminRole",
     "UserManagementPermission",
     "SimpleAdminPermission",
     "SuperAdminOnly",
-    "require_admin_roles",
-    "require_module_access",
     "RequirePermission",
     "AdminPermissionCache",
-    "BlogManagerAccess",
-    "PortfolioManagerAccess",
-    "UsersManagerAccess",
-    "MediaManagerAccess",
-    "FormsManagerAccess",
-    "PagesManagerAccess",
-    "SettingsManagerAccess",
-    "PanelManagerAccess",
-    "EmailManagerAccess",
-    "AiManagerAccess",
-    "ChatbotManagerAccess",
-    "TicketManagerAccess",
-    "AdminManagerAccess",
-    "UserManagerAccess",
-    "AnalyticsViewerAccess",
-    "SupportAdminAccess",
-    "PanelSettingsAccess",
-    "AIManagerAccess",
+    "require_admin_roles",
+    "require_module_access",
     "AdminRoleView",
     "AdminPermissionView",
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",
-    # Permission Definitions
+    
+    # ==================== Permission Instances (توصیه می‌شود) ====================
+    "blog_permission",
+    "portfolio_permission",
+    "analytics_permission",
+    "analytics_any_permission",  # جدید
+    "media_permission",
+    "user_permission",
+    "admin_permission",
+    "ai_permission",
+    "ai_any_permission",  # جدید
+    "panel_permission",
+    "email_permission",
+    "ticket_permission",
+    "chatbot_permission",
+    "form_permission",
+    "page_permission",
+    "super_admin_permission",
+    
+    # ==================== Permission Definitions ====================
     "Permission",
     "PermissionRegistry",
     "PermissionValidator",
@@ -111,6 +119,7 @@ __all__ = [
     "AVAILABLE_MODULES",
     "AVAILABLE_ACTIONS",
     "BASE_ADMIN_PERMISSIONS",
+    "ADMIN_ROLE_PERMISSIONS",
     "RoleConfig",
     "get_all_permissions",
     "get_permission",
@@ -128,5 +137,4 @@ __all__ = [
     "validate_role_permissions",
     "get_role_permissions_for_creation",
     "get_all_role_configs",
-    "ADMIN_ROLE_PERMISSIONS",
 ]

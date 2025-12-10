@@ -15,14 +15,14 @@ from src.blog.serializers.admin.category_serializer import (
 from src.blog.services.admin.category_services import BlogCategoryAdminService
 from src.blog.filters.admin.category_filters import BlogCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import RequireModuleAccess, PermissionValidator
+from src.user.access_control import blog_permission, PermissionValidator
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 
 class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
-    # Use generic module access for blog
-    permission_classes = [lambda: RequireModuleAccess('blog')]
+    # ✅ استفاده از permission instance - بدون lambda
+    permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogCategoryAdminFilter
     search_fields = ['name', 'description']

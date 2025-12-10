@@ -20,7 +20,8 @@ import { toast } from "@/components/elements/Sonner";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
-import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List } from "lucide-react";
+import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List, Settings } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateCategoryPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function CreateCategoryPage() {
     description: "",
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['categories-all'],
     queryFn: async () => {
       return await portfolioApi.getCategories({ size: 1000 });
@@ -178,6 +179,68 @@ export default function CreateCategoryPage() {
     
     createCategoryMutation.mutate(formDataWithImage);
   };
+
+  if (isLoadingCategories) {
+    return (
+      <div className="space-y-6 pb-28 relative">
+        <div className="flex items-center justify-between">
+          <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+          <div className="lg:col-span-4 space-y-6">
+            <CardWithIcon
+              icon={FolderTree}
+              title="اطلاعات دسته‌بندی"
+              iconBgColor="bg-blue"
+              iconColor="stroke-blue-2"
+              borderColor="border-b-blue-1"
+            >
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              </div>
+            </CardWithIcon>
+          </div>
+
+          <div className="lg:col-span-2">
+            <CardWithIcon
+              icon={Settings}
+              title="تنظیمات"
+              iconBgColor="bg-blue"
+              iconColor="stroke-blue-2"
+              borderColor="border-b-blue-1"
+              className="lg:sticky lg:top-20"
+            >
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
+                </div>
+              </div>
+            </CardWithIcon>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-28 relative">

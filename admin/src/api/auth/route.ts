@@ -68,7 +68,7 @@ export const authApi = {
 
     getOTPSettings: async (): Promise<{ otp_length: number }> => {
         try {
-            const response = await fetchApi.get<{ otp_length: number }>('/mobile/otp-settings/');
+            const response = await fetchApi.getPublic<{ otp_length: number }>('/mobile/otp-settings/');
             return response.data;
         } catch (error) {
             return {otp_length: 5};
@@ -76,7 +76,7 @@ export const authApi = {
     },
 
     getCaptchaChallenge: async (): Promise<{ captcha_id: string; digits: string }> => {
-        const response = await fetchApi.get<{ captcha_id: string; digits: string }>('/admin/auth/captcha/generate/');
+        const response = await fetchApi.getPublic<{ captcha_id: string; digits: string }>('/admin/auth/captcha/generate/');
         return response.data;
     },
 };

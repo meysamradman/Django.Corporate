@@ -60,8 +60,13 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
     return (
       <Card className="border-b-4 border-b-primary">
         <CardHeader>
-          <Skeleton className="h-6 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
+              <BarChart3 className="w-5 h-5 stroke-primary" />
+            </div>
+            <Skeleton className="h-6 w-48" />
+          </CardTitle>
+          <Skeleton className="h-4 w-64 mt-1" />
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[400px] w-full" />
@@ -74,7 +79,12 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
     return (
       <Card className="border-b-4 border-b-primary">
         <CardHeader>
-          <CardTitle>آمار بازدید</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
+              <BarChart3 className="w-5 h-5 stroke-primary" />
+            </div>
+            <span>آمار بازدید</span>
+          </CardTitle>
           <CardDescription>داده‌ای برای نمایش وجود ندارد</CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,20 +108,20 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
   return (
     <Card className="border-b-4 border-b-primary">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              آمار بازدید 6 ماه گذشته
-            </CardTitle>
-            <CardDescription className="mt-1">
-              نمایش تفکیک شده بازدیدهای دسکتاپ و موبایل
-            </CardDescription>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
+              <BarChart3 className="w-5 h-5 stroke-primary" />
+            </div>
+            <span>آمار بازدید 6 ماه گذشته</span>
           </div>
           <Badge variant="outline" className="text-xs">
             {startMonth} - {endMonth} {currentYear}
           </Badge>
-        </div>
+        </CardTitle>
+        <CardDescription className="mt-1">
+          نمایش تفکیک شده بازدیدهای دسکتاپ و موبایل
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -127,12 +137,12 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
           >
             <defs>
               <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1} />
+                <stop offset="5%" stopColor={chartConfig.desktop.color} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={chartConfig.desktop.color} stopOpacity={0.1} />
               </linearGradient>
               <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-mobile)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-mobile)" stopOpacity={0.1} />
+                <stop offset="5%" stopColor={chartConfig.mobile.color} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={chartConfig.mobile.color} stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <CartesianGrid 
@@ -155,13 +165,13 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
               tickCount={5}
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
               className="text-xs"
-              tickFormatter={(value) => formatNumber(value)}
+              tickFormatter={(value: number) => formatNumber(value)}
             />
             <ChartTooltip
               cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
               content={<ChartTooltipContent 
                 indicator="line"
-                labelFormatter={(value) => `ماه: ${value}`}
+                labelFormatter={(value: string) => `ماه: ${value}`}
               />}
             />
             <Area
@@ -169,7 +179,7 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
               type="natural"
               fill="url(#fillDesktop)"
               fillOpacity={0.6}
-              stroke="var(--color-desktop)"
+              stroke={chartConfig.desktop.color}
               strokeWidth={2}
               stackId="a"
             />
@@ -178,7 +188,7 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
               type="natural"
               fill="url(#fillMobile)"
               fillOpacity={0.6}
-              stroke="var(--color-mobile)"
+              stroke={chartConfig.mobile.color}
               strokeWidth={2}
               stackId="a"
             />
@@ -190,7 +200,7 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
         </ChartContainer>
       </CardContent>
       <CardFooter>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-stretch">
           {/* Device Distribution */}
           <DeviceDistribution analytics={analytics} />
           
@@ -198,7 +208,7 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
           <SourceDistribution analytics={analytics} />
           
           {/* Trend Summary */}
-          <TrendSummary monthlyStats={monthlyStats} />
+          <TrendSummary monthlyStats={monthlyStats} analytics={analytics} />
         </div>
       </CardFooter>
     </Card>
@@ -211,36 +221,59 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
   const desktop30Days = analytics?.last_30_days?.desktop || 0;
   const mobilePercent = total30Days > 0 ? ((mobile30Days / total30Days) * 100).toFixed(1) : "0";
   const desktopPercent = total30Days > 0 ? ((desktop30Days / total30Days) * 100).toFixed(1) : "0";
+  const mobileColor = "#60A5FA"; // blue-400 (lighter blue) - matching chart
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 h-full flex flex-col">
       <div className="flex items-center gap-2 text-sm font-medium text-font-p">
         <Monitor className="h-4 w-4 text-blue-1" />
         توزیع دستگاه‌ها (30 روز)
       </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[var(--color-desktop)]" />
-            <span className="text-font-s">دسکتاپ</span>
+      <div className="space-y-3 flex-1">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-1" />
+              <span className="text-font-s font-medium">دسکتاپ</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-font-s">({desktopPercent}%)</span>
+              <span className="text-sm font-bold text-font-p">
+                {formatNumber(desktop30Days)}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-font-p font-medium">
-              {formatNumber(desktop30Days)}
-            </span>
-            <span className="text-font-s">({desktopPercent}%)</span>
+          <div className="h-2 bg-bg rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-1 rounded-full transition-all"
+              style={{ width: `${desktopPercent}%` }}
+            />
           </div>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[var(--color-mobile)]" />
-            <span className="text-font-s">موبایل</span>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-2 h-2 rounded-full" 
+                style={{ backgroundColor: mobileColor }}
+              />
+              <span className="text-font-s font-medium">موبایل</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-font-s">({mobilePercent}%)</span>
+              <span className="text-sm font-bold text-font-p">
+                {formatNumber(mobile30Days)}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-font-p font-medium">
-              {formatNumber(mobile30Days)}
-            </span>
-            <span className="text-font-s">({mobilePercent}%)</span>
+          <div className="h-2 bg-bg rounded-full overflow-hidden">
+            <div 
+              className="h-full rounded-full transition-all"
+              style={{ 
+                width: `${mobilePercent}%`,
+                backgroundColor: mobileColor
+              }}
+            />
           </div>
         </div>
       </div>
@@ -249,31 +282,65 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
 }
 
 function SourceDistribution({ analytics }: { analytics: any }) {
+  const web = analytics?.last_30_days?.web || 0;
+  const app = analytics?.last_30_days?.app || 0;
+  const total = web + app;
+  const webPercent = total > 0 ? ((web / total) * 100).toFixed(1) : '0';
+  const appPercent = total > 0 ? ((app / total) * 100).toFixed(1) : '0';
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 h-full flex flex-col">
       <div className="flex items-center gap-2 text-sm font-medium text-font-p">
         <Globe className="h-4 w-4 text-green-1" />
         توزیع منبع (30 روز)
       </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-font-s">وب‌سایت</span>
-          <span className="text-font-p font-medium">
-            {formatNumber(analytics?.last_30_days?.web || 0)}
-          </span>
+      <div className="space-y-3 flex-1">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-1" />
+              <span className="text-font-s font-medium">وب‌سایت</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-font-s">({webPercent}%)</span>
+              <span className="text-sm font-bold text-font-p">
+                {formatNumber(web)}
+              </span>
+            </div>
+          </div>
+          <div className="h-2 bg-bg rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-1 rounded-full transition-all"
+              style={{ width: `${webPercent}%` }}
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-font-s">اپلیکیشن</span>
-          <span className="text-font-p font-medium">
-            {formatNumber(analytics?.last_30_days?.app || 0)}
-          </span>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-purple-1" />
+              <span className="text-font-s font-medium">اپلیکیشن</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-font-s">({appPercent}%)</span>
+              <span className="text-sm font-bold text-font-p">
+                {formatNumber(app)}
+              </span>
+            </div>
+          </div>
+          <div className="h-2 bg-bg rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-purple-1 rounded-full transition-all"
+              style={{ width: `${appPercent}%` }}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function TrendSummary({ monthlyStats }: { monthlyStats: Array<{ month: string; desktop: number; mobile: number }> }) {
+function TrendSummary({ monthlyStats, analytics }: { monthlyStats: Array<{ month: string; desktop: number; mobile: number }>, analytics: any }) {
   const calculateTrend = (current: number, previous: number) => {
     if (previous === 0) return { value: 0, isPositive: true };
     const change = ((current - previous) / previous) * 100;
@@ -283,7 +350,7 @@ function TrendSummary({ monthlyStats }: { monthlyStats: Array<{ month: string; d
     };
   };
 
-  const todayTotal = 0; // TODO: Get from API
+  const todayTotal = analytics?.today?.total || 0;
   const yesterdayTotal = Math.floor(todayTotal * 0.85);
   const todayTrend = calculateTrend(todayTotal, yesterdayTotal);
 
@@ -296,36 +363,46 @@ function TrendSummary({ monthlyStats }: { monthlyStats: Array<{ month: string; d
   const monthTrend = calculateTrend(thisMonthTotal, lastMonthTotal);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 h-full flex flex-col">
       <div className="flex items-center gap-2 text-sm font-medium text-font-p">
         <TrendingUp className="h-4 w-4 text-purple-1" />
         روند تغییرات
       </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-font-s">امروز</span>
-          <div className="flex items-center gap-1">
-            {todayTrend.isPositive ? (
-              <TrendingUp className="h-3 w-3 text-green-1" />
-            ) : (
-              <TrendingDown className="h-3 w-3 text-red-1" />
-            )}
-            <span className={todayTrend.isPositive ? "text-green-1" : "text-red-1"}>
-              {todayTrend.value.toFixed(1)}%
-            </span>
+      <div className="grid grid-cols-2 gap-3 flex-1">
+        <div className="p-2.5 rounded-lg bg-bg/50 border border-br flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-font-s">امروز</span>
+            <div className="flex items-center gap-1">
+              {todayTrend.isPositive ? (
+                <TrendingUp className="h-3.5 w-3.5 text-green-1" />
+              ) : (
+                <TrendingDown className="h-3.5 w-3.5 text-red-1" />
+              )}
+              <span className={`text-sm font-bold ${todayTrend.isPositive ? "text-green-1" : "text-red-1"}`}>
+                {todayTrend.value.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div className="text-xs text-font-s">
+            نسبت به دیروز
           </div>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-font-s">این ماه</span>
-          <div className="flex items-center gap-1">
-            {monthTrend.isPositive ? (
-              <TrendingUp className="h-3 w-3 text-green-1" />
-            ) : (
-              <TrendingDown className="h-3 w-3 text-red-1" />
-            )}
-            <span className={monthTrend.isPositive ? "text-green-1" : "text-red-1"}>
-              {monthTrend.value.toFixed(1)}%
-            </span>
+        <div className="p-2.5 rounded-lg bg-bg/50 border border-br flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-font-s">این ماه</span>
+            <div className="flex items-center gap-1">
+              {monthTrend.isPositive ? (
+                <TrendingUp className="h-3.5 w-3.5 text-green-1" />
+              ) : (
+                <TrendingDown className="h-3.5 w-3.5 text-red-1" />
+              )}
+              <span className={`text-sm font-bold ${monthTrend.isPositive ? "text-green-1" : "text-red-1"}`}>
+                {monthTrend.value.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          <div className="text-xs text-font-s">
+            نسبت به ماه قبل
           </div>
         </div>
       </div>

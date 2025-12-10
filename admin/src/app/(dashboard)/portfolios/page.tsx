@@ -19,16 +19,7 @@ import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 const DataTable = dynamic(
   () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
   { 
-    ssr: false, 
-    loading: () => (
-      <div className="rounded-md border">
-        <div className="p-4 space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
-          ))}
-        </div>
-      </div>
-    )
+    ssr: false
   }
 );
 import { getCrud, getConfirm, getStatus } from '@/core/messages';

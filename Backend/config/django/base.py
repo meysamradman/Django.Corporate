@@ -305,7 +305,7 @@ CAPTCHA_LENGTH = int(os.getenv('CAPTCHA_LENGTH', 4))
 CAPTCHA_REDIS_PREFIX = os.getenv('CAPTCHA_REDIS_PREFIX', 'captcha:')
 
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'session'
 
 MELIPAYAMAK_API_URL = os.getenv('MELIPAYAMAK_API_URL')

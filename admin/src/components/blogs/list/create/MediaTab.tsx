@@ -13,10 +13,11 @@ import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { mediaService } from "@/components/media/services";
 import NextImage from "next/image";
 import { BlogMedia } from "@/types/blog/blogMedia";
+import { Loader } from "@/components/elements/Loader";
 
 const MediaLibraryModal = dynamic(
   () => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })),
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
+  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><Loader /></div> }
 );
 
 interface MediaTabFormProps {
