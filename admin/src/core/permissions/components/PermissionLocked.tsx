@@ -27,21 +27,48 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
   iconBgColorClass = "bg-gray",
   iconColorClass = "stroke-gray-1",
 }) => {
-  const { hasPermission, hasAllPermissions, hasAnyPermission, isLoading } = usePermission();
+  const { hasPermission, hasAllPermissions, hasAnyPermission, check, isLoading } = usePermission();
 
   const permissions = useMemo(
-    () => Array.isArray(permission) ? permission : [permission],
+    () => {
+      const perms = Array.isArray(permission) ? permission : [permission];
+      // فیلتر کردن undefined و null و string های خالی
+      return perms.filter(p => p && typeof p === 'string' && p.trim().length > 0);
+    },
     [permission]
   );
 
   const hasAccess = useMemo(() => {
-    if (isLoading) return false;
+    if (isLoading || permissions.length === 0) return false;
+    
+    // برای Analytics permissions باید چک دقیق کنیم:
+    // analytics.stats.manage به همه analytics.*.read دسترسی میده
+    // ولی analytics.manage فقط آمار بازدید رو مدیریت میکنه
+    const isAnalyticsStatsPermission = permissions.some(p => 
+      p.startsWith('analytics.') && 
+      (p.includes('.read') || p === 'analytics.stats.manage')
+    );
+    
+    if (isAnalyticsStatsPermission) {
+      // برای analytics permissions:
+      // 1. اگه خود permission رو داره (exact) → true
+      // 2. اگه analytics.stats.manage داره → به همه analytics.*.read دسترسی داره
+      const hasStatsManage = check('analytics.stats.manage');
+      
+      if (requireAll) {
+        return permissions.every(p => check(p) || hasStatsManage);
+      } else {
+        return permissions.some(p => check(p) || hasStatsManage);
+      }
+    }
+    
+    // برای بقیه permissions از hasPermission استفاده میکنیم (با wildcard)
     return requireAll
       ? hasAllPermissions(permissions)
       : permissions.length === 1
         ? hasPermission(permissions[0])
         : hasAnyPermission(permissions);
-  }, [isLoading, requireAll, permissions, hasPermission, hasAllPermissions, hasAnyPermission]);
+  }, [isLoading, requireAll, permissions, hasPermission, hasAllPermissions, hasAnyPermission, check]);
 
   if (isLoading) {
     return (

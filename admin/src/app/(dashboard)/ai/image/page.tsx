@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Wand2 } from 'lucide-react';
+import { usePermission } from '@/core/permissions/context/PermissionContext';
+import { AccessDenied } from '@/core/permissions/components/AccessDenied';
 
 // AIImageGenerator Skeleton
 const AIImageGeneratorSkeleton = () => (
@@ -47,15 +49,27 @@ const AIImageGenerator = dynamic(
 );
 
 export default function AIImagePage() {
-    const router = useRouter();
+  const router = useRouter();
+  const { hasAnyPermission, isLoading } = usePermission();
 
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <h1 className="page-title">تولید تصویر با AI</h1>
-            <AIImageGenerator
-                onNavigateToSettings={() => router.push('/settings/ai')}
-            />
-        </div>
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <AIImageGeneratorSkeleton />
+      </div>
     );
+  }
+
+  if (!hasAnyPermission(['ai.manage', 'ai.image.manage'])) {
+    return <AccessDenied />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="page-title">تولید تصویر با AI</h1>
+      <AIImageGenerator onNavigateToSettings={() => router.push('/settings/ai')} />
+    </div>
+  );
 }
 

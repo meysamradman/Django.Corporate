@@ -54,7 +54,7 @@ export const analyticsApi = {
   },
 
   getMonthlyStats: async (): Promise<{ monthly_stats: Array<{ month: string; desktop: number; mobile: number }> }> => {
-    const response = await fetchApi.get('/analytics/admin/monthly-stats/');
+    const response = await fetchApi.get<{ monthly_stats: Array<{ month: string; desktop: number; mobile: number }> }>('/analytics/admin/monthly-stats/');
     return response.data;
   },
 
@@ -63,7 +63,11 @@ export const analyticsApi = {
     deleted_daily_stats: number;
     period: string;
   }> => {
-    const response = await fetchApi.post('/analytics/admin/clear/', {
+    const response = await fetchApi.post<{
+      deleted_page_views: number;
+      deleted_daily_stats: number;
+      period: string;
+    }>('/analytics/admin/clear/', {
       period,
       ...(days && { days }),
     });

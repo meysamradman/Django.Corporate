@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/elements/Sonner";
 import { usePermission } from "@/core/permissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 import { MailboxType } from "./types";
 
@@ -67,7 +68,7 @@ function EmailActionsDropdown({
   onMarkAsUnread?: () => void;
 }) {
   const { hasPermission } = usePermission();
-  const canUpdate = hasPermission("email.update");
+  const canUpdate = hasPermission(PERMISSIONS.EMAIL.UPDATE);
 
   const handleClick = (callback?: () => void) => {
     if (!canUpdate) {

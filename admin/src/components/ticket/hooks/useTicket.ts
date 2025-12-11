@@ -16,9 +16,11 @@ export function useTicketStats() {
     queryFn: async () => {
       return { new_tickets_count: 0, assigned_to_me_count: 0, total_new: 0 };
     },
+    staleTime: 0,
+    gcTime: 0,
     refetchInterval: 30000, // Refetch every 30 seconds for ticket stats
-    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
-    refetchOnMount: false, // Don't refetch on mount - only use interval
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }
 
@@ -26,9 +28,11 @@ export function useTicketList(params: TicketListParams = {}) {
   return useQuery({
     queryKey: ['tickets', params],
     queryFn: () => ticketApi.getList(params),
+    staleTime: 0,
+    gcTime: 0,
     refetchInterval: 30000, // Refetch every 30 seconds for ticket list
-    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
-    refetchOnMount: false, // Don't refetch on mount - only use interval
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }
 
@@ -37,6 +41,8 @@ export function useTicket(id: number | string | null) {
     queryKey: ['ticket', id],
     queryFn: () => ticketApi.getById(id!),
     enabled: !!id,
+    staleTime: 0,
+    gcTime: 0,
   });
 }
 
@@ -45,6 +51,8 @@ export function useTicketMessages(ticketId: number | string | null) {
     queryKey: ['ticket-messages', ticketId],
     queryFn: () => ticketApi.getMessages(ticketId!),
     enabled: !!ticketId,
+    staleTime: 0,
+    gcTime: 0,
   });
 }
 

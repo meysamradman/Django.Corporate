@@ -12,6 +12,7 @@ import {
 import { useNotifications } from "./hooks/useNotifications";
 import { useRouter } from "next/navigation";
 import { usePermission } from "@/core/permissions/context/PermissionContext";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { cn } from "@/core/utils/cn";
 
 export function Notifications() {
@@ -19,8 +20,8 @@ export function Notifications() {
   const { hasPermission } = usePermission();
   const { data: notifications, isLoading } = useNotifications();
   
-  const hasTicketPermission = hasPermission('ticket.read') || hasPermission('ticket.manage');
-  const hasEmailPermission = hasPermission('email.read');
+  const hasTicketPermission = hasPermission(PERMISSIONS.TICKET.READ) || hasPermission(PERMISSIONS.TICKET.MANAGE);
+  const hasEmailPermission = hasPermission(PERMISSIONS.EMAIL.READ);
   
   const totalCount = notifications?.total || 0;
   const hasNotifications = totalCount > 0;

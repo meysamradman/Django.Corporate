@@ -131,9 +131,8 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
                 url: "/media",
                 access: { 
                     module: "media", 
-                    actions: ["read"],
-                    allowReadOnly: true,
-                    readOnlyLabel: "فقط مشاهده"
+                    actions: ["manage"],
+                    allowReadOnly: false
                 }
             },
         ]

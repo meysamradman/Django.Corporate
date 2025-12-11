@@ -1,11 +1,22 @@
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
 from src.user.models import User, AdminProfile
 from src.user.models.location import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models import ImageMedia
-from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
+
+
+def _clear_permission_cache(user_id):
+    """Helper function to clear permission cache (lazy import to avoid circular dependency)"""
+    try:
+        from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
+        AdminPermissionCache.clear_user_cache(user_id)
+        PermissionValidator.clear_user_cache(user_id)
+        PermissionHelper.clear_user_cache(user_id)
+    except ImportError:
+        pass
 
 
 class AdminProfileService:
@@ -113,9 +124,7 @@ class AdminProfileService:
                 
                 profile.save()
                 
-                AdminPermissionCache.clear_user_cache(admin.id)
-                PermissionValidator.clear_user_cache(admin.id)
-                PermissionHelper.clear_user_cache(admin.id)
+                _clear_permission_cache(admin.id)
                 
                 if old_media_to_delete:
                     try:
@@ -138,9 +147,7 @@ class AdminProfileService:
                 profile.profile_picture = None
                 profile.save(update_fields=['profile_picture'])
             
-            AdminPermissionCache.clear_user_cache(admin.id)
-            PermissionValidator.clear_user_cache(admin.id)
-            PermissionHelper.clear_user_cache(admin.id)
+            _clear_permission_cache(admin.id)
             
             return profile
             
@@ -150,8 +157,6 @@ class AdminProfileService:
         profile.profile_picture = media_obj
         profile.save(update_fields=['profile_picture'])
         
-        AdminPermissionCache.clear_user_cache(admin.id)
-        PermissionValidator.clear_user_cache(admin.id)
-        PermissionHelper.clear_user_cache(admin.id)
+        _clear_permission_cache(admin.id)
                 
         return profile

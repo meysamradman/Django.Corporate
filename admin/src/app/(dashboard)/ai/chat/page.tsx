@@ -4,6 +4,8 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { MessageSquare } from 'lucide-react';
+import { usePermission } from '@/core/permissions/context/PermissionContext';
+import { AccessDenied } from '@/core/permissions/components/AccessDenied';
 
 // AIChat Skeleton
 const AIChatSkeleton = () => (
@@ -51,10 +53,24 @@ const AIChat = dynamic(
 );
 
 export default function AIChatPage() {
+  const { hasAnyPermission, isLoading } = usePermission();
+
+  if (isLoading) {
     return (
-        <div className="container mx-auto py-6">
-            <AIChat />
-        </div>
+      <div className="container mx-auto py-6">
+        <AIChatSkeleton />
+      </div>
     );
+  }
+
+  if (!hasAnyPermission(['ai.manage', 'ai.chat.manage'])) {
+    return <AccessDenied />;
+  }
+
+  return (
+    <div className="container mx-auto py-6">
+      <AIChat />
+    </div>
+  );
 }
 

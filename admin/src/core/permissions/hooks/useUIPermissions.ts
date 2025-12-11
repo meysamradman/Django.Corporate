@@ -1,7 +1,7 @@
 'use client';
 
 import { usePermission } from '../context/PermissionContext';
-import type { UIPermissions } from '../context/PermissionContext';
+import type { UIPermissions } from '@/types/auth/permission';
 
 export function useUIPermissions(): UIPermissions {
   const { ui } = usePermission();
@@ -86,11 +86,6 @@ export function useCanUploadAudio() {
 export function useCanUploadDocument() {
   const { canUploadDocument } = useUIPermissions();
   return canUploadDocument;
-}
-
-export function useCanViewDashboardStats() {
-  const { canViewDashboardStats } = useUIPermissions();
-  return canViewDashboardStats;
 }
 
 export function useCanViewUsersStats() {

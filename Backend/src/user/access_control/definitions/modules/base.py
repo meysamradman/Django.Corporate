@@ -6,13 +6,6 @@ BASE_PERMISSIONS = {
         'description': 'Access the admin dashboard overview (safe, general info)',
         'is_base': True,
     },
-    'media.read': {
-        'module': 'media',
-        'action': 'read',
-        'display_name': 'View Media Library',
-        'description': 'View media library and uploaded files',
-        'is_base': True,
-    },
     'profile.read': {
         'module': 'admin',
         'action': 'read',

@@ -12,12 +12,6 @@ ANALYTICS_PERMISSIONS = {
         'display_name': 'Manage All Statistics',
         'description': 'Full access to all app statistics (users, admins, content, tickets, emails, system)',
     },
-    'analytics.dashboard.read': {
-        'module': 'analytics',
-        'action': 'read',
-        'display_name': 'View Dashboard Overview',
-        'description': 'View basic dashboard statistics (safe, general info)',
-    },
     'analytics.users.read': {
         'module': 'analytics',
         'action': 'read',

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Activity, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 import {
@@ -125,13 +126,9 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
     );
   }
 
-  if (supportStats.length === 0) {
-    return null;
-  }
-
   return (
     <PermissionLocked
-      permission={['analytics.emails.read', 'analytics.tickets.read']}
+      permission={[PERMISSIONS.ANALYTICS.EMAILS_READ, PERMISSIONS.ANALYTICS.TICKETS_READ]}
       requireAll={false}
       lockedMessage="دسترسی به آمار پشتیبانی"
       borderColorClass="border-b-primary"

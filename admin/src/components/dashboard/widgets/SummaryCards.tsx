@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { Card } from "@/components/elements/Card";
 import { cn } from "@/core/utils/cn";
 import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { formatNumber } from "@/core/utils/format";
 import { DashboardStats } from "@/types/analytics/analytics";
 
@@ -15,7 +16,6 @@ interface SummaryCard {
   label: string;
   value: number;
   permission: string;
-  hasAccess: boolean;
   colors: {
     border: string;
     iconBg: string;
@@ -70,8 +70,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
       icon: Users,
       label: 'کاربران',
       value: stats?.total_users || 0,
-      permission: 'analytics.users.read',
-      hasAccess: false,
+      permission: PERMISSIONS.ANALYTICS.USERS_READ,
       colors: CARD_COLORS.user,
       trend: null
     },
@@ -80,8 +79,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
       icon: ShieldUser,
       label: 'ادمین‌ها',
       value: stats?.total_admins || 0,
-      permission: 'analytics.admins.read',
-      hasAccess: false,
+      permission: PERMISSIONS.ANALYTICS.ADMINS_READ,
       colors: CARD_COLORS.admin,
       trend: null
     },
@@ -90,8 +88,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
       icon: LayoutList,
       label: 'کل محتوا',
       value: (stats?.total_portfolios || 0) + (stats?.total_posts || 0),
-      permission: 'analytics.content.read',
-      hasAccess: false,
+      permission: PERMISSIONS.ANALYTICS.CONTENT_READ,
       colors: CARD_COLORS.content,
       trend: null
     },
@@ -100,8 +97,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
       icon: Image,
       label: 'رسانه‌ها',
       value: stats?.total_media || 0,
-      permission: 'media.read',
-      hasAccess: false,
+      permission: PERMISSIONS.ANALYTICS.CONTENT_READ,
       colors: CARD_COLORS.media,
       trend: null
     },
@@ -110,8 +106,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
       icon: Mail,
       label: 'ایمیل‌ها',
       value: stats?.total_emails || 0,
-      permission: 'analytics.emails.read',
-      hasAccess: false,
+      permission: PERMISSIONS.ANALYTICS.EMAILS_READ,
       colors: CARD_COLORS.emails,
       trend: stats?.new_emails ? { value: stats.new_emails, label: 'جدید' } : null
     },
@@ -120,8 +115,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ stats, isLoading = f
       icon: Ticket,
       label: 'تیکت‌ها',
       value: stats?.total_tickets || 0,
-      permission: 'analytics.tickets.read',
-      hasAccess: false,
+      permission: PERMISSIONS.ANALYTICS.TICKETS_READ,
       colors: CARD_COLORS.tickets,
       trend: stats?.open_tickets ? { value: stats.open_tickets, label: 'باز' } : null
     },

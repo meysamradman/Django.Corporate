@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Sparkles } from 'lucide-react';
+import { usePermission } from '@/core/permissions/context/PermissionContext';
+import { AccessDenied } from '@/core/permissions/components/AccessDenied';
 
 // AIContentGenerator Skeleton
 const AIContentGeneratorSkeleton = () => (
@@ -39,15 +41,27 @@ const AIContentGenerator = dynamic(
 );
 
 export default function AIContentPage() {
-    const router = useRouter();
+  const router = useRouter();
+  const { hasAnyPermission, isLoading } = usePermission();
 
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <h1 className="page-title">تولید محتوا با AI</h1>
-            <AIContentGenerator
-                onNavigateToSettings={() => router.push('/settings/ai')}
-            />
-        </div>
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <AIContentGeneratorSkeleton />
+      </div>
     );
+  }
+
+  if (!hasAnyPermission(['ai.manage', 'ai.content.manage'])) {
+    return <AccessDenied />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="page-title">تولید محتوا با AI</h1>
+      <AIContentGenerator onNavigateToSettings={() => router.push('/settings/ai')} />
+    </div>
+  );
 }
 

@@ -131,3 +131,89 @@ export interface PermissionMapResponse {
   base_permissions: string[];
   is_superadmin: boolean;
 }
+
+// UI Permission Context Types
+export interface UIPermissions {
+  // Panel & Settings
+  canManagePanel: boolean;
+  canManagePages: boolean;
+  canManageSettings: boolean;
+  canManageForms: boolean;
+  canManageChatbot: boolean;
+  
+  // AI Permissions
+  canManageAI: boolean;
+  canManageAIChat: boolean;
+  canManageAIContent: boolean;
+  canManageAIImage: boolean;
+  canManageAIAudio: boolean;
+  canManageAISettings: boolean;
+  canManageSharedAISettings: boolean;
+  canViewAI: boolean;
+  
+  // Blog CRUD
+  canCreateBlog: boolean;
+  canUpdateBlog: boolean;
+  canDeleteBlog: boolean;
+  
+  // Portfolio CRUD
+  canCreatePortfolio: boolean;
+  canUpdatePortfolio: boolean;
+  canDeletePortfolio: boolean;
+  
+  // Admin Management
+  canCreateAdmin: boolean;
+  canUpdateAdmin: boolean;
+  canDeleteAdmin: boolean;
+  
+  // User Management
+  canCreateUser: boolean;
+  canUpdateUser: boolean;
+  canDeleteUser: boolean;
+  
+  // Media Permissions
+  canReadMedia: boolean;
+  canUploadMedia: boolean;
+  canUpdateMedia: boolean;
+  canDeleteMedia: boolean;
+  canManageMedia: boolean;
+  canUploadImage: boolean;
+  canUploadVideo: boolean;
+  canUploadAudio: boolean;
+  canUploadDocument: boolean;
+  canUpdateImage: boolean;
+  canUpdateVideo: boolean;
+  canUpdateAudio: boolean;
+  canUpdateDocument: boolean;
+  canDeleteImage: boolean;
+  canDeleteVideo: boolean;
+  canDeleteAudio: boolean;
+  canDeleteDocument: boolean;
+  
+  // Analytics Permissions
+  canViewUsersStats: boolean;
+  canViewAdminsStats: boolean;
+  canViewContentStats: boolean;
+  canViewTicketsStats: boolean;
+  canViewEmailsStats: boolean;
+  canViewSystemStats: boolean;
+  canManageStatistics: boolean;
+  canManageAllStats: boolean;
+  
+  // Communication
+  canViewEmail: boolean;
+  canManageTicket: boolean;
+}
+
+export interface PermissionContextValue {
+  permissionMap: PermissionMapResponse | null;
+  isLoading: boolean;
+  error: Error | null;
+  hasPermission: (permissionId: string) => boolean;
+  hasAnyPermission: (permissionIds: string[]) => boolean;
+  hasAllPermissions: (permissionIds: string[]) => boolean;
+  check: (permissionId: string) => boolean; // Exact match without wildcards
+  canUploadInContext: (context: 'portfolio' | 'blog' | 'media_library') => boolean;
+  refresh: () => Promise<void>;
+  ui: UIPermissions;
+}

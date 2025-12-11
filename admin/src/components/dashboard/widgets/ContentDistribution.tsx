@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import {
   ChartContainer,
   ChartTooltip,
@@ -101,14 +102,9 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
     );
   }
 
-  if (contentDistribution.length === 0) {
-    return null;
-  }
-
   return (
     <PermissionLocked
-      permission={['analytics.content.read', 'analytics.stats.manage']}
-      requireAll={false}
+      permission={PERMISSIONS.ANALYTICS.CONTENT_READ}
       lockedMessage="دسترسی به آمار محتوا"
       borderColorClass="border-primary"
       iconBgColorClass="bg-primary/10"

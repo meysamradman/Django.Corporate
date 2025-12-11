@@ -5,6 +5,7 @@ import { BarChart3, Eye, Calendar, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
 import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { formatNumber } from "@/core/utils/format";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
@@ -42,8 +43,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ isLoading: ext
   if (isLoading) {
     return (
       <PermissionLocked
-        permission={['analytics.manage', 'analytics.stats.manage']}
-        requireAll={false}
+        permission={PERMISSIONS.ANALYTICS.MANAGE}
         lockedMessage="دسترسی به آمار بازدید"
         borderColorClass="border-primary"
         iconBgColorClass="bg-primary/10"
@@ -68,8 +68,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ isLoading: ext
 
   return (
     <PermissionLocked
-      permission={['analytics.manage', 'analytics.stats.manage']}
-      requireAll={false}
+      permission={PERMISSIONS.ANALYTICS.MANAGE}
       lockedMessage="دسترسی به آمار بازدید"
       borderColorClass="border-primary"
       iconBgColorClass="bg-primary/10"

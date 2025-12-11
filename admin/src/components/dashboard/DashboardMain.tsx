@@ -13,8 +13,9 @@ import { SupportStats } from "@/components/dashboard/widgets/SupportStats";
 import { AnalyticsWidget } from "@/components/dashboard/widgets/AnalyticsWidget";
 
 export const DashboardMain = () => {
-  const { data: stats, isLoading } = useStatistics();
+  const { data: stats, isLoading: statsLoading } = useStatistics();
   const { data: systemStats, isLoading: systemLoading } = useSystemStats();
+  const isLoading = statsLoading || systemLoading;
 
   const { date, time, greeting } = useMemo(() => {
     const now = new Date();
@@ -84,12 +85,12 @@ export const DashboardMain = () => {
         </div>
       </div>
 
-      <SummaryCards stats={stats} isLoading={isLoading} />
+      <SummaryCards stats={stats} isLoading={statsLoading} />
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <ContentDistribution stats={stats} isLoading={isLoading} />
-        <SystemStats systemStats={systemStats} isLoading={systemLoading || isLoading} />
-        <SupportStats stats={stats} isLoading={isLoading} />
+        <ContentDistribution stats={stats} isLoading={statsLoading} />
+        <SystemStats systemStats={systemStats} isLoading={systemLoading} />
+        <SupportStats stats={stats} isLoading={statsLoading} />
       </div>
 
       <AnalyticsWidget isLoading={isLoading} />

@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { PermissionProfile } from '@/types/auth/permission';
+import { PERMISSIONS } from '@/core/permissions/constants';
 
 interface UserRole {
   id: number;
@@ -65,6 +66,28 @@ const normalizeModuleAction = (value?: string): ModuleAction => {
   return 'read';
 };
 
+// Module names extracted from PERMISSIONS constants
+const MODULE_NAMES = {
+  BLOG: 'blog',
+  BLOG_CATEGORIES: 'blog_categories',
+  BLOG_TAGS: 'blog_tags',
+  PORTFOLIO: 'portfolio',
+  PORTFOLIO_CATEGORIES: 'portfolio_categories',
+  PORTFOLIO_TAGS: 'portfolio_tags',
+  PORTFOLIO_OPTIONS: 'portfolio_options',
+  PORTFOLIO_OPTION_VALUES: 'portfolio_option_values',
+  MEDIA: 'media',
+  FORMS: 'forms',
+  PAGES: 'pages',
+  SETTINGS: 'settings',
+  PANEL: 'panel',
+  EMAIL: 'email',
+  TICKET: 'ticket',
+  CHATBOT: 'chatbot',
+  AI: 'ai',
+  ANALYTICS: 'analytics',
+} as const;
+
 const ROLE_ACCESS_OVERRIDES: Record<
   string,
   {
@@ -73,46 +96,46 @@ const ROLE_ACCESS_OVERRIDES: Record<
   }
 > = {
   blog_manager: {
-    full: ['blog', 'blog_categories', 'blog_tags'],
+    full: [MODULE_NAMES.BLOG, MODULE_NAMES.BLOG_CATEGORIES, MODULE_NAMES.BLOG_TAGS],
   },
   portfolio_manager: {
     full: [
-      'portfolio',
-      'portfolio_categories',
-      'portfolio_tags',
-      'portfolio_options',
-      'portfolio_option_values',
+      MODULE_NAMES.PORTFOLIO,
+      MODULE_NAMES.PORTFOLIO_CATEGORIES,
+      MODULE_NAMES.PORTFOLIO_TAGS,
+      MODULE_NAMES.PORTFOLIO_OPTIONS,
+      MODULE_NAMES.PORTFOLIO_OPTION_VALUES,
     ],
   },
   media_manager: {
-    full: ['media'],
+    full: [MODULE_NAMES.MEDIA],
   },
   forms_manager: {
-    full: ['forms'],
+    full: [MODULE_NAMES.FORMS],
   },
   pages_manager: {
-    full: ['pages'],
+    full: [MODULE_NAMES.PAGES],
   },
   settings_manager: {
-    full: ['settings'],
+    full: [MODULE_NAMES.SETTINGS],
   },
   panel_manager: {
-    full: ['panel'],
+    full: [MODULE_NAMES.PANEL],
   },
   email_manager: {
-    full: ['email'],
+    full: [MODULE_NAMES.EMAIL],
   },
   ticket_manager: {
-    full: ['ticket'],
+    full: [MODULE_NAMES.TICKET],
   },
   chatbot_manager: {
-    full: ['chatbot'],
+    full: [MODULE_NAMES.CHATBOT],
   },
   ai_manager: {
-    full: ['ai'],
+    full: [MODULE_NAMES.AI],
   },
   analytics_manager: {
-    full: ['analytics'],
+    full: [MODULE_NAMES.ANALYTICS],
   },
 };
 

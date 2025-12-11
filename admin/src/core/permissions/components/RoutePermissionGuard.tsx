@@ -7,6 +7,7 @@ import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
 import { findRouteRule } from "../config/accessControl";
 import { AccessDenied } from "./AccessDenied";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 interface RoutePermissionGuardProps {
     children: ReactNode;
@@ -76,31 +77,32 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             (rule.module === "admin" && isOwnAdminProfile);
 
         if (!hasAccess && rule.module === "ai" && action === "manage") {
+            // AI Permission Map using constants
             const aiPermissionMap: Record<string, string[]> = {
-                "/ai/chat": ["ai.chat.manage", "ai.manage"],
-                "/ai/content": ["ai.content.manage", "ai.manage"],
-                "/ai/image": ["ai.image.manage", "ai.manage"],
-                "/ai/audio": ["ai.audio.manage", "ai.manage"],
-                "/ai/models": ["ai.manage"],  // فقط سوپر ادمین
+                "/ai/chat": [PERMISSIONS.AI.CHAT_MANAGE, PERMISSIONS.AI.MANAGE],
+                "/ai/content": [PERMISSIONS.AI.CONTENT_MANAGE, PERMISSIONS.AI.MANAGE],
+                "/ai/image": [PERMISSIONS.AI.IMAGE_MANAGE, PERMISSIONS.AI.MANAGE],
+                "/ai/audio": [PERMISSIONS.AI.AUDIO_MANAGE, PERMISSIONS.AI.MANAGE],
+                "/ai/models": [PERMISSIONS.AI.MANAGE],
                 "/ai/settings": [
-                    "ai.settings.personal.manage",
-                    "ai.settings.shared.manage",
-                    "ai.manage"
+                    PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
+                    PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
+                    PERMISSIONS.AI.MANAGE
                 ],
                 "/settings/my-ai": [
-                    "ai.settings.personal.manage",
-                    "ai.chat.manage",
-                    "ai.content.manage",
-                    "ai.image.manage",
-                    "ai.manage"
+                    PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
+                    PERMISSIONS.AI.CHAT_MANAGE,
+                    PERMISSIONS.AI.CONTENT_MANAGE,
+                    PERMISSIONS.AI.IMAGE_MANAGE,
+                    PERMISSIONS.AI.MANAGE
                 ],
                 "/settings/ai": [
-                    "ai.settings.shared.manage",
-                    "ai.manage",
-                    "ai.chat.manage",
-                    "ai.content.manage",
-                    "ai.image.manage",
-                    "ai.audio.manage"
+                    PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
+                    PERMISSIONS.AI.MANAGE,
+                    PERMISSIONS.AI.CHAT_MANAGE,
+                    PERMISSIONS.AI.CONTENT_MANAGE,
+                    PERMISSIONS.AI.IMAGE_MANAGE,
+                    PERMISSIONS.AI.AUDIO_MANAGE
                 ],
             };
             

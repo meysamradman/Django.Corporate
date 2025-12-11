@@ -87,7 +87,12 @@ const AnalyticsOverview = dynamic(
 );
 
 export default function AnalyticsPage() {
-  const { hasPermission, hasAnyPermission } = usePermission();
+  const { hasPermission, hasAnyPermission, isLoading } = usePermission();
+
+  // نمایش Skeleton تا زمانی که permissions لود شود
+  if (isLoading) {
+    return <AnalyticsSkeleton />;
+  }
 
   if (!hasAnyPermission([
     'analytics.manage',

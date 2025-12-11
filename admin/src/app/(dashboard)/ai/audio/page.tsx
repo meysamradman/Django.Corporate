@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Mic } from 'lucide-react';
+import { usePermission } from '@/core/permissions/context/PermissionContext';
+import { AccessDenied } from '@/core/permissions/components/AccessDenied';
 
 // AIAudioGenerator Skeleton
 const AIAudioGeneratorSkeleton = () => (
@@ -48,15 +50,27 @@ const AIAudioGenerator = dynamic(
 );
 
 export default function AIAudioPage() {
-    const router = useRouter();
+  const router = useRouter();
+  const { hasAnyPermission, isLoading } = usePermission();
 
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <h1 className="page-title">تولید پادکست با AI</h1>
-            <AIAudioGenerator
-                onNavigateToSettings={() => router.push('/settings/ai')}
-            />
-        </div>
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <AIAudioGeneratorSkeleton />
+      </div>
     );
+  }
+
+  if (!hasAnyPermission(['ai.manage', 'ai.audio.manage'])) {
+    return <AccessDenied />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="page-title">تولید پادکست با AI</h1>
+      <AIAudioGenerator onNavigateToSettings={() => router.push('/settings/ai')} />
+    </div>
+  );
 }
 

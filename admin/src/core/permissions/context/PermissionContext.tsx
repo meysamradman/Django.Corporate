@@ -3,83 +3,8 @@
 import React, { createContext, useContext, useMemo, useCallback, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { permissionApi } from '@/api/admins/permissions/route';
-import type { PermissionMapResponse } from '@/types/auth/permission';
-
-export interface UIPermissions {
-  canManagePanel: boolean;
-  canManagePages: boolean;
-  canManageSettings: boolean;
-  canManageAI: boolean;
-  canManageForms: boolean;
-  canManageChatbot: boolean;
-  
-  canManageAIChat: boolean;
-  canManageAIContent: boolean;
-  canManageAIImage: boolean;
-  canManageAIAudio: boolean;
-  canManageAISettings: boolean;
-  canManageSharedAISettings: boolean;
-  
-  canCreateBlog: boolean;
-  canUpdateBlog: boolean;
-  canDeleteBlog: boolean;
-  canCreatePortfolio: boolean;
-  canUpdatePortfolio: boolean;
-  canDeletePortfolio: boolean;
-  canCreateAdmin: boolean;
-  canUpdateAdmin: boolean;
-  canDeleteAdmin: boolean;
-  canCreateUser: boolean;
-  canUpdateUser: boolean;
-  canDeleteUser: boolean;
-  
-  canReadMedia: boolean;
-  canUploadMedia: boolean;
-  canUpdateMedia: boolean;
-  canDeleteMedia: boolean;
-  canManageMedia: boolean;
-  
-  canUploadImage: boolean;
-  canUploadVideo: boolean;
-  canUploadAudio: boolean;
-  canUploadDocument: boolean;
-  
-  canUpdateImage: boolean;
-  canUpdateVideo: boolean;
-  canUpdateAudio: boolean;
-  canUpdateDocument: boolean;
-  
-  canDeleteImage: boolean;
-  canDeleteVideo: boolean;
-  canDeleteAudio: boolean;
-  canDeleteDocument: boolean;
-  
-  canViewDashboardStats: boolean;
-  canViewUsersStats: boolean;
-  canViewAdminsStats: boolean;
-  canViewContentStats: boolean;
-  canViewTicketsStats: boolean;
-  canViewEmailsStats: boolean;
-  canViewSystemStats: boolean;
-  canManageStatistics: boolean;
-  canManageAllStats: boolean;
-  
-  canViewEmail: boolean;
-  canViewAI: boolean;
-  canManageTicket: boolean;
-}
-
-export interface PermissionContextValue {
-  permissionMap: PermissionMapResponse | null;
-  isLoading: boolean;
-  error: Error | null;
-  hasPermission: (permissionId: string) => boolean;
-  hasAnyPermission: (permissionIds: string[]) => boolean;
-  hasAllPermissions: (permissionIds: string[]) => boolean;
-  canUploadInContext: (context: 'portfolio' | 'blog' | 'media_library') => boolean;
-  refresh: () => Promise<void>;
-  ui: UIPermissions;
-}
+import { PERMISSIONS } from '@/core/permissions/constants';
+import type { PermissionMapResponse, PermissionContextValue, UIPermissions } from '@/types/auth/permission';
 
 const PermissionContext = createContext<PermissionContextValue | undefined>(undefined);
 
@@ -179,17 +104,27 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     [hasPermission]
   );
 
+  const check = useCallback(
+    (permissionId: string): boolean => {
+      // Exact match - بدون wildcard و synonym
+      if (!permissionMap) return false;
+      if (permissionMap.is_superadmin) return true;
+      return permissionSet.has(permissionId);
+    },
+    [permissionMap, permissionSet]
+  );
+
   const canUploadInContext = useCallback(
     (context: 'portfolio' | 'blog' | 'media_library'): boolean => {
       if (!permissionMap) return false;
       if (permissionMap.is_superadmin) return true;
 
       if (context === 'media_library') {
-        return hasPermission('media.upload') || 
-               hasPermission('media.image.upload') ||
-               hasPermission('media.video.upload') ||
-               hasPermission('media.audio.upload') ||
-               hasPermission('media.document.upload');
+        return hasPermission(PERMISSIONS.MEDIA.UPLOAD) || 
+               hasPermission(PERMISSIONS.MEDIA_IMAGE.UPLOAD) ||
+               hasPermission(PERMISSIONS.MEDIA_VIDEO.UPLOAD) ||
+               hasPermission(PERMISSIONS.MEDIA_AUDIO.UPLOAD) ||
+               hasPermission(PERMISSIONS.MEDIA_DOCUMENT.UPLOAD);
       }
 
       if (context === 'portfolio') {
@@ -214,67 +149,72 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     const check = (perm: string) => isSuperAdmin || permissionSet.has(perm);
     
     return {
-      canManagePanel: check('panel.manage'),
-      canManagePages: check('pages.manage'),
-      canManageSettings: check('settings.manage'),
-      canManageAI: check('ai.manage'),
-      canManageForms: check('forms.manage'),
-      canManageChatbot: check('chatbot.manage'),
+      // Panel & Settings
+      canManagePanel: check(PERMISSIONS.PANEL.MANAGE),
+      canManagePages: check(PERMISSIONS.PAGES.MANAGE),
+      canManageSettings: check(PERMISSIONS.SETTINGS.MANAGE),
+      canManageAI: check(PERMISSIONS.AI.MANAGE),
+      canManageForms: check(PERMISSIONS.FORMS.MANAGE),
+      canManageChatbot: check(PERMISSIONS.CHATBOT.MANAGE),
       
-      canManageAIChat: check('ai.chat.manage') || check('ai.manage'),
-      canManageAIContent: check('ai.content.manage') || check('ai.manage'),
-      canManageAIImage: check('ai.image.manage') || check('ai.manage'),
-      canManageAIAudio: check('ai.audio.manage') || check('ai.manage'),
-      canManageAISettings: check('ai.settings.personal.manage') || check('ai.manage'),
-      canManageSharedAISettings: check('ai.settings.shared.manage') || isSuperAdmin,
+      // AI Specific
+      canManageAIChat: check(PERMISSIONS.AI.CHAT_MANAGE) || check(PERMISSIONS.AI.MANAGE),
+      canManageAIContent: check(PERMISSIONS.AI.CONTENT_MANAGE) || check(PERMISSIONS.AI.MANAGE),
+      canManageAIImage: check(PERMISSIONS.AI.IMAGE_MANAGE) || check(PERMISSIONS.AI.MANAGE),
+      canManageAIAudio: check(PERMISSIONS.AI.AUDIO_MANAGE) || check(PERMISSIONS.AI.MANAGE),
+      canManageAISettings: check(PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE) || check(PERMISSIONS.AI.MANAGE),
+      canManageSharedAISettings: check(PERMISSIONS.AI.SETTINGS_SHARED_MANAGE) || isSuperAdmin,
       
-      canCreateBlog: check('blog.create'),
-      canUpdateBlog: check('blog.update'),
-      canDeleteBlog: check('blog.delete'),
-      canCreatePortfolio: check('portfolio.create'),
-      canUpdatePortfolio: check('portfolio.update'),
-      canDeletePortfolio: check('portfolio.delete'),
-      canCreateAdmin: check('admin.create'),
-      canUpdateAdmin: check('admin.update'),
-      canDeleteAdmin: check('admin.delete'),
-      canCreateUser: check('users.create'),
-      canUpdateUser: check('users.update'),
-      canDeleteUser: check('users.delete'),
+      // CRUD Operations
+      canCreateBlog: check(PERMISSIONS.BLOG.CREATE),
+      canUpdateBlog: check(PERMISSIONS.BLOG.UPDATE),
+      canDeleteBlog: check(PERMISSIONS.BLOG.DELETE),
+      canCreatePortfolio: check(PERMISSIONS.PORTFOLIO.CREATE),
+      canUpdatePortfolio: check(PERMISSIONS.PORTFOLIO.UPDATE),
+      canDeletePortfolio: check(PERMISSIONS.PORTFOLIO.DELETE),
+      canCreateAdmin: check(PERMISSIONS.ADMIN.CREATE),
+      canUpdateAdmin: check(PERMISSIONS.ADMIN.UPDATE),
+      canDeleteAdmin: check(PERMISSIONS.ADMIN.DELETE),
+      canCreateUser: check(PERMISSIONS.USERS.CREATE),
+      canUpdateUser: check(PERMISSIONS.USERS.UPDATE),
+      canDeleteUser: check(PERMISSIONS.USERS.DELETE),
       
-      canReadMedia: check('media.read'),
-      canUploadMedia: check('media.upload'),
-      canUpdateMedia: check('media.update'),
-      canDeleteMedia: check('media.delete'),
-      canManageMedia: check('media.manage'),
+      // Media
+      canReadMedia: check(PERMISSIONS.MEDIA.READ),
+      canUploadMedia: check(PERMISSIONS.MEDIA.UPLOAD),
+      canUpdateMedia: check(PERMISSIONS.MEDIA.UPDATE),
+      canDeleteMedia: check(PERMISSIONS.MEDIA.DELETE),
+      canManageMedia: check(PERMISSIONS.MEDIA.MANAGE),
+      canUploadImage: check(PERMISSIONS.MEDIA_IMAGE.UPLOAD),
+      canUploadVideo: check(PERMISSIONS.MEDIA_VIDEO.UPLOAD),
+      canUploadAudio: check(PERMISSIONS.MEDIA_AUDIO.UPLOAD),
+      canUploadDocument: check(PERMISSIONS.MEDIA_DOCUMENT.UPLOAD),
+      canUpdateImage: check(PERMISSIONS.MEDIA_IMAGE.UPDATE),
+      canUpdateVideo: check(PERMISSIONS.MEDIA_VIDEO.UPDATE),
+      canUpdateAudio: check(PERMISSIONS.MEDIA_AUDIO.UPDATE),
+      canUpdateDocument: check(PERMISSIONS.MEDIA_DOCUMENT.UPDATE),
+      canDeleteImage: check(PERMISSIONS.MEDIA_IMAGE.DELETE),
+      canDeleteVideo: check(PERMISSIONS.MEDIA_VIDEO.DELETE),
+      canDeleteAudio: check(PERMISSIONS.MEDIA_AUDIO.DELETE),
+      canDeleteDocument: check(PERMISSIONS.MEDIA_DOCUMENT.DELETE),
       
-      canUploadImage: check('media.image.upload'),
-      canUploadVideo: check('media.video.upload'),
-      canUploadAudio: check('media.audio.upload'),
-      canUploadDocument: check('media.document.upload'),
+      // Analytics - دقیق طبق Backend
+      // analytics.manage = آمار بازدید وب
+      // analytics.stats.manage = همه آمار داخلی
+      // analytics.*.read = آمار خاص
+      canViewUsersStats: check(PERMISSIONS.ANALYTICS.USERS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
+      canViewAdminsStats: check(PERMISSIONS.ANALYTICS.ADMINS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
+      canViewContentStats: check(PERMISSIONS.ANALYTICS.CONTENT_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
+      canViewTicketsStats: check(PERMISSIONS.ANALYTICS.TICKETS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
+      canViewEmailsStats: check(PERMISSIONS.ANALYTICS.EMAILS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
+      canViewSystemStats: check(PERMISSIONS.ANALYTICS.SYSTEM_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
+      canManageStatistics: check(PERMISSIONS.ANALYTICS.MANAGE), // فقط آمار بازدید وب
+      canManageAllStats: check(PERMISSIONS.ANALYTICS.STATS_MANAGE), // همه آمار داخلی
       
-      canUpdateImage: check('media.image.update'),
-      canUpdateVideo: check('media.video.update'),
-      canUpdateAudio: check('media.audio.update'),
-      canUpdateDocument: check('media.document.update'),
-      
-      canDeleteImage: check('media.image.delete'),
-      canDeleteVideo: check('media.video.delete'),
-      canDeleteAudio: check('media.audio.delete'),
-      canDeleteDocument: check('media.document.delete'),
-      
-      canViewDashboardStats: check('analytics.dashboard.read') || check('analytics.stats.manage'),
-      canViewUsersStats: check('analytics.users.read') || check('analytics.stats.manage'),
-      canViewAdminsStats: check('analytics.admins.read') || check('analytics.stats.manage'),
-      canViewContentStats: check('analytics.content.read') || check('analytics.stats.manage'),
-      canViewTicketsStats: check('analytics.tickets.read') || check('analytics.stats.manage'),
-      canViewEmailsStats: check('analytics.emails.read') || check('analytics.stats.manage'),
-      canViewSystemStats: check('analytics.system.read') || check('analytics.stats.manage'),
-      canManageStatistics: check('analytics.manage') || check('analytics.stats.manage'),
-      canManageAllStats: check('analytics.stats.manage'),
-      
-      canViewEmail: check('email.read') || check('email.view'),
-      canViewAI: check('ai.read') || check('ai.view'),
-      canManageTicket: check('ticket.manage'),
+      // Communication
+      canViewEmail: check(PERMISSIONS.EMAIL.READ) || check(PERMISSIONS.EMAIL.VIEW),
+      canViewAI: check(PERMISSIONS.AI.MANAGE),
+      canManageTicket: check(PERMISSIONS.TICKET.MANAGE),
     };
   }, [permissionMap, permissionSet]);
 
@@ -286,11 +226,12 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       hasPermission,
       hasAnyPermission,
       hasAllPermissions,
+      check,
       canUploadInContext,
       refresh,
       ui: uiPermissions,
     }),
-    [permissionMap, isLoading, error, hasPermission, hasAnyPermission, hasAllPermissions, canUploadInContext, refresh, uiPermissions]
+    [permissionMap, isLoading, error, hasPermission, hasAnyPermission, hasAllPermissions, check, canUploadInContext, refresh, uiPermissions]
   );
 
   return <PermissionContext.Provider value={value}>{children}</PermissionContext.Provider>;

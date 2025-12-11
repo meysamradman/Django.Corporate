@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django.core.cache import cache
+from django.db.models import Q
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
 from src.user.messages import AUTH_ERRORS, PROTECTED_ADMIN_ID
 from src.user.utils import validate_identifier, validate_register_password
@@ -7,7 +8,17 @@ from src.user.models import User, AdminProfile, AdminUserRole, AdminRole
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 from src.user.services.admin.admin_profile_service import AdminProfileService
-from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
+
+
+def _clear_permission_cache(user_id):
+    """Helper function to clear permission cache (lazy import to avoid circular dependency)"""
+    try:
+        from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
+        AdminPermissionCache.clear_user_cache(user_id)
+        PermissionValidator.clear_user_cache(user_id)
+        PermissionHelper.clear_user_cache(user_id)
+    except ImportError:
+        pass
 
 
 class AdminManagementService:
@@ -195,9 +206,7 @@ class AdminManagementService:
                             
                             user_role.update_permissions_cache()
                             
-                            PermissionHelper.clear_user_cache(admin.id)
-                            AdminPermissionCache.clear_user_cache(admin.id)
-                            PermissionValidator.clear_user_cache(admin.id)
+                            _clear_permission_cache(admin.id)
                             
                         except AdminRole.DoesNotExist:
                             pass
@@ -213,9 +222,7 @@ class AdminManagementService:
                 if profile_fields_to_update:
                     AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
             
-            AdminPermissionCache.clear_user_cache(admin.id)
-            PermissionValidator.clear_user_cache(admin.id)
-            PermissionHelper.clear_user_cache(admin.id)
+            _clear_permission_cache(admin.id)
            
             return admin
             

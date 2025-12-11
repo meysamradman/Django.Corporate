@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Server, Database, HardDrive, Activity } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { SystemStats as SystemStatsType } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 
@@ -68,8 +69,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
 
   return (
     <PermissionLocked
-      permission={['analytics.system.read', 'analytics.stats.manage']}
-      requireAll={false}
+      permission={PERMISSIONS.ANALYTICS.SYSTEM_READ}
       lockedMessage="دسترسی به آمار سیستم"
       borderColorClass="border-primary"
       iconBgColorClass="bg-primary/10"
