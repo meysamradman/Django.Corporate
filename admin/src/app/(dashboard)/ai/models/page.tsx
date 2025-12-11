@@ -249,7 +249,7 @@ export default function AIModelsPage() {
                 {Object.entries(CAPABILITY_CONFIG).map(([key, config]) => {
                     const TabIcon = config.icon;
                     return (
-                        <TabsContent key={key} value={key} className="mt-6">
+                        <TabsContent key={key} value={key}>
                             <Card className="shadow-sm border hover:shadow-lg transition-all duration-300">
                                 <CardHeader className="border-b">
                                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

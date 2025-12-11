@@ -45,7 +45,7 @@ export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ isLoading: ext
       <PermissionLocked
         permission={PERMISSIONS.ANALYTICS.MANAGE}
         lockedMessage="دسترسی به آمار بازدید"
-        borderColorClass="border-primary"
+        borderColorClass="border-b-primary"
         iconBgColorClass="bg-primary/10"
         iconColorClass="text-primary"
       >

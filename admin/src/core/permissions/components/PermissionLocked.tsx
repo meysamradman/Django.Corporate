@@ -12,7 +12,7 @@ interface PermissionLockedProps {
   children: React.ReactNode;
   className?: string;
   lockedMessage?: string;
-  borderColorClass?: string;
+  borderColorClass?: string; // Kept for backward compatibility, not used when locked
   iconBgColorClass?: string;
   iconColorClass?: string;
 }
@@ -23,7 +23,7 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
   children,
   className,
   lockedMessage = "دسترسی محدود شده",
-  borderColorClass = "border-b-gray-1",
+  borderColorClass, // Not used when locked, kept for backward compatibility
   iconBgColorClass = "bg-gray",
   iconColorClass = "stroke-gray-1",
 }) => {
@@ -70,6 +70,20 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
         : hasAnyPermission(permissions);
   }, [isLoading, requireAll, permissions, hasPermission, hasAllPermissions, hasAnyPermission, check]);
 
+  // Convert borderColorClass to border-b-* if needed, and remove full border
+  const bottomBorderClass = useMemo(() => {
+    if (!borderColorClass) return null;
+    // If already border-b-*, use as is
+    if (borderColorClass.includes("border-b-")) {
+      return borderColorClass;
+    }
+    // If border-* (full border), convert to border-b-*
+    if (borderColorClass.startsWith("border-") && !borderColorClass.includes("border-b-")) {
+      return borderColorClass.replace("border-", "border-b-");
+    }
+    return borderColorClass;
+  }, [borderColorClass]);
+
   if (isLoading) {
     return (
       <div className={cn("relative opacity-50", className)}>
@@ -82,9 +96,15 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
   }
 
   if (!hasAccess) {
+
     return (
       <Card 
-        className={cn("border-b-4 shadow-sm relative overflow-hidden opacity-75", borderColorClass, className)}
+        className={cn(
+          "border-0 shadow-sm relative overflow-hidden opacity-75",
+          bottomBorderClass && "border-b-4",
+          bottomBorderClass,
+          className
+        )}
       >
         <CardContent className="p-4 flex flex-col justify-between h-full relative">
           <div className="absolute inset-0 bg-card/90 backdrop-blur-[1.5px] z-20 flex items-center justify-center rounded-lg">

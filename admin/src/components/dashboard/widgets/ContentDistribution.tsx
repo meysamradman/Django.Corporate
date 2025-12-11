@@ -7,6 +7,7 @@ import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
 import { PermissionLocked } from "@/core/permissions/components/PermissionLocked";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   ChartContainer,
   ChartTooltip,
@@ -25,10 +26,11 @@ interface ContentDistributionProps {
   isLoading?: boolean;
 }
 
+// Colors match theme: amber-1, indigo-1, purple-1
 const COLORS = {
-  portfolio: '#F59E0B',
-  blog: '#6366F1',
-  media: '#8B5CF6',
+  portfolio: 'hsl(var(--color-amber-1))',
+  blog: 'hsl(var(--color-indigo-1))',
+  media: 'hsl(var(--color-purple-1))',
 };
 
 export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats, isLoading = false }) => {
@@ -56,22 +58,23 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
     return data;
   }, [stats]);
 
+  // Chart config uses hex colors matching theme: amber-100, indigo-100, purple-100
   const contentDistributionConfig = useMemo(() => ({
     desktop: {
       label: 'توزیع محتوا',
-      color: COLORS.portfolio,
+      color: '#F59E0B', // amber-100
     },
     portfolio: {
       label: 'نمونه کارها',
-      color: COLORS.portfolio,
+      color: '#F59E0B', // amber-100
     },
     blog: {
       label: 'بلاگ‌ها',
-      color: COLORS.blog,
+      color: '#6366F1', // indigo-100
     },
     media: {
       label: 'رسانه‌ها',
-      color: COLORS.media,
+      color: '#8B5CF6', // purple-100
     },
   } satisfies ChartConfig), []);
 
@@ -106,20 +109,19 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
     <PermissionLocked
       permission={PERMISSIONS.ANALYTICS.CONTENT_READ}
       lockedMessage="دسترسی به آمار محتوا"
-      borderColorClass="border-primary"
+      borderColorClass="border-b-primary"
       iconBgColorClass="bg-primary/10"
       iconColorClass="text-primary"
     >
-      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <LayoutList className="w-5 h-5 text-primary" />
-        </div>
-        <div className="text-right">
-          <h2 className="text-lg font-semibold text-font-p">توزیع محتوا</h2>
-          <p className="text-xs text-font-s">نمونه کارها، بلاگ‌ها و رسانه‌ها</p>
-        </div>
-      </div>
+      <CardWithIcon
+        icon={LayoutList}
+        title="توزیع محتوا"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="shadow-sm"
+        titleExtra={<p className="text-xs text-font-s">نمونه کارها، بلاگ‌ها و رسانه‌ها</p>}
+      >
       <ChartContainer
         config={contentDistributionConfig}
         className="mx-auto aspect-square max-h-[250px] [&_.recharts-polar-angle-axis-tick_text]:text-right [&_.recharts-polar-angle-axis-tick_text]:direction-rtl [&_.recharts-polar-angle-axis-tick_text]:text-anchor-end"
@@ -133,7 +135,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
           <PolarGrid gridType="circle" radialLines={false} />
           <PolarAngleAxis 
             dataKey="month" 
-            tick={{ fill: '#6b6876', fontSize: 11 }}
+            tick={{ fill: 'var(--color-font-s)', fontSize: 11 }}
           />
           <Radar
             dataKey="desktop"
@@ -167,7 +169,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
                 {stats.total_portfolio_categories > 0 && (
                   <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
                     <p className="text-xs text-font-s mb-0.5">دسته‌بندی نمونه کارها</p>
-                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.portfolio }}>
+                    <p className="text-sm font-bold text-amber-1">
                       {formatNumber(stats.total_portfolio_categories)}
                     </p>
                   </div>
@@ -175,7 +177,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
                 {stats.total_portfolio_tags > 0 && (
                   <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
                     <p className="text-xs text-font-s mb-0.5">تگ نمونه کارها</p>
-                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.portfolio }}>
+                    <p className="text-sm font-bold text-amber-1">
                       {formatNumber(stats.total_portfolio_tags)}
                     </p>
                   </div>
@@ -183,7 +185,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
                 {stats.total_portfolio_options > 0 && (
                   <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
                     <p className="text-xs text-font-s mb-0.5">گزینه نمونه کارها</p>
-                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.portfolio }}>
+                    <p className="text-sm font-bold text-amber-1">
                       {formatNumber(stats.total_portfolio_options)}
                     </p>
                   </div>
@@ -197,7 +199,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
                 {stats.total_blog_categories > 0 && (
                   <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
                     <p className="text-xs text-font-s mb-0.5">دسته‌بندی بلاگ</p>
-                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.blog }}>
+                    <p className="text-sm font-bold text-indigo-1">
                       {formatNumber(stats.total_blog_categories)}
                     </p>
                   </div>
@@ -205,7 +207,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
                 {stats.total_blog_tags > 0 && (
                   <div className="text-center p-2 rounded-lg bg-bg/50 border border-br">
                     <p className="text-xs text-font-s mb-0.5">تگ بلاگ</p>
-                    <p className="text-sm font-bold text-font-p" style={{ color: COLORS.blog }}>
+                    <p className="text-sm font-bold text-indigo-1">
                       {formatNumber(stats.total_blog_tags)}
                     </p>
                   </div>
@@ -215,7 +217,7 @@ export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats,
           </div>
         </div>
       )}
-    </div>
+      </CardWithIcon>
     </PermissionLocked>
   );
 };

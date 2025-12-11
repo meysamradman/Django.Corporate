@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { formatNumber, getPersianYear } from "@/core/utils/format";
 import { Badge } from "@/components/elements/Badge";
 
+// Chart config uses hex colors matching theme: blue-100
 const chartConfig = {
   desktop: {
     label: "دسکتاپ",
@@ -29,7 +30,7 @@ const chartConfig = {
   },
   mobile: {
     label: "موبایل",
-    color: "#60A5FA", // blue-400 (lighter blue)
+    color: "#3B82F6", // blue-100 (using same color as theme)
   },
   total: {
     label: "کل بازدیدها",
@@ -155,7 +156,7 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              tick={{ fill: 'var(--color-font-s)', fontSize: 12 }}
               className="text-xs"
             />
             <YAxis
@@ -163,12 +164,12 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
               axisLine={false}
               tickMargin={8}
               tickCount={5}
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              tick={{ fill: 'var(--color-font-s)', fontSize: 12 }}
               className="text-xs"
               tickFormatter={(value: number) => formatNumber(value)}
             />
             <ChartTooltip
-              cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
+              cursor={{ stroke: 'var(--color-br)', strokeWidth: 1 }}
               content={<ChartTooltipContent 
                 indicator="line"
                 labelFormatter={(value: string) => `ماه: ${value}`}
@@ -221,7 +222,6 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
   const desktop30Days = analytics?.last_30_days?.desktop || 0;
   const mobilePercent = total30Days > 0 ? ((mobile30Days / total30Days) * 100).toFixed(1) : "0";
   const desktopPercent = total30Days > 0 ? ((desktop30Days / total30Days) * 100).toFixed(1) : "0";
-  const mobileColor = "#60A5FA"; // blue-400 (lighter blue) - matching chart
 
   return (
     <div className="space-y-3 h-full flex flex-col">
@@ -253,10 +253,7 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <div 
-                className="w-2 h-2 rounded-full" 
-                style={{ backgroundColor: mobileColor }}
-              />
+              <div className="w-2 h-2 rounded-full bg-blue-1" />
               <span className="text-font-s font-medium">موبایل</span>
             </div>
             <div className="flex items-center gap-2">
@@ -268,11 +265,8 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
           </div>
           <div className="h-2 bg-bg rounded-full overflow-hidden">
             <div 
-              className="h-full rounded-full transition-all"
-              style={{ 
-                width: `${mobilePercent}%`,
-                backgroundColor: mobileColor
-              }}
+              className="h-full bg-blue-1 rounded-full transition-all"
+              style={{ width: `${mobilePercent}%` }}
             />
           </div>
         </div>

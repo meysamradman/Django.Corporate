@@ -7,6 +7,7 @@ import { PermissionLocked } from "@/core/permissions/components/PermissionLocked
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { DashboardStats } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   ChartContainer,
   ChartTooltip,
@@ -64,46 +65,47 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
     );
   }, [stats]);
 
+  // Chart config uses hex color matching theme: blue-100
   const supportStatsConfig = useMemo(() => ({
     newEmails: {
       label: 'ایمیل جدید',
-      color: '#3B82F6',
+      color: '#3B82F6', // blue-100
     },
     newTickets: {
       label: 'تیکت جدید',
-      color: '#60A5FA',
+      color: '#3B82F6', // blue-100
     },
     unansweredEmails: {
       label: 'ایمیل بدون پاسخ',
-      color: '#2563EB',
+      color: '#3B82F6', // blue-100
     },
     unansweredTickets: {
       label: 'تیکت بدون پاسخ',
-      color: '#3B82F6',
+      color: '#3B82F6', // blue-100
     },
     repliedEmails: {
       label: 'ایمیل پاسخ داده شده',
-      color: '#1D4ED8',
+      color: '#3B82F6', // blue-100
     },
     repliedTickets: {
       label: 'تیکت پاسخ داده شده',
-      color: '#2563EB',
+      color: '#3B82F6', // blue-100
     },
     openEmails: {
       label: 'ایمیل باز',
-      color: '#1E40AF',
+      color: '#3B82F6', // blue-100
     },
     openTickets: {
       label: 'تیکت باز',
-      color: '#1D4ED8',
+      color: '#3B82F6', // blue-100
     },
     activeEmails: {
       label: 'ایمیل فعال',
-      color: '#1E3A8A',
+      color: '#3B82F6', // blue-100
     },
     activeTickets: {
       label: 'تیکت فعال',
-      color: '#1E40AF',
+      color: '#3B82F6', // blue-100
     },
   } satisfies ChartConfig), []);
 
@@ -135,16 +137,15 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
       iconBgColorClass="bg-primary/10"
       iconColorClass="stroke-primary"
     >
-      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Activity className="w-5 h-5 text-primary" />
-        </div>
-        <div className="text-right">
-          <h2 className="text-lg font-semibold text-font-p">وضعیت پشتیبانی</h2>
-          <p className="text-xs text-font-s">ایمیل‌ها و تیکت‌ها</p>
-        </div>
-      </div>
+      <CardWithIcon
+        icon={Activity}
+        title="وضعیت پشتیبانی"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="shadow-sm"
+        titleExtra={<p className="text-xs text-font-s">ایمیل‌ها و تیکت‌ها</p>}
+      >
       <div className="flex items-center gap-3 mb-3 text-xs text-font-s">
         <div className="flex items-center gap-1">
           <Mail className="w-3.5 h-3.5 text-rose-1" />
@@ -167,7 +168,7 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
             tickLine={false}
             tickMargin={10}
             axisLine={false}
-            tick={{ fill: '#6b6876', fontSize: 11 }}
+            tick={{ fill: 'var(--color-font-s)', fontSize: 11 }}
           />
           <ChartTooltip
             cursor={false}
@@ -185,7 +186,7 @@ export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = f
           <Bar dataKey="activeTickets" stackId="a" fill="var(--color-activeTickets)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ChartContainer>
-    </div>
-  </PermissionLocked>
+      </CardWithIcon>
+    </PermissionLocked>
   );
 };

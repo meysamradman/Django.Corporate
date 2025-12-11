@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, List } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader } from '@/components/elements/Card';
+import { Card, CardContent } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/elements/Accordion';
@@ -301,27 +301,21 @@ export default function AISettingsPage() {
         </Button>
       </div>
 
-      <Card className="shadow-sm border hover:shadow-lg transition-all duration-300">
-        <CardHeader className="border-b">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
-                <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
-                <Input
-                  type="text"
-                  id="search-providers"
-                  name="search_providers"
-                  autoComplete="off"
-                  placeholder="جستجو..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-8 h-8 text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
+          <Input
+            type="text"
+            id="search-providers"
+            name="search_providers"
+            autoComplete="off"
+            placeholder="جستجو در Provider ها..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-10 h-10 text-sm bg-card border-br focus:border-primary transition-colors"
+          />
+        </div>
+      </div>
 
       {filteredProviders.length > 0 ? (
         <Accordion

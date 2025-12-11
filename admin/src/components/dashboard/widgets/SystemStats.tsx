@@ -7,14 +7,16 @@ import { PermissionLocked } from "@/core/permissions/components/PermissionLocked
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { SystemStats as SystemStatsType } from "@/types/analytics/analytics";
 import { formatNumber } from "@/core/utils/format";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
 interface SystemStatsProps {
   systemStats: SystemStatsType | undefined;
   isLoading?: boolean;
 }
 
+// Color matches theme: purple-1
 const COLORS = {
-  media: '#8B5CF6',
+  media: 'hsl(var(--color-purple-1))',
 };
 
 export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading = false }) => {
@@ -71,20 +73,19 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
     <PermissionLocked
       permission={PERMISSIONS.ANALYTICS.SYSTEM_READ}
       lockedMessage="دسترسی به آمار سیستم"
-      borderColorClass="border-primary"
+      borderColorClass="border-b-primary"
       iconBgColorClass="bg-primary/10"
       iconColorClass="text-primary"
     >
-      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Server className="w-5 h-5 text-primary" />
-        </div>
-        <div className="text-right">
-          <h2 className="text-lg font-semibold text-font-p">آمار سیستم</h2>
-          <p className="text-xs text-font-s">وضعیت سرور و دیتابیس</p>
-        </div>
-      </div>
+      <CardWithIcon
+        icon={Server}
+        title="آمار سیستم"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="shadow-sm"
+        titleExtra={<p className="text-xs text-font-s">وضعیت سرور و دیتابیس</p>}
+      >
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
@@ -140,7 +141,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading
           </div>
         )}
       </div>
-      </div>
+      </CardWithIcon>
     </PermissionLocked>
   );
 };

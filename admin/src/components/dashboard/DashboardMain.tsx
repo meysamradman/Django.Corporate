@@ -4,7 +4,6 @@ import { Calendar, Clock } from "lucide-react";
 import { useMemo } from "react";
 import { format } from 'date-fns-jalali';
 import { faIR } from 'date-fns-jalali/locale';
-import { Skeleton } from "@/components/elements/Skeleton";
 import { useStatistics, useSystemStats } from "@/components/dashboard/hooks/useStatistics";
 import { SummaryCards } from "@/components/dashboard/widgets/SummaryCards";
 import { ContentDistribution } from "@/components/dashboard/widgets/ContentDistribution";
@@ -49,38 +48,20 @@ export const DashboardMain = () => {
       <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="text-right">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-8 w-32 mb-2" />
-                <Skeleton className="h-4 w-40" />
-              </>
-            ) : (
-              <>
-                <h1 className="text-2xl font-bold text-font-p mb-1">
-                  {greeting}
-                </h1>
-                <p className="text-sm text-font-s">به پنل مدیریت خوش آمدید</p>
-              </>
-            )}
+            <h1 className="text-2xl font-bold text-font-p mb-1">
+              {greeting}
+            </h1>
+            <p className="text-sm text-font-s">به پنل مدیریت خوش آمدید</p>
           </div>
           <div className="flex items-center gap-4">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-5 w-20" />
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 text-sm text-font-s">
-                  <Calendar className="w-4 h-4 text-font-s" />
-                  <span>{date}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-font-s">
-                  <Clock className="w-4 h-4 text-font-s" />
-                  <span>{time}</span>
-                </div>
-              </>
-            )}
+            <div className="flex items-center gap-2 text-sm text-font-s">
+              <Calendar className="w-4 h-4 text-font-s" />
+              <span>{date}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-font-s">
+              <Clock className="w-4 h-4 text-font-s" />
+              <span>{time}</span>
+            </div>
           </div>
         </div>
       </div>
