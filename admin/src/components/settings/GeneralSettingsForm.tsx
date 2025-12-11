@@ -12,6 +12,7 @@ import { GeneralSettings } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Image as ImageIcon } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 export interface GeneralSettingsFormRef {
     handleSave: () => void;
@@ -116,8 +117,41 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
+            <div className="space-y-6">
+                <CardWithIcon
+                    icon={FileText}
+                    title="اطلاعات پایه"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardWithIcon>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <Card key={i} className="border-b-4">
+                            <CardContent className="flex flex-col items-center gap-5 py-8">
+                                <Skeleton className="h-32 w-32 rounded-lg" />
+                                <Skeleton className="h-5 w-24" />
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-3 w-full" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
         );
     }

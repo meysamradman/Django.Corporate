@@ -28,6 +28,7 @@ import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Phone, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 export function ContactPhonesSection() {
     const [phones, setPhones] = useState<ContactPhone[]>([]);
@@ -136,9 +137,22 @@ export function ContactPhonesSection() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
-            </div>
+            <CardWithIcon
+                icon={Phone}
+                title="شماره‌های تماس"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+            >
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <div className="space-y-2">
+                        {[1, 2, 3].map((i) => (
+                            <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                    </div>
+                </div>
+            </CardWithIcon>
         );
     }
 

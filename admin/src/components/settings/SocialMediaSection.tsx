@@ -27,6 +27,7 @@ import { settingsApi } from "@/api/settings/route";
 import { SocialMedia } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { Media } from "@/types/shared/media";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -149,9 +150,22 @@ export function SocialMediaSection() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
-            </div>
+            <CardWithIcon
+                icon={Share2}
+                title="شبکه‌های اجتماعی"
+                iconBgColor="bg-orange"
+                iconColor="stroke-orange-2"
+                borderColor="border-b-orange-1"
+            >
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <div className="space-y-2">
+                        {[1, 2, 3].map((i) => (
+                            <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                    </div>
+                </div>
+            </CardWithIcon>
         );
     }
 
