@@ -10,9 +10,7 @@ export interface RoleConfig {
 }
 
 export const SYSTEM_ROLES: Record<string, RoleConfig> = {
-  // ============================================
-  // 🔵 CORE ROLES - همیشه لازم (نگه دارید)
-  // ============================================
+
   super_admin: {
     name: 'super_admin',
     display_name: 'Super Admin',
@@ -74,10 +72,6 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     is_system_role: true
   },
 
-  // ============================================
-  // 🟠 CORPORATE ROLES - برای وب‌سایت شرکتی
-  // اگر این ماژول‌ها رو ندارید، حذف کنید
-  // ============================================
   content_manager: {
     name: 'content_manager',
     display_name: 'Content Manager',
@@ -168,9 +162,6 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     level: 5,
     is_system_role: true
   },
-  // ============================================
-  // End of CORPORATE ROLES
-  // ============================================
 };
 
 export const getRoleConfig = (roleName: string): RoleConfig | null => {

@@ -14,8 +14,6 @@ export const usePermissionMap = () => {
     },
     staleTime: 0,
     gcTime: 0,
-    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
-    refetchOnMount: false, // Don't refetch on mount - only fetch once
   })
 
   const normalizedData = useMemo<PermissionSnapshot | undefined>(() => {

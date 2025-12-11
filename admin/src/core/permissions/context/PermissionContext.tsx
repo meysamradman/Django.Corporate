@@ -101,8 +101,8 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     },
     staleTime: 0,
     gcTime: 0,
-    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
-    refetchOnMount: false, // Don't refetch on mount - only fetch once
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     retry: 2,
     retryDelay: 1000,
   });

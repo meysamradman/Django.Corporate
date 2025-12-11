@@ -13,10 +13,6 @@ const ID_SEGMENT = "[0-9a-zA-Z-]+";
 
 const createRule = (config: RouteRule): RouteRule => config;
 
-// ============================================
-// 🔵 CORE ROUTES - همیشه لازم (نگه دارید)
-// ============================================
-
 const dashboardRoutes: RouteRule[] = [
   createRule({
     id: "dashboard-home",
@@ -203,11 +199,6 @@ const miscRoutes: RouteRule[] = [
     requireSuperAdmin: true,
   }),
 ];
-
-// ============================================
-// 🟠 CORPORATE ROUTES - برای وب‌سایت شرکتی
-// اگر این ماژول‌ها رو ندارید، حذف کنید
-// ============================================
 
 const blogRoutes: RouteRule[] = [
   createRule({
@@ -504,12 +495,7 @@ const corporateSettingsRoutes: RouteRule[] = [
   }),
 ];
 
-// ============================================
-// End of CORPORATE ROUTES
-// ============================================
-
 const routeRules: RouteRule[] = [
-  // 🔵 CORE ROUTES - همیشه لازم
   ...dashboardRoutes,
   ...mediaRoutes,
   ...adminManagementRoutes,
@@ -518,8 +504,6 @@ const routeRules: RouteRule[] = [
   ...analyticsRoutes,
   ...settingsRoutes,
   ...miscRoutes,
-  
-  // 🟠 CORPORATE ROUTES - اختیاری (اگر ندارید حذف کنید)
   ...blogRoutes,
   ...portfolioRoutes,
   ...aiRoutes,
