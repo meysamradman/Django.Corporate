@@ -403,6 +403,14 @@ const aiRoutes: RouteRule[] = [
     action: "manage",
     description: "تولید پادکست",
   }),
+  createRule({
+    id: "ai-models",
+    pattern: /^\/ai\/models\/?$/,
+    module: "ai",
+    action: "manage",
+    description: "انتخاب مدل‌های AI (فقط سوپر ادمین)",
+    requireSuperAdmin: true,
+  }),
 ];
 
 const communicationRoutes: RouteRule[] = [

@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Django",
+      "type": "process",
+      "command": "${workspaceFolder}/Backend/.venv/Scripts/python.exe",
+      "args": ["manage.py", "runserver"],
+      "options": {
+        "cwd": "${workspaceFolder}/Backend"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "NextJS",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/admin"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "▶️ Start All",
+      "dependsOn": ["Django", "NextJS"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

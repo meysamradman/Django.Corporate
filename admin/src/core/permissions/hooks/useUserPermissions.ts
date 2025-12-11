@@ -102,11 +102,17 @@ const ROLE_ACCESS_OVERRIDES: Record<
   email_manager: {
     full: ['email'],
   },
+  ticket_manager: {
+    full: ['ticket'],
+  },
+  chatbot_manager: {
+    full: ['chatbot'],
+  },
   ai_manager: {
     full: ['ai'],
   },
-  statistics_viewer: {
-    full: [],
+  analytics_manager: {
+    full: ['analytics'],
   },
 };
 

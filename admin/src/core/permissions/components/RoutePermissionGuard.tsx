@@ -81,6 +81,7 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
                 "/ai/content": ["ai.content.manage", "ai.manage"],
                 "/ai/image": ["ai.image.manage", "ai.manage"],
                 "/ai/audio": ["ai.audio.manage", "ai.manage"],
+                "/ai/models": ["ai.manage"],  // فقط سوپر ادمین
                 "/ai/settings": [
                     "ai.settings.personal.manage",
                     "ai.settings.shared.manage",
@@ -105,7 +106,12 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             
             for (const [pathPrefix, perms] of Object.entries(aiPermissionMap)) {
                 if (pathname?.startsWith(pathPrefix)) {
-                    hasAccess = perms.some(perm => hasPermission(perm));
+                    // برای /ai/models فقط سوپر ادمین
+                    if (pathPrefix === "/ai/models") {
+                        hasAccess = isSuperAdmin;
+                    } else {
+                        hasAccess = perms.some(perm => hasPermission(perm));
+                    }
                     break;
                 }
             }

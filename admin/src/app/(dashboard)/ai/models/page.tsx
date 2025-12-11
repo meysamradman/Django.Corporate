@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
 import { useUserPermissions } from '@/core/permissions';
+import { useAuth } from '@/core/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import { showError, showSuccess } from '@/core/toast';
 import { toast } from '@/core/toast';
@@ -82,26 +84,18 @@ const CAPABILITY_CONFIG: Record<Capability, { label: string; icon: React.Element
 
 export default function AIModelsPage() {
     const router = useRouter();
-    const { hasModuleAction, isSuperAdmin } = useUserPermissions();
+    const { isLoading: isAuthLoading, user } = useAuth();
+    const { isSuperAdmin } = useUserPermissions();
 
-    const hasAccess = isSuperAdmin && hasModuleAction('ai', 'manage');
-
-    useEffect(() => {
-        if (!hasAccess) {
-            showError('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
-            router.push('/settings/ai');
-        }
-    }, [hasAccess, router]);
+    // فقط super admin دسترسی دارد
+    const hasAccess = isSuperAdmin;
 
     const [activeTab, setActiveTab] = useState<Capability>('chat');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [showOpenRouterModal, setShowOpenRouterModal] = useState(false);
     const [showHuggingFaceModal, setShowHuggingFaceModal] = useState(false);
 
-    if (!hasAccess) {
-        return null;
-    }
-
+    // همه hooks باید قبل از return صدا زده بشن
     const { data: models, isLoading, error } = useQuery({
         queryKey: ['ai-models', activeTab],
         queryFn: async () => {
@@ -136,6 +130,24 @@ export default function AIModelsPage() {
     const queryClient = useQueryClient();
     const openRouterSaveRef = React.useRef<(() => void) | undefined>(undefined);
     const huggingFaceSaveRef = React.useRef<(() => void) | undefined>(undefined);
+
+    // Redirect only after auth is loaded and user doesn't have access
+    useEffect(() => {
+        if (!isAuthLoading && !hasAccess) {
+            showError('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
+            router.replace('/ai/settings');
+        }
+    }, [isAuthLoading, hasAccess, router]);
+
+    // Show loading while checking auth
+    if (isAuthLoading) {
+        return <TabSkeleton />;
+    }
+
+    // Hide content if no access (will redirect in useEffect)
+    if (!hasAccess) {
+        return null;
+    }
 
     const handleSaveModels = async (selectedModels: any[], providerName: string) => {
         try {

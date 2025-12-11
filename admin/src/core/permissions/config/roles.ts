@@ -51,14 +51,14 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     level: 6,
     is_system_role: true
   },
-  statistics_viewer: {
-    name: 'statistics_viewer',
-    display_name: 'Statistics Viewer',
-    display_name_short: 'Stats',
-    description: 'Read-only access to dashboards, statistics, and analytics.',
+  analytics_manager: {
+    name: 'analytics_manager',
+    display_name: 'Analytics Manager',
+    display_name_short: 'Analytics',
+    description: 'Manages analytics, statistics, and website/app visit tracking.',
     icon: 'BarChart3',
     color: 'green',
-    level: 7,
+    level: 5,
     is_system_role: true
   },
   user_manager: {
@@ -72,6 +72,7 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     is_system_role: true
   },
 
+  // Content & Communication
   content_manager: {
     name: 'content_manager',
     display_name: 'Content Manager',
@@ -80,7 +81,7 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     icon: 'FileText',
     color: 'blue',
     level: 2,
-    is_system_role: true
+    is_system_role: false  // غیر سیستمی - در Backend نیست
   },
   blog_manager: {
     name: 'blog_manager',
@@ -149,7 +150,7 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     description: 'Manages chatbot settings, FAQs, and automated responses.',
     icon: 'MessageSquare',
     color: 'purple',
-    level: 5,
+    level: 4,  // تغییر از 5 به 4 برای Sync با Backend
     is_system_role: true
   },
   ai_manager: {
