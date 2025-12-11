@@ -1,3 +1,5 @@
+import { PERMISSION_TRANSLATIONS } from '@/core/messages/permissions';
+
 export interface RoleConfig {
   name: string;
   display_name: string;
@@ -170,6 +172,12 @@ export const getRoleConfig = (roleName: string): RoleConfig | null => {
 };
 
 export const getRoleDisplayName = (roleName: string, short: boolean = false): string => {
+  // اول از messages فارسی استفاده کن (بهینه: مستقیماً از object استفاده می‌کنیم)
+  const persianName = PERMISSION_TRANSLATIONS.roleNames[roleName as keyof typeof PERMISSION_TRANSLATIONS.roleNames];
+  if (persianName) {
+    return persianName;
+  }
+  
   const config = getRoleConfig(roleName);
   if (!config) return roleName;
   

@@ -85,6 +85,10 @@ export function Sidebar({
     const activeItem = useMemo(() => findActiveItem(), [findActiveItem]);
 
     useEffect(() => {
+        setHasUserSelectedItem(false);
+    }, [pathname]);
+
+    useEffect(() => {
         if (hasUserSelectedItem) {
             return;
         }
@@ -98,20 +102,28 @@ export function Sidebar({
             selectedItem?.url === activeItem.url;
 
         if (isSameItem) {
+            // حتی اگر همان آیتم است، بررسی کن که آیا زیرمنو دارد یا نه
+            // و سایدبار را بر اساس آن تنظیم کن (برای refresh صفحه)
+            const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
+            if (hasSubMenu) {
+                setContentCollapsed(false);
+            } else {
+                setContentCollapsed(true);
+            }
             return;
         }
 
         setSelectedItem(activeItem);
         const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
         setSelectedItemHasSubMenu(hasSubMenu);
+        
+        // اگر منو زیرمنو دارد، سایدبار را باز کن، در غیر این صورت ببند
         if (hasSubMenu) {
             setContentCollapsed(false);
+        } else {
+            setContentCollapsed(true);
         }
     }, [activeItem, selectedItem, setSelectedItemHasSubMenu, setContentCollapsed, hasUserSelectedItem]);
-
-    useEffect(() => {
-        setHasUserSelectedItem(false);
-    }, [pathname]);
 
     const handleIconClick = (item: MenuItem) => {
         setHasUserSelectedItem(true);
@@ -119,16 +131,13 @@ export function Sidebar({
         const hasSubMenu = Boolean('items' in item && item.items && item.items.length > 0);
         setSelectedItemHasSubMenu(hasSubMenu);
 
-        if (onContentToggle) {
-            if (hasSubMenu) {
-                if (isContentCollapsed) {
-                    onContentToggle();
-                }
-            } else {
-                if (!isContentCollapsed) {
-                    onContentToggle();
-                }
-            }
+        // اگر منو زیرمنو دارد، سایدبار را باز کن، در غیر این صورت ببند
+        if (hasSubMenu) {
+            // همیشه سایدبار را باز کن (حتی اگر قبلاً باز بوده)
+            setContentCollapsed(false);
+        } else {
+            // همیشه سایدبار را ببند (حتی اگر قبلاً بسته بوده)
+            setContentCollapsed(true);
         }
     };
 
