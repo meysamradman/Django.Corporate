@@ -18,7 +18,6 @@ import { validateSlug } from '@/core/slug/validate';
 import { Loader2, Save, List, Tag } from "lucide-react";
 import { Loader } from "@/components/elements/Loader";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
 export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();

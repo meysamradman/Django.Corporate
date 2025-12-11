@@ -93,3 +93,36 @@ class CSRFExemptAdminMiddleware(MiddlewareMixin):
             setattr(request, '_dont_enforce_csrf_checks', True)
             
         return None
+
+
+class SecurityHeadersMiddleware(MiddlewareMixin):
+    """
+    اضافه کردن Security Headers به همه Response ها
+    رفع مشکلات OWASP ZAP Scan
+    """
+    
+    def process_response(self, request, response):
+        # Anti-clickjacking (OWASP ZAP: Missing Anti-clickjacking Header)
+        response['X-Frame-Options'] = 'DENY'
+        
+        # Content type sniffing prevention (OWASP ZAP: X-Content-Type-Options Missing)
+        response['X-Content-Type-Options'] = 'nosniff'
+        
+        # XSS Protection
+        response['X-XSS-Protection'] = '1; mode=block'
+        
+        # Referrer Policy
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        
+        # Permissions Policy
+        response['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+        
+        # CSP for API responses (Anti-clickjacking)
+        if '/api/' in request.path:
+            response['Content-Security-Policy'] = "frame-ancestors 'none'"
+        
+        # Remove Server header to prevent version leakage
+        if 'Server' in response:
+            del response['Server']
+        
+        return response

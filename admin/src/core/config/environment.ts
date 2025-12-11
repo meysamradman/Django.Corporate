@@ -57,6 +57,9 @@ export const env = {
   get PORTFOLIO_MEDIA_UPLOAD_MAX(): number { 
     return parseInt(process.env.NEXT_PUBLIC_PORTFOLIO_MEDIA_UPLOAD_MAX || '50', 10); 
   },
+  get BLOG_MEDIA_UPLOAD_MAX(): number { 
+    return parseInt(process.env.NEXT_PUBLIC_BLOG_MEDIA_UPLOAD_MAX || process.env.NEXT_PUBLIC_PORTFOLIO_MEDIA_UPLOAD_MAX || '50', 10); 
+  },
   get PORTFOLIO_MEDIA_LIST_LIMIT(): number { 
     return parseInt(process.env.NEXT_PUBLIC_PORTFOLIO_MEDIA_LIST_LIMIT || '5', 10); 
   },
@@ -66,6 +69,13 @@ export const env = {
   get ENABLE_DEBUG_MODE(): boolean { return process.env.NEXT_PUBLIC_ENABLE_DEBUG_MODE === 'true' || IS_DEVELOPMENT; },
 
   get PORTFOLIO_EXPORT_PRINT_MAX_ITEMS(): number { return getSecureInt('NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', 'PORTFOLIO_EXPORT_PRINT_MAX_ITEMS'); },
+  get BLOG_EXPORT_PRINT_MAX_ITEMS(): number { 
+    const blogValue = process.env.NEXT_PUBLIC_BLOG_EXPORT_PRINT_MAX_ITEMS;
+    if (blogValue) {
+      return getSecureInt('NEXT_PUBLIC_BLOG_EXPORT_PRINT_MAX_ITEMS', 'BLOG_EXPORT_PRINT_MAX_ITEMS');
+    }
+    return getSecureInt('NEXT_PUBLIC_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS', 'PORTFOLIO_EXPORT_PRINT_MAX_ITEMS');
+  },
 
   isSecure: IS_PRODUCTION,
   isDevelopment: IS_DEVELOPMENT,

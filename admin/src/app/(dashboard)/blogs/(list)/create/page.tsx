@@ -136,7 +136,7 @@ export default function CreateBlogPage() {
         data.featuredImage
       );
 
-      const uploadMax = env.PORTFOLIO_MEDIA_UPLOAD_MAX;
+      const uploadMax = env.BLOG_MEDIA_UPLOAD_MAX;
       const totalMedia = allMediaFiles.length + allMediaIds.length;
       if (totalMedia > uploadMax) {
         throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);

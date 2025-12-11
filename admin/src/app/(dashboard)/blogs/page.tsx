@@ -325,7 +325,7 @@ export default function BlogPage() {
     }
 
     let printData = data;
-    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS;
+    const MAX_PRINT_ITEMS = env.BLOG_EXPORT_PRINT_MAX_ITEMS;
     if (printAll) {
       try {
         const allParams = {

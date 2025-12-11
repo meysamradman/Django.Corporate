@@ -5,17 +5,27 @@ import { useParams, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/components/elements/Button";
-import { Loader } from "@/components/elements/Loader";
+
+const EditFormSkeleton = () => (
+  <div className="space-y-6">
+    <div className="rounded-lg border p-6">
+      <Skeleton className="h-32 w-full mb-4" />
+      <Skeleton className="h-8 w-1/3 mb-2" />
+      <Skeleton className="h-4 w-2/3" />
+    </div>
+    <div className="space-y-4 rounded-lg border p-6">
+      <Skeleton className="h-8 w-1/4" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+  </div>
+);
 
 const EditAdminForm = dynamic(
   () => import("@/components/admins/edit/EditForm").then((mod) => mod.EditAdminForm),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center py-12">
-        <Loader />
-      </div>
-    ),
+    loading: () => <EditFormSkeleton />,
   }
 );
 
@@ -42,8 +52,10 @@ export default function EditAdminPage() {
   if (isLoading && !user) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-32 w-full" />
+        <div>
+          <h1 className="page-title">ویرایش ادمین</h1>
+        </div>
+        <EditFormSkeleton />
       </div>
     );
   }

@@ -11,13 +11,15 @@ import { Skeleton } from "@/components/elements/Skeleton";
 const MediaGridSkeleton = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
     {Array.from({ length: 10 }).map((_, index) => (
-      <Card key={`media-skeleton-${index}`} className="overflow-hidden border-2 p-0">
-        <div className="w-full h-48">
+      <Card 
+        key={`media-skeleton-${index}`} 
+        className="overflow-hidden border-2 border-transparent hover:border-font-s/20 p-0 group relative transition-all"
+      >
+        <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
           <Skeleton className="h-full w-full" />
         </div>
-        <div className="p-4 space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-3 w-1/2" />
+        <div className="absolute top-2 right-2 z-10">
+          <Skeleton className="h-5 w-5 rounded" />
         </div>
       </Card>
     ))}
@@ -497,6 +499,7 @@ export default function MediaPage() {
                           src={coverImageUrl}
                           alt={item.alt_text || item.title || 'تصویر رسانه'}
                           fill
+                          showSkeleton={false}
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
                         />
@@ -506,6 +509,7 @@ export default function MediaPage() {
                           src={item.file_url || ''}
                           alt={item.alt_text || item.title || 'تصویر رسانه'}
                           fill
+                          showSkeleton={false}
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
                         />

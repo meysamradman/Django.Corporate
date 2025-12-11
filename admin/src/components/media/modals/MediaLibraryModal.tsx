@@ -18,7 +18,7 @@ import { MediaPreview } from '@/components/media/base/MediaPreview';
 import { Input } from '@/components/elements/Input';
 import { PaginationControls } from '@/components/shared/Pagination';
 import { ImageOff, CheckSquare, Square, FolderOpen, Upload, Loader2, X, Play, FileAudio, FileText, AlertCircle } from 'lucide-react';
-import { Loader } from '@/components/elements/Loader';
+import { Skeleton } from '@/components/elements/Skeleton';
 import { cn } from '@/core/utils/cn';
 import {
   Select,
@@ -479,8 +479,18 @@ export function MediaLibraryModal({
                       <div className="text-center text-red-1 p-4">{error}</div>
                   )}
                   {isLoading ? (
-                      <div className="flex justify-center items-center h-full">
-                          <Loader />
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-5 gap-3">
+                          {Array.from({ length: 10 }).map((_, index) => (
+                              <div
+                                  key={`media-skeleton-${index}`}
+                                  className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent"
+                              >
+                                  <Skeleton className="h-full w-full" />
+                                  <div className="absolute top-1.5 right-1.5 z-10">
+                                      <Skeleton className="h-4 w-4 rounded-full" />
+                                  </div>
+                              </div>
+                          ))}
                       </div>
                   ) : mediaItems.length === 0 ? (
                       <div className="text-center text-font-s py-10">

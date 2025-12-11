@@ -448,16 +448,17 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
   if (roleLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" disabled>
+      <div className="space-y-6 pb-28 relative">
+        <div className="flex items-center justify-between">
+          <h1 className="page-title">ویرایش نقش</h1>
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/roles")}
+            disabled
+          >
             <ArrowLeft className="h-4 w-4" />
             بازگشت
           </Button>
-          <div>
-            <div className="h-8 w-48 bg-bg animate-pulse rounded" />
-            <div className="h-4 w-32 bg-bg animate-pulse rounded mt-2" />
-          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>

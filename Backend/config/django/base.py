@@ -83,6 +83,7 @@ MIDDLEWARE = [
     'silk.middleware.SilkyMiddleware',
      'django.middleware.security.SecurityMiddleware',
      'src.core.security.middleware.SecurityLoggingMiddleware',
+     'src.core.security.middleware.SecurityHeadersMiddleware',  # Security headers for OWASP ZAP
      'src.core.security.middleware.CSRFExemptAdminMiddleware',
      'django.contrib.sessions.middleware.SessionMiddleware',
      'corsheaders.middleware.CorsMiddleware',

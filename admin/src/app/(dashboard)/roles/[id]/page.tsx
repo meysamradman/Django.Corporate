@@ -55,14 +55,23 @@ export default function RoleDetailPage({ params }: { params: Promise<{ id: strin
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between mb-6">
           <div className="flex-1">
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-64" />
+            <h1 className="page-title text-right">اطلاعات نقش</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-32" />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              disabled
+            >
+              <ArrowLeft className="h-4 w-4" />
+              بازگشت
+            </Button>
+            <Button disabled>
+              <Edit className="h-4 w-4" />
+              ویرایش نقش
+            </Button>
           </div>
         </div>
         

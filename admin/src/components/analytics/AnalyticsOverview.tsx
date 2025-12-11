@@ -1,13 +1,117 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsApi } from "@/api/analytics/route";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
-import { SummaryCards } from "./SummaryCards";
-import { VisitorChart } from "./VisitorChart";
-import { TopPages } from "./TopPages";
-import { TopCountries } from "./TopCountries";
 import { PermissionGate } from "@/core/permissions/components/PermissionGate";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { BarChart3, FileText, MapPin } from "lucide-react";
+
+// Summary Cards Skeleton
+const SummaryCardsSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    {[...Array(4)].map((_, i) => (
+      <Card key={i} className="border-b-4 border-b-primary">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-8 w-32 mb-2" />
+          <Skeleton className="h-4 w-20" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+// Visitor Chart Skeleton
+const VisitorChartSkeleton = () => (
+  <Card className="border-b-4 border-b-primary">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-3">
+        <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
+          <BarChart3 className="w-5 h-5 stroke-primary" />
+        </div>
+        <Skeleton className="h-6 w-48" />
+      </CardTitle>
+      <Skeleton className="h-4 w-64 mt-1" />
+    </CardHeader>
+    <CardContent>
+      <Skeleton className="h-[400px] w-full" />
+    </CardContent>
+  </Card>
+);
+
+// Top Pages Skeleton
+const TopPagesSkeleton = () => (
+  <CardWithIcon
+    icon={FileText}
+    title="صفحات پربازدید"
+    iconBgColor="bg-blue"
+    iconColor="stroke-blue-2"
+    borderColor="border-b-blue-1"
+  >
+    <div className="space-y-2">
+      {[...Array(5)].map((_, i) => (
+        <Skeleton key={i} className="h-12 w-full" />
+      ))}
+    </div>
+  </CardWithIcon>
+);
+
+// Top Countries Skeleton
+const TopCountriesSkeleton = () => (
+  <CardWithIcon
+    icon={MapPin}
+    title="کشورهای پربازدید"
+    iconBgColor="bg-green"
+    iconColor="stroke-green-2"
+    borderColor="border-b-green-1"
+  >
+    <div className="space-y-2">
+      {[...Array(5)].map((_, i) => (
+        <Skeleton key={i} className="h-12 w-full" />
+      ))}
+    </div>
+  </CardWithIcon>
+);
+
+// Dynamic imports
+const SummaryCards = dynamic(
+  () => import("./SummaryCards").then(mod => ({ default: mod.SummaryCards })),
+  { 
+    ssr: false,
+    loading: () => <SummaryCardsSkeleton />
+  }
+);
+
+const VisitorChart = dynamic(
+  () => import("./VisitorChart").then(mod => ({ default: mod.VisitorChart })),
+  { 
+    ssr: false,
+    loading: () => <VisitorChartSkeleton />
+  }
+);
+
+const TopPages = dynamic(
+  () => import("./TopPages").then(mod => ({ default: mod.TopPages })),
+  { 
+    ssr: false,
+    loading: () => <TopPagesSkeleton />
+  }
+);
+
+const TopCountries = dynamic(
+  () => import("./TopCountries").then(mod => ({ default: mod.TopCountries })),
+  { 
+    ssr: false,
+    loading: () => <TopCountriesSkeleton />
+  }
+);
 
 // ============================================
 // 📊 داده‌های Mock برای نمایش و تست

@@ -4,12 +4,61 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, TicketDetailView, type ReplyTicketData } from "@/components/ticket";
-import { ReplyTicketDialog } from "@/components/ticket/ReplyTicketDialog";
+import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, type ReplyTicketData } from "@/components/ticket";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
 import { Ticket, TicketStatusType, TicketMessage } from "@/types/ticket/ticket";
 import { toast } from "@/components/elements/Sonner";
+
+// TicketDetailView Skeleton
+const TicketDetailViewSkeleton = () => (
+  <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="border-b p-6 flex-shrink-0">
+      <div className="flex items-start gap-4">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+    </div>
+    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-32 w-full" />
+      <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="flex gap-3">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const TicketDetailView = dynamic(
+  () => import("@/components/ticket").then(mod => ({ default: mod.TicketDetailView })),
+  { 
+    ssr: false,
+    loading: () => <TicketDetailViewSkeleton />
+  }
+);
+
+const ReplyTicketDialog = dynamic(
+  () => import("@/components/ticket/ReplyTicketDialog").then(mod => ({ default: mod.ReplyTicketDialog })),
+  { 
+    ssr: false,
+    loading: () => null
+  }
+);
 
 export default function TicketPage() {
   const searchParams = useSearchParams();

@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { 
   FileText, Edit2, Image, 
-  Loader2, Save, Search, List
+  Loader2, Save, Search, List, Settings
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/route";
@@ -21,9 +23,91 @@ import { Portfolio } from "@/types/portfolio/portfolio";
 import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaFilesAndIds } from "@/components/portfolios/utils/portfolioMediaUtils";
 
-import BaseInfoTab from "@/components/portfolios/list/create/BaseInfoTab";
-import MediaTab from "@/components/portfolios/list/create/MediaTab";
-import SEOTab from "@/components/portfolios/list/create/SEOTab";
+// Skeleton دقیقاً شبیه فرم واقعی با CardWithIcon
+const TabSkeleton = () => (
+  <div className="mt-0 space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6">
+      {/* بخش چپ - اطلاعات پایه */}
+      <div className="flex-1 min-w-0">
+        <CardWithIcon
+          icon={FileText}
+          title="اطلاعات پایه"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          <div className="space-y-6">
+            {/* Grid دو ستونی */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+
+            {/* Editor */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+          </div>
+        </CardWithIcon>
+      </div>
+
+      {/* بخش راست - تنظیمات */}
+      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          className="lg:sticky lg:top-20"
+        >
+          <div className="space-y-8">
+            {/* دسته‌بندی */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            {/* تگ */}
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </CardWithIcon>
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const BaseInfoTab = dynamic(
+  () => import("@/components/portfolios/list/create/BaseInfoTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+const MediaTab = dynamic(
+  () => import("@/components/portfolios/list/create/MediaTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
+
+const SEOTab = dynamic(
+  () => import("@/components/portfolios/list/create/SEOTab"),
+  { loading: () => <TabSkeleton />, ssr: false }
+);
 
 export default function CreatePortfolioPage() {
   const router = useRouter();
@@ -187,26 +271,26 @@ export default function CreatePortfolioPage() {
           </TabsTrigger>
         </TabsList>
 
-        {activeTab === "account" && (
+        <TabsContent value="account">
           <BaseInfoTab 
             form={form as any}
             editMode={editMode}
           />
-        )}
-        {activeTab === "media" && (
+        </TabsContent>
+        <TabsContent value="media">
           <MediaTab 
             form={form as any}
             portfolioMedia={portfolioMedia}
             setPortfolioMedia={setPortfolioMedia}
             editMode={editMode}
           />
-        )}
-        {activeTab === "seo" && (
+        </TabsContent>
+        <TabsContent value="seo">
           <SEOTab 
             form={form as any}
             editMode={editMode}
           />
-        )}
+        </TabsContent>
       </Tabs>
 
       {editMode && (

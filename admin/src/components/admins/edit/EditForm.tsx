@@ -306,6 +306,15 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     <Skeleton className="h-8 w-1/3 mb-2" />
                     <Skeleton className="h-4 w-2/3" />
                 </div>
+                <div className="space-y-4">
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                    </div>
+                    <TabContentSkeleton />
+                </div>
             </div>
         );
     }

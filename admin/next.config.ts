@@ -23,6 +23,58 @@ const nextConfig: NextConfig = {
   // ✅ Source maps فقط در development
   productionBrowserSourceMaps: false, // امنیت بیشتر در production
 
+  // ✅ Security Headers (OWASP ZAP fixes)
+  async headers() {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const mediaBaseUrl = process.env.NEXT_PUBLIC_MEDIA_BASE_URL || 'http://localhost:8000';
+    
+    // Extract domain from URLs for CSP
+    const apiDomain = new URL(apiBaseUrl).origin;
+    const mediaDomain = new URL(mediaBaseUrl).origin;
+    const wsProtocol = apiDomain.startsWith('https') ? 'wss' : 'ws';
+    const wsDomain = apiDomain.replace(/^https?/, wsProtocol);
+    
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              `img-src 'self' data: blob: ${apiDomain} ${mediaDomain}`,
+              "font-src 'self' data:",
+              `connect-src 'self' ${apiDomain} ${mediaDomain} ${wsDomain}`,
+              "frame-ancestors 'none'",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
+
   // ✅ Experimental: بهینه‌سازی import پکیج‌ها
   experimental: {
     optimizePackageImports: [

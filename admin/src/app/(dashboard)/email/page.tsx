@@ -1,14 +1,55 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, EmailDetailView, type ComposeEmailData } from "@/components/email";
-import { ComposeEmailDialog } from "@/components/email/ComposeEmailDialog";
+import dynamic from "next/dynamic";
+import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, type ComposeEmailData } from "@/components/email";
 import { Checkbox } from "@/components/elements/Checkbox";
+import { Skeleton } from "@/components/elements/Skeleton";
 import { emailApi } from "@/api/email/route";
 import { EmailMessage } from "@/types/email/emailMessage";
 import { MailboxType } from "@/components/email/types";
 import { toast } from "@/components/elements/Sonner";
 import { useQueryClient } from '@tanstack/react-query';
+
+// EmailDetailView Skeleton
+const EmailDetailViewSkeleton = () => (
+  <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="border-b p-6 flex-shrink-0">
+      <div className="flex items-start gap-4">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+    </div>
+    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-5/6" />
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const EmailDetailView = dynamic(
+  () => import("@/components/email").then(mod => ({ default: mod.EmailDetailView })),
+  { 
+    ssr: false,
+    loading: () => <EmailDetailViewSkeleton />
+  }
+);
+
+const ComposeEmailDialog = dynamic(
+  () => import("@/components/email/ComposeEmailDialog").then(mod => ({ default: mod.ComposeEmailDialog })),
+  { 
+    ssr: false,
+    loading: () => null
+  }
+);
 
 export default function EmailPage() {
   const queryClient = useQueryClient();

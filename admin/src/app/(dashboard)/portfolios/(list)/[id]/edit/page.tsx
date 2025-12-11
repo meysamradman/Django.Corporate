@@ -1,13 +1,14 @@
 "use client";
 
-import { use, useState, useEffect, lazy, Suspense } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
   FileText, Edit2, Image, Search,
-  Loader2, Save, List
+  Loader2, Save, List, Settings
 } from "lucide-react";
 import { Media } from "@/types/shared/media";
 import { Portfolio } from "@/types/portfolio/portfolio";
@@ -30,9 +31,94 @@ interface PortfolioUpdateData extends Partial<Portfolio> {
   media_covers?: { [mediaId: number]: number | null };
 }
 
-const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
+// Tab Skeleton
+const TabSkeleton = () => (
+  <div className="mt-0 space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex-1 min-w-0">
+        <div className="rounded-lg border border-br overflow-hidden">
+          <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+                <FileText className="h-5 w-5 stroke-blue-2" />
+              </div>
+              <Skeleton className="h-6 w-32" />
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-64 w-full rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+        <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
+          <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+                <Settings className="h-5 w-5 stroke-blue-2" />
+              </div>
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const BaseInfoTab = dynamic(
+  () => import("@/components/portfolios/list/create/BaseInfoTab"),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+const MediaTab = dynamic(
+  () => import("@/components/portfolios/list/create/MediaTab"),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+const SEOTab = dynamic(
+  () => import("@/components/portfolios/list/create/SEOTab"),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
 
 export default function EditPortfolioPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -295,15 +381,44 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-28 relative">
         <div className="flex items-center justify-between">
           <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64 mt-2" />
+            <h1 className="page-title">ویرایش نمونه‌کار</h1>
           </div>
-          <Skeleton className="h-10 w-32" />
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              disabled
+              onClick={() => router.push("/portfolios")}
+            >
+              <List className="h-4 w-4" />
+              نمایش لیست
+            </Button>
+            <Button disabled>
+              <Edit2 />
+              ویرایش
+            </Button>
+          </div>
         </div>
-        <Skeleton className="h-96 w-full" />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FileText className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="media">
+              <Image className="h-4 w-4" />
+              مدیا
+            </TabsTrigger>
+            <TabsTrigger value="seo">
+              <Search className="h-4 w-4" />
+              سئو
+            </TabsTrigger>
+          </TabsList>
+          <TabSkeleton />
+        </Tabs>
       </div>
     );
   }
@@ -360,48 +475,41 @@ export default function EditPortfolioPage({ params }: { params: Promise<{ id: st
           </TabsTrigger>
         </TabsList>
 
-        <Suspense fallback={
-          <div className="mt-6">
-            <Skeleton className="w-full h-64" />
-            <Skeleton className="w-full h-64 mt-4" />
-          </div>
-        }>
-          {activeTab === "account" && (
-            <BaseInfoTab 
-              formData={formData}
-              handleInputChange={handleInputChange}
-              editMode={editMode}
-              selectedCategories={selectedCategories}
-              selectedTags={selectedTags}
-              selectedOptions={selectedOptions}
-              onCategoryToggle={handleCategoryToggle}
-              onCategoryRemove={handleCategoryRemove}
-              onTagToggle={handleTagToggle}
-              onTagRemove={handleTagRemove}
-              onOptionToggle={handleOptionToggle}
-              onOptionRemove={handleOptionRemove}
-              portfolioId={id}
-            />
-          )}
-          {activeTab === "media" && (
-            <MediaTab 
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
-              editMode={editMode}
-              featuredImage={portfolioMedia.featuredImage}
-              onFeaturedImageChange={handleFeaturedImageChange}
-              portfolioId={id}
-            />
-          )}
-          {activeTab === "seo" && (
-            <SEOTab 
-              formData={formData}
-              handleInputChange={handleInputChange}
-              editMode={editMode}
-              portfolioId={id}
-            />
-          )}
-        </Suspense>
+        <TabsContent value="account">
+          <BaseInfoTab 
+            formData={formData}
+            handleInputChange={handleInputChange}
+            editMode={editMode}
+            selectedCategories={selectedCategories}
+            selectedTags={selectedTags}
+            selectedOptions={selectedOptions}
+            onCategoryToggle={handleCategoryToggle}
+            onCategoryRemove={handleCategoryRemove}
+            onTagToggle={handleTagToggle}
+            onTagRemove={handleTagRemove}
+            onOptionToggle={handleOptionToggle}
+            onOptionRemove={handleOptionRemove}
+            portfolioId={id}
+          />
+        </TabsContent>
+        <TabsContent value="media">
+          <MediaTab 
+            portfolioMedia={portfolioMedia}
+            setPortfolioMedia={setPortfolioMedia}
+            editMode={editMode}
+            featuredImage={portfolioMedia.featuredImage}
+            onFeaturedImageChange={handleFeaturedImageChange}
+            portfolioId={id}
+          />
+        </TabsContent>
+        <TabsContent value="seo">
+          <SEOTab 
+            formData={formData}
+            handleInputChange={handleInputChange}
+            editMode={editMode}
+            portfolioId={id}
+          />
+        </TabsContent>
       </Tabs>
 
       {editMode && (

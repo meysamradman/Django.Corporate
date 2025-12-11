@@ -2,9 +2,11 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useCreateRole, usePermissions, useBasePermissions } from "@/core/permissions/hooks/useRoles";
 import { Card, CardContent, CardHeader } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Skeleton } from "@/components/elements/Skeleton";
 import {
   AlertCircle,
   ShieldCheck,
@@ -21,15 +23,97 @@ import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField"
 import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
-import {
-  StandardPermissionsTable,
-  PermissionWarningAlert,
-  StatisticsPermissionsCard,
-  AIPermissionsCard,
-  ManagementPermissionsCard,
-  RoleBasicInfoForm,
-} from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
+
+// Permissions Skeleton
+const PermissionsSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-4 rounded-lg border p-4">
+      <Skeleton className="h-6 w-32" />
+      <div className="space-y-2">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-4 w-full" />
+        ))}
+      </div>
+    </div>
+    <div className="space-y-4 rounded-lg border p-4">
+      <Skeleton className="h-6 w-40" />
+      <div className="space-y-2">
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-4 w-full" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const StandardPermissionsTable = dynamic(
+  () => import("@/components/roles/form").then(mod => ({ default: mod.StandardPermissionsTable })),
+  { 
+    ssr: false,
+    loading: () => <PermissionsSkeleton />
+  }
+);
+
+const PermissionWarningAlert = dynamic(
+  () => import("@/components/roles/form").then(mod => ({ default: mod.PermissionWarningAlert })),
+  { 
+    ssr: false,
+    loading: () => null
+  }
+);
+
+const StatisticsPermissionsCard = dynamic(
+  () => import("@/components/roles/form").then(mod => ({ default: mod.StatisticsPermissionsCard })),
+  { 
+    ssr: false,
+    loading: () => <PermissionsSkeleton />
+  }
+);
+
+const AIPermissionsCard = dynamic(
+  () => import("@/components/roles/form").then(mod => ({ default: mod.AIPermissionsCard })),
+  { 
+    ssr: false,
+    loading: () => <PermissionsSkeleton />
+  }
+);
+
+const ManagementPermissionsCard = dynamic(
+  () => import("@/components/roles/form").then(mod => ({ default: mod.ManagementPermissionsCard })),
+  { 
+    ssr: false,
+    loading: () => <PermissionsSkeleton />
+  }
+);
+
+const RoleBasicInfoForm = dynamic(
+  () => import("@/components/roles/form").then(mod => ({ default: mod.RoleBasicInfoForm })),
+  { 
+    ssr: false,
+    loading: () => (
+      <CardWithIcon
+        icon={ShieldCheck}
+        title="اطلاعات پایه"
+        iconBgColor="bg-blue"
+        iconColor="stroke-blue-2"
+        borderColor="border-b-blue-1"
+      >
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
+      </CardWithIcon>
+    )
+  }
+);
 
 const ANALYTICS_USED_PERMISSIONS: readonly string[] = [
   'analytics.manage',  // Website visit analytics (page views)
@@ -364,10 +448,31 @@ export default function CreateRolePage() {
           }
         >
             {permissionsLoading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-bg animate-pulse rounded" />
-                ))}
+              <div className="space-y-8">
+                <div className="space-y-4 rounded-lg border p-4">
+                  <Skeleton className="h-6 w-32" />
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-full" />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4 rounded-lg border p-4">
+                  <Skeleton className="h-6 w-40" />
+                  <div className="space-y-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-full" />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4 rounded-lg border p-4">
+                  <Skeleton className="h-6 w-36" />
+                  <div className="grid grid-cols-2 gap-4">
+                    {[...Array(4)].map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : permissionsError ? (
               <div className="text-center text-destructive py-8">
@@ -474,8 +579,8 @@ export default function CreateRolePage() {
         </CardWithIcon>
 
         <RoleBasicInfoForm
-          form={form}
-          onSubmit={onSubmit}
+          form={form as any}
+          onSubmit={onSubmit as any}
           isSubmitting={createRoleMutation.isPending}
           submitButtonText="ایجاد"
           hideSubmitButton={true}

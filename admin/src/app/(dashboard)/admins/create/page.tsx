@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import dynamic from "next/dynamic";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/route";
 import { roleApi } from "@/api/admins/roles/route";
@@ -13,14 +14,72 @@ import { showSuccess, showError } from '@/core/toast';
 import { getCrud } from '@/core/messages';
 import { adminFormSchema, adminFormDefaults, AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Loader2, Save, User, UserCircle, ShieldCheck, List } from "lucide-react";
 import { Media } from "@/types/shared/media";
 
-const BaseInfoTab = lazy(() => import("@/components/admins/create/BaseInfoTab"));
-const ProfileTab = lazy(() => import("@/components/admins/create/ProfileTab"));
-const PermissionsTab = lazy(() => import("@/components/admins/create/PermissionsTab"));
+// Tab Skeleton
+const TabSkeleton = () => (
+  <div className="mt-0 space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex-1 min-w-0">
+        <CardWithIcon
+          icon={User}
+          title="اطلاعات پایه"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </CardWithIcon>
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const BaseInfoTab = dynamic(
+  () => import("@/components/admins/create/BaseInfoTab"),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+const ProfileTab = dynamic(
+  () => import("@/components/admins/create/ProfileTab"),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+const PermissionsTab = dynamic(
+  () => import("@/components/admins/create/PermissionsTab"),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
 
 export default function CreateAdminPage() {
     const router = useRouter();
@@ -153,108 +212,84 @@ export default function CreateAdminPage() {
     };
 
     return (
-        <Suspense fallback={
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <Skeleton className="h-8 w-48" />
-                        <Skeleton className="h-4 w-64 mt-2" />
-                    </div>
-                    <div className="flex gap-2">
-                        <Skeleton className="h-10 w-24" />
-                        <Skeleton className="h-10 w-20" />
-                    </div>
+        <div className="space-y-6 pb-28 relative">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="page-title">ایجاد ادمین جدید</h1>
                 </div>
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-96 w-full" />
-            </div>
-        }>
-            <div className="space-y-6 pb-28 relative">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="page-title">ایجاد ادمین جدید</h1>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button 
-                            variant="outline"
-                            onClick={() => router.push("/admins")}
-                        >
-                            <List className="h-4 w-4" />
-                            نمایش لیست
-                        </Button>
-                    </div>
+                <div className="flex gap-2">
+                    <Button 
+                        variant="outline"
+                        onClick={() => router.push("/admins")}
+                    >
+                        <List className="h-4 w-4" />
+                        نمایش لیست
+                    </Button>
                 </div>
-
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList>
-                        <TabsTrigger value="base-info">
-                            <User className="w-4 h-4" />
-                            اطلاعات پایه
-                        </TabsTrigger>
-                        <TabsTrigger value="profile">
-                            <UserCircle className="w-4 h-4" />
-                            پروفایل
-                        </TabsTrigger>
-                        <TabsTrigger value="permissions">
-                            <ShieldCheck className="w-4 h-4" />
-                            دسترسی‌ها
-                        </TabsTrigger>
-                    </TabsList>
-
-                    <Suspense fallback={
-                        <div>
-                            <Skeleton className="w-full h-64" />
-                            <Skeleton className="w-full h-64 mt-4" />
-                        </div>
-                    }>
-                        {activeTab === "base-info" && (
-                            <BaseInfoTab
-                                form={form as any}
-                                editMode={editMode}
-                            />
-                        )}
-                        {activeTab === "profile" && (
-                            <ProfileTab
-                                form={form as any}
-                                selectedMedia={selectedMedia}
-                                setSelectedMedia={setSelectedMedia}
-                                editMode={editMode}
-                            />
-                        )}
-                        {activeTab === "permissions" && (
-                            <PermissionsTab
-                                form={form as any}
-                                roles={roles}
-                                loadingRoles={loadingRoles}
-                                rolesError={rolesError}
-                                editMode={editMode}
-                            />
-                        )}
-                    </Suspense>
-                </Tabs>
-
-                {editMode && (
-                    <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                        <Button 
-                            onClick={handleSubmit} 
-                            size="lg"
-                            disabled={createAdminMutation.isPending}
-                        >
-                            {createAdminMutation.isPending ? (
-                                <>
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                    در حال ذخیره...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="h-5 w-5" />
-                                    ذخیره
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                )}
             </div>
-        </Suspense>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList>
+                    <TabsTrigger value="base-info">
+                        <User className="w-4 h-4" />
+                        اطلاعات پایه
+                    </TabsTrigger>
+                    <TabsTrigger value="profile">
+                        <UserCircle className="w-4 h-4" />
+                        پروفایل
+                    </TabsTrigger>
+                    <TabsTrigger value="permissions">
+                        <ShieldCheck className="w-4 h-4" />
+                        دسترسی‌ها
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="base-info">
+                    <BaseInfoTab
+                        form={form as any}
+                        editMode={editMode}
+                    />
+                </TabsContent>
+                <TabsContent value="profile">
+                    <ProfileTab
+                        form={form as any}
+                        selectedMedia={selectedMedia}
+                        setSelectedMedia={setSelectedMedia}
+                        editMode={editMode}
+                    />
+                </TabsContent>
+                <TabsContent value="permissions">
+                    <PermissionsTab
+                        form={form as any}
+                        roles={roles}
+                        loadingRoles={loadingRoles}
+                        rolesError={rolesError}
+                        editMode={editMode}
+                    />
+                </TabsContent>
+            </Tabs>
+
+            {editMode && (
+                <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+                    <Button 
+                        onClick={handleSubmit} 
+                        size="lg"
+                        disabled={createAdminMutation.isPending}
+                    >
+                        {createAdminMutation.isPending ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                در حال ذخیره...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-5 w-5" />
+                                ذخیره
+                            </>
+                        )}
+                    </Button>
+                </div>
+            )}
+        </div>
     );
 }
