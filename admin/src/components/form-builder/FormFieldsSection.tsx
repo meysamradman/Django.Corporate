@@ -44,6 +44,7 @@ import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, FileText, Loader2, Globe, Smartphone, MoreVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Badge } from "@/components/elements/Badge";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 export function FormFieldsSection() {
     const [fields, setFields] = useState<ContactFormField[]>([]);
@@ -265,9 +266,19 @@ export function FormFieldsSection() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-font-s" />
-            </div>
+            <CardWithIcon
+                icon={FileText}
+                title="فیلدهای فرم تماس"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+            >
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                </div>
+            </CardWithIcon>
         );
     }
 

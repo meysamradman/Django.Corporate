@@ -1,16 +1,63 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";
-import {
-    GeneralSettingsForm,
-    ContactPhonesSection,
-    ContactMobilesSection,
-    ContactEmailsSection,
-    SocialMediaSection,
-} from "@/components/settings";
+import { Skeleton } from "@/components/elements/Skeleton";
+
+// Tab Skeleton
+const TabSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const GeneralSettingsForm = dynamic(
+  () => import("@/components/settings").then(mod => ({ default: mod.GeneralSettingsForm })),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+
+const ContactPhonesSection = dynamic(
+  () => import("@/components/settings").then(mod => ({ default: mod.ContactPhonesSection })),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+
+const ContactMobilesSection = dynamic(
+  () => import("@/components/settings").then(mod => ({ default: mod.ContactMobilesSection })),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+
+const ContactEmailsSection = dynamic(
+  () => import("@/components/settings").then(mod => ({ default: mod.ContactEmailsSection })),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+
+const SocialMediaSection = dynamic(
+  () => import("@/components/settings").then(mod => ({ default: mod.SocialMediaSection })),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("general");

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { MessageSquare, Image, Music, FileText, Search, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';
@@ -10,13 +11,49 @@ import { Button } from '@/components/elements/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/elements/Dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
-import { ModelSelector } from '../../../../components/ai/models/ModelSelector';
-import { OpenRouterModelSelectorContent } from '@/components/ai/settings/OpenRouterModelSelector';
-import { HuggingFaceModelSelectorContent } from '@/components/ai/settings/HuggingFaceModelSelector';
 import { useUserPermissions } from '@/core/permissions';
 import { useRouter } from 'next/navigation';
 import { showError, showSuccess } from '@/core/toast';
 import { toast } from '@/core/toast';
+
+// Tab Skeleton
+const TabSkeleton = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-10 w-full" />
+    <Skeleton className="h-24 w-full" />
+    <Skeleton className="h-24 w-full" />
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-24 w-full" />
+      ))}
+    </div>
+  </div>
+);
+
+// Dynamic imports
+const ModelSelector = dynamic(
+  () => import('@/components/ai/models/ModelSelector').then(mod => ({ default: mod.ModelSelector })),
+  { 
+    ssr: false,
+    loading: () => <TabSkeleton />
+  }
+);
+
+const OpenRouterModelSelectorContent = dynamic(
+  () => import('@/components/ai/settings/OpenRouterModelSelector').then(mod => ({ default: mod.OpenRouterModelSelectorContent })),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-64 w-full" />
+  }
+);
+
+const HuggingFaceModelSelectorContent = dynamic(
+  () => import('@/components/ai/settings/HuggingFaceModelSelector').then(mod => ({ default: mod.HuggingFaceModelSelectorContent })),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-64 w-full" />
+  }
+);
 
 type Capability = 'chat' | 'content' | 'image' | 'audio';
 
@@ -326,16 +363,14 @@ export default function AIModelsPage() {
                     </DialogHeader>
 
                     <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
-                        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                            <OpenRouterModelSelectorContent
-                                providerId="openrouter"
-                                providerName="OpenRouter"
-                                capability={activeTab}
-                                onSave={(models) => handleSaveModels(models, 'OpenRouter')}
-                                onSelectionChange={() => { }}
-                                onSaveRef={openRouterSaveRef}
-                            />
-                        </Suspense>
+                        <OpenRouterModelSelectorContent
+                            providerId="openrouter"
+                            providerName="OpenRouter"
+                            capability={activeTab}
+                            onSave={(models) => handleSaveModels(models, 'OpenRouter')}
+                            onSelectionChange={() => { }}
+                            onSaveRef={openRouterSaveRef}
+                        />
                     </div>
 
                     <DialogFooter className="px-6 py-4 border-t border-br flex-shrink-0">
@@ -362,16 +397,14 @@ export default function AIModelsPage() {
                     </DialogHeader>
 
                     <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
-                        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                            <HuggingFaceModelSelectorContent
-                                providerId="huggingface"
-                                providerName="Hugging Face"
-                                capability={activeTab}
-                                onSave={(models) => handleSaveModels(models, 'Hugging Face')}
-                                onSelectionChange={() => { }}
-                                onSaveRef={huggingFaceSaveRef}
-                            />
-                        </Suspense>
+                        <HuggingFaceModelSelectorContent
+                            providerId="huggingface"
+                            providerName="Hugging Face"
+                            capability={activeTab}
+                            onSave={(models) => handleSaveModels(models, 'Hugging Face')}
+                            onSelectionChange={() => { }}
+                            onSaveRef={huggingFaceSaveRef}
+                        />
                     </div>
 
                     <DialogFooter className="px-6 py-4 border-t border-br flex-shrink-0">

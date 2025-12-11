@@ -113,12 +113,21 @@ export function TermsPageForm() {
 
     if (loading) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 pb-28 relative">
                 <div className="flex items-center justify-between">
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-10 w-32" />
+                    <h1 className="page-title">تنظیمات صفحه قوانین و مقررات</h1>
                 </div>
-                <Skeleton className="h-96 w-full" />
+                <div className="space-y-6">
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-32" />
+                        <Skeleton className="h-10 w-32" />
+                    </div>
+                    <div className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-64 w-full" />
+                    </div>
+                </div>
             </div>
         );
     }

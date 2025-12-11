@@ -1,9 +1,32 @@
 "use client";
 
 import React, { useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { ProtectedButton } from '@/core/permissions';
 import { Save, Loader2 } from 'lucide-react';
-import PanelSettingsForm, { PanelSettingsFormRef } from '@/components/panel/PanelSettingsForm';
+import { Skeleton } from '@/components/elements/Skeleton';
+
+// Panel Settings Skeleton
+const PanelSettingsSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  </div>
+);
+
+// Dynamic import
+const PanelSettingsForm = dynamic(
+  () => import('@/components/panel/PanelSettingsForm').then(mod => ({ default: mod.default })),
+  { 
+    ssr: false,
+    loading: () => <PanelSettingsSkeleton />
+  }
+) as React.ComponentType<{ ref?: React.Ref<PanelSettingsFormRef> }>;
+
+import type { PanelSettingsFormRef } from '@/components/panel/PanelSettingsForm';
 
 export default function PanelSettingsPage() {
     const formRef = useRef<PanelSettingsFormRef>(null);
