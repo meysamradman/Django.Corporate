@@ -8,6 +8,7 @@ from src.user.access_control import SimpleAdminPermission
 from src.core.responses.response import APIResponse
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.services.admin.admin_auth_service import AdminAuthService
+from src.core.cache import CacheService
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -34,31 +35,102 @@ class AdminLogoutView(APIView):
         )
         return response
 
-    def post(self, request):
+    def _cleanup_session_completely(self, session_key: str, user_id=None):
+        """پاک کردن کامل session از همه جا"""
+        cleanup_results = {
+            'redis_session_deleted': False,
+            'django_session_deleted': False,
+            'permission_cache_cleared': False,
+            'cache_count_cleared': 0
+        }
+        
         try:
-            session_key = request.session.session_key
+            # 1. حذف از Redis Session Cache
+            if session_key:
+                session_manager = CacheService.get_session_manager()
+                cleanup_results['redis_session_deleted'] = session_manager.delete_admin_session(session_key)
             
-            # Delete session from backend BEFORE flush
+            # 2. حذف از Django Session Backend
+            if session_key:
+                try:
+                    from django.contrib.sessions.models import Session
+                    Session.objects.filter(session_key=session_key).delete()
+                    cleanup_results['django_session_deleted'] = True
+                except Exception as e:
+                    print(f"Django session delete error: {e}")
+            
+            # 3. پاک کردن Permission Cache
+            if user_id:
+                try:
+                    cleared_count = CacheService.clear_user_cache(user_id)
+                    cleanup_results['cache_count_cleared'] = cleared_count
+                    cleanup_results['permission_cache_cleared'] = True
+                except Exception as e:
+                    print(f"Permission cache clear error: {e}")
+            
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+        
+        return cleanup_results
+
+    def post(self, request):
+        session_key = None
+        user_id = None
+        
+        try:
+            # دریافت session key و user_id قبل از flush
+            session_key = request.session.session_key
+            user_id = getattr(request.user, 'id', None) if request.user.is_authenticated else None
+            
+            # 1. Delete session from backend (AdminAuthService)
             if session_key:
                 AdminAuthService.logout_admin(session_key)
             
-            # Flush session to clear all data and delete from storage
+            # 2. Cleanup کامل
+            cleanup_results = self._cleanup_session_completely(session_key, user_id)
+            
+            # 3. Flush Django session (آخرین مرحله)
             request.session.flush()
             
-            # Explicitly delete session from cache (double-check)
-            if session_key:
-                from django.core.cache import cache
-                cache_key = f"admin_session_{session_key}"
-                cache.delete(cache_key)
-            
+            # 4. آماده کردن Response
             response = APIResponse.success(
-                message=AUTH_SUCCESS["auth_logged_out"]
+                message=AUTH_SUCCESS["auth_logged_out"],
+                metaData={'cleanup_status': cleanup_results}
             )
             
+            # 5. حذف Cookies
             self._delete_cookie_with_settings(response, 'SESSION')
             self._delete_cookie_with_settings(response, 'CSRF')
+            
+            # 6. اضافه کردن Cache-Control Headers (برای جلوگیری از cache)
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
             
             return response
             
         except Exception as e:
-            return APIResponse.error(message=AUTH_ERRORS["auth_logout_error"])
+            print(f"Logout error: {e}")
+            
+            # حتی در صورت خطا، سعی کن session رو پاک کنی
+            if session_key:
+                try:
+                    AdminAuthService.logout_admin(session_key)
+                    self._cleanup_session_completely(session_key, user_id)
+                except:
+                    pass
+            
+            response = APIResponse.error(
+                message=AUTH_ERRORS["auth_logout_error"]
+            )
+            
+            # حذف Cookies در هر صورت
+            self._delete_cookie_with_settings(response, 'SESSION')
+            self._delete_cookie_with_settings(response, 'CSRF')
+            
+            # Cache-Control Headers حتی در خطا
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+            
+            return response

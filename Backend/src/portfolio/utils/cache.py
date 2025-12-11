@@ -1,95 +1,59 @@
 from django.core.cache import cache
+from src.core.cache import CacheKeyBuilder, CacheService
 
 
 class PortfolioCacheKeys:
     
     @staticmethod
     def portfolio(portfolio_id):
-        return f"portfolio:{portfolio_id}"
+        return CacheKeyBuilder.portfolio_detail(portfolio_id)
     
     @staticmethod
     def list_admin(params):
-        """کلید کش برای لیست نمونه‌کارها"""
-        import hashlib
-        import json
-        params_str = json.dumps(params, sort_keys=True)
-        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
-        return f"portfolio_list_admin:{params_hash}"
+        return CacheKeyBuilder.portfolio_list_admin(params)
     
     @staticmethod
     def main_image(portfolio_id):
-        return f"portfolio:main_image:{portfolio_id}"
+        return CacheKeyBuilder.portfolio_main_image(portfolio_id)
     
     @staticmethod
     def seo_data(portfolio_id):
-        return f"portfolio:seo_data:{portfolio_id}"
+        return CacheKeyBuilder.portfolio_seo_data(portfolio_id)
     
     @staticmethod
     def seo_preview(portfolio_id):
-        return f"portfolio:seo_preview:{portfolio_id}"
+        return CacheKeyBuilder.portfolio_seo_preview(portfolio_id)
     
     @staticmethod
     def seo_completeness(portfolio_id):
-        return f"portfolio:seo_completeness:{portfolio_id}"
+        return CacheKeyBuilder.portfolio_seo_completeness(portfolio_id)
     
     @staticmethod
     def structured_data(portfolio_id):
-        return f"portfolio:structured_data:{portfolio_id}"
+        return CacheKeyBuilder.portfolio_structured_data(portfolio_id)
     
     @staticmethod
     def seo_report():
-        return "portfolio:seo_report"
+        return CacheKeyBuilder.portfolio_seo()
     
     @staticmethod
     def all_keys(portfolio_id):
-        return [
-            PortfolioCacheKeys.portfolio(portfolio_id),
-            PortfolioCacheKeys.main_image(portfolio_id),
-            PortfolioCacheKeys.seo_data(portfolio_id),
-            PortfolioCacheKeys.seo_preview(portfolio_id),
-            PortfolioCacheKeys.seo_completeness(portfolio_id),
-            PortfolioCacheKeys.structured_data(portfolio_id),
-        ]
+        return CacheKeyBuilder.portfolio_all_keys(portfolio_id)
 
 
 class PortfolioCacheManager:
     
     @staticmethod
     def invalidate_portfolio(portfolio_id):
-        cache_keys = PortfolioCacheKeys.all_keys(portfolio_id)
-        additional_keys = [
-            f"portfolio:{portfolio_id}:main_image_details",
-            f"portfolio:{portfolio_id}:media_list",
-            f"portfolio:{portfolio_id}:media_detail",
-        ]
-        cache_keys.extend(additional_keys)
-        cache.delete_many(cache_keys)
+        return CacheService.clear_portfolio_cache(portfolio_id)
     
     @staticmethod
     def invalidate_portfolios(portfolio_ids):
-        all_keys = []
-        for pid in portfolio_ids:
-            all_keys.extend(PortfolioCacheKeys.all_keys(pid))
-            additional_keys = [
-                f"portfolio:{pid}:main_image_details",
-                f"portfolio:{pid}:media_list",
-                f"portfolio:{pid}:media_detail",
-            ]
-            all_keys.extend(additional_keys)
-        if all_keys:
-            cache.delete_many(all_keys)
+        return CacheService.clear_portfolios_cache(portfolio_ids)
     
     @staticmethod
     def invalidate_all_lists():
-        """پاک کردن تمام کش‌های لیست"""
-        try:
-            from django_redis import get_redis_connection
-            redis_conn = get_redis_connection("default")
-            list_keys = redis_conn.keys("*portfolio_list_admin:*")
-            if list_keys:
-                redis_conn.delete(*list_keys)
-        except:
-            pass
+        return CacheService.clear_portfolio_lists()
 
 
 class CategoryCacheKeys:
@@ -139,22 +103,11 @@ class CategoryCacheManager:
     
     @staticmethod
     def invalidate_all():
-        """پاک کردن تمام کش‌های category شامل لیست‌ها"""
         all_keys = CategoryCacheKeys.all_keys()
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
-        
-        # پاک کردن تمام کش‌های لیست با pattern
-        try:
-            from django_redis import get_redis_connection
-            redis_conn = get_redis_connection("default")
-            # پاک کردن تمام کش‌های لیست با pattern
-            list_keys = redis_conn.keys("*portfolio_category_list_admin:*")
-            if list_keys:
-                redis_conn.delete(*list_keys)
-        except:
-            pass
+        return CacheService.delete_pattern("*portfolio_category_list_admin:*")
     
     @staticmethod
     def invalidate_popular():

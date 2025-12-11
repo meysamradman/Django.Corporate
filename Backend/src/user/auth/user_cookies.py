@@ -75,23 +75,3 @@ class UserCookie(BaseCookie):
     @classmethod
     def get_samesite_setting(cls):
         return settings.SIMPLE_JWT.get('AUTH_COOKIE_SAMESITE', 'Lax')
-
-
-class AdminSessionCookie:
-    
-    @staticmethod
-    def set_session_cookie(response: Response, session_key: str):
-        response.set_cookie(
-            key='admin_session_id',
-            value=session_key,
-            httponly=True,
-            secure=not settings.DEBUG,
-            samesite='Strict',
-            max_age=int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,
-        )
-        return response
-    
-    @staticmethod
-    def clear_session_cookie(response: Response):
-        response.delete_cookie('admin_session_id')
-        return response

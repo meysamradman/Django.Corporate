@@ -1,4 +1,4 @@
-from django.core.cache import cache
+from src.core.cache import CacheService
 
 
 class FormCacheKeys:
@@ -38,23 +38,20 @@ class FormCacheManager:
     
     @staticmethod
     def invalidate_fields():
-        cache.delete(FormCacheKeys.all_fields())
-        cache.delete(FormCacheKeys.active_fields())
-        try:
-            cache.delete_pattern("form_fields_platform_*")
-        except (AttributeError, NotImplementedError):
-            pass
+        CacheService.delete(FormCacheKeys.all_fields())
+        CacheService.delete(FormCacheKeys.active_fields())
+        return CacheService.delete_pattern("form_fields_platform_*")
     
     @staticmethod
     def invalidate_field(field_id=None, field_key=None):
         if field_id:
-            cache.delete(FormCacheKeys.field_by_id(field_id))
+            CacheService.delete(FormCacheKeys.field_by_id(field_id))
         if field_key:
-            cache.delete(FormCacheKeys.field_by_key(field_key))
+            CacheService.delete(FormCacheKeys.field_by_key(field_key))
         FormCacheManager.invalidate_fields()
     
     @staticmethod
     def invalidate_platform(platform):
-        cache.delete(FormCacheKeys.fields_for_platform(platform))
+        CacheService.delete(FormCacheKeys.fields_for_platform(platform))
         FormCacheManager.invalidate_fields()
 

@@ -1,4 +1,3 @@
-import redis
 import requests
 from django.conf import settings
 from django.utils import timezone
@@ -6,31 +5,24 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_otp, generate_otp, get_otp_expiry_time
 from src.user.models import User
 from src.user.utils.jwt_tokens import generate_jwt_tokens
+from src.core.cache import CacheService
 
 class OTPService:
 
     def __init__(self):
-        self.redis_client = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
-            decode_responses=True
-        )
-
         self.otp_expiry = getattr(settings, 'OTP_EXPIRY_SECONDS', 120)
         self.max_requests = getattr(settings, 'OTP_MAX_REQUESTS', 10)
         self.request_window = getattr(settings, 'OTP_REQUEST_WINDOW', 3600)
 
-    def _get_redis_keys(self, mobile):
-        return {
-            'otp': f"otp:{mobile}",
-            'expiry': f"otp_expiry:{mobile}",
-            'requests': f"otp_requests:{mobile}"
-        }
+    def _get_request_key(self, mobile):
+        return f"otp_requests:{mobile}"
+    
+    def _get_expiry_key(self, mobile):
+        return f"otp_expiry:{mobile}"
 
     def _check_request_limit(self, mobile):
-        keys = self._get_redis_keys(mobile)
-        current_requests = int(self.redis_client.get(keys['requests']) or 0)
+        request_key = self._get_request_key(mobile)
+        current_requests = int(CacheService.get(request_key) or 0)
         
         if current_requests >= self.max_requests:
             raise Exception(AUTH_ERRORS["otp_request_limit"])
@@ -38,13 +30,14 @@ class OTPService:
         return current_requests
 
     def _store_otp_data(self, mobile, otp, expiry_time):
-        keys = self._get_redis_keys(mobile)
-
-        self.redis_client.setex(keys['otp'], self.otp_expiry, otp)
-        self.redis_client.setex(keys['expiry'], self.otp_expiry, expiry_time.timestamp())
-
-        self.redis_client.incr(keys['requests'])
-        self.redis_client.expire(keys['requests'], self.request_window)
+        CacheService.set_otp(mobile, otp, self.otp_expiry)
+        
+        expiry_key = self._get_expiry_key(mobile)
+        CacheService.set(expiry_key, expiry_time.timestamp(), self.otp_expiry)
+        
+        request_key = self._get_request_key(mobile)
+        current = int(CacheService.get(request_key) or 0)
+        CacheService.set(request_key, current + 1, self.request_window)
 
     def _send_sms(self, mobile, otp):
         sms_data = {
@@ -91,9 +84,10 @@ class OTPService:
             if not mobile:
                 raise Exception(AUTH_ERRORS["auth_invalid_mobile"])
 
-            keys = self._get_redis_keys(mobile)
-            stored_otp = self.redis_client.get(keys['otp'])
-            stored_expiry = self.redis_client.get(keys['expiry'])
+            stored_otp = CacheService.get_otp(mobile)
+            
+            expiry_key = self._get_expiry_key(mobile)
+            stored_expiry = CacheService.get(expiry_key)
             
             if not stored_otp or not stored_expiry:
                 raise Exception(AUTH_ERRORS["otp_expired"])
@@ -106,7 +100,8 @@ class OTPService:
             if not user:
                 raise Exception(AUTH_ERRORS["user_not_found"])
 
-            self.redis_client.delete(keys['otp'], keys['expiry'])
+            CacheService.delete_otp(mobile)
+            CacheService.delete(expiry_key)
             
             return user
 

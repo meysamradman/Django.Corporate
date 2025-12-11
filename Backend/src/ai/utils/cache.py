@@ -1,20 +1,20 @@
 from django.core.cache import cache
+from src.core.cache import CacheKeyBuilder, CacheService
 
 
 class AICacheKeys:
     
     @staticmethod
     def provider(slug: str):
-        return f"ai_provider_{slug}"
+        return CacheKeyBuilder.ai_provider(slug)
     
     @staticmethod
     def providers_active():
-        return "ai_providers_active"
+        return CacheKeyBuilder.ai_providers_active()
     
     @staticmethod
     def models_by_provider(provider_slug: str, capability: str | None = None):
-        cap = capability or 'all'
-        return f"ai_models_provider_{provider_slug}_{cap}"
+        return CacheKeyBuilder.ai_models_by_provider(provider_slug, capability)
     
     @staticmethod
     def provider_models(provider_name: str, filter_value: str | None = None):
@@ -29,12 +29,11 @@ class AICacheKeys:
     
     @staticmethod
     def models_by_capability(capability: str, include_inactive: bool = True):
-        status = 'all' if include_inactive else 'active'
-        return f"ai_models_capability_{capability}_{status}"
+        return CacheKeyBuilder.ai_models_by_capability(capability, include_inactive)
     
     @staticmethod
     def admin_settings(admin_id: int, provider_id: int):
-        return f"ai_settings_{admin_id}_{provider_id}"
+        return CacheKeyBuilder.ai_admin_settings(admin_id, provider_id)
     
     @staticmethod
     def providers_pattern():
@@ -59,45 +58,27 @@ class AICacheManager:
     
     @staticmethod
     def invalidate_provider(slug: str):
-        cache.delete(AICacheKeys.provider(slug))
-        cache.delete(AICacheKeys.providers_active())
+        return CacheService.clear_ai_provider(slug)
     
     @staticmethod
     def invalidate_providers():
-        try:
-            cache.delete_pattern(AICacheKeys.providers_pattern())
-        except (AttributeError, NotImplementedError):
-            cache.delete(AICacheKeys.providers_active())
+        return CacheService.clear_ai_providers()
     
     @staticmethod
     def invalidate_models_by_provider(provider_slug: str):
-        try:
-            cache.delete_pattern(f"ai_models_provider_{provider_slug}_*")
-            cache.delete_pattern(f"{provider_slug}_models_*")
-        except (AttributeError, NotImplementedError):
-            pass
+        return CacheService.delete_pattern(f"ai_models_provider_{provider_slug}_*")
     
     @staticmethod
     def invalidate_models():
-        try:
-            cache.delete_pattern(AICacheKeys.models_pattern())
-            cache.delete_pattern(AICacheKeys.bulk_pattern())
-        except (AttributeError, NotImplementedError):
-            pass
+        return CacheService.clear_ai_models()
     
     @staticmethod
     def invalidate_admin_settings(admin_id: int):
-        try:
-            cache.delete_pattern(AICacheKeys.settings_pattern(admin_id))
-        except (AttributeError, NotImplementedError):
-            pass
+        return CacheService.delete_pattern(AICacheKeys.settings_pattern(admin_id))
     
     @staticmethod
     def invalidate_all():
         AICacheManager.invalidate_providers()
         AICacheManager.invalidate_models()
-        try:
-            cache.delete_pattern(AICacheKeys.settings_pattern())
-        except (AttributeError, NotImplementedError):
-            pass
+        return CacheService.delete_pattern(AICacheKeys.settings_pattern())
 

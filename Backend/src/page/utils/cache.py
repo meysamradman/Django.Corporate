@@ -1,4 +1,4 @@
-from django.core.cache import cache
+from src.core.cache import CacheService
 
 
 class PageCacheKeys:
@@ -23,13 +23,13 @@ class PageCacheManager:
     
     @staticmethod
     def invalidate_about_page():
-        cache.delete(PageCacheKeys.about_page())
+        return CacheService.delete(PageCacheKeys.about_page())
     
     @staticmethod
     def invalidate_terms_page():
-        cache.delete(PageCacheKeys.terms_page())
+        return CacheService.delete(PageCacheKeys.terms_page())
     
     @staticmethod
     def invalidate_all():
-        cache.delete_many(PageCacheKeys.all_keys())
+        return CacheService.delete_many(PageCacheKeys.all_keys())
 

@@ -1,40 +1,36 @@
 from django.core.cache import cache
+from src.core.cache import CacheKeyBuilder, CacheService
 
 
 class BlogCacheKeys:
     
     @staticmethod
     def blog(blog_id):
-        return f"blog:{blog_id}"
+        return CacheKeyBuilder.blog_detail(blog_id)
     
     @staticmethod
     def list_admin(params):
-        """کلید کش برای لیست بلاگ‌ها"""
-        import hashlib
-        import json
-        params_str = json.dumps(params, sort_keys=True)
-        params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
-        return f"blog_list_admin:{params_hash}"
+        return CacheKeyBuilder.blog_list_admin(params)
     
     @staticmethod
     def main_image(blog_id):
-        return f"blog:main_image:{blog_id}"
+        return CacheKeyBuilder.blog_main_image(blog_id)
     
     @staticmethod
     def seo_data(blog_id):
-        return f"blog:seo_data:{blog_id}"
+        return CacheKeyBuilder.blog_seo_data(blog_id)
     
     @staticmethod
     def seo_preview(blog_id):
-        return f"blog:seo_preview:{blog_id}"
+        return CacheKeyBuilder.blog_seo_preview(blog_id)
     
     @staticmethod
     def seo_completeness(blog_id):
-        return f"blog:seo_completeness:{blog_id}"
+        return CacheKeyBuilder.blog_seo_completeness(blog_id)
     
     @staticmethod
     def structured_data(blog_id):
-        return f"blog:structured_data:{blog_id}"
+        return CacheKeyBuilder.blog_structured_data(blog_id)
     
     @staticmethod
     def seo_report():
@@ -42,54 +38,22 @@ class BlogCacheKeys:
     
     @staticmethod
     def all_keys(blog_id):
-        return [
-            BlogCacheKeys.blog(blog_id),
-            BlogCacheKeys.main_image(blog_id),
-            BlogCacheKeys.seo_data(blog_id),
-            BlogCacheKeys.seo_preview(blog_id),
-            BlogCacheKeys.seo_completeness(blog_id),
-            BlogCacheKeys.structured_data(blog_id),
-        ]
+        return CacheKeyBuilder.blog_all_keys(blog_id)
 
 
 class BlogCacheManager:
     
     @staticmethod
     def invalidate_blog(blog_id):
-        cache_keys = BlogCacheKeys.all_keys(blog_id)
-        additional_keys = [
-            f"blog:{blog_id}:main_image_details",
-            f"blog:{blog_id}:media_list",
-            f"blog:{blog_id}:media_detail",
-        ]
-        cache_keys.extend(additional_keys)
-        cache.delete_many(cache_keys)
+        return CacheService.clear_blog_cache(blog_id)
     
     @staticmethod
     def invalidate_blogs(blog_ids):
-        all_keys = []
-        for pid in blog_ids:
-            all_keys.extend(BlogCacheKeys.all_keys(pid))
-            additional_keys = [
-                f"blog:{pid}:main_image_details",
-                f"blog:{pid}:media_list",
-                f"blog:{pid}:media_detail",
-            ]
-            all_keys.extend(additional_keys)
-        if all_keys:
-            cache.delete_many(all_keys)
+        return CacheService.clear_blogs_cache(blog_ids)
     
     @staticmethod
     def invalidate_all_lists():
-        """پاک کردن تمام کش‌های لیست"""
-        try:
-            from django_redis import get_redis_connection
-            redis_conn = get_redis_connection("default")
-            list_keys = redis_conn.keys("*blog_list_admin:*")
-            if list_keys:
-                redis_conn.delete(*list_keys)
-        except:
-            pass
+        return CacheService.clear_blog_lists()
 
 
 class CategoryCacheKeys:
@@ -139,22 +103,11 @@ class CategoryCacheManager:
     
     @staticmethod
     def invalidate_all():
-        """پاک کردن تمام کش‌های category شامل لیست‌ها"""
         all_keys = CategoryCacheKeys.all_keys()
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
-        
-        # پاک کردن تمام کش‌های لیست با pattern
-        try:
-            from django_redis import get_redis_connection
-            redis_conn = get_redis_connection("default")
-            # پاک کردن تمام کش‌های لیست با pattern
-            list_keys = redis_conn.keys("*blog_category_list_admin:*")
-            if list_keys:
-                redis_conn.delete(*list_keys)
-        except:
-            pass
+        return CacheService.delete_pattern("*blog_category_list_admin:*")
     
     @staticmethod
     def invalidate_popular():

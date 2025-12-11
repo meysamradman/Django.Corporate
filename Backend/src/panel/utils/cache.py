@@ -1,4 +1,4 @@
-from django.core.cache import cache
+from src.core.cache import CacheService
 
 
 class PanelCacheKeys:
@@ -12,5 +12,5 @@ class PanelCacheManager:
     
     @staticmethod
     def invalidate_panel_settings():
-        cache.delete(PanelCacheKeys.panel_settings())
+        return CacheService.delete(PanelCacheKeys.panel_settings())
 

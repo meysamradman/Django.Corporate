@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from src.core.cache import CacheService
 
 
 class AnalyticsCacheKeys:
@@ -72,53 +73,53 @@ class AnalyticsCacheManager:
     
     @staticmethod
     def invalidate_dashboard():
-        cache.delete(AnalyticsCacheKeys.dashboard())
+        return CacheService.delete(AnalyticsCacheKeys.dashboard())
     
     @staticmethod
     def invalidate_users():
-        cache.delete(AnalyticsCacheKeys.users())
+        return CacheService.delete(AnalyticsCacheKeys.users())
     
     @staticmethod
     def invalidate_admins():
-        cache.delete(AnalyticsCacheKeys.admins())
+        return CacheService.delete(AnalyticsCacheKeys.admins())
     
     @staticmethod
     def invalidate_content():
-        cache.delete(AnalyticsCacheKeys.content())
+        return CacheService.delete(AnalyticsCacheKeys.content())
     
     @staticmethod
     def invalidate_tickets():
-        cache.delete(AnalyticsCacheKeys.tickets())
+        return CacheService.delete(AnalyticsCacheKeys.tickets())
     
     @staticmethod
     def invalidate_emails():
-        cache.delete(AnalyticsCacheKeys.emails())
+        return CacheService.delete(AnalyticsCacheKeys.emails())
     
     @staticmethod
     def invalidate_system():
-        cache.delete(AnalyticsCacheKeys.system())
+        return CacheService.delete(AnalyticsCacheKeys.system())
     
     @staticmethod
     def invalidate_forms():
-        cache.delete(AnalyticsCacheKeys.forms())
+        return CacheService.delete(AnalyticsCacheKeys.forms())
     
     @staticmethod
     def invalidate_media():
-        cache.delete(AnalyticsCacheKeys.media())
+        return CacheService.delete(AnalyticsCacheKeys.media())
     
     @staticmethod
     def invalidate_ai():
-        cache.delete(AnalyticsCacheKeys.ai())
+        return CacheService.delete(AnalyticsCacheKeys.ai())
     
     @staticmethod
     def invalidate_activity_log():
-        cache.delete(AnalyticsCacheKeys.activity_log())
+        return CacheService.delete(AnalyticsCacheKeys.activity_log())
     
     @staticmethod
     def invalidate_time_based(stat_type, days):
-        cache.delete(AnalyticsCacheKeys.time_based_stats(stat_type, days))
+        return CacheService.delete(AnalyticsCacheKeys.time_based_stats(stat_type, days))
     
     @staticmethod
     def invalidate_all():
-        cache.delete_many(AnalyticsCacheKeys.all_keys())
+        return CacheService.delete_many(AnalyticsCacheKeys.all_keys())
 

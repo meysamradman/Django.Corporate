@@ -1,16 +1,18 @@
 import os
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
-from django.core.cache import cache
-from rest_framework.authentication import BaseAuthentication, SessionAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.authentication import BaseAuthentication
 from django.utils import timezone
-from django.conf import settings
+from src.core.cache import CacheService
 
 User = get_user_model()
 
 
 class CSRFExemptSessionAuthentication(BaseAuthentication):
+    
+    def __init__(self):
+        self.session_manager = CacheService.get_session_manager()
+        self.session_timeout = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
     
     def authenticate(self, request):
         session_key = request.COOKIES.get('sessionid')
@@ -49,15 +51,14 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
     
     def _get_user_from_session(self, session_key):
         try:
-            cache_key = f"admin_session_{session_key}"
-            user_id = cache.get(cache_key)
+            user_id = self.session_manager.get_admin_session(session_key)
             
             if user_id:
                 try:
                     user = User.objects.get(id=user_id)
                     return user
                 except User.DoesNotExist:
-                    cache.delete(cache_key)
+                    self.session_manager.delete_admin_session(session_key)
                     return None
             
             try:
@@ -72,7 +73,7 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
                 
                 if user_id:
                     user = User.objects.get(id=user_id)
-                    cache.set(cache_key, user_id, int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+                    self.session_manager.set_admin_session(session_key, user_id, self.session_timeout)
                     return user
             except Session.DoesNotExist:
                 pass
@@ -95,12 +96,16 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
     def _update_user_activity(self, user):
         try:
             cache_key = f"admin_last_activity_{user.id}"
-            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+            CacheService.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
         except Exception:
             pass
 
 
 class AdminSessionAuthentication(BaseAuthentication):
+    
+    def __init__(self):
+        self.session_manager = CacheService.get_session_manager()
+        self.session_timeout = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
     
     def authenticate(self, request):
         session_key = request.COOKIES.get('sessionid')
@@ -120,15 +125,14 @@ class AdminSessionAuthentication(BaseAuthentication):
     
     def _get_user_from_session(self, session_key):
         try:
-            cache_key = f"admin_session_{session_key}"
-            user_id = cache.get(cache_key)
+            user_id = self.session_manager.get_admin_session(session_key)
             
             if user_id:
                 try:
                     user = User.objects.get(id=user_id)
                     return user
                 except User.DoesNotExist:
-                    cache.delete(cache_key)
+                    self.session_manager.delete_admin_session(session_key)
                     return None
             
             try:
@@ -140,7 +144,7 @@ class AdminSessionAuthentication(BaseAuthentication):
                 user_id = session.get_decoded().get('_auth_user_id')
                 if user_id:
                     user = User.objects.get(id=user_id)
-                    cache.set(cache_key, user_id, int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+                    self.session_manager.set_admin_session(session_key, user_id, self.session_timeout)
                     return user
             except Session.DoesNotExist:
                 pass
@@ -163,49 +167,6 @@ class AdminSessionAuthentication(BaseAuthentication):
     def _update_user_activity(self, user):
         try:
             cache_key = f"admin_last_activity_{user.id}"
-            cache.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+            CacheService.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
         except Exception:
             pass
-
-
-class AdminSessionService:
-    
-    @staticmethod
-    def create_session(user, request):
-        if not user.user_type == 'admin':
-            raise AuthenticationFailed("Only admin users can use session authentication")
-        
-        request.session.create()
-        request.session['_auth_user_id'] = str(user.id)
-        request.session['user_type'] = 'admin'
-        request.session['login_time'] = timezone.now().isoformat()
-        request.session.set_expiry(int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
-        request.session.save()
-        
-        cache_key = f"admin_session_{request.session.session_key}"
-        cache.set(cache_key, user.id, int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
-        
-        user.last_login_admin = timezone.now()
-        user.save(update_fields=['last_login_admin'])
-        
-        return request.session.session_key
-    
-    @staticmethod
-    def destroy_session(session_key):
-        try:
-            cache_key = f"admin_session_{session_key}"
-            cache.delete(cache_key)
-            
-            Session.objects.filter(session_key=session_key).delete()
-        except Exception:
-            pass
-    
-    @staticmethod
-    def get_active_sessions_count():
-        try:
-            count = Session.objects.filter(
-                expire_date__gt=timezone.now()
-            ).count()
-            return count
-        except Exception:
-            return 0

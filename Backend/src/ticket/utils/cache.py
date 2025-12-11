@@ -1,5 +1,4 @@
-from django.core.cache import cache
-
+from src.core.cache import CacheService
 from src.analytics.utils.cache import AnalyticsCacheManager
 
 
@@ -33,12 +32,12 @@ class TicketCacheManager:
     
     @staticmethod
     def invalidate_ticket(ticket_id):
-        cache.delete(TicketCacheKeys.ticket(ticket_id))
-        cache.delete(TicketCacheKeys.messages(ticket_id))
+        CacheService.delete(TicketCacheKeys.ticket(ticket_id))
+        CacheService.delete(TicketCacheKeys.messages(ticket_id))
     
     @staticmethod
     def invalidate_stats():
-        cache.delete(TicketCacheKeys.stats())
+        CacheService.delete(TicketCacheKeys.stats())
         AnalyticsCacheManager.invalidate_tickets()
     
     @staticmethod

@@ -1,5 +1,6 @@
 from django.core.cache import cache
 from django.conf import settings
+from src.core.cache import CacheService
 
 
 class CaptchaCacheKeys:
@@ -20,23 +21,17 @@ class CaptchaCacheManager:
     
     @staticmethod
     def set_captcha(captcha_id: str, digits: str):
-        cache_key = CaptchaCacheKeys.captcha(captcha_id)
-        cache.set(cache_key, digits, CaptchaCacheKeys.EXPIRY_SECONDS)
+        return CacheService.set_captcha(captcha_id, digits, CaptchaCacheKeys.EXPIRY_SECONDS)
     
     @staticmethod
     def get_captcha(captcha_id: str):
-        cache_key = CaptchaCacheKeys.captcha(captcha_id)
-        return cache.get(cache_key)
+        return CacheService.get_captcha(captcha_id)
     
     @staticmethod
     def delete_captcha(captcha_id: str):
-        cache_key = CaptchaCacheKeys.captcha(captcha_id)
-        cache.delete(cache_key)
+        return CacheService.delete_captcha(captcha_id)
     
     @staticmethod
     def clear_all():
-        try:
-            cache.delete_pattern(CaptchaCacheKeys.all_keys_pattern())
-        except (AttributeError, NotImplementedError):
-            pass
+        return CacheService.delete_pattern(CaptchaCacheKeys.all_keys_pattern())
 

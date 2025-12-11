@@ -1,6 +1,6 @@
 from src.user.models import User
 from src.user.messages import AUTH_ERRORS
-from src.user.auth.admin_session_auth import AdminSessionService
+from src.user.services.admin.admin_session_service import AdminSessionService
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import AuthenticationFailed
 import os
