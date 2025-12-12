@@ -2,7 +2,7 @@ import asyncio
 import time
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
-from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.models import AIProvider, AdminProviderSettings, AIModel
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, DeepSeekProvider, OpenRouterProvider, GroqProvider
 from src.ai.messages.messages import AI_ERRORS, SETTINGS_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
@@ -20,7 +20,11 @@ class AIContentGenerationService:
     }
     
     @classmethod
-    def get_provider(cls, provider_name: str, admin=None):
+    def get_provider(cls, provider_name: str, admin=None, model_name: Optional[str] = None):
+        """
+        Get provider instance with API key.
+        Now supports selecting specific model or auto-selecting active model.
+        """
         provider_class = cls.PROVIDER_MAP.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
@@ -28,6 +32,12 @@ class AIContentGenerationService:
         provider = AIProvider.get_provider_by_slug(provider_name)
         if not provider:
             raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
+        
+        # Get active model for this capability if not specified
+        if not model_name:
+            active_model = AIModel.objects.get_active_model(provider_name, 'chat')
+            if active_model:
+                model_name = active_model.model_id
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
@@ -58,6 +68,9 @@ class AIContentGenerationService:
                 raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         
         config = provider.config or {}
+        if model_name:
+            config['model'] = model_name
+        
         return provider_class(api_key=api_key, config=config)
     
     @classmethod

@@ -10,6 +10,8 @@ import { ContentDistribution } from "@/components/dashboard/widgets/ContentDistr
 import { SystemStats } from "@/components/dashboard/widgets/SystemStats";
 import { SupportStats } from "@/components/dashboard/widgets/SupportStats";
 import { AnalyticsWidget } from "@/components/dashboard/widgets/AnalyticsWidget";
+import { VisitorPieChart } from "@/components/dashboard/widgets/VisitorPieChart";
+import { VisitorTrendChart } from "@/components/dashboard/widgets/VisitorTrendChart";
 
 export const DashboardMain = () => {
   const { data: stats, isLoading: statsLoading } = useStatistics();
@@ -69,12 +71,16 @@ export const DashboardMain = () => {
       <SummaryCards stats={stats} isLoading={statsLoading} />
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <ContentDistribution stats={stats} isLoading={statsLoading} />
+        <VisitorPieChart isLoading={isLoading} />
         <SystemStats systemStats={systemStats} isLoading={systemLoading} />
         <SupportStats stats={stats} isLoading={statsLoading} />
       </div>
 
       <AnalyticsWidget isLoading={isLoading} />
+
+      <VisitorTrendChart isLoading={isLoading} />
+
+      <ContentDistribution stats={stats} isLoading={statsLoading} />
     </div>
   );
 };

@@ -29,7 +29,6 @@ interface Model {
   downloads?: number;
   likes?: number;
   tags?: string[];
-  selected?: boolean;
 }
 
 interface HuggingFaceModelSelectorContentProps {
@@ -55,29 +54,26 @@ export function HuggingFaceModelSelectorContent({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [savingModelId, setSavingModelId] = useState<string | null>(null);
+  const [activeModels, setActiveModels] = useState<Set<string>>(new Set()); // ✅ مدل‌های فعال
 
-  const storageKey = `huggingface-selected-models-${capability}`;
+  console.log('🤗 [Hugging Face Init] Capability دریافت شده:', {
+    capability: capability,
+    providerId: providerId,
+    providerName: providerName
+  });
 
   React.useEffect(() => {
     if (onSaveRef) {
-      onSaveRef.current = () => {
-        const selected = models.filter(m => selectedModels.has(m.id));
-        onSave(selected);
-      };
+      onSaveRef.current = undefined; // دیگر نیازی به دکمه ذخیره نداریم
     }
-  }, [models, selectedModels, onSave, onSaveRef]);
+  }, [onSaveRef]);
 
   useEffect(() => {
     fetchModels();
+    fetchActiveModels(); // ✅ دریافت مدل‌های فعال
   }, [capability]);
-
-  useEffect(() => {
-    if (onSelectionChange) {
-      onSelectionChange(selectedModels.size);
-    }
-  }, [selectedModels.size, onSelectionChange]);
 
   const getTaskFilter = (cap: string): string | undefined => {
     if (cap === 'image') return 'text-to-image';
@@ -87,10 +83,30 @@ export function HuggingFaceModelSelectorContent({
     return undefined;
   };
 
+  const fetchActiveModels = async () => {
+    try {
+      const response = await aiApi.models.getAll();
+      if (response.metaData.status === 'success' && response.data) {
+        const models = Array.isArray(response.data) ? response.data : [];
+        const activeModelIds = new Set(
+          models
+            .filter((m: any) => m.is_active && m.capabilities?.includes(capability))
+            .map((m: any) => m.model_id)
+        );
+        setActiveModels(activeModelIds);
+        console.log('✅ [Hugging Face] مدل‌های فعال:', Array.from(activeModelIds));
+      }
+    } catch (error) {
+      console.error('❌ [Hugging Face] خطا در دریافت مدل‌های فعال:', error);
+    }
+  };
+
   const fetchModels = async () => {
     try {
       setLoading(true);
       const task = getTaskFilter(capability);
+      console.log('🔎 [Hugging Face] درخواست API:', { capability, task });
+      
       const response = await aiApi.image.getHuggingFaceModels(task);
       if (response.metaData.status === 'success' && response.data) {
         const modelsData = Array.isArray(response.data) ? response.data : [];
@@ -102,26 +118,17 @@ export function HuggingFaceModelSelectorContent({
           downloads: model.downloads || 0,
           likes: model.likes || 0,
           tags: model.tags || [],
-          selected: false,
         }));
-        setModels(mappedModels);
         
-        try {
-          const saved = localStorage.getItem(storageKey);
-          if (saved) {
-            const savedModels = JSON.parse(saved) as string[];
-            const validModels = savedModels.filter(id => 
-              mappedModels.some(m => m.id === id)
-            );
-            if (validModels.length !== savedModels.length) {
-              localStorage.setItem(storageKey, JSON.stringify(validModels));
-              setSelectedModels(new Set(validModels));
-            } else {
-              setSelectedModels(new Set(savedModels));
-            }
-          }
-        } catch (error) {
-        }
+        console.log('🤗 [Hugging Face] آمار مدل‌ها:', {
+          total: mappedModels.length,
+          capability: capability,
+          requestedTask: task,
+          actualTasks: [...new Set(mappedModels.map(m => m.task))],
+          samples: mappedModels.slice(0, 3).map(m => ({ name: m.name, task: m.task }))
+        });
+        
+        setModels(mappedModels);
       }
     } catch (error) {
       toast.error('خطا در دریافت مدل‌ها');
@@ -131,28 +138,73 @@ export function HuggingFaceModelSelectorContent({
     }
   };
 
-  const toggleModel = React.useCallback((modelId: string) => {
-    setSelectedModels(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(modelId)) {
-        newSet.delete(modelId);
-      } else {
-        newSet.add(modelId);
-      }
+  const toggleModel = React.useCallback(async (modelId: string) => {
+    const model = models.find(m => m.id === modelId);
+    if (!model) {
+      toast.error('مدل یافت نشد');
+      return;
+    }
+
+    setSavingModelId(modelId);
+    
+    try {
+      // دریافت provider از دیتابیس
+      const providersResponse = await aiApi.providers.getAll();
+      const providers = providersResponse.data || [];
       
-      setTimeout(() => {
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(Array.from(newSet)));
-        } catch (error) {
+      const targetProvider = providers.find((p: any) =>
+        p.name.toLowerCase() === providerName.toLowerCase() ||
+        p.slug.toLowerCase() === providerName.toLowerCase() ||
+        p.display_name.toLowerCase() === providerName.toLowerCase()
+      );
+
+      if (!targetProvider) {
+        toast.error(`Provider '${providerName}' یافت نشد`);
+        setSavingModelId(null);
+        return;
+      }
+
+      // ساخت داده مدل برای ذخیره
+      const modelData = {
+        provider_id: targetProvider.id,
+        name: model.name,
+        model_id: model.id,
+        display_name: model.name,
+        is_active: true, // ✅ فعال می‌شه
+        capabilities: [capability],
+        description: model.description,
+      };
+
+      console.log('💾 [Hugging Face Toggle] در حال ذخیره مدل:', {
+        model_name: model.name,
+        capability: capability,
+        provider: targetProvider.name
+      });
+
+      // ذخیره در دیتابیس
+      const response = await aiApi.models.create(modelData);
+      
+      if (response.metaData.status === 'success') {
+        toast.success(`مدل ${model.name} با موفقیت فعال شد`);
+        
+        // ✅ اضافه کردن به لیست مدل‌های فعال
+        setActiveModels(prev => new Set([...prev, model.id]));
+        
+        // بستن پاپ‌آپ و رفرش لیست
+        if (onSave) {
+          onSave([model]);
         }
-      }, 0);
-      
-      if (onSelectionChange) {
-        onSelectionChange(newSet.size);
+      } else {
+        throw new Error(response.metaData.message || 'خطا در ذخیره مدل');
       }
-      return newSet;
-    });
-  }, [storageKey, onSelectionChange]);
+    } catch (error: any) {
+      console.error('❌ [Hugging Face Toggle] خطا:', error);
+      const errorMsg = error?.response?.data?.message || error?.message || 'خطا در ذخیره مدل';
+      toast.error(errorMsg);
+    } finally {
+      setSavingModelId(null);
+    }
+  }, [models, capability, providerName, onSave]);
 
   const filteredModels = useMemo(() => {
     let filtered = models;
@@ -166,14 +218,20 @@ export function HuggingFaceModelSelectorContent({
     }
 
     const sorted = [...filtered].sort((a, b) => {
-      const aSelected = selectedModels.has(a.id);
-      const bSelected = selectedModels.has(b.id);
-      if (aSelected && !bSelected) return -1;
-      if (!aSelected && bSelected) return 1;
+      // ✅ فعال‌ها اول
+      const aActive = activeModels.has(a.id);
+      const bActive = activeModels.has(b.id);
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+      
+      // بر اساس downloads (در بین هم‌سطح)
+      if (a.downloads && b.downloads) {
+        return b.downloads - a.downloads;
+      }
       return 0;
     });
     return sorted;
-  }, [models, searchQuery, selectedModels]);
+  }, [models, searchQuery, activeModels]);
 
   const totalPages = Math.ceil(filteredModels.length / MODELS_PER_PAGE);
   const startIndex = (currentPage - 1) * MODELS_PER_PAGE;
@@ -196,66 +254,39 @@ export function HuggingFaceModelSelectorContent({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-font-s text-sm">
-            {filteredModels.length} مدل موجود • {selectedModels.size} انتخاب شده
-            {totalPages > 1 && ` • صفحه ${currentPage} از ${totalPages}`}
-          </p>
+    <div className="space-y-4">
+      {/* جستجو و اطلاعات در یک خط */}
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="جستجو در مدل‌ها..."
+            className="pr-10"
+          />
         </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-          >
-            {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
-          </Button>
+        <div className="text-sm text-font-s whitespace-nowrap">
+          {filteredModels.length} مدل موجود
+          {totalPages > 1 && ` • صفحه ${currentPage}/${totalPages}`}
         </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-        <Input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="جستجو در مدل‌ها..."
-          className="pr-10"
-        />
+      {/* لیست مدل‌ها - فقط Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {paginatedModels.map((model) => {
+          return (
+            <ModelCard
+              key={model.id}
+              model={model}
+              isSelected={activeModels.has(model.id)}
+              onToggle={() => toggleModel(model.id)}
+              isSaving={savingModelId === model.id}
+            />
+          );
+        })}
       </div>
-
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {paginatedModels.map((model) => {
-            const isSelected = selectedModels.has(model.id);
-            return (
-              <ModelCard
-                key={model.id}
-                model={model}
-                isSelected={isSelected}
-                onToggle={() => toggleModel(model.id)}
-              />
-            );
-          })}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {paginatedModels.map((model) => {
-            const isSelected = selectedModels.has(model.id);
-            return (
-              <ModelListItem
-                key={model.id}
-                model={model}
-                isSelected={isSelected}
-                onToggle={() => toggleModel(model.id)}
-              />
-            );
-          })}
-        </div>
-      )}
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
@@ -322,16 +353,19 @@ export function HuggingFaceModelSelectorContent({
   );
 }
 
-function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: boolean; onToggle: () => void }) {
+function ModelCard({ model, isSelected, onToggle, isSaving }: { model: Model; isSelected: boolean; onToggle: () => void; isSaving?: boolean }) {
   return (
     <Card className="transition-all duration-300 hover:shadow-lg border-border">
       <CardContent className="pt-6">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <h4 className="font-bold text-base text-font-p">
                 {model.name}
               </h4>
+              <Badge variant="outline" className="bg-green/10 text-green-2 border-green-1 text-xs">
+                رایگان
+              </Badge>
             </div>
             {model.description && (
               <p className="text-sm mb-2 line-clamp-2 text-font-s">
@@ -345,13 +379,14 @@ function ModelCard({ model, isSelected, onToggle }: { model: Model; isSelected: 
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Label htmlFor={`model-${model.id}`} className="text-xs text-font-s">
-              {isSelected ? 'انتخاب شده' : 'انتخاب نشده'}
-            </Label>
+            {isSaving && (
+              <span className="w-3 h-3 border-2 border-purple-1 border-t-transparent rounded-full animate-spin" />
+            )}
             <Switch
               id={`model-${model.id}`}
               checked={isSelected}
               onCheckedChange={onToggle}
+              disabled={isSaving}
             />
           </div>
         </div>

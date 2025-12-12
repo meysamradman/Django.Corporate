@@ -275,4 +275,14 @@ class Migration(migrations.Migration):
             model_name='aiprovider',
             index=models.Index(fields=['allow_shared_for_normal_admins', 'is_active'], name='ai_provider_allow_s_cefcb5_idx'),
         ),
+        # اضافه کردن Constraint برای تضمین یک مدل فعال به ازای هر provider+capability
+        migrations.AddConstraint(
+            model_name='aimodel',
+            constraint=models.UniqueConstraint(
+                fields=['provider', 'capabilities'],
+                condition=models.Q(is_active=True),
+                name='unique_active_model_per_provider_capability',
+                violation_error_message='فقط یک مدل می‌تواند برای هر provider و capability فعال باشد'
+            ),
+        ),
     ]

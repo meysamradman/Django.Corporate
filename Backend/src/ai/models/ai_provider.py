@@ -233,10 +233,80 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         return provider
 
 
+class AIModelManager(models.Manager):
+    """
+    Custom manager for AIModel to handle active model selection.
+    Ensures only one model is active per provider+capability combination.
+    """
+    
+    def get_active_model(self, provider_slug: str, capability: str):
+        """
+        Get the single active model for a provider+capability combination.
+        Returns None if no active model exists.
+        """
+        if capability == 'content':
+            capability = 'chat'
+        
+        cache_key = f"active_model_{provider_slug}_{capability}"
+        model_id = cache.get(cache_key)
+        
+        if model_id is not None:
+            # Get model from cache ID
+            try:
+                return self.select_related('provider').get(id=model_id)
+            except self.model.DoesNotExist:
+                cache.delete(cache_key)
+        
+        # Not in cache, query database
+        models = self.filter(
+            provider__slug=provider_slug,
+            provider__is_active=True,
+            is_active=True
+        ).select_related('provider')
+        
+        # Filter by capability
+        model = None
+        for m in models:
+            if capability in m.capabilities:
+                model = m
+                break
+        
+        if model:
+            # Cache only the ID, not the entire model object
+            cache.set(cache_key, model.id, 300)  # 5 min cache
+        
+        return model
+    
+    def deactivate_other_models(self, provider_id: int, capability: str, exclude_id: int = None):
+        """
+        Deactivate all other models for the same provider+capability.
+        Used when activating a new model.
+        """
+        queryset = self.filter(
+            provider_id=provider_id,
+            is_active=True
+        )
+        
+        if exclude_id:
+            queryset = queryset.exclude(id=exclude_id)
+        
+        # Filter by capability and deactivate
+        deactivated_count = 0
+        for model in queryset:
+            if capability in model.capabilities:
+                model.is_active = False
+                model.save(update_fields=['is_active', 'updated_at'])
+                deactivated_count += 1
+        
+        return deactivated_count
+
+
 class AIModel(BaseModel, CacheMixin):
     """
     AI Model model following DJANGO_MODEL_STANDARDS.md conventions.
     Field ordering: Content → Relationships → Configuration → Statistics
+    
+    IMPORTANT: Only ONE model should be active per provider+capability combination.
     """
     CAPABILITY_CHOICES = [
         ('chat', 'Chat / Text Generation'),
@@ -346,6 +416,9 @@ class AIModel(BaseModel, CacheMixin):
         help_text="Order for displaying models within provider"
     )
     
+    # Custom Manager
+    objects = AIModelManager()
+    
     class Meta(BaseModel.Meta):
         db_table = 'ai_models'
         verbose_name = "AI Model"
@@ -363,10 +436,38 @@ class AIModel(BaseModel, CacheMixin):
         return f"{self.provider.name} - {self.display_name}"
     
     def save(self, *args, **kwargs):
+        """
+        Override save to ensure only one model is active per provider+capability.
+        """
+        is_new = self.pk is None
+        was_active = False
+        
+        if not is_new:
+            try:
+                old_instance = AIModel.objects.get(pk=self.pk)
+                was_active = old_instance.is_active
+            except AIModel.DoesNotExist:
+                pass
+        
+        # If activating this model, deactivate others with same capabilities
+        if self.is_active and (is_new or not was_active):
+            for capability in self.capabilities:
+                AIModel.objects.deactivate_other_models(
+                    provider_id=self.provider_id,
+                    capability=capability,
+                    exclude_id=self.pk
+                )
+        
         super().save(*args, **kwargs)
+        
         if self.provider and self.provider.slug:
             AICacheManager.invalidate_models_by_provider(self.provider.slug)
             AICacheManager.invalidate_models()
+            
+            # Clear active model cache for all capabilities
+            for capability in self.capabilities:
+                cache_key = f"active_model_{self.provider.slug}_{capability}"
+                cache.delete(cache_key)
     
     def increment_usage(self):
         self.total_requests += 1

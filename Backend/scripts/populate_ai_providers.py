@@ -148,185 +148,54 @@ def populate_providers():
 
 def populate_models():
     """
-    اضافه کردن Model های پرکاربرد
+    ⚠️ این تابع دیگر استفاده نمی‌شود!
     
-    ✅ فقط برای Provider هایی که مدل‌هایشان در دیتابیس ذخیره می‌شوند:
-    - OpenAI: مدل‌ها در دیتابیس ذخیره می‌شوند (برای get_available_providers که از models__capabilities استفاده می‌کند)
-    - Gemini: مدل‌ها در دیتابیس ذخیره می‌شوند (برای get_available_providers)
-    - DeepSeek: مدل‌ها در دیتابیس ذخیره می‌شوند (برای get_available_providers)
+    تمام مدل‌ها باید از پاپ‌آپ انتخاب شوند:
+    - OpenRouter: از پاپ‌آپ OpenRouterModelSelector
+    - Hugging Face: از پاپ‌آپ HuggingFaceModelSelector
+    - Google Gemini: از پاپ‌آپ ModelSelector
+    - OpenAI: از پاپ‌آپ ModelSelector
+    - DeepSeek: از پاپ‌آپ ModelSelector
     
-    ❌ حذف شده (مدل‌ها از API خودشون می‌آیند - نیازی به ذخیره در دیتابیس نیست):
-    - OpenRouter: مدل‌ها از OpenRouter API می‌آیند (endpoint: /api/admin/ai-chat/openrouter-models/)
-      → در frontend از OpenRouterModelSelector استفاده می‌شود که مستقیماً از API می‌خواند
-    - Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
-      → در frontend از GroqModelSelector استفاده می‌شود که مستقیماً از API می‌خواند
-    - Hugging Face: مدل‌ها از config یا Hugging Face API می‌آیند
+    این طراحی باعث می‌شود:
+    1️⃣ Admin فقط مدل‌هایی رو می‌بینه که خودش انتخاب کرده
+    2️⃣ هیچ مدل اضافی یا default نداریم
+    3️⃣ تمام مدل‌ها قابل فعال/غیرفعال کردن هستند
     """
+    print("⚠️  این تابع دیگر استفاده نمی‌شود - تمام مدل‌ها باید از پاپ‌آپ انتخاب شوند")
+    return 0, 0, 0
+
+
+def clear_existing_models():
+    """
+    حذف مدل‌های موجود در دیتابیس
     
-    models_data = [
-        # OpenAI Models
-        {
-            'provider_slug': 'openai',
-            'name': 'GPT-4o',
-            'model_id': 'gpt-4o',
-            'display_name': 'GPT-4o (Latest)',
-            'description': 'قدرتمندترین مدل OpenAI',
-            'capabilities': ['chat', 'vision', 'code'],
-            'pricing_input': 5.0,
-            'pricing_output': 15.0,
-            'max_tokens': 4096,
-            'context_window': 128000,
-            'is_active': True,
-            'sort_order': 1,
-        },
-        {
-            'provider_slug': 'openai',
-            'name': 'GPT-4 Turbo',
-            'model_id': 'gpt-4-turbo',
-            'display_name': 'GPT-4 Turbo',
-            'capabilities': ['chat', 'vision', 'code'],
-            'pricing_input': 10.0,
-            'pricing_output': 30.0,
-            'max_tokens': 4096,
-            'context_window': 128000,
-            'is_active': True,
-            'sort_order': 2,
-        },
-        {
-            'provider_slug': 'openai',
-            'name': 'GPT-3.5 Turbo',
-            'model_id': 'gpt-3.5-turbo',
-            'display_name': 'GPT-3.5 Turbo (سریع و ارزان)',
-            'capabilities': ['chat', 'code'],
-            'pricing_input': 0.5,
-            'pricing_output': 1.5,
-            'max_tokens': 4096,
-            'context_window': 16385,
-            'is_active': True,
-            'sort_order': 3,
-        },
-        {
-            'provider_slug': 'openai',
-            'name': 'DALL-E 3',
-            'model_id': 'dall-e-3',
-            'display_name': 'DALL-E 3',
-            'capabilities': ['image'],
-            'is_active': True,
-            'sort_order': 4,
-        },
-        {
-            'provider_slug': 'openai',
-            'name': 'Whisper',
-            'model_id': 'whisper-1',
-            'display_name': 'Whisper (Speech to Text)',
-            'capabilities': ['audio', 'speech_to_text'],  # ✅ اضافه کردن 'audio' برای هماهنگی با frontend
-            'is_active': True,
-            'sort_order': 5,
-        },
-        {
-            'provider_slug': 'openai',
-            'name': 'TTS-1',
-            'model_id': 'tts-1',
-            'display_name': 'Text to Speech',
-            'capabilities': ['audio', 'text_to_speech'],  # ✅ اضافه کردن 'audio' برای هماهنگی با frontend
-            'is_active': True,
-            'sort_order': 6,
-        },
-        
-        # ✅ Anthropic و Groq از طریق OpenRouter در دسترس هستند
-        # (مدل‌های آن‌ها در OpenRouter API نمایش داده می‌شوند)
-        # 
-        # ✅ Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
-        # نیازی به ذخیره در دیتابیس نیست - داینامیک از API می‌آید
-        
-        # Google Models
-        {
-            'provider_slug': 'gemini',
-            'name': 'Gemini 2.5 Flash',
-            'model_id': 'gemini-2.5-flash',
-            'display_name': 'Gemini 2.5 Flash',
-            'description': 'سریع، قوی، و رایگان!',
-            'capabilities': ['chat', 'vision', 'code'],
-            'pricing_input': 0.0,
-            'pricing_output': 0.0,
-            'max_tokens': 8192,
-            'context_window': 1000000,
-            'is_active': True,
-            'sort_order': 1,
-        },
-        {
-            'provider_slug': 'gemini',
-            'name': 'Gemini 2.5 Pro',
-            'model_id': 'gemini-2.5-pro',
-            'display_name': 'Gemini 2.5 Pro',
-            'capabilities': ['chat', 'vision', 'code'],
-            'pricing_input': 1.25,
-            'pricing_output': 5.0,
-            'max_tokens': 8192,
-            'context_window': 2000000,
-            'is_active': True,
-            'sort_order': 2,
-        },
-        
-        # DeepSeek Models
-        {
-            'provider_slug': 'deepseek',
-            'name': 'DeepSeek R1',
-            'model_id': 'deepseek-reasoner',
-            'display_name': 'DeepSeek R1 (Reasoning)',
-            'description': 'مدل قدرتمند با قابلیت استدلال',
-            'capabilities': ['chat', 'code'],
-            'pricing_input': Decimal('0.14'),
-            'pricing_output': Decimal('0.28'),
-            'is_active': True,
-            'sort_order': 1,
-        },
-        {
-            'provider_slug': 'deepseek',
-            'name': 'DeepSeek V3',
-            'model_id': 'deepseek-chat',
-            'display_name': 'DeepSeek V3',
-            'capabilities': ['chat', 'code'],
-            'pricing_input': Decimal('0.14'),
-            'pricing_output': Decimal('0.28'),
-            'is_active': True,
-            'sort_order': 2,
-        },
-        
-        # ✅ Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
-        # نیازی به ذخیره در دیتابیس نیست - داینامیک از API می‌آید
-        # (مثل OpenRouter)
-    ]
+    این تابع تمام مدل‌های قدیمی (که از populate_models اضافه شده‌اند)
+    را پاک می‌کند تا Admin بتواند از پاپ‌آپ مدل‌های جدید انتخاب کند.
+    """
+    total = AIModel.objects.count()
     
-    created_count = 0
-    updated_count = 0
-    skipped_count = 0
+    if total == 0:
+        print("✅ هیچ مدلی برای حذف وجود ندارد")
+        return 0
     
-    for model_data in models_data:
-        provider_slug = model_data.pop('provider_slug')
-        
-        try:
-            provider = AIProvider.objects.get(slug=provider_slug)
-        except AIProvider.DoesNotExist:
-            print(f"⚠️ Skipped: Provider '{provider_slug}' not found for model {model_data['name']}")
-            skipped_count += 1
-            continue
-        
-        model, created = AIModel.objects.update_or_create(
-            provider=provider,
-            model_id=model_data['model_id'],
-            defaults=model_data
-        )
-        
-        if created:
-            created_count += 1
-            print(f"✅ Created: {provider.name} - {model.display_name}")
-        else:
-            updated_count += 1
-            print(f"🔄 Updated: {provider.name} - {model.display_name}")
+    print(f"\n🗑️  در حال حذف {total} مدل موجود...")
     
-    print(f"\n✅ Models: {created_count} created, {updated_count} updated, {skipped_count} skipped")
-    return created_count, updated_count, skipped_count
+    # نمایش مدل‌ها
+    print("\n📋 مدل‌های موجود:")
+    for model in AIModel.objects.all()[:10]:
+        print(f"   - {model.provider.display_name}: {model.display_name}")
+    
+    if total > 10:
+        print(f"   ... و {total - 10} مدل دیگر")
+    
+    # حذف
+    deleted_count, _ = AIModel.objects.all().delete()
+    
+    print(f"\n✅ {deleted_count} مدل با موفقیت حذف شد!")
+    print("💡 حالا می‌تونی از پنل ادمین مدل‌های مورد نظرت رو انتخاب کنی!\n")
+    
+    return deleted_count
 
 
 def run():
@@ -338,16 +207,19 @@ def run():
     print("\n📦 Step 1: Creating/Updating Providers...")
     providers_created, providers_updated, providers_deactivated = populate_providers()
     
-    print("\n📦 Step 2: Creating/Updating Models...")
-    models_created, models_updated, models_skipped = populate_models()
+    print("\n📦 Step 2: Clearing existing models...")
+    models_deleted = clear_existing_models()
     
     print("\n" + "=" * 60)
     print("✅ DONE!")
     print(f"   Providers: {providers_created} created, {providers_updated} updated, {providers_deactivated} deactivated")
-    print(f"   Models: {models_created} created, {models_updated} updated")
+    print(f"   Models: {models_deleted} deleted")
     print("=" * 60)
-    print("\n💡 الان می‌تونی از پنل ادمین Provider و Model های جدید اضافه کنی!")
-    print("   بدون نیاز به تغییر کد یا Migration! 🎉")
+    print("\n💡 الان می‌تونی از پنل ادمین مدل‌های مورد نظرت رو از پاپ‌آپ انتخاب کنی!")
+    print("   🔹 OpenRouter: 400+ مدل از 60+ Provider")
+    print("   🔹 Hugging Face: هزاران مدل Open Source")
+    print("   🔹 Gemini, OpenAI, DeepSeek: به زودی پاپ‌آپ اضافه می‌شه!")
+    print("=" * 60)
 
 
 if __name__ == '__main__':

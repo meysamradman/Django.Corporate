@@ -29,8 +29,8 @@ const CardWithIcon = React.memo(function CardWithIcon({
   titleExtra,
 }: CardWithIconProps) {
   return (
-    <Card className={cn("border-b-4", borderColor, className)}>
-      <CardHeader className={headerClassName}>
+    <Card className={cn("border-b-2", borderColor, className)}>
+      <CardHeader className={cn("!pb-3", headerClassName)}>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={cn("p-2.5 rounded-lg shadow-sm", iconBgColor)}>

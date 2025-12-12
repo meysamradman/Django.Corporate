@@ -252,6 +252,38 @@ class AIModelViewSet(viewsets.ModelViewSet):
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
+    
+    @action(detail=False, methods=['get'])
+    def active_model(self, request):
+        """
+        Get the single active model for a provider+capability combination.
+        Required params: provider (slug), capability
+        """
+        provider_slug = request.query_params.get('provider')
+        capability = request.query_params.get('capability')
+        
+        if not provider_slug or not capability:
+            return APIResponse.error(
+                message=AI_ERRORS['validation_error'],
+                errors={'detail': 'Both provider and capability are required'},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get active model
+        active_model = AIModel.objects.get_active_model(provider_slug, capability)
+        
+        if not active_model:
+            return APIResponse.error(
+                message=AI_ERRORS.get('no_active_model', 'No active model found for this provider+capability'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = AIModelDetailSerializer(active_model, context={'request': request})
+        return APIResponse.success(
+            message=AI_SUCCESS.get('model_retrieved', 'Active model retrieved successfully'),
+            data=serializer.data,
+            status_code=status.HTTP_200_OK
+        )
 
 
 class AdminProviderSettingsViewSet(viewsets.ModelViewSet):

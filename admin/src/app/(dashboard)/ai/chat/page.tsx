@@ -44,11 +44,7 @@ const AIChat = dynamic(
   () => import('@/components/ai/chat').then(mod => ({ default: mod.AIChat })),
   { 
     ssr: false, 
-    loading: () => (
-      <div className="container mx-auto py-6">
-        <AIChatSkeleton />
-      </div>
-    )
+    loading: () => <AIChatSkeleton />
   }
 );
 
@@ -56,11 +52,7 @@ export default function AIChatPage() {
   const { hasAnyPermission, isLoading } = usePermission();
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-6">
-        <AIChatSkeleton />
-      </div>
-    );
+    return <AIChatSkeleton />;
   }
 
   if (!hasAnyPermission(['ai.manage', 'ai.chat.manage'])) {
@@ -68,7 +60,7 @@ export default function AIChatPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="fixed inset-0 top-[64px] bottom-0 left-0 right-0 lg:right-80">
       <AIChat />
     </div>
   );

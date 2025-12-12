@@ -171,6 +171,10 @@ AI_SUCCESS = {
     **IMAGE_SUCCESS,
     **AUDIO_SUCCESS,
     **SETTINGS_SUCCESS,
+    "model_retrieved": "مدل فعال دریافت شد",
+    "model_activated": "مدل فعال شد",
+    "model_deactivated": "مدل غیرفعال شد",
+    "other_models_deactivated": "{count} مدل دیگر غیرفعال شد",
 }
 
 GEMINI_PROMPTS = {
@@ -289,4 +293,7 @@ AI_ERRORS = {
     **GROQ_ERRORS,
     **OPENAI_ERRORS,
     **DEEPSEEK_ERRORS,
+    "no_active_model": "هیچ مدل فعالی برای این Provider+Capability وجود ندارد",
+    "multiple_active_models": "چندین مدل فعال برای یک Provider+Capability مجاز نیست",
+    "conflicting_models": "فعال کردن این مدل باعث غیرفعال شدن مدل {model_name} می‌شود",
 }

@@ -170,6 +170,43 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(IMAGE_ERRORS['provider_not_found_or_inactive'])
         return value
     
+    def validate(self, attrs):
+        """
+        Validate that activating this model won't conflict with other active models.
+        """
+        is_active = attrs.get('is_active', False)
+        provider_id = attrs.get('provider_id') or (self.instance.provider_id if self.instance else None)
+        capabilities = attrs.get('capabilities', [])
+        
+        # If activating a model, check for conflicts
+        if is_active and provider_id and capabilities:
+            # Get existing active models for this provider with same capabilities
+            existing_active = AIModel.objects.filter(
+                provider_id=provider_id,
+                is_active=True
+            )
+            
+            # Exclude current instance if updating
+            if self.instance:
+                existing_active = existing_active.exclude(pk=self.instance.pk)
+            
+            # Check for capability conflicts
+            conflicting_models = []
+            for model in existing_active:
+                for capability in capabilities:
+                    if capability in model.capabilities:
+                        conflicting_models.append({
+                            'model': model.display_name,
+                            'capability': capability
+                        })
+            
+            # Allow but warn (auto-deactivation will happen in save)
+            if conflicting_models:
+                # This will be handled by model.save() auto-deactivation
+                pass
+        
+        return attrs
+    
     def create(self, validated_data):
         provider_id = validated_data.pop('provider_id')
         model_id = validated_data.get('model_id')

@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
 import os
 
-from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.models import AIProvider, AdminProviderSettings, AIModel
 from src.media.models.media import AudioMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers import OpenAIProvider

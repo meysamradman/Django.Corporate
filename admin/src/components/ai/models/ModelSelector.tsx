@@ -1,10 +1,18 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Badge } from '@/components/elements/Badge';
 import { Button } from '@/components/elements/Button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/elements/Dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
 import { showSuccess, showError } from '@/core/toast';
@@ -21,6 +29,17 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
     const queryClient = useQueryClient();
     const [expandedModels, setExpandedModels] = useState<Set<number | string>>(new Set());
     const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean;
+        activeModelName: string;
+        newModelName: string;
+        onConfirm: () => void;
+    }>({
+        open: false,
+        activeModelName: '',
+        newModelName: '',
+        onConfirm: () => {},
+    });
 
     const groupedModels = useMemo(() => {
         const groups: Record<string, any[]> = {};
@@ -67,10 +86,13 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
     }, [groupedModels, currentPage]);
 
     const toggleModelMutation = useMutation({
-        mutationFn: async ({ modelId, isActive, isOpenRouter }: { modelId: number | string; isActive: boolean; isOpenRouter?: boolean }) => {
+        mutationFn: async ({ modelId, isActive, isOpenRouter, providerSlug }: { modelId: number | string; isActive: boolean; isOpenRouter?: boolean; providerSlug?: string }) => {
             if (isOpenRouter) {
                 throw new Error('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');
             }
+            
+            // این فانکشن داخل mutation نمی‌تواند state را تغییر دهد
+            // پس فقط مستقیم API را صدا می‌زنیم
             
             const response = await aiApi.models.update(modelId as number, { is_active: isActive } as any);
             if (response.metaData.status !== 'success') {
@@ -103,15 +125,49 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
         },
     });
 
-    const handleToggleModel = (modelId: number | string, currentStatus: boolean, isOpenRouter?: boolean) => {
+    const handleToggleModel = async (modelId: number | string, currentStatus: boolean, isOpenRouter?: boolean, providerSlug?: string, modelName?: string) => {
         if (isOpenRouter) {
             showError('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');
             return;
         }
+        
+        const isActivating = !currentStatus;
+        
+        // اگر میخواد فعال بشه، چک کن مدل دیگه ای فعاله یا نه
+        if (isActivating && providerSlug) {
+            try {
+                const activeModelResponse = await aiApi.models.getActiveModel(providerSlug, capability);
+                if (activeModelResponse.data && activeModelResponse.data.id !== modelId) {
+                    // یه مدل دیگه فعاله - نمایش dialog
+                    const activeModelName = activeModelResponse.data.display_name || activeModelResponse.data.name;
+                    setConfirmDialog({
+                        open: true,
+                        activeModelName,
+                        newModelName: modelName || 'مدل جدید',
+                        onConfirm: () => {
+                            setConfirmDialog(prev => ({ ...prev, open: false }));
+                            toggleModelMutation.mutate({
+                                modelId,
+                                isActive: isActivating,
+                                isOpenRouter,
+                                providerSlug,
+                            });
+                        },
+                    });
+                    return;
+                }
+            } catch (error: any) {
+                // اگر 404 یا 500، ادامه بده (هیچ مدل فعالی نیست)
+                console.log('مدل فعالی پیدا نشد - ادامه می‌دهیم');
+            }
+        }
+        
+        // مستقیم فعال/غیرفعال کن
         toggleModelMutation.mutate({
             modelId,
-            isActive: !currentStatus,
+            isActive: isActivating,
             isOpenRouter,
+            providerSlug,
         });
     };
 
@@ -182,6 +238,7 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                 const isExpanded = expandedModels.has(modelId);
                                 const isActive = model.is_active ?? false;
                                 const isOpenRouter = model.is_openrouter || model.provider_slug === 'openrouter';
+                                const providerSlug = model.provider_slug || model.provider?.slug || providerName.toLowerCase();
                                 const isSaving = toggleModelMutation.isPending;
 
                                 return (
@@ -247,7 +304,13 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                                                                 ? 'bg-green-1 hover:bg-green-2 text-white border-green-1' 
                                                                 : 'bg-bg hover:bg-bg-hover text-font-s border-border'
                                                         }`}
-                                                        onClick={() => handleToggleModel(modelId, isActive, isOpenRouter)}
+                                                        onClick={() => handleToggleModel(
+                                                            modelId, 
+                                                            isActive, 
+                                                            isOpenRouter, 
+                                                            providerSlug,
+                                                            model.display_name || model.model_name || model.name
+                                                        )}
                                                         disabled={isSaving}
                                                     >
                                                         {isSaving ? (
@@ -378,6 +441,73 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                     </div>
                 );
             })}
+            
+            {/* Confirmation Dialog */}
+            <Dialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog(prev => ({ ...prev, open: false }))}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow/10">
+                                <AlertTriangle className="h-6 w-6 text-yellow-1" />
+                            </div>
+                            <div className="flex-1">
+                                <DialogTitle className="text-right">تغییر مدل فعال</DialogTitle>
+                                <DialogDescription className="text-right">
+                                    آیا از تغییر مدل فعال اطمینان دارید؟
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="rounded-lg bg-bg p-4 space-y-3">
+                            <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-red-1"></div>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-font-p mb-1">مدل فعلی (غیرفعال می‌شود):</p>
+                                    <p className="text-sm text-font-s">{confirmDialog.activeModelName}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="border-t border-border pt-3">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 mt-1">
+                                        <div className="w-2 h-2 rounded-full bg-green-1"></div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-font-p mb-1">مدل جدید (فعال می‌شود):</p>
+                                        <p className="text-sm text-font-s">{confirmDialog.newModelName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p className="text-sm text-font-s text-center">
+                            با فعال کردن این مدل، مدل قبلی به صورت خودکار غیرفعال خواهد شد.
+                        </p>
+                    </div>
+                    
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+                        >
+                            انصراف
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="default"
+                            onClick={confirmDialog.onConfirm}
+                            className="bg-green-1 hover:bg-green-2"
+                        >
+                            تایید و فعال‌سازی
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

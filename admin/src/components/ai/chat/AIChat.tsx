@@ -14,7 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/elements/Avatar';
 import { aiApi } from '@/api/ai/route';
 import { AvailableProvider } from '@/types/ai/ai';
-import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Mic, Paperclip, Trash2 } from 'lucide-react';
+import { Loader2, MessageSquare, Send, Sparkles, AlertCircle, User, Paperclip, Trash2, ChevronDown, Check, Lock, X } from 'lucide-react';
 import { HelpGuide } from '@/components/elements/HelpGuide';
 import { toast } from '@/components/elements/Sonner';
 import { Skeleton } from '@/components/elements/Skeleton';
@@ -62,9 +62,13 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         return [];
     });
     const [sending, setSending] = useState(false);
+    const [showProviderDropdown, setShowProviderDropdown] = useState(false);
+    const [attachedFile, setAttachedFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const providersFetched = useRef(false);
+    const providerDropdownRef = useRef<HTMLDivElement>(null);
 
     const getAdminDisplayName = () => {
         if (user?.profile?.full_name) return user.profile.full_name;
@@ -93,10 +97,10 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
 
     useEffect(() => {
         if (user && !providersFetched.current) {
-            const hasAIPermission = user?.permissions?.some((p: string) => 
+            const hasAIPermission = user?.permissions?.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
-            
+
             if (hasAIPermission) {
                 providersFetched.current = true;
                 fetchAvailableProviders();
@@ -117,7 +121,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
             if (messages.length > 0) {
                 const messagesToSave = messages.slice(-50);
                 const dataToSave = JSON.stringify(messagesToSave);
-                
+
                 if (dataToSave.length > 100000) {
                     const limited = messages.slice(-30);
                     localStorage.setItem('ai_chat_messages', JSON.stringify(limited));
@@ -139,6 +143,19 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         }
     }, [selectedProvider, user, compact]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (providerDropdownRef.current && !providerDropdownRef.current.contains(event.target as Node)) {
+                setShowProviderDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const handleClearChat = () => {
         setMessages([]);
         if (typeof window !== 'undefined') {
@@ -154,16 +171,30 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
-            const response = await aiApi.chat.getAvailableProviders();
+            console.log('🔍 [AI Chat] درخواست Available Providers...');
             
+            const response = await aiApi.chat.getAvailableProviders();
+            console.log('✅ [AI Chat] پاسخ Available Providers:', {
+                status: response.metaData.status,
+                total: Array.isArray(response.data) ? response.data.length : 0,
+                providers: Array.isArray(response.data) 
+                    ? response.data.map((p: any) => ({
+                        provider_name: p.provider_name || p.name,
+                        models_count: p.models?.length || 0,
+                        models: p.models?.slice(0, 3).map((m: any) => m.model_name || m.name)
+                    }))
+                    : []
+            });
+
             if (response.metaData.status === 'success') {
-                const providersData = Array.isArray(response.data) 
-                    ? response.data 
+                const providersData = Array.isArray(response.data)
+                    ? response.data
                     : (response.data as any)?.data || [];
-                
+
                 setAvailableProviders(providersData);
             }
         } catch (error: any) {
+            console.error('❌ [AI Chat] خطا در Available Providers:', error);
         } finally {
             setLoadingProviders(false);
         }
@@ -171,12 +202,12 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
 
     const handleSend = async () => {
         if (!selectedProvider) {
-            toast.error(msg.ai('selectModelWithInstructions'));
+            toast.error('لطفاً ابتدا یک مدل AI انتخاب کنید');
             return;
         }
 
         if (!message.trim()) {
-            toast.error(msg.ai('enterMessage'));
+            toast.error('لطفاً پیام خود را وارد کنید');
             return;
         }
 
@@ -189,7 +220,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         setMessages(prev => [...prev, userMessage]);
         const currentMessage = message.trim();
         setMessage('');
-        
+
         setTimeout(() => {
             textareaRef.current?.focus();
         }, 100);
@@ -210,20 +241,40 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                 conversation_history: conversationHistory,
             });
 
-            if (response.metaData.status === 'success') {
+            if (response.metaData.status === 'success' && response.data?.reply) {
                 const assistantMessage: ChatMessage = {
                     role: 'assistant',
                     content: response.data.reply,
                     timestamp: Date.now(),
                 };
                 setMessages(prev => [...prev, assistantMessage]);
+                
+                // Success toast with generation time
+                const genTime = response.data.generation_time_ms;
+                if (genTime) {
+                    toast.success(`پاسخ در ${(genTime / 1000).toFixed(1)} ثانیه تولید شد`);
+                }
             } else {
-                throw new Error(response.metaData.message || 'خطا در دریافت پاسخ');
+                throw new Error(response.metaData.message || 'خطا در دریافت پاسخ از AI');
             }
         } catch (error: any) {
-            setMessages(prev => prev.filter((msg, idx) => 
+            // Remove user message on error
+            setMessages(prev => prev.filter((msg, idx) =>
                 !(msg.role === 'user' && msg.content === currentMessage && idx === prev.length - 1)
             ));
+            
+            // Extract error message from ApiError structure
+            let errorMessage = 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.';
+            
+            if (error?.response?.message) {
+                // ApiError structure
+                errorMessage = error.response.message;
+            } else if (error?.message) {
+                // Standard Error
+                errorMessage = error.message;
+            }
+            
+            toast.error(errorMessage);
         } finally {
             setSending(false);
         }
@@ -236,6 +287,33 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                 handleSend();
             }
         }
+    };
+
+    const handleFileUpload = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // بررسی حجم فایل (مثلاً حداکثر 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                toast.error('حجم فایل نباید بیشتر از 10 مگابایت باشد');
+                return;
+            }
+            setAttachedFile(file);
+            toast.success(`فایل ${file.name} آماده ارسال است`);
+        }
+        // Reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const removeAttachedFile = () => {
+        setAttachedFile(null);
+        toast.info('فایل حذف شد');
     };
 
     if (!loadingProviders && availableProviders.length === 0) {
@@ -271,7 +349,12 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                    <span>{provider.display_name || getProviderDisplayName(provider)}</span>
+                                                    <div className="flex flex-col items-start">
+                                                        <span className="text-xs font-medium">{provider.display_name || getProviderDisplayName(provider)}</span>
+                                                        {provider.slug && (
+                                                            <span className="text-[10px] text-font-s opacity-70">({provider.slug})</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </SelectItem>
                                         ))
@@ -318,15 +401,14 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                         messages.map((msg, idx) => (
                             <div
                                 key={idx}
-                                className={`flex items-start gap-2 ${
-                                    msg.role === 'user' ? 'justify-end' : 'justify-start'
-                                }`}
+                                className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
+                                    }`}
                             >
                                 {msg.role === 'user' && (
                                     <Avatar className="flex-shrink-0 w-6 h-6 rounded-full">
                                         {getAdminProfileImageUrl() ? (
-                                            <AvatarImage 
-                                                src={getAdminProfileImageUrl()!} 
+                                            <AvatarImage
+                                                src={getAdminProfileImageUrl()!}
                                                 alt={getAdminDisplayName()}
                                                 className="object-cover"
                                             />
@@ -338,11 +420,10 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                                     </Avatar>
                                 )}
                                 <div
-                                    className={`max-w-[75%] rounded-lg px-3 py-2 text-xs ${
-                                        msg.role === 'user'
-                                            ? 'bg-card text-font-p border border-br'
-                                            : 'bg-bg text-font-s border border-br'
-                                    }`}
+                                    className={`max-w-[75%] rounded-lg px-3 py-2 text-xs ${msg.role === 'user'
+                                        ? 'bg-card text-font-p border border-br'
+                                        : 'bg-bg text-font-s border border-br'
+                                        }`}
                                 >
                                     <p className="whitespace-pre-wrap break-words">
                                         {msg.content}
@@ -408,213 +489,236 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         );
     }
 
+    const selectedProviderData = availableProviders.find(
+        p => (p.slug || p.provider_name || String(p.id)) === selectedProvider
+    );
+
     return (
-        <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
-            <CardWithIcon
-                icon={MessageSquare}
-                title={
-                    <div className="flex items-center gap-2">
-                        <span>چت با AI</span>
-                        <HelpGuide
-                            title="راهنمای چت با AI"
-                            content={`**چطور از چت با AI استفاده کنم؟**
-
-1. ابتدا یک مدل AI را از منوی بالا انتخاب کنید
-2. پیام خود را در کادر پایین تایپ کنید
-3. Enter بزنید یا روی دکمه ارسال کلیک کنید
-4. AI به شما پاسخ خواهد داد
-
-**نکات مهم:**
-• چت‌های این صفحه ذخیره نمی‌شوند
-• برای ذخیره چت‌ها، از ویجت کنار صفحه استفاده کنید
-• می‌توانید تا 20 پیام آخر را در یک مکالمه استفاده کنید`}
-                            variant="badge"
-                            position="bottom"
-                        />
-                    </div>
-                }
-                iconBgColor="bg-pink"
-                iconColor="stroke-pink-2"
-                borderColor="border-b-pink-1"
-                className="flex flex-col h-full overflow-hidden"
-                headerClassName="flex-shrink-0 border-b pb-3"
-                contentClassName="!p-0 flex-1 flex flex-col overflow-hidden"
-                titleExtra={
-                    <div className="flex items-center gap-2">
-                        {loadingProviders ? (
-                            <Skeleton className="h-10 w-32" />
-                        ) : (
-                                <Select
-                                    value={selectedProvider || undefined}
-                                    onValueChange={setSelectedProvider}
-                                >
-                                    <SelectTrigger className="w-auto min-w-[140px] border-0 bg-bg hover:bg-bg/80 shadow-sm px-4 py-1.5">
-                                        <SelectValue placeholder={getAIUI('selectModelPlaceholder')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableProviders.length === 0 ? (
-                                            <div className="p-2 text-sm text-font-s text-center">
-                                                {getAIUI('noActiveProviders')}
-                                            </div>
-                                        ) : (
-                                            availableProviders.map((provider) => (
-                                                <SelectItem
-                                                    key={provider.id}
-                                                    value={provider.slug || provider.provider_name || String(provider.id)}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                        <span>{provider.display_name || getProviderDisplayName(provider)}</span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                        )}
-                    </div>
-                }
-            >
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
-                        {messages.length > 0 && messages.length <= 5 && (
-                            <div className="mb-4 p-3 bg-blue/10 border border-blue-1 rounded-lg">
-                                <div className="flex items-start gap-2">
-                                    <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
-                                    <div className="flex-1">
-                                        <p className="text-sm text-font-s leading-relaxed">
-                                            <strong className="text-blue-2">توجه:</strong> چت‌های شما به صورت موقت در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
-                                        </p>
-                                    </div>
-                                </div>
+        <div className="relative flex flex-col h-full">
+            {/* Chat Messages Area */}
+            <div className={`flex-1 ${
+                messages.length === 0 ? '' : 'overflow-y-auto'
+            }`}>
+                <div className={`${
+                    messages.length === 0 
+                        ? 'h-full flex flex-col justify-center items-center px-4' 
+                        : 'pt-8 pb-[200px]'
+                }`}>
+                    {/* Empty State - Centered */}
+                    {messages.length === 0 && (
+                        <div className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto">
+                            <div className="w-16 h-16 bg-blue rounded-2xl flex items-center justify-center mb-6">
+                                <Sparkles className="h-8 w-8 text-blue-1" />
                             </div>
-                        )}
-                        {messages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center text-font-s">
-                                <Sparkles className="h-12 w-12 mb-4 opacity-50" />
-                                <p className="text-lg font-medium mb-2">{msg.aiUI('startConversation')}</p>
-                                <p className="text-sm">
-                                    {msg.aiUI('chatDescription')}
-                                </p>
-                            </div>
-                        ) : (
-                            messages.map((msg, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`flex items-center gap-3 ${
-                                        msg.role === 'user' ? 'justify-end' : 'justify-start'
-                                    }`}
-                                >
-                                    {msg.role === 'user' && (
-                                        <Avatar className="flex-shrink-0 w-8 h-8 rounded-full">
-                                            {getAdminProfileImageUrl() ? (
-                                                <AvatarImage 
-                                                    src={getAdminProfileImageUrl()!} 
-                                                    alt={getAdminDisplayName()}
-                                                    className="object-cover"
-                                                />
-                                            ) : (
-                                                <AvatarFallback className="bg-gray-2 text-static-w text-xs font-medium rounded-full">
-                                                    {getAdminInitials()}
-                                                </AvatarFallback>
-                                            )}
-                                        </Avatar>
-                                    )}
-                                    <div
-                                        className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                                            msg.role === 'user'
-                                                ? 'bg-card text-font-p border'
-                                                : 'bg-bg text-font-s'
-                                        }`}
-                                    >
-                                        <p className="text-sm whitespace-pre-wrap break-words">
-                                            {msg.content}
-                                        </p>
-                                    </div>
-                                    {msg.role === 'assistant' && (
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-bg flex items-center justify-center">
-                                            <Sparkles className="h-4 w-4 stroke-font-s" />
+                            <h1 className="text-2xl font-semibold text-font-p mb-2">
+                                چطور می‌تونم کمکت کنم؟
+                            </h1>
+                            <p className="text-base text-font-s">
+                                من اینجام تا به هر سوال یا کاری کمکت کنم
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Messages - Regular Flow */}
+                    {messages.length > 0 && (
+                        <div className="max-w-4xl mx-auto w-full px-4">
+                            {/* Info Alert - Only show for first 5 messages */}
+                            {messages.length <= 5 && (
+                                <div className="mb-8 p-4 bg-blue/10 border border-blue-1 rounded-xl">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="text-sm text-font-s leading-relaxed">
+                                                <strong className="text-blue-2">توجه:</strong> چت‌های شما به صورت موقت در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
+                                            </p>
                                         </div>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                        {sending && (
-                            <div className="flex items-center gap-3 justify-start">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-bg flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 stroke-font-s" />
-                                </div>
-                                <div className="bg-bg text-font-s rounded-lg px-4 py-2">
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span className="text-sm">{getAIUI('responding')}</span>
                                     </div>
                                 </div>
+                            )}
+
+                            {/* Messages List */}
+                            <div className="space-y-6">
+                                {messages.map((msg, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div className={`max-w-[80%] ${msg.role === 'user' ? 'ml-auto' : 'mr-auto'}`}>
+                                            <div
+                                                className={`rounded-2xl px-6 py-4 ${
+                                                    msg.role === 'user'
+                                                        ? 'bg-gray text-font-p'
+                                                        : 'bg-card border border-br shadow-sm text-font-p'
+                                                }`}
+                                            >
+                                                <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
+                                                    {msg.content}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        )}
-                        <div ref={messagesEndRef} />
+
+                            {/* Loading State */}
+                            {sending && (
+                                <div className="flex justify-start mt-6">
+                                    <div className="max-w-[80%]">
+                                        <div className="bg-card border border-br rounded-2xl px-6 py-4 shadow-sm">
+                                            <div className="flex items-center gap-3">
+                                                <Loader2 className="h-4 w-4 animate-spin text-font-s" />
+                                                <span className="text-base text-font-p">{getAIUI('responding')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* Scroll anchor */}
+                    <div ref={messagesEndRef} />
                 </div>
-                <div className="flex-shrink-0 border-t bg-card px-6 pt-4 pb-0">
-                    <div className="relative w-full">
-                        <Textarea
-                            ref={textareaRef}
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="پیام خود را بنویسید..."
-                            className="min-h-[60px] max-h-[200px] resize-none w-full border bg-card pl-32 pr-4 rounded-lg shadow-sm py-4"
-                            style={{ paddingTop: '18px', paddingBottom: '18px' }}
-                            disabled={sending || !selectedProvider}
-                        />
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <button
-                                type="button"
-                                className="flex items-center justify-center text-font-s hover:text-font-p transition-colors"
-                                aria-label="میکروفون"
-                            >
-                                <Mic className="h-5 w-5" />
-                            </button>
-                            <button
-                                type="button"
-                                className="flex items-center justify-center text-font-s hover:text-font-p transition-colors"
-                                aria-label="پیوست"
-                            >
-                                <Paperclip className="h-5 w-5" />
-                            </button>
-                            <Button
-                                onClick={handleSend}
-                                disabled={sending || !message.trim() || !selectedProvider}
-                                className="bg-primary hover:bg-primary/90 text-static-w px-4 gap-2 rounded-lg"
-                            >
-                                {sending ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>ارسال...</span>
-                                    </>
+            </div>
+
+            {/* Input Area - Sticky when messages exist, centered when empty */}
+            <div className={`${
+                messages.length > 0 
+                    ? 'sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm' 
+                    : 'sticky bottom-0 left-0 right-0 bg-transparent'
+            } z-10`}>
+                <div className="max-w-4xl mx-auto px-4 py-4">
+                    <div className="bg-card rounded-2xl shadow-lg border border-br p-4">
+                        {/* Textarea for message input */}
+                        <div className="relative">
+                            {/* Attached File Preview */}
+                            {attachedFile && (
+                                <div className="mb-2 p-2 bg-bg rounded-lg border border-br flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Paperclip className="h-4 w-4 text-font-s" />
+                                        <span className="text-sm text-font-p">{attachedFile.name}</span>
+                                        <span className="text-xs text-font-s">({(attachedFile.size / 1024).toFixed(1)} KB)</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={removeAttachedFile}
+                                        className="p-1 hover:bg-card rounded transition-colors"
+                                    >
+                                        <X className="h-4 w-4 text-font-s" />
+                                    </button>
+                                </div>
+                            )}
+                            
+                            <textarea
+                                ref={textareaRef}
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="پیام..."
+                                rows={1}
+                                disabled={sending || !selectedProvider}
+                                className="w-full px-4 py-3 resize-none focus:outline-none text-base text-font-p placeholder-font-s bg-transparent overflow-hidden rounded-lg"
+                                style={{
+                                    minHeight: '24px',
+                                    maxHeight: '200px',
+                                }}
+                                onInput={(e) => {
+                                    const target = e.target as HTMLTextAreaElement;
+                                    target.style.height = 'auto';
+                                    target.style.height = `${target.scrollHeight}px`;
+                                }}
+                            />
+                            
+                            {/* Hidden File Input */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
+                        </div>
+
+                        {/* Bottom controls */}
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-br">
+                            {/* Left side - Provider dropdown */}
+                            <div className="relative" ref={providerDropdownRef}>
+                                {loadingProviders ? (
+                                    <Skeleton className="h-9 w-32 rounded-full" />
                                 ) : (
                                     <>
-                                        <Send className="h-4 w-4" />
-                                        <span>ارسال</span>
+                                        <button
+                                            onClick={() => setShowProviderDropdown(!showProviderDropdown)}
+                                            disabled={!availableProviders.length}
+                                            className="flex items-center gap-2 px-4 py-2 bg-gray hover:bg-bg rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {selectedProviderData && (
+                                                <span className="text-lg">{getProviderIcon(selectedProviderData)}</span>
+                                            )}
+                                            <span className="text-sm font-medium text-font-p">
+                                                {selectedProviderData
+                                                    ? (selectedProviderData.display_name || getProviderDisplayName(selectedProviderData))
+                                                    : getAIUI('selectModelPlaceholder')}
+                                            </span>
+                                            <ChevronDown className="h-4 w-4 text-font-s" />
+                                        </button>
+
+                                        {/* Provider Dropdown */}
+                                        {showProviderDropdown && (
+                                            <div className="absolute bottom-full right-0 mb-2 w-80 bg-card rounded-xl shadow-xl border border-br py-2 z-50 max-h-96 overflow-y-auto">
+                                                {availableProviders.length === 0 ? (
+                                                    <div className="p-4 text-sm text-font-s text-center">
+                                                        {getAIUI('noActiveProviders')}
+                                                    </div>
+                                                ) : (
+                                                    availableProviders.map((provider) => {
+                                                        const isSelected = (provider.slug || provider.provider_name || String(provider.id)) === selectedProvider;
+                                                        return (
+                                                            <button
+                                                                key={provider.id}
+                                                                onClick={() => {
+                                                                    setSelectedProvider(provider.slug || provider.provider_name || String(provider.id));
+                                                                    setShowProviderDropdown(false);
+                                                                }}
+                                                                className="w-full px-4 py-3 text-right hover:bg-bg flex items-center justify-between transition-colors group"
+                                                            >
+                                                                <div className="flex items-center gap-3 flex-1">
+                                                                    <span className="text-lg">{getProviderIcon(provider)}</span>
+                                                                    <div className="flex flex-col items-start">
+                                                                        <span className="text-sm font-medium text-font-p">
+                                                                            {provider.display_name || getProviderDisplayName(provider)}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                {isSelected && (
+                                                                    <Check className="h-4 w-4 text-blue-1" />
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
                                     </>
                                 )}
-                            </Button>
+                            </div>
+
+                            {/* Right side - File Upload icon */}
+                            <div className="flex items-center gap-2">
+                                {/* Paperclip Icon - File Upload */}
+                                <button
+                                    type="button"
+                                    onClick={handleFileUpload}
+                                    className="p-2.5 text-font-s hover:text-font-p hover:bg-bg rounded-full transition-colors"
+                                    aria-label="آپلود فایل"
+                                >
+                                    <Paperclip className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    {compact && (
-                        <div className="mt-3 px-1">
-                            <p className="text-xs text-font-s text-center leading-relaxed">
-                                💡 چت‌ها موقتاً در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
-                            </p>
-                        </div>
-                    )}
-                    {!compact && (
-                        <div className="mt-3 px-1">
-                            <p className="text-xs text-font-s text-center leading-relaxed">
-                                ⚠️ چت‌های این صفحه ذخیره نمی‌شوند. برای ذخیره چت‌ها، از ویجت کنار صفحه استفاده کنید.
-                            </p>
-                        </div>
-                    )}
                 </div>
-            </CardWithIcon>
+            </div>
         </div>
     );
 }

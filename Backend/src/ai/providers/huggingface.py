@@ -5,6 +5,7 @@ import base64
 import os
 import json
 import re
+from django.core.cache import cache
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS, HUGGINGFACE_PROMPTS
 from src.ai.utils.cache import AICacheKeys

@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
 import os
 
-from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.models import AIProvider, AdminProviderSettings, AIModel
 from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, OpenRouterProvider
@@ -73,8 +73,19 @@ class AIImageGenerationService:
         provider_name: str,
         prompt: str,
         admin=None,
+        model_name: Optional[str] = None,
         **kwargs
     ) -> tuple[BytesIO, dict]:
+        """
+        Generate image and return bytes with metadata.
+        Now supports selecting specific model or auto-selecting active model.
+        """
+        # Get active model if not specified
+        if not model_name:
+            active_model = AIModel.objects.get_active_model(provider_name, 'image')
+            if active_model:
+                model_name = active_model.model_id
+        
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
@@ -92,6 +103,8 @@ class AIImageGenerationService:
                     api_key = provider.get_shared_api_key()
                 
                 config = provider.config or {}
+                if model_name:
+                    config['model'] = model_name
             except AIProvider.DoesNotExist:
                 raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
         else:
@@ -99,6 +112,8 @@ class AIImageGenerationService:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
                 api_key = provider.get_shared_api_key()
                 config = provider.config or {}
+                if model_name:
+                    config['model'] = model_name
             except AIProvider.DoesNotExist:
                 raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
         
@@ -114,6 +129,7 @@ class AIImageGenerationService:
             'provider_name': provider_name,
             'prompt': prompt,
             'filename': f"ai_generated_{provider_name}_{int(time.time())}.png",
+            'model': model_name,
         }
         
         return image_bytes, metadata

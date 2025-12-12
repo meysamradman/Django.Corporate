@@ -1,14 +1,14 @@
 "use client";
-"use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { MessageSquare, Image, Music, FileText, Search, Sparkles } from 'lucide-react';
+import { MessageSquare, Image, Music, FileText, Search, Sparkles, Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';
 import { Input } from '@/components/elements/Input';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Button } from '@/components/elements/Button';
+import { Badge } from '@/components/elements/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/elements/Dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
@@ -57,6 +57,38 @@ const HuggingFaceModelSelectorContent = dynamic(
   }
 );
 
+const OpenAIModelSelectorContent = dynamic(
+  () => import('@/components/ai/settings/OpenAIModelSelector').then(mod => ({ default: mod.OpenAIModelSelectorContent })),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-64 w-full" />
+  }
+);
+
+const GoogleGeminiModelSelectorContent = dynamic(
+  () => import('@/components/ai/settings/GoogleGeminiModelSelector').then(mod => ({ default: mod.GoogleGeminiModelSelectorContent })),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-64 w-full" />
+  }
+);
+
+const DeepSeekModelSelectorContent = dynamic(
+  () => import('@/components/ai/settings/DeepSeekModelSelector').then(mod => ({ default: mod.DeepSeekModelSelectorContent })),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-64 w-full" />
+  }
+);
+
+const GroqModelSelectorContent = dynamic(
+  () => import('@/components/ai/settings/GroqModelSelector').then(mod => ({ default: mod.GroqModelSelectorContent })),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-64 w-full" />
+  }
+);
+
 type Capability = 'chat' | 'content' | 'image' | 'audio';
 
 const CAPABILITY_CONFIG: Record<Capability, { label: string; icon: React.ElementType; description: string }> = {
@@ -94,42 +126,54 @@ export default function AIModelsPage() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [showOpenRouterModal, setShowOpenRouterModal] = useState(false);
     const [showHuggingFaceModal, setShowHuggingFaceModal] = useState(false);
+    const [showOpenAIModal, setShowOpenAIModal] = useState(false);
+    const [showGeminiModal, setShowGeminiModal] = useState(false);
+    const [showDeepSeekModal, setShowDeepSeekModal] = useState(false);
+    const [showGroqModal, setShowGroqModal] = useState(false);
 
-    // همه hooks باید قبل از return صدا زده بشن
-    const { data: models, isLoading, error } = useQuery({
-        queryKey: ['ai-models', activeTab],
+    // دریافت لیست Provider ها برای ID واقعی
+    const { data: providers } = useQuery({
+        queryKey: ['ai-providers'],
         queryFn: async () => {
-            const dbResponse = await aiApi.models.getByCapability(activeTab, true);
-            const modelsList = dbResponse.metaData.status === 'success' ? (dbResponse.data || []) : [];
-
-            const providers = new Set(modelsList.map((m: any) => m.provider_name || m.provider?.name || 'نامشخص'));
-
-            return modelsList;
+            const response = await aiApi.providers.getAll();
+            return response.data || [];
         },
         staleTime: 5 * 60 * 1000,
     });
 
-    const filteredModels = useMemo(() => {
-        if (!models) return [];
-        if (!searchQuery.trim()) return models;
+    // تبدیل slug به ID
+    const getProviderIdBySlug = (slug: string) => {
+        const provider = providers?.find((p: any) => p.slug === slug);
+        return provider?.id?.toString() || '1';
+    };
 
-        const query = searchQuery.toLowerCase().trim();
-        return models.filter((model: any) => {
-            const modelName = (model.model_name || model.name || '').toLowerCase();
-            const providerName = (model.provider_name || model.provider?.name || '').toLowerCase();
-            const description = (model.description || '').toLowerCase();
-
-            return (
-                modelName.includes(query) ||
-                providerName.includes(query) ||
-                description.includes(query)
+    // همه hooks باید قبل از return صدا زده بشن
+    const { data: activeModels, isLoading: isLoadingActiveModels } = useQuery({
+        queryKey: ['ai-active-models', activeTab],
+        queryFn: async () => {
+            // دریافت مدل‌های فعال برای همه Provider ها
+            const providers = ['openrouter', 'huggingface', 'openai', 'gemini', 'deepseek', 'groq'];
+            const results: Record<string, any> = {};
+            
+            await Promise.all(
+                providers.map(async (provider) => {
+                    try {
+                        const response = await aiApi.models.getActiveModel(provider, activeTab);
+                        if (response.data && response.data.model_id) {
+                            results[provider] = response.data;
+                        }
+                    } catch (error) {
+                        // Silent fail - no active model
+                    }
+                })
             );
-        });
-    }, [models, searchQuery]);
+            
+            return results;
+        },
+        staleTime: 5 * 60 * 1000,
+    });
 
     const queryClient = useQueryClient();
-    const openRouterSaveRef = React.useRef<(() => void) | undefined>(undefined);
-    const huggingFaceSaveRef = React.useRef<(() => void) | undefined>(undefined);
 
     // Redirect only after auth is loaded and user doesn't have access
     useEffect(() => {
@@ -139,101 +183,25 @@ export default function AIModelsPage() {
         }
     }, [isAuthLoading, hasAccess, router]);
 
-    // Show loading while checking auth
-    if (isAuthLoading) {
-        return <TabSkeleton />;
-    }
-
-    // Hide content if no access (will redirect in useEffect)
-    if (!hasAccess) {
-        return null;
-    }
-
-    const handleSaveModels = async (selectedModels: any[], providerName: string) => {
-        try {
-            if (selectedModels.length === 0) {
-                return;
-            }
-
-            const toastId = toast.loading(`در حال ذخیره ${selectedModels.length} مدل...`);
-
-            const providersResponse = await aiApi.providers.getAll();
-            const providers = providersResponse.data || [];
-
-            const targetProvider = providers.find((p: any) =>
-                p.name.toLowerCase() === providerName.toLowerCase() ||
-                p.slug.toLowerCase() === providerName.toLowerCase() ||
-                p.display_name.toLowerCase() === providerName.toLowerCase()
-            );
-
-            if (!targetProvider) {
-                toast.dismiss(toastId);
-                showError(`Provider '${providerName}' یافت نشد`);
-                return;
-            }
-
-            let createdCount = 0;
-            let updatedCount = 0;
-            let failCount = 0;
-            const errors: string[] = [];
-
-            for (const model of selectedModels) {
-                try {
-                    const modelData = {
-                        provider_id: targetProvider.id,
-                        name: model.name,
-                        model_id: model.id,
-                        display_name: model.name,
-                        is_active: true,
-                        capabilities: [activeTab],
-                        description: model.description,
-                        pricing_input: model.pricing?.prompt || null,
-                        pricing_output: model.pricing?.completion || null,
-                        context_window: model.context_length || null,
-                    };
-
-                    const response = await aiApi.models.create(modelData);
-
-                    createdCount++;
-                } catch (error: any) {
-                    failCount++;
-
-                    const errorMsg = error?.response?.data?.message || error?.message || 'خطای ناشناخته';
-                    errors.push(`${model.name}: ${errorMsg}`);
-                }
-            }
-
-            toast.dismiss(toastId);
-
-            const totalSuccess = createdCount + updatedCount;
-            if (totalSuccess > 0) {
-                let message = `${totalSuccess} مدل با موفقیت ذخیره شد`;
-                if (updatedCount > 0) {
-                    message += ` (${updatedCount} مدل به‌روزرسانی شد)`;
-                }
-                showSuccess(message);
-                queryClient.invalidateQueries({ queryKey: ['ai-models'] });
-            }
-
-            if (failCount > 0) {
-                showError(`${failCount} مدل ذخیره نشد`);
-            }
-
-            setShowOpenRouterModal(false);
-            setShowHuggingFaceModal(false);
-
-        } catch (error) {
-            showError('خطا در ذخیره مدل‌ها');
-        }
+    const handleModelSaved = () => {
+        // رفرش لیست مدل‌های فعال
+        queryClient.invalidateQueries({ queryKey: ['ai-active-models'] });
+        // بستن پاپ‌آپ‌ها
+        setShowOpenRouterModal(false);
+        setShowHuggingFaceModal(false);
+        setShowOpenAIModal(false);
+        setShowGeminiModal(false);
+        setShowDeepSeekModal(false);
+        setShowGroqModal(false);
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" suppressHydrationWarning>
             <div className="flex items-center justify-between">
                 <h1 className="page-title">انتخاب و مدیریت مدل‌های AI</h1>
             </div>
 
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as Capability)}>
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as Capability)} suppressHydrationWarning>
                 <TabsList className="grid w-full grid-cols-4">
                     {Object.entries(CAPABILITY_CONFIG).map(([key, config]) => {
                         const TabIcon = config.icon;
@@ -252,22 +220,6 @@ export default function AIModelsPage() {
                         <TabsContent key={key} value={key}>
                             <Card className="shadow-sm border hover:shadow-lg transition-all duration-300">
                                 <CardHeader className="border-b">
-                                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
-                                                <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
-                                                <Input
-                                                    type="text"
-                                                    placeholder="جستجو..."
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                    className="pr-8 h-8 text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardHeader>
                                     <CardTitle className="flex items-center gap-3">
                                         <div className="p-2 bg-pink rounded-lg">
                                             <TabIcon className="w-5 h-5 text-pink-2" />
@@ -281,80 +233,261 @@ export default function AIModelsPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <Card className="mb-6 border-blue-1/30 bg-blue/10">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-blue-0 rounded-lg">
-                                                        <Sparkles className="w-5 h-5 text-blue-1" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                                        <Card className="border-blue-1/30 bg-blue/10">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="p-2 bg-blue-0 rounded-lg flex-shrink-0">
+                                                            <Sparkles className="w-5 h-5 text-blue-1" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-semibold text-font-p text-sm">OpenRouter</h3>
+                                                            <p className="text-xs text-font-s mt-0.5">
+                                                                400+ مدل از 60+ Provider
+                                                            </p>
+                                                            {activeModels?.openrouter ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <Badge variant="green" className="text-xs">
+                                                                        <Check className="w-3 h-3 ml-1" />
+                                                                        فعال
+                                                                    </Badge>
+                                                                    <span className="text-xs text-font-s truncate">
+                                                                        {activeModels.openrouter.display_name || activeModels.openrouter.name}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="gray" className="text-xs mt-2">
+                                                                    <X className="w-3 h-3 ml-1" />
+                                                                    مدل فعالی ندارد
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-font-p">OpenRouter</h3>
-                                                        <p className="text-xs text-font-s mt-0.5">
-                                                            دسترسی به 400+ مدل از 60+ Provider (GPT, Claude, Gemini, Groq, و...)
-                                                        </p>
-                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowOpenRouterModal(true)}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        انتخاب
+                                                    </Button>
                                                 </div>
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setShowOpenRouterModal(true)}
-                                                    className="gap-2"
-                                                >
-                                                    <Sparkles className="w-4 h-4" />
-                                                    انتخاب مدل‌های OpenRouter
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                            </CardContent>
+                                        </Card>
 
-                                    <Card className="mb-6 border-purple-1/30 bg-purple/10">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-purple-0 rounded-lg">
-                                                        <Sparkles className="w-5 h-5 text-purple-1" />
+                                        <Card className="border-purple-1/30 bg-purple/10">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="p-2 bg-purple-0 rounded-lg flex-shrink-0">
+                                                            <Sparkles className="w-5 h-5 text-purple-1" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-semibold text-font-p text-sm">Hugging Face</h3>
+                                                            <p className="text-xs text-font-s mt-0.5">
+                                                                هزاران مدل Open Source
+                                                            </p>
+                                                            {activeModels?.huggingface ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <Badge variant="green" className="text-xs">
+                                                                        <Check className="w-3 h-3 ml-1" />
+                                                                        فعال
+                                                                    </Badge>
+                                                                    <span className="text-xs text-font-s truncate">
+                                                                        {activeModels.huggingface.display_name || activeModels.huggingface.name}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="gray" className="text-xs mt-2">
+                                                                    <X className="w-3 h-3 ml-1" />
+                                                                    مدل فعالی ندارد
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-font-p">Hugging Face</h3>
-                                                        <p className="text-xs text-font-s mt-0.5">
-                                                            دسترسی به هزاران مدل Open Source (Image, Text, Audio)
-                                                        </p>
-                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowHuggingFaceModal(true)}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        انتخاب
+                                                    </Button>
                                                 </div>
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setShowHuggingFaceModal(true)}
-                                                    className="gap-2"
-                                                >
-                                                    <Sparkles className="w-4 h-4" />
-                                                    انتخاب مدل‌های Hugging Face
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
 
-                                    {isLoading ? (
-                                        <div className="space-y-4">
-                                            {[1, 2, 3].map((i) => (
-                                                <Skeleton key={i} className="h-24 w-full" />
-                                            ))}
-                                        </div>
-                                    ) : error ? (
-                                        <div className="text-center py-8 text-red-1">
-                                            خطا در دریافت مدل‌ها: {error instanceof Error ? error.message : 'خطای ناشناخته'}
-                                        </div>
-                                    ) : filteredModels.length === 0 ? (
-                                        <div className="text-center py-8 text-font-s">
-                                            {searchQuery
-                                                ? 'هیچ مدلی با این جستجو یافت نشد'
-                                                : 'هیچ مدلی برای این capability یافت نشد. برای انتخاب مدل‌های OpenRouter، از دکمه بالا استفاده کنید.'}
-                                        </div>
-                                    ) : (
-                                        <ModelSelector
-                                            models={filteredModels}
-                                            capability={key as Capability}
-                                        />
-                                    )}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <Card className="border-green-1/30 bg-green/10">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="p-2 bg-green-0 rounded-lg flex-shrink-0">
+                                                            <span className="text-xl">🤖</span>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-semibold text-font-p text-sm">OpenAI</h3>
+                                                            <p className="text-xs text-font-s mt-0.5">
+                                                                GPT-4o, DALL-E, Whisper
+                                                            </p>
+                                                            {activeModels?.openai ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <Badge variant="green" className="text-xs">
+                                                                        <Check className="w-3 h-3 ml-1" />
+                                                                        فعال
+                                                                    </Badge>
+                                                                    <span className="text-xs text-font-s truncate">
+                                                                        {activeModels.openai.display_name || activeModels.openai.name}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="gray" className="text-xs mt-2">
+                                                                    <X className="w-3 h-3 ml-1" />
+                                                                    مدل فعالی ندارد
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowOpenAIModal(true)}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        انتخاب
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card className="border-orange-1/30 bg-orange/10">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="p-2 bg-orange-0 rounded-lg flex-shrink-0">
+                                                            <span className="text-xl">🔷</span>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-semibold text-font-p text-sm">Google Gemini</h3>
+                                                            <p className="text-xs text-font-s mt-0.5">
+                                                                Gemini 2.0 Flash, Pro
+                                                            </p>
+                                                            {activeModels?.gemini ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <Badge variant="green" className="text-xs">
+                                                                        <Check className="w-3 h-3 ml-1" />
+                                                                        فعال
+                                                                    </Badge>
+                                                                    <span className="text-xs text-font-s truncate">
+                                                                        {activeModels.gemini.display_name || activeModels.gemini.name}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="gray" className="text-xs mt-2">
+                                                                    <X className="w-3 h-3 ml-1" />
+                                                                    مدل فعالی ندارد
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowGeminiModal(true)}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        انتخاب
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card className="border-yellow-1/30 bg-yellow/10">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="p-2 bg-yellow-0 rounded-lg flex-shrink-0">
+                                                            <span className="text-xl">🚀</span>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-semibold text-font-p text-sm">DeepSeek</h3>
+                                                            <p className="text-xs text-font-s mt-0.5">
+                                                                R1, Chat (کم‌هزینه)
+                                                            </p>
+                                                            {activeModels?.deepseek ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <Badge variant="green" className="text-xs">
+                                                                        <Check className="w-3 h-3 ml-1" />
+                                                                        فعال
+                                                                    </Badge>
+                                                                    <span className="text-xs text-font-s truncate">
+                                                                        {activeModels.deepseek.display_name || activeModels.deepseek.name}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="gray" className="text-xs mt-2">
+                                                                    <X className="w-3 h-3 ml-1" />
+                                                                    مدل فعالی ندارد
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowDeepSeekModal(true)}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        انتخاب
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card className="border-pink-1/30 bg-pink/10">
+                                            <CardContent className="p-4">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="p-2 bg-pink-0 rounded-lg flex-shrink-0">
+                                                            <span className="text-xl">⚡</span>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-semibold text-font-p text-sm">Groq</h3>
+                                                            <p className="text-xs text-font-s mt-0.5">
+                                                                Llama 3.3, Mixtral (رایگان)
+                                                            </p>
+                                                            {activeModels?.groq ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <Badge variant="green" className="text-xs">
+                                                                        <Check className="w-3 h-3 ml-1" />
+                                                                        فعال
+                                                                    </Badge>
+                                                                    <span className="text-xs text-font-s truncate">
+                                                                        {activeModels.groq.display_name || activeModels.groq.name}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="gray" className="text-xs mt-2">
+                                                                    <X className="w-3 h-3 ml-1" />
+                                                                    مدل فعالی ندارد
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowGroqModal(true)}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        انتخاب
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -374,25 +507,15 @@ export default function AIModelsPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
                         <OpenRouterModelSelectorContent
                             providerId="openrouter"
                             providerName="OpenRouter"
                             capability={activeTab}
-                            onSave={(models) => handleSaveModels(models, 'OpenRouter')}
+                            onSave={handleModelSaved}
                             onSelectionChange={() => { }}
-                            onSaveRef={openRouterSaveRef}
                         />
                     </div>
-
-                    <DialogFooter className="px-6 py-4 border-t border-br flex-shrink-0">
-                        <Button variant="outline" onClick={() => setShowOpenRouterModal(false)}>
-                            بستن
-                        </Button>
-                        <Button onClick={() => openRouterSaveRef.current?.()}>
-                            ذخیره
-                        </Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -408,25 +531,107 @@ export default function AIModelsPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0">
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
                         <HuggingFaceModelSelectorContent
                             providerId="huggingface"
                             providerName="Hugging Face"
                             capability={activeTab}
-                            onSave={(models) => handleSaveModels(models, 'Hugging Face')}
+                            onSave={handleModelSaved}
                             onSelectionChange={() => { }}
-                            onSaveRef={huggingFaceSaveRef}
                         />
                     </div>
+                </DialogContent>
+            </Dialog>
 
-                    <DialogFooter className="px-6 py-4 border-t border-br flex-shrink-0">
-                        <Button variant="outline" onClick={() => setShowHuggingFaceModal(false)}>
-                            بستن
-                        </Button>
-                        <Button onClick={() => huggingFaceSaveRef.current?.()}>
-                            ذخیره
-                        </Button>
-                    </DialogFooter>
+            <Dialog open={showOpenAIModal} onOpenChange={setShowOpenAIModal}>
+                <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
+                        <DialogTitle className="flex items-center gap-3 text-font-p">
+                            <span className="text-2xl">🤖</span>
+                            انتخاب مدل‌های OpenAI - {CAPABILITY_CONFIG[activeTab].label}
+                        </DialogTitle>
+                        <DialogDescription className="text-font-s">
+                            مدل‌های OpenAI برای {CAPABILITY_CONFIG[activeTab].description}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
+                        <OpenAIModelSelectorContent
+                            providerId={getProviderIdBySlug('openai')}
+                            providerName="OpenAI"
+                            capability={activeTab}
+                            onSave={handleModelSaved}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={showGeminiModal} onOpenChange={setShowGeminiModal}>
+                <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
+                        <DialogTitle className="flex items-center gap-3 text-font-p">
+                            <span className="text-2xl">🔷</span>
+                            انتخاب مدل‌های Google Gemini - {CAPABILITY_CONFIG[activeTab].label}
+                        </DialogTitle>
+                        <DialogDescription className="text-font-s">
+                            مدل‌های Gemini برای {CAPABILITY_CONFIG[activeTab].description}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
+                        <GoogleGeminiModelSelectorContent
+                            providerId={getProviderIdBySlug('gemini')}
+                            providerName="Google Gemini"
+                            capability={activeTab}
+                            onSave={handleModelSaved}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={showDeepSeekModal} onOpenChange={setShowDeepSeekModal}>
+                <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
+                        <DialogTitle className="flex items-center gap-3 text-font-p">
+                            <span className="text-2xl">🚀</span>
+                            انتخاب مدل‌های DeepSeek - {CAPABILITY_CONFIG[activeTab].label}
+                        </DialogTitle>
+                        <DialogDescription className="text-font-s">
+                            مدل‌های DeepSeek برای {CAPABILITY_CONFIG[activeTab].description}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
+                        <DeepSeekModelSelectorContent
+                            providerId={getProviderIdBySlug('deepseek')}
+                            providerName="DeepSeek"
+                            capability={activeTab}
+                            onSave={handleModelSaved}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={showGroqModal} onOpenChange={setShowGroqModal}>
+                <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
+                        <DialogTitle className="flex items-center gap-3 text-font-p">
+                            <span className="text-2xl">⚡</span>
+                            انتخاب مدل‌های Groq - {CAPABILITY_CONFIG[activeTab].label}
+                        </DialogTitle>
+                        <DialogDescription className="text-font-s">
+                            مدل‌های رایگان Groq برای {CAPABILITY_CONFIG[activeTab].description}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
+                        <GroqModelSelectorContent
+                            providerId={getProviderIdBySlug('groq')}
+                            providerName="Groq"
+                            capability={activeTab}
+                            onSave={handleModelSaved}
+                        />
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

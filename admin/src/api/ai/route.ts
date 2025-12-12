@@ -127,13 +127,10 @@ export const aiApi = {
             quality?: string;
             save_to_db?: boolean;
         }): Promise<ApiResponse<Media>> => {
-            try {
-                const endpoint = '/admin/ai-generate/generate/';
-                return await fetchApi.post<Media>(endpoint, data as Record<string, unknown>);
-            } catch (error: any) {
-                showError(error?.message || 'خطا در تولید تصویر');
-                throw error;
-            }
+            const endpoint = '/admin/ai-generate/generate/';
+            return await fetchApi.post<Media>(endpoint, data as Record<string, unknown>, {
+                showErrorToast: false, // Component will handle error display
+            });
         },
     },
 
@@ -162,13 +159,10 @@ export const aiApi = {
         generateContent: async (
             data: AIContentGenerationRequest
         ): Promise<ApiResponse<AIContentGenerationResponse>> => {
-            try {
-                const endpoint = '/admin/ai-content/generate/';
-                return await fetchApi.post<AIContentGenerationResponse>(endpoint, data as unknown as Record<string, unknown>);
-            } catch (error: any) {
-                showError(error?.message || 'خطا در تولید محتوا');
-                throw error;
-            }
+            const endpoint = '/admin/ai-content/generate/';
+            return await fetchApi.post<AIContentGenerationResponse>(endpoint, data as unknown as Record<string, unknown>, {
+                showErrorToast: false, // Component will handle error display
+            });
         },
     },
 
@@ -195,13 +189,10 @@ export const aiApi = {
             response_format?: string;
             save_to_db?: boolean;
         }): Promise<ApiResponse<Media | { audio_data_url: string; saved: boolean }>> => {
-            try {
-                const endpoint = '/admin/ai-audio/generate/';
-                return await fetchApi.post<Media | { audio_data_url: string; saved: boolean }>(endpoint, data as Record<string, unknown>);
-            } catch (error: any) {
-                showError(error?.message || 'خطا در تولید فایل صوتی');
-                throw error;
-            }
+            const endpoint = '/admin/ai-audio/generate/';
+            return await fetchApi.post<Media | { audio_data_url: string; saved: boolean }>(endpoint, data as Record<string, unknown>, {
+                showErrorToast: false, // Component will handle error display
+            });
         },
     },
 
@@ -250,18 +241,16 @@ export const aiApi = {
             provider_name: string;
             generation_time_ms: number;
         }>> => {
-            try {
-                const endpoint = '/admin/ai-chat/send-message/';
-                return await fetchApi.post<{
-                    message: string;
-                    reply: string;
-                    provider_name: string;
-                    generation_time_ms: number;
-                }>(endpoint, data as Record<string, unknown>);
-            } catch (error: any) {
-                showError(error?.message || 'خطا در ارسال پیام');
-                throw error;
-            }
+            const endpoint = '/admin/ai-chat/send-message/';
+            return await fetchApi.post<{
+                message: string;
+                reply: string;
+                provider_name: string;
+                generation_time_ms: number;
+            }>(endpoint, data as Record<string, unknown>, {
+                showErrorToast: false, // Component will handle error display
+                showSuccessToast: false, // Component will handle success display
+            });
         },
     },
     personalSettings: {
@@ -386,6 +375,16 @@ export const aiApi = {
             }
         },
 
+        getActiveModel: async (providerSlug: string, capability: string): Promise<ApiResponse<AIModelDetail>> => {
+            try {
+                const endpoint = `/admin/ai-models/active_model/?provider=${providerSlug}&capability=${capability}`;
+                return await fetchApi.get<AIModelDetail>(endpoint);
+            } catch (error: any) {
+                // Silent fail for 404 - it's expected when no model is active
+                throw error;
+            }
+        },
+
         getById: async (id: number): Promise<ApiResponse<AIModelDetail>> => {
             try {
                 const endpoint = `/admin/ai-models/${id}/`;
@@ -446,7 +445,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/my_settings/';
                 return await fetchApi.get<AdminProviderSettings[]>(endpoint);
             } catch (error: any) {
-                showError(error?.message || 'خطا در دریافت تنظیمات');
+                showError(error?.message || 'Error fetching settings');
                 throw error;
             }
         },
