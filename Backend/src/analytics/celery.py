@@ -33,6 +33,12 @@ app.conf.beat_schedule = {
         'task': 'src.analytics.tasks.get_queue_size',
         'schedule': 600.0,
     },
+    
+    # ✅ هر روز ساعت 3 صبح - Sync مدل‌های AI از providerهای دینامیک
+    'sync-ai-models': {
+        'task': 'src.ai.tasks.sync_ai_models_task',
+        'schedule': crontab(hour=3, minute=0),
+    },
 }
 
 # ✅ تنظیمات اضافی برای Performance

@@ -10,6 +10,11 @@ from src.portfolio.utils.cache import PortfolioCacheManager
 
 
 class ContentDestinationHandler:
+    """
+    Handler برای ذخیره محتوای تولید شده توسط AI در مقصدهای مختلف
+    
+    این کلاس یک utility است که محتوای AI را در blog یا portfolio ذخیره می‌کند.
+    """
     
     @classmethod
     def save_to_destination(
@@ -158,3 +163,4 @@ class ContentDestinationHandler:
     @classmethod
     def _save_to_custom(cls, content_data, destination_data, admin):
         raise NotImplementedError(CONTENT_ERRORS["destination_not_supported"].format(destination="custom"))
+

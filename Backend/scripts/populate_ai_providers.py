@@ -1,8 +1,16 @@
 """
-✅ Populate AI Providers and Models Script
+✅ Populate AI Providers Script
 
-این اسکریپت Provider ها و Model های پرکاربرد رو به دیتابیس اضافه می‌کنه
-بدون نیاز به تغییر کد - همه چیز از دیتابیس خونده میشه!
+این اسکریپت Provider های AI رو به دیتابیس اضافه می‌کنه.
+
+⚠️ مهم: این اسکریپت فقط Provider ها رو اضافه می‌کنه، نه Model ها!
+Model ها باید از طریق management command sync شوند:
+    python manage.py sync_ai_models
+
+سیستم جدید (Dynamic AI):
+- Provider ها از Registry خودکار شناسایی می‌شوند
+- Model ها از API sync می‌شوند (OpenRouter, Groq, HuggingFace)
+- همه چیز دینامیک است - بدون hardcode
 
 استفاده:
     python manage.py shell < scripts/populate_ai_providers.py
@@ -24,20 +32,22 @@ from src.ai.models import AIProvider, AIModel
 
 
 def populate_providers():
-    """اضافه کردن Provider های پرکاربرد"""
+    """
+    اضافه کردن Provider های AI به دیتابیس
     
-    # ✅ فقط Provider هایی که واقعاً در بک‌اند استفاده می‌شوند:
-    # - chat_service.py: gemini, openai, deepseek, openrouter, groq, huggingface
-    # - content_generation_service.py: gemini, openai, deepseek, openrouter, groq, huggingface
-    # - image_generation_service.py: gemini, openai, huggingface, openrouter
-    # - audio_generation_service.py: openai (TTS)
-    # 
-    # ❌ حذف شده: anthropic (فقط از طریق OpenRouter در دسترس است)
-    # 
-    # ✅ مدل‌های داینامیک (از API می‌آیند - نیازی به ذخیره در دیتابیس نیست):
-    # - OpenRouter: مدل‌ها از OpenRouter API می‌آیند (endpoint: /api/admin/ai-chat/openrouter-models/)
-    # - Groq: مدل‌ها از Groq API می‌آیند (endpoint: /api/admin/ai-chat/groq-models/)
-    # - Hugging Face: مدل‌ها از Hugging Face API می‌آیند
+    ✅ Provider هایی که در Registry ثبت شده‌اند:
+    - gemini: Google Gemini (chat, content, image)
+    - openai: OpenAI (chat, content, image, audio)
+    - openrouter: OpenRouter (chat, content, image) - Dynamic Models
+    - deepseek: DeepSeek AI (chat, content)
+    - huggingface: Hugging Face (chat, content, image) - Dynamic Models
+    - groq: Groq (chat, content) - Dynamic Models
+    
+    ⚠️ مهم: 
+    - Model ها باید از طریق `python manage.py sync_ai_models` sync شوند
+    - Provider های دینامیک (OpenRouter, Groq, HuggingFace) مدل‌هایشان از API می‌آید
+    - Provider های استاتیک (Gemini, OpenAI, DeepSeek) مدل‌هایشان در capabilities.py تعریف شده
+    """
     providers_data = [
         {
             'name': 'OpenAI',
@@ -150,19 +160,28 @@ def populate_models():
     """
     ⚠️ این تابع دیگر استفاده نمی‌شود!
     
-    تمام مدل‌ها باید از پاپ‌آپ انتخاب شوند:
-    - OpenRouter: از پاپ‌آپ OpenRouterModelSelector
-    - Hugging Face: از پاپ‌آپ HuggingFaceModelSelector
-    - Google Gemini: از پاپ‌آپ ModelSelector
-    - OpenAI: از پاپ‌آپ ModelSelector
-    - DeepSeek: از پاپ‌آپ ModelSelector
+    با سیستم جدید Dynamic AI:
+    - Model ها باید از طریق management command sync شوند:
+      python manage.py sync_ai_models
+    
+    - برای Provider های دینامیک (OpenRouter, Groq, HuggingFace):
+      مدل‌ها خودکار از API دریافت و در DB ذخیره می‌شوند
+    
+    - برای Provider های استاتیک (Gemini, OpenAI, DeepSeek):
+      مدل‌ها باید در Admin Panel از لیست انتخاب و فعال شوند
     
     این طراحی باعث می‌شود:
     1️⃣ Admin فقط مدل‌هایی رو می‌بینه که خودش انتخاب کرده
     2️⃣ هیچ مدل اضافی یا default نداریم
     3️⃣ تمام مدل‌ها قابل فعال/غیرفعال کردن هستند
+    4️⃣ فقط یک مدل فعال برای هر provider+capability
     """
-    print("⚠️  این تابع دیگر استفاده نمی‌شود - تمام مدل‌ها باید از پاپ‌آپ انتخاب شوند")
+    print("⚠️  این تابع دیگر استفاده نمی‌شود!")
+    print("💡 برای sync مدل‌ها از دستور زیر استفاده کنید:")
+    print("   python manage.py sync_ai_models")
+    print("   python manage.py sync_ai_models --provider openrouter")
+    print("   python manage.py sync_ai_models --provider groq")
+    print("   python manage.py sync_ai_models --provider huggingface")
     return 0, 0, 0
 
 
@@ -215,10 +234,22 @@ def run():
     print(f"   Providers: {providers_created} created, {providers_updated} updated, {providers_deactivated} deactivated")
     print(f"   Models: {models_deleted} deleted")
     print("=" * 60)
-    print("\n💡 الان می‌تونی از پنل ادمین مدل‌های مورد نظرت رو از پاپ‌آپ انتخاب کنی!")
-    print("   🔹 OpenRouter: 400+ مدل از 60+ Provider")
-    print("   🔹 Hugging Face: هزاران مدل Open Source")
-    print("   🔹 Gemini, OpenAI, DeepSeek: به زودی پاپ‌آپ اضافه می‌شه!")
+    print("\n💡 مراحل بعدی:")
+    print("   1️⃣ Sync مدل‌های دینامیک:")
+    print("      python manage.py sync_ai_models")
+    print("      python manage.py sync_ai_models --provider openrouter")
+    print("      python manage.py sync_ai_models --provider groq")
+    print("      python manage.py sync_ai_models --provider huggingface")
+    print("\n   2️⃣ از پنل ادمین مدل‌های مورد نظرت رو فعال کن:")
+    print("      🔹 OpenRouter: 400+ مدل از 60+ Provider (از API sync می‌شوند)")
+    print("      🔹 Hugging Face: هزاران مدل Open Source (از API sync می‌شوند)")
+    print("      🔹 Groq: مدل‌های سریع و رایگان (از API sync می‌شوند)")
+    print("      🔹 Gemini, OpenAI, DeepSeek: از لیست انتخاب و فعال کن")
+    print("\n   3️⃣ فقط یک مدل فعال برای هر capability:")
+    print("      - یک مدل برای chat")
+    print("      - یک مدل برای content")
+    print("      - یک مدل برای image")
+    print("      - یک مدل برای audio (text_to_speech)")
     print("=" * 60)
 
 

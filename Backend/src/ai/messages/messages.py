@@ -163,6 +163,7 @@ SETTINGS_ERRORS = {
     "shared_api_not_allowed": "استفاده از API مشترک {provider_name} مجاز نیست",
     "shared_api_key_not_set": "API Key مشترک {provider_name} تنظیم نشده",
     "personal_api_key_not_set": "API Key شخصی تنظیم نشده",
+    "no_api_key_available": "هیچ API keyی برای provider '{provider_name}' موجود نیست. لطفاً Personal یا Shared API key را تنظیم کنید",
 }
 
 AI_SUCCESS = {
@@ -294,6 +295,13 @@ AI_ERRORS = {
     **OPENAI_ERRORS,
     **DEEPSEEK_ERRORS,
     "no_active_model": "هیچ مدل فعالی برای این Provider+Capability وجود ندارد",
+    "no_active_model_any_provider": "هیچ مدل فعالی برای capability '{capability}' در هیچ providerی یافت نشد",
+    "model_no_capability": "این مدل از capability '{capability}' پشتیبانی نمی‌کند",
+    "operation_not_supported": "عملیات '{operation}' توسط provider '{provider}' پشتیبانی نمی‌شود",
+    "capability_required": "پارامتر capability الزامی است",
+    "model_access_denied": "شما دسترسی به استفاده از این مدل را ندارید",
+    "provider_not_registered": "Provider '{name}' در سیستم ثبت نشده است",
+    "models_list_error": "خطا در دریافت لیست مدل‌ها: {error}",
     "multiple_active_models": "چندین مدل فعال برای یک Provider+Capability مجاز نیست",
     "conflicting_models": "فعال کردن این مدل باعث غیرفعال شدن مدل {model_name} می‌شود",
 }

@@ -5,9 +5,16 @@ from src.ai.messages.messages import AI_ERRORS
 
 class AIAudioGenerationRequestSerializer(serializers.Serializer):
     
+    model_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="AI Model ID with 'text_to_speech' capability (optional - uses active model if not provided)"
+    )
+    
     provider_name = serializers.ChoiceField(
         choices=[('openai', 'OpenAI')],
-        help_text="AI provider name (currently only 'openai' supports TTS)"
+        required=False,
+        help_text="AI provider name (deprecated - use model_id instead)"
     )
     
     text = serializers.CharField(

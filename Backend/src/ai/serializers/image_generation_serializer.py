@@ -61,8 +61,9 @@ class AIProviderListSerializer(serializers.ModelSerializer):
 
 class AIImageGenerationRequestSerializer(serializers.Serializer):
     model_id = serializers.IntegerField(
-        required=True,
-        help_text="AI Model ID with 'image' capability"
+        required=False,
+        allow_null=True,
+        help_text="AI Model ID with 'image' capability (optional - uses active model if not provided)"
     )
     prompt = serializers.CharField(
         required=True,

@@ -1,9 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.ai import views
+from src.ai.views.unified_generation_views import UnifiedAIGenerationViewSet
 
 router = DefaultRouter()
 
+# Unified endpoints (جدید - اضافه کنید)
+router.register(r'admin/ai', UnifiedAIGenerationViewSet, basename='ai-unified')
+
+# Existing endpoints (قدیمی - می‌توانید نگه دارید)
 router.register(r'admin/ai-providers', views.AIProviderViewSet, basename='ai-providers')
 router.register(r'admin/ai-models', views.AIModelViewSet, basename='ai-models')
 router.register(r'admin/ai-settings', views.AdminProviderSettingsViewSet, basename='ai-settings')

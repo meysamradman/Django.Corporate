@@ -15,7 +15,7 @@ from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider
 from src.ai.providers.huggingface import HuggingFaceProvider
 from src.ai.models import AIProvider, AdminProviderSettings
-from src.ai.services.destination_handler import ContentDestinationHandler
+from src.ai.utils.destination_handler import ContentDestinationHandler
 
 
 class AIContentGenerationViewSet(viewsets.ViewSet):

@@ -25,10 +25,17 @@ class AIChatRequestSerializer(serializers.Serializer):
         help_text="User message"
     )
     
+    model_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="AI Model ID with 'chat' capability (optional - uses active model if not provided)"
+    )
+    
     provider_name = serializers.ChoiceField(
         choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],
         default='deepseek',
-        help_text="AI model for chat"
+        required=False,
+        help_text="AI model for chat (deprecated - use model_id instead)"
     )
     
     conversation_history = AIChatMessageSerializer(

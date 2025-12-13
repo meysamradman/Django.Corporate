@@ -10,10 +10,17 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         help_text="Content topic or title"
     )
     
+    model_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="AI Model ID with 'content' capability (optional - uses active model if not provided)"
+    )
+    
     provider_name = serializers.ChoiceField(
         choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],
         default='gemini',
-        help_text="AI model for content generation"
+        required=False,
+        help_text="AI model for content generation (deprecated - use model_id instead)"
     )
     
     word_count = serializers.IntegerField(
