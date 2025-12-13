@@ -47,18 +47,16 @@ class AIContentGenerationService:
                     is_active=True
                 )
                 
-                if settings.use_shared_api:
+                # اولویت: 1) Personal API Key  2) Shared API Key
+                api_key = settings.get_personal_api_key()
+                if not api_key or not api_key.strip():
+                    # اگر Personal نبود، از Shared استفاده کن
                     api_key = provider.get_shared_api_key()
                     if not api_key or not api_key.strip():
-                        api_key = settings.get_personal_api_key()
-                        if not api_key or not api_key.strip():
-                            raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
-                else:
-                    api_key = settings.get_personal_api_key()
-                    if not api_key or not api_key.strip():
-                        raise ValueError(SETTINGS_ERRORS.get("personal_api_key_not_set", "Personal API Key not set").format(provider_name=provider_name))
+                        raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
                     
             except AdminProviderSettings.DoesNotExist:
+                # اگر settings نداشت، از Shared استفاده کن
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
                     raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))

@@ -47,25 +47,15 @@ class AIChatService:
             ).first()
             
             if settings:
-                try:
-                    api_key = settings.get_api_key()
-                except Exception:
-                    if settings.use_shared_api:
-                        try:
-                            api_key = settings.get_personal_api_key()
-                            if not api_key or not api_key.strip():
-                                api_key = provider.get_shared_api_key()
-                                if not api_key or not api_key.strip():
-                                    raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
-                        except Exception:
-                            api_key = provider.get_shared_api_key()
-                            if not api_key or not api_key.strip():
-                                raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
-                    else:
-                        api_key = settings.get_personal_api_key()
-                        if not api_key or not api_key.strip():
-                            raise ValueError(SETTINGS_ERRORS["personal_api_key_not_set"])
+                # اولویت: 1) Personal API Key  2) Shared API Key
+                api_key = settings.get_personal_api_key()
+                if not api_key or not api_key.strip():
+                    # اگر Personal نبود، از Shared استفاده کن
+                    api_key = provider.get_shared_api_key()
+                    if not api_key or not api_key.strip():
+                        raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
             else:
+                # اگر settings نداشت، از Shared استفاده کن
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
                     raise ValueError(SETTINGS_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))

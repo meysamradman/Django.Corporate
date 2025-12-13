@@ -135,14 +135,14 @@ PROVIDER_CAPABILITIES = {
         }
     },
     'huggingface': {
-        'supports_chat': False,
-        'supports_content': False,
+        'supports_chat': True,  # HuggingFace واقعاً چت را support می‌کند (text-generation models)
+        'supports_content': True,  # HuggingFace واقعاً content را support می‌کند (text-generation models)
         'supports_image': True,
         'supports_audio': False,
-        'has_dynamic_models': False,
+        'has_dynamic_models': True,  # مدل‌ها از API دریافت می‌شوند
         'models': {
-            'chat': [],
-            'content': [],
+            'chat': 'dynamic',  # از API دریافت می‌شود
+            'content': 'dynamic',  # از API دریافت می‌شود
             'image': [
                 'stabilityai/stable-diffusion-xl-base-1.0',
                 'stabilityai/stable-diffusion-2-1',
@@ -151,8 +151,8 @@ PROVIDER_CAPABILITIES = {
             'audio': [],
         },
         'default_models': {
-            'chat': None,
-            'content': None,
+            'chat': None,  # از مدل‌های فعال انتخاب می‌شود
+            'content': None,  # از مدل‌های فعال انتخاب می‌شود
             'image': 'stabilityai/stable-diffusion-xl-base-1.0',
             'audio': None,
         }
@@ -252,8 +252,8 @@ class ProviderAvailabilityManager:
     @staticmethod
     def _get_api_based_providers(capability: str) -> list:
         api_based_map = {
-            'chat': ['openrouter', 'groq'],
-            'content': ['openrouter', 'groq'],
+            'chat': ['openrouter', 'groq', 'huggingface'],  # HuggingFace واقعاً چت را support می‌کند
+            'content': ['openrouter', 'groq', 'huggingface'],  # HuggingFace واقعاً content را support می‌کند
             'image': ['openrouter', 'huggingface'],
             'audio': [],
         }

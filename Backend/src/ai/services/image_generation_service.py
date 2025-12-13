@@ -97,8 +97,14 @@ class AIImageGenerationService:
                 
                 admin_id = getattr(admin, 'id', 'unknown')
                 if settings:
-                    api_key = settings.get_api_key()
-                    api_type = 'SHARED' if settings.use_shared_api else 'PERSONAL'
+                    # اولویت: 1) Personal API Key  2) Shared API Key
+                    api_key = settings.get_personal_api_key()
+                    if not api_key or not api_key.strip():
+                        # اگر Personal نبود، از Shared استفاده کن
+                        api_key = provider.get_shared_api_key()
+                        if not api_key or not api_key.strip():
+                            raise ValueError(AI_ERRORS["api_key_not_set"].format(provider_name=provider_name))
+                    api_type = 'PERSONAL' if (settings.get_personal_api_key() and settings.get_personal_api_key().strip()) else 'SHARED'
                 else:
                     api_key = provider.get_shared_api_key()
                 

@@ -27,9 +27,11 @@ export const aiApi = {
             }
         },
 
-        getAvailableProviders: async (): Promise<ApiResponse<any[]>> => {
+        getAvailableProviders: async (capability?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = '/admin/ai-providers/available/';
+                const endpoint = capability 
+                    ? `/admin/ai-providers/available/?capability=${capability}`
+                    : '/admin/ai-providers/available/';
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
@@ -137,7 +139,8 @@ export const aiApi = {
     content: {
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = '/admin/ai-content/available-providers/';
+                // استفاده از endpoint اصلی با capability
+                const endpoint = '/admin/ai-providers/available/?capability=content';
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
@@ -149,8 +152,20 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = `/admin/ai-content-generation/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
+                const endpoint = `/admin/ai-content/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
                 return await fetchApi.get<any[]>(endpoint);
+            } catch (error: any) {
+                throw error;
+            }
+        },
+
+        getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
+            try {
+                // استفاده از endpoint مناسب برای content
+                const endpoint = `/admin/ai-content/huggingface-models/${task ? `?task=${task}` : '?task=text-generation'}`;
+                return await fetchApi.get<any[]>(endpoint, {
+                    showErrorToast: false, // Allow component to handle error display
+                });
             } catch (error: any) {
                 throw error;
             }
@@ -169,7 +184,8 @@ export const aiApi = {
     audio: {
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = '/admin/ai-audio/available-providers/';
+                // استفاده از endpoint اصلی با capability
+                const endpoint = '/admin/ai-providers/available/?capability=audio';
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
@@ -199,7 +215,8 @@ export const aiApi = {
     chat: {
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = '/admin/ai-chat/available-providers/';
+                // استفاده از endpoint اصلی با capability
+                const endpoint = '/admin/ai-providers/available/?capability=chat';
                 return await fetchApi.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
                 if (error?.response?.AppStatusCode !== 404) {
@@ -220,8 +237,11 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
-                return await fetchApi.get<any[]>(endpoint);
+                // استفاده از endpoint مناسب برای chat
+                const endpoint = `/admin/ai-chat/huggingface-models/${task ? `?task=${task}` : '?task=text-generation'}`;
+                return await fetchApi.get<any[]>(endpoint, {
+                    showErrorToast: false, // Allow component to handle error display
+                });
             } catch (error: any) {
                 throw error;
             }

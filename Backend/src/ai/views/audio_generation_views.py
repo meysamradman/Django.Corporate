@@ -31,7 +31,9 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
             )
         
         try:
-            providers = AIAudioGenerationService.get_available_providers()
+            # استفاده از ProviderAvailabilityManager که مدل‌های فعال را هم چک می‌کند
+            from src.ai.providers.capabilities import ProviderAvailabilityManager
+            providers = ProviderAvailabilityManager.get_available_providers('audio', include_api_based=True)
             return APIResponse.success(
                 message=AI_SUCCESS["providers_list_retrieved"],
                 data=providers,

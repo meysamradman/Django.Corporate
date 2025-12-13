@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { aiApi } from '@/api/ai/route';
 import { toast } from '@/components/elements/Sonner';
 import { ModelSelector } from '@/components/ai/core';
@@ -50,23 +50,49 @@ export function HuggingFaceModelSelectorContent({
       try {
         setLoading(true);
         const task = TASK_MAP[capability];
-        const response = await aiApi.image.getHuggingFaceModels(task);
+        // استفاده از endpoint مناسب بر اساس capability
+        let response;
+        if (capability === 'image') {
+          response = await aiApi.image.getHuggingFaceModels(task);
+        } else if (capability === 'chat') {
+          response = await aiApi.chat.getHuggingFaceModels(task);
+        } else if (capability === 'content') {
+          response = await aiApi.content.getHuggingFaceModels(task);
+        } else {
+          response = await aiApi.image.getHuggingFaceModels(task);
+        }
         
         if (response.metaData.status === 'success' && response.data) {
           const modelsData = Array.isArray(response.data) ? response.data : [];
-          const mappedModels: HuggingFaceModel[] = modelsData.map((model: any) => ({
-            id: model.id || model.name,
-            name: model.name || model.id,
-            description: model.description || '',
-            task: model.task || '',
-            downloads: model.downloads || 0,
-            likes: model.likes || 0,
-            tags: model.tags || [],
-          }));
+          const mappedModels: HuggingFaceModel[] = modelsData.map((model: any) => {
+            // HuggingFace همه مدل‌هایش رایگان است
+            const isFree = true;
+            const priceDisplay = 'رایگان';
+            
+            return {
+              id: model.id || model.name,
+              name: model.name || model.id,
+              description: model.description || '',
+              task: model.task || '',
+              downloads: model.downloads || 0,
+              likes: model.likes || 0,
+              tags: model.tags || [],
+              category: capability,
+              free: isFree,
+              price: priceDisplay,
+              pricing: {
+                prompt: 0,
+                completion: 0
+              }
+            };
+          });
           setModels(mappedModels);
+        } else {
+          toast.error('خطا در دریافت مدل‌ها از Hugging Face');
+          setModels([]);
         }
       } catch (error) {
-        toast.error('خطا در دریافت مدل‌ها');
+        toast.error('خطا در دریافت مدل‌ها از Hugging Face');
         setModels([]);
       } finally {
         setLoading(false);

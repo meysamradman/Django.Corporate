@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Grid3x3, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/elements/Input';
 import { Button } from '@/components/elements/Button';
+import { Badge } from '@/components/elements/Badge';
 import { Spinner } from '@/components/elements/Spinner';
 import { ModelCard, ModelCardModel } from './ModelCard';
 import { CapabilityFilter, CapabilityType } from './CapabilityFilter';
@@ -46,7 +47,7 @@ export function ModelSelector({
   });
 
   // فیلتر و جستجو
-  const filteredModels = useMemo(() => {
+  const { freeModels, paidModels } = useMemo(() => {
     let filtered = models;
 
     // فیلتر capability
@@ -67,23 +68,34 @@ export function ModelSelector({
       );
     }
 
-    // مرتب‌سازی: 1) فعال اول 2) رایگان اول 3) به ترتیب نام
-    return filtered.sort((a, b) => {
-      const aActive = activeModels.has(a.id);
-      const bActive = activeModels.has(b.id);
-      
-      // اول: مدل‌های فعال
-      if (aActive && !bActive) return -1;
-      if (!aActive && bActive) return 1;
-      
-      // دوم: مدل‌های رایگان
-      if (a.free && !b.free) return -1;
-      if (!a.free && b.free) return 1;
-      
-      // سوم: به ترتیب حروف الفبا
-      return a.name.localeCompare(b.name);
-    });
+    // تقسیم به رایگان و پولی
+    const free = filtered.filter(m => m.free);
+    const paid = filtered.filter(m => !m.free);
+
+    // مرتب‌سازی هر گروه: 1) فعال اول 2) به ترتیب نام
+    const sortModels = (models: typeof filtered) => {
+      return models.sort((a, b) => {
+        const aActive = activeModels.has(a.id);
+        const bActive = activeModels.has(b.id);
+        
+        // اول: مدل‌های فعال
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
+        
+        // دوم: به ترتیب حروف الفبا
+        return a.name.localeCompare(b.name);
+      });
+    };
+
+    return {
+      freeModels: sortModels([...free]),
+      paidModels: sortModels([...paid])
+    };
   }, [models, searchQuery, capabilityFilter, showCapabilityFilter, activeModels]);
+
+  const filteredModels = useMemo(() => {
+    return [...freeModels, ...paidModels];
+  }, [freeModels, paidModels]);
 
   // Pagination
   const totalPages = Math.ceil(filteredModels.length / modelsPerPage);
@@ -92,6 +104,16 @@ export function ModelSelector({
     const end = start + modelsPerPage;
     return filteredModels.slice(start, end);
   }, [filteredModels, currentPage, modelsPerPage]);
+
+  // تقسیم مدل‌های paginated به رایگان و پولی
+  const paginatedFreeModels = useMemo(() => {
+    return paginatedModels.filter(m => m.free);
+  }, [paginatedModels]);
+
+  const paginatedPaidModels = useMemo(() => {
+    return paginatedModels.filter(m => !m.free);
+  }, [paginatedModels]);
+
 
   // تعداد مدل‌ها برای هر capability
   const capabilityCounts = useMemo(() => {
@@ -168,6 +190,7 @@ export function ModelSelector({
         <span>
           نمایش {paginatedModels.length} از {filteredModels.length} مدل
           {searchQuery && ` (در نتایج جستجو برای "${searchQuery}")`}
+          {freeModels.length > 0 && paidModels.length > 0 && ` • ${freeModels.length} رایگان، ${paidModels.length} پولی`}
         </span>
         <span>
           {activeModels.size} مدل فعال
@@ -180,23 +203,66 @@ export function ModelSelector({
           {searchQuery ? 'مدلی با این مشخصات یافت نشد' : 'مدلی موجود نیست'}
         </div>
       ) : (
-        <div
-          className={
-            viewMode === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
-              : 'space-y-3'
-          }
-        >
-          {paginatedModels.map((model) => (
-            <ModelCard
-              key={model.id}
-              model={model}
-              isActive={activeModels.has(model.id)}
-              isSaving={savingModelId === model.id}
-              onToggle={() => handleToggleModel(model.id, model as any)}
-              viewMode={viewMode}
-            />
-          ))}
+        <div className="space-y-8">
+          {/* مدل‌های رایگان */}
+          {paginatedFreeModels.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-font-p">مدل‌های رایگان</h3>
+                <Badge variant="green" className="text-xs">
+                  {freeModels.length} مدل
+                </Badge>
+              </div>
+              <div
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                    : 'space-y-3'
+                }
+              >
+                {paginatedFreeModels.map((model) => (
+                  <ModelCard
+                    key={model.id}
+                    model={model}
+                    isActive={activeModels.has(model.id)}
+                    isSaving={savingModelId === model.id}
+                    onToggle={() => handleToggleModel(model.id, model as any)}
+                    viewMode={viewMode}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* مدل‌های پولی */}
+          {paginatedPaidModels.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-font-p">مدل‌های پولی</h3>
+                <Badge variant="gray" className="text-xs">
+                  {paidModels.length} مدل
+                </Badge>
+              </div>
+              <div
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                    : 'space-y-3'
+                }
+              >
+                {paginatedPaidModels.map((model) => (
+                  <ModelCard
+                    key={model.id}
+                    model={model}
+                    isActive={activeModels.has(model.id)}
+                    isSaving={savingModelId === model.id}
+                    onToggle={() => handleToggleModel(model.id, model as any)}
+                    viewMode={viewMode}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -250,6 +316,7 @@ export function ModelSelector({
           </Button>
         </div>
       )}
+
     </div>
   );
 }

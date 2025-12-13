@@ -57,7 +57,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
-            const response = await aiApi.image.getAvailableProviders();
+            const response = await aiApi.image.getAvailableProviders('image');
             if (response.metaData.status === 'success') {
                 let providersData: any[] = [];
                 

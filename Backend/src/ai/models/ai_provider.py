@@ -701,30 +701,33 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return self.decrypt_key(self.personal_api_key)
     
     def get_api_key(self) -> str:
+        """
+        Get API key with priority: Personal > Shared
+        According to MAIN_AI_SENARIO.md:
+        - If user has personal API key → use personal
+        - If personal not available and shared is active → use shared
+        """
+        # اولویت 1: Personal API Key
+        personal_key = self.get_personal_api_key()
+        if personal_key and personal_key.strip():
+            return personal_key
+        
+        # اولویت 2: Shared API Key
         is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
         
-        if self.use_shared_api:
-            if not is_super:
-                if not self.provider.allow_shared_for_normal_admins:
-                    raise ValidationError(
-                        f"Shared API is not allowed for {self.provider.display_name}."
-                    )
-            
-            shared_key = self.provider.get_shared_api_key()
-            if not shared_key:
+        if not is_super:
+            if not self.provider.allow_shared_for_normal_admins:
                 raise ValidationError(
-                    f"Shared API key is not set for {self.provider.display_name}."
+                    f"Shared API is not allowed for {self.provider.display_name}."
                 )
-            
-            return shared_key
-        else:
-            personal_key = self.get_personal_api_key()
-            if not personal_key:
-                raise ValidationError(
-                    "Personal API key is not set."
-                )
-            
-            return personal_key
+        
+        shared_key = self.provider.get_shared_api_key()
+        if not shared_key or not shared_key.strip():
+            raise ValidationError(
+                f"API key is not set for {self.provider.display_name}. Please set either personal or shared API key."
+            )
+        
+        return shared_key
     
     def increment_usage(self):
         self.total_requests += 1

@@ -116,20 +116,20 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         
-        providers = AIProvider.objects.filter(is_active=True)
-        serializer = AIProviderListSerializer(providers, many=True)
-        
-        api_based_providers = ['openrouter', 'groq', 'huggingface']
-        
-        available = [
-            p for p in serializer.data
-            if p.get('slug') in api_based_providers or p.get('has_shared_api_key') or p.get('allow_personal_keys')
-        ]
-        
-        return APIResponse.success(
-            message=AI_SUCCESS["providers_list_retrieved"],
-            data=available
-        )
+        try:
+            # استفاده از ProviderAvailabilityManager که مدل‌های فعال را هم چک می‌کند
+            from src.ai.providers.capabilities import ProviderAvailabilityManager
+            providers = ProviderAvailabilityManager.get_available_providers('image', include_api_based=True)
+            
+            return APIResponse.success(
+                message=AI_SUCCESS["providers_list_retrieved"],
+                data=providers
+            )
+        except Exception as e:
+            return APIResponse.error(
+                message=AI_ERRORS["providers_list_error"].format(error=str(e)),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'], url_path='openrouter-models')
     def openrouter_models(self, request):

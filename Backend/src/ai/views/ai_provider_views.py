@@ -118,6 +118,22 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         if not (has_view_permission or has_manage_permission):
             raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         
+        # اگر capability داده شده باشد، از ProviderAvailabilityManager استفاده می‌کنیم
+        capability = request.query_params.get('capability')
+        if capability:
+            try:
+                from src.ai.providers.capabilities import ProviderAvailabilityManager
+                providers = ProviderAvailabilityManager.get_available_providers(capability, include_api_based=True)
+                return APIResponse.success(
+                    message=AI_SUCCESS["providers_list_retrieved"],
+                    data=providers,
+                    status_code=status.HTTP_200_OK
+                )
+            except Exception as e:
+                # در صورت خطا، به روش قدیمی برمی‌گردیم
+                pass
+        
+        # روش قدیمی: فقط providerهایی که API key دارند
         providers = self.get_queryset()
         serializer = AIProviderListSerializer(providers, many=True)
         

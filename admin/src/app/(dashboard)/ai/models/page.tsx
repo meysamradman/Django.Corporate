@@ -12,6 +12,7 @@ import { Badge } from '@/components/elements/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/elements/Dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/route';
+import { fetchApi } from '@/core/config/fetch';
 import { useUserPermissions } from '@/core/permissions';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -148,16 +149,56 @@ export default function AIModelsPage() {
         return provider?.id?.toString() || '1';
     };
 
+    // دریافت providerهای واقعی از backend بر اساس capability
+    const { data: availableProviders, isLoading: isLoadingProviders } = useQuery({
+        queryKey: ['ai-available-providers', activeTab],
+        queryFn: async () => {
+            console.log(`🔍 [Query] Fetching available providers for capability: "${activeTab}"`);
+            try {
+                // استفاده از endpoint عمومی که capability را می‌گیرد
+                const endpoint = `/admin/ai-providers/available/?capability=${activeTab}`;
+                const response = await fetchApi.get<any[]>(endpoint);
+                if (response.metaData.status === 'success' && response.data) {
+                    const providers = Array.isArray(response.data) ? response.data : [];
+                    console.log(`✅ [Query] Available providers for ${activeTab}:`, providers.map((p: any) => p.provider_name || p.slug));
+                    return providers;
+                }
+                return [];
+            } catch (error: any) {
+                console.error(`❌ [Query] Error fetching providers for ${activeTab}:`, error);
+                return [];
+            }
+        },
+        staleTime: 5 * 60 * 1000, // 5 دقیقه cache
+    });
+
+    // تبدیل لیست providerها به map برای دسترسی سریع
+    const availableProvidersMap = useMemo(() => {
+        const map: Record<string, boolean> = {};
+        if (availableProviders) {
+            availableProviders.forEach((p: any) => {
+                const slug = p.provider_name || p.slug;
+                if (slug) {
+                    map[slug] = true;
+                }
+            });
+        }
+        return map;
+    }, [availableProviders]);
+
     // همه hooks باید قبل از return صدا زده بشن
     const { data: activeModels, isLoading: isLoadingActiveModels, refetch: refetchActiveModels } = useQuery({
         queryKey: ['ai-active-models', activeTab],
         queryFn: async () => {
             console.log(`🔍 [Query] Fetching active models for capability: "${activeTab}"`);
-            const providers = ['openrouter', 'huggingface', 'openai', 'gemini', 'deepseek', 'groq'];
+            // فقط providerهایی که واقعاً این capability را support می‌کنند
+            const providers = availableProviders 
+                ? availableProviders.map((p: any) => p.provider_name || p.slug).filter(Boolean)
+                : [];
             const results: Record<string, any> = {};
 
             await Promise.all(
-                providers.map(async (provider) => {
+                providers.map(async (provider: string) => {
                     try {
                         const response = await aiApi.models.getActiveModel(provider, activeTab);
                         if (response.data && response.data.model_id) {
@@ -248,260 +289,288 @@ export default function AIModelsPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                                        <Card className="border-blue-1/30 bg-blue/10">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1">
-                                                        <div className="p-2 bg-blue-0 rounded-lg flex-shrink-0">
-                                                            <Sparkles className="w-5 h-5 text-blue-1" />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-semibold text-font-p text-sm">OpenRouter</h3>
-                                                            <p className="text-xs text-font-s mt-0.5">
-                                                                400+ مدل از 60+ Provider
-                                                            </p>
-                                                            {activeModels?.openrouter ? (
-                                                                <div className="mt-2">
-                                                                    <Badge variant="green" className="text-xs mb-1">
-                                                                        <Check className="w-3 h-3 ml-1" />
-                                                                        فعال
-                                                                    </Badge>
-                                                                    <div className="text-xs text-font-p truncate">
-                                                                        {activeModels.openrouter.display_name || activeModels.openrouter.name}
-                                                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* OpenRouter - فقط اگر واقعاً capability را support کند */}
+                                        {availableProvidersMap.openrouter && (
+                                            <Card className="border-blue-1/40 bg-blue/5 hover:bg-blue/10 hover:border-blue-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="p-2.5 bg-blue-0/80 rounded-xl flex-shrink-0 shadow-sm">
+                                                                <Sparkles className="w-5 h-5 text-blue-1" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 space-y-1.5">
+                                                                <div>
+                                                                    <h3 className="font-semibold text-font-p text-base leading-tight">OpenRouter</h3>
+                                                                    <p className="text-xs text-font-s mt-1 leading-relaxed">
+                                                                        400+ مدل از 60+ Provider
+                                                                    </p>
                                                                 </div>
-                                                            ) : (
-                                                                <Badge variant="gray" className="text-xs mt-2">
-                                                                    <X className="w-3 h-3 ml-1" />
-                                                                    مدل فعالی ندارد
-                                                                </Badge>
-                                                            )}
+                                                                {activeModels?.openrouter ? (
+                                                                    <div className="mt-2.5 space-y-1.5">
+                                                                        <Badge variant="green" className="text-xs px-2 py-0.5 inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3" />
+                                                                            فعال
+                                                                        </Badge>
+                                                                        <div className="text-xs text-font-p font-medium leading-relaxed break-words">
+                                                                            {activeModels.openrouter.display_name || activeModels.openrouter.name}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <Badge variant="gray" className="text-xs mt-2.5 px-2 py-0.5 inline-flex items-center gap-1">
+                                                                        <X className="w-3 h-3" />
+                                                                        مدل فعالی ندارد
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setShowOpenRouterModal(true)}
+                                                            className="flex-shrink-0 h-9 px-4"
+                                                        >
+                                                            انتخاب
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setShowOpenRouterModal(true)}
-                                                        className="flex-shrink-0"
-                                                    >
-                                                        انتخاب
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        )}
 
-                                        <Card className="border-purple-1/30 bg-purple/10">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1">
-                                                        <div className="p-2 bg-purple-0 rounded-lg flex-shrink-0">
-                                                            <Sparkles className="w-5 h-5 text-purple-1" />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-semibold text-font-p text-sm">Hugging Face</h3>
-                                                            <p className="text-xs text-font-s mt-0.5">
-                                                                هزاران مدل Open Source
-                                                            </p>
-                                                            {activeModels?.huggingface ? (
-                                                                <div className="mt-2">
-                                                                    <Badge variant="green" className="text-xs mb-1">
-                                                                        <Check className="w-3 h-3 ml-1" />
-                                                                        فعال
-                                                                    </Badge>
-                                                                    <div className="text-xs text-font-p truncate">
-                                                                        {activeModels.huggingface.display_name || activeModels.huggingface.name}
-                                                                    </div>
+                                        {/* HuggingFace - فقط اگر واقعاً capability را support کند */}
+                                        {availableProvidersMap.huggingface && (
+                                            <Card className="border-purple-1/40 bg-purple/5 hover:bg-purple/10 hover:border-purple-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="p-2.5 bg-purple-0/80 rounded-xl flex-shrink-0 shadow-sm">
+                                                                <Sparkles className="w-5 h-5 text-purple-1" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 space-y-1.5">
+                                                                <div>
+                                                                    <h3 className="font-semibold text-font-p text-base leading-tight">Hugging Face</h3>
+                                                                    <p className="text-xs text-font-s mt-1 leading-relaxed">
+                                                                        هزاران مدل Open Source
+                                                                    </p>
                                                                 </div>
-                                                            ) : (
-                                                                <Badge variant="gray" className="text-xs mt-2">
-                                                                    <X className="w-3 h-3 ml-1" />
-                                                                    مدل فعالی ندارد
-                                                                </Badge>
-                                                            )}
+                                                                {activeModels?.huggingface ? (
+                                                                    <div className="mt-2.5 space-y-1.5">
+                                                                        <Badge variant="green" className="text-xs px-2 py-0.5 inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3" />
+                                                                            فعال
+                                                                        </Badge>
+                                                                        <div className="text-xs text-font-p font-medium leading-relaxed break-words">
+                                                                            {activeModels.huggingface.display_name || activeModels.huggingface.name}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <Badge variant="gray" className="text-xs mt-2.5 px-2 py-0.5 inline-flex items-center gap-1">
+                                                                        <X className="w-3 h-3" />
+                                                                        مدل فعالی ندارد
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setShowHuggingFaceModal(true)}
+                                                            className="flex-shrink-0 h-9 px-4"
+                                                        >
+                                                            انتخاب
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setShowHuggingFaceModal(true)}
-                                                        className="flex-shrink-0"
-                                                    >
-                                                        انتخاب
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <Card className="border-green-1/30 bg-green/10">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1">
-                                                        <div className="p-2 bg-green-0 rounded-lg flex-shrink-0">
-                                                            <span className="text-xl">🤖</span>
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-semibold text-font-p text-sm">OpenAI</h3>
-                                                            <p className="text-xs text-font-s mt-0.5">
-                                                                GPT-4o, DALL-E, Whisper
-                                                            </p>
-                                                            {activeModels?.openai ? (
-                                                                <div className="mt-2">
-                                                                    <Badge variant="green" className="text-xs mb-1">
-                                                                        <Check className="w-3 h-3 ml-1" />
-                                                                        فعال
-                                                                    </Badge>
-                                                                    <div className="text-xs text-font-p truncate">
-                                                                        {activeModels.openai.display_name || activeModels.openai.name}
-                                                                    </div>
+                                        {/* OpenAI - فقط اگر واقعاً capability را support کند */}
+                                        {availableProvidersMap.openai && (
+                                            <Card className="border-green-1/40 bg-green/5 hover:bg-green/10 hover:border-green-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="p-2.5 bg-green-0/80 rounded-xl flex-shrink-0 shadow-sm">
+                                                                <span className="text-xl">🤖</span>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 space-y-1.5">
+                                                                <div>
+                                                                    <h3 className="font-semibold text-font-p text-base leading-tight">OpenAI</h3>
+                                                                    <p className="text-xs text-font-s mt-1 leading-relaxed">
+                                                                        GPT-4o, DALL-E, Whisper
+                                                                    </p>
                                                                 </div>
-                                                            ) : (
-                                                                <Badge variant="gray" className="text-xs mt-2">
-                                                                    <X className="w-3 h-3 ml-1" />
-                                                                    مدل فعالی ندارد
-                                                                </Badge>
-                                                            )}
+                                                                {activeModels?.openai ? (
+                                                                    <div className="mt-2.5 space-y-1.5">
+                                                                        <Badge variant="green" className="text-xs px-2 py-0.5 inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3" />
+                                                                            فعال
+                                                                        </Badge>
+                                                                        <div className="text-xs text-font-p font-medium leading-relaxed break-words">
+                                                                            {activeModels.openai.display_name || activeModels.openai.name}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <Badge variant="gray" className="text-xs mt-2.5 px-2 py-0.5 inline-flex items-center gap-1">
+                                                                        <X className="w-3 h-3" />
+                                                                        مدل فعالی ندارد
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setShowOpenAIModal(true)}
+                                                            className="flex-shrink-0 h-9 px-4"
+                                                        >
+                                                            انتخاب
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setShowOpenAIModal(true)}
-                                                        className="flex-shrink-0"
-                                                    >
-                                                        انتخاب
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        )}
 
-                                        <Card className="border-orange-1/30 bg-orange/10">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1">
-                                                        <div className="p-2 bg-orange-0 rounded-lg flex-shrink-0">
-                                                            <span className="text-xl">🔷</span>
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-semibold text-font-p text-sm">Google Gemini</h3>
-                                                            <p className="text-xs text-font-s mt-0.5">
-                                                                Gemini 2.0 Flash, Pro
-                                                            </p>
-                                                            {activeModels?.gemini ? (
-                                                                <div className="mt-2">
-                                                                    <Badge variant="green" className="text-xs mb-1">
-                                                                        <Check className="w-3 h-3 ml-1" />
-                                                                        فعال
-                                                                    </Badge>
-                                                                    <div className="text-xs text-font-p truncate">
-                                                                        {activeModels.gemini.display_name || activeModels.gemini.name}
-                                                                    </div>
+                                        {/* Google Gemini - فقط اگر واقعاً capability را support کند */}
+                                        {availableProvidersMap.gemini && (
+                                            <Card className="border-orange-1/40 bg-orange/5 hover:bg-orange/10 hover:border-orange-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="p-2.5 bg-orange-0/80 rounded-xl flex-shrink-0 shadow-sm">
+                                                                <span className="text-xl">🔷</span>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 space-y-1.5">
+                                                                <div>
+                                                                    <h3 className="font-semibold text-font-p text-base leading-tight">Google Gemini</h3>
+                                                                    <p className="text-xs text-font-s mt-1 leading-relaxed">
+                                                                        Gemini 2.0 Flash, Pro
+                                                                    </p>
                                                                 </div>
-                                                            ) : (
-                                                                <Badge variant="gray" className="text-xs mt-2">
-                                                                    <X className="w-3 h-3 ml-1" />
-                                                                    مدل فعالی ندارد
-                                                                </Badge>
-                                                            )}
+                                                                {activeModels?.gemini ? (
+                                                                    <div className="mt-2.5 space-y-1.5">
+                                                                        <Badge variant="green" className="text-xs px-2 py-0.5 inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3" />
+                                                                            فعال
+                                                                        </Badge>
+                                                                        <div className="text-xs text-font-p font-medium leading-relaxed break-words">
+                                                                            {activeModels.gemini.display_name || activeModels.gemini.name}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <Badge variant="gray" className="text-xs mt-2.5 px-2 py-0.5 inline-flex items-center gap-1">
+                                                                        <X className="w-3 h-3" />
+                                                                        مدل فعالی ندارد
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setShowGeminiModal(true)}
+                                                            className="flex-shrink-0 h-9 px-4"
+                                                        >
+                                                            انتخاب
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setShowGeminiModal(true)}
-                                                        className="flex-shrink-0"
-                                                    >
-                                                        انتخاب
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        )}
 
-                                        <Card className="border-yellow-1/30 bg-yellow/10">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1">
-                                                        <div className="p-2 bg-yellow-0 rounded-lg flex-shrink-0">
-                                                            <span className="text-xl">🚀</span>
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-semibold text-font-p text-sm">DeepSeek</h3>
-                                                            <p className="text-xs text-font-s mt-0.5">
-                                                                R1, Chat (کم‌هزینه)
-                                                            </p>
-                                                            {activeModels?.deepseek ? (
-                                                                <div className="mt-2">
-                                                                    <Badge variant="green" className="text-xs mb-1">
-                                                                        <Check className="w-3 h-3 ml-1" />
-                                                                        فعال
-                                                                    </Badge>
-                                                                    <div className="text-xs text-font-p truncate">
-                                                                        {activeModels.deepseek.display_name || activeModels.deepseek.name}
-                                                                    </div>
+                                        {/* DeepSeek - فقط اگر واقعاً capability را support کند */}
+                                        {availableProvidersMap.deepseek && (
+                                            <Card className="border-yellow-1/40 bg-yellow/5 hover:bg-yellow/10 hover:border-yellow-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="p-2.5 bg-yellow-0/80 rounded-xl flex-shrink-0 shadow-sm">
+                                                                <span className="text-xl">🚀</span>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 space-y-1.5">
+                                                                <div>
+                                                                    <h3 className="font-semibold text-font-p text-base leading-tight">DeepSeek</h3>
+                                                                    <p className="text-xs text-font-s mt-1 leading-relaxed">
+                                                                        R1, Chat (کم‌هزینه)
+                                                                    </p>
                                                                 </div>
-                                                            ) : (
-                                                                <Badge variant="gray" className="text-xs mt-2">
-                                                                    <X className="w-3 h-3 ml-1" />
-                                                                    مدل فعالی ندارد
-                                                                </Badge>
-                                                            )}
+                                                                {activeModels?.deepseek ? (
+                                                                    <div className="mt-2.5 space-y-1.5">
+                                                                        <Badge variant="green" className="text-xs px-2 py-0.5 inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3" />
+                                                                            فعال
+                                                                        </Badge>
+                                                                        <div className="text-xs text-font-p font-medium leading-relaxed break-words">
+                                                                            {activeModels.deepseek.display_name || activeModels.deepseek.name}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <Badge variant="gray" className="text-xs mt-2.5 px-2 py-0.5 inline-flex items-center gap-1">
+                                                                        <X className="w-3 h-3" />
+                                                                        مدل فعالی ندارد
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setShowDeepSeekModal(true)}
+                                                            className="flex-shrink-0 h-9 px-4"
+                                                        >
+                                                            انتخاب
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setShowDeepSeekModal(true)}
-                                                        className="flex-shrink-0"
-                                                    >
-                                                        انتخاب
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        )}
 
-                                        <Card className="border-pink-1/30 bg-pink/10">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex items-center gap-3 flex-1">
-                                                        <div className="p-2 bg-pink-0 rounded-lg flex-shrink-0">
-                                                            <span className="text-xl">⚡</span>
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-semibold text-font-p text-sm">Groq</h3>
-                                                            <p className="text-xs text-font-s mt-0.5">
-                                                                Llama 3.3, Mixtral (رایگان)
-                                                            </p>
-                                                            {activeModels?.groq ? (
-                                                                <div className="mt-2">
-                                                                    <Badge variant="green" className="text-xs mb-1">
-                                                                        <Check className="w-3 h-3 ml-1" />
-                                                                        فعال
-                                                                    </Badge>
-                                                                    <div className="text-xs text-font-p truncate">
-                                                                        {activeModels.groq.display_name || activeModels.groq.name}
-                                                                    </div>
+                                        {/* Groq - فقط اگر واقعاً capability را support کند */}
+                                        {availableProvidersMap.groq && (
+                                            <Card className="border-pink-1/40 bg-pink/5 hover:bg-pink/10 hover:border-pink-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <CardContent className="p-5">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <div className="p-2.5 bg-pink-0/80 rounded-xl flex-shrink-0 shadow-sm">
+                                                                <span className="text-xl">⚡</span>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 space-y-1.5">
+                                                                <div>
+                                                                    <h3 className="font-semibold text-font-p text-base leading-tight">Groq</h3>
+                                                                    <p className="text-xs text-font-s mt-1 leading-relaxed">
+                                                                        Llama 3.3, Mixtral (رایگان)
+                                                                    </p>
                                                                 </div>
-                                                            ) : (
-                                                                <Badge variant="gray" className="text-xs mt-2">
-                                                                    <X className="w-3 h-3 ml-1" />
-                                                                    مدل فعالی ندارد
-                                                                </Badge>
-                                                            )}
+                                                                {activeModels?.groq ? (
+                                                                    <div className="mt-2.5 space-y-1.5">
+                                                                        <Badge variant="green" className="text-xs px-2 py-0.5 inline-flex items-center gap-1">
+                                                                            <Check className="w-3 h-3" />
+                                                                            فعال
+                                                                        </Badge>
+                                                                        <div className="text-xs text-font-p font-medium leading-relaxed break-words">
+                                                                            {activeModels.groq.display_name || activeModels.groq.name}
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <Badge variant="gray" className="text-xs mt-2.5 px-2 py-0.5 inline-flex items-center gap-1">
+                                                                        <X className="w-3 h-3" />
+                                                                        مدل فعالی ندارد
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setShowGroqModal(true)}
+                                                            className="flex-shrink-0 h-9 px-4"
+                                                        >
+                                                            انتخاب
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setShowGroqModal(true)}
-                                                        className="flex-shrink-0"
-                                                    >
-                                                        انتخاب
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -510,31 +579,36 @@ export default function AIModelsPage() {
                 })}
             </Tabs>
 
-            <Dialog open={showOpenRouterModal} onOpenChange={setShowOpenRouterModal}>
-                <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
-                    <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
-                        <DialogTitle className="flex items-center gap-3 text-font-p">
-                            <Sparkles className="w-6 h-6 text-blue-1" />
-                            انتخاب مدل‌های OpenRouter - {CAPABILITY_CONFIG[activeTab].label}
-                        </DialogTitle>
-                        <DialogDescription className="text-font-s">
-                            انتخاب مدل‌های مورد نظر از 400+ مدل OpenRouter برای {CAPABILITY_CONFIG[activeTab].description}
-                        </DialogDescription>
-                    </DialogHeader>
+            {/* OpenRouter Dialog - فقط اگر واقعاً capability را support کند */}
+            {availableProvidersMap.openrouter && (
+                <Dialog open={showOpenRouterModal} onOpenChange={setShowOpenRouterModal}>
+                    <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
+                        <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
+                            <DialogTitle className="flex items-center gap-3 text-font-p">
+                                <Sparkles className="w-6 h-6 text-blue-1" />
+                                انتخاب مدل‌های OpenRouter - {CAPABILITY_CONFIG[activeTab].label}
+                            </DialogTitle>
+                            <DialogDescription className="text-font-s">
+                                انتخاب مدل‌های مورد نظر از 400+ مدل OpenRouter برای {CAPABILITY_CONFIG[activeTab].description}
+                            </DialogDescription>
+                        </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
-                        <OpenRouterModelSelectorContent
-                            providerId="openrouter"
-                            providerName="OpenRouter"
-                            capability={activeTab}
-                            onSave={handleModelSaved}
-                            onSelectionChange={() => { }}
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 pb-6 min-h-0">
+                            <OpenRouterModelSelectorContent
+                                providerId="openrouter"
+                                providerName="OpenRouter"
+                                capability={activeTab}
+                                onSave={handleModelSaved}
+                                onSelectionChange={() => { }}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
 
-            <Dialog open={showHuggingFaceModal} onOpenChange={setShowHuggingFaceModal}>
+            {/* HuggingFace Dialog - فقط اگر واقعاً capability را support کند */}
+            {availableProvidersMap.huggingface && (
+                <Dialog open={showHuggingFaceModal} onOpenChange={setShowHuggingFaceModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
                         <DialogTitle className="flex items-center gap-3 text-font-p">
@@ -557,8 +631,11 @@ export default function AIModelsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            )}
 
-            <Dialog open={showOpenAIModal} onOpenChange={setShowOpenAIModal}>
+            {/* OpenAI Dialog - فقط اگر واقعاً capability را support کند */}
+            {availableProvidersMap.openai && (
+                <Dialog open={showOpenAIModal} onOpenChange={setShowOpenAIModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
                         <DialogTitle className="flex items-center gap-3 text-font-p">
@@ -580,8 +657,11 @@ export default function AIModelsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            )}
 
-            <Dialog open={showGeminiModal} onOpenChange={setShowGeminiModal}>
+            {/* Google Gemini Dialog - فقط اگر واقعاً capability را support کند */}
+            {availableProvidersMap.gemini && (
+                <Dialog open={showGeminiModal} onOpenChange={setShowGeminiModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
                         <DialogTitle className="flex items-center gap-3 text-font-p">
@@ -603,8 +683,11 @@ export default function AIModelsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            )}
 
-            <Dialog open={showDeepSeekModal} onOpenChange={setShowDeepSeekModal}>
+            {/* DeepSeek Dialog - فقط اگر واقعاً capability را support کند */}
+            {availableProvidersMap.deepseek && (
+                <Dialog open={showDeepSeekModal} onOpenChange={setShowDeepSeekModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
                         <DialogTitle className="flex items-center gap-3 text-font-p">
@@ -626,8 +709,11 @@ export default function AIModelsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            )}
 
-            <Dialog open={showGroqModal} onOpenChange={setShowGroqModal}>
+            {/* Groq Dialog - فقط اگر واقعاً capability را support کند */}
+            {availableProvidersMap.groq && (
+                <Dialog open={showGroqModal} onOpenChange={setShowGroqModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
                     <DialogHeader className="px-6 pt-6 pb-4 border-b border-br flex-shrink-0">
                         <DialogTitle className="flex items-center gap-3 text-font-p">
@@ -649,6 +735,7 @@ export default function AIModelsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            )}
         </div>
     );
 }

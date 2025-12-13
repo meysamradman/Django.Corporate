@@ -13,6 +13,7 @@ from src.user.access_control import PermissionValidator
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider
+from src.ai.providers.huggingface import HuggingFaceProvider
 from src.ai.models import AIProvider, AdminProviderSettings
 
 
@@ -123,7 +124,9 @@ class AIChatViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
-            providers = AIChatService.get_available_providers(admin=request.user)
+            # استفاده از ProviderAvailabilityManager که مدل‌های فعال را هم چک می‌کند
+            from src.ai.providers.capabilities import ProviderAvailabilityManager
+            providers = ProviderAvailabilityManager.get_available_providers('chat', include_api_based=True)
             return APIResponse.success(
                 message=AI_SUCCESS["providers_list_retrieved"],
                 data=providers,

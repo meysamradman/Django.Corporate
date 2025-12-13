@@ -13,6 +13,7 @@ from src.user.access_control import PermissionValidator
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider
+from src.ai.providers.huggingface import HuggingFaceProvider
 from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.services.destination_handler import ContentDestinationHandler
 
@@ -59,7 +60,9 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         try:
-            providers = AIContentGenerationService.get_available_providers(admin=request.user)
+            # استفاده از ProviderAvailabilityManager که مدل‌های فعال را هم چک می‌کند
+            from src.ai.providers.capabilities import ProviderAvailabilityManager
+            providers = ProviderAvailabilityManager.get_available_providers('content', include_api_based=True)
             return APIResponse.success(
                 message=AI_SUCCESS["providers_list_retrieved"],
                 data=providers,
@@ -192,6 +195,73 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=AI_ERRORS["groq_models_error"].format(error=str(e)),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'], url_path='huggingface-models')
+    def huggingface_models(self, request):
+        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
+        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
+        has_permission = has_content_permission or has_manage_permission
+        
+        if not has_permission:
+            return APIResponse.error(
+                message=AI_ERRORS["provider_not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            try:
+                provider = AIProvider.objects.get(slug='huggingface', is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.error(
+                    message=AI_ERRORS["huggingface_not_active"],
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+            
+            settings = AdminProviderSettings.objects.filter(
+                admin=request.user,
+                provider=provider,
+                is_active=True
+            ).first()
+            
+            api_key = None
+            
+            if settings:
+                try:
+                    api_key = settings.get_api_key()
+                except Exception:
+                    if settings.use_shared_api:
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+                    else:
+                        personal_key = settings.get_personal_api_key()
+                        if personal_key and personal_key.strip():
+                            api_key = personal_key
+            
+            if not api_key or not api_key.strip():
+                shared_key = provider.get_shared_api_key()
+                if shared_key and shared_key.strip():
+                    api_key = shared_key
+            
+            use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
+            task_filter = request.query_params.get('task', 'text-generation')  # برای content از text-generation استفاده می‌کنیم
+            
+            models = HuggingFaceProvider.get_available_models(
+                api_key=api_key if (api_key and api_key.strip()) else None,
+                task_filter=task_filter,
+                use_cache=use_cache
+            )
+            
+            return APIResponse.success(
+                message=AI_SUCCESS["huggingface_models_retrieved"].format(from_cache=""),
+                data=models,
+                status_code=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return APIResponse.error(
+                message=AI_ERRORS["huggingface_models_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
