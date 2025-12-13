@@ -4,6 +4,7 @@ from typing import Optional, Any, Callable
 from .namespaces import CacheTTL, CacheNamespace
 from .keys import CacheKeyBuilder
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class RedisManager:
             value = self._cache.get(key, default)
             return value
         except Exception as e:
-            logger.error(f"Redis GET error for key '{key}': {e}")
+            logger.warning(f"Redis GET error for key '{key}': {e}")
             return default
     
     def set(self, key: str, value: Any, timeout: Optional[int] = None) -> bool:
@@ -28,7 +29,7 @@ class RedisManager:
             self._cache.set(key, value, timeout)
             return True
         except Exception as e:
-            logger.error(f"Redis SET error for key '{key}': {e}")
+            logger.warning(f"Redis SET error for key '{key}': {e}")
             return False
     
     def delete(self, key: str) -> bool:
@@ -109,14 +110,23 @@ class RedisManager:
             return False
     
     def ping(self) -> bool:
-        try:
-            self._cache.set('_health_check_', 'ok', 10)
-            result = self._cache.get('_health_check_')
-            self._cache.delete('_health_check_')
-            return result == 'ok'
-        except Exception as e:
-            logger.error(f"Redis PING error: {e}")
-            return False
+        """بررسی سلامت Redis با retry"""
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            try:
+                test_key = f'_health_check_{int(time.time())}'
+                self._cache.set(test_key, 'ok', 10)
+                result = self._cache.get(test_key)
+                self._cache.delete(test_key)
+                if result == 'ok':
+                    return True
+            except Exception as e:
+                if attempt == max_retries:
+                    logger.error(f"Redis PING error after {max_retries} attempts: {e}")
+                else:
+                    logger.warning(f"Redis PING attempt {attempt} failed, retrying...")
+                    time.sleep(0.5 * attempt)
+        return False
 
 
 class SessionRedisManager(RedisManager):

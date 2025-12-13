@@ -244,9 +244,6 @@ class AIModelManager(models.Manager):
         Get the single active model for a provider+capability combination.
         Returns None if no active model exists.
         """
-        if capability == 'content':
-            capability = 'chat'
-        
         cache_key = f"active_model_{provider_slug}_{capability}"
         model_id = cache.get(cache_key)
         
@@ -310,6 +307,7 @@ class AIModel(BaseModel, CacheMixin):
     """
     CAPABILITY_CHOICES = [
         ('chat', 'Chat / Text Generation'),
+        ('content', 'Content Generation'),
         ('image', 'Image Generation'),
         ('audio', 'Audio Generation'),
         ('speech_to_text', 'Speech to Text'),
@@ -581,9 +579,6 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_capability(cls, capability: str, include_inactive: bool = True):
-        if capability == 'content':
-            capability = 'chat'
-        
         audio_capabilities = ['audio', 'speech_to_text', 'text_to_speech'] if capability == 'audio' else None
         
         cache_key = AICacheKeys.models_by_capability(capability, include_inactive)

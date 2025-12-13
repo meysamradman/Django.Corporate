@@ -20,73 +20,73 @@ import { toast } from '@/core/toast';
 
 // Tab Skeleton
 const TabSkeleton = () => (
-  <div className="space-y-4">
-    <Skeleton className="h-10 w-full" />
-    <Skeleton className="h-24 w-full" />
-    <Skeleton className="h-24 w-full" />
     <div className="space-y-4">
-      {[1, 2, 3].map((i) => (
-        <Skeleton key={i} className="h-24 w-full" />
-      ))}
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+            ))}
+        </div>
     </div>
-  </div>
 );
 
 // Dynamic imports
 const ModelSelector = dynamic(
-  () => import('@/components/ai/models/ModelSelector').then(mod => ({ default: mod.ModelSelector })),
-  { 
-    ssr: false,
-    loading: () => <TabSkeleton />
-  }
+    () => import('@/components/ai/models/ModelSelector').then(mod => ({ default: mod.ModelSelector })),
+    {
+        ssr: false,
+        loading: () => <TabSkeleton />
+    }
 );
 
 const OpenRouterModelSelectorContent = dynamic(
-  () => import('@/components/ai/settings/OpenRouterModelSelector').then(mod => ({ default: mod.OpenRouterModelSelectorContent })),
-  { 
-    ssr: false,
-    loading: () => <Skeleton className="h-64 w-full" />
-  }
+    () => import('@/components/ai/settings/OpenRouterModelSelector').then(mod => ({ default: mod.OpenRouterModelSelectorContent })),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-64 w-full" />
+    }
 );
 
 const HuggingFaceModelSelectorContent = dynamic(
-  () => import('@/components/ai/settings/HuggingFaceModelSelector').then(mod => ({ default: mod.HuggingFaceModelSelectorContent })),
-  { 
-    ssr: false,
-    loading: () => <Skeleton className="h-64 w-full" />
-  }
+    () => import('@/components/ai/settings/HuggingFaceModelSelector').then(mod => ({ default: mod.HuggingFaceModelSelectorContent })),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-64 w-full" />
+    }
 );
 
 const OpenAIModelSelectorContent = dynamic(
-  () => import('@/components/ai/settings/OpenAIModelSelector').then(mod => ({ default: mod.OpenAIModelSelectorContent })),
-  { 
-    ssr: false,
-    loading: () => <Skeleton className="h-64 w-full" />
-  }
+    () => import('@/components/ai/settings/OpenAIModelSelector').then(mod => ({ default: mod.OpenAIModelSelectorContent })),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-64 w-full" />
+    }
 );
 
 const GoogleGeminiModelSelectorContent = dynamic(
-  () => import('@/components/ai/settings/GoogleGeminiModelSelector').then(mod => ({ default: mod.GoogleGeminiModelSelectorContent })),
-  { 
-    ssr: false,
-    loading: () => <Skeleton className="h-64 w-full" />
-  }
+    () => import('@/components/ai/settings/GoogleGeminiModelSelector').then(mod => ({ default: mod.GoogleGeminiModelSelectorContent })),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-64 w-full" />
+    }
 );
 
 const DeepSeekModelSelectorContent = dynamic(
-  () => import('@/components/ai/settings/DeepSeekModelSelector').then(mod => ({ default: mod.DeepSeekModelSelectorContent })),
-  { 
-    ssr: false,
-    loading: () => <Skeleton className="h-64 w-full" />
-  }
+    () => import('@/components/ai/settings/DeepSeekModelSelector').then(mod => ({ default: mod.DeepSeekModelSelectorContent })),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-64 w-full" />
+    }
 );
 
 const GroqModelSelectorContent = dynamic(
-  () => import('@/components/ai/settings/GroqModelSelector').then(mod => ({ default: mod.GroqModelSelectorContent })),
-  { 
-    ssr: false,
-    loading: () => <Skeleton className="h-64 w-full" />
-  }
+    () => import('@/components/ai/settings/GroqModelSelector').then(mod => ({ default: mod.GroqModelSelectorContent })),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-64 w-full" />
+    }
 );
 
 type Capability = 'chat' | 'content' | 'image' | 'audio';
@@ -138,7 +138,8 @@ export default function AIModelsPage() {
             const response = await aiApi.providers.getAll();
             return response.data || [];
         },
-        staleTime: 5 * 60 * 1000,
+        staleTime: 0, // بدون کش
+        gcTime: 0,
     });
 
     // تبدیل slug به ID
@@ -148,13 +149,13 @@ export default function AIModelsPage() {
     };
 
     // همه hooks باید قبل از return صدا زده بشن
-    const { data: activeModels, isLoading: isLoadingActiveModels } = useQuery({
+    const { data: activeModels, isLoading: isLoadingActiveModels, refetch: refetchActiveModels } = useQuery({
         queryKey: ['ai-active-models', activeTab],
         queryFn: async () => {
-            // دریافت مدل‌های فعال برای همه Provider ها
+            console.log(`🔍 [Query] Fetching active models for capability: "${activeTab}"`);
             const providers = ['openrouter', 'huggingface', 'openai', 'gemini', 'deepseek', 'groq'];
             const results: Record<string, any> = {};
-            
+
             await Promise.all(
                 providers.map(async (provider) => {
                     try {
@@ -162,15 +163,28 @@ export default function AIModelsPage() {
                         if (response.data && response.data.model_id) {
                             results[provider] = response.data;
                         }
-                    } catch (error) {
-                        // Silent fail - no active model
+                    } catch (error: any) {
+                        // Silent fail - 404 is expected when no active model exists
+                        // Only log non-404 errors
+                        if (error?.response?.AppStatusCode !== 404 && error?.response?.status !== 404) {
+                            console.warn(`[${provider}/${activeTab}] خطا در دریافت مدل فعال:`, error);
+                        }
                     }
                 })
             );
-            
+
+            const activeProviders = Object.keys(results);
+            if (activeProviders.length > 0) {
+                console.log(`✅ [${activeTab}] فعال:`, activeProviders.map(k => `${k}: ${results[k]?.display_name || results[k]?.name}`).join(' | '));
+            } else {
+                console.log(`⚠️ [${activeTab}] هیچ مدل فعالی یافت نشد`);
+            }
             return results;
         },
-        staleTime: 5 * 60 * 1000,
+        enabled: !!activeTab,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: 'always',
     });
 
     const queryClient = useQueryClient();
@@ -184,8 +198,9 @@ export default function AIModelsPage() {
     }, [isAuthLoading, hasAccess, router]);
 
     const handleModelSaved = () => {
-        // رفرش لیست مدل‌های فعال
-        queryClient.invalidateQueries({ queryKey: ['ai-active-models'] });
+        // رفرش لیست مدل‌های فعال برای Tab فعلی
+        queryClient.invalidateQueries({ queryKey: ['ai-active-models', activeTab] });
+        refetchActiveModels(); // رفرش فوری
         // بستن پاپ‌آپ‌ها
         setShowOpenRouterModal(false);
         setShowHuggingFaceModal(false);
@@ -217,7 +232,7 @@ export default function AIModelsPage() {
                 {Object.entries(CAPABILITY_CONFIG).map(([key, config]) => {
                     const TabIcon = config.icon;
                     return (
-                        <TabsContent key={key} value={key}>
+                        <TabsContent key={`${key}-${activeTab}`} value={key}>
                             <Card className="shadow-sm border hover:shadow-lg transition-all duration-300">
                                 <CardHeader className="border-b">
                                     <CardTitle className="flex items-center gap-3">
@@ -247,14 +262,14 @@ export default function AIModelsPage() {
                                                                 400+ مدل از 60+ Provider
                                                             </p>
                                                             {activeModels?.openrouter ? (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <Badge variant="green" className="text-xs">
+                                                                <div className="mt-2">
+                                                                    <Badge variant="green" className="text-xs mb-1">
                                                                         <Check className="w-3 h-3 ml-1" />
                                                                         فعال
                                                                     </Badge>
-                                                                    <span className="text-xs text-font-s truncate">
+                                                                    <div className="text-xs text-font-p truncate">
                                                                         {activeModels.openrouter.display_name || activeModels.openrouter.name}
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <Badge variant="gray" className="text-xs mt-2">
@@ -289,14 +304,14 @@ export default function AIModelsPage() {
                                                                 هزاران مدل Open Source
                                                             </p>
                                                             {activeModels?.huggingface ? (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <Badge variant="green" className="text-xs">
+                                                                <div className="mt-2">
+                                                                    <Badge variant="green" className="text-xs mb-1">
                                                                         <Check className="w-3 h-3 ml-1" />
                                                                         فعال
                                                                     </Badge>
-                                                                    <span className="text-xs text-font-s truncate">
+                                                                    <div className="text-xs text-font-p truncate">
                                                                         {activeModels.huggingface.display_name || activeModels.huggingface.name}
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <Badge variant="gray" className="text-xs mt-2">
@@ -333,14 +348,14 @@ export default function AIModelsPage() {
                                                                 GPT-4o, DALL-E, Whisper
                                                             </p>
                                                             {activeModels?.openai ? (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <Badge variant="green" className="text-xs">
+                                                                <div className="mt-2">
+                                                                    <Badge variant="green" className="text-xs mb-1">
                                                                         <Check className="w-3 h-3 ml-1" />
                                                                         فعال
                                                                     </Badge>
-                                                                    <span className="text-xs text-font-s truncate">
+                                                                    <div className="text-xs text-font-p truncate">
                                                                         {activeModels.openai.display_name || activeModels.openai.name}
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <Badge variant="gray" className="text-xs mt-2">
@@ -375,14 +390,14 @@ export default function AIModelsPage() {
                                                                 Gemini 2.0 Flash, Pro
                                                             </p>
                                                             {activeModels?.gemini ? (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <Badge variant="green" className="text-xs">
+                                                                <div className="mt-2">
+                                                                    <Badge variant="green" className="text-xs mb-1">
                                                                         <Check className="w-3 h-3 ml-1" />
                                                                         فعال
                                                                     </Badge>
-                                                                    <span className="text-xs text-font-s truncate">
+                                                                    <div className="text-xs text-font-p truncate">
                                                                         {activeModels.gemini.display_name || activeModels.gemini.name}
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <Badge variant="gray" className="text-xs mt-2">
@@ -417,14 +432,14 @@ export default function AIModelsPage() {
                                                                 R1, Chat (کم‌هزینه)
                                                             </p>
                                                             {activeModels?.deepseek ? (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <Badge variant="green" className="text-xs">
+                                                                <div className="mt-2">
+                                                                    <Badge variant="green" className="text-xs mb-1">
                                                                         <Check className="w-3 h-3 ml-1" />
                                                                         فعال
                                                                     </Badge>
-                                                                    <span className="text-xs text-font-s truncate">
+                                                                    <div className="text-xs text-font-p truncate">
                                                                         {activeModels.deepseek.display_name || activeModels.deepseek.name}
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <Badge variant="gray" className="text-xs mt-2">
@@ -459,14 +474,14 @@ export default function AIModelsPage() {
                                                                 Llama 3.3, Mixtral (رایگان)
                                                             </p>
                                                             {activeModels?.groq ? (
-                                                                <div className="mt-2 flex items-center gap-2">
-                                                                    <Badge variant="green" className="text-xs">
+                                                                <div className="mt-2">
+                                                                    <Badge variant="green" className="text-xs mb-1">
                                                                         <Check className="w-3 h-3 ml-1" />
                                                                         فعال
                                                                     </Badge>
-                                                                    <span className="text-xs text-font-s truncate">
+                                                                    <div className="text-xs text-font-p truncate">
                                                                         {activeModels.groq.display_name || activeModels.groq.name}
-                                                                    </span>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <Badge variant="gray" className="text-xs mt-2">

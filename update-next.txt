@@ -1,0 +1,4 @@
+npm list next
+npm install next@16.0.5
+ncu -u
+npm install

@@ -212,7 +212,7 @@ class ProviderAvailabilityManager:
             'huggingface': 'Hugging Face',
         }
         
-        db_capability = 'chat' if capability == 'content' else capability
+        db_capability = capability
         
         providers_with_models = AIProvider.objects.filter(
             is_active=True,

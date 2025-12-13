@@ -378,9 +378,13 @@ export const aiApi = {
         getActiveModel: async (providerSlug: string, capability: string): Promise<ApiResponse<AIModelDetail>> => {
             try {
                 const endpoint = `/admin/ai-models/active_model/?provider=${providerSlug}&capability=${capability}`;
-                return await fetchApi.get<AIModelDetail>(endpoint);
+                // Silent mode - 404 is expected when no active model exists
+                return await fetchApi.get<AIModelDetail>(endpoint, {
+                    showErrorToast: false,
+                    showSuccessToast: false,
+                });
             } catch (error: any) {
-                // Silent fail for 404 - it's expected when no model is active
+                // Silently throw - caller will handle
                 throw error;
             }
         },
