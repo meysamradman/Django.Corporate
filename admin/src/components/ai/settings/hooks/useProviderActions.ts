@@ -18,10 +18,11 @@ export function useProviderActions({
   isSuperAdmin,
 }: UseProviderActionsProps) {
   const queryClient = useQueryClient();
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [personalApiKeys, setPersonalApiKeys] = useState<Record<string, string>>({});
+  const [sharedApiKeys, setSharedApiKeys] = useState<Record<string, string>>({});
   const [showApiKeys, setShowApiKeys] = useState<Record<string, boolean>>({});
 
-  const loadedApiKeys = useMemo(() => {
+  const loadedPersonalApiKeys = useMemo(() => {
     if (!providers.length) return {};
 
     const keys: Record<string, string> = {};
@@ -37,14 +38,30 @@ export function useProviderActions({
     return keys;
   }, [providers, personalSettingsMap]);
 
-  useEffect(() => {
-    if (Object.keys(loadedApiKeys).length === 0) return;
+  const loadedSharedApiKeys = useMemo(() => {
+    if (!providers.length) return {};
 
-    setApiKeys(prev => {
+    const keys: Record<string, string> = {};
+    providers.forEach(provider => {
+      const backendProvider = provider.backendProvider;
+      if (backendProvider?.shared_api_key) {
+        const apiKey = backendProvider.shared_api_key;
+        if (apiKey && apiKey !== '***' && apiKey.trim() !== '') {
+          keys[provider.id] = apiKey;
+        }
+      }
+    });
+    return keys;
+  }, [providers]);
+
+  useEffect(() => {
+    if (Object.keys(loadedPersonalApiKeys).length === 0) return;
+
+    setPersonalApiKeys(prev => {
       const updated = { ...prev };
       let hasChanges = false;
 
-      Object.entries(loadedApiKeys).forEach(([key, value]) => {
+      Object.entries(loadedPersonalApiKeys).forEach(([key, value]) => {
         if (value && value.trim() !== '' && value !== '***') {
           if (!prev[key] || prev[key].trim() === '' || prev[key] === '***') {
             updated[key] = value;
@@ -55,7 +72,27 @@ export function useProviderActions({
 
       return hasChanges ? updated : prev;
     });
-  }, [loadedApiKeys]);
+  }, [loadedPersonalApiKeys]);
+
+  useEffect(() => {
+    if (Object.keys(loadedSharedApiKeys).length === 0) return;
+
+    setSharedApiKeys(prev => {
+      const updated = { ...prev };
+      let hasChanges = false;
+
+      Object.entries(loadedSharedApiKeys).forEach(([key, value]) => {
+        if (value && value.trim() !== '' && value !== '***') {
+          if (!prev[key] || prev[key].trim() === '' || prev[key] === '***') {
+            updated[key] = value;
+            hasChanges = true;
+          }
+        }
+      });
+
+      return hasChanges ? updated : prev;
+    });
+  }, [loadedSharedApiKeys]);
 
   const saveApiKeyMutation = useMutation({
     mutationFn: async ({ providerId, apiKey, useSharedApi }: { providerId: string; apiKey: string; useSharedApi: boolean }) => {
@@ -103,10 +140,19 @@ export function useProviderActions({
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccess('API key با موفقیت ذخیره شد');
-      setApiKeys(prev => ({
-        ...prev,
-        [variables.providerId]: variables.apiKey
-      }));
+      
+      if (variables.useSharedApi && isSuperAdmin) {
+        setSharedApiKeys(prev => ({
+          ...prev,
+          [variables.providerId]: variables.apiKey
+        }));
+      } else {
+        setPersonalApiKeys(prev => ({
+          ...prev,
+          [variables.providerId]: variables.apiKey
+        }));
+      }
+      
       setShowApiKeys(prev => ({
         ...prev,
         [variables.providerId]: false
@@ -159,12 +205,10 @@ export function useProviderActions({
     },
   });
 
-  const handleSaveProvider = useCallback((providerId: string) => {
-    const apiKey = apiKeys[providerId] || '';
-    const setting = personalSettingsMap[providerId];
-    const useSharedApi = setting?.use_shared_api ?? false;
-
-    if (!useSharedApi && !apiKey.trim()) {
+  const handleSaveProvider = useCallback((providerId: string, useSharedApi: boolean) => {
+    const apiKey = useSharedApi ? (sharedApiKeys[providerId] || '') : (personalApiKeys[providerId] || '');
+    
+    if (!apiKey.trim()) {
       showError('لطفاً API key را وارد کنید');
       return;
     }
@@ -174,7 +218,7 @@ export function useProviderActions({
       apiKey: apiKey.trim(),
       useSharedApi,
     });
-  }, [apiKeys, personalSettingsMap, saveApiKeyMutation]);
+  }, [personalApiKeys, sharedApiKeys, saveApiKeyMutation, isSuperAdmin]);
 
   const handleToggleActive = useCallback((providerId: string, checked: boolean, useSharedApi: boolean) => {
     const finalUseSharedApi = isSuperAdmin ? useSharedApi : false;
@@ -186,8 +230,10 @@ export function useProviderActions({
   }, [toggleActiveMutation, isSuperAdmin]);
 
   return {
-    apiKeys,
-    setApiKeys,
+    personalApiKeys,
+    sharedApiKeys,
+    setPersonalApiKeys,
+    setSharedApiKeys,
     showApiKeys,
     setShowApiKeys,
     saveApiKeyMutation,

@@ -99,18 +99,7 @@ const GEMINI_MODELS: Record<string, StaticModel[]> = {
       context_window: null,
     },
   ],
-  audio: [
-    {
-      id: 'gemini-1.5-flash',
-      name: 'gemini-1.5-flash',
-      display_name: 'Gemini 1.5 Flash (Audio)',
-      description: 'پردازش و تولید صدا',
-      pricing_input: 0.075,
-      pricing_output: 0.3,
-      max_tokens: 8192,
-      context_window: 1000000,
-    },
-  ],
+  audio: [],  // Gemini does not support audio generation yet
 };
 
 export function GoogleGeminiModelSelectorContent({

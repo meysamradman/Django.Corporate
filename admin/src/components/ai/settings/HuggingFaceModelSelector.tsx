@@ -63,7 +63,10 @@ export function HuggingFaceModelSelectorContent({
         }
         
         if (response.metaData.status === 'success' && response.data) {
-          const modelsData = Array.isArray(response.data) ? response.data : [];
+          // Backend حالا data.models برمی‌گردونه
+          const responseData = response.data as any;
+          const modelsData = responseData.models || (Array.isArray(response.data) ? response.data : []);
+          
           const mappedModels: HuggingFaceModel[] = modelsData.map((model: any) => {
             // HuggingFace همه مدل‌هایش رایگان است
             const isFree = true;

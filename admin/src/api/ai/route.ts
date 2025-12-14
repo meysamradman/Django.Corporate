@@ -104,7 +104,14 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = `/admin/ai-image-generation/providers/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
+                // استفاده از endpoint جدید browse-models
+                const params = new URLSearchParams({ 
+                    provider: 'openrouter', 
+                    capability: 'image',
+                    use_cache: 'true'
+                });
+                if (provider) params.append('provider_filter', provider);
+                const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 throw error;
@@ -113,7 +120,14 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = `/admin/ai-image-providers/huggingface-models/${task ? `?task=${task}` : ''}`;
+                // استفاده از endpoint جدید browse-models
+                const params = new URLSearchParams({ 
+                    provider: 'huggingface', 
+                    capability: 'image',
+                    use_cache: 'true'
+                });
+                if (task) params.append('task_filter', task);
+                const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 throw error;
@@ -152,7 +166,14 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = `/admin/ai-content/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
+                // استفاده از endpoint جدید browse-models
+                const params = new URLSearchParams({ 
+                    provider: 'openrouter', 
+                    capability: 'content',
+                    use_cache: 'true'
+                });
+                if (provider) params.append('provider_filter', provider);
+                const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 throw error;
@@ -161,10 +182,16 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint مناسب برای content
-                const endpoint = `/admin/ai-content/huggingface-models/${task ? `?task=${task}` : '?task=text-generation'}`;
+                // استفاده از endpoint جدید browse-models
+                const params = new URLSearchParams({ 
+                    provider: 'huggingface', 
+                    capability: 'content',
+                    use_cache: 'true'
+                });
+                if (task) params.append('task_filter', task);
+                const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await fetchApi.get<any[]>(endpoint, {
-                    showErrorToast: false, // Allow component to handle error display
+                    showErrorToast: false,
                 });
             } catch (error: any) {
                 throw error;
@@ -228,7 +255,14 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                const endpoint = `/admin/ai-chat/openrouter-models/${provider ? `?provider=${provider}` : ''}`;
+                // استفاده از endpoint جدید browse-models
+                const params = new URLSearchParams({ 
+                    provider: 'openrouter', 
+                    capability: 'chat',
+                    use_cache: 'true'
+                });
+                if (provider) params.append('provider_filter', provider);
+                const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await fetchApi.get<any[]>(endpoint);
             } catch (error: any) {
                 throw error;
@@ -237,10 +271,16 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint مناسب برای chat
-                const endpoint = `/admin/ai-chat/huggingface-models/${task ? `?task=${task}` : '?task=text-generation'}`;
+                // استفاده از endpoint جدید browse-models
+                const params = new URLSearchParams({ 
+                    provider: 'huggingface', 
+                    capability: 'chat',
+                    use_cache: 'true'
+                });
+                if (task) params.append('task_filter', task);
+                const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await fetchApi.get<any[]>(endpoint, {
-                    showErrorToast: false, // Allow component to handle error display
+                    showErrorToast: false,
                 });
             } catch (error: any) {
                 throw error;
@@ -397,7 +437,8 @@ export const aiApi = {
 
         getActiveModel: async (providerSlug: string, capability: string): Promise<ApiResponse<AIModelDetail>> => {
             try {
-                const endpoint = `/admin/ai-models/active_model/?provider=${providerSlug}&capability=${capability}`;
+                // استفاده از endpoint جدید active-model در ai-models viewset
+                const endpoint = `/admin/ai-models/active-model/?provider=${providerSlug}&capability=${capability}`;
                 // Silent mode - 404 is expected when no active model exists
                 return await fetchApi.get<AIModelDetail>(endpoint, {
                     showErrorToast: false,
@@ -458,6 +499,25 @@ export const aiApi = {
                 return await fetchApi.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch (error: any) {
                 showError(error?.message || 'خطا در ایجاد Model');
+                throw error;
+            }
+        },
+
+        selectModel: async (data: {
+            provider: string;  // provider slug
+            capability: string;
+            model_id: string;
+            model_name: string;
+            pricing_input?: number;
+            pricing_output?: number;
+        }): Promise<ApiResponse<AIModelDetail>> => {
+            try {
+                const endpoint = '/admin/ai-models/select-model/';
+                return await fetchApi.post<AIModelDetail>(endpoint, data as Record<string, unknown>, {
+                    showErrorToast: false, // Component will handle
+                    showSuccessToast: false,
+                });
+            } catch (error: any) {
                 throw error;
             }
         },

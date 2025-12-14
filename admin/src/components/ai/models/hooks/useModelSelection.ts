@@ -87,44 +87,11 @@ export function useModelSelection({
           }
         }
       } else {
-        // فعال کردن مدل - ابتدا مدل قبلی رو غیرفعال کن
-        if (mode === 'full') {
-          // برای OpenRouter: ابتدا همه مدل‌های فعال برای این provider+capability رو غیرفعال کن
-          try {
-            const providersResponse = await aiApi.providers.getAll();
-            const providers = providersResponse.data || [];
-            const targetProvider = providers.find((p: any) =>
-              p.name.toLowerCase() === providerName?.toLowerCase() ||
-              p.slug.toLowerCase() === providerName?.toLowerCase() ||
-              p.display_name.toLowerCase() === providerName?.toLowerCase()
-            );
-
-            if (targetProvider) {
-              const allModelsResponse = await aiApi.models.getAll();
-              if (allModelsResponse.metaData.status === 'success' && allModelsResponse.data) {
-                const allModels = Array.isArray(allModelsResponse.data) ? allModelsResponse.data : [];
-                const activeModelsForCapability = allModels.filter(
-                  (m: any) => 
-                    m.provider_id === targetProvider.id && 
-                    m.capabilities?.includes(capability) && 
-                    m.is_active
-                );
-                
-                // غیرفعال کردن همه مدل‌های فعال قبلی
-                for (const activeModel of activeModelsForCapability) {
-                  await aiApi.models.update(activeModel.id, { is_active: false });
-                }
-              }
-            }
-          } catch (error) {
-            console.error('خطا در غیرفعال کردن مدل قبلی:', error);
-          }
-        }
-
-        let payload: any;
-
+        // فعال کردن مدل با استفاده از endpoint جدید select-model
+        // این endpoint خودش مدل‌های قبلی رو غیرفعال می‌کنه
+        
         if (mode === 'full' && modelData && providerName) {
-          // حالت Full: برای OpenRouter/HuggingFace - دریافت provider_id واقعی
+          // حالت Full: برای OpenRouter/HuggingFace - استفاده از provider slug
           const providersResponse = await aiApi.providers.getAll();
           const providers = providersResponse.data || [];
           
@@ -138,52 +105,51 @@ export function useModelSelection({
             throw new Error(`Provider '${providerName}' یافت نشد`);
           }
 
-          // پیلود کامل با تمام اطلاعات - فقط فیلدهای valid
-          payload = {
-            provider_id: targetProvider.id,
-            name: modelData.name,
+          // استفاده از endpoint جدید select-model
+          const selectPayload: any = {
+            provider: targetProvider.slug, // backend انتظار slug داره نه ID
+            capability: capability,
             model_id: modelData.id,
-            display_name: modelData.name,
-            is_active: true,
-            capabilities: [capability],
+            model_name: modelData.name,
           };
 
-          // فقط فیلدهای valid رو اضافه کن
-          if (modelData.description) {
-            payload.description = modelData.description;
-          }
-          // تبدیل pricing به فرمت درست با حداکثر 6 رقم اعشار
+          // اضافه کردن pricing اگر موجود باشه
           if (modelData.pricing?.prompt !== undefined && modelData.pricing?.prompt !== null) {
-            payload.pricing_input = parseFloat(modelData.pricing.prompt.toFixed(6));
+            selectPayload.pricing_input = parseFloat(modelData.pricing.prompt.toFixed(6));
           }
           if (modelData.pricing?.completion !== undefined && modelData.pricing?.completion !== null) {
-            payload.pricing_output = parseFloat(modelData.pricing.completion.toFixed(6));
-          }
-          if (modelData.context_length) {
-            payload.context_window = modelData.context_length;
+            selectPayload.pricing_output = parseFloat(modelData.pricing.completion.toFixed(6));
           }
           
-          console.log('🔵 [Full Mode] Payload:', payload);
+          console.log('🔵 [Full Mode] Select Model Payload:', selectPayload);
+          await aiApi.models.selectModel(selectPayload);
         } else {
           // حالت Simple: برای Static Provider ها (OpenAI, Gemini, و غیره)
-          // اینجا providerId باید number باشه
+          // دریافت provider slug از providerId
+          const providersResponse = await aiApi.providers.getAll();
+          const providers = providersResponse.data || [];
+          
           const providerIdNum = parseInt(providerId);
           if (!providerIdNum || isNaN(providerIdNum)) {
             throw new Error(`شناسه Provider نامعتبر است: ${providerId}`);
           }
-          
-          payload = {
-            provider_id: providerIdNum,
-            model_id: modelId,
-            name: modelData?.name || modelId,
-            display_name: modelData?.name || modelId,
-            capabilities: [capability],
-            is_active: true,
-            sort_order: 0,
-          };
-        }
 
-        await aiApi.models.create(payload);
+          const targetProvider = providers.find((p: any) => p.id === providerIdNum);
+          if (!targetProvider) {
+            throw new Error(`Provider با ID ${providerIdNum} یافت نشد`);
+          }
+
+          // استفاده از endpoint جدید select-model
+          const selectPayload = {
+            provider: targetProvider.slug, // backend انتظار slug داره نه ID
+            capability: capability,
+            model_id: modelId,
+            model_name: modelData?.name || modelId,
+          };
+          
+          console.log('🟢 [Simple Mode] Select Model Payload:', selectPayload);
+          await aiApi.models.selectModel(selectPayload);
+        }
         setActiveModels(prev => new Set(prev).add(modelId));
         showSuccess('مدل با موفقیت فعال شد');
       }

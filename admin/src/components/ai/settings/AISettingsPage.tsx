@@ -20,8 +20,10 @@ export default function AISettingsPage() {
   } = useAISettings();
 
   const {
-    apiKeys,
-    setApiKeys,
+    personalApiKeys,
+    sharedApiKeys,
+    setPersonalApiKeys,
+    setSharedApiKeys,
     showApiKeys,
     setShowApiKeys,
     saveApiKeyMutation,
@@ -83,7 +85,11 @@ export default function AISettingsPage() {
               const hasSharedApi = backendProvider?.has_shared_api ?? backendProvider?.has_shared_api_key ?? false;
               const canUseSharedApi = isSuperAdmin || (allowNormalAdmins && hasSharedApi);
               const useSharedApi = canUseSharedApi ? (setting?.use_shared_api ?? false) : false;
-              const apiKey = apiKeys[provider.id] || '';
+              
+              const apiKey = useSharedApi && isSuperAdmin 
+                ? (sharedApiKeys[provider.id] || '') 
+                : (personalApiKeys[provider.id] || '');
+              
               const hasStoredApiKey = Boolean(apiKey && apiKey.trim() !== '' && apiKey !== '***');
               const showApiKey = showApiKeys[provider.id] || false;
 
@@ -140,15 +146,22 @@ export default function AISettingsPage() {
                     }));
                   }}
                   onApiKeyChange={(value) => {
-                    setApiKeys(prev => ({
-                      ...prev,
-                      [provider.id]: value
-                    }));
+                    if (useSharedApi && isSuperAdmin) {
+                      setSharedApiKeys(prev => ({
+                        ...prev,
+                        [provider.id]: value
+                      }));
+                    } else {
+                      setPersonalApiKeys(prev => ({
+                        ...prev,
+                        [provider.id]: value
+                      }));
+                    }
                   }}
                   onToggleUseSharedApi={(checked) => {
                     handleToggleUseSharedApi(provider.id, checked);
                   }}
-                  onSave={() => handleSaveProvider(provider.id)}
+                  onSave={() => handleSaveProvider(provider.id, useSharedApi)}
                   onToggleActive={(checked) => {
                     if (toggleActiveMutation.isPending) return;
                     handleToggleActive(provider.id, checked, useSharedApi);

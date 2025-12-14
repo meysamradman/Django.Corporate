@@ -170,7 +170,10 @@ export function OpenRouterModelSelectorContent({
         setLoading(true);
         const response = await aiApi.chat.getOpenRouterModels();
         if (response.metaData.status === 'success' && response.data) {
-          const modelsData = Array.isArray(response.data) ? response.data : [];
+          // Backend حالا data.models برمی‌گردونه
+          const responseData = response.data as any;
+          const modelsData = responseData.models || (Array.isArray(response.data) ? response.data : []);
+          
           const realModels: OpenRouterModel[] = modelsData.map((model: any) => {
             const promptPrice = parseFloat(model.pricing?.prompt || '0');
             const completionPrice = parseFloat(model.pricing?.completion || '0');

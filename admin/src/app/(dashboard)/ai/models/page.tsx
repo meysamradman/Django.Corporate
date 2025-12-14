@@ -132,14 +132,14 @@ export default function AIModelsPage() {
     const [showDeepSeekModal, setShowDeepSeekModal] = useState(false);
     const [showGroqModal, setShowGroqModal] = useState(false);
 
-    // دریافت لیست Provider ها برای ID واقعی
+    // دریافت لیست Provider ها برای ID واقعی - بدون cache
     const { data: providers } = useQuery({
         queryKey: ['ai-providers'],
         queryFn: async () => {
             const response = await aiApi.providers.getAll();
             return response.data || [];
         },
-        staleTime: 0, // بدون کش
+        staleTime: 0,
         gcTime: 0,
     });
 
@@ -149,27 +149,24 @@ export default function AIModelsPage() {
         return provider?.id?.toString() || '1';
     };
 
-    // دریافت providerهای واقعی از backend بر اساس capability
+    // دریافت providerهای واقعی از backend - بدون cache
     const { data: availableProviders, isLoading: isLoadingProviders } = useQuery({
         queryKey: ['ai-available-providers', activeTab],
         queryFn: async () => {
-            console.log(`🔍 [Query] Fetching available providers for capability: "${activeTab}"`);
             try {
-                // استفاده از endpoint عمومی که capability را می‌گیرد
                 const endpoint = `/admin/ai-providers/available/?capability=${activeTab}`;
                 const response = await fetchApi.get<any[]>(endpoint);
                 if (response.metaData.status === 'success' && response.data) {
-                    const providers = Array.isArray(response.data) ? response.data : [];
-                    console.log(`✅ [Query] Available providers for ${activeTab}:`, providers.map((p: any) => p.provider_name || p.slug));
-                    return providers;
+                    return Array.isArray(response.data) ? response.data : [];
                 }
                 return [];
             } catch (error: any) {
-                console.error(`❌ [Query] Error fetching providers for ${activeTab}:`, error);
+                console.error(`Error fetching providers for ${activeTab}:`, error);
                 return [];
             }
         },
-        staleTime: 5 * 60 * 1000, // 5 دقیقه cache
+        staleTime: 0,
+        gcTime: 0,
     });
 
     // تبدیل لیست providerها به map برای دسترسی سریع
@@ -186,46 +183,39 @@ export default function AIModelsPage() {
         return map;
     }, [availableProviders]);
 
-    // همه hooks باید قبل از return صدا زده بشن
+    // دریافت مدل‌های فعال - بدون cache frontend (فقط backend Redis cache داره)
     const { data: activeModels, isLoading: isLoadingActiveModels, refetch: refetchActiveModels } = useQuery({
         queryKey: ['ai-active-models', activeTab],
         queryFn: async () => {
-            console.log(`🔍 [Query] Fetching active models for capability: "${activeTab}"`);
-            // فقط providerهایی که واقعاً این capability را support می‌کنند
             const providers = availableProviders 
                 ? availableProviders.map((p: any) => p.provider_name || p.slug).filter(Boolean)
                 : [];
+            
             const results: Record<string, any> = {};
 
+            // Parallel requests برای سرعت بالا
             await Promise.all(
                 providers.map(async (provider: string) => {
                     try {
                         const response = await aiApi.models.getActiveModel(provider, activeTab);
+                        
                         if (response.data && response.data.model_id) {
-                            results[provider] = response.data;
+                            const modelCapabilities = response.data.capabilities || [];
+                            if (modelCapabilities.includes(activeTab)) {
+                                results[provider] = response.data;
+                            }
                         }
                     } catch (error: any) {
-                        // Silent fail - 404 is expected when no active model exists
-                        // Only log non-404 errors
-                        if (error?.response?.AppStatusCode !== 404 && error?.response?.status !== 404) {
-                            console.warn(`[${provider}/${activeTab}] خطا در دریافت مدل فعال:`, error);
-                        }
+                        // Silent fail - 404 وقتی مدل فعالی نداریم
                     }
                 })
             );
 
-            const activeProviders = Object.keys(results);
-            if (activeProviders.length > 0) {
-                console.log(`✅ [${activeTab}] فعال:`, activeProviders.map(k => `${k}: ${results[k]?.display_name || results[k]?.name}`).join(' | '));
-            } else {
-                console.log(`⚠️ [${activeTab}] هیچ مدل فعالی یافت نشد`);
-            }
             return results;
         },
-        enabled: !!activeTab,
-        staleTime: 0,
+        enabled: !!activeTab && !!availableProviders,
+        staleTime: 0, // بدون cache - backend cache می‌کنه
         gcTime: 0,
-        refetchOnMount: 'always',
     });
 
     const queryClient = useQueryClient();
@@ -238,11 +228,14 @@ export default function AIModelsPage() {
         }
     }, [isAuthLoading, hasAccess, router]);
 
-    const handleModelSaved = () => {
-        // رفرش لیست مدل‌های فعال برای Tab فعلی
+    const handleModelSaved = async () => {
+        // باطل کردن cache فعلی
         queryClient.invalidateQueries({ queryKey: ['ai-active-models', activeTab] });
-        refetchActiveModels(); // رفرش فوری
-        // بستن پاپ‌آپ‌ها
+        
+        // نمایش پیام موفقیت
+        showSuccess('مدل با موفقیت فعال شد');
+        
+        // بستن modals
         setShowOpenRouterModal(false);
         setShowHuggingFaceModal(false);
         setShowOpenAIModal(false);
@@ -289,7 +282,15 @@ export default function AIModelsPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Loading state */}
+                                    {isLoadingActiveModels ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                                <Skeleton key={i} className="h-32 w-full" />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* OpenRouter - فقط اگر واقعاً capability را support کند */}
                                         {availableProvidersMap.openrouter && (
                                             <Card className="border-blue-1/40 bg-blue/5 hover:bg-blue/10 hover:border-blue-1/60 transition-all duration-200 shadow-sm hover:shadow-md">
@@ -571,7 +572,8 @@ export default function AIModelsPage() {
                                                 </CardContent>
                                             </Card>
                                         )}
-                                    </div>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>

@@ -14,6 +14,80 @@ from src.ai.utils.cache import AICacheManager
 class AIModelManagementViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     
+    def list(self, request):
+        """
+        GET /api/admin/ai-models/
+        List all selected models stored in database
+        """
+        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS.get("provider_not_authorized", "Not authorized"),
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        provider_id = request.query_params.get('provider')
+        capability = request.query_params.get('capability')
+        search = request.query_params.get('search')
+        
+        try:
+            queryset = AIModel.objects.filter(
+                is_active=True,
+                provider__is_active=True
+            ).select_related('provider').order_by('provider__sort_order', 'sort_order')
+            
+            if provider_id:
+                queryset = queryset.filter(provider_id=provider_id)
+            
+            if capability:
+                queryset = [m for m in queryset if capability in m.capabilities]
+            else:
+                queryset = list(queryset)
+            
+            if search:
+                search_lower = search.lower()
+                queryset = [
+                    m for m in queryset 
+                    if search_lower in m.name.lower() 
+                    or search_lower in m.display_name.lower()
+                    or search_lower in m.model_id.lower()
+                ]
+            
+            result = []
+            for model in queryset:
+                result.append({
+                    'id': model.id,
+                    'name': model.name,
+                    'model_id': model.model_id,
+                    'model_name': model.display_name,
+                    'display_name': model.display_name,
+                    'description': model.description or '',
+                    'provider': model.provider.id,
+                    'provider_name': model.provider.name,
+                    'provider_slug': model.provider.slug,
+                    'provider_display': model.provider.display_name,
+                    'capabilities': model.capabilities,
+                    'pricing_input': float(model.pricing_input) if model.pricing_input else None,
+                    'pricing_output': float(model.pricing_output) if model.pricing_output else None,
+                    'is_free': model.pricing_input is None and model.pricing_output is None,
+                    'max_tokens': model.max_tokens,
+                    'context_window': model.context_window,
+                    'is_active': model.is_active,
+                    'total_requests': model.total_requests,
+                    'last_used_at': model.last_used_at.isoformat() if model.last_used_at else None,
+                    'sort_order': model.sort_order,
+                })
+            
+            return APIResponse.success(
+                message=f"Found {len(result)} models",
+                data=result
+            )
+            
+        except Exception as e:
+            return APIResponse.error(
+                message=f"Error retrieving models: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=False, methods=['get'], url_path='browse-models')
     def browse_models(self, request):
         if not PermissionValidator.has_permission(request.user, 'ai.manage'):

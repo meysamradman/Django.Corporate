@@ -6,13 +6,13 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': False,
+        'supports_audio': True,  # نمایش در تمام تب‌ها - مدل‌ها داینامیک هستند
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',
             'image': 'dynamic',
-            'audio': [],
+            'audio': 'dynamic',  # مدل‌ها از API دریافت می‌شوند
         },
         'default_models': {
             'chat': 'google/gemini-2.0-flash-exp',
@@ -25,7 +25,7 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': False,
+        'supports_audio': True,  # نمایش در تمام تب‌ها
         'has_dynamic_models': False,
         'models': {
             'chat': [
@@ -44,7 +44,7 @@ PROVIDER_CAPABILITIES = {
                 'imagen-3.0-generate-001',
                 'imagen-3.0-fast-generate-001',
             ],
-            'audio': [],
+            'audio': [],  # لیست خالی - در پاپ‌آپ مدلی نمایش داده نمی‌شود
         },
         'default_models': {
             'chat': 'gemini-2.0-flash-exp',
@@ -93,8 +93,8 @@ PROVIDER_CAPABILITIES = {
     'deepseek': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': False,
-        'supports_audio': False,
+        'supports_image': True,  # نمایش در تمام تب‌ها
+        'supports_audio': True,  # نمایش در تمام تب‌ها
         'has_dynamic_models': False,
         'models': {
             'chat': [
@@ -105,8 +105,8 @@ PROVIDER_CAPABILITIES = {
                 'deepseek-chat',
                 'deepseek-coder',
             ],
-            'image': [],
-            'audio': [],
+            'image': [],  # لیست خالی
+            'audio': [],  # لیست خالی
         },
         'default_models': {
             'chat': 'deepseek-chat',
@@ -118,14 +118,14 @@ PROVIDER_CAPABILITIES = {
     'groq': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': False,
-        'supports_audio': False,
+        'supports_image': True,  # نمایش در تمام تب‌ها
+        'supports_audio': True,  # نمایش در تمام تب‌ها
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',
-            'image': [],
-            'audio': [],
+            'image': 'dynamic',  # چک می‌شود در زمان fetch
+            'audio': 'dynamic',  # چک می‌شود در زمان fetch
         },
         'default_models': {
             'chat': 'llama-3.3-70b-versatile',
@@ -135,24 +135,24 @@ PROVIDER_CAPABILITIES = {
         }
     },
     'huggingface': {
-        'supports_chat': True,  # HuggingFace واقعاً چت را support می‌کند (text-generation models)
-        'supports_content': True,  # HuggingFace واقعاً content را support می‌کند (text-generation models)
+        'supports_chat': True,
+        'supports_content': True,
         'supports_image': True,
-        'supports_audio': False,
-        'has_dynamic_models': True,  # مدل‌ها از API دریافت می‌شوند
+        'supports_audio': True,  # نمایش در تمام تب‌ها - مدل‌ها داینامیک هستند
+        'has_dynamic_models': True,
         'models': {
-            'chat': 'dynamic',  # از API دریافت می‌شود
-            'content': 'dynamic',  # از API دریافت می‌شود
+            'chat': 'dynamic',
+            'content': 'dynamic',
             'image': [
                 'stabilityai/stable-diffusion-xl-base-1.0',
                 'stabilityai/stable-diffusion-2-1',
                 'runwayml/stable-diffusion-v1-5',
             ],
-            'audio': [],
+            'audio': 'dynamic',  # مدل‌های audio از API دریافت می‌شوند
         },
         'default_models': {
-            'chat': None,  # از مدل‌های فعال انتخاب می‌شود
-            'content': None,  # از مدل‌های فعال انتخاب می‌شود
+            'chat': None,
+            'content': None,
             'image': 'stabilityai/stable-diffusion-xl-base-1.0',
             'audio': None,
         }

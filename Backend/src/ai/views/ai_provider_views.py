@@ -112,35 +112,48 @@ class AIProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
+        """
+        برگرداندن لیست provider هایی که:
+        1. فعال هستند
+        2. API key دارند (Shared یا Personal)
+        3. از capability درخواستی پشتیبانی می‌کنند
+        
+        نکته: حتی اگه مدلی در DB نداشته باشند، بازم برمی‌گردونیم
+        تا admin بتونه از پاپ‌آپ مدل انتخاب کنه
+        """
         has_view_permission = PermissionValidator.has_permission(request.user, 'ai.view')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         
         if not (has_view_permission or has_manage_permission):
             raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         
-        # اگر capability داده شده باشد، از ProviderAvailabilityManager استفاده می‌کنیم
         capability = request.query_params.get('capability')
-        if capability:
-            try:
-                from src.ai.providers.capabilities import ProviderAvailabilityManager
-                providers = ProviderAvailabilityManager.get_available_providers(capability, include_api_based=True)
-                return APIResponse.success(
-                    message=AI_SUCCESS["providers_list_retrieved"],
-                    data=providers,
-                    status_code=status.HTTP_200_OK
-                )
-            except Exception as e:
-                # در صورت خطا، به روش قدیمی برمی‌گردیم
-                pass
         
-        # روش قدیمی: فقط providerهایی که API key دارند
-        providers = self.get_queryset()
-        serializer = AIProviderListSerializer(providers, many=True)
+        # همه provider های فعال
+        providers = AIProvider.objects.filter(is_active=True)
+        serializer = AIProviderListSerializer(providers, many=True, context={'request': request})
+        
+        from src.ai.providers.capabilities import supports_feature
         
         available = []
-        for p in serializer.data:
-            if p.get('has_shared_api') or p.get('allow_personal_keys'):
-                available.append(p)
+        for provider_data in serializer.data:
+            # اگه API key نداره، اصلاً نمایش نمی‌دیم
+            has_api = provider_data.get('has_shared_api') or provider_data.get('has_personal_api')
+            if not has_api:
+                continue
+            
+            # اگه capability داده شده، فقط اونایی که support می‌کنن
+            if capability:
+                try:
+                    if not supports_feature(provider_data['slug'], capability):
+                        # این provider از این capability پشتیبانی نمی‌کنه
+                        continue
+                except Exception:
+                    # در صورت خطا، skip می‌کنیم
+                    continue
+            
+            # اضافه کردن به لیست (حتی بدون مدل در DB)
+            available.append(provider_data)
         
         return APIResponse.success(
             message=AI_SUCCESS["providers_list_retrieved"],

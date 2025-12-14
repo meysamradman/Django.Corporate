@@ -9,13 +9,14 @@ from src.ai.utils.state_machine import ModelAccessState
 class AIProviderListSerializer(serializers.ModelSerializer):
     models_count = serializers.SerializerMethodField()
     has_shared_api = serializers.SerializerMethodField()
+    has_personal_api = serializers.SerializerMethodField()
     
     class Meta:
         model = AIProvider
         fields = [
             'id', 'name', 'slug', 'display_name', 'description',
             'allow_personal_keys', 'allow_shared_for_normal_admins',
-            'models_count', 'has_shared_api', 'is_active',
+            'models_count', 'has_shared_api', 'has_personal_api', 'is_active',
             'total_requests', 'last_used_at', 'created_at'
         ]
         read_only_fields = ['slug', 'total_requests', 'last_used_at']
@@ -25,6 +26,21 @@ class AIProviderListSerializer(serializers.ModelSerializer):
     
     def get_has_shared_api(self, obj):
         return bool(obj.shared_api_key)
+    
+    def get_has_personal_api(self, obj):
+        """بررسی اینکه آیا کاربر فعلی برای این provider تنظیمات شخصی دارد"""
+        request = self.context.get('request')
+        if not request or not request.user:
+            return False
+        
+        # بررسی اینکه آیا کاربر فعلی personal API key برای این provider دارد
+        personal_setting = AdminProviderSettings.objects.filter(
+            provider=obj,
+            admin=request.user,
+            is_active=True
+        ).first()
+        
+        return bool(personal_setting and personal_setting.personal_api_key)
 
 
 class AIProviderDetailSerializer(serializers.ModelSerializer):
