@@ -243,6 +243,39 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
+    @action(detail=False, methods=['get'], url_path='providers')
+    def get_providers(self, request):
+        capability = request.query_params.get('capability')
+        
+        registry = AIProviderRegistry()
+        all_providers = registry.get_all_providers()
+        
+        db_providers = AIProvider.objects.filter(is_active=True)
+        
+        result = []
+        for slug, provider_class in all_providers.items():
+            try:
+                db_provider = db_providers.get(slug=slug)
+                
+                if capability:
+                    from src.ai.providers.capabilities import supports_feature
+                    if not supports_feature(slug, capability):
+                        continue
+                
+                result.append({
+                    'slug': slug,
+                    'name': db_provider.display_name,
+                    'has_api_key': bool(db_provider.shared_api_key),
+                    'is_active': db_provider.is_active
+                })
+            except AIProvider.DoesNotExist:
+                continue
+        
+        return APIResponse.success(
+            message=f"Found {len(result)} providers",
+            data=result
+        )
+    
     def _fetch_models_from_provider(self, provider_class, provider_slug: str, 
                                     api_key: str, use_cache: bool, query_params) -> list:
         if provider_slug == 'huggingface':
