@@ -1,9 +1,4 @@
-html {
-    scrollbar-gutter: stable both-edges;
-    overflow-y: scroll;
-  }
-  
-  html body[data-scroll-locked] {
+html body[data-scroll-locked] {
     margin-right: 0 !important;
     margin-left: 0 !important;
   }
@@ -72,8 +67,10 @@ html {
     }
     html {
       direction: rtl;
-      overflow-y: scroll;
-      scrollbar-gutter: stable;
+      overflow: hidden;
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
     body {
       background-color: var(--bg);
@@ -82,6 +79,10 @@ html {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       direction: rtl;
+      overflow: hidden;
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
     h1 {
       @apply text-2xl font-bold tracking-tight;
@@ -201,7 +202,7 @@ html {
   
   ::-webkit-scrollbar-track {
     background: var(--bg);
-    border-right: 1px solid var(--br);
+    border-left: 1px solid var(--br);
   }
   
   ::-webkit-scrollbar-thumb {
@@ -218,6 +219,42 @@ html {
   * {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--font-s) 30%, transparent) var(--bg);
+  }
+  
+  /* RTL: scrollbar on left for main content area */
+  main {
+    direction: rtl;
+  }
+  
+  /* Content inside main should remain RTL for proper Persian text alignment */
+  main > div {
+    direction: rtl;
+  }
+  
+  /* Mobile: Adjust padding to compensate for scrollbar on left side */
+  @media (max-width: 640px) {
+    main > div {
+      padding: 1rem calc(1rem + 5px) 1rem 1rem;
+    }
+  }
+  
+  main::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  main::-webkit-scrollbar-track {
+    background: var(--bg);
+    border-left: 1px solid var(--br);
+  }
+  
+  main::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--font-s) 30%, transparent);
+    border-radius: 6px;
+    border: 2px solid var(--bg);
+  }
+  
+  main::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--font-s) 50%, transparent);
   }
   
   @media print {

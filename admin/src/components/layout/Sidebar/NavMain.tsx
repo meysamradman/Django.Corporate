@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { MenuGroup, MenuItem } from "@/components/layout/Sidebar/SidebarMenu";
 import {
   TooltipProvider,
@@ -14,10 +13,9 @@ import { cn } from "@/core/utils/cn";
 interface NavMainProps {
   groups: MenuGroup[];
   onIconClick?: (item: MenuItem) => void;
-  onLinkClick?: () => void;
 }
 
-export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
+export function NavMain({ groups, onIconClick }: NavMainProps) {
   const pathname = usePathname();
   const allItems = groups.flatMap(group => group.items);
 
@@ -36,8 +34,6 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
       <div className="flex flex-col space-y-2 p-2">
         {allItems.map((item) => {
           const isActive = isItemActive(item);
-          const hasSubMenus = item.items && item.items.length > 0;
-          const hasDirectUrl = item.url && !hasSubMenus;
           
           const iconElement = item.icon && (
             <item.icon
@@ -66,29 +62,14 @@ export function NavMain({ groups, onIconClick, onLinkClick }: NavMainProps) {
           return (
             <Tooltip key={item.title}>
               <TooltipTrigger asChild>
-                {hasDirectUrl && !item.disabled ? (
-                  <div onClick={() => {
-                    onIconClick?.(item);
-                    onLinkClick?.();
-                  }}>
-                    <Link
-                      href={item.url!}
-                      className={buttonClasses}
-                      aria-label={item.title}
-                    >
-                      {iconElement}
-                    </Link>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => !item.disabled && onIconClick?.(item)}
-                    className={buttonClasses}
-                    aria-label={item.title}
-                    disabled={item.disabled}
-                  >
-                    {iconElement}
-                  </button>
-                )}
+                <button
+                  onClick={() => !item.disabled && onIconClick?.(item)}
+                  className={buttonClasses}
+                  aria-label={item.title}
+                  disabled={item.disabled}
+                >
+                  {iconElement}
+                </button>
               </TooltipTrigger>
               <TooltipContent side="left">
                 <p>{item.title}</p>

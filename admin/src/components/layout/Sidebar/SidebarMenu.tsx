@@ -430,10 +430,20 @@ export const useMenuData = () => {
                 !child.isTitle && (child.url || (child.items && child.items.length > 0))
             );
 
+            let state = result.state;
+
+            // اگر url ندارد
             if (!item.url) {
+                // اگر زیرمنو هم ندارد، نمایش بده (برای MenuQuickLinks)
                 if (!filteredChildItems || filteredChildItems.length === 0) {
-                    return null;
+                    return {
+                        ...item,
+                        items: undefined,
+                        state,
+                        disabled: result.disabled ?? item.disabled
+                    };
                 }
+                // اگر زیرمنو دارد اما actionable child ندارد، حذف کن
                 if (!hasActionableChild) {
                     return null;
                 }
@@ -445,8 +455,6 @@ export const useMenuData = () => {
             const originalChildCount = item.items
                 ?.filter(child => !child.isTitle)
                 .length ?? 0;
-
-            let state = result.state;
 
             if (
                 filteredChildItems &&

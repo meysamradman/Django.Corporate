@@ -14,6 +14,7 @@ function Tabs({
       dir="rtl"
       data-slot="tabs"
       className={cn("flex flex-col", className)}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -30,6 +31,7 @@ function TabsList({
         "flex w-full items-center justify-start gap-8 border-b pb-0 mb-6",
         className
       )}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -49,6 +51,7 @@ function TabsTrigger({
         "hover:text-font-p",
         className
       )}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -62,6 +65,7 @@ function TabsContent({
     <TabsPrimitive.Content
       data-slot="tabs-content"
       className={cn("flex-1 outline-none", className)}
+      suppressHydrationWarning
       {...props}
     />
   )

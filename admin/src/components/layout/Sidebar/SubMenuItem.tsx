@@ -8,14 +8,12 @@ import { usePathname } from "next/navigation";
 interface SubMenuItemProps {
   item: MenuItem;
   index: number;
-  isActive: boolean;
-  onItemClick: (title: string) => void;
+  onItemClick?: (title: string) => void;
 }
 
 export function SubMenuItem({
   item,
   index,
-  isActive,
   onItemClick,
 }: SubMenuItemProps) {
   const pathname = usePathname();
@@ -35,7 +33,7 @@ export function SubMenuItem({
     item.disabled && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-sdb-menu-txt"
   );
 
-  const titleClasses = cn("text-sdb-menu-title font-semibold text-xs");
+  const titleClasses = cn("text-sdb-menu-ttl font-semibold text-sm");
 
   if (item.isTitle) {
     return (
@@ -44,7 +42,6 @@ export function SubMenuItem({
         className={cn(
           baseClasses,
           titleClasses,
-          "text-sdb-menu-title",
           index > 0 && "mt-4"
         )}
       >
@@ -70,7 +67,7 @@ export function SubMenuItem({
       key={item.title}
       href={item.url}
       className={cn(baseClasses, interactiveClasses)}
-      onClick={() => onItemClick(item.title)}
+      onClick={() => onItemClick?.(item.title)}
     >
       <span>{item.title}</span>
     </Link>

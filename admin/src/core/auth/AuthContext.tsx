@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useTransition } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode, useCallback, useTransition } from 'react';
 
 import { UserWithProfile } from '@/types/auth/user';
 import { LoginResponse } from '@/types/auth/auth';
@@ -208,6 +208,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
+  const hasInitialized = React.useRef(false);
 
   const refreshCSRFToken = useCallback(async (): Promise<string | null> => {
     return await csrfManager.refresh();
@@ -234,7 +235,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const checkUserStatus = useCallback(async () => {
+  const checkUserStatus = useCallback(async (forceRefresh: boolean = false) => {
     // Skip auth check for public paths
     if (publicPaths.includes(pathname)) {
       setIsLoading(false);
@@ -244,7 +245,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      const userData = await authApi.getCurrentAdminUser({ refresh: true }); 
+      const userData = await authApi.getCurrentAdminUser({ refresh: forceRefresh }); 
       
       if (userData) {
         setUser(serializeUser(userData));
@@ -281,9 +282,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [fetchPanelSettings, pathname, router]);
 
+  // فقط در mount اولیه user را fetch کن
   useEffect(() => {
-    checkUserStatus();
-  }, [checkUserStatus]);
+    // فقط یک بار در mount اولیه user را fetch کن
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      checkUserStatus(true); // فقط در mount اولیه refresh کن
+    }
+  }, []); // فقط یک بار در mount اجرا می‌شود
+
+  // اگر user null است و pathname به protected path تغییر کرد، user را check کن
+  useEffect(() => {
+    if (!user && !publicPaths.includes(pathname) && hasInitialized.current) {
+      checkUserStatus(false); // بدون refresh، فقط check کن
+    }
+  }, [pathname, user]); // فقط وقتی pathname یا user تغییر کند
 
     const login = async (mobile: string, password?: string, captchaId?: string, captchaAnswer?: string) => {
       setIsLoading(true);

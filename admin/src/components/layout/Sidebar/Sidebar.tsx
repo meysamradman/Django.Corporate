@@ -17,6 +17,7 @@ import {SidebarLogo} from "./SidebarLogo";
 import {cn} from "@/core/utils/cn";
 import {useMenuData, MenuItem} from "./SidebarMenu";
 import {SubMenuItem} from "./SubMenuItem";
+import {MenuQuickLinks} from "./MenuQuickLinks";
 import {useAuth} from "@/core/auth/AuthContext";
 import {usePathname, useRouter} from "next/navigation";
 import {toast} from "@/components/elements/Sonner";
@@ -42,13 +43,12 @@ export function Sidebar({
                         }: SidebarProps) {
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [hasUserSelectedItem, setHasUserSelectedItem] = useState(false);
-    const [activeSubItem, setActiveSubItem] = useState<string | null>(null);
-    const {user, logout} = useAuth();
+    const {user, logout, isLoading: authLoading} = useAuth();
     const pathname = usePathname();
     const router = useRouter();
     const menuData = useMenuData();
     const setSelectedItemHasSubMenu = useAdminStore((state) => state.setSelectedItemHasSubMenu);
-    const setContentCollapsed = useAdminStore((state) => state.setContentCollapsed);
+    const menuLoading = authLoading;
 
     const findActiveItem = useCallback((): MenuItem | null => {
         if (!pathname || !menuData.groups.length) {
@@ -103,13 +103,10 @@ export function Sidebar({
 
         if (isSameItem) {
             // حتی اگر همان آیتم است، بررسی کن که آیا زیرمنو دارد یا نه
-            // و سایدبار را بر اساس آن تنظیم کن (برای refresh صفحه)
+            // سایدبار همیشه باز می‌ماند
             const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
-            if (hasSubMenu) {
-                setContentCollapsed(false);
-            } else {
-                setContentCollapsed(true);
-            }
+            setSelectedItemHasSubMenu(hasSubMenu);
+            // سایدبار همیشه باز می‌ماند - دیگر بسته نمی‌شود
             return;
         }
 
@@ -117,13 +114,9 @@ export function Sidebar({
         const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
         setSelectedItemHasSubMenu(hasSubMenu);
         
-        // اگر منو زیرمنو دارد، سایدبار را باز کن، در غیر این صورت ببند
-        if (hasSubMenu) {
-            setContentCollapsed(false);
-        } else {
-            setContentCollapsed(true);
-        }
-    }, [activeItem, selectedItem, setSelectedItemHasSubMenu, setContentCollapsed, hasUserSelectedItem]);
+        // سایدبار همیشه باز می‌ماند - دیگر بسته نمی‌شود
+        // فقط دکمه toggle در هدر می‌تواند سایدبار را ببندد
+    }, [activeItem, selectedItem, setSelectedItemHasSubMenu, hasUserSelectedItem]);
 
     const handleIconClick = (item: MenuItem) => {
         setHasUserSelectedItem(true);
@@ -131,14 +124,8 @@ export function Sidebar({
         const hasSubMenu = Boolean('items' in item && item.items && item.items.length > 0);
         setSelectedItemHasSubMenu(hasSubMenu);
 
-        // اگر منو زیرمنو دارد، سایدبار را باز کن، در غیر این صورت ببند
-        if (hasSubMenu) {
-            // همیشه سایدبار را باز کن (حتی اگر قبلاً باز بوده)
-            setContentCollapsed(false);
-        } else {
-            // همیشه سایدبار را ببند (حتی اگر قبلاً بسته بوده)
-            setContentCollapsed(true);
-        }
+        // سایدبار همیشه باز می‌ماند - دیگر بسته نمی‌شود
+        // فقط دکمه toggle در هدر می‌تواند سایدبار را ببندد
     };
 
     const handleProfileClick = () => {
@@ -165,8 +152,8 @@ export function Sidebar({
     );
 
     const iconStripClasses = cn(
-        "sidebar-icons",
-        "bg-sidebar flex flex-col w-14 shrink-0",
+        "bg-sdb-ic-bg",
+        "flex flex-col w-14 shrink-0",
         "border-l"
     );
 
@@ -177,13 +164,25 @@ export function Sidebar({
                     className="fixed inset-0 z-40 lg:hidden"
                     onClick={onToggle}
                     aria-hidden="true"
+                    suppressHydrationWarning
                 />
             )}
             <aside className={sidebarClasses}>
                 <div className={iconStripClasses}>
                     <SidebarLogo/>
                     <nav className="flex-1 overflow-y-auto">
-                        <NavMain groups={menuData.groups} onIconClick={handleIconClick} onLinkClick={onToggle}/>
+                        {menuLoading ? (
+                            <div className="flex flex-col space-y-2 p-2">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="w-10 h-10 rounded-md bg-sdb-hv animate-pulse"
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <NavMain groups={menuData.groups} onIconClick={handleIconClick} />
+                        )}
                     </nav>
                     <div className="h-16 flex items-center justify-center border-t">
                         <DropdownMenu>
@@ -243,8 +242,17 @@ export function Sidebar({
                         isContentCollapsed ? "opacity-0" : "opacity-100"
                     )}>
                         {!isContentCollapsed && (
-                            <div className="h-full overflow-x-hidden p-4">
-                                {selectedItem && 'items' in selectedItem && selectedItem.items?.length ? (
+                            <div className="h-full overflow-x-hidden p-4 overflow-y-auto">
+                                {menuLoading ? (
+                                    <div className="space-y-2">
+                                        {[1, 2, 3, 4].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="h-10 rounded-md bg-sdb-hv animate-pulse"
+                                            />
+                                        ))}
+                                    </div>
+                                ) : selectedItem && 'items' in selectedItem && selectedItem.items?.length ? (
                                     <div className="space-y-1">
                                         {(
                                             [
@@ -260,11 +268,11 @@ export function Sidebar({
                                                 key={`${subItem.title}-${index}`}
                                                 item={subItem}
                                                 index={index}
-                                                isActive={activeSubItem === subItem.title && !('isTitle' in subItem && subItem.isTitle)}
-                                                onItemClick={setActiveSubItem}
                                             />
                                         ))}
                                     </div>
+                                ) : selectedItem && (!('items' in selectedItem) || !selectedItem.items || selectedItem.items.length === 0) ? (
+                                    <MenuQuickLinks item={selectedItem} />
                                 ) : null}
                             </div>
                         )}

@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import {Sidebar} from "@/components/layout/Sidebar/Sidebar";
 import {Header} from "@/components/layout/Header/Header";
 import {cn} from "@/core/utils/cn";
@@ -16,18 +17,42 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({children}: MainLayoutProps) {
+    const pathname = usePathname();
+    const [isMounted, setIsMounted] = useState(false);
     const {
         sidebarOpen,
         contentCollapsed,
         selectedItemHasSubMenu,
         toggleSidebar,
-        toggleContent
+        toggleContent,
+        setSidebarOpen
     } = useAdminStore();
+
+    // جلوگیری از hydration mismatch
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    // بستن sidebar در موبایل هنگام تغییر route (نه در mount اولیه)
+    const prevPathnameRef = React.useRef(pathname);
+    useEffect(() => {
+        if (isMounted && typeof window !== 'undefined') {
+            const isMobile = window.innerWidth < 1024; // lg breakpoint
+            const pathnameChanged = prevPathnameRef.current !== pathname;
+            
+            // فقط اگر pathname واقعاً تغییر کرده باشد (نه در mount اولیه)
+            if (pathnameChanged && isMobile && sidebarOpen) {
+                setSidebarOpen(false);
+            }
+            
+            prevPathnameRef.current = pathname;
+        }
+    }, [pathname, setSidebarOpen, sidebarOpen, isMounted]);
 
     return (
         <PermissionProvider>
             <AIChatProvider>
-        <div>
+        <div className="flex h-screen overflow-hidden">
             <Sidebar
                 isOpen={sidebarOpen}
                 onToggle={toggleSidebar}
@@ -35,7 +60,7 @@ export default function MainLayout({children}: MainLayoutProps) {
                 onContentToggle={toggleContent}
             />
             <div className={cn(
-                "transition-all duration-300",
+                "flex flex-col flex-1 min-w-0 transition-all duration-300",
                 contentCollapsed ? "lg:mr-14" : "lg:mr-80"
             )}>
                 <Header
@@ -44,20 +69,13 @@ export default function MainLayout({children}: MainLayoutProps) {
                     onContentToggle={toggleContent}
                     hasSubMenu={selectedItemHasSubMenu}
                 />
-                <main className="m-8 min-w-0">
-                    <div
-                        className={cn(
-                            "w-full max-w-full min-w-0 transition-[max-width] duration-300 ease-in-out",
-                            contentCollapsed
-                                ? "max-w-full"
-                                : ""
-                        )}
-                    >
-                            <MediaContextProvider>
-                                <RoutePermissionGuard>
-                                    {children}
-                                </RoutePermissionGuard>
-                            </MediaContextProvider>
+                <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
+                    <div className="p-4 sm:p-6 lg:p-8 min-w-0">
+                        <MediaContextProvider>
+                            <RoutePermissionGuard>
+                                {children}
+                            </RoutePermissionGuard>
+                        </MediaContextProvider>
                     </div>
                 </main>
                 <FloatingAIChat />

@@ -21,7 +21,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSubMenu }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 min-h-16 items-center justify-between gap-2 sm:gap-4 border-b bg-header px-2 sm:px-4 lg:px-6 overflow-hidden">
+    <header className="flex h-16 min-h-16 items-center justify-between gap-2 sm:gap-4 border-b bg-header px-2 sm:px-4 lg:px-6 shrink-0">
       <div className="flex flex-1 items-center gap-2 min-w-0 sm:gap-4">
         <Button
           variant="outline"
@@ -35,15 +35,13 @@ export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSu
 
         {onContentToggle && (
           <button
-            onClick={() => hasSubMenu && onContentToggle()}
+            onClick={() => onContentToggle()}
             className={cn(
-              "hidden lg:flex items-center justify-center w-8 h-8 rounded-md hover:bg-bg transition-colors focus:outline-none focus:ring-2 focus:ring-ring",
-              !hasSubMenu && "cursor-not-allowed opacity-50"
+              "hidden lg:flex items-center justify-center w-8 h-8 rounded-md hover:bg-bg transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
             )}
             aria-label={
               isContentCollapsed ? "گسترش سایدبار" : "جمع کردن سایدبار"
             }
-            disabled={!hasSubMenu}
           >
             <PanelRight className="h-5 w-5" />
           </button>
