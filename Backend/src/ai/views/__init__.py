@@ -3,9 +3,6 @@ from .ai_provider_views import (
     AIModelViewSet,
     AdminProviderSettingsViewSet,
 )
-
-from .generation_views import AIGenerationViewSet
-
 from .image_generation_views import (
     AIImageProviderViewSet,
     AIImageGenerationViewSet,
@@ -13,18 +10,17 @@ from .image_generation_views import (
 from .content_generation_views import AIContentGenerationViewSet
 from .chat_views import AIChatViewSet
 from .audio_generation_views import AIAudioGenerationRequestViewSet
-from .ai_model_sync_views import AIModelSyncViewSet
+from .ai_model_management_views import AIModelManagementViewSet
 
 __all__ = [
     'AIProviderViewSet',
     'AIModelViewSet',
     'AdminProviderSettingsViewSet',
-    'AIGenerationViewSet',
     'AIImageProviderViewSet',
     'AIImageGenerationViewSet',
     'AIContentGenerationViewSet',
     'AIChatViewSet',
     'AIAudioGenerationRequestViewSet',
-    'AIModelSyncViewSet',
+    'AIModelManagementViewSet',
 ]
 

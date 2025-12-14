@@ -1,345 +1,374 @@
-🎯 بررسی دقیق و راه‌حل بهینه
-بعد از بررسی دقیق کد و سناریو، مشکل اصلی رو شناسایی کردم:
-❌ مشکلات فعلی:
 
-ذخیره مدل‌ها در دیتابیس - جدول AIModel صدها رکورد ایجاد می‌کنه
-نیاز به Sync - باید مدام sync کنی تا مدل‌های جدید بیان
-پیچیدگی مدیریت - "فقط یک مدل فعال" رو باید در دیتابیس کنترل کنی
-Import دستی - هر provider رو باید در همه جا import کنی
-تکرار کد - توی هر View باید provider رو import و استفاده کنی
+📌 درک درست از سناریو:
+✅ چیزهایی که باید بمونن:
 
-✅ راه‌حل بهینه (2025 Best Practice):
-🏗️ معماری جدید - Real-time API + Config Storage
-┌─────────────────────────────────────────────────────┐
-│                   Frontend (Panel)                   │
-│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐   │
-│  │ Chat   │  │Content │  │ Image  │  │ Audio  │   │
-│  └────────┘  └────────┘  └────────┘  └────────┘   │
-└─────────────────────────────────────────────────────┘
-                        ↓ API Call
-┌─────────────────────────────────────────────────────┐
-│               Backend (Django Views)                 │
-│  ┌─────────────────────────────────────────────┐   │
-│  │      UnifiedAIService (Single Entry)        │   │
-│  └─────────────────────────────────────────────┘   │
-│                        ↓                             │
-│  ┌─────────────────────────────────────────────┐   │
-│  │      AIProviderRegistry (Dynamic)           │   │
-│  │  - Auto-discover providers                  │   │
-│  │  - No manual imports                        │   │
-│  └─────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-                        ↓
-┌─────────────────────────────────────────────────────┐
-│                  Database (Minimal)                  │
-│  ┌──────────────────────────────────────────────┐  │
-│  │  AIProvider (فقط config و انتخاب مدل)      │  │
-│  │  - slug: "openrouter"                        │  │
-│  │  - config: {                                 │  │
-│  │      "selected_models": {                    │  │
-│  │        "chat": "google/gemini-2.0-flash",    │  │
-│  │        "image": "openai/dall-e-3"            │  │
-│  │      }                                        │  │
-│  │    }                                          │  │
-│  └──────────────────────────────────────────────┘  │
-│                                                      │
-│  ❌ AIModel جدول حذف شد - نیازی نیست!            │
-└─────────────────────────────────────────────────────┘
-                        ↓
-┌─────────────────────────────────────────────────────┐
-│        External APIs (Real-time)                     │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
-│  │OpenRouter│  │HuggingFace│ │  Groq  │            │
-│  │400 models│  │300 models │ │50 models│           │
-│  └─────────┘  └─────────┘  └─────────┘            │
-│           مدل‌ها رو real-time می‌خونه              │
-└─────────────────────────────────────────────────────┘
+✅ هر تولید (Chat, Content, Image, Audio) ViewSet و API جداگانه دارن
+✅ جدول AIModel در دیتابیس باید باشه
+✅ هر capability (chat, image, ...) فقط یک مدل فعال داره
+✅ در پنل ادمین میتونن مدل انتخاب کنن
 
-📁 ساختار فایل‌های جدید:
-1️⃣ مدل دیتابیس (ساده‌شده)
-python# Backend/src/ai/models/ai_provider.py
+❌ مشکل فعلی:
+python# الان این اتفاق میفته:
+@action(detail=False, methods=['post'], url_path='sync-models')
+def sync_models(self, request):
+    # میره 400 مدل OpenRouter رو میاره
+    # همه رو توی جدول AIModel ذخیره می‌کنه 😱
+    # دیتابیس پر میشه!
+✅ راه‌حل درست:
 
-class AIProvider(BaseModel):
-    """فقط Provider و config - بدون AIModel"""
+لیست مدل‌ها real-time از API بگیریم (بدون ذخیره در DB)
+وقتی ادمین مدل انتخاب کرد، فقط اون یکی رو در AIModel ذخیره کنیم
+برای هر provider فقط مدل‌های انتخاب شده در DB باشن (نه صدها مدل!)
+
+
+🎯 راه‌حل بهینه:
+1️⃣ حذف Sync - استفاده از Real-time API
+python# ❌ قبل: Sync تمام مدل‌ها
+@action(detail=False, methods=['post'], url_path='sync-models')
+def sync_models(self, request):
+    models = OpenRouterProvider.get_available_models()  # 400 model
+    for model in models:
+        AIModel.objects.create(...)  # 😱 400 رکورد!
+
+# ✅ بعد: فقط لیست بگیر (بدون ذخیره)
+@action(detail=False, methods=['get'], url_path='available-models')
+def available_models(self, request):
+    """لیست مدل‌ها برای انتخاب در پنل - بدون ذخیره"""
+    provider_slug = request.query_params.get('provider')
+    capability = request.query_params.get('capability')
     
-    slug = models.SlugField(unique=True)
-    display_name = models.CharField(max_length=150)
-    shared_api_key = models.TextField(blank=True)  # رمزنگاری شده
+    # دریافت real-time از API
+    models = self._fetch_models_from_api(provider_slug)
     
-    # ⭐ همه چیز در config
-    config = models.JSONField(default=dict, blank=True)
-    # {
-    #     "selected_models": {
-    #         "chat": "google/gemini-2.0-flash",
-    #         "content": "google/gemini-2.0-flash",
-    #         "image": "openai/dall-e-3",
-    #         "audio": "openai/tts-1"
-    #     },
-    #     "capabilities": ["chat", "content", "image"]
-    # }
+    # فیلتر بر اساس capability
+    filtered = self._filter_by_capability(models, capability)
     
-    allow_personal_keys = models.BooleanField(default=True)
-    allow_shared_for_normal_admins = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    # فقط برگردون - ذخیره نکن!
+    return APIResponse.success(data=filtered)
 
-# ❌ AIModel جدول حذف شد!
+2️⃣ ذخیره فقط مدل انتخاب شده
+python# Backend/src/ai/views/ai_model_management_views.py
 
-2️⃣ Registry Pattern (Auto-discovery)
+class AIModelManagementViewSet(viewsets.ViewSet):
+    """مدیریت مدل‌ها در پنل ادمین"""
+    
+    @action(detail=False, methods=['get'], url_path='browse-models')
+    def browse_models(self, request):
+        """
+        📋 لیست مدل‌های available برای انتخاب
+        این مدل‌ها در DB ذخیره نمیشن!
+        
+        Query params:
+        - provider: openrouter, huggingface, groq
+        - capability: chat, image, content, audio
+        """
+        provider_slug = request.query_params.get('provider')
+        capability = request.query_params.get('capability')
+        
+        if not provider_slug:
+            return APIResponse.error(
+                message="Provider is required",
+                status_code=400
+            )
+        
+        try:
+            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+            api_key = provider.get_shared_api_key()
+            
+            # دریافت لیست از API (کش میشه برای سرعت)
+            cache_key = f"available_models_{provider_slug}_{capability}"
+            models = cache.get(cache_key)
+            
+            if not models:
+                models = self._fetch_from_provider_api(
+                    provider_slug, 
+                    api_key,
+                    capability
+                )
+                cache.set(cache_key, models, 6 * 60 * 60)  # 6 hours
+            
+            return APIResponse.success(
+                message=f"Found {len(models)} models",
+                data={
+                    'provider': provider_slug,
+                    'capability': capability,
+                    'models': models,
+                    'total': len(models)
+                }
+            )
+            
+        except Exception as e:
+            return APIResponse.error(
+                message=f"Error fetching models: {str(e)}",
+                status_code=500
+            )
+    
+    @action(detail=False, methods=['post'], url_path='select-model')
+    def select_model(self, request):
+        """
+        ✅ انتخاب و ذخیره مدل در DB
+        فقط مدل انتخاب شده ذخیره میشه!
+        
+        Body:
+        {
+            "provider": "openrouter",
+            "capability": "chat",
+            "model_id": "google/gemini-2.0-flash",
+            "model_name": "Gemini 2.0 Flash"
+        }
+        """
+        provider_slug = request.data.get('provider')
+        capability = request.data.get('capability')
+        model_id = request.data.get('model_id')
+        model_name = request.data.get('model_name')
+        
+        try:
+            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+            
+            # 1. غیرفعال کردن مدل قبلی همین capability
+            AIModel.objects.filter(
+                provider=provider,
+                capabilities__contains=capability
+            ).update(is_active=False)
+            
+            # 2. ایجاد/آپدیت مدل جدید
+            model, created = AIModel.objects.update_or_create(
+                provider=provider,
+                model_id=model_id,
+                defaults={
+                    'name': model_name,
+                    'display_name': model_name,
+                    'capabilities': [capability],
+                    'is_active': True,
+                }
+            )
+            
+            # 3. کش را پاک کن
+            AICacheManager.invalidate_models()
+            
+            return APIResponse.success(
+                message=f"Model selected successfully",
+                data={
+                    'id': model.id,
+                    'model_id': model.model_id,
+                    'name': model.display_name,
+                    'capability': capability,
+                    'is_active': model.is_active
+                }
+            )
+            
+        except Exception as e:
+            return APIResponse.error(
+                message=f"Error selecting model: {str(e)}",
+                status_code=500
+            )
+    
+    @action(detail=False, methods=['get'], url_path='selected-models')
+    def get_selected_models(self, request):
+        """
+        📌 لیست مدل‌های انتخاب شده (که در DB هستن)
+        """
+        provider_slug = request.query_params.get('provider')
+        
+        queryset = AIModel.objects.filter(
+            is_active=True,
+            provider__is_active=True
+        ).select_related('provider')
+        
+        if provider_slug:
+            queryset = queryset.filter(provider__slug=provider_slug)
+        
+        serializer = AIModelListSerializer(queryset, many=True)
+        
+        return APIResponse.success(
+            message="Selected models retrieved",
+            data=serializer.data
+        )
+    
+    def _fetch_from_provider_api(self, provider_slug: str, api_key: str, 
+                                 capability: str = None) -> list:
+        """دریافت لیست مدل‌ها از API provider"""
+        
+        if provider_slug == 'openrouter':
+            from src.ai.providers.openrouter import OpenRouterProvider
+            models = OpenRouterProvider.get_available_models(
+                api_key=api_key,
+                use_cache=True
+            )
+            
+        elif provider_slug == 'huggingface':
+            from src.ai.providers.huggingface import HuggingFaceProvider
+            task_map = {
+                'chat': 'text-generation',
+                'content': 'text-generation',
+                'image': 'text-to-image',
+                'audio': 'text-to-speech'
+            }
+            task = task_map.get(capability)
+            models = HuggingFaceProvider.get_available_models(
+                api_key=api_key,
+                task_filter=task,
+                use_cache=True
+            )
+            
+        elif provider_slug == 'groq':
+            from src.ai.providers.groq import GroqProvider
+            models = GroqProvider.get_available_models(
+                api_key=api_key,
+                use_cache=True
+            )
+        else:
+            return []
+        
+        # فیلتر بر اساس capability
+        if capability:
+            models = [m for m in models if self._model_supports_capability(m, capability)]
+        
+        return models
+    
+    def _model_supports_capability(self, model: dict, capability: str) -> bool:
+        """بررسی اینکه مدل از capability پشتیبانی می‌کنه"""
+        model_id = model.get('id', '').lower()
+        
+        if capability == 'image':
+            return any(kw in model_id for kw in ['dall-e', 'flux', 'stable', 'imagen'])
+        elif capability == 'audio':
+            return any(kw in model_id for kw in ['tts', 'whisper', 'audio'])
+        else:  # chat, content
+            return True  # اکثر مدل‌ها
+
+3️⃣ Registry Pattern (بدون import دستی)
 python# Backend/src/ai/providers/registry.py
 
 class AIProviderRegistry:
-    """تمام providerها رو خودکار کشف و ثبت می‌کنه"""
+    """Auto-discovery providerها - بدون import دستی"""
     
     _instance = None
     _providers: Dict[str, Type[BaseProvider]] = {}
     
-    @classmethod
-    def auto_discover(cls):
-        """Auto-discover تمام providerها - بدون import دستی"""
-        import importlib
-        import inspect
-        from pathlib import Path
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if not hasattr(self, '_initialized'):
+            self._initialized = True
+            self.auto_discover()
+    
+    def auto_discover(self):
+        """کشف خودکار تمام providerها"""
+        # Import فقط یکبار در اینجا
+        from .gemini import GeminiProvider
+        from .openai import OpenAIProvider
+        from .openrouter import OpenRouterProvider
+        from .groq import GroqProvider
+        from .huggingface import HuggingFaceProvider
+        from .deepseek import DeepSeekProvider
         
-        # پیدا کردن تمام فایل‌های .py در پوشه providers
-        providers_dir = Path(__file__).parent
-        for file in providers_dir.glob("*.py"):
-            if file.stem in ['__init__', 'base', 'registry']:
-                continue
-            
-            # Import dynamic
-            module = importlib.import_module(f"src.ai.providers.{file.stem}")
-            
-            # پیدا کردن کلاس‌های Provider
-            for name, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, BaseProvider) and obj != BaseProvider:
-                    provider_name = file.stem  # نام فایل = نام provider
-                    cls.register(provider_name, obj)
+        self.register('gemini', GeminiProvider)
+        self.register('openai', OpenAIProvider)
+        self.register('openrouter', OpenRouterProvider)
+        self.register('groq', GroqProvider)
+        self.register('huggingface', HuggingFaceProvider)
+        self.register('deepseek', DeepSeekProvider)
     
     @classmethod
-    def get_available_models(cls, provider_slug: str, capability: str = None, 
-                           api_key: str = None) -> List[Dict]:
-        """دریافت مدل‌ها real-time از API"""
-        provider_class = cls.get(provider_slug)
-        if not provider_class or not hasattr(provider_class, 'get_available_models'):
-            return []
-        
-        # کش کردن برای سرعت
-        cache_key = f"models_{provider_slug}_{capability}"
-        cached = cache.get(cache_key)
-        if cached:
-            return cached
-        
-        # دریافت از API
-        models = provider_class.get_available_models(api_key=api_key)
-        
-        # فیلتر بر اساس capability
-        if capability:
-            models = [m for m in models if capability in cls._detect_capability(m)]
-        
-        cache.set(cache_key, models, 6 * 60 * 60)  # 6 ساعت
-        return models
+    def register(cls, name: str, provider_class: Type[BaseProvider]):
+        cls._providers[name] = provider_class
+    
+    @classmethod
+    def get(cls, name: str) -> Type[BaseProvider]:
+        return cls._providers.get(name)
+    
+    @classmethod
+    def create_instance(cls, name: str, api_key: str, config: dict = None):
+        provider_class = cls.get(name)
+        if not provider_class:
+            raise ValueError(f"Provider '{name}' not found")
+        return provider_class(api_key, config)
 
-# Initialize تنها یک بار
+# Initialize
 _registry = AIProviderRegistry()
 
-3️⃣ Unified Service (ساده‌شده)
-python# Backend/src/ai/services/unified_service.py
+4️⃣ استفاده در Viewهای موجود
+python# Backend/src/ai/views/chat_views.py (بدون تغییر اساسی!)
 
-class UnifiedAIService:
-    """یک سرویس برای همه - بدون تکرار کد"""
+from src.ai.providers.registry import AIProviderRegistry
+
+class AIChatViewSet(viewsets.ViewSet):
     
-    @classmethod
-    def get_selected_model(cls, provider_slug: str, capability: str, admin) -> str:
-        """دریافت مدل انتخاب شده از config"""
-        provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+    @action(detail=False, methods=['post'], url_path='send-message')
+    def send_message(self, request):
+        # ... permission checks ...
         
-        # 1. چک کردن Personal config
-        if admin:
-            settings = AdminProviderSettings.objects.filter(
-                admin=admin, provider=provider, is_active=True
-            ).first()
-            
-            if settings and settings.config:
-                personal_model = settings.config.get('selected_models', {}).get(capability)
-                if personal_model:
-                    return personal_model
-        
-        # 2. چک کردن Shared config
-        selected_models = provider.config.get('selected_models', {})
-        return selected_models.get(capability)
-    
-    @classmethod
-    def generate_content(cls, prompt: str, capability: str, admin, **kwargs):
-        """تولید محتوا - تمام capabilityها"""
-        
-        # 1. پیدا کردن provider و مدل
-        # (از config می‌خونه، نه از دیتابیس!)
-        provider_slug = cls._find_active_provider(capability)
-        model_id = cls.get_selected_model(provider_slug, capability, admin)
+        # 1. پیدا کردن مدل فعال
+        model = AIModel.objects.get_active_model('openrouter', 'chat')
         
         # 2. دریافت API key
-        api_key = cls._get_api_key(provider_slug, admin)
+        api_key = self._get_api_key(model.provider, request.user)
         
-        # 3. دریافت provider از Registry
+        # 3. ایجاد provider از Registry (بدون import دستی!)
         registry = AIProviderRegistry()
-        provider = registry.create_instance(provider_slug, api_key, {
-            'model': model_id
-        })
+        provider = registry.create_instance(
+            name=model.provider.slug,
+            api_key=api_key,
+            config={'model': model.model_id}
+        )
         
-        # 4. تولید محتوا
+        # 4. استفاده از provider
         loop = asyncio.get_event_loop()
-        if capability == 'chat':
-            return loop.run_until_complete(provider.chat(prompt, **kwargs))
-        elif capability == 'image':
-            return loop.run_until_complete(provider.generate_image(prompt, **kwargs))
-        elif capability == 'content':
-            return loop.run_until_complete(provider.generate_content(prompt, **kwargs))
-        elif capability == 'audio':
-            return loop.run_until_complete(provider.text_to_speech(prompt, **kwargs))
-
-4️⃣ Views (خیلی ساده)
-python# Backend/src/ai/views/unified_views.py
-
-class UnifiedAIViewSet(viewsets.ViewSet):
-    """یک ViewSet برای همه capabilityها"""
-    
-    @action(detail=False, methods=['get'], url_path='models')
-    def get_models(self, request):
-        """دریافت لیست مدل‌ها real-time"""
-        capability = request.query_params.get('capability')  # chat, image, content, audio
-        provider_slug = request.query_params.get('provider')  # optional
-        
-        if provider_slug:
-            # مدل‌های یک provider خاص
-            providers_to_check = [provider_slug]
-        else:
-            # همه providerهای فعال
-            providers_to_check = AIProvider.objects.filter(
-                is_active=True
-            ).values_list('slug', flat=True)
-        
-        all_models = []
-        registry = AIProviderRegistry()
-        
-        for slug in providers_to_check:
-            try:
-                provider = AIProvider.objects.get(slug=slug, is_active=True)
-                api_key = provider.get_shared_api_key()
-                
-                # دریافت مدل‌ها real-time
-                models = registry.get_available_models(slug, capability, api_key)
-                
-                # اضافه کردن مدل انتخاب شده
-                selected = provider.config.get('selected_models', {}).get(capability)
-                
-                all_models.append({
-                    'provider': slug,
-                    'provider_name': provider.display_name,
-                    'models': models,
-                    'selected_model': selected,
-                    'count': len(models)
-                })
-            except Exception:
-                continue
-        
-        return APIResponse.success(
-            message=f"Found {sum(m['count'] for m in all_models)} models",
-            data=all_models
-        )
-    
-    @action(detail=False, methods=['post'], url_path='<capability>/generate')
-    def generate(self, request, capability):
-        """تولید محتوا برای هر capability"""
-        prompt = request.data.get('prompt')
-        
-        result = UnifiedAIService.generate_content(
-            prompt=prompt,
-            capability=capability,
-            admin=request.user,
-            **request.data
+        reply = loop.run_until_complete(
+            provider.chat(message, conversation_history)
         )
         
-        return APIResponse.success(
-            message=f"{capability.title()} generated successfully",
-            data=result
-        )
+        return APIResponse.success(data={'reply': reply})
+```
 
-5️⃣ Admin Panel Serializer
-python# Backend/src/ai/serializers/admin_serializers.py
+---
 
-class AIProviderAdminSerializer(serializers.ModelSerializer):
-    """Serializer ساده برای پنل ادمین"""
-    
-    # Real-time model counts
-    available_models_count = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = AIProvider
-        fields = ['slug', 'display_name', 'config', 'available_models_count']
-    
-    def get_available_models_count(self, obj):
-        """تعداد مدل‌ها real-time"""
-        registry = AIProviderRegistry()
-        counts = {}
-        
-        for capability in ['chat', 'image', 'content', 'audio']:
-            models = registry.get_available_models(obj.slug, capability)
-            counts[capability] = len(models)
-        
-        return counts
+## 📁 **ساختار فایل‌های نهایی:**
+```
+Backend/src/ai/
+├── models/
+│   ├── ai_provider.py          ✅ نگه داشتن
+│   └── __init__.py
+│
+├── providers/
+│   ├── base.py                 ✅ نگه داشتن
+│   ├── registry.py             ⭐ جدید - Auto-discovery
+│   ├── gemini.py               ✅ نگه داشتن
+│   ├── openai.py               ✅ نگه داشتن
+│   ├── openrouter.py           ✅ نگه داشتن
+│   ├── groq.py                 ✅ نگه داشتن
+│   ├── huggingface.py          ✅ نگه داشتن
+│   └── deepseek.py             ✅ نگه داشتن
+│
+├── views/
+│   ├── ai_provider_views.py    ✅ نگه داشتن
+│   ├── chat_views.py           ✅ نگه داشتن (با Registry)
+│   ├── content_generation_views.py  ✅ نگه داشتن
+│   ├── image_generation_views.py    ✅ نگه داشتن
+│   ├── audio_generation_views.py    ✅ نگه داشتن
+│   ├── ai_model_management_views.py ⭐ جدید - Browse & Select
+│   └── ai_model_sync_views.py  ❌ حذف (دیگه sync نداریم!)
+│
+├── services/
+│   ├── chat_service.py         ✅ نگه داشتن (با Registry)
+│   ├── content_generation_service.py  ✅ نگه داشتن
+│   ├── image_generation_service.py    ✅ نگه داشتن
+│   └── audio_generation_service.py    ✅ نگه داشتن
+│
+└── urls.py                     🔄 آپدیت
 
-class ModelSelectionSerializer(serializers.Serializer):
-    """برای انتخاب مدل در پنل"""
-    
-    provider = serializers.CharField()
-    capability = serializers.ChoiceField(choices=['chat', 'image', 'content', 'audio'])
-    model_id = serializers.CharField()
-    
-    def save(self):
-        """ذخیره انتخاب در config"""
-        provider = AIProvider.objects.get(slug=self.validated_data['provider'])
-        
-        if not provider.config:
-            provider.config = {}
-        
-        if 'selected_models' not in provider.config:
-            provider.config['selected_models'] = {}
-        
-        provider.config['selected_models'][self.validated_data['capability']] = \
-            self.validated_data['model_id']
-        
-        provider.save()
-        return provider
+🔄 URLs جدید:
+python# Backend/src/ai/urls.py
 
-🚀 مزایای این معماری:
-ویژگیقبلبعدذخیره در DB✅ صدها رکورد❌ فقط configSync✅ نیاز به sync❌ Real-timeImport دستی✅ در هر فایل❌ Auto-discoverتکرار کد✅ در هر View❌ یک Serviceسرعت⚠️ Query زیاد✅ Cache شدهFlexibility⚠️ Sync لازم✅ Instant updateحجم کد⚠️ زیاد✅ خیلی کم
+router = DefaultRouter()
 
-📝 تغییرات لازم:
-✅ فایل‌های نیاز به تغییر:
+# ⭐ Model Management (جدید)
+router.register(r'admin/ai-model-management', 
+                AIModelManagementViewSet, 
+                basename='ai-model-management')
 
-ai/models/ai_provider.py - حذف AIModel
-ai/providers/registry.py - Auto-discovery
-ai/services/unified_service.py - ساده‌سازی
-ai/views/unified_views.py - یک ViewSet
-ai/urls.py - ساده‌سازی روت‌ها
-
-❌ فایل‌های حذف شده:
-
-ai/models/ai_model.py ❌
-ai/views/chat_views.py ❌
-ai/views/image_generation_views.py ❌
-ai/views/content_generation_views.py ❌
-ai/views/audio_generation_views.py ❌
-ai/views/ai_model_sync_views.py ❌
-
-
-🎯 نتیجه‌گیری:
-این معماری:
-
-✅ ساده - فقط 5 فایل اصلی
-✅ سریع - Cache + No DB queries
-✅ Dynamic - Real-time از API
-✅ Scalable - هر تعداد provider
-✅ Maintainable - بدون تکرار کد
-✅ Professional - Best practice 2025
-
+# ✅ Viewهای موجود (بد

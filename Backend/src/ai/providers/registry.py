@@ -108,16 +108,7 @@ class AIProviderRegistry:
     
     @classmethod
     def auto_discover(cls):
-        """
-        شناسایی خودکار Providerها از ماژول providers
-        
-        این متد تمام کلاس‌هایی که از BaseProvider ارث‌بری می‌کنند
-        و نامشان به 'Provider' ختم می‌شود را پیدا کرده و ثبت می‌کند.
-        """
-        # Import مستقیم از فایل‌ها برای جلوگیری از circular import
-        # این import باید بعد از تعریف تمام providerها انجام شود
         try:
-            # Import مستقیم از فایل‌ها (نه از __init__.py)
             from .gemini import GeminiProvider
             from .openai import OpenAIProvider
             from .huggingface import HuggingFaceProvider
@@ -125,7 +116,6 @@ class AIProviderRegistry:
             from .openrouter import OpenRouterProvider
             from .groq import GroqProvider
             
-            # ثبت providerها
             providers_to_register = [
                 ('gemini', GeminiProvider),
                 ('openai', OpenAIProvider),
@@ -140,7 +130,6 @@ class AIProviderRegistry:
                     cls.register(name, provider_class)
         
         except ImportError as e:
-            # اگر import خطا داد، لاگ می‌کنیم اما برنامه را متوقف نمی‌کنیم
             import logging
             logger = logging.getLogger(__name__)
             logger.warning(f"Failed to auto-discover providers: {e}")
