@@ -1,6 +1,4 @@
 from django.db.models import Q, Count
-from django.core.management import call_command
-from io import StringIO
 from src.ai.utils.cache import AICacheManager
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
@@ -303,57 +301,6 @@ class AIModelViewSet(viewsets.ModelViewSet):
             status_code=status.HTTP_200_OK
         )
     
-    @action(detail=False, methods=['post'], url_path='sync')
-    def sync_models(self, request):
-        """
-        Sync AI models from dynamic providers (OpenRouter, Groq, HuggingFace)
-        
-        Query params:
-        - provider: (optional) Sync only specific provider (openrouter, groq, huggingface)
-        - capability: (optional) Sync only specific capability (chat, content, image, audio)
-        """
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
-        
-        provider = request.data.get('provider') or request.query_params.get('provider')
-        capability = request.data.get('capability') or request.query_params.get('capability')
-        
-        try:
-            # Capture command output
-            out = StringIO()
-            err = StringIO()
-            
-            # Prepare command arguments
-            cmd_args = []
-            if provider:
-                cmd_args.extend(['--provider', provider])
-            if capability:
-                cmd_args.extend(['--capability', capability])
-            
-            # Execute sync command
-            call_command('sync_ai_models', *cmd_args, stdout=out, stderr=err)
-            
-            output = out.getvalue()
-            error_output = err.getvalue()
-            
-            # Invalidate cache after sync
-            AICacheManager.invalidate_models()
-            
-            return APIResponse.success(
-                message='مدل‌ها با موفقیت sync شدند',
-                data={
-                    'output': output,
-                    'errors': error_output if error_output else None,
-                    'provider': provider,
-                    'capability': capability,
-                },
-                status_code=status.HTTP_200_OK
-            )
-        except Exception as e:
-            return APIResponse.error(
-                message=f'خطا در sync مدل‌ها: {str(e)}',
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
 
 class AdminProviderSettingsViewSet(viewsets.ModelViewSet):

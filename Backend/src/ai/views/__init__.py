@@ -13,6 +13,7 @@ from .image_generation_views import (
 from .content_generation_views import AIContentGenerationViewSet
 from .chat_views import AIChatViewSet
 from .audio_generation_views import AIAudioGenerationRequestViewSet
+from .ai_model_sync_views import AIModelSyncViewSet
 
 __all__ = [
     'AIProviderViewSet',
@@ -24,5 +25,6 @@ __all__ = [
     'AIContentGenerationViewSet',
     'AIChatViewSet',
     'AIAudioGenerationRequestViewSet',
+    'AIModelSyncViewSet',
 ]
 

@@ -2,11 +2,15 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.ai import views
 from src.ai.views.unified_generation_views import UnifiedAIGenerationViewSet
+from src.ai.views.ai_model_sync_views import AIModelSyncViewSet
 
 router = DefaultRouter()
 
 # Unified endpoints (جدید - اضافه کنید)
 router.register(r'admin/ai', UnifiedAIGenerationViewSet, basename='ai-unified')
+
+# AI Model Sync endpoints (Real-time از API)
+router.register(r'admin/ai-sync', AIModelSyncViewSet, basename='ai-sync')
 
 # Existing endpoints (قدیمی - می‌توانید نگه دارید)
 router.register(r'admin/ai-providers', views.AIProviderViewSet, basename='ai-providers')
