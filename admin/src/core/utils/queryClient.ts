@@ -7,9 +7,9 @@ const defaultQueryOptions = {
     staleTime: 0,
     gcTime: 0,
     retry: false,
-    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
-    refetchOnMount: false, // Don't refetch on mount - only fetch once
-    refetchOnReconnect: false, // Don't refetch on reconnect
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
     refetchInterval: false as const,
   },
   mutations: {

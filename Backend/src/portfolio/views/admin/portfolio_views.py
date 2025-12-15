@@ -37,7 +37,6 @@ from src.portfolio.utils.cache import PortfolioCacheManager
 
 
 class PortfolioAdminViewSet(viewsets.ModelViewSet):
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioAdminFilter
@@ -90,7 +89,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        """لیست نمونه‌کارها - بدون کش، فقط با query optimization"""
         if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_not_authorized"],

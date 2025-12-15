@@ -76,11 +76,7 @@ class CacheMixin:
 
 
 class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
-    """
-    AI Provider model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Flags → Configuration → Statistics
-    """
-    # 2. Primary Content Fields
+    name = models.CharField(
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -216,49 +212,21 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
             AICacheManager.invalidate_provider(self.slug)
     
     def get_shared_api_key(self) -> str:
-        """دریافت Shared API Key به صورت decrypt شده"""
         if not self.shared_api_key:
             return ''
         return self.decrypt_key(self.shared_api_key)
     
     def supports_capability(self, capability: str) -> bool:
-        """
-        چک کردن پشتیبانی از یک capability
-        
-        Args:
-            capability: نوع capability (chat, content, image, audio)
-        
-        Returns:
-            True اگر پشتیبانی میکنه، False در غیر این صورت
-        """
         if not self.capabilities:
             return False
         return self.capabilities.get(capability, {}).get('supported', False)
     
     def has_dynamic_models(self, capability: str) -> bool:
-        """
-        آیا لیست مدل‌های این capability از API می‌آید؟
-        
-        Args:
-            capability: نوع capability
-        
-        Returns:
-            True اگر dynamic باشد (مثل OpenRouter)
-        """
         if not self.capabilities:
             return False
         return self.capabilities.get(capability, {}).get('has_dynamic_models', False)
     
     def get_static_models(self, capability: str) -> list:
-        """
-        دریافت لیست مدل‌های static (از capabilities)
-        
-        Args:
-            capability: نوع capability
-        
-        Returns:
-            لیست model_id های موجود یا لیست خالی
-        """
         if not self.capabilities:
             return []
         return self.capabilities.get(capability, {}).get('models', [])
@@ -396,15 +364,12 @@ class AIModelManager(models.Manager):
         # IMPORTANT: Only deactivate if capability exists in model's capabilities list
         deactivated_count = 0
         for model in queryset:
-            # فقط اگر این capability دقیقاً در لیست capabilities این مدل هست
             if capability in model.capabilities:
-                # اگر فقط یه capability داره، غیرفعالش کن
                 if len(model.capabilities) == 1:
                     model.is_active = False
                     model.save(update_fields=['is_active', 'updated_at'])
                     deactivated_count += 1
                 else:
-                    # اگه چند capability داره، فقط این capability رو از لیست حذف کن
                     model.capabilities.remove(capability)
                     model.save(update_fields=['capabilities', 'updated_at'])
                     deactivated_count += 1
@@ -817,16 +782,10 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
     def get_api_key(self) -> str:
         """
         Get API key with priority: Personal > Shared
-        According to MAIN_AI_SENARIO.md:
-        - If user has personal API key → use personal
-        - If personal not available and shared is active → use shared
-        """
-        # اولویت 1: Personal API Key
         personal_key = self.get_personal_api_key()
         if personal_key and personal_key.strip():
             return personal_key
         
-        # اولویت 2: Shared API Key
         is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
         
         if not is_super:

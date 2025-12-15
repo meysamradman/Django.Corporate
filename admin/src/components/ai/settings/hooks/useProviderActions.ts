@@ -63,7 +63,6 @@ export function useProviderActions({
 
       Object.entries(loadedPersonalApiKeys).forEach(([key, value]) => {
         if (value && value.trim() !== '' && value !== '***') {
-          // همیشه آپدیت کن تا بعد از save هم درست بمونه
           if (prev[key] !== value) {
             updated[key] = value;
             hasChanges = true;
@@ -84,7 +83,6 @@ export function useProviderActions({
 
       Object.entries(loadedSharedApiKeys).forEach(([key, value]) => {
         if (value && value.trim() !== '' && value !== '***') {
-          // همیشه آپدیت کن تا بعد از save هم درست بمونه
           if (prev[key] !== value) {
             updated[key] = value;
             hasChanges = true;
@@ -142,11 +140,9 @@ export function useProviderActions({
       const { providerId, apiKey, useSharedApi } = variables;
       const backendProviderName = frontendToBackendProviderMap[providerId];
       
-      // CRITICAL: اول refetch کن تا داده واقعی از backend بیاد
       await queryClient.refetchQueries({ queryKey: ['ai-backend-providers'] });
       await queryClient.refetchQueries({ queryKey: ['ai-personal-settings'] });
       
-      // بعد state رو آپدیت کن
       if (useSharedApi && isSuperAdmin) {
         if (apiKey.trim()) {
           setSharedApiKeys(prev => ({
@@ -154,7 +150,6 @@ export function useProviderActions({
             [providerId]: apiKey
           }));
         } else {
-          // اگر API key خالی است، از state حذف کن
           setSharedApiKeys(prev => {
             const newKeys = { ...prev };
             delete newKeys[providerId];
@@ -168,7 +163,6 @@ export function useProviderActions({
             [providerId]: apiKey
           }));
         } else {
-          // اگر API key خالی است، از state حذف کن
           setPersonalApiKeys(prev => {
             const newKeys = { ...prev };
             delete newKeys[providerId];
@@ -200,7 +194,6 @@ export function useProviderActions({
         throw new Error(`Provider '${providerId}' در backend پشتیبانی نمی‌شود`);
       }
 
-      // Super Admin می‌تواند وضعیت Provider را مستقیماً تغییر دهد
       if (isSuperAdmin && useSharedApi) {
         const backendProvider = providers.find(p => p.id === providerId)?.backendProvider;
         if (backendProvider?.id) {
@@ -210,12 +203,11 @@ export function useProviderActions({
         }
       }
 
-      // Normal Admin فقط می‌تواند تنظیمات شخصی خود را تغییر دهد
       const setting = personalSettingsMap[providerId];
       const data = {
         provider_name: backendProviderName,
         is_active: isActive,
-        use_shared_api: false, // Normal Admin همیشه personal است
+        use_shared_api: false,
       };
 
       if (setting?.id) {
@@ -230,9 +222,7 @@ export function useProviderActions({
     onSuccess: (response, variables) => {
       const { providerId, isActive, useSharedApi } = variables;
       
-      // Optimistic update بر اساس نوع API
       if (useSharedApi && isSuperAdmin) {
-        // Super Admin با Shared API → آپدیت Provider اصلی
         queryClient.setQueryData(['ai-backend-providers'], (old: any) => {
           if (!old) return old;
           return old.map((p: any) => {
@@ -242,15 +232,13 @@ export function useProviderActions({
             }
             return p;
           });
-        });
-      } else {
-        // Personal API (برای هر دو Super و Normal Admin) → آپدیت Personal Settings
-        queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
-          if (!old) return old;
-          const backendProviderName = frontendToBackendProviderMap[providerId];
-          
-          // اگه setting وجود داره، آپدیت کن
-          const exists = old.some((s: any) => 
+          });
+        } else {
+          queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
+            if (!old) return old;
+            const backendProviderName = frontendToBackendProviderMap[providerId];
+            
+            const exists = old.some((s: any) =>
             s.provider_name === backendProviderName || s.provider_slug === backendProviderName
           );
           
@@ -262,7 +250,6 @@ export function useProviderActions({
               return setting;
             });
           } else {
-            // اگه setting وجود نداره، ایجاد کن
             return [...old, {
               provider_name: backendProviderName,
               provider_slug: backendProviderName,
@@ -273,7 +260,6 @@ export function useProviderActions({
         });
       }
       
-      // Invalidate برای sync با backend
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccess('وضعیت با موفقیت تغییر کرد');
@@ -284,12 +270,10 @@ export function useProviderActions({
   });
 
   const handleSaveProvider = useCallback((providerId: string, useSharedApi: boolean, apiKeyValue?: string) => {
-    // اگر apiKeyValue داده شده، از آن استفاده کن، وگرنه از state بخون
     const apiKey = apiKeyValue !== undefined 
       ? apiKeyValue 
       : (useSharedApi ? (sharedApiKeys[providerId] || '') : (personalApiKeys[providerId] || ''));
     
-    // اگه API key خالیه، برای پاک کردن ارسال می‌کنیم
     saveApiKeyMutation.mutate({
       providerId,
       apiKey: apiKey.trim(),

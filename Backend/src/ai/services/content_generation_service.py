@@ -12,12 +12,6 @@ class AIContentGenerationService:
     
     @classmethod
     def get_provider(cls, provider_name: str, admin=None, model_name: Optional[str] = None):
-        """
-        Get provider instance with API key.
-        Now supports selecting specific model or auto-selecting active model.
-        Uses AIProviderRegistry for dynamic provider loading.
-        """
-        # استفاده از Registry به جای Hardcode
         provider_class = AIProviderRegistry.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
@@ -26,7 +20,6 @@ class AIContentGenerationService:
         if not provider:
             raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
         
-        # Get active model for this capability if not specified
         if not model_name:
             active_model = AIModel.objects.get_active_model(provider_name, 'chat')
             if active_model:
@@ -40,16 +33,13 @@ class AIContentGenerationService:
                     is_active=True
                 )
                 
-                # اولویت: 1) Personal API Key  2) Shared API Key
                 api_key = settings.get_personal_api_key()
                 if not api_key or not api_key.strip():
-                    # اگر Personal نبود، از Shared استفاده کن
                     api_key = provider.get_shared_api_key()
                     if not api_key or not api_key.strip():
                         raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
                     
             except AdminProviderSettings.DoesNotExist:
-                # اگر settings نداشت، از Shared استفاده کن
                 api_key = provider.get_shared_api_key()
                 if not api_key or not api_key.strip():
                     raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
@@ -143,7 +133,6 @@ class AIContentGenerationService:
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
-        """دریافت لیست providerهای موجود از Registry"""
         all_providers = ProviderAvailabilityManager.get_available_providers('content')
         registered_providers = AIProviderRegistry.get_registered_names()
         return [p for p in all_providers if p['provider_name'] in registered_providers]

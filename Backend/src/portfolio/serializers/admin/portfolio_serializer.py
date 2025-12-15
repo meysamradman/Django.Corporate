@@ -88,20 +88,14 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_media(self, obj):
-        # برای لیست، فقط main image کافیه - سریع‌تر
-        # media کامل فقط در detail نمایش داده میشه
         return []
     
     def get_media_count(self, obj):
-        # محاسبه تعداد واقعی media ها بدون query اضافی
-        # استفاده از annotate شده از queryset اگر موجود باشه
         if hasattr(obj, 'total_media_count'):
             return obj.total_media_count
         
-        # اگر annotate نداشت، از related manager استفاده کن
         try:
             count = 0
-            # بررسی prefetched cache برای جلوگیری از query اضافی
             if hasattr(obj, '_prefetched_objects_cache'):
                 cache = obj._prefetched_objects_cache
                 count += len(cache.get('images', []))
@@ -109,7 +103,6 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
                 count += len(cache.get('audios', []))
                 count += len(cache.get('documents', []))
             else:
-                # در صورت نبود cache، از count() استفاده کن
                 count = (
                     obj.images.count() + 
                     obj.videos.count() + 

@@ -36,7 +36,6 @@ class AdminLogoutView(APIView):
         return response
 
     def _cleanup_session_completely(self, session_key: str, user_id=None):
-        """پاک کردن کامل session از همه جا"""
         cleanup_results = {
             'redis_session_deleted': False,
             'django_session_deleted': False,
@@ -45,31 +44,28 @@ class AdminLogoutView(APIView):
         }
         
         try:
-            # 1. حذف از Redis Session Cache
             if session_key:
                 session_manager = CacheService.get_session_manager()
                 cleanup_results['redis_session_deleted'] = session_manager.delete_admin_session(session_key)
             
-            # 2. حذف از Django Session Backend
             if session_key:
                 try:
                     from django.contrib.sessions.models import Session
                     Session.objects.filter(session_key=session_key).delete()
                     cleanup_results['django_session_deleted'] = True
                 except Exception as e:
-                    print(f"Django session delete error: {e}")
+                    pass
             
-            # 3. پاک کردن Permission Cache
             if user_id:
                 try:
                     cleared_count = CacheService.clear_user_cache(user_id)
                     cleanup_results['cache_count_cleared'] = cleared_count
                     cleanup_results['permission_cache_cleared'] = True
                 except Exception as e:
-                    print(f"Permission cache clear error: {e}")
+                    pass
             
         except Exception as e:
-            print(f"Cleanup error: {e}")
+            pass
         
         return cleanup_results
 
@@ -78,31 +74,24 @@ class AdminLogoutView(APIView):
         user_id = None
         
         try:
-            # دریافت session key و user_id قبل از flush
             session_key = request.session.session_key
             user_id = getattr(request.user, 'id', None) if request.user.is_authenticated else None
             
-            # 1. Delete session from backend (AdminAuthService)
             if session_key:
                 AdminAuthService.logout_admin(session_key)
             
-            # 2. Cleanup کامل
             cleanup_results = self._cleanup_session_completely(session_key, user_id)
             
-            # 3. Flush Django session (آخرین مرحله)
             request.session.flush()
             
-            # 4. آماده کردن Response
             response = APIResponse.success(
                 message=AUTH_SUCCESS["auth_logged_out"],
                 metaData={'cleanup_status': cleanup_results}
             )
             
-            # 5. حذف Cookies
             self._delete_cookie_with_settings(response, 'SESSION')
             self._delete_cookie_with_settings(response, 'CSRF')
             
-            # 6. اضافه کردن Cache-Control Headers (برای جلوگیری از cache)
             response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
             response['Pragma'] = 'no-cache'
             response['Expires'] = '0'
@@ -110,9 +99,6 @@ class AdminLogoutView(APIView):
             return response
             
         except Exception as e:
-            print(f"Logout error: {e}")
-            
-            # حتی در صورت خطا، سعی کن session رو پاک کنی
             if session_key:
                 try:
                     AdminAuthService.logout_admin(session_key)
@@ -124,11 +110,9 @@ class AdminLogoutView(APIView):
                 message=AUTH_ERRORS["auth_logout_error"]
             )
             
-            # حذف Cookies در هر صورت
             self._delete_cookie_with_settings(response, 'SESSION')
             self._delete_cookie_with_settings(response, 'CSRF')
             
-            # Cache-Control Headers حتی در خطا
             response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
             response['Pragma'] = 'no-cache'
             response['Expires'] = '0'

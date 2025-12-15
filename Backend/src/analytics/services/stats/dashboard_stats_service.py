@@ -26,7 +26,6 @@ class DashboardStatsService:
             'generated_at': timezone.now().isoformat(),
         }
         
-        # Core stats - همیشه موجود
         stats['total_users'] = User.objects.filter(
             user_type='user',
             is_staff=False

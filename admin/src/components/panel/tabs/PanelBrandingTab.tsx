@@ -4,26 +4,18 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import { useForm, SubmitHandler} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from "@/components/elements/Button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/elements/Form";
 import { Input } from "@/components/elements/Input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Card, CardContent } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import LogoUploader from './LogoUploader';
-import { usePanelSettings, useUpdatePanelSettings } from './hooks/usePanelSettings';
+import LogoUploader from '../LogoUploader';
+import { usePanelSettings, useUpdatePanelSettings } from '../hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Media } from '@/types/shared/media';
-import { PanelSettings } from '@/types/settings/panelSettings';
-import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { 
-    Image as ImageIcon, 
     FileText,
-    Save,
-    Database,
-    Download
 } from 'lucide-react';
-import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/panel/route';
 
 const formSchema = z.object({
     panel_title: z.string().min(1, "عنوان پنل الزامی است.").max(100),
@@ -31,17 +23,15 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export interface PanelSettingsFormRef {
+export interface PanelBrandingTabRef {
     isSubmitting: boolean;
     hasChanges: boolean;
     handleSubmit: () => void;
 }
 
-const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
+const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((props, ref) => {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
-    
-    const { canManagePanel } = useUIPermissions();
     
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
     const [selectedFavicon, setSelectedFavicon] = useState<Media | null>(null);
@@ -135,24 +125,68 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
         isSubmitting,
         hasChanges,
         handleSubmit: () => {
-            const formElement = document.getElementById('panel-settings-form') as HTMLFormElement;
+            const formElement = document.getElementById('panel-branding-form') as HTMLFormElement;
             if (formElement) formElement.requestSubmit();
         }
     }));
 
     if (isLoadingSettings) {
         return (
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-6 w-1/4" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-10 w-24" />
-                </CardContent>
-            </Card>
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="text-center border-b-4 border-b-blue-1">
+                        <CardContent className="flex flex-col items-center gap-5 py-8">
+                            <div className="w-full space-y-4">
+                                <div className="relative shrink-0 mx-auto">
+                                    <Skeleton className="h-28 w-28 rounded-2xl" />
+                                    <Skeleton className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full" />
+                                    <Skeleton className="absolute -bottom-1 -left-1 h-4 w-4 rounded-full" />
+                                </div>
+                            </div>
+                            <div className="space-y-2 w-full">
+                                <Skeleton className="h-5 w-32 mx-auto" />
+                                <Skeleton className="h-4 w-48 mx-auto" />
+                            </div>
+                            <Skeleton className="h-12 w-full max-w-sm" />
+                        </CardContent>
+                    </Card>
+
+                    <Card className="text-center border-b-4 border-b-purple-1">
+                        <CardContent className="flex flex-col items-center gap-5 py-8">
+                            <div className="w-full space-y-4">
+                                <div className="relative shrink-0 mx-auto">
+                                    <Skeleton className="h-28 w-28 rounded-2xl" />
+                                    <Skeleton className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full" />
+                                    <Skeleton className="absolute -bottom-1 -left-1 h-4 w-4 rounded-full" />
+                                </div>
+                            </div>
+                            <div className="space-y-2 w-full">
+                                <Skeleton className="h-5 w-24 mx-auto" />
+                                <Skeleton className="h-4 w-48 mx-auto" />
+                            </div>
+                            <Skeleton className="h-12 w-full max-w-sm" />
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <CardWithIcon
+                    icon={FileText}
+                    title="اطلاعات پنل"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                    className="hover:shadow-lg transition-all duration-300"
+                    headerClassName="pb-3"
+                >
+                    <div className="space-y-4">
+                        <Skeleton className="h-4 w-full" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardWithIcon>
+            </div>
         );
     }
 
@@ -183,7 +217,7 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
 
     return (
         <Form {...form}>
-            <form id="panel-settings-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form id="panel-branding-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {brandingCards.map((card) => (
                         <Card
@@ -246,48 +280,12 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
                             )}
                         />
                 </CardWithIcon>
-
-                <CardWithIcon
-                    icon={Database}
-                    title="پشتیبان‌گیری دیتابیس"
-                    iconBgColor="bg-green"
-                    iconColor="stroke-green-2"
-                    borderColor="border-b-green-1"
-                    className="hover:shadow-lg transition-all duration-300"
-                    headerClassName="pb-3"
-                >
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <p className="text-font-s">
-                                می‌توانید یک نسخه پشتیبان کامل از تمام داده‌های دیتابیس PostgreSQL را به صورت فایل SQL استاندارد دانلود کنید.
-                            </p>
-                            <p className="text-xs text-font-s/80">
-                                این فایل SQL قابل استفاده در هر سرور PostgreSQL دیگر است و شامل تمام جداول، داده‌ها، ساختارها و روابط می‌شود.
-                            </p>
-                        </div>
-                        <ProtectedButton
-                            onClick={async () => {
-                                try {
-                                    await downloadDatabaseExport();
-                                } catch (error) {
-                                }
-                            }}
-                            permission="panel.manage"
-                            variant="outline"
-                            className="w-full gap-2"
-                        >
-                            <Download className="h-5 w-5" />
-                            دانلود پشتیبان دیتابیس (SQL)
-                        </ProtectedButton>
-                    </div>
-                </CardWithIcon>
-
             </form>
         </Form>
     );
 });
 
-PanelSettingsForm.displayName = "PanelSettingsForm";
+PanelBrandingTab.displayName = "PanelBrandingTab";
 
-export default PanelSettingsForm;
+export default PanelBrandingTab;
 

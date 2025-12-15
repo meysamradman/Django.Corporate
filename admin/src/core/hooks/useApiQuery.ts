@@ -22,8 +22,8 @@ export function useApiQuery<T>(
     gcTime: 0,
     enabled: options?.enabled ?? true,
     retry: 1,
-    refetchOnWindowFocus: false, // Don't refetch on window focus - prevent 429 errors
-    refetchOnMount: false, // Don't refetch on mount - only use interval
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     refetchInterval: options?.refetchInterval || 0,
   })
 }

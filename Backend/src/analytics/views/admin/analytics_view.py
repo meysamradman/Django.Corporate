@@ -5,18 +5,14 @@ from django.core.cache import cache
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
-import logging
 
 from src.core.responses.response import APIResponse
 from src.analytics.models import DailyStats, PageView
 from src.analytics.messages import ANALYTICS_SUCCESS, ANALYTICS_ERRORS
 from src.user.access_control import analytics_permission
 
-logger = logging.getLogger(__name__)
-
 
 class PageViewsAnalyticsView(APIView):
-    """API آمار بازدید صفحات - پنل ادمین"""
     permission_classes = [analytics_permission]
     
     def get(self, request):
@@ -27,7 +23,6 @@ class PageViewsAnalyticsView(APIView):
             today = timezone.now().date()
             last_30 = today - timedelta(days=30)
             
-            # آمار 30 روز از DailyStats
             stats_30d = DailyStats.objects.filter(date__gte=last_30).aggregate(
                 total=Sum('total_visits'),
                 unique=Sum('unique_visitors'),
@@ -37,7 +32,6 @@ class PageViewsAnalyticsView(APIView):
                 desktop=Sum('desktop_visits'),
             )
             
-            # آمار امروز real-time
             today_stats = PageView.objects.filter(date=today).aggregate(
                 total=Count('id'),
                 unique=Count('session_id', distinct=True),
@@ -45,7 +39,6 @@ class PageViewsAnalyticsView(APIView):
                 app=Count('id', filter=Q(source='app')),
             )
             
-            # تاپ صفحات
             top_pages = list(
                 PageView.objects.filter(date__gte=last_30)
                 .values('path')
@@ -53,7 +46,6 @@ class PageViewsAnalyticsView(APIView):
                 .order_by('-count')[:10]
             )
             
-            # تاپ کشورها
             top_countries = list(
                 PageView.objects.filter(date__gte=last_30)
                 .exclude(country='')
@@ -91,7 +83,6 @@ class PageViewsAnalyticsView(APIView):
 
 
 class MonthlyStatsAnalyticsView(APIView):
-    """API آمار ماهانه بازدید - برای نمودار"""
     permission_classes = [analytics_permission]
     
     def get(self, request):
@@ -162,19 +153,9 @@ class MonthlyStatsAnalyticsView(APIView):
 
 
 class ClearAnalyticsView(APIView):
-    """API پاک کردن بازدیدها - پنل ادمین"""
     permission_classes = [analytics_permission]
     
     def post(self, request):
-        """
-        پاک کردن بازدیدها
-        
-        Body:
-        {
-            "period": "all" | "6months" | "custom",
-            "days": 180  # فقط برای custom
-        }
-        """
         period = request.data.get('period', 'all')
         
         try:
@@ -182,18 +163,15 @@ class ClearAnalyticsView(APIView):
             deleted_daily_stats = 0
             
             if period == 'all':
-                # پاک کردن همه بازدیدها
                 deleted_count, _ = PageView.objects.all().delete()
                 deleted_daily_stats, _ = DailyStats.objects.all().delete()
                 
             elif period == '6months':
-                # پاک کردن بازدیدهای 6 ماه گذشته
                 cutoff_date = timezone.now().date() - timedelta(days=180)
                 deleted_count, _ = PageView.objects.filter(date__lt=cutoff_date).delete()
                 deleted_daily_stats, _ = DailyStats.objects.filter(date__lt=cutoff_date).delete()
                 
             elif period == 'custom':
-                # پاک کردن بازدیدهای custom (بر اساس days)
                 days = request.data.get('days', 180)
                 if not isinstance(days, int) or days < 1:
                     return APIResponse.error(
@@ -210,7 +188,6 @@ class ClearAnalyticsView(APIView):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # پاک کردن cache
             cache.delete('analytics:dashboard')
             cache.delete('analytics:monthly_stats')
             
@@ -225,7 +202,6 @@ class ClearAnalyticsView(APIView):
             )
             
         except Exception as e:
-            logger.error(f"Error clearing analytics: {e}")
             return APIResponse.error(
                 message=ANALYTICS_ERRORS.get('tracking_failed', 'خطا در پاک کردن بازدیدها'),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

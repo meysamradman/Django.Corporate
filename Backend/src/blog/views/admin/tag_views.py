@@ -23,7 +23,6 @@ from src.user.access_control import PermissionValidator
 
 
 class BlogTagAdminViewSet(viewsets.ModelViewSet):
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogTagAdminFilter

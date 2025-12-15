@@ -88,15 +88,12 @@ class AdminRolePermission(permissions.BasePermission):
     def _check_admin_role_permissions(self, user, method: str, view) -> bool:
         cache_key = UserCacheKeys.admin_perm_check(user.id, method, view.__class__.__name__)
         
-        # بررسی Cache
         cached_result = cache.get(cache_key)
         if cached_result is not None:
             return cached_result
         
-        # محاسبه permission
         has_permission = self._calculate_admin_permission(user, method, view)
         
-        # استفاده از Cache Strategy برای timeout دینامیک
         timeout = PermissionCacheStrategy.get_cache_timeout(user, method)
         cache.set(cache_key, has_permission, timeout)
         

@@ -2,7 +2,6 @@ from django.db import models
 
 
 class DailyStats(models.Model):
-    """آمار روزانه محاسبه شده"""
     
     date = models.DateField(unique=True, db_index=True)
     

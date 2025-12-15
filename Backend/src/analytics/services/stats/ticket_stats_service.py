@@ -20,7 +20,6 @@ class TicketStatsService:
     
     @classmethod
     def _calculate_stats(cls) -> dict:
-        # بررسی وجود اپ ticket
         if not apps.is_installed('src.ticket'):
             return {
                 'total_tickets': 0,

@@ -67,7 +67,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # فراخوانی Service برای Business Logic
             instance = EmailService.create_email_message(
                 validated_data=serializer.validated_data,
                 request=request,

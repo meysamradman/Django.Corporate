@@ -37,7 +37,6 @@ from src.blog.utils.cache import BlogCacheManager
 
 
 class BlogAdminViewSet(viewsets.ModelViewSet):
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogAdminFilter
@@ -89,7 +88,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        """لیست وبلاگ‌ها - بدون کش، فقط با query optimization"""
         if not PermissionValidator.has_permission(request.user, 'blog.read'):
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_not_authorized"],

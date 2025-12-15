@@ -112,10 +112,6 @@ class AIChatViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """
-        لیست Provider های قابل دسترس برای Chat
-        طبق سناریو: همه Provider ها نمایش داده میشن (حتی بدون مدل)
-        """
         has_chat_permission = PermissionValidator.has_permission(request.user, 'ai.chat.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         has_permission = has_chat_permission or has_manage_permission
@@ -129,21 +125,18 @@ class AIChatViewSet(viewsets.ViewSet):
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
-            # همه Provider های فعال
             providers_qs = AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name')
             
             result = []
             for provider in providers_qs:
-                # چک دسترسی
                 has_access = self._check_provider_access(request.user, provider, is_super)
                 
-                # همه Provider ها برگردونده میشن
                 provider_info = {
                     'id': provider.id,
                     'slug': provider.slug,
                     'name': provider.display_name,
                     'description': provider.description,
-                    'has_access': has_access,  # آیا میتونه استفاده کنه
+                    'has_access': has_access,
                 }
                 result.append(provider_info)
             
@@ -159,12 +152,9 @@ class AIChatViewSet(viewsets.ViewSet):
             )
     
     def _check_provider_access(self, user, provider, is_super: bool) -> bool:
-        """چک میکنه آیا این admin میتونه از این provider استفاده کنه"""
-        # Super Admin + Shared API
         if is_super and provider.shared_api_key:
             return True
         
-        # Personal API
         personal_settings = AdminProviderSettings.objects.filter(
             admin=user,
             provider=provider,
@@ -175,7 +165,6 @@ class AIChatViewSet(viewsets.ViewSet):
         if personal_settings:
             return True
         
-        # Shared API برای Normal Admin (اگه Provider اجازه داده باشه)
         if provider.allow_shared_for_normal_admins and provider.shared_api_key:
             return True
         

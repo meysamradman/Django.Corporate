@@ -20,10 +20,6 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """
-        لیست Provider های قابل دسترس برای Audio Generation
-        طبق سناریو: همه Provider ها نمایش داده میشن (حتی بدون مدل)
-        """
         has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         has_permission = has_audio_permission or has_manage_permission
@@ -37,15 +33,12 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
-            # همه Provider های فعال
             providers_qs = AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name')
             
             result = []
             for provider in providers_qs:
-                # چک دسترسی
                 has_access = self._check_provider_access(request.user, provider, is_super)
                 
-                # همه Provider ها برگردونده میشن
                 provider_info = {
                     'id': provider.id,
                     'slug': provider.slug,
@@ -67,7 +60,6 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
             )
     
     def _check_provider_access(self, user, provider, is_super: bool) -> bool:
-        """چک میکنه آیا این admin میتونه از این provider استفاده کنه"""
         if is_super and provider.shared_api_key:
             return True
         

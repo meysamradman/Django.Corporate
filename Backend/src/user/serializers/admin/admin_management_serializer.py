@@ -51,7 +51,6 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         assigned_roles = []
         try:
-            # استفاده از prefetched data
             if hasattr(obj, '_prefetched_objects_cache') and 'admin_user_roles' in obj._prefetched_objects_cache:
                 user_role_assignments = [
                     ur for ur in obj._prefetched_objects_cache['admin_user_roles']
@@ -100,7 +99,6 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         assigned_roles = []
         try:
-            # استفاده از prefetched data
             if hasattr(user, '_prefetched_objects_cache') and 'admin_user_roles' in user._prefetched_objects_cache:
                 user_role_assignments = [
                     ur for ur in user._prefetched_objects_cache['admin_user_roles']

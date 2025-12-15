@@ -111,7 +111,6 @@ class Blog(BaseModel, SEOMixin):
         return f"/blog/p/{self.public_id}/"
     
     def get_main_image(self):
-        # استفاده از prefetch شده اگر موجود باشه
         if hasattr(self, 'main_image_media') and self.main_image_media:
             return self.main_image_media[0].image if self.main_image_media[0].image else None
         
@@ -122,7 +121,6 @@ class Blog(BaseModel, SEOMixin):
                 return main_images[0].image if main_images[0].image else None
             return None
         
-        # فقط اگر prefetch نداریم از کش استفاده کن
         cache_key = BlogCacheKeys.main_image(self.pk)
         main_image_id = cache.get(cache_key)
         

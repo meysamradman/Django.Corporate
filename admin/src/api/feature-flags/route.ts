@@ -13,10 +13,6 @@ export interface FeatureFlag {
 }
 
 export const featureFlagsApi = {
-  /**
-   * Get all feature flags from the backend (public - only status)
-   * Uses Next.js revalidation for caching
-   */
   getAll: async (): Promise<FeatureFlags> => {
     try {
       const response = await fetchApi.get<FeatureFlags>('/core/feature-flags/', {
@@ -24,15 +20,10 @@ export const featureFlagsApi = {
       });
       return response.data || {};
     } catch (error) {
-      // If feature flags endpoint fails, return empty object (all features disabled)
-      console.warn('Failed to fetch feature flags:', error);
       return {};
     }
   },
 
-  /**
-   * Get a specific feature flag status
-   */
   get: async (key: string): Promise<boolean> => {
     try {
       const response = await fetchApi.get<{ key: string; is_active: boolean }>(
@@ -41,7 +32,6 @@ export const featureFlagsApi = {
       );
       return response.data?.is_active ?? false;
     } catch (error) {
-      console.warn(`Failed to fetch feature flag "${key}":`, error);
       return false;
     }
   },

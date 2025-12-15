@@ -18,7 +18,6 @@ import { useRouter } from 'next/navigation';
 import { showError, showSuccess } from '@/core/toast';
 import { toast } from '@/core/toast';
 
-// Tab Skeleton
 const TabSkeleton = () => (
     <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
@@ -32,7 +31,6 @@ const TabSkeleton = () => (
     </div>
 );
 
-// Dynamic imports
 const ModelSelector = dynamic(
     () => import('@/components/ai/models/ModelSelector').then(mod => ({ default: mod.ModelSelector })),
     {
@@ -119,7 +117,6 @@ export default function AIModelsPage() {
     const { isLoading: isAuthLoading, user } = useAuth();
     const { isSuperAdmin, hasPermission } = useUserPermissions();
 
-    // چک دسترسی: Super Admin یا هر کسی که حداقل یکی از permissionهای AI رو داشته باشه
     const hasAccess = 
         isSuperAdmin || 
         hasPermission('ai.manage') || 
@@ -137,7 +134,6 @@ export default function AIModelsPage() {
     const [showDeepSeekModal, setShowDeepSeekModal] = useState(false);
     const [showGroqModal, setShowGroqModal] = useState(false);
 
-    // دریافت لیست Provider ها برای ID واقعی - بدون cache
     const { data: providers } = useQuery({
         queryKey: ['ai-providers'],
         queryFn: async () => {
@@ -148,13 +144,11 @@ export default function AIModelsPage() {
         gcTime: 0,
     });
 
-    // تبدیل slug به ID
     const getProviderIdBySlug = (slug: string) => {
         const provider = providers?.find((p: any) => p.slug === slug);
         return provider?.id?.toString() || '1';
     };
 
-    // دریافت providerهای واقعی از backend - بدون cache
     const { data: availableProviders, isLoading: isLoadingProviders } = useQuery({
         queryKey: ['ai-available-providers', activeTab],
         queryFn: async () => {
@@ -166,7 +160,6 @@ export default function AIModelsPage() {
                 }
                 return [];
             } catch (error: any) {
-                console.error(`Error fetching providers for ${activeTab}:`, error);
                 return [];
             }
         },
@@ -174,16 +167,13 @@ export default function AIModelsPage() {
         gcTime: 0,
     });
 
-    // تابع helper برای تبدیل نام backend به frontend ID
     const normalizeProviderSlug = useCallback((backendName: string): string => {
         const name = backendName.toLowerCase().trim();
         
-        // ابتدا بررسی می‌کنیم که آیا در BACKEND_TO_FRONTEND_ID وجود دارد
         if (BACKEND_TO_FRONTEND_ID[name]) {
             return BACKEND_TO_FRONTEND_ID[name];
         }
         
-        // اگر پیدا نشد، با pattern matching بررسی می‌کنیم
         if (name.includes('openrouter')) return 'openrouter';
         if (name.includes('huggingface') || name.includes('hugging')) return 'huggingface';
         if (name.includes('openai')) return 'openai';
@@ -194,7 +184,6 @@ export default function AIModelsPage() {
         return name;
     }, []);
 
-    // تبدیل لیست providerها به map برای دسترسی سریع (با normalizeProviderSlug برای consistency)
     const availableProvidersMap = useMemo(() => {
         const map: Record<string, boolean> = {};
         if (availableProviders) {
@@ -209,7 +198,6 @@ export default function AIModelsPage() {
         return map;
     }, [availableProviders, normalizeProviderSlug]);
 
-    // دریافت مدل‌های فعال - بدون cache frontend (فقط backend Redis cache داره)
     const { data: activeModels, isLoading: isLoadingActiveModels, refetch: refetchActiveModels } = useQuery({
         queryKey: ['ai-active-models', activeTab],
         queryFn: async () => {
@@ -219,7 +207,6 @@ export default function AIModelsPage() {
             
             const results: Record<string, any> = {};
 
-            // Parallel requests برای سرعت بالا
             await Promise.all(
                 providers.map(async (provider: string) => {
                     try {
@@ -228,13 +215,11 @@ export default function AIModelsPage() {
                         if (response.data && response.data.model_id) {
                             const modelCapabilities = response.data.capabilities || [];
                             if (modelCapabilities.includes(activeTab)) {
-                                // استفاده از normalizeProviderSlug برای consistency
                                 const providerKey = normalizeProviderSlug(provider);
                                 results[providerKey] = response.data;
                             }
                         }
                     } catch (error: any) {
-                        // Silent fail - 404 وقتی مدل فعالی نداریم
                     }
                 })
             );
@@ -242,13 +227,12 @@ export default function AIModelsPage() {
             return results;
         },
         enabled: !!activeTab && !!availableProviders,
-        staleTime: 0, // بدون cache - backend cache می‌کنه
+        staleTime: 0,
         gcTime: 0,
     });
 
     const queryClient = useQueryClient();
 
-    // Redirect only after auth is loaded and user doesn't have access
     useEffect(() => {
         if (!isAuthLoading && !hasAccess) {
             showError('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
@@ -257,13 +241,10 @@ export default function AIModelsPage() {
     }, [isAuthLoading, hasAccess, router]);
 
     const handleModelSaved = async () => {
-        // باطل کردن cache فعلی
         queryClient.invalidateQueries({ queryKey: ['ai-active-models', activeTab] });
         
-        // نمایش پیام موفقیت
         showSuccess('مدل با موفقیت فعال شد');
         
-        // بستن modals
         setShowOpenRouterModal(false);
         setShowHuggingFaceModal(false);
         setShowOpenAIModal(false);
@@ -310,7 +291,6 @@ export default function AIModelsPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    {/* Loading state */}
                                     {isLoadingActiveModels ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -319,28 +299,16 @@ export default function AIModelsPage() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {/* لیست Provider ها به صورت داینامیک */}
                                             {availableProviders && availableProviders.length > 0 ? (
                                                 availableProviders.map((provider: any) => {
-                                                    // تبدیل نام backend به frontend ID
                                                     const backendName = provider.provider_name || provider.slug || '';
                                                     const providerSlug = normalizeProviderSlug(backendName);
                                                     
                                                     const metadata = getProviderMetadata(providerSlug);
                                                     
-                                                    // Debug: بررسی metadata
-                                                    if (!metadata) {
-                                                        console.warn(`[AI Models] Provider metadata not found:`, {
-                                                            backendName,
-                                                            providerSlug,
-                                                            provider: provider.provider_name || provider.slug
-                                                        });
-                                                    }
-                                                    
                                                     const providerName = metadata?.name || provider.provider_name || provider.slug || 'نامشخص';
                                                     const description = metadata?.description || provider.description || 'مدل AI';
                                                     
-                                                    // تعیین modal handler
                                                     const getModalHandler = () => {
                                                         if (providerSlug === 'openrouter') return () => setShowOpenRouterModal(true);
                                                         if (providerSlug === 'huggingface') return () => setShowHuggingFaceModal(true);
@@ -386,7 +354,6 @@ export default function AIModelsPage() {
                 })}
             </Tabs>
 
-            {/* OpenRouter Dialog - فقط اگر واقعاً capability را support کند */}
             {availableProvidersMap.openrouter && (
                 <Dialog open={showOpenRouterModal} onOpenChange={setShowOpenRouterModal}>
                     <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
@@ -413,7 +380,6 @@ export default function AIModelsPage() {
                 </Dialog>
             )}
 
-            {/* HuggingFace Dialog - فقط اگر واقعاً capability را support کند */}
             {availableProvidersMap.huggingface && (
                 <Dialog open={showHuggingFaceModal} onOpenChange={setShowHuggingFaceModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] flex flex-col p-0">
@@ -440,7 +406,6 @@ export default function AIModelsPage() {
             </Dialog>
             )}
 
-            {/* OpenAI Dialog - فقط اگر واقعاً capability را support کند */}
             {availableProvidersMap.openai && (
                 <Dialog open={showOpenAIModal} onOpenChange={setShowOpenAIModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
@@ -466,7 +431,6 @@ export default function AIModelsPage() {
             </Dialog>
             )}
 
-            {/* Google Gemini Dialog - فقط اگر واقعاً capability را support کند */}
             {availableProvidersMap.gemini && (
                 <Dialog open={showGeminiModal} onOpenChange={setShowGeminiModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
@@ -492,7 +456,6 @@ export default function AIModelsPage() {
             </Dialog>
             )}
 
-            {/* DeepSeek Dialog - فقط اگر واقعاً capability را support کند */}
             {availableProvidersMap.deepseek && (
                 <Dialog open={showDeepSeekModal} onOpenChange={setShowDeepSeekModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">
@@ -518,7 +481,6 @@ export default function AIModelsPage() {
             </Dialog>
             )}
 
-            {/* Groq Dialog - فقط اگر واقعاً capability را support کند */}
             {availableProvidersMap.groq && (
                 <Dialog open={showGroqModal} onOpenChange={setShowGroqModal}>
                 <DialogContent className="max-w-[95vw] lg:max-w-4xl max-h-[90vh] flex flex-col p-0">

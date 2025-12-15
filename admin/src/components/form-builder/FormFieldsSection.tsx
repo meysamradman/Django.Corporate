@@ -144,14 +144,12 @@ export function FormFieldsSection() {
     };
 
     const handleSave = async () => {
-        // Validate field_key
         const trimmedFieldKey = fieldKey.trim();
         if (!trimmedFieldKey) {
             toast.error("کلید فیلد الزامی است");
             return;
         }
         
-        // Validate field_key format (must start with letter or underscore, only letters, numbers, underscores)
         if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmedFieldKey)) {
             toast.error("کلید فیلد باید با حرف یا underscore شروع شود و فقط شامل حروف انگلیسی، اعداد و underscore باشد");
             return;
@@ -172,7 +170,6 @@ export function FormFieldsSection() {
             return;
         }
         
-        // Validate options for select/radio fields
         if (fieldType === 'select' || fieldType === 'radio') {
             const validOptions = options.filter(opt => opt.value && opt.label);
             if (validOptions.length === 0) {
@@ -180,7 +177,6 @@ export function FormFieldsSection() {
                 return;
             }
             
-            // Check for duplicate values
             const values = validOptions.map(opt => opt.value.trim().toLowerCase());
             const uniqueValues = new Set(values);
             if (values.length !== uniqueValues.size) {
@@ -203,7 +199,6 @@ export function FormFieldsSection() {
         };
 
         if (fieldType === 'select' || fieldType === 'radio') {
-            // Filter and trim options
             fieldData.options = options
                 .filter(opt => opt.value && opt.label)
                 .map(opt => ({
@@ -221,12 +216,9 @@ export function FormFieldsSection() {
             handleCloseDialog();
             await fetchFields();
         } catch (error: any) {
-            // Error is already shown by fetchApi, but we can add additional handling if needed
             if (error?.response?.errors) {
                 const errorMessages = Object.values(error.response.errors).flat();
                 if (errorMessages.length > 0) {
-                    // Additional error details if needed
-                    console.error('Field creation/update errors:', errorMessages);
                 }
             }
         } finally {
@@ -414,7 +406,6 @@ export function FormFieldsSection() {
                                     value={fieldKey}
                                     onChange={(e) => {
                                         const value = e.target.value;
-                                        // Only allow valid characters
                                         if (/^[a-zA-Z0-9_]*$/.test(value)) {
                                             setFieldKey(value);
                                         }

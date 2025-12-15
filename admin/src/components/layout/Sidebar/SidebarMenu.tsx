@@ -17,6 +17,8 @@ import {
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
 import { useUserPermissions, ModuleAction } from "@/core/permissions/hooks/useUserPermissions"
+import { useFeatureFlags } from "@/core/feature-flags"
+import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/config/featureFlags"
 
 type BadgeTone = "info" | "warning" | "muted"
 
@@ -286,6 +288,8 @@ export const MENU_BADGE_TONES: Record<BadgeTone, string> = {
     muted: "bg-slate-500/15 text-slate-400 border border-slate-500/30",
 };
 
+const MODULE_TO_FEATURE_FLAG = CONFIG_MODULE_TO_FEATURE_FLAG;
+
 export const useMenuData = () => {
     const {
         permissions,
@@ -297,6 +301,16 @@ export const useMenuData = () => {
         hasPermission,
         isSuperAdmin
     } = useUserPermissions();
+
+    const { data: featureFlagsRaw = {} } = useFeatureFlags();
+
+    const featureFlagsKey = useMemo(() => {
+        return JSON.stringify(featureFlagsRaw);
+    }, [featureFlagsRaw]);
+
+    const featureFlags = useMemo(() => {
+        return featureFlagsRaw;
+    }, [featureFlagsKey]);
 
     const permissionsKey = useMemo(() => {
         const permissionSnapshot = [...permissions].sort();
@@ -311,13 +325,24 @@ export const useMenuData = () => {
             modules: moduleSnapshot,
             actions: actionSnapshot,
             roles: roleSnapshot,
-            isSuperAdmin
+            isSuperAdmin,
+            featureFlags: featureFlagsKey
         });
-    }, [permissions, permissionProfile, userRoles, isSuperAdmin]);
+    }, [permissions, permissionProfile, userRoles, isSuperAdmin, featureFlagsKey]);
 
     const evaluateAccess = useCallback((access?: MenuAccessConfig) => {
         if (!access) {
             return { visible: true } as const;
+        }
+
+        const accessModule = access.module;
+        if (accessModule) {
+            const featureFlagKey = MODULE_TO_FEATURE_FLAG[accessModule];
+            if (featureFlagKey) {
+                if (featureFlagKey in featureFlags && featureFlags[featureFlagKey] === false) {
+                    return { visible: false } as const;
+                }
+            }
         }
 
         if (access.requireSuperAdmin && !isSuperAdmin) {
@@ -394,7 +419,7 @@ export const useMenuData = () => {
         }
 
         return { visible: true } as const;
-    }, [hasRole, isSuperAdmin, getModuleAccessProfile, hasModuleAction, permissionsKey]);
+    }, [hasRole, isSuperAdmin, getModuleAccessProfile, hasModuleAction, permissionsKey, featureFlags]);
 
     const groups = useMemo(() => {
         const processItem = (item: MenuItemConfig): MenuItem | null => {
@@ -433,9 +458,7 @@ export const useMenuData = () => {
 
             let state = result.state;
 
-            // اگر url ندارد
             if (!item.url) {
-                // اگر زیرمنو هم ندارد، نمایش بده (برای MenuQuickLinks)
                 if (!filteredChildItems || filteredChildItems.length === 0) {
                     return {
                         ...item,
@@ -444,7 +467,6 @@ export const useMenuData = () => {
                         disabled: result.disabled ?? item.disabled
                     };
                 }
-                // اگر زیرمنو دارد اما actionable child ندارد، حذف کن
                 if (!hasActionableChild) {
                     return null;
                 }

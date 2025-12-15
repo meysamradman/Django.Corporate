@@ -30,13 +30,11 @@ class TicketListSerializer(serializers.ModelSerializer):
         ]
     
     def get_messages_count(self, obj):
-        # استفاده از annotate اگر موجود باشه
         if hasattr(obj, 'messages_count'):
             return obj.messages_count
         return obj.messages.count()
     
     def get_unread_messages_count(self, obj):
-        # استفاده از annotate اگر موجود باشه
         if hasattr(obj, 'unread_messages_count'):
             return obj.unread_messages_count
         return obj.messages.filter(is_read=False, sender_type='user').count()
@@ -74,13 +72,11 @@ class TicketDetailSerializer(serializers.ModelSerializer):
         return TicketMessageSerializer(messages, many=True).data
     
     def get_messages_count(self, obj):
-        # استفاده از annotate اگر موجود باشه
         if hasattr(obj, 'messages_count'):
             return obj.messages_count
         return obj.messages.count()
     
     def get_unread_messages_count(self, obj):
-        # استفاده از annotate اگر موجود باشه
         if hasattr(obj, 'unread_messages_count'):
             return obj.unread_messages_count
         return obj.messages.filter(is_read=False, sender_type='user').count()

@@ -1,8 +1,4 @@
-"""Access Control System - سیستم مدیریت دسترسی و Permission ها"""
-
-# Permission Classes
 from .classes import (
-    # Base Classes
     AdminRolePermission,
     RequireModuleAccess,
     RequireAdminRole,
@@ -21,16 +17,15 @@ from .classes import (
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary,
-    # Permission Instances - توصیه می‌شود
     blog_permission,
     portfolio_permission,
     analytics_permission,
-    analytics_any_permission,  # جدید
+    analytics_any_permission,
     media_permission,
     user_permission,
     admin_permission,
     ai_permission,
-    ai_any_permission,  # جدید: هر نوع دسترسی AI
+    ai_any_permission,
     panel_permission,
     email_permission,
     ticket_permission,
@@ -40,7 +35,6 @@ from .classes import (
     super_admin_permission,
 )
 
-# Permission Definitions & Validators
 from .definitions import (
     Permission,
     PermissionRegistry,
@@ -70,11 +64,9 @@ from .definitions import (
     get_all_role_configs,
 )
 
-# Backward compatibility
 ADMIN_ROLE_PERMISSIONS = SYSTEM_ROLES
 
 __all__ = [
-    # ==================== Permission Classes ====================
     "AdminRolePermission",
     "RequireModuleAccess",
     "RequireAdminRole",
@@ -90,17 +82,15 @@ __all__ = [
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",
-    
-    # ==================== Permission Instances (توصیه می‌شود) ====================
     "blog_permission",
     "portfolio_permission",
     "analytics_permission",
-    "analytics_any_permission",  # جدید
+    "analytics_any_permission",
     "media_permission",
     "user_permission",
     "admin_permission",
     "ai_permission",
-    "ai_any_permission",  # جدید
+    "ai_any_permission",
     "panel_permission",
     "email_permission",
     "ticket_permission",

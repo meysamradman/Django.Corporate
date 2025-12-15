@@ -2,19 +2,13 @@ from django.core.cache import cache
 from django.utils import timezone
 import json
 import hashlib
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class TrackingService:
-    """سرویس ثبت بازدید - سریع با Redis"""
     
     @staticmethod
     def track(request, source='web'):
-        """ثبت بازدید در Redis - زیر 1ms"""
         try:
-            # ایجاد session key اگر وجود نداشت
             if not request.session.session_key:
                 request.session.create()
             
@@ -33,7 +27,6 @@ class TrackingService:
             
             return True
         except Exception as e:
-            logger.debug(f"Tracking failed: {e}")
             return False
     
     @staticmethod

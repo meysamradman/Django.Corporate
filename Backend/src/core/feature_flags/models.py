@@ -4,28 +4,16 @@ from src.core.models.base import BaseModel
 
 
 class FeatureFlag(BaseModel):
-    """
-    Feature Flag Model for controlling app/feature activation
-    """
     key = models.CharField(
         max_length=50,
         unique=True,
         db_index=True,
-        verbose_name=_("Key"),
-        help_text=_("Unique identifier for the feature (e.g., 'portfolio', 'blog')")
-    )
-    # Override is_active from BaseModel to use it for feature activation
-    is_active = models.BooleanField(
-        default=True,
-        db_index=True,
-        verbose_name=_("Is Active"),
-        help_text=_("Whether this feature is currently active")
+        verbose_name=_("Key")
     )
     description = models.TextField(
         blank=True,
         null=True,
-        verbose_name=_("Description"),
-        help_text=_("Optional description of what this feature flag controls")
+        verbose_name=_("Description")
     )
 
     class Meta(BaseModel.Meta):
@@ -43,7 +31,5 @@ class FeatureFlag(BaseModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate cache when feature flag is updated
         from .services import invalidate_feature_flag_cache
         invalidate_feature_flag_cache(self.key)
-

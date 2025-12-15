@@ -18,7 +18,6 @@ from src.blog.messages.messages import BLOG_ERRORS
 
 class BlogExportView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [blog_permission]
     format_suffix_kwarg = None
     

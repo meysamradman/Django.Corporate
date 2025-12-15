@@ -6,13 +6,13 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': True,  # نمایش در تمام تب‌ها - مدل‌ها داینامیک هستند
+        'supports_audio': True,
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',
             'image': 'dynamic',
-            'audio': 'dynamic',  # مدل‌ها از API دریافت می‌شوند
+            'audio': 'dynamic',
         },
         'default_models': {
             'chat': 'google/gemini-2.0-flash-exp',
@@ -25,7 +25,7 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': True,  # نمایش در تمام تب‌ها
+        'supports_audio': True,
         'has_dynamic_models': False,
         'models': {
             'chat': [
@@ -44,7 +44,7 @@ PROVIDER_CAPABILITIES = {
                 'imagen-3.0-generate-001',
                 'imagen-3.0-fast-generate-001',
             ],
-            'audio': [],  # لیست خالی - در پاپ‌آپ مدلی نمایش داده نمی‌شود
+            'audio': [],
         },
         'default_models': {
             'chat': 'gemini-2.0-flash-exp',
@@ -93,8 +93,8 @@ PROVIDER_CAPABILITIES = {
     'deepseek': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,  # نمایش در تمام تب‌ها
-        'supports_audio': True,  # نمایش در تمام تب‌ها
+        'supports_image': True,
+        'supports_audio': True,
         'has_dynamic_models': False,
         'models': {
             'chat': [
@@ -105,8 +105,8 @@ PROVIDER_CAPABILITIES = {
                 'deepseek-chat',
                 'deepseek-coder',
             ],
-            'image': [],  # لیست خالی
-            'audio': [],  # لیست خالی
+            'image': [],
+            'audio': [],
         },
         'default_models': {
             'chat': 'deepseek-chat',
@@ -118,14 +118,14 @@ PROVIDER_CAPABILITIES = {
     'groq': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,  # نمایش در تمام تب‌ها
-        'supports_audio': True,  # نمایش در تمام تب‌ها
+        'supports_image': True,
+        'supports_audio': True,
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',
-            'image': 'dynamic',  # چک می‌شود در زمان fetch
-            'audio': 'dynamic',  # چک می‌شود در زمان fetch
+            'image': 'dynamic',
+            'audio': 'dynamic',
         },
         'default_models': {
             'chat': 'llama-3.3-70b-versatile',
@@ -138,7 +138,7 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': True,  # نمایش در تمام تب‌ها - مدل‌ها داینامیک هستند
+        'supports_audio': True,
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
@@ -148,7 +148,7 @@ PROVIDER_CAPABILITIES = {
                 'stabilityai/stable-diffusion-2-1',
                 'runwayml/stable-diffusion-v1-5',
             ],
-            'audio': 'dynamic',  # مدل‌های audio از API دریافت می‌شوند
+            'audio': 'dynamic',
         },
         'default_models': {
             'chat': None,
@@ -252,8 +252,8 @@ class ProviderAvailabilityManager:
     @staticmethod
     def _get_api_based_providers(capability: str) -> list:
         api_based_map = {
-            'chat': ['openrouter', 'groq', 'huggingface'],  # HuggingFace واقعاً چت را support می‌کند
-            'content': ['openrouter', 'groq', 'huggingface'],  # HuggingFace واقعاً content را support می‌کند
+            'chat': ['openrouter', 'groq', 'huggingface'],
+            'content': ['openrouter', 'groq', 'huggingface'],
             'image': ['openrouter', 'huggingface'],
             'audio': [],
         }

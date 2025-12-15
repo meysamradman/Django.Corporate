@@ -21,7 +21,6 @@ from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 
 class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioCategoryAdminFilter

@@ -18,7 +18,6 @@ from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 class PortfolioExportView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [portfolio_permission]
     format_suffix_kwarg = None
     

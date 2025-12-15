@@ -80,12 +80,10 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
         
         const isActivating = !currentStatus;
         
-        // اگر میخواد فعال بشه، چک کن مدل دیگه ای فعاله یا نه
         if (isActivating && providerSlug) {
             try {
                 const activeModelResponse = await aiApi.models.getActiveModel(providerSlug, capability);
                 if (activeModelResponse.data && activeModelResponse.data.id !== modelId) {
-                    // یه مدل دیگه فعاله - نمایش dialog
                     const activeModelName = activeModelResponse.data.display_name || activeModelResponse.data.name;
                     setConfirmDialog({
                         open: true,
@@ -104,12 +102,9 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
                     return;
                 }
             } catch (error: any) {
-                // اگر 404 یا 500، ادامه بده (هیچ مدل فعالی نیست)
-                console.log('مدل فعالی پیدا نشد - ادامه می‌دهیم');
             }
         }
         
-        // مستقیم فعال/غیرفعال کن
         toggleModelMutation.mutate({
             modelId,
             isActive: isActivating,

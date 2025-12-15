@@ -129,7 +129,6 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
-        # همه Provider های فعال - بدون فیلتر بر اساس capability
         providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
         serializer = AIProviderListSerializer(providers, many=True, context={'request': request})
         
@@ -137,7 +136,6 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         for provider_data in serializer.data:
             provider_slug = provider_data['slug']
             
-            # چک کردن دسترسی این Admin به این Provider
             has_access = self._check_provider_access(request.user, provider_slug, is_super)
             
             provider_info = {
@@ -154,24 +152,14 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         )
     
     def _check_provider_access(self, user, provider_slug: str, is_super: bool) -> bool:
-        """
-        چک می‌کنه آیا این admin میتونه از این provider استفاده کنه
-        
-        طبق سناریو:
-        - اگه Personal API داره → دسترسی داره
-        - اگه Provider اجازه Shared رو داده و Shared API هست → دسترسی داره
-        - اگه Super Admin باشه و Shared API هست → دسترسی داره
-        """
         try:
             provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
         except AIProvider.DoesNotExist:
             return False
         
-        # Super Admin همیشه اگه Shared API هست دسترسی داره
         if is_super and provider.shared_api_key:
             return True
         
-        # چک Personal API
         personal_settings = AdminProviderSettings.objects.filter(
             admin=user,
             provider=provider,
@@ -180,11 +168,10 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         ).exclude(personal_api_key='').first()
         
         if personal_settings:
-            return True  # Personal API داره
+            return True
         
-        # چک Shared API برای Normal Admin
         if provider.allow_shared_for_normal_admins and provider.shared_api_key:
-            return True  # Provider اجازه Shared داده
+            return True
         
         return False
     
@@ -353,7 +340,6 @@ class AIModelViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        # Get active model
         active_model = AIModel.objects.get_active_model(provider_slug, capability)
         
         if not active_model:

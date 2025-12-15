@@ -1,6 +1,3 @@
-"""Permission Classes - تمام کلاس‌ها و instance های permission"""
-
-# Base Permission Classes
 from .admin_permission import (
     AdminRolePermission,
     RequireModuleAccess,
@@ -14,28 +11,25 @@ from .admin_permission import (
     AdminPermissionCache,
 )
 
-# Views
 from .admin_role_view import AdminRoleView
 from .admin_permission_view import AdminPermissionView
 
-# Utilities
 from .role_utils import (
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary
 )
 
-# Permission Instances - برای استفاده مستقیم در ViewSets
 from .instances import (
     blog_permission,
     portfolio_permission,
     analytics_permission,
-    analytics_any_permission,  # جدید
+    analytics_any_permission,
     media_permission,
     user_permission,
     admin_permission,
     ai_permission,
-    ai_any_permission,  # جدید: هر نوع دسترسی AI
+    ai_any_permission,
     panel_permission,
     email_permission,
     ticket_permission,
@@ -46,7 +40,6 @@ from .instances import (
 )
 
 __all__ = [
-    # Base Permission Classes
     "AdminRolePermission",
     "RequireModuleAccess",
     "RequireAdminRole",
@@ -57,23 +50,20 @@ __all__ = [
     "require_module_access",
     "RequirePermission",
     "AdminPermissionCache",
-    # Views
     "AdminRoleView",
     "AdminPermissionView",
-    # Utilities
     "create_default_admin_roles",
     "ensure_admin_roles_exist",
     "get_role_summary",
-    # Permission Instances
     "blog_permission",
     "portfolio_permission",
     "analytics_permission",
-    "analytics_any_permission",  # جدید
+    "analytics_any_permission",
     "media_permission",
     "user_permission",
     "admin_permission",
     "ai_permission",
-    "ai_any_permission",  # جدید
+    "ai_any_permission",
     "panel_permission",
     "email_permission",
     "ticket_permission",

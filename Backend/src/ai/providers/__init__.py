@@ -5,11 +5,8 @@ from .huggingface import HuggingFaceProvider
 from .deepseek import DeepSeekProvider
 from .openrouter import OpenRouterProvider
 from .groq import GroqProvider
-
-# Import registry بعد از import providerها برای جلوگیری از circular import
 from .registry import AIProviderRegistry, get_provider_instance
 
-# Initialize registry بعد از import همه providerها
 _ = AIProviderRegistry()
 
 __all__ = [

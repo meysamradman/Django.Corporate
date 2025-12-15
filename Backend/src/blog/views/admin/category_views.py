@@ -21,7 +21,6 @@ from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 
 class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogCategoryAdminFilter

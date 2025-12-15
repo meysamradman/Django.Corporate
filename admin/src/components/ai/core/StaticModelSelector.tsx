@@ -25,7 +25,7 @@ interface StaticModelSelectorProps {
   capability: 'chat' | 'content' | 'image' | 'audio';
   models: StaticModel[];
   onSave: () => void;
-  singleSelection?: boolean; // فقط یک مدل فعال باشه
+  singleSelection?: boolean;
 }
 
 export function StaticModelSelector({
@@ -52,7 +52,6 @@ export function StaticModelSelector({
         setActiveModelId(response.data.model_id);
       }
     } catch (error: any) {
-      // 404 is expected when no active model exists
       setActiveModelId(null);
     } finally {
       setLoading(false);
@@ -76,7 +75,6 @@ export function StaticModelSelector({
       }
 
       if (singleSelection && !isCurrentlyActive && activeModelId) {
-        // اگر single selection هست و میخوای مدل جدید فعال کنی، اول مدل قبلی رو غیرفعال کن
         try {
           const allModelsResponse = await aiApi.models.getAll();
           if (allModelsResponse.metaData.status === 'success' && allModelsResponse.data) {
@@ -93,11 +91,9 @@ export function StaticModelSelector({
             }
           }
         } catch (error) {
-          console.error('خطا در غیرفعال کردن مدل قبلی:', error);
         }
       }
 
-      // داده مدل برای ارسال
       const modelData = {
         provider_id: providerIdNum,
         model_id: model.id,
@@ -116,17 +112,14 @@ export function StaticModelSelector({
       const response = await aiApi.models.create(modelData);
       
       if (response.metaData.status === 'success') {
-        // رفرش لیست active models
         await fetchActiveModel();
         showSuccess(isCurrentlyActive ? 'مدل غیرفعال شد' : 'مدل فعال شد');
         
-        // صبر کمی برای اطمینان از ذخیره در بک‌اند
         setTimeout(() => {
           onSave();
         }, 300);
       }
     } catch (error: any) {
-      console.error('❌ Error toggling model:', error);
       showError(error?.message || 'خطا در تغییر وضعیت مدل');
     } finally {
       setSavingModelId(null);
@@ -157,17 +150,14 @@ export function StaticModelSelector({
             const aActive = activeModelId === a.id;
             const bActive = activeModelId === b.id;
             
-            // اول: مدل فعال
             if (aActive && !bActive) return -1;
             if (!aActive && bActive) return 1;
             
-            // دوم: رایگان‌ها (pricing_input و pricing_output هر دو null یا 0)
             const aFree = (!a.pricing_input || a.pricing_input === 0) && (!a.pricing_output || a.pricing_output === 0);
             const bFree = (!b.pricing_input || b.pricing_input === 0) && (!b.pricing_output || b.pricing_output === 0);
             if (aFree && !bFree) return -1;
             if (!aFree && bFree) return 1;
             
-            // سوم: ترتیب حروف الفبا
             return a.name.localeCompare(b.name);
           })
           .map((model) => {

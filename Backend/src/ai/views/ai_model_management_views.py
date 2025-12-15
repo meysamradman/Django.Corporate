@@ -193,28 +193,23 @@ class AIModelManagementViewSet(viewsets.ViewSet):
         try:
             provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
             
-            # غیرفعال کردن مدل‌های دیگه که همین capability رو دارند
             deactivated_count = AIModel.objects.deactivate_other_models(
                 provider_id=provider.id,
                 capability=capability
             )
             
-            # پیدا کردن یا ایجاد مدل
             try:
                 model = AIModel.objects.get(
                     provider=provider,
                     model_id=model_id
                 )
-                # اگه مدل وجود داشت، capability رو به لیست اضافه کن
                 if capability not in model.capabilities:
                     model.capabilities.append(capability)
                 
-                # به‌روزرسانی سایر فیلدها
                 model.name = model_name
                 model.display_name = model_name
                 model.is_active = True
                 
-                # فقط اگه pricing ارسال شده، update کن
                 if request.data.get('pricing_input') is not None:
                     model.pricing_input = request.data.get('pricing_input')
                 if request.data.get('pricing_output') is not None:
@@ -224,7 +219,6 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                 created = False
                 
             except AIModel.DoesNotExist:
-                # ایجاد مدل جدید
                 model = AIModel.objects.create(
                     provider=provider,
                     model_id=model_id,
@@ -237,12 +231,10 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                 )
                 created = True
             
-            # پاکسازی کش
             AICacheManager.invalidate_models()
             cache_key = f"active_model_{provider_slug}_{capability}"
             cache.delete(cache_key)
             
-            # Response حرفه‌ای با جزئیات کامل
             action_performed = "created" if created else "updated"
             message_parts = [
                 f"Model {action_performed} successfully",

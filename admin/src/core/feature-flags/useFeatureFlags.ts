@@ -13,8 +13,9 @@ export function useFeatureFlags() {
   return useQuery({
     queryKey: FEATURE_FLAGS_QUERY_KEY,
     queryFn: () => featureFlagsApi.getAll(),
-    staleTime: 60 * 1000, // 60 seconds
-    refetchInterval: 60 * 1000, // Refetch every 60 seconds
+    staleTime: 0, // Always consider stale to get fresh data immediately
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Always refetch on mount
     retry: 1,
     retryDelay: 1000,
   });

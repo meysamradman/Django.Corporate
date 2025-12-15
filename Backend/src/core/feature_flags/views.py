@@ -8,6 +8,7 @@ from .models import FeatureFlag
 from .services import get_all_feature_flags, invalidate_feature_flag_cache
 from .serializers import FeatureFlagSerializer, FeatureFlagListSerializer
 from .messages.messages import FEATURE_FLAG_SUCCESS, FEATURE_FLAG_ERRORS
+from .feature_config import FEATURE_CONFIG, get_module_to_feature_flag
 from src.user.access_control import RequirePermission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
@@ -16,10 +17,6 @@ from src.core.responses.response import APIResponse
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def feature_flags_api(request):
-    """
-    API endpoint to get all feature flags.
-    Public endpoint, cached for performance.
-    """
     flags = get_all_feature_flags()
     return Response(flags)
 
@@ -27,9 +24,6 @@ def feature_flags_api(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def feature_flag_detail(request, key):
-    """
-    API endpoint to get a specific feature flag status.
-    """
     from .services import is_feature_active
     return Response({
         'key': key,
@@ -37,11 +31,16 @@ def feature_flag_detail(request, key):
     })
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def feature_config_api(request):
+    return Response({
+        'features': FEATURE_CONFIG,
+        'module_to_feature_flag': get_module_to_feature_flag()
+    })
+
+
 class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
-    """
-    Admin ViewSet for managing Feature Flags.
-    Accessible only to admin users with proper permissions.
-    """
     queryset = FeatureFlag.objects.all()
     serializer_class = FeatureFlagSerializer
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -49,9 +48,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = 'key'
     
     def get_permissions(self):
-        """
-        Using settings.manage permission as feature flags are system settings.
-        """
         return [RequirePermission('settings.manage')]
     
     def get_queryset(self):
@@ -63,9 +59,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
         return FeatureFlagSerializer
     
     def list(self, request, *args, **kwargs):
-        """
-        List all feature flags.
-        """
         try:
             queryset = self.filter_queryset(self.get_queryset())
             
@@ -87,9 +80,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        """
-        Retrieve a specific feature flag.
-        """
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -110,9 +100,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
             )
     
     def create(self, request, *args, **kwargs):
-        """
-        Create a new feature flag.
-        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -152,9 +139,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        """
-        Update a feature flag.
-        """
         try:
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
@@ -195,9 +179,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        """
-        Delete a feature flag.
-        """
         try:
             instance = self.get_object()
             key = instance.key
@@ -221,9 +202,6 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['patch'])
     def toggle(self, request, key=None):
-        """
-        Toggle feature flag active status.
-        """
         try:
             feature_flag = self.get_object()
             feature_flag.is_active = not feature_flag.is_active
@@ -248,4 +226,3 @@ class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
                 message=FEATURE_FLAG_ERRORS['flag_update_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-

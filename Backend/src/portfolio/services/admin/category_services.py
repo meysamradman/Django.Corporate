@@ -20,10 +20,8 @@ class PortfolioCategoryAdminService:
     
     @staticmethod
     def get_list_queryset(filters=None, order_by='created_at', order_desc=True):
-        """دریافت لیست دسته‌بندی‌ها - بدون کش، فقط با query optimization"""
         queryset = PortfolioCategoryAdminService.get_tree_queryset()
         
-        # اعمال ordering
         if order_by:
             order_field = f"-{order_by}" if order_desc else order_by
             queryset = queryset.order_by(order_field)

@@ -19,7 +19,6 @@ class AIAudioGenerationService:
     
     @classmethod
     def get_available_providers(cls) -> list:
-        """دریافت لیست providerهای موجود از Registry"""
         all_providers = ProviderAvailabilityManager.get_available_providers('audio')
         registered_providers = AIProviderRegistry.get_registered_names()
         return [p for p in all_providers if p['provider_name'] in registered_providers]

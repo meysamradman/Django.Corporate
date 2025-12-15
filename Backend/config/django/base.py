@@ -93,6 +93,7 @@ MIDDLEWARE = [
      'django.contrib.auth.middleware.AuthenticationMiddleware',
      'django.contrib.messages.middleware.MessageMiddleware',
      'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     'src.core.feature_flags.middleware.FeatureFlagMiddleware',  # Feature Flag checking at runtime
      'src.analytics.middleware.AnalyticsMiddleware',  # Analytics tracking
 ]
 ROOT_URLCONF = 'config.urls'

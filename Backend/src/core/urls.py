@@ -5,6 +5,7 @@ from .views.csrf_view import CSRFTokenView
 from .feature_flags.views import (
     feature_flags_api,
     feature_flag_detail,
+    feature_config_api,
     FeatureFlagAdminViewSet
 )
 
@@ -19,5 +20,6 @@ urlpatterns = [
     path('captcha/', include('src.core.security.captcha.urls', namespace='captcha')),
     path('feature-flags/', feature_flags_api, name='feature-flags'),
     path('feature-flags/<str:key>/', feature_flag_detail, name='feature-flag-detail'),
+    path('feature-flags/config/', feature_config_api, name='feature-flags-config'),
     path('', include(router.urls)),
 ] 

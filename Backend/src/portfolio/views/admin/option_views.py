@@ -22,7 +22,6 @@ from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 
 
 class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
-    # ✅ استفاده از permission instance - بدون lambda
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioOptionAdminFilter

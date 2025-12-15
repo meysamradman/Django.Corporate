@@ -76,10 +76,8 @@ class CategoryCacheKeys:
     
     @staticmethod
     def list_admin(params):
-        """کلید کش برای لیست با pagination و filtering"""
         import hashlib
         import json
-        # ساخت کلید یکتا بر اساس پارامترها
         params_str = json.dumps(params, sort_keys=True)
         params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
         return f"blog_category_list_admin:{params_hash}"

@@ -50,7 +50,7 @@ class CSRFTokenManager {
         localStorage.removeItem(oldKey);
       }
     } catch (error) {
-          }
+    }
   }
 
   public static getInstance(): CSRFTokenManager {
@@ -72,7 +72,6 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      console.error('Failed to get session from cookie:', error);
     }
     return null;
   }
@@ -129,7 +128,6 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      console.error('Load from storage failed:', error);
       this.clear();
     }
   }
@@ -151,7 +149,6 @@ class CSRFTokenManager {
         sessionStorage.removeItem(this.SESSION_STORAGE_KEY);
       }
     } catch (error) {
-      console.error('Save to storage failed:', error);
     }
   }
 

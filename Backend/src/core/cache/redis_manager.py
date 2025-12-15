@@ -3,10 +3,7 @@ from django.conf import settings
 from typing import Optional, Any, Callable
 from .namespaces import CacheTTL, CacheNamespace
 from .keys import CacheKeyBuilder
-import logging
 import time
-
-logger = logging.getLogger(__name__)
 
 
 class RedisManager:
@@ -20,7 +17,6 @@ class RedisManager:
             value = self._cache.get(key, default)
             return value
         except Exception as e:
-            logger.warning(f"Redis GET error for key '{key}': {e}")
             return default
     
     def set(self, key: str, value: Any, timeout: Optional[int] = None) -> bool:
@@ -29,7 +25,6 @@ class RedisManager:
             self._cache.set(key, value, timeout)
             return True
         except Exception as e:
-            logger.warning(f"Redis SET error for key '{key}': {e}")
             return False
     
     def delete(self, key: str) -> bool:
@@ -37,7 +32,6 @@ class RedisManager:
             self._cache.delete(key)
             return True
         except Exception as e:
-            logger.error(f"Redis DELETE error for key '{key}': {e}")
             return False
     
     def delete_many(self, keys: list[str]) -> int:
@@ -45,7 +39,6 @@ class RedisManager:
             self._cache.delete_many(keys)
             return len(keys)
         except Exception as e:
-            logger.error(f"Redis DELETE_MANY error: {e}")
             return 0
     
     def delete_pattern(self, pattern: str) -> int:
@@ -55,17 +48,14 @@ class RedisManager:
                 return self.delete_many(keys)
             return 0
         except (AttributeError, NotImplementedError):
-            logger.warning(f"delete_pattern not supported for pattern '{pattern}'")
             return 0
         except Exception as e:
-            logger.error(f"Redis DELETE_PATTERN error for pattern '{pattern}': {e}")
             return 0
     
     def exists(self, key: str) -> bool:
         try:
             return self._cache.has_key(key)
         except Exception as e:
-            logger.error(f"Redis EXISTS error for key '{key}': {e}")
             return False
     
     def ttl(self, key: str) -> int:
@@ -74,7 +64,6 @@ class RedisManager:
         except (AttributeError, NotImplementedError):
             return -1
         except Exception as e:
-            logger.error(f"Redis TTL error for key '{key}': {e}")
             return -1
     
     def expire(self, key: str, timeout: int) -> bool:
@@ -84,21 +73,18 @@ class RedisManager:
         except (AttributeError, NotImplementedError):
             return False
         except Exception as e:
-            logger.error(f"Redis EXPIRE error for key '{key}': {e}")
             return False
     
     def incr(self, key: str, delta: int = 1) -> Optional[int]:
         try:
             return self._cache.incr(key, delta)
         except Exception as e:
-            logger.error(f"Redis INCR error for key '{key}': {e}")
             return None
     
     def decr(self, key: str, delta: int = 1) -> Optional[int]:
         try:
             return self._cache.decr(key, delta)
         except Exception as e:
-            logger.error(f"Redis DECR error for key '{key}': {e}")
             return None
     
     def clear(self) -> bool:
@@ -106,11 +92,9 @@ class RedisManager:
             self._cache.clear()
             return True
         except Exception as e:
-            logger.error(f"Redis CLEAR error: {e}")
             return False
     
     def ping(self) -> bool:
-        """بررسی سلامت Redis با retry"""
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
@@ -121,10 +105,7 @@ class RedisManager:
                 if result == 'ok':
                     return True
             except Exception as e:
-                if attempt == max_retries:
-                    logger.error(f"Redis PING error after {max_retries} attempts: {e}")
-                else:
-                    logger.warning(f"Redis PING attempt {attempt} failed, retrying...")
+                if attempt != max_retries:
                     time.sleep(0.5 * attempt)
         return False
 

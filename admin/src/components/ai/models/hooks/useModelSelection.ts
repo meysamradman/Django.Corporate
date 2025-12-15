@@ -21,10 +21,10 @@ export interface ModelData {
 
 interface UseModelSelectionProps {
   providerId: string;
-  providerName?: string; // اختیاری - برای OpenRouter لازمه
+  providerName?: string;
   capability: 'chat' | 'content' | 'image' | 'audio';
   onSuccess?: () => void;
-  mode?: 'simple' | 'full'; // simple: فقط provider_id | full: با تمام اطلاعات مدل
+  mode?: 'simple' | 'full';
 }
 
 export function useModelSelection({
@@ -36,9 +36,8 @@ export function useModelSelection({
 }: UseModelSelectionProps) {
   const [activeModels, setActiveModels] = useState<Set<string>>(new Set());
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
-  const [modelDataMap, setModelDataMap] = useState<Map<string, ModelData>>(new Map()); // برای ذخیره اطلاعات کامل مدل‌ها
+  const [modelDataMap, setModelDataMap] = useState<Map<string, ModelData>>(new Map());
 
-  // دریافت مدل‌های فعال
   const fetchActiveModels = async () => {
     try {
       const response = await aiApi.models.getAll();
@@ -52,7 +51,6 @@ export function useModelSelection({
         setActiveModels(activeModelIds);
       }
     } catch (error) {
-      console.error('❌ خطا در دریافت مدل‌های فعال:', error);
     }
   };
 
@@ -60,7 +58,6 @@ export function useModelSelection({
     fetchActiveModels();
   }, [capability]);
 
-  // تغییر وضعیت مدل
   const handleToggleModel = async (modelId: string, modelData?: ModelData) => {
     const isCurrentlyActive = activeModels.has(modelId);
     
@@ -68,7 +65,6 @@ export function useModelSelection({
       setSavingModelId(modelId);
 
       if (isCurrentlyActive) {
-        // غیرفعال کردن مدل - به‌روزرسانی is_active به false
         const response = await aiApi.models.getAll();
         if (response.metaData.status === 'success' && response.data) {
           const models = Array.isArray(response.data) ? response.data : [];
@@ -87,11 +83,7 @@ export function useModelSelection({
           }
         }
       } else {
-        // فعال کردن مدل با استفاده از endpoint جدید select-model
-        // این endpoint خودش مدل‌های قبلی رو غیرفعال می‌کنه
-        
         if (mode === 'full' && modelData && providerName) {
-          // حالت Full: برای OpenRouter/HuggingFace - استفاده از provider slug
           const providersResponse = await aiApi.providers.getAll();
           const providers = providersResponse.data || [];
           
@@ -105,15 +97,13 @@ export function useModelSelection({
             throw new Error(`Provider '${providerName}' یافت نشد`);
           }
 
-          // استفاده از endpoint جدید select-model
           const selectPayload: any = {
-            provider: targetProvider.slug, // backend انتظار slug داره نه ID
+            provider: targetProvider.slug,
             capability: capability,
             model_id: modelData.id,
             model_name: modelData.name,
           };
 
-          // اضافه کردن pricing اگر موجود باشه
           if (modelData.pricing?.prompt !== undefined && modelData.pricing?.prompt !== null) {
             selectPayload.pricing_input = parseFloat(modelData.pricing.prompt.toFixed(6));
           }
@@ -121,11 +111,8 @@ export function useModelSelection({
             selectPayload.pricing_output = parseFloat(modelData.pricing.completion.toFixed(6));
           }
           
-          console.log('🔵 [Full Mode] Select Model Payload:', selectPayload);
           await aiApi.models.selectModel(selectPayload);
         } else {
-          // حالت Simple: برای Static Provider ها (OpenAI, Gemini, و غیره)
-          // دریافت provider slug از providerId
           const providersResponse = await aiApi.providers.getAll();
           const providers = providersResponse.data || [];
           
@@ -139,15 +126,13 @@ export function useModelSelection({
             throw new Error(`Provider با ID ${providerIdNum} یافت نشد`);
           }
 
-          // استفاده از endpoint جدید select-model
           const selectPayload = {
-            provider: targetProvider.slug, // backend انتظار slug داره نه ID
+            provider: targetProvider.slug,
             capability: capability,
             model_id: modelId,
             model_name: modelData?.name || modelId,
           };
           
-          console.log('🟢 [Simple Mode] Select Model Payload:', selectPayload);
           await aiApi.models.selectModel(selectPayload);
         }
         setActiveModels(prev => new Set(prev).add(modelId));
@@ -155,19 +140,10 @@ export function useModelSelection({
       }
 
       onSuccess?.();
-      await fetchActiveModels(); // رفرش لیست
+      await fetchActiveModels();
     } catch (error: any) {
-      console.error('❌ خطا در تغییر وضعیت مدل:', error);
-      
-      // لاگ کامل خطا برای دیباگ
-      console.error('📋 Full Error Object:', error);
-      console.error('📋 Error Response:', error?.response);
-      console.error('📋 Error Response Data:', error?.response?._data);
-      console.error('📋 Error Errors Field:', error?.response?.errors);
-      
       let errorMessage = 'خطا در تغییر وضعیت مدل';
       
-      // دریافت پیام دقیق از backend
       if (error?.response?._data?.metaData?.message) {
         errorMessage = error.response._data.metaData.message;
       } else if (error?.response?.message) {
@@ -176,9 +152,7 @@ export function useModelSelection({
         errorMessage = error.message;
       }
       
-      // اگر errors وجود داشت، اونارو هم نمایش بده
       if (error?.response?.errors) {
-        console.error('📋 Validation Errors:', error.response.errors);
         const validationErrors = error.response.errors;
         if (typeof validationErrors === 'object') {
           const errorDetails = Object.entries(validationErrors)
