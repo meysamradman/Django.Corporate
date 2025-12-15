@@ -1,18 +1,17 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.ai.models import AIProvider, AIModel
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-from src.user.access_control import PermissionValidator
+from src.user.access_control import PermissionValidator, ai_permission
 from src.ai.utils.cache import AICacheManager
 
 
 class AIModelManagementViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ai_permission]
     
     def list(self, request):
         """
@@ -183,24 +182,51 @@ class AIModelManagementViewSet(viewsets.ViewSet):
         try:
             provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
             
+            # غیرفعال کردن مدل‌های دیگه که همین capability رو دارند
             AIModel.objects.deactivate_other_models(
                 provider_id=provider.id,
                 capability=capability
             )
             
-            model, created = AIModel.objects.update_or_create(
-                provider=provider,
-                model_id=model_id,
-                defaults={
-                    'name': model_name,
-                    'display_name': model_name,
-                    'capabilities': [capability],
-                    'is_active': True,
-                    'pricing_input': request.data.get('pricing_input'),
-                    'pricing_output': request.data.get('pricing_output'),
-                }
-            )
+            # پیدا کردن یا ایجاد مدل
+            try:
+                model = AIModel.objects.get(
+                    provider=provider,
+                    model_id=model_id
+                )
+                # اگه مدل وجود داشت، capability رو به لیست اضافه کن
+                if capability not in model.capabilities:
+                    model.capabilities.append(capability)
+                
+                # به‌روزرسانی سایر فیلدها
+                model.name = model_name
+                model.display_name = model_name
+                model.is_active = True
+                
+                # فقط اگه pricing ارسال شده، update کن
+                if request.data.get('pricing_input') is not None:
+                    model.pricing_input = request.data.get('pricing_input')
+                if request.data.get('pricing_output') is not None:
+                    model.pricing_output = request.data.get('pricing_output')
+                
+                model.save()
+                created = False
+                
+            except AIModel.DoesNotExist:
+                # ایجاد مدل جدید
+                model = AIModel.objects.create(
+                    provider=provider,
+                    model_id=model_id,
+                    name=model_name,
+                    display_name=model_name,
+                    capabilities=[capability],
+                    is_active=True,
+                    pricing_input=request.data.get('pricing_input'),
+                    pricing_output=request.data.get('pricing_output'),
+                )
+                created = True
             
+            # پاکسازی کش
             AICacheManager.invalidate_models()
             cache_key = f"active_model_{provider_slug}_{capability}"
             cache.delete(cache_key)

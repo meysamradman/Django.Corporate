@@ -108,6 +108,10 @@ class AIProviderRegistry:
     
     @classmethod
     def auto_discover(cls):
+        """
+        Auto-discovery ساده و سریع
+        فقط import مستقیم از providerهای موجود
+        """
         try:
             from .gemini import GeminiProvider
             from .openai import OpenAIProvider

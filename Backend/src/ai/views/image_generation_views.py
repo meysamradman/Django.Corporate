@@ -24,7 +24,7 @@ from src.media.serializers.media_serializer import MediaAdminSerializer
 
 class AIImageProviderViewSet(viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [SuperAdminOnly]
+    permission_classes = [ai_permission]
     queryset = AIProvider.objects.all()
     serializer_class = AIProviderSerializer
     lookup_field = 'id'
@@ -117,13 +117,29 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # استفاده از ProviderAvailabilityManager که مدل‌های فعال را هم چک می‌کند
-            from src.ai.providers.capabilities import ProviderAvailabilityManager
-            providers = ProviderAvailabilityManager.get_available_providers('image', include_api_based=True)
+            is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+            
+            # همه Provider های فعال
+            providers_qs = AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name')
+            
+            result = []
+            for provider in providers_qs:
+                # چک دسترسی
+                has_access = self._check_provider_access(request.user, provider, is_super)
+                
+                # همه Provider ها برگردونده میشن
+                provider_info = {
+                    'id': provider.id,
+                    'slug': provider.slug,
+                    'name': provider.display_name,
+                    'description': provider.description,
+                    'has_access': has_access,  # آیا میتونه استفاده کنه
+                }
+                result.append(provider_info)
             
             return APIResponse.success(
                 message=AI_SUCCESS["providers_list_retrieved"],
-                data=providers
+                data=result
             )
         except Exception as e:
             return APIResponse.error(
@@ -351,6 +367,36 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                 message=AI_ERRORS["validation_error"].format(error=str(e)),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+    
+    def _check_provider_access(self, user, provider, is_super: bool) -> bool:
+        """
+        چک می‌کنه آیا این admin میتونه از این provider استفاده کنه
+        
+        طبق سناریو:
+        - اگه Personal API داره → دسترسی داره
+        - اگه Provider اجازه Shared رو داده و Shared API هست → دسترسی داره
+        - اگه Super Admin باشه و Shared API هست → دسترسی داره
+        """
+        # Super Admin همیشه اگه Shared API هست دسترسی داره
+        if is_super and provider.shared_api_key:
+            return True
+        
+        # چک Personal API
+        personal_settings = AdminProviderSettings.objects.filter(
+            admin=user,
+            provider=provider,
+            is_active=True,
+            personal_api_key__isnull=False
+        ).exclude(personal_api_key='').first()
+        
+        if personal_settings:
+            return True  # Personal API داره
+        
+        # چک Shared API برای Normal Admin
+        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
+            return True  # Provider اجازه Shared داده
+        
+        return False
 
 
 class AIImageGenerationViewSet(viewsets.ViewSet):

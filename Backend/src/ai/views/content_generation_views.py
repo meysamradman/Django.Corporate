@@ -9,7 +9,7 @@ from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationResponseSerializer
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-from src.user.access_control import PermissionValidator
+from src.user.access_control import ai_permission, PermissionValidator
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider
@@ -19,7 +19,7 @@ from src.ai.utils.destination_handler import ContentDestinationHandler
 
 
 class AIContentGenerationViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ai_permission]
     
     @action(detail=False, methods=['get'], url_path='capabilities')
     def get_capabilities(self, request):
@@ -50,6 +50,10 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
+        """
+        لیست Provider های قابل دسترس برای Content Generation
+        طبق سناریو: همه Provider ها نمایش داده میشن (حتی بدون مدل)
+        """
         has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
         has_permission = has_content_permission or has_manage_permission
@@ -59,13 +63,31 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 message=AI_ERRORS["content_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
+        
+        is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+        
         try:
-            # استفاده از ProviderAvailabilityManager که مدل‌های فعال را هم چک می‌کند
-            from src.ai.providers.capabilities import ProviderAvailabilityManager
-            providers = ProviderAvailabilityManager.get_available_providers('content', include_api_based=True)
+            # همه Provider های فعال
+            providers_qs = AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name')
+            
+            result = []
+            for provider in providers_qs:
+                # چک دسترسی
+                has_access = self._check_provider_access(request.user, provider, is_super)
+                
+                # همه Provider ها برگردونده میشن
+                provider_info = {
+                    'id': provider.id,
+                    'slug': provider.slug,
+                    'name': provider.display_name,
+                    'description': provider.description,
+                    'has_access': has_access,
+                }
+                result.append(provider_info)
+            
             return APIResponse.success(
                 message=AI_SUCCESS["providers_list_retrieved"],
-                data=providers,
+                data=result,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
@@ -73,6 +95,26 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
                 message=AI_ERRORS["providers_list_error"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def _check_provider_access(self, user, provider, is_super: bool) -> bool:
+        """چک میکنه آیا این admin میتونه از این provider استفاده کنه"""
+        if is_super and provider.shared_api_key:
+            return True
+        
+        personal_settings = AdminProviderSettings.objects.filter(
+            admin=user,
+            provider=provider,
+            is_active=True,
+            personal_api_key__isnull=False
+        ).exclude(personal_api_key='').first()
+        
+        if personal_settings:
+            return True
+        
+        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
+            return True
+        
+        return False
     
     @action(detail=False, methods=['get'], url_path='openrouter-models')
     def openrouter_models(self, request):

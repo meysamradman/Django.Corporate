@@ -56,6 +56,29 @@ def populate_providers():
             'website': 'https://openai.com',
             'api_base_url': 'https://api.openai.com/v1',
             'description': 'GPT-4, GPT-3.5, DALL-E, Whisper, TTS',
+            'provider_class': 'src.ai.providers.openai.OpenAIProvider',
+            'capabilities': {
+                'chat': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1', 'o1-mini']
+                },
+                'content': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['gpt-4o', 'gpt-4o-mini']
+                },
+                'image': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['dall-e-3', 'dall-e-2']
+                },
+                'audio': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['tts-1', 'tts-1-hd', 'whisper-1']
+                }
+            },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': False,
             'is_active': True,
@@ -68,6 +91,27 @@ def populate_providers():
             'website': 'https://ai.google.dev',
             'api_base_url': 'https://generativelanguage.googleapis.com/v1',
             'description': 'Gemini Pro, Gemini Flash',
+            'provider_class': 'src.ai.providers.gemini.GeminiProvider',
+            'capabilities': {
+                'chat': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash']
+                },
+                'content': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['gemini-2.0-flash-exp', 'gemini-1.5-pro']
+                },
+                'image': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['imagen-3']
+                },
+                'audio': {
+                    'supported': False
+                }
+            },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': False,
             'is_active': True,
@@ -80,6 +124,28 @@ def populate_providers():
             'website': 'https://openrouter.ai',
             'api_base_url': 'https://openrouter.ai/api/v1',
             'description': 'دسترسی به 60+ مدل از Provider های مختلف (Anthropic, Groq, و...)',
+            'provider_class': 'src.ai.providers.openrouter.OpenRouterProvider',
+            'capabilities': {
+                'chat': {
+                    'supported': True,
+                    'has_dynamic_models': True,  # مدل‌ها از API می‌آیند
+                    'description': 'دسترسی به 400+ مدل chat'
+                },
+                'content': {
+                    'supported': True,
+                    'has_dynamic_models': True,
+                    'description': 'تولید محتوا با مدل‌های مختلف'
+                },
+                'image': {
+                    'supported': True,
+                    'has_dynamic_models': True,
+                    'description': 'تولید تصویر با DALL-E, Flux, Stable Diffusion'
+                },
+                'audio': {
+                    'supported': True,
+                    'has_dynamic_models': True
+                }
+            },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
             'is_active': True,
@@ -92,6 +158,25 @@ def populate_providers():
             'website': 'https://deepseek.com',
             'api_base_url': 'https://api.deepseek.com',
             'description': 'DeepSeek R1, V3 (کم‌هزینه و قوی)',
+            'provider_class': 'src.ai.providers.deepseek.DeepSeekProvider',
+            'capabilities': {
+                'chat': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['deepseek-chat', 'deepseek-reasoner']
+                },
+                'content': {
+                    'supported': True,
+                    'has_dynamic_models': False,
+                    'models': ['deepseek-chat']
+                },
+                'image': {
+                    'supported': False
+                },
+                'audio': {
+                    'supported': False
+                }
+            },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
             'is_active': True,
@@ -104,6 +189,27 @@ def populate_providers():
             'website': 'https://huggingface.co',
             'api_base_url': 'https://api-inference.huggingface.co',
             'description': 'دسترسی به هزاران مدل Open Source (Image, Text, Audio)',
+            'provider_class': 'src.ai.providers.huggingface.HuggingFaceProvider',
+            'capabilities': {
+                'chat': {
+                    'supported': True,
+                    'has_dynamic_models': True,
+                    'description': 'هزاران مدل text generation'
+                },
+                'content': {
+                    'supported': True,
+                    'has_dynamic_models': True
+                },
+                'image': {
+                    'supported': True,
+                    'has_dynamic_models': True,
+                    'description': 'Stable Diffusion, FLUX, و ...'
+                },
+                'audio': {
+                    'supported': True,
+                    'has_dynamic_models': True
+                }
+            },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
             'is_active': True,
@@ -116,6 +222,26 @@ def populate_providers():
             'website': 'https://groq.com',
             'api_base_url': 'https://api.groq.com/openai/v1',
             'description': 'مدل‌های سریع و رایگان (Llama, Mixtral, Gemma)',
+            'provider_class': 'src.ai.providers.groq.GroqProvider',
+            'capabilities': {
+                'chat': {
+                    'supported': True,
+                    'has_dynamic_models': True,
+                    'description': 'مدل‌های سریع (300+ tokens/sec)'
+                },
+                'content': {
+                    'supported': True,
+                    'has_dynamic_models': True
+                },
+                'image': {
+                    'supported': False
+                },
+                'audio': {
+                    'supported': True,
+                    'has_dynamic_models': True,
+                    'description': 'Whisper برای Speech-to-Text'
+                }
+            },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
             'is_active': True,

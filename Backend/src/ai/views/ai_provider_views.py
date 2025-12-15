@@ -16,12 +16,12 @@ from src.ai.serializers.ai_provider_serializer import (
     AdminProviderSettingsUpdateSerializer,
 )
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
-from src.user.access_control import ai_permission, ai_any_permission, PermissionValidator, RequirePermission
+from src.user.access_control import ai_permission, PermissionValidator, RequirePermission
 from src.core.responses.response import APIResponse
 
 
 class AIProviderViewSet(viewsets.ModelViewSet):
-    permission_classes = [ai_any_permission]  # هر نوع دسترسی AI
+    permission_classes = [ai_permission]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'display_name', 'description']
     ordering_fields = ['name', 'sort_order', 'total_requests', 'created_at']
@@ -113,13 +113,13 @@ class AIProviderViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
         """
-        برگرداندن لیست provider هایی که:
-        1. فعال هستند
-        2. API key دارند (Shared یا Personal)
-        3. از capability درخواستی پشتیبانی می‌کنند
+        برگرداندن لیست همه Provider های فعال
         
-        نکته: حتی اگه مدلی در DB نداشته باشند، بازم برمی‌گردونیم
-        تا admin بتونه از پاپ‌آپ مدل انتخاب کنه
+        طبق سناریو MAIN_AI_SENARIO.md:
+        - همه Provider ها در همه تب‌ها نمایش داده می‌شوند
+        - حتی اگه Provider برای یک capability مدل نداشته باشد، توی تب نمایش داده می‌شه
+        - تشخیص داشتن/نداشتن مدل فقط در پاپ‌آپ مشخص می‌شه
+        - فقط Provider هایی که is_active=True هستند برگردونده می‌شن
         """
         has_view_permission = PermissionValidator.has_permission(request.user, 'ai.view')
         has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
@@ -127,39 +127,66 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         if not (has_view_permission or has_manage_permission):
             raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         
-        capability = request.query_params.get('capability')
+        is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
-        # همه provider های فعال
-        providers = AIProvider.objects.filter(is_active=True)
+        # همه Provider های فعال - بدون فیلتر بر اساس capability
+        providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
         serializer = AIProviderListSerializer(providers, many=True, context={'request': request})
-        
-        from src.ai.providers.capabilities import supports_feature
         
         available = []
         for provider_data in serializer.data:
-            # اگه API key نداره، اصلاً نمایش نمی‌دیم
-            has_api = provider_data.get('has_shared_api') or provider_data.get('has_personal_api')
-            if not has_api:
-                continue
+            provider_slug = provider_data['slug']
             
-            # اگه capability داده شده، فقط اونایی که support می‌کنن
-            if capability:
-                try:
-                    if not supports_feature(provider_data['slug'], capability):
-                        # این provider از این capability پشتیبانی نمی‌کنه
-                        continue
-                except Exception:
-                    # در صورت خطا، skip می‌کنیم
-                    continue
+            # چک کردن دسترسی این Admin به این Provider
+            has_access = self._check_provider_access(request.user, provider_slug, is_super)
             
-            # اضافه کردن به لیست (حتی بدون مدل در DB)
-            available.append(provider_data)
+            provider_info = {
+                **provider_data,
+                'has_access': has_access,
+                'provider_name': provider_slug,
+            }
+            available.append(provider_info)
         
         return APIResponse.success(
             message=AI_SUCCESS["providers_list_retrieved"],
             data=available,
             status_code=status.HTTP_200_OK
         )
+    
+    def _check_provider_access(self, user, provider_slug: str, is_super: bool) -> bool:
+        """
+        چک می‌کنه آیا این admin میتونه از این provider استفاده کنه
+        
+        طبق سناریو:
+        - اگه Personal API داره → دسترسی داره
+        - اگه Provider اجازه Shared رو داده و Shared API هست → دسترسی داره
+        - اگه Super Admin باشه و Shared API هست → دسترسی داره
+        """
+        try:
+            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+        except AIProvider.DoesNotExist:
+            return False
+        
+        # Super Admin همیشه اگه Shared API هست دسترسی داره
+        if is_super and provider.shared_api_key:
+            return True
+        
+        # چک Personal API
+        personal_settings = AdminProviderSettings.objects.filter(
+            admin=user,
+            provider=provider,
+            is_active=True,
+            personal_api_key__isnull=False
+        ).exclude(personal_api_key='').first()
+        
+        if personal_settings:
+            return True  # Personal API داره
+        
+        # چک Shared API برای Normal Admin
+        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
+            return True  # Provider اجازه Shared داده
+        
+        return False
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
@@ -178,7 +205,7 @@ class AIProviderViewSet(viewsets.ModelViewSet):
 
 
 class AIModelViewSet(viewsets.ModelViewSet):
-    permission_classes = [ai_any_permission]  # هر نوع دسترسی AI
+    permission_classes = [ai_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['provider', 'is_active']
     search_fields = ['name', 'display_name', 'description', 'model_id']
@@ -209,9 +236,19 @@ class AIModelViewSet(viewsets.ModelViewSet):
         return context
     
     def list(self, request, *args, **kwargs):
+        if not PermissionValidator.has_permission(request.user, 'ai.view'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         return super().list(request, *args, **kwargs)
     
     def retrieve(self, request, *args, **kwargs):
+        if not PermissionValidator.has_permission(request.user, 'ai.view'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         return super().retrieve(request, *args, **kwargs)
     
     def perform_create(self, serializer):
@@ -228,6 +265,12 @@ class AIModelViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def by_capability(self, request):
+        if not PermissionValidator.has_permission(request.user, 'ai.view'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         capability = request.query_params.get('capability')
         if not capability:
             return APIResponse.error(
@@ -251,6 +294,12 @@ class AIModelViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def by_provider(self, request):
+        if not PermissionValidator.has_permission(request.user, 'ai.view'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         provider_slug = request.query_params.get('provider')
         if not provider_slug:
             return APIResponse.error(
@@ -288,6 +337,12 @@ class AIModelViewSet(viewsets.ModelViewSet):
         Get the single active model for a provider+capability combination.
         Required params: provider (slug), capability
         """
+        if not PermissionValidator.has_permission(request.user, 'ai.view'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         provider_slug = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         
@@ -317,7 +372,7 @@ class AIModelViewSet(viewsets.ModelViewSet):
 
 
 class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
-    permission_classes = [ai_any_permission]  # هر نوع دسترسی AI
+    permission_classes = [ai_permission]
     serializer_class = AdminProviderSettingsSerializer
     
     def get_queryset(self):
@@ -337,6 +392,12 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
         return context
     
     def create(self, request, *args, **kwargs):
+        if not PermissionValidator.has_permission(request.user, 'ai.settings.personal.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
@@ -399,6 +460,12 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
             serializer.save()
     
     def update(self, request, *args, **kwargs):
+        if not PermissionValidator.has_permission(request.user, 'ai.settings.personal.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -422,6 +489,12 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def my_settings(self, request):
+        if not PermissionValidator.has_permission(request.user, 'ai.settings.personal.manage'):
+            return APIResponse.error(
+                message=AI_ERRORS['settings_not_authorized'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
         settings = self.get_queryset()
         serializer = self.get_serializer(settings, many=True)
         return APIResponse.success(

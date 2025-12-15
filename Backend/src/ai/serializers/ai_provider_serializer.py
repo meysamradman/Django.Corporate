@@ -60,13 +60,34 @@ class AIProviderDetailSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['slug', 'total_requests', 'last_used_at']
     
+    def get_fields(self):
+        """
+        فقط Super Admin میتونه shared_api_key_preview و allow_shared_for_normal_admins ببینه
+        Normal Admin اصلاً این فیلدها رو نمی‌بینه
+        """
+        fields = super().get_fields()
+        request = self.context.get('request')
+        
+        if request and request.user:
+            is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+            
+            # اگه Normal Admin باشه، فیلدهای مربوط به Shared رو حذف کن
+            if not is_super:
+                fields.pop('shared_api_key_preview', None)
+                fields.pop('allow_shared_for_normal_admins', None)
+                fields.pop('has_shared_api', None)
+        
+        return fields
+    
     def get_models_count(self, obj):
         return obj.models.filter(is_active=True).count()
     
     def get_has_shared_api(self, obj):
+        """فقط Super Admin می‌بینه"""
         return bool(obj.shared_api_key)
     
     def get_shared_api_key_preview(self, obj):
+        """فقط Super Admin می‌بینه"""
         if obj.shared_api_key:
             decrypted = obj.get_shared_api_key()
             if len(decrypted) > 10:
@@ -83,6 +104,27 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
             'shared_api_key', 'allow_personal_keys', 'allow_shared_for_normal_admins',
             'config', 'is_active', 'sort_order'
         ]
+    
+    def get_fields(self):
+        """
+        فقط Super Admin میتونه shared_api_key و allow_shared_for_normal_admins تنظیم کنه
+        Normal Admin فقط میتونه Personal API خودش رو تنظیم کنه
+        """
+        fields = super().get_fields()
+        request = self.context.get('request')
+        
+        if request and request.user:
+            is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+            
+            # اگه Normal Admin باشه، نمیتونه Shared API تنظیم کنه
+            if not is_super:
+                fields.pop('shared_api_key', None)
+                fields.pop('allow_shared_for_normal_admins', None)
+                # فقط این فیلدها رو میتونه ببینه/تغییر بده
+                fields['is_active'].read_only = True
+                fields['sort_order'].read_only = True
+        
+        return fields
     
     def validate_name(self, value):
         instance = self.instance
@@ -312,6 +354,24 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'provider': {'read_only': True}
         }
+    
+    def get_fields(self):
+        """
+        Normal Admin فقط میتونه personal_api_key خودش رو تنظیم کنه
+        use_shared_api فقط برای نمایش هست نه تغییر
+        """
+        fields = super().get_fields()
+        request = self.context.get('request')
+        
+        if request and request.user:
+            is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+            
+            # Normal Admin نمیتونه use_shared_api رو تغییر بده
+            if not is_super:
+                if 'use_shared_api' in fields:
+                    fields['use_shared_api'].read_only = True
+        
+        return fields
     
     def validate(self, attrs):
         if 'provider_name' in attrs and 'provider_id' not in attrs:

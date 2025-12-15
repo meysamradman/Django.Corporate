@@ -119,6 +119,28 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         help_text="Base URL for API requests"
     )
     
+    # ⭐ Dynamic Provider Configuration
+    provider_class = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Provider Class Path",
+        help_text="Python class path (e.g., src.ai.providers.openai.OpenAIProvider)"
+    )
+    capabilities = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Capabilities",
+        help_text="""
+        Provider capabilities configuration:
+        {
+            "chat": {"supported": true, "has_dynamic_models": false, "models": [...]},
+            "content": {"supported": true, "has_dynamic_models": false},
+            "image": {"supported": true, "has_dynamic_models": true},
+            "audio": {"supported": false}
+        }
+        """
+    )
+    
     # 4. Boolean Flags
     allow_personal_keys = models.BooleanField(
         default=True,
@@ -194,9 +216,90 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
             AICacheManager.invalidate_provider(self.slug)
     
     def get_shared_api_key(self) -> str:
+        """دریافت Shared API Key به صورت decrypt شده"""
         if not self.shared_api_key:
             return ''
         return self.decrypt_key(self.shared_api_key)
+    
+    def supports_capability(self, capability: str) -> bool:
+        """
+        چک کردن پشتیبانی از یک capability
+        
+        Args:
+            capability: نوع capability (chat, content, image, audio)
+        
+        Returns:
+            True اگر پشتیبانی میکنه، False در غیر این صورت
+        """
+        if not self.capabilities:
+            return False
+        return self.capabilities.get(capability, {}).get('supported', False)
+    
+    def has_dynamic_models(self, capability: str) -> bool:
+        """
+        آیا لیست مدل‌های این capability از API می‌آید؟
+        
+        Args:
+            capability: نوع capability
+        
+        Returns:
+            True اگر dynamic باشد (مثل OpenRouter)
+        """
+        if not self.capabilities:
+            return False
+        return self.capabilities.get(capability, {}).get('has_dynamic_models', False)
+    
+    def get_static_models(self, capability: str) -> list:
+        """
+        دریافت لیست مدل‌های static (از capabilities)
+        
+        Args:
+            capability: نوع capability
+        
+        Returns:
+            لیست model_id های موجود یا لیست خالی
+        """
+        if not self.capabilities:
+            return []
+        return self.capabilities.get(capability, {}).get('models', [])
+    
+    def get_provider_instance(self, api_key: str, config: dict = None):
+        """
+        ⭐ Dynamic instantiation - بدون hardcode!
+        
+        ایجاد instance از provider class بدون import مستقیم
+        
+        Args:
+            api_key: API key برای provider
+            config: تنظیمات اضافی (اختیاری)
+        
+        Returns:
+            Instance از Provider class
+        
+        Raises:
+            ValueError: اگر provider_class تنظیم نشده باشد
+            ImportError: اگر کلاس پیدا نشد
+        """
+        if not self.provider_class:
+            raise ValueError(f"Provider class not configured for {self.slug}")
+        
+        import importlib
+        
+        # Parse class path: src.ai.providers.openai.OpenAIProvider
+        try:
+            module_path, class_name = self.provider_class.rsplit('.', 1)
+        except ValueError:
+            raise ValueError(f"Invalid provider_class format: {self.provider_class}")
+        
+        # Import dynamically
+        try:
+            module = importlib.import_module(module_path)
+            provider_class = getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            raise ImportError(f"Failed to import {self.provider_class}: {e}")
+        
+        # Create instance
+        return provider_class(api_key=api_key, config=config or self.config)
     
     def increment_usage(self):
         self.total_requests += 1
@@ -278,6 +381,8 @@ class AIModelManager(models.Manager):
         """
         Deactivate all other models for the same provider+capability.
         Used when activating a new model.
+        CRITICAL: Only deactivates models with THE EXACT SAME capability.
+        Different capabilities remain active.
         """
         queryset = self.filter(
             provider_id=provider_id,
@@ -288,12 +393,21 @@ class AIModelManager(models.Manager):
             queryset = queryset.exclude(id=exclude_id)
         
         # Filter by capability and deactivate
+        # IMPORTANT: Only deactivate if capability exists in model's capabilities list
         deactivated_count = 0
         for model in queryset:
+            # فقط اگر این capability دقیقاً در لیست capabilities این مدل هست
             if capability in model.capabilities:
-                model.is_active = False
-                model.save(update_fields=['is_active', 'updated_at'])
-                deactivated_count += 1
+                # اگر فقط یه capability داره، غیرفعالش کن
+                if len(model.capabilities) == 1:
+                    model.is_active = False
+                    model.save(update_fields=['is_active', 'updated_at'])
+                    deactivated_count += 1
+                else:
+                    # اگه چند capability داره، فقط این capability رو از لیست حذف کن
+                    model.capabilities.remove(capability)
+                    model.save(update_fields=['capabilities', 'updated_at'])
+                    deactivated_count += 1
         
         return deactivated_count
 
