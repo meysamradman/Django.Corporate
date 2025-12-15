@@ -23,6 +23,12 @@ interface ProviderAccordionItemProps {
   showApiKey: boolean;
   useSharedApi: boolean;
   hasStoredApiKey: boolean;
+  personalApiKey?: string;
+  sharedApiKey?: string;
+  hasStoredPersonalApiKey?: boolean;
+  hasStoredSharedApiKey?: boolean;
+  showPersonalApiKey?: boolean;
+  showSharedApiKey?: boolean;
   isSaving: boolean;
   isSuperAdmin: boolean;
   allowNormalAdmins: boolean;
@@ -34,8 +40,16 @@ interface ProviderAccordionItemProps {
   personalSettingsMap: Record<string, any>;
   onToggleApiKeyVisibility: () => void;
   onApiKeyChange: (value: string) => void;
+  onPersonalApiKeyChange?: (value: string) => void;
+  onSharedApiKeyChange?: (value: string) => void;
+  onTogglePersonalApiKeyVisibility?: () => void;
+  onToggleSharedApiKeyVisibility?: () => void;
   onToggleUseSharedApi: (checked: boolean) => void;
   onSave: () => void;
+  onSavePersonal?: () => void;
+  onSaveShared?: () => void;
+  onDeletePersonal?: () => void;
+  onDeleteShared?: () => void;
   onToggleActive: (checked: boolean) => void;
 }
 
@@ -46,6 +60,12 @@ export function ProviderAccordionItem({
   showApiKey,
   useSharedApi,
   hasStoredApiKey,
+  personalApiKey,
+  sharedApiKey,
+  hasStoredPersonalApiKey,
+  hasStoredSharedApiKey,
+  showPersonalApiKey,
+  showSharedApiKey,
   isSaving,
   isSuperAdmin,
   allowNormalAdmins,
@@ -57,8 +77,16 @@ export function ProviderAccordionItem({
   personalSettingsMap,
   onToggleApiKeyVisibility,
   onApiKeyChange,
+  onPersonalApiKeyChange,
+  onSharedApiKeyChange,
+  onTogglePersonalApiKeyVisibility,
+  onToggleSharedApiKeyVisibility,
   onToggleUseSharedApi,
   onSave,
+  onSavePersonal,
+  onSaveShared,
+  onDeletePersonal,
+  onDeleteShared,
   onToggleActive,
 }: ProviderAccordionItemProps) {
   return (
@@ -94,7 +122,7 @@ export function ProviderAccordionItem({
                 </Badge>
               )}
               <Badge variant="outline" className="text-xs">
-                {provider.models.length} مدل
+                {provider.models.length > 0 ? `${provider.models.length} مدل` : 'بدون مدل'}
               </Badge>
             </div>
           </div>
@@ -108,6 +136,12 @@ export function ProviderAccordionItem({
             showApiKey={showApiKey}
             useSharedApi={useSharedApi}
             hasStoredApiKey={hasStoredApiKey}
+            personalApiKey={personalApiKey}
+            sharedApiKey={sharedApiKey}
+            hasStoredPersonalApiKey={hasStoredPersonalApiKey}
+            hasStoredSharedApiKey={hasStoredSharedApiKey}
+            showPersonalApiKey={showPersonalApiKey}
+            showSharedApiKey={showSharedApiKey}
             isSaving={isSaving}
             isSuperAdmin={isSuperAdmin}
             allowNormalAdmins={allowNormalAdmins}
@@ -115,8 +149,16 @@ export function ProviderAccordionItem({
             canUseSharedApi={canUseSharedApi}
             onToggleApiKeyVisibility={onToggleApiKeyVisibility}
             onApiKeyChange={onApiKeyChange}
+            onPersonalApiKeyChange={onPersonalApiKeyChange}
+            onSharedApiKeyChange={onSharedApiKeyChange}
+            onTogglePersonalApiKeyVisibility={onTogglePersonalApiKeyVisibility}
+            onToggleSharedApiKeyVisibility={onToggleSharedApiKeyVisibility}
             onToggleUseSharedApi={onToggleUseSharedApi}
             onSave={onSave}
+            onSavePersonal={onSavePersonal}
+            onSaveShared={onSaveShared}
+            onDeletePersonal={onDeletePersonal}
+            onDeleteShared={onDeleteShared}
             isActive={isActive}
             onToggleActive={onToggleActive}
           />

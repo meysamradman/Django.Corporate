@@ -162,6 +162,17 @@ class AIModelManagementViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='select-model')
     def select_model(self, request):
+        """
+        POST /api/admin/ai-models/select-model/
+        Select/activate a model for a specific provider+capability.
+        Automatically deactivates other models with the same capability.
+        
+        Required fields:
+        - provider: Provider slug
+        - capability: Capability type (chat, content, image, audio)
+        - model_id: Model identifier
+        - model_name: Model display name
+        """
         if not PermissionValidator.has_permission(request.user, 'ai.manage'):
             return APIResponse.error(
                 message=AI_ERRORS.get("provider_not_authorized", "Not authorized"),
@@ -183,7 +194,7 @@ class AIModelManagementViewSet(viewsets.ViewSet):
             provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
             
             # غیرفعال کردن مدل‌های دیگه که همین capability رو دارند
-            AIModel.objects.deactivate_other_models(
+            deactivated_count = AIModel.objects.deactivate_other_models(
                 provider_id=provider.id,
                 capability=capability
             )
@@ -231,15 +242,36 @@ class AIModelManagementViewSet(viewsets.ViewSet):
             cache_key = f"active_model_{provider_slug}_{capability}"
             cache.delete(cache_key)
             
+            # Response حرفه‌ای با جزئیات کامل
+            action_performed = "created" if created else "updated"
+            message_parts = [
+                f"Model {action_performed} successfully",
+            ]
+            
+            if deactivated_count > 0:
+                message_parts.append(f"{deactivated_count} other model(s) deactivated")
+            
             return APIResponse.success(
-                message=f"Model {'created' if created else 'updated'} successfully",
+                message=". ".join(message_parts),
                 data={
                     'id': model.id,
                     'model_id': model.model_id,
                     'name': model.display_name,
+                    'provider': {
+                        'id': provider.id,
+                        'slug': provider.slug,
+                        'name': provider.display_name
+                    },
                     'capability': capability,
+                    'capabilities': model.capabilities,
                     'is_active': model.is_active,
-                    'created': created
+                    'created': created,
+                    'deactivated_count': deactivated_count,
+                    'pricing': {
+                        'input': float(model.pricing_input) if model.pricing_input else None,
+                        'output': float(model.pricing_output) if model.pricing_output else None,
+                        'is_free': model.pricing_input is None and model.pricing_output is None
+                    }
                 }
             )
             

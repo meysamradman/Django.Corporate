@@ -81,7 +81,7 @@ def populate_providers():
             },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': False,
-            'is_active': True,
+            'is_active': False,  # ⚠️ پیش‌فرض غیرفعال - Super Admin باید فعال کنه
             'sort_order': 1,
         },
         {
@@ -114,7 +114,7 @@ def populate_providers():
             },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': False,
-            'is_active': True,
+            'is_active': False,  # ⚠️ پیش‌فرض غیرفعال
             'sort_order': 2,
         },
         {
@@ -148,7 +148,7 @@ def populate_providers():
             },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
-            'is_active': True,
+            'is_active': False,  # ⚠️ پیش‌فرض غیرفعال
             'sort_order': 3,
         },
         {
@@ -179,7 +179,7 @@ def populate_providers():
             },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
-            'is_active': True,
+            'is_active': False,  # ⚠️ پیش‌فرض غیرفعال
             'sort_order': 4,
         },
         {
@@ -212,7 +212,7 @@ def populate_providers():
             },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
-            'is_active': True,
+            'is_active': False,  # ⚠️ پیش‌فرض غیرفعال
             'sort_order': 5,
         },
         {
@@ -244,7 +244,7 @@ def populate_providers():
             },
             'allow_personal_keys': True,
             'allow_shared_for_normal_admins': True,
-            'is_active': True,
+            'is_active': False,  # ⚠️ پیش‌فرض غیرفعال
             'sort_order': 6,
         },
     ]

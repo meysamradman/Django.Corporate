@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { aiApi } from '@/api/ai/route';
 import { toast } from '@/components/elements/Sonner';
 import { Button } from '@/components/elements/Button';
@@ -51,7 +51,7 @@ export function OpenRouterModelSelector({
           </Button>
           <div>
             <h1 className="page-title flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-pink-2" />
+              <span className="text-2xl">🤖</span>
               انتخاب مدل‌های {providerName}
             </h1>
           </div>

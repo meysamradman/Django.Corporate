@@ -36,6 +36,7 @@ export function ModelCard({
   onToggle,
   viewMode = 'grid'
 }: ModelCardProps) {
+
   if (viewMode === 'list') {
     return (
       <div className="flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-lg border border-border-light dark:border-border-dark hover:border-primary-light dark:hover:border-primary-dark transition-all">

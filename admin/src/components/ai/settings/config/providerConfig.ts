@@ -11,7 +11,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'openrouter': {
     name: 'OpenRouter',
     icon: '🌐',
-    description: 'مدل OpenRouter',
+    description: '400+ مدل از 60+ Provider',
     apiKeyLabel: 'API Key',
     category: 'popular',
     supportedFeatures: ['chat', 'content', 'image'],
@@ -19,7 +19,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'openai': {
     name: 'OpenAI',
     icon: '🤖',
-    description: 'مدل OpenAI',
+    description: 'GPT-4o, DALL-E, Whisper',
     apiKeyLabel: 'OpenAI API Key',
     category: 'popular',
     supportedFeatures: ['chat', 'content', 'image'],
@@ -27,7 +27,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'gemini': {
     name: 'Google Gemini',
     icon: '🔵',
-    description: 'مدل Gemini',
+    description: 'Gemini 2.0 Flash, Pro',
     apiKeyLabel: 'Google API Key',
     category: 'popular',
     supportedFeatures: ['chat', 'content'],
@@ -36,7 +36,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'deepseek': {
     name: 'DeepSeek',
     icon: '⚡',
-    description: 'مدل DeepSeek',
+    description: 'R1, Chat (کم‌هزینه)',
     apiKeyLabel: 'DeepSeek API Key',
     category: 'standard',
     supportedFeatures: ['chat', 'content'],
@@ -44,7 +44,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'huggingface': {
     name: 'Hugging Face',
     icon: '🤗',
-    description: 'مدل Hugging Face',
+    description: 'هزاران مدل Open Source',
     apiKeyLabel: 'Hugging Face API Key',
     category: 'standard',
     supportedFeatures: ['image'],
@@ -52,7 +52,7 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
   'groq': {
     name: 'Groq',
     icon: '⚡',
-    description: 'مدل Groq',
+    description: 'Llama 3.3, Mixtral (رایگان)',
     apiKeyLabel: 'Groq API Key',
     category: 'standard',
     supportedFeatures: ['chat', 'content'],

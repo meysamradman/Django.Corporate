@@ -10,23 +10,20 @@ import os
 from src.ai.models import AIProvider, AdminProviderSettings, AIModel
 from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
-from src.ai.providers import GeminiProvider, OpenAIProvider, HuggingFaceProvider, OpenRouterProvider
+from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 
 
 class AIImageGenerationService:
     
-    PROVIDER_CLASSES = {
-        'gemini': GeminiProvider,
-        'openai': OpenAIProvider,
-        'huggingface': HuggingFaceProvider,
-        'openrouter': OpenRouterProvider,
-    }
-    
     @classmethod
     def get_provider_instance(cls, provider_name: str, api_key: str, config: Optional[Dict] = None):
-        provider_class = cls.PROVIDER_CLASSES.get(provider_name)
+        """
+        Get provider instance using AIProviderRegistry.
+        Dynamic provider loading without hardcoded imports.
+        """
+        provider_class = AIProviderRegistry.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
         return provider_class(api_key, config)
@@ -238,6 +235,8 @@ class AIImageGenerationService:
     
     @classmethod
     def get_available_providers(cls) -> list:
+        """دریافت لیست providerهای موجود از Registry"""
         all_providers = ProviderAvailabilityManager.get_available_providers('image')
-        return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_CLASSES]
+        registered_providers = AIProviderRegistry.get_registered_names()
+        return [p for p in all_providers if p['provider_name'] in registered_providers]
 

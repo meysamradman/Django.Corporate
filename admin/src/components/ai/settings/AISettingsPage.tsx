@@ -34,6 +34,8 @@ export default function AISettingsPage() {
 
   const [expandedProviders, setExpandedProviders] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showPersonalApiKeys, setShowPersonalApiKeys] = useState<Record<string, boolean>>({});
+  const [showSharedApiKeys, setShowSharedApiKeys] = useState<Record<string, boolean>>({});
 
   const filteredProviders = useMemo(() => {
     if (!searchQuery.trim()) return providers;
@@ -48,6 +50,7 @@ export default function AISettingsPage() {
   const handleToggleUseSharedApi = (providerId: string, checked: boolean) => {
     toggleUseSharedApiMutation.mutate({ providerId, useSharedApi: checked });
   };
+
 
   if (isLoadingBackendProviders) {
     return (
@@ -86,12 +89,18 @@ export default function AISettingsPage() {
               const canUseSharedApi = isSuperAdmin || (allowNormalAdmins && hasSharedApi);
               const useSharedApi = canUseSharedApi ? (setting?.use_shared_api ?? false) : false;
               
+              const personalApiKey = personalApiKeys[provider.id] || '';
+              const sharedApiKey = sharedApiKeys[provider.id] || '';
               const apiKey = useSharedApi && isSuperAdmin 
-                ? (sharedApiKeys[provider.id] || '') 
-                : (personalApiKeys[provider.id] || '');
+                ? sharedApiKey
+                : personalApiKey;
               
               const hasStoredApiKey = Boolean(apiKey && apiKey.trim() !== '' && apiKey !== '***');
+              const hasStoredPersonalApiKey = Boolean(personalApiKey && personalApiKey.trim() !== '' && personalApiKey !== '***');
+              const hasStoredSharedApiKey = Boolean(sharedApiKey && sharedApiKey.trim() !== '' && sharedApiKey !== '***');
               const showApiKey = showApiKeys[provider.id] || false;
+              const showPersonalApiKey = showPersonalApiKeys[provider.id] || false;
+              const showSharedApiKey = showSharedApiKeys[provider.id] || false;
 
               let isActive = false;
               if (useSharedApi && isSuperAdmin) {
@@ -130,6 +139,12 @@ export default function AISettingsPage() {
                   showApiKey={showApiKey}
                   useSharedApi={useSharedApi}
                   hasStoredApiKey={hasStoredApiKey}
+                  personalApiKey={personalApiKey}
+                  sharedApiKey={sharedApiKey}
+                  hasStoredPersonalApiKey={hasStoredPersonalApiKey}
+                  hasStoredSharedApiKey={hasStoredSharedApiKey}
+                  showPersonalApiKey={showPersonalApiKey}
+                  showSharedApiKey={showSharedApiKey}
                   isSaving={saveApiKeyMutation.isPending || toggleActiveMutation.isPending}
                   isSuperAdmin={isSuperAdmin}
                   allowNormalAdmins={allowNormalAdmins}
@@ -158,10 +173,64 @@ export default function AISettingsPage() {
                       }));
                     }
                   }}
+                  onPersonalApiKeyChange={(value) => {
+                    setPersonalApiKeys(prev => ({
+                      ...prev,
+                      [provider.id]: value
+                    }));
+                  }}
+                  onSharedApiKeyChange={(value) => {
+                    setSharedApiKeys(prev => ({
+                      ...prev,
+                      [provider.id]: value
+                    }));
+                  }}
+                  onTogglePersonalApiKeyVisibility={() => {
+                    setShowPersonalApiKeys(prev => ({
+                      ...prev,
+                      [provider.id]: !prev[provider.id]
+                    }));
+                  }}
+                  onToggleSharedApiKeyVisibility={() => {
+                    setShowSharedApiKeys(prev => ({
+                      ...prev,
+                      [provider.id]: !prev[provider.id]
+                    }));
+                  }}
                   onToggleUseSharedApi={(checked) => {
                     handleToggleUseSharedApi(provider.id, checked);
                   }}
-                  onSave={() => handleSaveProvider(provider.id, useSharedApi)}
+                  onSave={(apiKeyValue) => handleSaveProvider(provider.id, useSharedApi, apiKeyValue)}
+                  onSavePersonal={(apiKeyValue) => handleSaveProvider(provider.id, false, apiKeyValue)}
+                  onSaveShared={(apiKeyValue) => handleSaveProvider(provider.id, true, apiKeyValue)}
+                  onDeletePersonal={() => {
+                    // پاک کردن از state
+                    setPersonalApiKeys(prev => {
+                      const newKeys = { ...prev };
+                      newKeys[provider.id] = '';
+                      return newKeys;
+                    });
+                    // ارسال string خالی به backend برای حذف کامل
+                    saveApiKeyMutation.mutate({
+                      providerId: provider.id,
+                      apiKey: '',
+                      useSharedApi: false,
+                    });
+                  }}
+                  onDeleteShared={() => {
+                    // پاک کردن از state
+                    setSharedApiKeys(prev => {
+                      const newKeys = { ...prev };
+                      newKeys[provider.id] = '';
+                      return newKeys;
+                    });
+                    // ارسال string خالی به backend برای حذف کامل
+                    saveApiKeyMutation.mutate({
+                      providerId: provider.id,
+                      apiKey: '',
+                      useSharedApi: true,
+                    });
+                  }}
                   onToggleActive={(checked) => {
                     if (toggleActiveMutation.isPending) return;
                     handleToggleActive(provider.id, checked, useSharedApi);

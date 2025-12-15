@@ -2,29 +2,22 @@ import asyncio
 import time
 from typing import Dict, Any, Optional, List
 from src.ai.models import AIProvider, AdminProviderSettings, AIModel
-from src.ai.providers import GeminiProvider, OpenAIProvider, DeepSeekProvider, OpenRouterProvider, GroqProvider, HuggingFaceProvider
+from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import CHAT_ERRORS, SETTINGS_ERRORS, AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 
 
 class AIChatService:
     
-    PROVIDER_MAP = {
-        'gemini': GeminiProvider,
-        'openai': OpenAIProvider,
-        'deepseek': DeepSeekProvider,
-        'openrouter': OpenRouterProvider,
-        'groq': GroqProvider,
-        'huggingface': HuggingFaceProvider,
-    }
-    
     @classmethod
     def get_provider(cls, provider_name: str, admin=None, model_name: Optional[str] = None):
         """
         Get provider instance with API key.
         Now supports selecting specific model or auto-selecting active model.
+        Uses AIProviderRegistry for dynamic provider loading.
         """
-        provider_class = cls.PROVIDER_MAP.get(provider_name)
+        # استفاده از Registry به جای Hardcode
+        provider_class = AIProviderRegistry.get(provider_name)
         if not provider_class:
             raise ValueError(CHAT_ERRORS["provider_not_supported"].format(provider_name=provider_name))
         
@@ -114,6 +107,8 @@ class AIChatService:
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
+        """دریافت لیست providerهای موجود از Registry"""
         all_providers = ProviderAvailabilityManager.get_available_providers('chat')
-        return [p for p in all_providers if p['provider_name'] in cls.PROVIDER_MAP]
+        registered_providers = AIProviderRegistry.get_registered_names()
+        return [p for p in all_providers if p['provider_name'] in registered_providers]
 

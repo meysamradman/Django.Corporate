@@ -2,42 +2,45 @@
 
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { CardWithIcon } from '@/components/elements/CardWithIcon';
-import { MessageSquare } from 'lucide-react';
 import { usePermission } from '@/core/permissions/context/PermissionContext';
 import { AccessDenied } from '@/core/permissions/components/AccessDenied';
 
-// AIChat Skeleton
+// AIChat Skeleton - مطابق با layout واقعی
 const AIChatSkeleton = () => (
-  <CardWithIcon
-    icon={MessageSquare}
-    title="چت با AI"
-    iconBgColor="bg-blue"
-    iconColor="stroke-blue-2"
-    borderColor="border-b-blue-1"
-    headerClassName="flex-shrink-0 border-b pb-3"
-    contentClassName="!p-0 flex-1 flex flex-col overflow-hidden"
-    titleExtra={
-      <Skeleton className="h-10 w-32" />
-    }
-  >
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-start gap-3">
-            <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-            <Skeleton className="h-16 w-3/4 rounded-lg" />
+  <div className="relative flex flex-col h-full bg-bg">
+    {/* Messages Area - Empty State Skeleton */}
+    <div className="flex-1 flex flex-col justify-center items-center px-4">
+      <div className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto">
+        {/* Icon Skeleton */}
+        <Skeleton className="w-16 h-16 rounded-2xl mb-6" />
+        
+        {/* Title Skeleton */}
+        <Skeleton className="h-8 w-64 mb-2 rounded-lg" />
+        
+        {/* Description Skeleton */}
+        <Skeleton className="h-5 w-80 rounded-lg" />
+      </div>
+    </div>
+
+    {/* Input Area Skeleton - Sticky Bottom */}
+    <div className="sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm z-10">
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="bg-card rounded-2xl shadow-lg border border-br p-4">
+          {/* Textarea Skeleton */}
+          <Skeleton className="h-24 w-full rounded-lg mb-3" />
+          
+          {/* Bottom Controls Skeleton */}
+          <div className="flex items-center justify-between pt-3 border-t border-br">
+            {/* Provider Selector Skeleton */}
+            <Skeleton className="h-9 w-48 rounded-lg" />
+            
+            {/* Right side Skeleton */}
+            <Skeleton className="h-9 w-9 rounded-full" />
           </div>
-        ))}
+        </div>
       </div>
     </div>
-    <div className="flex-shrink-0 border-t p-4">
-      <div className="flex gap-2">
-        <Skeleton className="h-10 flex-1" />
-        <Skeleton className="h-10 w-24" />
-      </div>
-    </div>
-  </CardWithIcon>
+  </div>
 );
 
 const AIChat = dynamic(

@@ -1,0 +1,7 @@
+from .messages import FEATURE_FLAG_SUCCESS, FEATURE_FLAG_ERRORS
+
+__all__ = [
+    'FEATURE_FLAG_SUCCESS',
+    'FEATURE_FLAG_ERRORS',
+]
+

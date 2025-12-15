@@ -12,6 +12,7 @@ import {
     Ticket,
     List,
     BarChart3,
+    Flag,
     type LucideIcon
 } from "lucide-react"
 import { useMemo, useCallback } from "react"

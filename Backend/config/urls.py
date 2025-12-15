@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from src.core.feature_flags.urls_utils import feature_urls, feature_path
 
 # ========================================
 # CORPORATE APPS - Can be commented out if not needed
@@ -10,6 +12,11 @@ from src.portfolio.views.admin.portfolio_export_view import PortfolioExportView
 from src.blog.views.admin.blog_export_view import BlogExportView
 
 urlpatterns = [
+    # ========================================
+    # Django Admin
+    # ========================================
+    path('admin/', admin.site.urls),
+    
     # ========================================
     # CORE APPS - Always required
     # ========================================
@@ -22,20 +29,22 @@ urlpatterns = [
     path('api/analytics/', include('src.analytics.urls')),  # Analytics
     
     # ========================================
-    # CORPORATE APPS - Optional (comment out to disable)
+    # CORPORATE APPS - Feature Flag Controlled
     # ========================================
-    path('api/', include('src.ai.urls')),
-    path('api/', include('src.chatbot.urls')),
-    path('api/', include('src.ticket.urls')),
-    path('api/email/', include('src.email.urls')),
-    path('api/', include('src.page.urls')),
-    path('api/', include('src.form.urls')),
-    path('api/', include('src.blog.urls')),
-    path('api/admin/blog/export/', BlogExportView.as_view(), name='admin-blog-export'),
-    path('api/admin/blog/export', BlogExportView.as_view(), name='admin-blog-export-no-slash'),
-    path('api/', include('src.portfolio.urls')),
-    path('api/admin/portfolio/export/', PortfolioExportView.as_view(), name='admin-portfolio-export'),
-    path('api/admin/portfolio/export', PortfolioExportView.as_view(), name='admin-portfolio-export-no-slash'),
+    *feature_urls('ai', 'api/', 'src.ai.urls'),
+    *feature_urls('chatbot', 'api/', 'src.chatbot.urls'),
+    *feature_urls('ticket', 'api/', 'src.ticket.urls'),
+    *feature_urls('email', 'api/email/', 'src.email.urls'),
+    *feature_urls('page', 'api/', 'src.page.urls'),
+    *feature_urls('form', 'api/', 'src.form.urls'),
+    *feature_urls('blog', 'api/', 'src.blog.urls'),
+    *feature_urls('portfolio', 'api/', 'src.portfolio.urls'),
+    
+    # Export views (also feature flag controlled)
+    *feature_path('blog', 'api/admin/blog/export/', BlogExportView, name='admin-blog-export'),
+    *feature_path('blog', 'api/admin/blog/export', BlogExportView, name='admin-blog-export-no-slash'),
+    *feature_path('portfolio', 'api/admin/portfolio/export/', PortfolioExportView, name='admin-portfolio-export'),
+    *feature_path('portfolio', 'api/admin/portfolio/export', PortfolioExportView, name='admin-portfolio-export-no-slash'),
     # ========================================
     # API Documentation
     # ========================================

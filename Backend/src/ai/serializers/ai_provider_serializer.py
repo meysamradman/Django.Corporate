@@ -10,22 +10,45 @@ class AIProviderListSerializer(serializers.ModelSerializer):
     models_count = serializers.SerializerMethodField()
     has_shared_api = serializers.SerializerMethodField()
     has_personal_api = serializers.SerializerMethodField()
+    shared_api_key = serializers.SerializerMethodField()  # برای Super Admin
     
     class Meta:
         model = AIProvider
         fields = [
             'id', 'name', 'slug', 'display_name', 'description',
             'allow_personal_keys', 'allow_shared_for_normal_admins',
-            'models_count', 'has_shared_api', 'has_personal_api', 'is_active',
+            'models_count', 'has_shared_api', 'shared_api_key', 'has_personal_api', 'is_active',
             'total_requests', 'last_used_at', 'created_at'
         ]
         read_only_fields = ['slug', 'total_requests', 'last_used_at']
+    
+    def get_fields(self):
+        """
+        فقط Super Admin می‌تونه shared_api_key رو ببینه
+        """
+        fields = super().get_fields()
+        request = self.context.get('request')
+        
+        if request and request.user:
+            is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+            
+            # اگه Normal Admin باشه، shared_api_key رو حذف کن
+            if not is_super:
+                fields.pop('shared_api_key', None)
+        
+        return fields
     
     def get_models_count(self, obj):
         return obj.models.filter(is_active=True).count()
     
     def get_has_shared_api(self, obj):
         return bool(obj.shared_api_key)
+    
+    def get_shared_api_key(self, obj):
+        """فقط Super Admin می‌بینه"""
+        if obj.shared_api_key:
+            return obj.get_shared_api_key()
+        return None
     
     def get_has_personal_api(self, obj):
         """بررسی اینکه آیا کاربر فعلی برای این provider تنظیمات شخصی دارد"""
@@ -97,6 +120,8 @@ class AIProviderDetailSerializer(serializers.ModelSerializer):
 
 
 class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
+    shared_api_key = serializers.CharField(allow_blank=True, required=False)  # اجازه پاک کردن
+    
     class Meta:
         model = AIProvider
         fields = [
@@ -374,11 +399,11 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
         return fields
     
     def validate(self, attrs):
+        # اگه provider_name داریم، تبدیل به provider_id کن
         if 'provider_name' in attrs and 'provider_id' not in attrs:
             try:
                 provider = AIProvider.objects.get(
-                    Q(name=attrs['provider_name']) | Q(slug=attrs['provider_name']),
-                    is_active=True
+                    Q(name=attrs['provider_name']) | Q(slug=attrs['provider_name'])
                 )
                 attrs['provider_id'] = provider.id
             except AIProvider.DoesNotExist:
@@ -387,14 +412,16 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
                 })
             attrs.pop('provider_name')
         
+        # اگه api_key داریم، تبدیل به personal_api_key کن
         if 'api_key' in attrs and 'personal_api_key' not in attrs:
             attrs['personal_api_key'] = attrs.pop('api_key')
         
         return attrs
     
     def validate_provider_id(self, value):
-        try:
-            AIProvider.objects.get(pk=value, is_active=True)
-        except AIProvider.DoesNotExist:
-            raise serializers.ValidationError(IMAGE_ERRORS['provider_not_found_or_inactive'])
+        if value:  # فقط اگه provider_id داریم
+            try:
+                AIProvider.objects.get(pk=value)
+            except AIProvider.DoesNotExist:
+                raise serializers.ValidationError(IMAGE_ERRORS['provider_not_found_or_inactive'])
         return value
