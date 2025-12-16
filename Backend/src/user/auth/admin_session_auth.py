@@ -1,6 +1,6 @@
-import os
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
+from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from django.utils import timezone
 from src.core.cache import CacheService
@@ -12,7 +12,7 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
     
     def __init__(self):
         self.session_manager = CacheService.get_session_manager()
-        self.session_timeout = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+        self.session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
     
     def authenticate(self, request):
         session_key = request.COOKIES.get('sessionid')
@@ -96,7 +96,8 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
     def _update_user_activity(self, user):
         try:
             cache_key = f"admin_last_activity_{user.id}"
-            CacheService.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+            session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+            CacheService.set(cache_key, timezone.now().isoformat(), session_timeout)
         except Exception:
             pass
 
@@ -105,7 +106,7 @@ class AdminSessionAuthentication(BaseAuthentication):
     
     def __init__(self):
         self.session_manager = CacheService.get_session_manager()
-        self.session_timeout = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+        self.session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
     
     def authenticate(self, request):
         session_key = request.COOKIES.get('sessionid')
@@ -167,6 +168,7 @@ class AdminSessionAuthentication(BaseAuthentication):
     def _update_user_activity(self, user):
         try:
             cache_key = f"admin_last_activity_{user.id}"
-            CacheService.set(cache_key, timezone.now().isoformat(), int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60)
+            session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+            CacheService.set(cache_key, timezone.now().isoformat(), session_timeout)
         except Exception:
             pass

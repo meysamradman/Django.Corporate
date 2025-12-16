@@ -1,5 +1,6 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
@@ -108,13 +109,25 @@ class AdminLoginView(APIView):
                     }
                 )
                 
+                # Set session cookie
+                session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+                response.set_cookie(
+                    'sessionid',
+                    session_key,
+                    max_age=session_timeout,
+                    httponly=True,
+                    samesite='Lax',
+                    secure=not os.getenv('DEBUG', 'True').lower() == 'true',
+                    path='/'
+                )
+                
                 csrf_token = get_token(request)
                 response.set_cookie(
                     'csrftoken',
                     csrf_token,
                     max_age=3600,
                     httponly=False,
-                    samesite='Strict',
+                    samesite='Lax',
                     secure=not os.getenv('DEBUG', 'True').lower() == 'true'
                 )
                 

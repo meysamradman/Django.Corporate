@@ -226,7 +226,10 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = True
 CSRF_EXEMPT_ADMIN_VIEWS = True
 
-SESSION_COOKIE_AGE = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+# برای تست: 2 دقیقه (120 ثانیه)
+# برای production: int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+ADMIN_SESSION_TIMEOUT_SECONDS = 120  # 2 دقیقه برای تست
+SESSION_COOKIE_AGE = ADMIN_SESSION_TIMEOUT_SECONDS
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
 
@@ -297,7 +300,7 @@ CACHES = {
                 'socket_timeout': 5,
             },
         },
-        'TIMEOUT': int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60,
+        'TIMEOUT': ADMIN_SESSION_TIMEOUT_SECONDS,
     }
 }
 

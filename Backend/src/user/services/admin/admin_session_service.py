@@ -1,8 +1,8 @@
 from django.contrib.sessions.models import Session
 from django.utils import timezone
+from django.conf import settings
 from rest_framework.exceptions import AuthenticationFailed
 from src.core.cache import CacheService
-import os
 
 
 class AdminSessionService:
@@ -13,7 +13,7 @@ class AdminSessionService:
             raise AuthenticationFailed("Only admin users can use session authentication")
         
         session_manager = CacheService.get_session_manager()
-        session_timeout = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+        session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
         
         request.session.create()
         request.session['_auth_user_id'] = str(user.id)
@@ -58,7 +58,7 @@ class AdminSessionService:
     def refresh_session(session_key, user_id):
         try:
             session_manager = CacheService.get_session_manager()
-            session_timeout = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+            session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
             
             session_manager.refresh_admin_session(session_key, session_timeout)
         except Exception:
