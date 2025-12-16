@@ -8,7 +8,7 @@ import { authApi } from '@/api/auth/route';
 import { useRouter, usePathname } from 'next/navigation';
 import { fetchApi } from '@/core/config/fetch';
 import { ApiError } from '@/types/api/apiError';
-import { csrfManager } from '@/core/auth/csrfToken';
+import { csrfManager, sessionManager } from '@/core/auth/session';
 import { LoginRequest } from '@/types/auth/auth';
 import { ApiResponse, MetaData } from '@/types/api/apiResponse';
 import { PanelSettings } from '@/types/settings/panelSettings';
@@ -205,7 +205,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<UserWithProfile | null>(null);
   const [panelSettings, setPanelSettings] = useState<PanelSettings | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
   const hasInitialized = React.useRef(false);
@@ -235,9 +235,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const checkUserStatus = useCallback(async (forceRefresh: boolean = false) => {
-    // Skip auth check for public paths
+  const handleSessionExpired = useCallback(() => {
+    console.log('[AuthContext] ❌ Session expired - clearing state');
+    
+    setUser(null);
+    setPanelSettings(null);
+    sessionManager.clearSession();
+    
+    // ✅ پاک کردن React Query cache
+    try {
+      const queryClient = getQueryClient();
+      queryClient.clear();
+    } catch (error) {
+      console.error('[AuthContext] Failed to clear query cache:', error);
+    }
+    
+    const currentPath = window.location.pathname + window.location.search;
+    const returnTo = currentPath !== '/' && !currentPath.startsWith('/login')
+      ? `?return_to=${encodeURIComponent(currentPath)}` 
+      : '';
+    
+    // ✅ Hard redirect
+    window.location.replace(`/login${returnTo}`);
+  }, [router]);
+
+  const checkUserStatus = useCallback(async () => {
+    // ✅ Skip در صفحه login
     if (publicPaths.includes(pathname)) {
+      setIsLoading(false);
+      return;
+    }
+    
+    // ✅ چک session از SessionManager
+    if (!sessionManager.hasSession()) {
+      setUser(null);
+      setPanelSettings(null);
       setIsLoading(false);
       return;
     }
@@ -245,34 +277,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      const userData = await authApi.getCurrentAdminUser({ refresh: forceRefresh }); 
+      const userData = await authApi.getCurrentAdminUser({ refresh: false }); 
       
       if (userData) {
         setUser(serializeUser(userData));
-        
         await csrfManager.refresh();
         
         const userPermissions = userData.permissions || [];
         fetchPanelSettings(userPermissions).catch(() => {
         });
       } else {
-        setUser(null);
-        setPanelSettings(null);
-        router.push('/login');
+        handleSessionExpired();
       }
     } catch (error) {
       if (error instanceof ApiError && error.response.AppStatusCode === 401) {
-        setUser(null);
-        setPanelSettings(null);
-        csrfManager.clear();
-        
-        if (typeof document !== 'undefined') {
-          document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        }
-        
-        const currentPath = window.location.pathname + window.location.search;
-        const returnToParam = currentPath !== '/' ? `?return_to=${encodeURIComponent(currentPath)}` : '';
-        router.push(`/login${returnToParam}`);
+        handleSessionExpired();
       } else {
         setUser(null);
         setPanelSettings(null);
@@ -280,23 +299,42 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchPanelSettings, pathname, router]);
+  }, [fetchPanelSettings, pathname, router, handleSessionExpired]);
 
-  // فقط در mount اولیه user را fetch کن
+  // Initial check
   useEffect(() => {
-    // فقط یک بار در mount اولیه user را fetch کن
     if (!hasInitialized.current) {
       hasInitialized.current = true;
-      checkUserStatus(true); // فقط در mount اولیه refresh کن
+      checkUserStatus();
     }
-  }, []); // فقط یک بار در mount اجرا می‌شود
+  }, [checkUserStatus]);
 
-  // اگر user null است و pathname به protected path تغییر کرد، user را check کن
+  // ✅ چک Session وقتی کاربر به صفحه برمی‌گردد (بدون periodic check)
   useEffect(() => {
-    if (!user && !publicPaths.includes(pathname) && hasInitialized.current) {
-      checkUserStatus(false); // بدون refresh، فقط check کن
-    }
-  }, [pathname, user]); // فقط وقتی pathname یا user تغییر کند
+    if (typeof window === 'undefined') return;
+    
+    const handleVisibilityChange = () => {
+      if (!document.hidden && sessionManager.hasSession()) {
+        // کاربر به صفحه برگشته و Session دارد - چک کن که معتبر است
+        checkUserStatus();
+      }
+    };
+
+    const handleFocus = () => {
+      if (sessionManager.hasSession()) {
+        // صفحه focus شده - چک کن
+        checkUserStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [checkUserStatus]);
 
     const login = async (mobile: string, password?: string, captchaId?: string, captchaAnswer?: string) => {
       setIsLoading(true);
@@ -310,6 +348,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         };
         
         await authApi.login(loginData);
+        
+        // Reset session tracking بعد از login موفق
+        sessionManager.resetSessionTracking();
         
         await csrfManager.refresh();
 
@@ -351,6 +392,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       await authApi.login(loginData);
 
+      // Reset session tracking بعد از login موفق
+      sessionManager.resetSessionTracking();
+
       await csrfManager.refresh();
 
       const userData = await authApi.getCurrentAdminUser({ refresh: true });
@@ -389,7 +433,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       
       const authCookies = [
-        'sessionid',
         'sessionid',
         'csrftoken', 
         'admin_session',
@@ -432,39 +475,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      await authApi.logout();
-      
+      // ✅ استفاده از SessionManager
+      await sessionManager.logout();
     } catch (error) {
-      // Silent error - continue with cleanup
+      console.error('[AuthContext] Logout error:', error);
     } finally {
-      // Clear cookies manually
-      if (typeof document !== 'undefined') {
-        // Delete sessionid cookie
-        document.cookie = 'sessionid=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        // Delete csrftoken cookie  
-        document.cookie = 'csrftoken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      }
-      
       setUser(null);
       setPanelSettings(null);
-      csrfManager.clear();
       
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      
-      // Clear React Query cache
+      // Clear React Query
       try {
         const queryClient = getQueryClient();
         queryClient.clear();
-      } catch (error) {
-        // Silent error
-      }
+      } catch (error) {}
       
       setIsLoading(false);
-      
-      // Use Next.js router to prevent page refresh
       router.push('/login');
     }
   };
@@ -474,20 +499,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userData = await authApi.getCurrentAdminUser({ refresh: true });
       if (userData) {
         setUser(serializeUser(userData));
-        
         await csrfManager.refresh();
-        const userPermissions = userData.permissions || [];
-        fetchPanelSettings(userPermissions).catch(() => {
-        });
+        
+        const permissions = userData.permissions || [];
+        fetchPanelSettings(permissions).catch(() => {});
       } else {
-        setUser(null);
-        setPanelSettings(null);
-        csrfManager.clear();
+        handleSessionExpired();
       }
     } catch (error) {
-      setUser(null);
-      setPanelSettings(null);
-      csrfManager.clear();
+      handleSessionExpired();
     }
   };
 

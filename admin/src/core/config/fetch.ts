@@ -1,6 +1,6 @@
 import { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
-import { csrfTokenStore } from '@/core/auth/csrfToken';
+import { getCsrfHeaders } from '@/core/auth/session';
 import { env } from '@/core/config/environment';
 import { showError as toastError, showSuccess as toastSuccess } from '@/core/toast';
 import { METHOD_TOAST_DEFAULTS, type HttpMethod } from '@/core/toast/types';
@@ -17,34 +17,6 @@ interface FetchOptions {
   successMessage?: string;
   errorMessage?: string;
   silent?: boolean;
-}
-
-function getCsrfToken(): string | null {
-  if (typeof document === 'undefined') return null;
-
-  try {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith('csrftoken=')) {
-        return cookie.substring('csrftoken='.length);
-      }
-    }
-  } catch (error) {
-    return null;
-  }
-  return null;
-}
-
-function getCsrfHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {};
-  const csrfToken = csrfTokenStore.getToken() || getCsrfToken();
-
-  if (csrfToken) {
-    headers['X-CSRFToken'] = csrfToken;
-  }
-
-  return headers;
 }
 
 async function baseFetch<T>(
@@ -113,9 +85,19 @@ async function baseFetch<T>(
     }
 
     if (!response.ok) {
+      const statusCode = data?.metaData?.AppStatusCode || response.status;
+      
+      // Handle 401 Unauthorized - session منقضی شده
+      if (statusCode === 401 || response.status === 401) {
+        if (typeof window !== 'undefined') {
+          const { sessionManager } = await import('@/core/auth/session');
+          sessionManager.handleExpiredSession(); // clear + redirect
+        }
+      }
+      
       const apiError = new ApiError({
         response: {
-          AppStatusCode: data?.metaData?.AppStatusCode || response.status,
+          AppStatusCode: statusCode,
           _data: data,
           ok: false,
           message: data?.metaData?.message || errorText || `Error: ${response.status}`,
@@ -123,7 +105,7 @@ async function baseFetch<T>(
         },
       });
 
-      if (!silent && showError) {
+      if (!silent && showError && statusCode !== 401) {
         toastError(apiError, {
           customMessage: options?.errorMessage,
         });

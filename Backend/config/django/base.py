@@ -87,6 +87,7 @@ MIDDLEWARE = [
      'src.core.security.middleware.SecurityHeadersMiddleware',  # Security headers for OWASP ZAP
      'src.core.security.middleware.CSRFExemptAdminMiddleware',
      'django.contrib.sessions.middleware.SessionMiddleware',
+     'src.core.security.middleware.AdminSessionExpiryMiddleware',  # ✅ جلوگیری از ساخت session جدید وقتی منقضی شده - باید بعد از SessionMiddleware باشد
      'corsheaders.middleware.CorsMiddleware',
      'django.middleware.common.CommonMiddleware',
      'django.middleware.csrf.CsrfViewMiddleware',
@@ -228,10 +229,12 @@ CSRF_EXEMPT_ADMIN_VIEWS = True
 
 # برای تست: 2 دقیقه (120 ثانیه)
 # برای production: int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
-ADMIN_SESSION_TIMEOUT_SECONDS = 120  # 2 دقیقه برای تست
+ADMIN_SESSION_TIMEOUT_SECONDS = 30  # 30 ثانیه برای تست سریع
 SESSION_COOKIE_AGE = ADMIN_SESSION_TIMEOUT_SECONDS
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session باید با expire_date منقضی شود
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 USER_ACCESS_TOKEN_LIFETIME = timedelta(days=int(os.getenv('USER_ACCESS_TOKEN_LIFETIME_DAYS', 1)))
 USER_REFRESH_TOKEN_LIFETIME = timedelta(days=int(os.getenv('USER_REFRESH_TOKEN_LIFETIME_DAYS', 15)))
@@ -398,6 +401,16 @@ LOGGING = {
         'src.user.common.services': {
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'src.user.auth.admin_session_auth': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'src.core.security.middleware': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': False,
         },
         'src.user.auth.admin_session_auth': {

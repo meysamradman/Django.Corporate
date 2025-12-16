@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const SESSION_COOKIE_NAME = 'sessionid';
-const CSRF_COOKIE_NAME = 'csrftoken';
+/**
+ * ✅ Next.js 16 Proxy (جایگزین middleware)
+ * - lightweight routing guard
+ * - فقط cookie check (NO database calls)
+ * - در Node.js runtime اجرا میشه
+ */
+
+const SESSION_COOKIE = 'sessionid';
+const CSRF_COOKIE = 'csrftoken';
 
 const PUBLIC_PATHS = ['/login'];
 const PUBLIC_PREFIXES = ['/_next', '/api', '/favicon.ico', '/images', '/assets'];
@@ -9,46 +16,46 @@ const PUBLIC_PREFIXES = ['/_next', '/api', '/favicon.ico', '/images', '/assets']
 export default function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
+  // Skip برای public resources
   if (PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
     return NextResponse.next();
   }
 
-  const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME);
-  const csrfCookie = req.cookies.get(CSRF_COOKIE_NAME);
+  const sessionCookie = req.cookies.get(SESSION_COOKIE);
   const isAuthenticated = !!sessionCookie?.value;
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
 
+  // ❌ No auth + protected route → redirect to login
   if (!isAuthenticated && !isPublicPath) {
     const loginUrl = new URL('/login', req.url);
     if (pathname !== '/') {
       loginUrl.searchParams.set('return_to', pathname + search);
     }
-    return NextResponse.redirect(loginUrl);
-  }
-
-  if (isAuthenticated && isPublicPath) {
-    return NextResponse.redirect(new URL('/', req.url));
-  }
-
-  if (isAuthenticated) {
-    const response = NextResponse.next();
     
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    const response = NextResponse.redirect(loginUrl);
     
-    const method = req.method;
-    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-      const csrfHeader = req.headers.get('X-CSRFToken');
-      if (!csrfHeader && !csrfCookie?.value) {
-      }
-    }
+    // ✅ پاک کردن cookies منقضی شده
+    response.cookies.delete(SESSION_COOKIE);
+    response.cookies.delete(CSRF_COOKIE);
     
     return response;
   }
 
-  return NextResponse.next();
+  // ✅ Authenticated + public path → redirect to home
+  if (isAuthenticated && isPublicPath) {
+    return NextResponse.redirect(new URL('/', req.url));
+  }
+
+  // ✅ Continue با security headers
+  const response = NextResponse.next();
+  
+  // Security headers
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  return response;
 }
 
 export const config = {
