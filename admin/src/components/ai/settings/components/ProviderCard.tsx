@@ -423,7 +423,7 @@ export function ProviderCard({
           <div className="p-3 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <Label className="text-sm font-semibold block text-font-p truncate">وضعیت Provider</Label>
+                <Label className="text-sm font-semibold block text-font-p truncate">وضعیت</Label>
                 <p className="text-xs text-font-s mt-0.5 truncate">
                   {isActive ? '✅ فعال' : '❌ غیرفعال'}
                   </p>

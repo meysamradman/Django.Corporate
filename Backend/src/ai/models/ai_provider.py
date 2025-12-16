@@ -77,7 +77,6 @@ class CacheMixin:
 
 class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     name = models.CharField(
-    name = models.CharField(
         max_length=100,
         unique=True,
         db_index=True,
@@ -782,6 +781,7 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
     def get_api_key(self) -> str:
         """
         Get API key with priority: Personal > Shared
+        """
         personal_key = self.get_personal_api_key()
         if personal_key and personal_key.strip():
             return personal_key

@@ -98,7 +98,6 @@ export function ProviderAccordionItem({
               <span className="text-2xl">{provider.icon}</span>
               <div className="text-right flex-1">
                 <h3 className="text-lg font-semibold text-font-p">{provider.name}</h3>
-                <p className="text-sm text-font-s">{provider.description}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

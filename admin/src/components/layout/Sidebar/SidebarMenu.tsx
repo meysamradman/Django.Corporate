@@ -74,7 +74,12 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             {
                 title: "داشبورد",
                 icon: Home,
-                url: "/",
+                items: [
+                    { title: "گزارش‌ها", isTitle: true },
+                    { title: "گزارش کلی", url: "/analytics" },
+                    { title: "گزارش روزانه", url: "/analytics?view=daily" },
+                    { title: "گزارش ماهانه", url: "/analytics?view=monthly" },
+                ],
                 tooltip: "خانه و گزارش‌های کلی"
             },
         ]
@@ -131,12 +136,20 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             {
                 title: "رسانه‌ها",
                 icon: Images,
-                url: "/media",
                 access: { 
                     module: "media", 
                     actions: ["manage"],
                     allowReadOnly: false
-                }
+                },
+                items: [
+                    { title: "دسترسی سریع", isTitle: true },
+                    { title: "همه رسانه‌ها", url: "/media" },
+                    { title: "آپلود جدید", url: "/media?action=upload", access: { module: "media", actions: ["manage"] } },
+                    { title: "فیلترها", isTitle: true },
+                    { title: "تصاویر", url: "/media?type=image" },
+                    { title: "ویدیوها", url: "/media?type=video" },
+                    { title: "اسناد", url: "/media?type=document" },
+                ]
             },
         ]
     },
@@ -221,24 +234,38 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             {
                 title: "ایمیل",
                 icon: Mail,
-                url: "/email",
                 access: { 
                     module: "email", 
                     actions: ["read"],
                     allowReadOnly: true,
                     readOnlyLabel: "فقط مشاهده"
-                }
+                },
+                items: [
+                    { title: "فیلترها", isTitle: true },
+                    { title: "ارسال شده", url: "/email?status=sent" },
+                    { title: "در انتظار", url: "/email?status=pending" },
+                    { title: "ناموفق", url: "/email?status=failed" },
+                    { title: "دسترسی سریع", isTitle: true },
+                    { title: "همه ایمیل‌ها", url: "/email" },
+                ]
             },
             {
                 title: "تیکت",
                 icon: Ticket,
-                url: "/ticket",
                 access: { 
                     module: "ticket", 
                     actions: ["read"],
                     allowReadOnly: true,
                     readOnlyLabel: "فقط مشاهده"
-                }
+                },
+                items: [
+                    { title: "وضعیت‌ها", isTitle: true },
+                    { title: "باز", url: "/ticket?status=open" },
+                    { title: "در حال بررسی", url: "/ticket?status=in_progress" },
+                    { title: "بسته شده", url: "/ticket?status=closed" },
+                    { title: "دسترسی سریع", isTitle: true },
+                    { title: "همه تیکت‌ها", url: "/ticket" },
+                ]
             },
         ]
     },
@@ -248,13 +275,18 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             {
                 title: "آمار بازدید",
                 icon: BarChart3,
-                url: "/analytics",
                 access: { 
                     module: "analytics", 
                     actions: ["manage"],
                     allowReadOnly: true,
                     readOnlyLabel: "فقط مشاهده"
-                }
+                },
+                items: [
+                    { title: "گزارش‌ها", isTitle: true },
+                    { title: "گزارش کلی", url: "/analytics" },
+                    { title: "گزارش روزانه", url: "/analytics?view=daily" },
+                    { title: "گزارش ماهانه", url: "/analytics?view=monthly" },
+                ]
             },
         ]
     },

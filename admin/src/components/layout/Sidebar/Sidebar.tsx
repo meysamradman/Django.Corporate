@@ -17,7 +17,6 @@ import {SidebarLogo} from "./SidebarLogo";
 import {cn} from "@/core/utils/cn";
 import {useMenuData, MenuItem} from "./SidebarMenu";
 import {SubMenuItem} from "./SubMenuItem";
-import {MenuQuickLinks} from "./MenuQuickLinks";
 import {useAuth} from "@/core/auth/AuthContext";
 import {usePathname, useRouter} from "next/navigation";
 import {toast} from "@/components/elements/Sonner";
@@ -271,8 +270,6 @@ export function Sidebar({
                                             />
                                         ))}
                                     </div>
-                                ) : selectedItem && (!('items' in selectedItem) || !selectedItem.items || selectedItem.items.length === 0) ? (
-                                    <MenuQuickLinks item={selectedItem} />
                                 ) : null}
                             </div>
                         )}
