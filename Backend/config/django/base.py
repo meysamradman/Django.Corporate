@@ -209,6 +209,7 @@ REST_FRAMEWORK = {
     ]
 }
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
@@ -226,6 +227,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'content-type',
     'authorization',
+    'x-csrftoken',
 ]
 
 CORS_ALLOW_METHODS = [
@@ -238,6 +240,7 @@ CORS_ALLOW_METHODS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server
     'http://localhost:3000',
     "http://localhost:3001",
     "http://localhost:3002",

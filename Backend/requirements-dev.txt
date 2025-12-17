@@ -1,0 +1,15 @@
+# Development dependencies
+# Install with: pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# Testing
+pytest==9.0.2
+
+# Load Testing
+locust==2.42.7.dev9
+
+# Profiling & Debugging
+django-silk==5.4.3
+gprof2dot==2025.4.14
+
