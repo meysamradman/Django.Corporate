@@ -22,11 +22,10 @@ export default function proxy(req: NextRequest) {
   }
 
   const sessionCookie = req.cookies.get(SESSION_COOKIE);
-  const isAuthenticated = !!sessionCookie?.value;
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
 
   // ❌ No auth + protected route → redirect to login
-  if (!isAuthenticated && !isPublicPath) {
+  if (!sessionCookie?.value && !isPublicPath) {
     const loginUrl = new URL('/login', req.url);
     if (pathname !== '/') {
       loginUrl.searchParams.set('return_to', pathname + search);
@@ -41,9 +40,13 @@ export default function proxy(req: NextRequest) {
     return response;
   }
 
-  // ✅ Authenticated + public path → redirect to home
-  if (isAuthenticated && isPublicPath) {
-    return NextResponse.redirect(new URL('/', req.url));
+  // ✅ اگر در صفحه login هستیم و cookie موجود است، cookie را پاک کن (session منقضی شده)
+  if (isPublicPath && sessionCookie?.value) {
+    const response = NextResponse.next();
+    // پاک کردن cookie منقضی شده
+    response.cookies.delete(SESSION_COOKIE);
+    response.cookies.delete(CSRF_COOKIE);
+    return response;
   }
 
   // ✅ Continue با security headers

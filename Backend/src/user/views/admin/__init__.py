@@ -4,6 +4,7 @@ from .admin_register_view import AdminRegisterView
 from .admin_login_view import AdminLoginView
 from .admin_logout_view import AdminLogoutView
 from .user_management_view import UserManagementView
+from .admin_honeypot_view import FakeAdminLoginView
 
 __all__ = [
     "AdminManagementView",
@@ -11,5 +12,6 @@ __all__ = [
     "AdminRegisterView",
     "AdminLoginView",
     "AdminLogoutView",
-    "UserManagementView"
+    "UserManagementView",
+    "FakeAdminLoginView"
 ]

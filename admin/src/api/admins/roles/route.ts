@@ -5,6 +5,7 @@ import { ApiResponse } from '@/types/api/apiResponse'
 import { Role, PermissionGroup, RoleListParams } from '@/types/auth/permission'
 import { convertToLimitOffset } from '@/core/utils/pagination';
 import { ApiPagination } from '@/types/shared/pagination';
+import { adminEndpoints } from '@/core/config/adminEndpoints';
 
 export const roleApi = {
   getRoleList: async (params: RoleListParams = {}): Promise<ApiResponse<Role[]>> => {
@@ -25,7 +26,8 @@ export const roleApi = {
     if (params.is_system_role !== undefined) searchParams.append('is_system_role', params.is_system_role.toString())
     
     const queryString = searchParams.toString()
-    const url = `/admin/roles/${queryString ? `?${queryString}` : ''}`
+    const baseUrl = adminEndpoints.roles()
+    const url = `${baseUrl}${queryString ? `?${queryString}` : ''}`
     
     const response = await fetchApi.get<Role[]>(url)
     
@@ -85,7 +87,7 @@ export const roleApi = {
   },
 
   getRoleById: async (id: number): Promise<ApiResponse<Role>> => {
-    return fetchApi.get<Role>(`/admin/roles/${id}/`)
+    return fetchApi.get<Role>(`${adminEndpoints.roles()}${id}/`)
   },
 
   createRole: async (data: { name: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
@@ -96,7 +98,7 @@ export const roleApi = {
       permissions: data.permissions || { specific_permissions: [] }
     };
     
-    return fetchApi.post<Role>('/admin/roles/', requestData)
+    return fetchApi.post<Role>(adminEndpoints.roles(), requestData)
   },
 
   updateRole: async (id: number, data: { name?: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
@@ -106,38 +108,38 @@ export const roleApi = {
       permissions: data.permissions || { specific_permissions: [] }
     };
     
-    return fetchApi.put<Role>(`/admin/roles/${id}/`, updateData)
+    return fetchApi.put<Role>(`${adminEndpoints.roles()}${id}/`, updateData)
   },
 
   deleteRole: async (id: number): Promise<ApiResponse<null>> => {
-    return fetchApi.delete<null>(`/admin/roles/${id}/`)
+    return fetchApi.delete<null>(`${adminEndpoints.roles()}${id}/`)
   },
 
   bulkDeleteRoles: async (ids: number[]): Promise<ApiResponse<{ deleted_count: number }>> => {
-    return fetchApi.post<{ deleted_count: number }>('/admin/roles/bulk-delete/', { ids })
+    return fetchApi.post<{ deleted_count: number }>(adminEndpoints.rolesBulkDelete(), { ids })
   },
 
   updateRoleStatus: async (id: number, is_active: boolean): Promise<ApiResponse<Role>> => {
-    return fetchApi.patch<Role>(`/admin/roles/${id}/status/`, { is_active })
+    return fetchApi.patch<Role>(`${adminEndpoints.roles()}${id}/status/`, { is_active })
   },
 
   getPermissions: async (): Promise<ApiResponse<PermissionGroup[]>> => {
-    return fetchApi.get<PermissionGroup[]>('/admin/roles/permissions/')
+    return fetchApi.get<PermissionGroup[]>(`${adminEndpoints.roles()}permissions/`)
   },
 
   getBasePermissions: async (): Promise<ApiResponse<any[]>> => {
-    return fetchApi.get<any[]>('/admin/roles/base_permissions/')
+    return fetchApi.get<any[]>(`${adminEndpoints.roles()}base_permissions/`)
   },
 
   getRolePermissions: async (roleId: number): Promise<ApiResponse<{role_id: number; role_name: string; permissions: Record<string, any>}>> => {
-    return fetchApi.get<{role_id: number; role_name: string; permissions: Record<string, any>}>(`/admin/roles/${roleId}/role_permissions/`)
+    return fetchApi.get<{role_id: number; role_name: string; permissions: Record<string, any>}>(`${adminEndpoints.roles()}${roleId}/role_permissions/`)
   },
 
   setupDefaultRoles: async (forceUpdate: boolean = false): Promise<ApiResponse<any>> => {
-    return fetchApi.post<any>('/admin/roles/setup_default_roles/', { force_update: forceUpdate })
+    return fetchApi.post<any>(`${adminEndpoints.roles()}setup_default_roles/`, { force_update: forceUpdate })
   },
 
   getRolesSummary: async (): Promise<ApiResponse<any>> => {
-    return fetchApi.get<any>('/admin/roles/summary/')
+    return fetchApi.get<any>(`${adminEndpoints.roles()}summary/`)
   },
 }

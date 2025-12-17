@@ -3,7 +3,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
 from src.user.serializers.admin.admin_login_serializer import AdminLoginSerializer
 from src.user.services.admin.admin_auth_service import AdminAuthService
@@ -13,36 +12,81 @@ from src.core.security.captcha.services import CaptchaService
 from src.core.security.captcha.messages import CAPTCHA_ERRORS
 from src.core.security.throttling import AdminLoginThrottle
 from src.user.access_control import BASE_ADMIN_PERMISSIONS
+from src.user.services.admin.admin_session_service import AdminSessionService
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+import logging
 
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 from src.user.models import AdminUserRole
 import os
 
+logger = logging.getLogger(__name__)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminLoginView(APIView):
-    authentication_classes = [CSRFExemptSessionAuthentication]
+    authentication_classes = []
     permission_classes = []
     throttle_classes = [AdminLoginThrottle]
     parser_classes = [JSONParser]
 
     def get(self, request):
+        # پاک کردن session موجود (برای جلوگیری از session جدید)
+        self._cleanup_session(request)
+        
         csrf_token = get_token(request)
-        return APIResponse.success(
+        response = APIResponse.success(
             message=AUTH_SUCCESS["csrf_token_retrieved"],
             data={'csrf_token': csrf_token}
         )
+        
+        # پاک کردن cookie اگر session موجود بود
+        if hasattr(request, '_session_cleaned') and request._session_cleaned:
+            response.delete_cookie(
+                'sessionid',
+                path=settings.SESSION_COOKIE_PATH,
+                domain=settings.SESSION_COOKIE_DOMAIN
+            )
+            response.delete_cookie(
+                'csrftoken',
+                path=settings.CSRF_COOKIE_PATH,
+                domain=settings.CSRF_COOKIE_DOMAIN
+            )
+        
+        return response
+    
+    def _cleanup_session(self, request):
+        """پاک کردن session موجود برای جلوگیری از session جدید"""
+        session_key = request.session.session_key
+        if session_key:
+            try:
+                AdminSessionService.destroy_session(session_key)
+            except Exception:
+                pass
+            try:
+                request.session.flush()
+                request._session_cleaned = True
+            except Exception:
+                pass
 
     def post(self, request):
-        serializer = AdminLoginSerializer(data=request.data)
+        # پاک کردن session موجود قبل از login
+        self._cleanup_session(request)
         
-        if not serializer.is_valid():
-            return APIResponse.error(
-                message=AUTH_ERRORS["auth_validation_error"],
-                errors=serializer.errors
-            )
-            
+        ip = self._get_client_ip(request)
+        mobile = None
+        
         try:
+            serializer = AdminLoginSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return APIResponse.error(
+                    message=AUTH_ERRORS["auth_validation_error"],
+                    errors=serializer.errors,
+                    status_code=400
+                )
+            
             mobile = serializer.validated_data.get('mobile')
             password = serializer.validated_data.get('password')
             captcha_id = serializer.validated_data.get('captcha_id')
@@ -63,6 +107,15 @@ class AdminLoginView(APIView):
             )
             
             if admin:
+                # ✅ چک کامل و یکپارچه (بدون redundant)
+                if not (admin.user_type == 'admin' and 
+                        admin.is_staff and 
+                        getattr(admin, 'is_admin_active', False)):
+                    return APIResponse.error(
+                        message="دسترسی رد شد. فقط مدیران فعال می‌توانند وارد شوند.",
+                        status_code=403
+                    )
+                
                 permissions_data = None
                 if admin.user_type == 'admin' or admin.is_staff:
                     try:
@@ -110,15 +163,16 @@ class AdminLoginView(APIView):
                 )
                 
                 # Set session cookie
-                session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+                session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
                 response.set_cookie(
                     'sessionid',
                     session_key,
                     max_age=session_timeout,
                     httponly=True,
                     samesite='Lax',
-                    secure=not os.getenv('DEBUG', 'True').lower() == 'true',
-                    path='/'
+                    secure=settings.SESSION_COOKIE_SECURE,
+                    path=settings.SESSION_COOKIE_PATH,
+                    domain=settings.SESSION_COOKIE_DOMAIN
                 )
                 
                 csrf_token = get_token(request)
@@ -128,7 +182,9 @@ class AdminLoginView(APIView):
                     max_age=3600,
                     httponly=False,
                     samesite='Lax',
-                    secure=not os.getenv('DEBUG', 'True').lower() == 'true'
+                    secure=settings.CSRF_COOKIE_SECURE,
+                    path=settings.CSRF_COOKIE_PATH,
+                    domain=settings.CSRF_COOKIE_DOMAIN
                 )
                 
                 return response
@@ -137,5 +193,31 @@ class AdminLoginView(APIView):
                     message=AUTH_ERRORS["auth_invalid_credentials"],
                     status_code=401
                 )
-        except Exception:
-            return APIResponse.error(message=AUTH_ERRORS["auth_invalid_credentials"])
+        except AuthenticationFailed as e:
+            return APIResponse.error(
+                message=str(e) if str(e) else AUTH_ERRORS["auth_invalid_credentials"],
+                status_code=401
+            )
+        except (ValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=str(e) if str(e) else AUTH_ERRORS["auth_validation_error"],
+                status_code=400
+            )
+        except Exception as e:
+            logger.error(
+                f'[AdminLogin] Unexpected error - Mobile: {mobile}, IP: {ip}, Error: {str(e)}',
+                exc_info=True
+            )
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_invalid_credentials"],
+                status_code=500
+            )
+    
+    def _get_client_ip(self, request):
+        """دریافت IP کاربر"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', 'unknown')
+        return ip

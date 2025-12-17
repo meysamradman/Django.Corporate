@@ -2,8 +2,8 @@ import os
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import connection
-from django_redis import get_redis_connection
 from django.db.models import Sum, Count
+from src.core.cache import CacheService
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
@@ -77,18 +77,25 @@ class SystemStatsService:
     @classmethod
     def _get_cache_status(cls) -> dict:
         try:
-            redis_client = get_redis_connection('default')
-            info = redis_client.info('memory')
-            used_memory = info.get('used_memory', 0)
-            used_memory_human = info.get('used_memory_human', '0B')
-            db_info = redis_client.info('keyspace')
+            # استفاده از CacheService برای دریافت Redis info
+            memory_info = CacheService.get_redis_info('memory')
+            keyspace_info = CacheService.get_redis_info('keyspace')
+            stats_info = CacheService.get_redis_info('stats')
+            
+            if not memory_info or not stats_info:
+                raise Exception("Could not get Redis info")
+            
+            used_memory = memory_info.get('used_memory', 0)
+            used_memory_human = memory_info.get('used_memory_human', '0B')
+            
             total_keys = 0
-            for db_name, db_data in db_info.items():
-                if db_name.startswith('db'):
-                    total_keys += db_data.get('keys', 0)
-            stats = redis_client.info('stats')
-            keyspace_hits = stats.get('keyspace_hits', 0)
-            keyspace_misses = stats.get('keyspace_misses', 0)
+            if keyspace_info:
+                for db_name, db_data in keyspace_info.items():
+                    if db_name.startswith('db'):
+                        total_keys += db_data.get('keys', 0)
+            
+            keyspace_hits = stats_info.get('keyspace_hits', 0)
+            keyspace_misses = stats_info.get('keyspace_misses', 0)
             total_requests = keyspace_hits + keyspace_misses
             hit_rate = (keyspace_hits / total_requests * 100) if total_requests > 0 else 0
 

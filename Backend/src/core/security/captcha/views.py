@@ -1,6 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from src.core.security.throttling import CaptchaThrottle
 from src.core.responses.response import APIResponse
@@ -9,9 +11,21 @@ from .services import CaptchaService
 from .serializers import CaptchaResponseSerializer, CaptchaVerifySerializer
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CaptchaGenerateView(APIView):
+    """View برای تولید کپتچا - بدون نیاز به authentication"""
+    authentication_classes = []
     permission_classes = [AllowAny]
     throttle_classes = [CaptchaThrottle]
+    
+    def initial(self, request, *args, **kwargs):
+        """Skip authentication و permission checks"""
+        self.format_kwarg = self.get_format_suffix(**kwargs)
+        neg = self.perform_content_negotiation(request)
+        request.accepted_renderer, request.accepted_media_type = neg
+        version, scheme = self.determine_version(request, *args, **kwargs)
+        request.version, request.versioning_scheme = version, scheme
+        self.check_throttles(request)
     
     @extend_schema(
         operation_id="generate_captcha",
@@ -49,9 +63,21 @@ class CaptchaGenerateView(APIView):
             )
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CaptchaVerifyView(APIView):
+    """View برای تایید کپتچا - بدون نیاز به authentication"""
+    authentication_classes = []
     permission_classes = [AllowAny]
     throttle_classes = [CaptchaThrottle]
+    
+    def initial(self, request, *args, **kwargs):
+        """Skip authentication و permission checks"""
+        self.format_kwarg = self.get_format_suffix(**kwargs)
+        neg = self.perform_content_negotiation(request)
+        request.accepted_renderer, request.accepted_media_type = neg
+        version, scheme = self.determine_version(request, *args, **kwargs)
+        request.version, request.versioning_scheme = version, scheme
+        self.check_throttles(request)
     
     @extend_schema(
         operation_id="verify_captcha",

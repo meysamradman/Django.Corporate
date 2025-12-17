@@ -13,7 +13,7 @@ class AdminSessionService:
             raise AuthenticationFailed("Only admin users can use session authentication")
         
         session_manager = CacheService.get_session_manager()
-        session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+        session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
         
         request.session.create()
         request.session['_auth_user_id'] = str(user.id)
@@ -58,7 +58,7 @@ class AdminSessionService:
     def refresh_session(session_key, user_id):
         try:
             session_manager = CacheService.get_session_manager()
-            session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+            session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
             
             session_manager.refresh_admin_session(session_key, session_timeout)
         except Exception:

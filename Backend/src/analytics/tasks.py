@@ -1,8 +1,8 @@
 from celery import shared_task
-from django_redis import get_redis_connection
 from django.utils import timezone
 from django.db.models import Count, Q
 import json
+from src.core.cache import CacheService
 from .models import PageView, DailyStats
 
 ANALYTICS_QUEUE = "analytics:queue"  # Redis List
@@ -11,18 +11,17 @@ ANALYTICS_QUEUE = "analytics:queue"  # Redis List
 @shared_task
 def process_views():
     try:
-        redis_conn = get_redis_connection("default")
         visits = []
         processed_count = 0
         max_batch = 1000
         
         for _ in range(max_batch):
-            data_str = redis_conn.rpop(ANALYTICS_QUEUE)
+            data_str = CacheService.list_pop(ANALYTICS_QUEUE, side='right')
             if not data_str:
                 break
             
             try:
-                data = json.loads(data_str.decode() if isinstance(data_str, bytes) else data_str)
+                data = json.loads(data_str)
                 
                 device = data.get('device', 'desktop')
                 if not device:
@@ -119,9 +118,7 @@ def cleanup_old_views():
 @shared_task
 def get_queue_size():
     try:
-        redis_conn = get_redis_connection("default")
-        queue_size = redis_conn.llen(ANALYTICS_QUEUE)
-        
+        queue_size = CacheService.list_length(ANALYTICS_QUEUE)
         return f"Queue size: {queue_size}"
     except Exception as e:
         return f"Error: {e}"

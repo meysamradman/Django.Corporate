@@ -5,6 +5,12 @@ from .namespaces import CacheTTL, CacheNamespace
 from .keys import CacheKeyBuilder
 import time
 
+try:
+    from django_redis import get_redis_connection
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+
 
 class RedisManager:
     
@@ -108,6 +114,104 @@ class RedisManager:
                 if attempt != max_retries:
                     time.sleep(0.5 * attempt)
         return False
+    
+    def get_redis_client(self):
+        """
+        دریافت raw Redis client برای عملیات پیشرفته (List, Set, etc.)
+        فقط برای عملیات‌هایی که در cache API نیستند
+        """
+        if not REDIS_AVAILABLE:
+            return None
+        try:
+            # استفاده از get_redis_connection با cache_alias ذخیره شده
+            return get_redis_connection(self._cache_alias)
+        except Exception:
+            return None
+    
+    def list_push(self, key: str, value: Any, side: str = 'left') -> Optional[int]:
+        """
+        اضافه کردن به Redis List
+        
+        Args:
+            key: List key
+            value: Value to push
+            side: 'left' (lpush) or 'right' (rpush)
+        
+        Returns:
+            Length of list after push, or None on error
+        """
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return None
+            
+            if side == 'left':
+                return client.lpush(key, value)
+            else:
+                return client.rpush(key, value)
+        except Exception:
+            return None
+    
+    def list_pop(self, key: str, side: str = 'right') -> Optional[Any]:
+        """
+        حذف از Redis List
+        
+        Args:
+            key: List key
+            side: 'left' (lpop) or 'right' (rpop)
+        
+        Returns:
+            Popped value, or None on error/empty
+        """
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return None
+            
+            if side == 'left':
+                result = client.lpop(key)
+            else:
+                result = client.rpop(key)
+            
+            if result:
+                # Decode if bytes
+                if isinstance(result, bytes):
+                    return result.decode('utf-8')
+                return result
+            return None
+        except Exception:
+            return None
+    
+    def list_length(self, key: str) -> int:
+        """طول List"""
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return 0
+            return client.llen(key)
+        except Exception:
+            return 0
+    
+    def list_trim(self, key: str, start: int, end: int) -> bool:
+        """Trim کردن List"""
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return False
+            client.ltrim(key, start, end)
+            return True
+        except Exception:
+            return False
+    
+    def get_redis_info(self, section: Optional[str] = None) -> Optional[dict]:
+        """دریافت Redis info"""
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return None
+            return client.info(section)
+        except Exception:
+            return None
 
 
 class SessionRedisManager(RedisManager):
@@ -295,6 +399,31 @@ class CacheService:
             'default': cls.get_default_manager().ping(),
             'session': cls.get_session_manager().ping(),
         }
+    
+    @classmethod
+    def list_push(cls, key: str, value: Any, side: str = 'left') -> Optional[int]:
+        """Push به Redis List"""
+        return cls.get_default_manager().list_push(key, value, side)
+    
+    @classmethod
+    def list_pop(cls, key: str, side: str = 'right') -> Optional[Any]:
+        """Pop از Redis List"""
+        return cls.get_default_manager().list_pop(key, side)
+    
+    @classmethod
+    def list_length(cls, key: str) -> int:
+        """طول Redis List"""
+        return cls.get_default_manager().list_length(key)
+    
+    @classmethod
+    def list_trim(cls, key: str, start: int, end: int) -> bool:
+        """Trim Redis List"""
+        return cls.get_default_manager().list_trim(key, start, end)
+    
+    @classmethod
+    def get_redis_info(cls, section: Optional[str] = None) -> Optional[dict]:
+        """دریافت Redis info"""
+        return cls.get_default_manager().get_redis_info(section)
 
 
 def cache_result(key_builder: Callable, timeout: Optional[int] = None):

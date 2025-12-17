@@ -1,7 +1,7 @@
 import time
 import json
 from django.utils.deprecation import MiddlewareMixin
-from django_redis import get_redis_connection
+from src.core.cache import CacheService
 from .services.tracking import TrackingService
 from .utils.geoip import get_country_from_ip
 
@@ -78,10 +78,9 @@ class AnalyticsMiddleware(MiddlewareMixin):
                 'timestamp': time.time(),
             }
             
-            redis_conn = get_redis_connection("default")
-            redis_conn.lpush(self.ANALYTICS_QUEUE, json.dumps(visit_data))
-            
-            redis_conn.ltrim(self.ANALYTICS_QUEUE, 0, 9999)
+            # استفاده از CacheService به جای استفاده مستقیم از django_redis
+            CacheService.list_push(self.ANALYTICS_QUEUE, json.dumps(visit_data), side='left')
+            CacheService.list_trim(self.ANALYTICS_QUEUE, 0, 9999)
             
         except Exception as e:
             pass

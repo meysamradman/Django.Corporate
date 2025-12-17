@@ -2,11 +2,12 @@ import {fetchApi} from '@/core/config/fetch';
 import {LoginRequest, LoginResponse} from '@/types/auth/auth';
 import {AdminWithProfile} from '@/types/auth/admin';
 import { showError } from '@/core/toast';
+import { adminEndpoints } from '@/core/config/adminEndpoints';
 
 export const authApi = {
     getCSRFToken: async (): Promise<{csrf_token: string}> => {
         try {
-            const response = await fetchApi.get<{csrf_token: string}>('/admin/login/');
+            const response = await fetchApi.get<{csrf_token: string}>(adminEndpoints.csrfToken());
             return response.data;
         } catch (error) {
             showError(error);
@@ -16,12 +17,12 @@ export const authApi = {
 
     login: async (data: LoginRequest): Promise<LoginResponse> => {
         const payload = data as unknown as Record<string, unknown>;
-        const response = await fetchApi.post<LoginResponse>('/admin/login/', payload);
+        const response = await fetchApi.post<LoginResponse>(adminEndpoints.login(), payload);
         return response.data;
     },
 
     logout: async (): Promise<void> => {
-        await fetchApi.post('/admin/logout/', {});
+        await fetchApi.post(adminEndpoints.logout(), {});
     },
 
     sendOTP: async (mobile: string): Promise<void> => {
@@ -45,7 +46,7 @@ export const authApi = {
     getCurrentAdminUser: async (options?: {
         refresh?: boolean
     }): Promise<AdminWithProfile> => {
-        let url = '/admin/profile/';
+        let url = adminEndpoints.profile();
         if (options?.refresh) {
             url += url.includes('?') ? '&refresh=1' : '?refresh=1';
         }
@@ -76,7 +77,7 @@ export const authApi = {
     },
 
     getCaptchaChallenge: async (): Promise<{ captcha_id: string; digits: string }> => {
-        const response = await fetchApi.getPublic<{ captcha_id: string; digits: string }>('/admin/auth/captcha/generate/');
+        const response = await fetchApi.getPublic<{ captcha_id: string; digits: string }>(adminEndpoints.captchaGenerate());
         return response.data;
     },
 };

@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from src.user.messages import AUTH_ERRORS
 
 def custom_exception_handler(exc, context):
-    
     response = exception_handler(exc, context)
 
     if response is None:

@@ -346,6 +346,61 @@ class UserManagementPermission(AdminRolePermission):
         return self._check_admin_role_permissions(request.user, request.method, view)
 
 
+class IsAdminUser(permissions.BasePermission):
+    """
+    فقط یوزرهایی با user_type='admin' یا is_staff=True
+    جلوگیری کامل از دسترسی کاربران عادی به پنل ادمین
+    """
+    message = "دسترسی رد شد. این پنل فقط برای مدیران است."
+    
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if not request.user.is_active:
+            return False
+        
+        # ✅ چک کردن user_type == 'admin' (مهم!)
+        user_type = getattr(request.user, "user_type", None)
+        if user_type != 'admin':
+            return False
+        
+        # ✅ چک کردن is_staff
+        if not request.user.is_staff:
+            return False
+        
+        # ✅ چک کردن is_admin_active
+        if not getattr(request.user, 'is_admin_active', False):
+            return False
+        
+        return True
+
+
+class IsSuperAdmin(permissions.BasePermission):
+    """
+    فقط Super Admin (is_superuser یا is_admin_full)
+    """
+    message = "دسترسی رد شد. فقط مدیر کل سیستم می‌تواند به این بخش دسترسی داشته باشد."
+    
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        if not request.user.is_active:
+            return False
+        
+        # ✅ چک کردن user_type == 'admin'
+        user_type = getattr(request.user, "user_type", None)
+        if user_type != 'admin':
+            return False
+        
+        # ✅ چک کردن Super Admin
+        return bool(
+            request.user.is_superuser or 
+            getattr(request.user, 'is_admin_full', False)
+        )
+
+
 class SimpleAdminPermission(permissions.BasePermission):
     message = AUTH_ERRORS["auth_not_authorized"]
     

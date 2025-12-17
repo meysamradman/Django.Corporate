@@ -9,12 +9,12 @@ from src.user.serializers.admin.admin_management_serializer import AdminDetailSe
 from src.user.services.admin.admin_register_service import AdminRegisterService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
-from src.user.auth.auth_mixin import UserAuthMixin
+from src.user.auth.admin_auth_mixin import AdminAuthMixin
 from src.user.access_control import SimpleAdminPermission
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class AdminRegisterView(UserAuthMixin, APIView):
+class AdminRegisterView(AdminAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [SimpleAdminPermission]
     parser_classes = [MultiPartParser, FormParser, JSONParser]

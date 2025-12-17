@@ -14,9 +14,26 @@ ALLOWED_HOSTS = ['*']
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'security_format': {
+            'format': '🔒 {levelname} {asctime} | {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'security_console': {
+            'level': 'WARNING',
+            'class': 'logging.StreamHandler',
+            'formatter': 'security_format',
         },
     },
     'loggers': {
@@ -24,6 +41,16 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True,
+        },
+        'security': {
+            'handlers': ['security_console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'admin_security': {
+            'handlers': ['security_console'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }
@@ -83,11 +110,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'silk.middleware.SilkyMiddleware',
      'django.middleware.security.SecurityMiddleware',
+     'src.core.security.admin_security_middleware.AdminSecurityMiddleware',  # 🔒 Admin Security - باید بعد از SecurityMiddleware باشد
      'src.core.security.middleware.SecurityLoggingMiddleware',
      'src.core.security.middleware.SecurityHeadersMiddleware',  # Security headers for OWASP ZAP
      'src.core.security.middleware.CSRFExemptAdminMiddleware',
      'django.contrib.sessions.middleware.SessionMiddleware',
-     'src.core.security.middleware.AdminSessionExpiryMiddleware',  # ✅ جلوگیری از ساخت session جدید وقتی منقضی شده - باید بعد از SessionMiddleware باشد
+     'src.user.auth.admin_middleware.AdminSessionExpiryMiddleware',  # ✅ Session management برای admin - باید بعد از SessionMiddleware باشد
      'corsheaders.middleware.CorsMiddleware',
      'django.middleware.common.CommonMiddleware',
      'django.middleware.csrf.CsrfViewMiddleware',
@@ -169,7 +197,7 @@ REST_FRAMEWORK = {
         'user': '1000/hour',
         'admin_login': '3/min',
         'user_login': '5/min',
-        'captcha': '10/min',
+        'captcha': '30/min',  # افزایش برای جلوگیری از throttle در login
         'failed_login': '10/hour',
         'security': '20/hour',
     },
@@ -219,22 +247,46 @@ CSRF_TRUSTED_ORIGINS = [
 
 AUTH_COOKIE_NAME = 'auth_token'
 REFRESH_COOKIE_NAME = 'refresh_token'
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
+
+# ============================================
+# Session Settings (Admin Panel)
+# ============================================
+# برای تست: 30 ثانیه
+# برای production: int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
+ADMIN_SESSION_TIMEOUT_SECONDS = 30  # 30 ثانیه برای تست سریع
+
+# 🔒 Admin Panel Security - Secret URL Path
+# یکبار تولید کن و در .env ذخیره کن
+# مثلا با: python -c "import secrets; print(secrets.token_urlsafe(32))"
+ADMIN_URL_SECRET = os.getenv('ADMIN_URL_SECRET', 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM')
+# در production حتماً یک مقدار تصادفی و پیچیده بذار!
+
+# 🔒 Admin IP Whitelist (اختیاری - برای امنیت بیشتر)
+ADMIN_ALLOWED_IPS = os.getenv('ADMIN_ALLOWED_IPS', '').split(',')
+ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
+
+# Django Session Settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'session'
+SESSION_COOKIE_NAME = 'sessionid'  # ✅ مشخص کردن name برای consistency
+SESSION_COOKIE_AGE = ADMIN_SESSION_TIMEOUT_SECONDS
+SESSION_COOKIE_PATH = '/'  # ✅ مشخص کردن path برای consistency
+SESSION_COOKIE_DOMAIN = None  # ✅ None = current domain
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session باید با expire_date منقضی شود
+
+# CSRF Settings
+CSRF_COOKIE_NAME = 'csrftoken'  # ✅ مشخص کردن name برای consistency
+CSRF_COOKIE_PATH = '/'  # ✅ مشخص کردن path برای consistency
+CSRF_COOKIE_DOMAIN = None  # ✅ None = current domain
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = True
 CSRF_EXEMPT_ADMIN_VIEWS = True
-
-# برای تست: 2 دقیقه (120 ثانیه)
-# برای production: int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60
-ADMIN_SESSION_TIMEOUT_SECONDS = 30  # 30 ثانیه برای تست سریع
-SESSION_COOKIE_AGE = ADMIN_SESSION_TIMEOUT_SECONDS
-SESSION_SAVE_EVERY_REQUEST = False
-SESSION_COOKIE_HTTPONLY = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session باید با expire_date منقضی شود
-SESSION_COOKIE_SAMESITE = 'Lax'
 
 USER_ACCESS_TOKEN_LIFETIME = timedelta(days=int(os.getenv('USER_ACCESS_TOKEN_LIFETIME_DAYS', 1)))
 USER_REFRESH_TOKEN_LIFETIME = timedelta(days=int(os.getenv('USER_REFRESH_TOKEN_LIFETIME_DAYS', 15)))
@@ -312,10 +364,6 @@ CACHE_TTL = int(os.getenv('DEFAULT_CACHE_TIMEOUT_SECONDS', 60 * 15))
 CAPTCHA_EXPIRY_SECONDS = int(os.getenv('CAPTCHA_EXPIRY_SECONDS', 300))
 CAPTCHA_LENGTH = int(os.getenv('CAPTCHA_LENGTH', 4))
 CAPTCHA_REDIS_PREFIX = os.getenv('CAPTCHA_REDIS_PREFIX', 'captcha:')
-
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-SESSION_CACHE_ALIAS = 'session'
 
 MELIPAYAMAK_API_URL = os.getenv('MELIPAYAMAK_API_URL')
 MELIPAYAMAK_BODY_ID = int(os.getenv('MELIPAYAMAK_BODY_ID'))

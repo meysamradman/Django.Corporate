@@ -18,13 +18,13 @@ from src.user.services.admin.admin_management_service import AdminManagementServ
 from src.user.services.admin.admin_register_service import AdminRegisterService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
-from src.user.auth.auth_mixin import UserAuthMixin
+from src.user.auth.admin_auth_mixin import AdminAuthMixin
 from src.user.access_control import SimpleAdminPermission
 from src.core.pagination.pagination import StandardLimitPagination
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class AdminManagementView(UserAuthMixin, APIView):
+class AdminManagementView(AdminAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = StandardLimitPagination

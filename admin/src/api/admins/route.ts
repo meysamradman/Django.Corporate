@@ -3,6 +3,7 @@ import { ApiResponse, Pagination } from '@/types/api/apiResponse'
 import { AdminWithProfile, AdminCreateRequest, AdminUpdateRequest, UserStatus, UserType } from '@/types/auth/admin';
 import { Filter, AdminFilter, UserFilter } from '@/types/auth/adminFilter';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
+import { adminEndpoints } from '@/core/config/adminEndpoints';
 
 export function createQueryString(params: Record<string, any>, additionalParams?: Record<string, any>): string {
     const queryParams = new URLSearchParams();
@@ -41,7 +42,7 @@ export const adminApi = {
     getProfile: async (options?: {
         cookieHeader?: string;
     }): Promise<AdminWithProfile> => {
-        const response = await fetchApi.get<AdminWithProfile>('/admin/profile/', {
+        const response = await fetchApi.get<AdminWithProfile>(adminEndpoints.profile(), {
             ...options,
         });
         if (!response.data) {
@@ -62,7 +63,7 @@ export const adminApi = {
         profile_picture?: number | null;
     }): Promise<AdminWithProfile> => {
         try {
-            const response = await fetchApi.put<AdminWithProfile>('/admin/profile/', profileData);
+            const response = await fetchApi.put<AdminWithProfile>(adminEndpoints.profile(), profileData);
             if (!response.data) {
                 throw new Error("API returned success but no updated profile data found.");
             }
@@ -102,9 +103,9 @@ export const adminApi = {
             
             let endpointUrl = '';
             if (userType === 'admin') {
-                endpointUrl = `/admin/management/?${queryString}`;
+                endpointUrl = `${adminEndpoints.management()}?${queryString}`;
             } else {
-                endpointUrl = `/admin/users-management/?${queryString}`;
+                endpointUrl = `${adminEndpoints.usersManagement()}?${queryString}`;
             }
             
             const fetchOptions = {
@@ -185,7 +186,9 @@ export const adminApi = {
         }
     ) => {
         try {
-            const endpointUrl = `/admin/management/?no_pagination=true&user_type=${userType}`;
+            const endpointUrl = userType === 'admin' 
+                ? `${adminEndpoints.management()}?no_pagination=true&user_type=${userType}`
+                : `${adminEndpoints.usersManagement()}?no_pagination=true&user_type=${userType}`;
 
             const fetchOptions = {
                 cookieHeader: options?.cookieHeader,
@@ -211,7 +214,9 @@ export const adminApi = {
                 cookieHeader: options?.cookieHeader,
             };
             
-            const endpointUrl = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
+            const endpointUrl = userType === 'admin' 
+                ? adminEndpoints.managementById(userId) 
+                : adminEndpoints.usersManagementById(userId);
     
             const response = await fetchApi.get<AdminWithProfile>(endpointUrl, fetchOptions);
             return response.data;
@@ -239,7 +244,9 @@ export const adminApi = {
                 }
             }
 
-            const endpoint = userType === 'admin' ? '/admin/management/' : '/admin/users-management/';
+            const endpoint = userType === 'admin' 
+                ? adminEndpoints.management() 
+                : adminEndpoints.usersManagement();
             
             const response = await fetchApi.post<AdminWithProfile>(endpoint, dataToSend);
             return response.data;
@@ -294,12 +301,12 @@ export const adminApi = {
 
     deleteUserByType: async (userId: number): Promise<void> => {
         try {
-            let endpoint = `/admin/management/${userId}/`;
+            let endpoint = adminEndpoints.managementById(userId);
             
             if (typeof window !== 'undefined') {
                 const currentPath = window.location.pathname;
                 if (currentPath.includes('/users')) {
-                    endpoint = `/admin/users-management/${userId}/`;
+                    endpoint = adminEndpoints.usersManagementById(userId);
                 }
             }
             
@@ -311,7 +318,9 @@ export const adminApi = {
 
     updateUserStatusByType: async (userId: number, isActive: boolean, userType: UserType): Promise<AdminWithProfile> => {
         try {
-            const endpointUrl = userType === 'admin' ? `/admin/management/${userId}/` : `/admin/users-management/${userId}/`;
+            const endpointUrl = userType === 'admin' 
+                ? adminEndpoints.managementById(userId) 
+                : adminEndpoints.usersManagementById(userId);
             const payload = { is_active: isActive };
     
             const response = await fetchApi.put<AdminWithProfile>(endpointUrl, payload);
@@ -327,12 +336,12 @@ export const adminApi = {
 
     bulkDeleteUsersByType: async (userIds: number[], userType?: 'admin' | 'user'): Promise<void> => {
         try {
-            let endpoint = '/admin/management/bulk-delete/';
+            let endpoint = adminEndpoints.managementBulkDelete();
             
             if (typeof window !== 'undefined') {
                 const currentPath = window.location.pathname;
                 if (currentPath.includes('/users')) {
-                    endpoint = '/admin/users-management/bulk-delete/';
+                    endpoint = adminEndpoints.usersManagementBulkDelete();
                 }
             }
             
@@ -349,7 +358,7 @@ export const adminApi = {
     getAdminRoles: async (adminId: number): Promise<any[]> => {
         try {
             const timestamp = Date.now();
-            const response = await fetchApi.get<{roles: any[]}>(`/admin/roles/user_roles/?user_id=${adminId}&_t=${timestamp}`);
+            const response = await fetchApi.get<{roles: any[]}>(`${adminEndpoints.rolesUserRoles(adminId)}&_t=${timestamp}`);
             return response.data?.roles || [];
         } catch (error) {
             throw error;
@@ -358,7 +367,7 @@ export const adminApi = {
 
     assignRoleToAdmin: async (adminId: number, roleId: number): Promise<any> => {
         try {
-            const response = await fetchApi.post<any>(`/admin/roles/assign_role/`, {
+            const response = await fetchApi.post<any>(adminEndpoints.rolesAssignRole(), {
                 user_id: adminId,
                 role_ids: [roleId]
             });
@@ -370,7 +379,7 @@ export const adminApi = {
 
     removeRoleFromAdmin: async (adminId: number, roleId: number): Promise<void> => {
         try {
-            await fetchApi.delete(`/admin/roles/${roleId}/remove_role/?user_id=${adminId}`);
+            await fetchApi.delete(adminEndpoints.rolesRemoveRole(roleId, adminId));
         } catch (error) {
             throw error;
         }
@@ -405,7 +414,7 @@ export const adminApi = {
     },
 
     getCurrentAdminManagedProfile: async (): Promise<AdminWithProfile> => {
-        const response = await fetchApi.get<AdminWithProfile>('/admin/management/me/');
+        const response = await fetchApi.get<AdminWithProfile>(adminEndpoints.profileMe());
         return response.data;
     },
 

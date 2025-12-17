@@ -12,7 +12,7 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
     
     def __init__(self):
         self.session_manager = CacheService.get_session_manager()
-        self.session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+        self.session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
     
     def authenticate(self, request):
         session_key = request.COOKIES.get('sessionid')
@@ -111,7 +111,7 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
     def _update_user_activity(self, user):
         try:
             cache_key = f"admin_last_activity_{user.id}"
-            session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+            session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
             CacheService.set(cache_key, timezone.now().isoformat(), session_timeout)
         except Exception:
             pass
@@ -121,7 +121,7 @@ class AdminSessionAuthentication(BaseAuthentication):
     
     def __init__(self):
         self.session_manager = CacheService.get_session_manager()
-        self.session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+        self.session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
     
     def authenticate(self, request):
         session_key = request.COOKIES.get('sessionid')
@@ -183,7 +183,7 @@ class AdminSessionAuthentication(BaseAuthentication):
     def _update_user_activity(self, user):
         try:
             cache_key = f"admin_last_activity_{user.id}"
-            session_timeout = getattr(settings, 'ADMIN_SESSION_TIMEOUT_SECONDS', 120)
+            session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
             CacheService.set(cache_key, timezone.now().isoformat(), session_timeout)
         except Exception:
             pass

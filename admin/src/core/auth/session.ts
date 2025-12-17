@@ -501,8 +501,6 @@ class SessionManager {
    * ✅ Handle expired session - فقط وقتی 401 می‌آید صدا زده می‌شود
    */
   public handleExpiredSession(): void {
-    console.log('[SessionManager] ❌ Handling expired session - clearing everything');
-    
     this.clearSession();
     
     if (typeof window !== 'undefined') {
@@ -517,19 +515,19 @@ class SessionManager {
         localStorage.clear();
         sessionStorage.clear();
       } catch (e) {
-        console.error('[SessionManager] Storage clear failed:', e);
+        // Silent fail
       }
       
-      // Redirect به login
-      const currentPath = window.location.pathname + window.location.search;
-      const returnTo = currentPath !== '/' && !currentPath.startsWith('/login') 
-        ? `?return_to=${encodeURIComponent(currentPath)}` 
-        : '';
-      
-      console.log('[SessionManager] ➡️ Redirecting to /login');
-      
-      // ✅ Hard redirect با window.location.replace برای پاک کردن history
-      window.location.replace(`/login${returnTo}`);
+      // ✅ فقط اگر در صفحه login نیستیم، redirect کنیم
+      const currentPath = window.location.pathname;
+      if (!currentPath.startsWith('/login')) {
+        const returnTo = currentPath !== '/' 
+          ? `?return_to=${encodeURIComponent(currentPath + window.location.search)}` 
+          : '';
+        
+        // ✅ Hard redirect با window.location.replace برای پاک کردن history
+        window.location.replace(`/login${returnTo}`);
+      }
     }
   }
 

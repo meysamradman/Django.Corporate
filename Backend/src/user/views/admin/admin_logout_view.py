@@ -19,13 +19,13 @@ class AdminLogoutView(APIView):
     @staticmethod
     def _delete_cookie_with_settings(response, cookie_type='SESSION'):
         if cookie_type == 'SESSION':
-            cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
-            cookie_path = getattr(settings, 'SESSION_COOKIE_PATH', '/')
-            cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+            cookie_name = settings.SESSION_COOKIE_NAME
+            cookie_path = settings.SESSION_COOKIE_PATH
+            cookie_domain = settings.SESSION_COOKIE_DOMAIN
         else:
-            cookie_name = getattr(settings, 'CSRF_COOKIE_NAME', 'csrftoken')
-            cookie_path = getattr(settings, 'CSRF_COOKIE_PATH', '/')
-            cookie_domain = getattr(settings, 'CSRF_COOKIE_DOMAIN', None)
+            cookie_name = settings.CSRF_COOKIE_NAME
+            cookie_path = settings.CSRF_COOKIE_PATH
+            cookie_domain = settings.CSRF_COOKIE_DOMAIN
         
         # Django 6.0 delete_cookie() only accepts: key, path, domain
         response.delete_cookie(

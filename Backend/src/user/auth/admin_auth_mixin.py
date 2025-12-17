@@ -1,7 +1,5 @@
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from django.conf import settings
-from django.core.cache import cache
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from src.user.messages import AUTH_ERRORS
 from src.user.models import User
 from django.utils.decorators import method_decorator
@@ -11,7 +9,15 @@ from rest_framework import exceptions
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class UserAuthMixin:
+class AdminAuthMixin:
+    """
+    Mixin برای Admin Views (Session-based Authentication)
+    
+    ویژگی‌ها:
+    - CSRF token management
+    - User status validation
+    - Error handling
+    """
     
     def dispatch(self, request, *args, **kwargs):
         try:
@@ -25,24 +31,21 @@ class UserAuthMixin:
         except Exception as e:
             raise PermissionDenied(AUTH_ERRORS["auth_not_authorized"])
     
-    def _check_token(self, request):
-        if not request.user.is_authenticated:
-            return
-            
-        auth_header = JWTAuthentication().get_header(request)
-        if auth_header:
-            raw_token = JWTAuthentication().get_raw_token(auth_header)
-            if raw_token and cache.get(f"old_token_{raw_token.decode()}"):
-                raise PermissionDenied(AUTH_ERRORS["auth_invalid_token"])
-    
     def _check_user_status(self, request):
+        """
+        بررسی وضعیت کاربر (برای Admin)
+        """
         try:
             user = User.objects.get(pk=request.user.pk)
             
             if not user.is_active:
                 raise PermissionDenied(AUTH_ERRORS["auth_account_inactive"])
+            
+            if not user.is_staff:
+                raise PermissionDenied(AUTH_ERRORS["auth_not_authorized"])
                 
             request.user = user
             
         except User.DoesNotExist:
             raise AuthenticationFailed(AUTH_ERRORS["auth_user_not_found"])
+

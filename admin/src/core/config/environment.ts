@@ -65,6 +65,18 @@ export const env = {
   },
   get APP_NAME(): string { return process.env.NEXT_PUBLIC_APP_NAME || 'Admin Panel'; },
 
+  get ADMIN_URL_SECRET(): string {
+    const secret = process.env.NEXT_PUBLIC_ADMIN_SECRET;
+    if (!secret) {
+      if (IS_PRODUCTION) {
+        throw new Error('🚨 CONFIGURATION ERROR: NEXT_PUBLIC_ADMIN_SECRET environment variable is required. Please set it in your .env.local file.');
+      }
+      // Fallback برای development (باید با backend یکسان باشه)
+      return 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM';
+    }
+    return secret;
+  },
+
   get ENABLE_ANALYTICS(): boolean { return process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true'; },
   get ENABLE_DEBUG_MODE(): boolean { return process.env.NEXT_PUBLIC_ENABLE_DEBUG_MODE === 'true' || IS_DEVELOPMENT; },
 

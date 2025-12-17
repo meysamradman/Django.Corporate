@@ -113,9 +113,22 @@ export function LoginForm() {
         }
     }, [pathname, isRedirecting]);
 
-    const handlePasswordLogin = async (data: PasswordLoginForm) => {
+    const handlePasswordLogin = async (e?: React.FormEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        const data = passwordForm.getValues();
+        
         if (!captchaId) {
             showError(new Error(msg.validation("captchaRequired")));
+            return;
+        }
+
+        // Validate form
+        const isValid = await passwordForm.trigger();
+        if (!isValid) {
             return;
         }
 
@@ -179,9 +192,22 @@ export function LoginForm() {
         }
     };
 
-    const handleOTPLogin = async (data: OtpLoginForm) => {
+    const handleOTPLogin = async (e?: React.FormEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        const data = otpForm.getValues();
+        
         if (!otpSent) {
             showError(new Error(msg.validation("otpRequired")));
+            return;
+        }
+
+        // Validate form
+        const isValid = await otpForm.trigger();
+        if (!isValid) {
             return;
         }
 
@@ -252,7 +278,10 @@ export function LoginForm() {
             </div>
 
             {loginType === 'password' ? (
-                <form onSubmit={passwordForm.handleSubmit(handlePasswordLogin)} className="space-y-5">
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handlePasswordLogin(e);
+                }} className="space-y-5">
                     <FormFieldInput
                         id="mobile"
                         label="شماره موبایل"
@@ -358,7 +387,10 @@ export function LoginForm() {
                     </Button>
                 </form>
             ) : (
-                <form onSubmit={otpForm.handleSubmit(handleOTPLogin)} className="space-y-5">
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handleOTPLogin(e);
+                }} className="space-y-5">
                     <FormFieldInput
                         id="mobile"
                         label="شماره موبایل"
