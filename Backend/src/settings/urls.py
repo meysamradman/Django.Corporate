@@ -9,11 +9,11 @@ from src.settings.views import (
 )
 
 router = DefaultRouter()
-router.register(r'general', GeneralSettingsViewSet, basename='general-settings')
-router.register(r'phones', ContactPhoneViewSet, basename='contact-phone')
-router.register(r'mobiles', ContactMobileViewSet, basename='contact-mobile')
-router.register(r'emails', ContactEmailViewSet, basename='contact-email')
-router.register(r'social-media', SocialMediaViewSet, basename='social-media')
+router.register(r'settings/general', GeneralSettingsViewSet, basename='general-settings')
+router.register(r'settings/phones', ContactPhoneViewSet, basename='contact-phone')
+router.register(r'settings/mobiles', ContactMobileViewSet, basename='contact-mobile')
+router.register(r'settings/emails', ContactEmailViewSet, basename='contact-email')
+router.register(r'settings/social-media', SocialMediaViewSet, basename='social-media')
 
 urlpatterns = [
     path('', include(router.urls)),

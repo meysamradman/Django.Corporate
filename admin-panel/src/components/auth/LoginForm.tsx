@@ -3,13 +3,14 @@ import { Skeleton } from '@/components/elements/Skeleton';
 import { useAuth } from '@/core/auth/AuthContext';
 import { showError, showSuccess } from '@/core/toast';
 import { msg } from '@/core/messages';
-import { authApi } from '@/api/auth';
+import { authApi } from '@/api/auth/auth';
 import { MobileInputForm } from './MobileInputForm';
 import { ChevronLeft } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 
-const PasswordLoginForm = lazy(() => import('./PasswordLoginForm').then(module => ({ default: module.PasswordLoginForm })));
-const OTPLoginForm = lazy(() => import('./OTPLoginForm').then(module => ({ default: module.OTPLoginForm })));
+// ✅ سینتکس صحیح React 19 + Vite 7
+const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
+const OTPLoginForm = lazy(() => import('./OTPLoginForm'));
 
 const FormSkeleton = () => (
   <div className="space-y-5">
@@ -171,8 +172,8 @@ export function LoginForm() {
         </button>
       )}
 
-      {step === 'otp' ? (
-        <Suspense fallback={<FormSkeleton />}>
+      <Suspense fallback={<FormSkeleton />}>
+        {step === 'otp' ? (
           <OTPLoginForm
             mobile={mobile}
             onLogin={handleOTPLogin}
@@ -180,17 +181,15 @@ export function LoginForm() {
             loading={authLoading}
             otpLength={otpLength}
           />
-        </Suspense>
-      ) : (
-        <Suspense fallback={<FormSkeleton />}>
+        ) : (
           <PasswordLoginForm
             mobile={mobile}
             onLogin={handlePasswordLogin}
             onSwitchToOTP={handleBackToOTP}
             loading={authLoading}
           />
-        </Suspense>
-      )}
+        )}
+      </Suspense>
     </>
   );
 }

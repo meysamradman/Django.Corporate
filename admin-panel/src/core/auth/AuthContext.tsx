@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useEffect, useState, type ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, type ReactNode, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authApi } from '@/api/auth';
+import { authApi } from '@/api/auth/auth';
 import { ApiError } from '@/types/api/apiError';
 import { csrfManager, sessionManager } from './session';
-import type { LoginRequest, AdminUser } from '@/types/auth';
+import type { LoginRequest, AdminUser } from '@/types/auth/auth';
 
 interface AuthContextType {
   user: AdminUser | null;
@@ -34,6 +34,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     sessionManager.handleExpiredSession();
   }, []);
 
+  // ✅ جلوگیری از فراخوانی مکرر API
+  const hasCheckedRef = React.useRef(false);
+
   const checkUserStatus = useCallback(async () => {
     const isPublicPath = publicPaths.includes(location.pathname);
     
@@ -49,12 +52,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     
+    // ✅ اگر قبلاً چک کردیم و user داریم، دوباره API نزنیم
+    if (hasCheckedRef.current && user) {
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
       await csrfManager.refresh();
+      hasCheckedRef.current = true;
     } catch (error) {
       if (error instanceof ApiError && error.response?.AppStatusCode === 401) {
         handleSessionExpired();
@@ -65,7 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [location.pathname, handleSessionExpired]);
+  }, [location.pathname, handleSessionExpired, user]);
 
   useEffect(() => {
     checkUserStatus();
@@ -88,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(currentUser);
 
       const urlParams = new URLSearchParams(window.location.search);
-      const returnTo = urlParams.get('return_to') || '/dashboard';
+      const returnTo = urlParams.get('return_to') || '/';
       navigate(returnTo, { replace: true });
     } catch (error) {
       setUser(null);
@@ -117,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(currentUser);
 
       const urlParams = new URLSearchParams(window.location.search);
-      const returnTo = urlParams.get('return_to') || '/dashboard';
+      const returnTo = urlParams.get('return_to') || '/';
       navigate(returnTo, { replace: true });
     } catch (error) {
       setUser(null);

@@ -1,0 +1,37 @@
+import type { LucideIcon } from "lucide-react";
+
+export interface MenuBadge {
+  label: string;
+  tone: "info" | "warning" | "muted";
+}
+
+export interface MenuAccessConfig {
+  module?: string;
+  actions?: string[];
+  fallbackModules?: string[];
+  hideIfNoAccess?: boolean;
+  allowReadOnly?: boolean;
+  readOnlyLabel?: string;
+  limitedLabel?: string;
+  requireSuperAdmin?: boolean;
+  hideForSuperAdmin?: boolean;
+  roles?: string[];
+}
+
+export interface MenuItem {
+  title: string;
+  url?: string;
+  icon?: LucideIcon;
+  items?: MenuItem[];
+  isTitle?: boolean;
+  disabled?: boolean;
+  access?: MenuAccessConfig;
+  badge?: MenuBadge;
+  state?: "full" | "readOnly" | "limited" | "locked";
+  tooltip?: string;
+}
+
+export type MenuGroup = {
+  title: string;
+  items: MenuItem[];
+};

@@ -1,155 +1,167 @@
-import type { ApiResponse } from '../../types/api';
-import { ApiError } from '../../types/api';
-import { getCsrfHeaders, sessionManager } from '../auth/session';
+import axios from 'axios';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { ApiResponse } from '@/types/api/apiResponse';
+import { ApiError } from '@/types/api/apiError';
+import { sessionManager } from '../auth/session';
 import { env } from './environment';
 
-async function baseFetch<T>(
-  url: string,
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
-  body?: Record<string, unknown> | null,
-  credentials: RequestCredentials = 'include'
-): Promise<ApiResponse<T>> {
-  let fullUrl = url;
-  
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    fullUrl = url;
-  } else if (url.startsWith('/api')) {
-    const urlWithoutApi = url.replace(/^\/api/, '');
-    fullUrl = `${env.API_URL}${urlWithoutApi}`;
-  } else {
-    fullUrl = `${env.API_URL}${url.startsWith('/') ? url : `/${url}`}`;
-  }
+// ✅ Create Axios instance
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: env.API_URL,
+  timeout: 30000, // 30 seconds
+  withCredentials: true, // برای CSRF و session cookies
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+});
 
-  const options: RequestInit = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(credentials === 'include' ? getCsrfHeaders() : {}),
-    },
-    credentials,
-    cache: 'no-store',
-  };
+// ✅ Request Interceptor - اضافه کردن CSRF token
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Get CSRF token from cookie
+    const csrfToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('csrftoken='))
+      ?.split('=')[1];
 
-  if (body && method !== 'GET') {
-    options.body = JSON.stringify(body);
-  }
-
-  try {
-    const response = await fetch(fullUrl, options);
-    
-    const contentType = response.headers.get('content-type');
-    const data: ApiResponse<T> | null = contentType?.includes('application/json') 
-      ? await response.json() 
-      : null;
-
-    if (!response.ok) {
-      const statusCode = data?.metaData?.AppStatusCode || response.status;
-      
-      if (statusCode === 401 || response.status === 401) {
-        if (typeof window !== 'undefined') {
-          sessionManager.handleExpiredSession();
-        }
-      }
-      
-      throw new ApiError({
-        response: {
-          AppStatusCode: statusCode,
-          _data: data,
-          ok: false,
-          message: data?.metaData?.message || `Error: ${response.status}`,
-          errors: data?.errors || null,
-        },
-      });
+    if (csrfToken && config.method !== 'get') {
+      config.headers['X-CSRFToken'] = csrfToken;
     }
 
-    if (!data || !('metaData' in data)) {
-      if (response.ok && data && typeof data === 'object') {
-        return {
-          metaData: {
-            status: 'success',
-            message: `OK (${response.status})`,
-            AppStatusCode: response.status,
-            timestamp: new Date().toISOString(),
-          },
-          data: data as T,
-        };
-      }
-      
-      if (response.ok && data === null) {
-        throw new ApiError({
-          response: {
-            AppStatusCode: response.status,
-            _data: null,
-            ok: false,
-            message: 'Empty response from server',
-            errors: null,
-          },
-        });
-      }
-      
-      return {
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// ✅ Response Interceptor - مدیریت خطاها
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse<ApiResponse<any>>) => {
+    // اگر response ساختار ApiResponse نداشت، wrap کن
+    if (!response.data || !('metaData' in response.data)) {
+      const wrappedResponse: ApiResponse<any> = {
         metaData: {
           status: 'success',
-          message: `OK (${response.status})`,
+          message: 'OK',
           AppStatusCode: response.status,
           timestamp: new Date().toISOString(),
         },
-        data: (data as T) ?? (null as unknown as T),
+        data: response.data,
       };
+      return { ...response, data: wrappedResponse };
+    }
+    
+    return response;
+  },
+  (error: AxiosError<ApiResponse<any>>) => {
+    // Handle 401 - Session expired
+    if (error.response?.status === 401) {
+      sessionManager.handleExpiredSession();
     }
 
-    if (data.data === null || (data.data === undefined && typeof data.data !== 'object')) {
-      throw new ApiError({
-        response: {
-          AppStatusCode: data.metaData?.AppStatusCode || response.status,
-          _data: data,
-          ok: false,
-          message: data.metaData?.message || 'Response data is null',
-          errors: data.errors || null,
-        },
-      });
-    }
-
-    return data as ApiResponse<T>;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-
-    throw new ApiError({
+    // Create ApiError
+    const apiError = new ApiError({
       response: {
-        AppStatusCode: 503,
-        _data: null,
+        AppStatusCode: error.response?.data?.metaData?.AppStatusCode || error.response?.status || 503,
+        _data: error.response?.data,
         ok: false,
-        message: error instanceof Error ? error.message : 'Network error',
-        errors: null,
+        message: error.response?.data?.metaData?.message || error.message || 'Network error',
+        errors: error.response?.data?.errors || null,
       },
     });
+
+    return Promise.reject(apiError);
   }
-}
+);
 
+// ✅ API Methods با Type Safety
 export const api = {
-  get: <T>(url: string): Promise<ApiResponse<T>> => {
-    return baseFetch<T>(url, 'GET', undefined, 'include');
+  get: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.get<ApiResponse<T>>(url, config);
+    return response.data;
   },
 
-  post: <T>(url: string, body?: Record<string, unknown> | null): Promise<ApiResponse<T>> => {
-    return baseFetch<T>(url, 'POST', body, 'include');
+  post: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.post<ApiResponse<T>>(url, data, config);
+    return response.data;
   },
 
-  put: <T>(url: string, body?: Record<string, unknown> | null): Promise<ApiResponse<T>> => {
-    return baseFetch<T>(url, 'PUT', body, 'include');
+  put: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.put<ApiResponse<T>>(url, data, config);
+    return response.data;
   },
 
-  patch: <T>(url: string, body?: Record<string, unknown> | null): Promise<ApiResponse<T>> => {
-    return baseFetch<T>(url, 'PATCH', body, 'include');
+  patch: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.patch<ApiResponse<T>>(url, data, config);
+    return response.data;
   },
 
-  delete: <T>(url: string): Promise<ApiResponse<T>> => {
-    return baseFetch<T>(url, 'DELETE', undefined, 'include');
+  delete: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.delete<ApiResponse<T>>(url, config);
+    return response.data;
   },
 
-  getPublic: <T>(url: string): Promise<ApiResponse<T>> => {
-    return baseFetch<T>(url, 'GET', undefined, 'omit');
+  // ✅ Public GET (بدون credentials)
+  getPublic: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.get<ApiResponse<T>>(url, {
+      ...config,
+      withCredentials: false,
+    });
+    return response.data;
+  },
+
+  // ✅ Upload با Progress
+  upload: async <T>(
+    url: string, 
+    formData: FormData, 
+    onUploadProgress?: (progressEvent: any) => void
+  ): Promise<ApiResponse<T>> => {
+    const response = await axiosInstance.post<ApiResponse<T>>(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress,
+    });
+    return response.data;
+  },
+
+  // ✅ Download با Progress
+  download: async (
+    url: string, 
+    filename: string,
+    onDownloadProgress?: (progressEvent: any) => void
+  ): Promise<void> => {
+    const response = await axiosInstance.get(url, {
+      responseType: 'blob',
+      onDownloadProgress,
+    });
+
+    // Create download link
+    const blob = new Blob([response.data]);
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
   },
 };
+
+// ✅ Export axios instance برای استفاده‌های خاص
+export { axiosInstance };
+
+// ✅ Cancel Token برای cancel کردن requestها
+export const createCancelToken = () => {
+  const source = axios.CancelToken.source();
+  return {
+    token: source.token,
+    cancel: source.cancel,
+  };
+};
+
+// ✅ Check if error is cancel
+export const isCancel = axios.isCancel;

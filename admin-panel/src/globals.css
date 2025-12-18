@@ -2,6 +2,37 @@
 @import "./theme.css";
 @custom-variant dark (&:is(.dark *));
 
+/* ========================================
+   🔄 NProgress (RouteProgress) Styles
+   ======================================== */
+
+/* نوار پیشرفت اصلی */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: var(--primary);
+  position: fixed;
+  z-index: 99999; /* بالاتر از sidebar (z-50) و همه چیز */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+}
+
+/* انیمیشن درخشش */
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px var(--primary), 0 0 5px var(--primary);
+  opacity: 1;
+  transform: rotate(3deg) translate(0px, -4px);
+}
+
 /* Font Face Definition */
 @font-face {
   font-family: 'IRANSansXV';
@@ -11,127 +42,130 @@
   font-display: swap;
 }
 
+/* Root variables */
 :root {
   --font-persian: 'IRANSansXV', Tahoma, Arial, sans-serif;
 }
 
 :root {
-/* --- Absolute Colors --- */
---primary: #1379f0;
-/* --- Semantic Colors --- */
-/* Border */
---br: #e8e8e8;
---divi: rgba(148, 163, 184, 0.32);
-/* Background */
---radius: 0.625rem;
---bg: #f6f8fa;
-/* Typography*/
---font-p: #423f50;
---font-s: #6b6876;
-/* Link */
---link-color: #0f6ad8;
---link-hover: #0c5bb8;
-/* Sidebar */
---sdb: #fff;
---sdb-ic: #434050;
---sdb-ic-bg: #f8f9fa;
---sdb-menu-txt: #423f50;
---sdb-menu-ttl: #6b6876;
---sdb-hv: #f2f2f2;
-/* Header */
---header: #ffffff;
-/* Card */
---card: #fff;
-/* Table */
---table-header-bg: #fafbfb;
---table-row-hv: #f8f9fa;
---table-row-slc: #dbeafe;
-/* --- Absolute Colors --- */
---static-w: #ffffff;
---static-b: #000000;
-/* --- Element Color --- */
---wt: #ffffff;
---bl: #000000;
---red-25: #FECACA;
---red-50: #FEE2E2;
---red-100: #DC2626;
---red-200: #7F1D1D;
---blue-25: #BFDBFE;
---blue-50: #DBEAFE;
---blue-100: #3B82F6;
---blue-200: #1E3A8A;
---green-25: #BBF7D0;
---green-50: #DCFCE7;
---green-100: #10B981;
---green-200: #065F46;
---pink-25: #FECDD3;
---pink-50: #FFE4E6;
---pink-100: #F43F5E;
---pink-200: #9D174D;
---purple-25: #DDD6FE;
---purple-50: #EDE9FE;
---purple-100: #8B5CF6;
---purple-200: #4C1D95;
---orange-25: #FED7AA;
---orange-50: #FFEDD5;
---orange-100: #F97316;
---orange-200: #9A3412;
---yellow-25: #FDE68A;
---yellow-50: #FEFCE8;
---yellow-100: #FACC15;
---yellow-200: #854D0E;
---gray-25: #CBD5E1;
---gray-50: #E2E8F0;
---gray-100: #94A3B8;
---gray-200: #0F172A;
---teal-25: #99F6E4;
---teal-50: #CCFBF1;
---teal-100: #14B8A6;
---teal-200: #134E4A;
---indigo-25: #C7D2FE;
---indigo-50: #E0E7FF;
---indigo-100: #6366F1;
---indigo-200: #312E81;
---amber-25: #FDE68A;
---amber-50: #FEF3C7;
---amber-100: #F59E0B;
---amber-200: #78350F;
---emerald-25: #A7F3D0;
---emerald-50: #D1FAE5;
---emerald-100: #059669;
---emerald-200: #064E3B;
+  /* --- Absolute Colors --- */
+  --primary: #1379f0;
+  /* --- Semantic Colors --- */
+  /* Border */
+  --br: #e8e8e8;
+  --divi: rgba(148, 163, 184, 0.32);
+  /* Background */
+  --radius: 0.625rem;
+  --bg: #f6f8fa;
+  /* Typography*/
+  --font-p: #423f50;
+  --font-s: #6b6876;
+  /* Link */
+  --link-color: #0f6ad8;
+  --link-hover: #0c5bb8;
+  /* Sidebar */
+  --sdb: #fff;
+  --sdb-ic: #434050;
+  --sdb-ic-bg: #f8f9fa;
+  --sdb-menu-txt: #423f50;
+  --sdb-menu-ttl: #6b6876;
+  --sdb-hv: #f2f2f2;
+  /* Header */
+  --header: #ffffff;
+  /* Card */
+  --card: #fff;
+  /* Table */
+  --table-header-bg: #fafbfb;
+  --table-row-hv: #f8f9fa;
+  --table-row-slc: #dbeafe;
+  /* --- Absolute Colors --- */
+  --static-w: #ffffff;
+  --static-b: #000000;
+  /* --- Element Color --- */
+  --wt: #ffffff;
+  --bl: #000000;
+  --red-25: #FECACA;
+  --red-50: #FEE2E2;
+  --red-100: #DC2626;
+  --red-200: #7F1D1D;
+  --blue-25: #BFDBFE;
+  --blue-50: #DBEAFE;
+  --blue-100: #3B82F6;
+  --blue-200: #1E3A8A;
+  --green-25: #BBF7D0;
+  --green-50: #DCFCE7;
+  --green-100: #10B981;
+  --green-200: #065F46;
+  --pink-25: #FECDD3;
+  --pink-50: #FFE4E6;
+  --pink-100: #F43F5E;
+  --pink-200: #9D174D;
+  --purple-25: #DDD6FE;
+  --purple-50: #EDE9FE;
+  --purple-100: #8B5CF6;
+  --purple-200: #4C1D95;
+  --orange-25: #FED7AA;
+  --orange-50: #FFEDD5;
+  --orange-100: #F97316;
+  --orange-200: #9A3412;
+  --yellow-25: #FDE68A;
+  --yellow-50: #FEFCE8;
+  --yellow-100: #FACC15;
+  --yellow-200: #854D0E;
+  --gray-25: #CBD5E1;
+  --gray-50: #E2E8F0;
+  --gray-100: #94A3B8;
+  --gray-200: #0F172A;
+  --teal-25: #99F6E4;
+  --teal-50: #CCFBF1;
+  --teal-100: #14B8A6;
+  --teal-200: #134E4A;
+  --indigo-25: #C7D2FE;
+  --indigo-50: #E0E7FF;
+  --indigo-100: #6366F1;
+  --indigo-200: #312E81;
+  --amber-25: #FDE68A;
+  --amber-50: #FEF3C7;
+  --amber-100: #F59E0B;
+  --amber-200: #78350F;
+  --emerald-25: #A7F3D0;
+  --emerald-50: #D1FAE5;
+  --emerald-100: #059669;
+  --emerald-200: #064E3B;
 }
+
 .dark {
-/* --- Borders --- */
---br: #2a2a2a;
---divi: rgba(148, 163, 184, 0.15);
-/* --- Background --- */
---bg: #0a0a0a;
-/* --- Typography --- */
---font-p: #e7e7e7;
---font-s: #b0b0b0;
-/* --- Link --- */
---link: #e8e8e8;
---link-hv: #ffffff;
-/* --- Sidebar --- */
---sdb: #0f0f0f;
---sdb-ic: #6b7280;
---sdb-ic-bg: #1a1a1a;
---sdb-menu-txt: #ffffff;
---sdb-menu-ttl: #d1d5db;
---sdb-hv: #1a1a1a;
-/* --- Header --- */
---header: #0f0f0f;
-/* --- Card --- */
---card: #111111;
-/* Table */
---table-header-bg: #fafbfb;
---table-row-hv: #f8f9fa;
---table-row-slc: #dbeafe;
-/* --- Element Color --- */
---wt: #000;
---bl: #fff;
+  /* --- Borders --- */
+  --br: #2a2a2a;
+  --divi: rgba(148, 163, 184, 0.15);
+  /* --- Background --- */
+  --bg: #0a0a0a;
+  /* --- Typography --- */
+  --font-p: #e7e7e7;
+  --font-s: #b0b0b0;
+  /* --- Link --- */
+  --link: #e8e8e8;
+  --link-hv: #ffffff;
+  /* --- Sidebar --- */
+  --sdb: #0f0f0f;
+  --sdb-ic: #6b7280;
+  --sdb-ic-bg: #1a1a1a;
+  --sdb-menu-txt: #ffffff;
+  --sdb-menu-ttl: #d1d5db;
+  --sdb-hv: #1a1a1a;
+  /* --- Header --- */
+  --header: #0f0f0f;
+  /* --- Card --- */
+  --card: #111111;
+  /* Table */
+  --table-header-bg: #fafbfb;
+  --table-row-hv: #f8f9fa;
+  --table-row-slc: #dbeafe;
+  /* --- Element Color --- */
+  --wt: #000;
+  --bl: #fff;
 }
+
 @theme inline {
   /* --- Base Primitives --- */
   --color-primary: var(--primary);
@@ -145,7 +179,7 @@
   --color-font-s: var(--font-s);
   /* --- Link --- */
   --color-link: var(--link-color);
-  --color-link-hv: var(--link-hv);
+  --color-link-hv: var(--link-hover);
   /* --- Sidebar --- */
   --color-sdb: var(--sdb);
   --color-sdb-ic: var(--sdb-ic);
@@ -164,12 +198,6 @@
   --color-table-header-bg: var(--table-header-bg);
   --color-table-row-hv: var(--table-row-hv);
   --color-table-row-slc: var(--table-row-slc);
-  /* --- Chart --- */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
 
   /* --- Element Color --- */
   --color-wt: var(--wt);
@@ -223,10 +251,10 @@
   --color-emerald-1: var(--emerald-100);
   --color-emerald-2: var(--emerald-200);
 
---radius-sm: calc(var(--radius) - 4px);
---radius-md: calc(var(--radius) - 2px);
---radius-lg: var(--radius);
---radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 /* Ripple animation for HelpGuide */
@@ -236,6 +264,7 @@
     height: 0;
     opacity: 0.4;
   }
+
   100% {
     width: 200px;
     height: 200px;
@@ -247,3 +276,5 @@
 .animate-ripple {
   animation: ripple 600ms ease-out;
 }
+
+

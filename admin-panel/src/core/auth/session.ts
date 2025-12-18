@@ -1,11 +1,15 @@
 const SESSION_COOKIE = 'sessionid';
 const CSRF_COOKIE = 'csrftoken';
 const CSRF_STORAGE_KEY = '__csrf_token__';
-const TOKEN_MAX_AGE = 3600000;
+
+/**
+ * ⚠️ توجه مهم: Session timeout توسط Django کنترل می‌شه (3 روز)
+ * Frontend فقط CSRF token رو cache می‌کنه برای performance
+ * هیچ timeout check نمی‌کنیم - فقط به Django اعتماد می‌کنیم
+ */
 
 interface CSRFTokenStore {
   token: string | null;
-  lastUpdated: number | null;
   sessionKey: string | null;
   isValid: () => boolean;
 }
@@ -14,21 +18,21 @@ class CSRFTokenManager {
   private static instance: CSRFTokenManager;
   private store: CSRFTokenStore = {
     token: null,
-    lastUpdated: null,
     sessionKey: null,
     isValid: function() {
-      if (!this.token || !this.lastUpdated) return false;
-      const now = Date.now();
-      const isNotExpired = (now - this.lastUpdated) < TOKEN_MAX_AGE;
+      // ✅ فقط چک می‌کنیم token و session موجود باشن
+      // ❌ دیگه timeout check نمی‌کنیم - Django مسئولیتش رو داره
+      if (!this.token) return false;
       
       if (typeof window !== 'undefined') {
         const currentSession = CSRFTokenManager.getSessionFromCookie();
+        // اگر session عوض شده، token قدیمی invalid هست
         if (this.sessionKey && currentSession !== this.sessionKey) {
           return false;
         }
       }
       
-      return isNotExpired;
+      return true;
     }
   };
 
@@ -120,9 +124,8 @@ class CSRFTokenManager {
       const stored = sessionStorage.getItem(CSRF_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed.token && parsed.lastUpdated && parsed.sessionKey) {
+        if (parsed.token && parsed.sessionKey) {
           this.store.token = parsed.token;
-          this.store.lastUpdated = parsed.lastUpdated;
           this.store.sessionKey = parsed.sessionKey;
           
           if (!this.store.isValid()) {
@@ -144,7 +147,6 @@ class CSRFTokenManager {
           CSRF_STORAGE_KEY,
           JSON.stringify({
             token: this.store.token,
-            lastUpdated: this.store.lastUpdated,
             sessionKey: this.store.sessionKey
           })
         );
@@ -173,7 +175,6 @@ class CSRFTokenManager {
     
     if (cookieToken && sessionId) {
       this.store.token = cookieToken;
-      this.store.lastUpdated = Date.now();
       this.store.sessionKey = sessionId;
       this.saveToStorage();
       return cookieToken;
@@ -185,7 +186,6 @@ class CSRFTokenManager {
   public setToken(token: string | null): void {
     if (token) {
       this.store.token = token;
-      this.store.lastUpdated = Date.now();
       this.saveToStorage();
     } else {
       this.clear();
@@ -194,7 +194,6 @@ class CSRFTokenManager {
 
   public clear(): void {
     this.store.token = null;
-    this.store.lastUpdated = null;
     this.store.sessionKey = null;
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem(CSRF_STORAGE_KEY);

@@ -11,7 +11,7 @@ import { showError } from '@/core/toast';
 import { Loader2, ChevronLeft } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { useState, useEffect } from 'react';
-import { authApi } from '@/api/auth';
+import { authApi } from '@/api/auth/auth';
 
 interface OTPLoginFormProps {
   mobile: string;
@@ -21,7 +21,7 @@ interface OTPLoginFormProps {
   otpLength?: number;
 }
 
-export function OTPLoginForm({
+function OTPLoginForm({
   mobile,
   onLogin,
   onSwitchToPassword,
@@ -205,4 +205,6 @@ export function OTPLoginForm({
     </form>
   );
 }
+
+export default OTPLoginForm;
 

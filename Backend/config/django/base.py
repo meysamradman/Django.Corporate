@@ -254,9 +254,8 @@ REFRESH_COOKIE_NAME = 'refresh_token'
 # ============================================
 # Session Settings (Admin Panel)
 # ============================================
-# برای تست: 30 ثانیه
-# برای production: int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 2)) * 24 * 60 * 60
-ADMIN_SESSION_TIMEOUT_SECONDS = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 2)) * 24 * 60 * 60  # 2 روز (172800 ثانیه)
+# ✅ Production: 3 روز (از .env می‌خونه)
+ADMIN_SESSION_TIMEOUT_SECONDS = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60  # 3 روز (259200 ثانیه)
 
 # 🔒 Admin Panel Security - Secret URL Path
 # یکبار تولید کن و در .env ذخیره کن

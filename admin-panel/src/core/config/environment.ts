@@ -10,9 +10,6 @@ const getEnvVar = (key: string, devDefault?: string): string => {
     }
     
     if (devDefault) {
-      if (IS_DEV) {
-        console.warn(`⚠️ ${key} not set, using default: ${devDefault}`);
-      }
       return devDefault;
     }
     
@@ -25,6 +22,7 @@ const getEnvVar = (key: string, devDefault?: string): string => {
 // Cache environment variables on first access to avoid repeated lookups
 let cachedAPI_URL: string | null = null;
 let cachedADMIN_SECRET: string | null = null;
+let cachedMEDIA_BASE_URL: string | null = null;
 
 export const env = {
   get API_URL(): string {
@@ -39,6 +37,17 @@ export const env = {
       cachedADMIN_SECRET = getEnvVar('VITE_ADMIN_SECRET', IS_DEV ? 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM' : undefined);
     }
     return cachedADMIN_SECRET;
+  },
+
+  /**
+   * ⚠️ MEDIA_BASE_URL برای فایل‌های استاتیک (images, videos) هست
+   * Django این فایل‌ها رو از /media/ serve می‌کنه، نه /api/media/
+   */
+  get MEDIA_BASE_URL(): string {
+    if (cachedMEDIA_BASE_URL === null) {
+      cachedMEDIA_BASE_URL = getEnvVar('VITE_MEDIA_BASE_URL', IS_DEV ? 'http://localhost:8000' : undefined);
+    }
+    return cachedMEDIA_BASE_URL;
   },
 
   get IS_DEV(): boolean {

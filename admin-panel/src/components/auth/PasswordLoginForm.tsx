@@ -18,7 +18,7 @@ interface PasswordLoginFormProps {
   loading?: boolean;
 }
 
-export function PasswordLoginForm({
+function PasswordLoginForm({
   mobile,
   onLogin,
   onSwitchToOTP,
@@ -138,4 +138,6 @@ export function PasswordLoginForm({
     </form>
   );
 }
+
+export default PasswordLoginForm;
 
