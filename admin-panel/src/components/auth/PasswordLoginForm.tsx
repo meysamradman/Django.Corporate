@@ -2,103 +2,82 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
-import { FormField, FormFieldInput } from '@/components/forms/FormField';
+import { FormField } from '@/components/forms/FormField';
 import { passwordLoginSchema, type PasswordLoginForm } from './validations/loginSchema';
-import { filterNumericOnly } from '@/core/filters/numeric';
+import { z } from 'zod';
 import { msg } from '@/core/messages';
-import { showSuccess, showError } from '@/core/toast';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { showError } from '@/core/toast';
+import { Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
-import { CaptchaField } from './CaptchaField';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface PasswordLoginFormProps {
-  captchaId: string;
-  captchaDigits: string;
-  captchaLoading: boolean;
-  onCaptchaRefresh: () => void;
-  onLogin: (mobile: string, password: string, captchaId: string, captchaAnswer: string) => Promise<void>;
+  mobile: string;
+  onLogin: (mobile: string, password: string) => Promise<void>;
+  onSwitchToOTP?: () => void;
   loading?: boolean;
 }
 
 export function PasswordLoginForm({
-  captchaId,
-  captchaDigits,
-  captchaLoading,
-  onCaptchaRefresh,
+  mobile,
   onLogin,
+  onSwitchToOTP,
   loading = false,
 }: PasswordLoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<PasswordLoginForm>({
-    resolver: zodResolver(passwordLoginSchema),
+  const passwordSchemaWithoutCaptcha = passwordLoginSchema.extend({
+    captcha_id: z.string().optional(),
+    captcha_answer: z.string().optional(),
+  });
+
+  const form = useForm({
+    resolver: zodResolver(passwordSchemaWithoutCaptcha),
     defaultValues: {
-      mobile: '',
+      mobile: mobile,
       password: '',
       captcha_id: '',
       captcha_answer: '',
     },
   });
 
+  useEffect(() => {
+    form.setValue('mobile', mobile);
+  }, [mobile, form]);
+
   const handleSubmit = form.handleSubmit(async (data) => {
-    if (!captchaId) {
-      showError(new Error(msg.validation("captchaRequired")));
+    const isValid = await form.trigger();
+    if (!isValid) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await onLogin(data.mobile, data.password, captchaId, data.captcha_answer);
-      showSuccess(msg.auth("loginSuccess"));
+      await onLogin(data.mobile, data.password);
     } catch (error) {
-      let errorMessage = msg.auth("invalidCredentials");
-      
       if (error instanceof ApiError) {
         const backendMessage = error.response?.message || '';
-        
         if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
-          errorMessage = backendMessage || msg.validation("captchaRequired");
-          onCaptchaRefresh();
           form.setValue('captcha_answer', '');
-        } else {
-          errorMessage = backendMessage || msg.auth("invalidCredentials");
         }
-      } else if (error instanceof Error) {
-        errorMessage = error.message || msg.auth("invalidCredentials");
       }
-      
-      showError(new Error(errorMessage));
+      showError(error, { customMessage: msg.auth("invalidCredentials") });
     } finally {
       setIsSubmitting(false);
     }
   });
 
-  const isLoading = loading || isSubmitting || captchaLoading;
+  const isLoading = loading || isSubmitting;
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      <FormFieldInput
-        id="mobile"
-        label="شماره موبایل"
-        type="tel"
-        placeholder="09123456789"
-        maxLength={11}
-        {...form.register("mobile", {
-          onChange: (e) => {
-            const filteredValue = filterNumericOnly(e.target.value);
-            e.target.value = filteredValue;
-            form.setValue("mobile", filteredValue);
-          }
-        })}
-        error={form.formState.errors.mobile?.message}
-        required
-        disabled={isLoading}
-        dir="ltr"
-        className="text-start"
-      />
+      <div className="mb-4">
+        <p className="text-sm text-font-s">
+          ورود با رمز عبور برای شماره <span className="font-medium text-font-p">{mobile}</span>
+        </p>
+      </div>
 
       <FormField
         label="رمز عبور"
@@ -113,7 +92,7 @@ export function PasswordLoginForm({
             placeholder="رمز عبور خود را وارد کنید"
             {...form.register("password")}
             disabled={isLoading}
-            className={form.formState.errors.password ? "border-red-1 focus-visible:ring-red-1 pr-10" : "pr-10"}
+            className={`h-11 ${form.watch("password") ? "pr-10" : "pr-3"} [&::placeholder]:pr-0 [&::placeholder]:text-right ${form.formState.errors.password ? "border-red-1 focus-visible:ring-red-1" : ""}`}
           />
           <button
             type="button"
@@ -131,18 +110,20 @@ export function PasswordLoginForm({
         </div>
       </FormField>
 
-      <CaptchaField
-        captchaId={captchaId}
-        captchaDigits={captchaDigits}
-        captchaLoading={captchaLoading}
-        form={form}
-        onRefresh={onCaptchaRefresh}
-        disabled={isLoading}
-      />
+      {onSwitchToOTP && (
+        <button
+          type="button"
+          onClick={onSwitchToOTP}
+          className="w-full flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          ورود با کد یکبار مصرف
+        </button>
+      )}
 
       <Button 
         type="submit" 
-        className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
+        className="w-full h-12 text-base font-semibold rounded-lg mt-6" 
         disabled={isLoading}
       >
         {isLoading ? (
@@ -151,7 +132,7 @@ export function PasswordLoginForm({
             در حال بارگذاری...
           </>
         ) : (
-          "ورود"
+          "تایید"
         )}
       </Button>
     </form>

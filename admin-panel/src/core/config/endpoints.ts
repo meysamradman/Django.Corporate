@@ -1,10 +1,9 @@
-// Fallback value باید با Django settings یکسان باشد
-const ADMIN_SECRET = import.meta.env.VITE_ADMIN_SECRET || 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM';
+import { env } from './environment';
 
 function getAdminEndpoint(path: string): string {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const finalPath = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
-  return `/api/admin/${ADMIN_SECRET}/${finalPath}`;
+  return `/api/admin/${env.ADMIN_SECRET}/${finalPath}`;
 }
 
 export const endpoints = {

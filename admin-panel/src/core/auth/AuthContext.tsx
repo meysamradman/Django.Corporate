@@ -76,7 +76,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const loginData: LoginRequest = {
         mobile,
-        login_type: 'password',
         password: password || '',
         captcha_id: captchaId || '',
         captcha_answer: captchaAnswer || '',
@@ -105,7 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const loginData: LoginRequest = {
         mobile,
-        login_type: 'otp',
+        password: '', // Required field but empty for OTP login
         otp_code: otp,
         captcha_id: captchaId || '',
         captcha_answer: captchaAnswer || '',
@@ -134,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authApi.logout();
     } catch (error) {
-      console.error('[AuthContext] Logout failed:', error);
+      // Silent fail
     } finally {
       setUser(null);
       sessionManager.clearSession();

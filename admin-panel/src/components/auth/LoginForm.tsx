@@ -1,11 +1,12 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { Label } from '@/components/elements/Label';
-import { RadioGroup, RadioGroupItem } from '@/components/elements/RadioGroup';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { useAuth } from '@/core/auth/AuthContext';
-import { showError } from '@/core/toast';
+import { showError, showSuccess } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { authApi } from '@/api/auth';
+import { MobileInputForm } from './MobileInputForm';
+import { ChevronLeft } from 'lucide-react';
+import { ApiError } from '@/types/api/apiError';
 
 const PasswordLoginForm = lazy(() => import('./PasswordLoginForm').then(module => ({ default: module.PasswordLoginForm })));
 const OTPLoginForm = lazy(() => import('./OTPLoginForm').then(module => ({ default: module.OTPLoginForm })));
@@ -32,14 +33,18 @@ const FormSkeleton = () => (
   </div>
 );
 
+type LoginStep = 'mobile' | 'otp' | 'password';
+
 export function LoginForm() {
   const { login, loginWithOTP, isLoading: authLoading } = useAuth();
   
-  const [loginType, setLoginType] = useState('password');
+  const [step, setStep] = useState<LoginStep>('mobile');
+  const [mobile, setMobile] = useState<string>('');
   const [otpLength, setOtpLength] = useState(5);
   const [captchaId, setCaptchaId] = useState<string>('');
   const [captchaDigits, setCaptchaDigits] = useState<string>('');
-  const [captchaLoading, setCaptchaLoading] = useState<boolean>(true);
+  const [captchaLoading, setCaptchaLoading] = useState<boolean>(false);
+  const [captchaAnswer, setCaptchaAnswer] = useState<string>('');
 
   const fetchCaptchaChallenge = async () => {
     setCaptchaLoading(true);
@@ -55,70 +60,134 @@ export function LoginForm() {
   };
 
   useEffect(() => {
-    const fetchOTPSettings = async () => {
-      try {
-        const settings = await authApi.getOTPSettings();
-        if (settings?.otp_length) {
-          setOtpLength(settings.otp_length);
-        }
-      } catch (error) {
-        setOtpLength(5);
+    const fetchData = async () => {
+      const [otpSettingsResult, captchaResult] = await Promise.allSettled([
+        authApi.getOTPSettings().catch(() => ({ otp_length: 5 })),
+        authApi.getCaptchaChallenge().catch(() => null),
+      ]);
+
+      if (otpSettingsResult.status === 'fulfilled' && otpSettingsResult.value?.otp_length) {
+        setOtpLength(otpSettingsResult.value.otp_length);
+      }
+
+      if (captchaResult.status === 'fulfilled' && captchaResult.value) {
+        setCaptchaId(captchaResult.value.captcha_id);
+        setCaptchaDigits(captchaResult.value.digits);
+      } else if (captchaResult.status === 'rejected') {
+        showError(captchaResult.reason, { customMessage: msg.error("network") });
       }
     };
 
-    fetchOTPSettings();
-    fetchCaptchaChallenge();
+    fetchData();
   }, []);
 
-  const handlePasswordLogin = async (mobile: string, password: string, captchaId: string, captchaAnswer: string) => {
-    await login(mobile, password, captchaId, captchaAnswer);
+  const handleMobileSubmitted = (mobileNumber: string, captchaIdValue: string, captchaAnswerValue: string) => {
+    setMobile(mobileNumber);
+    setCaptchaId(captchaIdValue);
+    setCaptchaAnswer(captchaAnswerValue);
+    // مستقیماً به صفحه رمز عبور می‌رویم
+    setStep('password');
   };
 
-  const handleOTPLogin = async (mobile: string, otp: string, captchaId: string, captchaAnswer: string) => {
-    await loginWithOTP(mobile, otp, captchaId, captchaAnswer);
+  const handlePasswordLogin = async (mobile: string, password: string) => {
+    if (!captchaId) {
+      showError(new Error(msg.validation("captchaRequired")));
+      await fetchCaptchaChallenge();
+      return;
+    }
+
+    try {
+      await login(mobile, password, captchaId, captchaAnswer);
+      showSuccess(msg.auth("loginSuccess"));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const backendMessage = error.response?.message || '';
+        if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
+          await fetchCaptchaChallenge();
+        }
+      }
+      throw error;
+    }
   };
+
+  const handleOTPLogin = async (mobile: string, otp: string) => {
+    if (!captchaId) {
+      showError(new Error(msg.validation("captchaRequired")));
+      await fetchCaptchaChallenge();
+      return;
+    }
+
+    try {
+      await loginWithOTP(mobile, otp, captchaId, captchaAnswer);
+      showSuccess(msg.auth("loginSuccess"));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const backendMessage = error.response?.message || '';
+        if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
+          await fetchCaptchaChallenge();
+        }
+      }
+      throw error;
+    }
+  };
+
+  const handleBackToMobile = () => {
+    setStep('mobile');
+    setMobile('');
+  };
+
+  const handleSwitchToPassword = () => {
+    setStep('password');
+    fetchCaptchaChallenge();
+  };
+
+  const handleBackToOTP = () => {
+    setStep('otp');
+  };
+
+  if (step === 'mobile') {
+    return (
+      <MobileInputForm 
+        onMobileSubmitted={handleMobileSubmitted}
+        loading={authLoading}
+        captchaId={captchaId}
+        captchaDigits={captchaDigits}
+        captchaLoading={captchaLoading}
+        onCaptchaRefresh={fetchCaptchaChallenge}
+      />
+    );
+  }
 
   return (
     <>
-      <div className="mb-8">
-        <RadioGroup
-          defaultValue="password"
-          value={loginType}
-          onValueChange={setLoginType}
-          className="flex gap-6 bg-bg/50 p-1 rounded-lg"
+      {step === 'otp' && (
+        <button
+          type="button"
+          onClick={handleBackToMobile}
+          className="mb-4 flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors"
         >
-          <div className="flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-md transition-all cursor-pointer hover:bg-bg/80 data-[state=checked]:bg-card data-[state=checked]:shadow-sm">
-            <RadioGroupItem value="password" id="password" className="data-[state=checked]:border-primary"/>
-            <Label htmlFor="password" className="cursor-pointer font-medium text-sm">رمز عبور</Label>
-          </div>
-          <div className="flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-md transition-all cursor-pointer hover:bg-bg/80 data-[state=checked]:bg-card data-[state=checked]:shadow-sm">
-            <RadioGroupItem value="otp" id="otp" className="data-[state=checked]:border-primary"/>
-            <Label htmlFor="otp" className="cursor-pointer font-medium text-sm">کد یکبار مصرف</Label>
-          </div>
-        </RadioGroup>
-      </div>
+          <ChevronLeft className="h-4 w-4" />
+          بازگشت
+        </button>
+      )}
 
-      {loginType === 'password' ? (
+      {step === 'otp' ? (
         <Suspense fallback={<FormSkeleton />}>
-          <PasswordLoginForm
-            captchaId={captchaId}
-            captchaDigits={captchaDigits}
-            captchaLoading={captchaLoading}
-            onCaptchaRefresh={fetchCaptchaChallenge}
-            onLogin={handlePasswordLogin}
+          <OTPLoginForm
+            mobile={mobile}
+            onLogin={handleOTPLogin}
+            onSwitchToPassword={handleSwitchToPassword}
             loading={authLoading}
+            otpLength={otpLength}
           />
         </Suspense>
       ) : (
         <Suspense fallback={<FormSkeleton />}>
-          <OTPLoginForm
-            captchaId={captchaId}
-            captchaDigits={captchaDigits}
-            captchaLoading={captchaLoading}
-            onCaptchaRefresh={fetchCaptchaChallenge}
-            onLogin={handleOTPLogin}
+          <PasswordLoginForm
+            mobile={mobile}
+            onLogin={handlePasswordLogin}
+            onSwitchToOTP={handleBackToOTP}
             loading={authLoading}
-            otpLength={otpLength}
           />
         </Suspense>
       )}

@@ -164,6 +164,38 @@ html body[data-scroll-locked] {
       @apply flex w-[100px] items-center;
     }
 
+    .authentication-inner {
+      @apply relative;
+      overflow: visible;
+    }
+
+    .authentication-inner::before {
+      @apply absolute pointer-events-none bg-primary;
+      height: 233px;
+      content: " ";
+      width: 238px;
+      top: -70px;
+      left: -70px;
+      mask-image: url('/download (1).svg');
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+      z-index: 0;
+    }
+
+    .authentication-inner::after {
+      @apply absolute pointer-events-none bg-primary;
+      z-index: -1;
+      height: 180px;
+      content: " ";
+      width: 180px;
+      bottom: -50px;
+      right: -50px;
+      mask-image: url('/download.svg');
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+    }
+
+
   }
   @layer utilities {
     .transition-smooth {

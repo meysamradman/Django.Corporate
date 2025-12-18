@@ -24,12 +24,11 @@ export function FormField({
   className,
 }: FormFieldProps) {
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2.5", className)}>
       {label && (
         <Label 
           htmlFor={htmlFor}
           className={cn(
-            "text-sm font-medium",
             error && "text-red-1"
           )}
         >
@@ -38,7 +37,9 @@ export function FormField({
         </Label>
       )}
       
-      {children}
+      <div className={label ? "mt-1.5" : ""}>
+        {children}
+      </div>
       
       {error && (
         <div className="flex items-start gap-2 text-sm text-red-1">

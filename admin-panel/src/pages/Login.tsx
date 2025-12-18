@@ -2,21 +2,18 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/elements/Card';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { useAuth } from '@/core/auth/AuthContext';
-import { useEffect, useState } from 'react';
+import { Spinner } from '@/components/elements/Spinner';
 
 export default function Login() {
   const { isAuthenticated, isLoading } = useAuth();
   const [searchParams] = useSearchParams();
-  const [isInitialCheck, setIsInitialCheck] = useState(true);
 
-  useEffect(() => {
-    if (!isLoading) {
-      setIsInitialCheck(false);
-    }
-  }, [isLoading]);
-
-  if (isInitialCheck && isLoading) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner className="size-8 text-primary" />
+      </div>
+    );
   }
 
   if (isAuthenticated) {
@@ -25,18 +22,18 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center grow p-4 bg-bg">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#f8f9fa]">
       <div className="w-full max-w-md">
-        <Card className="shadow-xl border border-br bg-card">
-          <CardHeader className="text-center space-y-3 pb-6">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+        <Card className="shadow-[0_6px_24px_rgba(0,0,0,0.02),0_0_0_1px_rgba(0,0,0,0.02)] border border-br/50 bg-card rounded-xl">
+          <CardHeader className="text-center pb-6 pt-8 px-8">
+            <CardTitle className="text-2xl font-semibold text-font-p mb-1.5">
               ورود به پنل مدیریت
             </CardTitle>
-            <CardDescription className="text-base text-font-s">
+            <CardDescription className="text-sm text-font-s">
               برای دسترسی به پنل مدیریت، اطلاعات خود را وارد کنید
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-6 pb-6">
+          <CardContent className="px-8 pb-8">
             <LoginForm />
           </CardContent>
         </Card>

@@ -13,12 +13,12 @@ export const authApi = {
   },
 
   sendOTP: async (mobile: string): Promise<void> => {
-    await api.post('/mobile/send-otp/', { mobile });
+    await api.post('/api/mobile/send-otp/', { identifier: mobile });
   },
 
   getOTPSettings: async (): Promise<{ otp_length: number }> => {
     try {
-      const response = await api.getPublic<{ otp_length: number }>('/mobile/otp-settings/');
+      const response = await api.getPublic<{ otp_length: number }>('/api/mobile/otp-settings/');
       return response.data || { otp_length: 5 };
     } catch (error) {
       return { otp_length: 5 };

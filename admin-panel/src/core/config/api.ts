@@ -1,9 +1,7 @@
 import type { ApiResponse } from '../../types/api';
 import { ApiError } from '../../types/api';
 import { getCsrfHeaders, sessionManager } from '../auth/session';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-const isDevelopment = import.meta.env.DEV;
+import { env } from './environment';
 
 async function baseFetch<T>(
   url: string,
@@ -11,8 +9,16 @@ async function baseFetch<T>(
   body?: Record<string, unknown> | null,
   credentials: RequestCredentials = 'include'
 ): Promise<ApiResponse<T>> {
-  const baseUrl = isDevelopment && url.startsWith('/api') ? '' : API_BASE_URL;
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  let fullUrl = url;
+  
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    fullUrl = url;
+  } else if (url.startsWith('/api')) {
+    const urlWithoutApi = url.replace(/^\/api/, '');
+    fullUrl = `${env.API_URL}${urlWithoutApi}`;
+  } else {
+    fullUrl = `${env.API_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  }
 
   const options: RequestInit = {
     method,
@@ -31,13 +37,6 @@ async function baseFetch<T>(
   try {
     const response = await fetch(fullUrl, options);
     
-    // Log Set-Cookie headers for login requests
-    if (import.meta.env.DEV && method === 'POST' && url.includes('login')) {
-      const setCookieHeaders = response.headers.get('set-cookie');
-      console.log('[fetchApi] Login response Set-Cookie headers:', setCookieHeaders);
-      console.log('[fetchApi] All response headers:', Object.fromEntries(response.headers.entries()));
-    }
-    
     const contentType = response.headers.get('content-type');
     const data: ApiResponse<T> | null = contentType?.includes('application/json') 
       ? await response.json() 
@@ -46,7 +45,6 @@ async function baseFetch<T>(
     if (!response.ok) {
       const statusCode = data?.metaData?.AppStatusCode || response.status;
       
-      // Handle 401 Unauthorized - session expired
       if (statusCode === 401 || response.status === 401) {
         if (typeof window !== 'undefined') {
           sessionManager.handleExpiredSession();
