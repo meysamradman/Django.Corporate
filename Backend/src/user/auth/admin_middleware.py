@@ -74,6 +74,7 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         - Early exit برای non-admin paths
         - Cache برای جلوگیری از query تکراری
         - Redis check قبل از database
+        - Refresh خودکار session در هر request
         """
         # ✅ Early exit: فقط برای admin API endpoints
         if not request.path.startswith('/api/admin/'):

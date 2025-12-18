@@ -1,9 +1,9 @@
 import { api } from '@/core/config/api';
-import { Media, MediaFilter, MediaUploadSettings } from '@/types/shared/media';
-import { ApiResponse, Pagination } from '@/types/api/apiResponse';
+import type { Media, MediaFilter, MediaUploadSettings } from '@/types/shared/media';
+import type { ApiResponse, Pagination } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
-import { showError } from '@/core/toast';
-import { csrfTokenStore } from '@/core/auth/session';
+import { toast } from '@/components/elements/Sonner';
+import { csrfManager } from '@/core/auth/session';
 import { env } from '@/core/config/environment';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 
@@ -51,12 +51,8 @@ export const mediaApi = {
                 queryParams.append('offset', String(offset));
             }
 
-            const fetchOptions = {
-                cookieHeader: options?.cookieHeader,
-            };
-
             const endpoint = `${BASE_MEDIA_PATH}/?${queryParams.toString()}`;
-            const response = await fetchApi.get<Media[]>(endpoint, fetchOptions);
+            const response = await api.get<Media[]>(endpoint);
 
             if (!response.pagination) {
                 const count = response.data?.length || 0;
@@ -119,13 +115,10 @@ export const mediaApi = {
                 throw new Error(`Invalid media ID: ${mediaId}`);
             }
             
-            const fetchOptions = {
-                cookieHeader: options?.cookieHeader,
-            };
             const endpoint = `${BASE_MEDIA_PATH}/${mediaIdNumber}`;
             
             try {
-                const response = await fetchApi.get<Media>(endpoint, fetchOptions);
+                const response = await api.get<Media>(endpoint);
                 
                 if (response && typeof response === 'object' && !('metaData' in response)) {
                                           return {
@@ -141,7 +134,7 @@ export const mediaApi = {
                     size: 100,
                 };
                 
-                const listResponse = await mediaApi.getMediaList(listFilter, fetchOptions);
+                const listResponse = await mediaApi.getMediaList(listFilter);
                 
                 if (listResponse.metaData.status === 'success' && Array.isArray(listResponse.data)) {
                     const mediaItem = listResponse.data.find((item: Media) => item.id === mediaIdNumber);
@@ -206,7 +199,7 @@ export const mediaApi = {
                     xhr.setRequestHeader('Cookie', options.cookieHeader);
                 }
                 
-                const csrfToken = csrfTokenStore.getToken();
+                const csrfToken = csrfManager.getToken();
                 if (csrfToken) {
                     xhr.setRequestHeader('X-CSRFToken', csrfToken);
                 }
@@ -316,7 +309,7 @@ export const mediaApi = {
     ): Promise<ApiResponse<{ deleted: boolean }>> => {
         try {
             const endpoint = `${BASE_MEDIA_PATH}/${mediaId}`;
-            return await fetchApi.delete<{ deleted: boolean }>(endpoint);
+            return await api.delete<{ deleted: boolean }>(endpoint);
         } catch (error: unknown) {
             showError(error);
             
@@ -348,7 +341,7 @@ export const mediaApi = {
     ): Promise<ApiResponse<Media>> => {
         try {
             const endpoint = `${BASE_MEDIA_PATH}/${mediaId}`;
-            return await fetchApi.put<Media>(endpoint, updateData);
+            return await api.put<Media>(endpoint, updateData);
         } catch (error: unknown) {
             showError(error);
             
@@ -383,7 +376,7 @@ export const mediaApi = {
             const updateData = {
                 cover_image: coverImageId
             };
-            const response = await fetchApi.patch<Media>(endpoint, updateData);
+            const response = await api.patch<Media>(endpoint, updateData);
             if (response.metaData.status === 'success' && response.data) {
                 if (coverImageId === null) {
                     response.data.cover_image = null;
@@ -427,7 +420,7 @@ export const mediaApi = {
                 type: item.media_type || 'image'
             }));
             
-            return await fetchApi.post<{ deleted_count: number }>(endpoint, { media_data: mediaData });
+            return await api.post<{ deleted_count: number }>(endpoint, { media_data: mediaData });
         } catch (error: unknown) {
             showError(error);
             
@@ -458,7 +451,7 @@ export const mediaApi = {
             ? '/core/upload-settings/?clear_cache=true'
             : '/core/upload-settings/';
         
-        const response = await fetchApi.get<MediaUploadSettings>(url);
+        const response = await api.get<MediaUploadSettings>(url);
         
         if (!response.data) {
             throw new Error("API returned success but no upload settings data found.");

@@ -254,8 +254,9 @@ REFRESH_COOKIE_NAME = 'refresh_token'
 # ============================================
 # Session Settings (Admin Panel)
 # ============================================
-# ✅ Production: 3 روز (از .env می‌خونه)
-ADMIN_SESSION_TIMEOUT_SECONDS = int(os.getenv('ADMIN_SESSION_TIMEOUT_DAYS', 3)) * 24 * 60 * 60  # 3 روز (259200 ثانیه)
+# ✅ Production: 3 روز = 259200 ثانیه
+# 🧪 Test: 30 ثانیه برای تست
+ADMIN_SESSION_TIMEOUT_SECONDS = int(os.getenv('ADMIN_SESSION_TIMEOUT_SECONDS', 259200))
 
 # 🔒 Admin Panel Security - Secret URL Path
 # یکبار تولید کن و در .env ذخیره کن
@@ -267,18 +268,26 @@ ADMIN_URL_SECRET = os.getenv('ADMIN_URL_SECRET', 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM
 ADMIN_ALLOWED_IPS = os.getenv('ADMIN_ALLOWED_IPS', '').split(',')
 ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
 
+# ============================================
 # Django Session Settings
+# ============================================
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'session'
-SESSION_COOKIE_NAME = 'sessionid'  # ✅ مشخص کردن name برای consistency
+SESSION_COOKIE_NAME = 'sessionid'
 SESSION_COOKIE_AGE = ADMIN_SESSION_TIMEOUT_SECONDS
-SESSION_COOKIE_PATH = '/'  # ✅ مشخص کردن path برای consistency
-SESSION_COOKIE_DOMAIN = None  # ✅ None = current domain
+SESSION_COOKIE_PATH = '/'
+SESSION_COOKIE_DOMAIN = None
+
+# ✅ False = Session دقیقاً بعد از ADMIN_SESSION_TIMEOUT_SECONDS منقضی میشه
+# بدون تمدید خودکار - از زمان login حساب میشه
 SESSION_SAVE_EVERY_REQUEST = False
+
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session باید با expire_date منقضی شود
+
+# ✅ False = session با expire_date منقضی میشه (نه با بستن browser)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # CSRF Settings
 CSRF_COOKIE_NAME = 'csrftoken'  # ✅ مشخص کردن name برای consistency

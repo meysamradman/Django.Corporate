@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
+"use client";
+
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface AIChatContextType {
   isOpen: boolean;
