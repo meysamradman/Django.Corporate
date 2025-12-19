@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
@@ -7,7 +5,7 @@ import { Textarea } from '@/components/elements/Textarea';
 import { Checkbox } from '@/components/elements/Checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/elements/Select';
 import { ProviderSelector } from '../shared/ProviderSelector';
-import { AvailableProvider } from '@/types/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Brain, Mic, Volume2, AlertCircle } from 'lucide-react';
 import { getAI, getAIUI } from '@/core/messages/modules/ai';
 

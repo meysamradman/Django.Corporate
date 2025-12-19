@@ -1,9 +1,7 @@
-"use client";
-
 import React from "react";
 import { TicketItem } from "./TicketItem";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Ticket } from "@/types/ticket/ticket";
+import type { Ticket } from "@/types/ticket/ticket";
 
 interface TicketListProps {
   tickets: Ticket[];

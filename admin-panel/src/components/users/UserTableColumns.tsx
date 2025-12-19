@@ -1,10 +1,8 @@
-"use client"
-
 import * as React from "react";
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/elements/Badge"
 import { Checkbox } from "@/components/elements/Checkbox"
-import { UserWithProfile } from "@/types/auth/user"
+import type { UserWithProfile } from "@/types/auth/user"
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink } from "@/core/permissions";
@@ -69,7 +67,7 @@ export const useUserColumns = (
 
         return (
           <ProtectedLink 
-            href={`/users/${user.id}/edit`} 
+            to={`/users/${user.id}/edit`} 
             permission="users.update"
             className="flex items-center gap-3"
           >

@@ -1,11 +1,9 @@
-"use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
 import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { ImagePlus, X } from "lucide-react";
 import { useMediaContext } from '../MediaContext';
 

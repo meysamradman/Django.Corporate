@@ -1,6 +1,6 @@
-import { Base } from "@/types/shared/base";
-import { Media } from "@/types/shared/media";
-import { BlogSEOMeta } from "@/types/blog/blogSeoMeta";
+import type { Base } from "@/types/shared/base";
+import type { Media } from "@/types/shared/media";
+import type { BlogSEOMeta } from "@/types/blog/blogSeoMeta";
 
 export interface BlogCategory extends Base {
     name: string;

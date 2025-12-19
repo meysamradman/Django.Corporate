@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useMemo } from "react";
 import { Lock } from "lucide-react";
 import { usePermission } from "../context/PermissionContext";
@@ -32,7 +30,6 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
   const permissions = useMemo(
     () => {
       const perms = Array.isArray(permission) ? permission : [permission];
-      // فیلتر کردن undefined و null و string های خالی
       return perms.filter(p => p && typeof p === 'string' && p.trim().length > 0);
     },
     [permission]
@@ -41,18 +38,12 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
   const hasAccess = useMemo(() => {
     if (isLoading || permissions.length === 0) return false;
     
-    // برای Analytics permissions باید چک دقیق کنیم:
-    // analytics.stats.manage به همه analytics.*.read دسترسی میده
-    // ولی analytics.manage فقط آمار بازدید رو مدیریت میکنه
     const isAnalyticsStatsPermission = permissions.some(p => 
       p.startsWith('analytics.') && 
       (p.includes('.read') || p === 'analytics.stats.manage')
     );
     
     if (isAnalyticsStatsPermission) {
-      // برای analytics permissions:
-      // 1. اگه خود permission رو داره (exact) → true
-      // 2. اگه analytics.stats.manage داره → به همه analytics.*.read دسترسی داره
       const hasStatsManage = check('analytics.stats.manage');
       
       if (requireAll) {
@@ -62,7 +53,6 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
       }
     }
     
-    // برای بقیه permissions از hasPermission استفاده میکنیم (با wildcard)
     return requireAll
       ? hasAllPermissions(permissions)
       : permissions.length === 1
@@ -70,14 +60,11 @@ export const PermissionLocked: React.FC<PermissionLockedProps> = ({
         : hasAnyPermission(permissions);
   }, [isLoading, requireAll, permissions, hasPermission, hasAllPermissions, hasAnyPermission, check]);
 
-  // Convert borderColorClass to border-b-* if needed, and remove full border
   const bottomBorderClass = useMemo(() => {
     if (!borderColorClass) return null;
-    // If already border-b-*, use as is
     if (borderColorClass.includes("border-b-")) {
       return borderColorClass;
     }
-    // If border-* (full border), convert to border-b-*
     if (borderColorClass.startsWith("border-") && !borderColorClass.includes("border-b-")) {
       return borderColorClass.replace("border-", "border-b-");
     }

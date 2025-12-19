@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ticketApi } from "@/api/ticket/route";
-import {
+import { ticketApi } from "@/api/ticket/ticket";
+import type {
   Ticket,
   TicketMessage,
   TicketCreate,

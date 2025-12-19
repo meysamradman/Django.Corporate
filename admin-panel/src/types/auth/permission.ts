@@ -191,6 +191,7 @@ export interface UIPermissions {
   canDeleteDocument: boolean;
   
   // Analytics Permissions
+  canViewDashboardStats: boolean;
   canViewUsersStats: boolean;
   canViewAdminsStats: boolean;
   canViewContentStats: boolean;

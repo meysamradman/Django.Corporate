@@ -1,12 +1,12 @@
 import { api } from '@/core/config/api';
-import { PortfolioExportParams } from "@/types/portfolio/portfolioListParams";
+import type { PortfolioExportParams } from "@/types/portfolio/portfolioListParams";
 
 export const exportPortfolioPdf = async (portfolioId: number): Promise<void> => {
   const url = `/admin/portfolio/${portfolioId}/export-pdf/`;
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `portfolio_${portfolioId}_${timestamp}.pdf`;
   
-  await fetchApi.downloadFile(url, filename);
+  await api.downloadFile(url, filename);
 };
 
 export const exportPortfolios = async (
@@ -52,7 +52,7 @@ export const exportPortfolios = async (
   
   const useFetchForErrorHandling = filters?.export_all === true;
   
-  await fetchApi.downloadFile(url, filename, 'GET', null, { 
+  await api.downloadFile(url, filename, 'GET', null, { 
     useFetchForErrorHandling 
   } as any);
 };

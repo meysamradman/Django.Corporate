@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -17,7 +17,7 @@ export interface OptionAction {
 }
 
 export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] = []) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<PortfolioOption>[] = [
     {
@@ -52,7 +52,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
       cell: ({ row }) => {
         const option = row.original;
         return (
-          <Link href={`/portfolios/options/${option.id}/edit`} className="table-cell-primary table-cell-wide">
+          <Link to={`/portfolios/options/${option.id}/edit`} className="table-cell-primary table-cell-wide">
             {option.name}
           </Link>
         );
@@ -124,7 +124,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (option) => router.push(`/portfolios/options/${option.id}/edit`),
+            onClick: (option) => navigate(`/portfolios/options/${option.id}/edit`),
           },
           {
             label: "حذف",

@@ -1,4 +1,4 @@
-import { featureFlagsApi } from '@/api/feature-flags/route';
+import { featureFlagsApi } from '@/api/feature-flags/feature-flags';
 
 export async function getFeatureFlags(): Promise<Record<string, boolean>> {
   try {

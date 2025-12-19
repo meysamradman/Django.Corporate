@@ -1,10 +1,8 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/elements/Card';
 import { Switch } from '@/components/elements/Switch';
 import { Label } from '@/components/elements/Label';
 import { Settings, Lock, Unlock, Shield } from 'lucide-react';
-import { GlobalControlSetting } from '@/types/ai/ai';
+import type { GlobalControlSetting } from '@/types/ai/ai';
 import { frontendToBackendProviderMap } from '../hooks/useAISettings';
 import { getProviderMetadata } from '../config/providerConfig';
 

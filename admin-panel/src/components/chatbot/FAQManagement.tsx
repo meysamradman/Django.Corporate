@@ -1,11 +1,9 @@
-"use client";
-
 import React, { useState, useMemo } from "react";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
-import { FAQ } from "@/types/chatbot/chatbot";
+import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
-import { ColumnDef, SortingState, OnChangeFn } from "@tanstack/react-table";
-import { TablePaginationState } from "@/types/shared/pagination";
+import type { ColumnDef, SortingState, OnChangeFn } from "@tanstack/react-table";
+import type { TablePaginationState } from "@/types/shared/pagination";
 import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";

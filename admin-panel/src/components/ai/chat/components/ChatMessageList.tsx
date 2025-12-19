@@ -1,5 +1,4 @@
-"use client";
-
+import { type RefObject } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/elements/Avatar';
 import { Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { getAIUI } from '@/core/messages';
@@ -17,7 +16,7 @@ interface ChatMessageListProps {
     getAdminDisplayName: () => string;
     getAdminInitials: () => string;
     getAdminProfileImageUrl: () => string | null;
-    messagesEndRef: React.RefObject<HTMLDivElement | null>;
+    messagesEndRef: RefObject<HTMLDivElement | null>;
 }
 
 export function ChatMessageList({
@@ -110,14 +109,12 @@ export function ChatMessageList({
         );
     }
 
-    // Full page version
     return (
         <div className={`flex-1 ${messages.length === 0 ? '' : 'overflow-y-auto'}`}>
             <div className={`${messages.length === 0 
                 ? 'h-full flex flex-col justify-center items-center px-4' 
                 : 'pt-8 pb-[200px]'
             }`}>
-                {/* Empty State - Centered */}
                 {messages.length === 0 && (
                     <div className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto">
                         <div className="w-16 h-16 bg-blue rounded-2xl flex items-center justify-center mb-6">
@@ -132,10 +129,8 @@ export function ChatMessageList({
                     </div>
                 )}
 
-                {/* Messages - Regular Flow */}
                 {messages.length > 0 && (
                     <div className="max-w-4xl mx-auto w-full px-4">
-                        {/* Info Alert - Only show for first 5 messages */}
                         {messages.length <= 5 && (
                             <div className="mb-8 p-4 bg-blue/10 border border-blue-1 rounded-xl">
                                 <div className="flex items-start gap-3">
@@ -149,7 +144,6 @@ export function ChatMessageList({
                             </div>
                         )}
 
-                        {/* Messages List */}
                         <div className="space-y-6">
                             {messages.map((msg, idx) => (
                                 <div
@@ -173,7 +167,6 @@ export function ChatMessageList({
                             ))}
                         </div>
 
-                        {/* Loading State */}
                         {sending && (
                             <div className="flex justify-start mt-6">
                                 <div className="max-w-[80%]">
@@ -189,7 +182,6 @@ export function ChatMessageList({
                     </div>
                 )}
                 
-                {/* Scroll anchor */}
                 <div ref={messagesEndRef} />
             </div>
         </div>

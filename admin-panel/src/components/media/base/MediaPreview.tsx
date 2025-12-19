@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useState } from 'react';
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { cn } from '@/core/utils/cn';
 import { Play } from 'lucide-react';
 import { MediaThumbnail } from './MediaThumbnail';

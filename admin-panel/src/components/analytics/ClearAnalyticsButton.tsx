@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
@@ -21,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/elements/Select";
-import { analyticsApi } from "@/api/analytics/route";
+import { analyticsApi } from "@/api/analytics/analytics";
 import { toast } from "@/components/elements/Sonner";
 import { useQueryClient } from "@tanstack/react-query";
 

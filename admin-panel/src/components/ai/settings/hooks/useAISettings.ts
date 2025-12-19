@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { aiApi } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
 import { 
   PROVIDER_METADATA, 
@@ -9,16 +9,16 @@ import {
   FRONTEND_TO_BACKEND_NAME 
 } from '../config/providerConfig';
 
-export interface Model {
+export type Model = {
   id: number;
   name: string;
   provider?: string;
   price: string;
   free: boolean;
   selected: boolean;
-}
+};
 
-export interface Provider {
+export type Provider = {
   id: string;
   name: string;
   icon: string;
@@ -26,7 +26,7 @@ export interface Provider {
   apiKeyLabel: string;
   models: Model[];
   backendProvider?: any;
-}
+};
 
 export const backendToFrontendIdMap = BACKEND_TO_FRONTEND_ID;
 export const frontendToBackendProviderMap = FRONTEND_TO_BACKEND_NAME;

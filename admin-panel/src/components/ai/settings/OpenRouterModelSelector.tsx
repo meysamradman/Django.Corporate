@@ -1,8 +1,6 @@
-"use client";
-
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type MutableRefObject } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { aiApi } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { Button } from '@/components/elements/Button';
 import { ModelSelector } from '@/components/ai/core';
@@ -32,7 +30,7 @@ interface OpenRouterModelSelectorContentProps {
   providerName: string;
   onSave: (selectedModels: OpenRouterModel[]) => void;
   onSelectionChange?: (selectedCount: number) => void;
-  onSaveRef?: React.MutableRefObject<(() => void) | undefined>;
+  onSaveRef?: MutableRefObject<(() => void) | undefined>;
   capability?: 'chat' | 'content' | 'image' | 'audio';
 }
 
@@ -88,7 +86,6 @@ const extractProvider = (id: string): string => {
 };
 
 const filterByCapability = (models: OpenRouterModel[], capability: string): OpenRouterModel[] => {
-  // Chat و Content جداگانه هستند - هر کدام مدل خودش رو دارند
   if (capability === 'chat') {
     return models.filter(model => {
       const modality = model.architecture?.modality?.toLowerCase();
@@ -105,7 +102,6 @@ const filterByCapability = (models: OpenRouterModel[], capability: string): Open
   }
   
   if (capability === 'content') {
-    // Content هم مثل chat است ولی مدل جداگانه دارد
     return models.filter(model => {
       const modality = model.architecture?.modality?.toLowerCase();
       if (modality === 'image' || modality === 'audio' || modality === 'speech' || modality === 'vision') {
@@ -170,7 +166,6 @@ export function OpenRouterModelSelectorContent({
         setLoading(true);
         const response = await aiApi.chat.getOpenRouterModels();
         if (response.metaData.status === 'success' && response.data) {
-          // Backend حالا data.models برمی‌گردونه
           const responseData = response.data as any;
           const modelsData = responseData.models || (Array.isArray(response.data) ? response.data : []);
           

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -14,7 +12,7 @@ import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { FormFieldInput } from "@/components/forms/FormField";
 import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { Loader2 } from "lucide-react";
 import { showSuccess, showError } from '@/core/toast';
 import { generateSlug, formatSlug } from '@/core/slug/generate';

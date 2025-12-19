@@ -1,23 +1,16 @@
-"use client";
-
-import { useState } from "react";
-import dynamic from "next/dynamic";
-import { UseFormReturn } from "react-hook-form";
+import { useState, lazy, Suspense } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { PortfolioMediaGallery } from "@/components/portfolios/list/PortfolioMediaGallery";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
-import { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
+import type { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { mediaService } from "@/components/media/services";
-import NextImage from "next/image";
-import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 
-const MediaLibraryModal = dynamic(
-  () => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })),
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div> }
-);
+const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 
 interface MediaTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
@@ -195,12 +188,10 @@ export default function MediaTab(props: MediaTabProps) {
                     >
                             {currentFeaturedImage ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
-                                    <NextImage
+                                    <img
                                         src={mediaService.getMediaUrlFromObject(currentFeaturedImage)}
                                         alt={currentFeaturedImage.alt_text || "تصویر شاخص"}
-                                        fill
-                                        className="object-cover"
-                                        unoptimized
+                                        className="object-cover w-full h-full"
                                     />
                                     <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button
@@ -249,15 +240,17 @@ export default function MediaTab(props: MediaTabProps) {
 
             </div>
             
-            <MediaLibraryModal
-                isOpen={isMediaModalOpen}
-                onClose={() => setIsMediaModalOpen(false)}
-                onSelect={handleFeaturedImageSelect}
-                selectMultiple={false}
-                initialFileType="image"
-                context="portfolio"
-                contextId={portfolioId}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div>}>
+                <MediaLibraryModal
+                    isOpen={isMediaModalOpen}
+                    onClose={() => setIsMediaModalOpen(false)}
+                    onSelect={handleFeaturedImageSelect}
+                    selectMultiple={false}
+                    initialFileType="image"
+                    context="portfolio"
+                    contextId={portfolioId}
+                />
+            </Suspense>
         </TabsContent>
     );
 }

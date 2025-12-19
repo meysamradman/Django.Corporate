@@ -1,6 +1,5 @@
-"use client";
-
-import { mediaConfig, MediaType } from '../mediaConfig';
+import { mediaConfig } from '../mediaConfig';
+import type { MediaType } from '../mediaConfig';
 
 export type { MediaType };
 

@@ -1,7 +1,7 @@
 import { api } from '@/core/config/api';
 import type { Media, MediaFilter, MediaUploadSettings } from '@/types/shared/media';
 import type { ApiResponse, Pagination } from '@/types/api/apiResponse';
-import { ApiError } from '@/types/api/apiError';
+import type { ApiError } from '@/types/api/apiError';
 import { toast } from '@/components/elements/Sonner';
 import { csrfManager } from '@/core/auth/session';
 import { env } from '@/core/config/environment';

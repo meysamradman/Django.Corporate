@@ -1,9 +1,5 @@
-"use client";
-
-import React from 'react';
-import Image from "next/image";
-import { useState } from "react";
-import { Media } from "@/types/shared/media";
+import React, { useState } from 'react';
+import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { env } from '@/core/config/environment';
 import { cn } from '@/core/utils/cn';
@@ -120,12 +116,10 @@ export function MediaThumbnail({
   if (fill) {
     return (
       <div className="relative w-full h-full">
-        <Image
+        <img
           src={thumbnailUrl}
           alt={alt || mediaService.getMediaAltText(media)}
-          className={imageClasses}
-          fill={true}
-          sizes={sizes || "100vw"}
+          className={cn(imageClasses, "absolute inset-0 w-full h-full")}
           onError={() => setError(true)}
           onLoad={() => setLoaded(true)}
           style={style}
@@ -143,13 +137,12 @@ export function MediaThumbnail({
 
   return (
     <div className="relative w-full h-full">
-      <Image
+      <img
         src={thumbnailUrl}
         alt={alt || mediaService.getMediaAltText(media)}
         className={imageClasses}
         width={200}
         height={200}
-        sizes={sizes}
         onError={() => setError(true)}
         onLoad={() => setLoaded(true)}
         style={style}

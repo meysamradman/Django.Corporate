@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
@@ -10,16 +8,16 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { useCanUpload } from "@/core/permissions";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { User, Camera, UserCircle, MapPin, FileText } from "lucide-react";
 import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { UserFormValues } from "@/components/users/validations/userSchema";
+import type { UseFormReturn } from "react-hook-form";
+import type { UserFormValues } from "@/components/users/validations/userSchema";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { locationApi } from "@/api/shared/location/route";
+import { locationApi } from "@/api/shared/location/location";
 import { useEffect } from "react";
-import { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { filterNumericOnly } from "@/core/filters/numeric";
 
 interface ProfileTabProps {
@@ -95,7 +93,7 @@ export default function ProfileTab({
       try {
         const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
         
-        const { adminApi } = await import('@/api/admins/route');
+        const { adminApi } = await import('@/api/admins/admins');
         
         const userId = (form.getValues as any)('id') || (form.getValues as any)('user_id');
         if (userId) {

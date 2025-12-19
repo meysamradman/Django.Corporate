@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
@@ -12,9 +10,9 @@ import { FormField } from "@/components/forms/FormField";
 import {
     User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
 } from "lucide-react";
-import { AdminWithProfile } from "@/types/auth/admin";
-import { ProvinceCompact, CityCompact } from "@/types/shared/location";
-import { locationApi } from "@/api/shared/location/route";
+import type { AdminWithProfile } from "@/types/auth/admin";
+import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import { locationApi } from "@/api/shared/location/location";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { formatDate } from "@/core/utils/format";

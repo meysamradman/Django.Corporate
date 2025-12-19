@@ -85,13 +85,13 @@ export {
   ROLE_COLORS,
   getRoleColorClasses,
   type RoleConfig,
-} from './config/roles';
+} from '@/core/permissions/roles';
 
 export {
   findRouteRule,
   routeRules,
   type RouteRule,
-} from './config/accessControl';
+} from '@/core/permissions/accessControl';
 
 export type {
   PermissionMeta,

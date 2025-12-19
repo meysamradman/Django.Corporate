@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { ProtectedButton } from '@/core/permissions';
@@ -8,7 +6,7 @@ import {
     Database,
     Download
 } from 'lucide-react';
-import { downloadDatabaseExport } from '@/api/panel/route';
+import { downloadDatabaseExport } from '@/api/panel/panel';
 import { usePanelSettings } from '../hooks/usePanelSettings';
 
 export function PanelDatabaseTab() {

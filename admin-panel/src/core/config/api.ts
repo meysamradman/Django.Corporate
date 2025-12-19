@@ -1,25 +1,22 @@
 import axios from 'axios';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiResponse } from '@/types/api/apiResponse';
-import { ApiError } from '@/types/api/apiError';
+import type { ApiError } from '@/types/api/apiError';
 import { sessionManager } from '../auth/session';
 import { env } from './environment';
 
-// ✅ Create Axios instance
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: env.API_URL,
-  timeout: 30000, // 30 seconds
-  withCredentials: true, // برای CSRF و session cookies
+  timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// ✅ Request Interceptor - اضافه کردن CSRF token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Get CSRF token from cookie
     const csrfToken = document.cookie
       .split('; ')
       .find(row => row.startsWith('csrftoken='))
@@ -36,10 +33,8 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// ✅ Response Interceptor - مدیریت خطاها
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse<ApiResponse<any>>) => {
-    // اگر response ساختار ApiResponse نداشت، wrap کن
     if (!response.data || !('metaData' in response.data)) {
       const wrappedResponse: ApiResponse<any> = {
         metaData: {
@@ -56,12 +51,10 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error: AxiosError<ApiResponse<any>>) => {
-    // Handle 401 - Session expired
     if (error.response?.status === 401) {
       sessionManager.handleExpiredSession();
     }
 
-    // Create ApiError
     const apiError = new ApiError({
       response: {
         AppStatusCode: error.response?.data?.metaData?.AppStatusCode || error.response?.status || 503,
@@ -76,7 +69,6 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// ✅ API Methods با Type Safety
 export const api = {
   get: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
     const response = await axiosInstance.get<ApiResponse<T>>(url, config);
@@ -103,7 +95,6 @@ export const api = {
     return response.data;
   },
 
-  // ✅ Public GET (بدون credentials)
   getPublic: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
     const response = await axiosInstance.get<ApiResponse<T>>(url, {
       ...config,
@@ -112,7 +103,6 @@ export const api = {
     return response.data;
   },
 
-  // ✅ Upload با Progress
   upload: async <T>(
     url: string, 
     formData: FormData, 
@@ -127,7 +117,6 @@ export const api = {
     return response.data;
   },
 
-  // ✅ Download با Progress
   download: async (
     url: string, 
     filename: string,
@@ -138,7 +127,6 @@ export const api = {
       onDownloadProgress,
     });
 
-    // Create download link
     const blob = new Blob([response.data]);
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -151,10 +139,8 @@ export const api = {
   },
 };
 
-// ✅ Export axios instance برای استفاده‌های خاص
 export { axiosInstance };
 
-// ✅ Cancel Token برای cancel کردن requestها
 export const createCancelToken = () => {
   const source = axios.CancelToken.source();
   return {
@@ -163,5 +149,4 @@ export const createCancelToken = () => {
   };
 };
 
-// ✅ Check if error is cancel
 export const isCancel = axios.isCancel;

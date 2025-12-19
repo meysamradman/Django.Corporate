@@ -1,10 +1,8 @@
-"use client";
-
 import React, { useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { usePermission } from '../context/PermissionContext';
 import { cn } from '@/core/utils/cn';
-import { toast } from '@/components/elements/Sonner';
+import { toast } from 'sonner';
 
 interface ProtectedLinkProps extends React.ComponentProps<typeof Link> {
   permission?: string | string[];

@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Checkbox } from "@/components/elements/Checkbox";

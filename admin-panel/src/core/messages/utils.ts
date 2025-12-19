@@ -8,6 +8,6 @@ const replaceParams = (message: string, params?: Record<string, string | number>
 export const createMessageGetter = <T extends Record<string, string>>(messages: T) => {
   return (key: keyof T, params?: Record<string, string | number>): string => {
     const message = messages[key] || String(key);
-    return replaceParams(message, params);
+    return replaceParams(message, params) as string;
   };
 };

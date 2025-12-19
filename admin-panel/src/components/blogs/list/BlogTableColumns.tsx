@@ -1,11 +1,11 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { Blog } from "@/types/blog/blog";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Blog } from "@/types/blog/blog";
 import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -25,7 +25,7 @@ export const useBlogColumns = (
   actions: DataTableRowAction<Blog>[] = [],
   onToggleActive?: (blog: Blog) => void
 ) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<Blog>[] = [
     {
@@ -70,7 +70,7 @@ export const useBlogColumns = (
 
         return (
           <ProtectedLink 
-            href={`/blogs/${blog.id}/view`} 
+            to={`/blogs/${blog.id}/view`} 
             permission="blog.read"
             className="flex items-center gap-3"
           >
@@ -237,7 +237,7 @@ export const useBlogColumns = (
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (blog) => router.push(`/blogs/${blog.id}/edit`),
+            onClick: (blog) => navigate(`/blogs/${blog.id}/edit`),
           },
           {
             label: "حذف",

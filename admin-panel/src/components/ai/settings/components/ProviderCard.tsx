@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CardContent } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
@@ -8,7 +6,7 @@ import { Label } from '@/components/elements/Label';
 import { Badge } from '@/components/elements/Badge';
 import { Switch } from '@/components/elements/Switch';
 import { Eye, EyeOff, Sparkles, Loader2, CheckCircle2, Trash2, Edit2, Save, X, Users, User } from 'lucide-react';
-import { Provider, Model } from '../hooks/useAISettings';
+import type { Provider, Model } from '../hooks/useAISettings';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/elements/Tabs';
 
 interface ProviderCardProps {
@@ -96,10 +94,8 @@ export function ProviderCard({
     ? canUseSharedApiProp
     : (isSuperAdmin || (allowNormalAdmins && hasSharedApi));
   
-  // بررسی وجود مدل
   const hasModels = provider.models && provider.models.length > 0;
 
-  // محاسبه مقادیر API keys با useMemo برای بهینه‌سازی
   const currentPersonalApiKey = useMemo(() => 
     personalApiKey || (useSharedApi ? '' : apiKey), 
     [personalApiKey, useSharedApi, apiKey]
@@ -125,7 +121,6 @@ export function ProviderCard({
     [showSharedApiKey, useSharedApi, isSuperAdmin, showApiKey]
   );
 
-  // Handlers برای کاهش تکرار کد
   const handleSharedApiKeyChange = useCallback((value: string) => {
     onSharedApiKeyChange ? onSharedApiKeyChange(value) : onApiKeyChange(value);
   }, [onSharedApiKeyChange, onApiKeyChange]);
@@ -142,7 +137,6 @@ export function ProviderCard({
     onTogglePersonalApiKeyVisibility ? onTogglePersonalApiKeyVisibility() : onToggleApiKeyVisibility();
   }, [onTogglePersonalApiKeyVisibility, onToggleApiKeyVisibility]);
 
-  // کامپوننت برای فیلد API
   const ApiKeyField = ({
     label,
     apiKey,
@@ -174,19 +168,17 @@ export function ProviderCard({
     icon: any;
     iconColor: string;
   }) => {
-    const [isEditing, setIsEditing] = React.useState(false);
-    const [tempApiKey, setTempApiKey] = React.useState(apiKey);
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempApiKey, setTempApiKey] = useState(apiKey);
 
-    React.useEffect(() => {
+    useEffect(() => {
       setTempApiKey(apiKey);
     }, [apiKey]);
 
     const handleSave = () => {
       if (onSave) {
         const trimmedValue = tempApiKey.trim();
-        // به‌روزرسانی state با مقدار جدید
         onApiKeyChange(trimmedValue);
-        // ذخیره در backend - مستقیماً مقدار را پاس بده
         onSave(trimmedValue);
         setIsEditing(false);
       }
@@ -199,11 +191,9 @@ export function ProviderCard({
 
     const handleDelete = () => {
       if (onDelete) {
-        // پاک کردن از state
         onApiKeyChange('');
         setIsEditing(false);
         setTempApiKey('');
-        // فراخوانی onDelete برای حذف از backend
         onDelete();
       }
     };
@@ -391,15 +381,14 @@ export function ProviderCard({
     );
   };
 
-  const [activeTab, setActiveTab] = React.useState<'shared' | 'personal'>(useSharedApi ? 'shared' : 'personal');
+  const [activeTab, setActiveTab] = useState<'shared' | 'personal'>(useSharedApi ? 'shared' : 'personal');
 
-  React.useEffect(() => {
+  useEffect(() => {
     setActiveTab(useSharedApi ? 'shared' : 'personal');
   }, [useSharedApi]);
 
   return (
     <CardContent className="pt-4 pb-4 space-y-4">
-      {/* پیام عدم وجود مدل */}
       {!hasModels && (
         <div className="p-3 bg-amber/10 border border-amber/20 rounded-lg">
           <div className="flex items-start gap-2">
@@ -416,9 +405,7 @@ export function ProviderCard({
           </div>
         )}
 
-      {/* تنظیمات فشرده - در یک ردیف */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* وضعیت Provider */}
         {onToggleActive && (
           <div className="p-3 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
             <div className="flex items-center justify-between gap-3">
@@ -443,7 +430,6 @@ export function ProviderCard({
           </div>
         )}
 
-        {/* انتخاب نوع API (فقط اگر می‌تواند از Shared استفاده کند) */}
         {canUseSharedApi && (
           <div className="p-3 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
             <div className="flex items-center justify-between gap-3">
@@ -475,7 +461,6 @@ export function ProviderCard({
         )}
       </div>
 
-      {/* بخش API ها - با Tabs */}
       <div className="space-y-3">
         {isSuperAdmin && canUseSharedApi ? (
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'shared' | 'personal')} className="w-full">

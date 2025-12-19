@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -13,12 +11,12 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { X, Download, Edit3, FileText, Play, FileAudio, Save, ImageOff } from 'lucide-react';
-import { Media } from '@/types/shared/media';
+import type { Media } from '@/types/shared/media';
 import { MediaPlayer } from '@/components/media/base/MediaPlayer';
 import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
-import { mediaApi } from '@/api/media/route';
+import { mediaApi } from '@/api/media/media';
 import { toast } from '@/core/toast';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { TruncatedText } from '@/components/elements/TruncatedText';

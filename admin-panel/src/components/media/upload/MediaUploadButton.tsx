@@ -1,10 +1,8 @@
-"use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/elements/Button";
 import { MediaUploadModal } from "@/components/media/modals/MediaUploadModal";
 import { Upload, Plus } from "lucide-react";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { useMediaContext } from '../MediaContext';
 
 interface MediaUploadButtonProps {

@@ -1,15 +1,13 @@
-"use client";
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
-import { AdminWithProfile } from "@/types/auth/admin";
+import type { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
-import { Role } from "@/types/auth/permission";
+import type { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 
 interface StaticAdvancedSettingsTabProps {

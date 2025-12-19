@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { chatbotApi } from "@/api/chatbot/route";
-import { FAQ, ChatbotSettings, CreateFAQData, UpdateFAQData, UpdateChatbotSettingsData } from "@/types/chatbot/chatbot";
+import { chatbotApi } from "@/api/chatbot/chatbot";
+import type { FAQ, ChatbotSettings, CreateFAQData, UpdateFAQData, UpdateChatbotSettingsData } from "@/types/chatbot/chatbot";
 import { showSuccess, showError } from '@/core/toast';
 
 export function useFAQList() {

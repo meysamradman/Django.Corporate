@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { Check, ChevronsUpDown, ChevronRight } from "lucide-react"
 import { cn } from '@/core/utils/cn';
@@ -17,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/elements/Popover"
-import { CategoryItem } from "@/types/shared/table";
+import type { CategoryItem } from "@/types/shared/table";
 
 interface DataTableHierarchicalFilterProps<TValue> {
   title?: string

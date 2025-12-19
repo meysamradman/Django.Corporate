@@ -1,13 +1,11 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { pageApi } from "@/api/page/route";
-import { AboutPage } from "@/types/page/page";
+import { pageApi } from "@/api/page/page";
+import type { AboutPage } from "@/types/page/page";
 import { toast } from "@/components/elements/Sonner";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Search } from "lucide-react";
 import { BaseInfoTab } from "./tabs/BaseInfoTab";
 import { SEOTab } from "./tabs/SEOTab";
@@ -59,7 +57,6 @@ export function AboutPageForm() {
                 setOgImage(data.og_image_data);
             }
         } catch (error: any) {
-            // ✅ Only show toast for critical errors, not 404
             if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
                 toast.error("خطا در بارگذاری صفحه");
             }
@@ -103,10 +100,8 @@ export function AboutPageForm() {
             }
 
             await pageApi.updateAboutPage(updateData);
-            // ✅ Backend sends success message - no need for manual toast
             await fetchPage();
         } catch (error: any) {
-            // ✅ fetch.ts already shows error toast
         } finally {
             setSaving(false);
         }

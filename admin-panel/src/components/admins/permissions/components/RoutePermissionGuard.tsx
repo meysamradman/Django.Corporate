@@ -1,11 +1,9 @@
-"use client";
-
 import { ReactNode, useMemo } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/core/auth/AuthContext";
 import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
-import { findRouteRule } from "../config/accessControl";
+import { findRouteRule } from "@/core/permissions/accessControl";
 import { AccessDenied } from "./AccessDenied";
 import { PERMISSIONS } from "@/core/permissions/constants";
 
@@ -14,8 +12,9 @@ interface RoutePermissionGuardProps {
 }
 
 export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
-    const pathname = usePathname();
-    const router = useRouter();
+    const location = useLocation();
+    const pathname = location.pathname;
+    const navigate = useNavigate();
     const { isLoading: authLoading, user } = useAuth();
     const { isLoading: permissionLoading, hasPermission } = usePermission();
     const { isSuperAdmin } = useUserPermissions();

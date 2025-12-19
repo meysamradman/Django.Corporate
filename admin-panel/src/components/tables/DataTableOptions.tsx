@@ -1,5 +1,3 @@
-"use client"
-
 import { Settings2 } from "lucide-react"
 import { Table } from "@tanstack/react-table"
 import { Button } from "@/components/elements/Button";

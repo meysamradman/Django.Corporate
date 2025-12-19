@@ -1,12 +1,12 @@
 import { api } from '@/core/config/api';
-import { Portfolio } from "@/types/portfolio/portfolio";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { ApiResponse } from "@/types/api/apiResponse";
+import type { Portfolio } from "@/types/portfolio/portfolio";
+import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
+import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
+import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
-import {
+import type {
     PortfolioListParams,
     PortfolioFilters,
     CategoryListParams,
@@ -50,7 +50,7 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<Portfolio[]>(url);
+    const response = await api.get<Portfolio[]>(url);
     
     if (!response) {
       return {
@@ -92,12 +92,12 @@ export const portfolioApi = {
   },
 
   getPortfolioById: async (id: number): Promise<Portfolio> => {
-    const response = await fetchApi.get<Portfolio>('/admin/portfolio/' + id + '/');
+    const response = await api.get<Portfolio>('/admin/portfolio/' + id + '/');
     return response.data;
   },
 
   createPortfolio: async (data: Partial<Portfolio>): Promise<Portfolio> => {
-    const response = await fetchApi.post<Portfolio>('/admin/portfolio/', data);
+    const response = await api.post<Portfolio>('/admin/portfolio/', data);
     return response.data;
   },
 
@@ -124,17 +124,17 @@ export const portfolioApi = {
       formData.append('media_ids', (data as any).media_ids.join(','));
     }
     
-    const response = await fetchApi.post<Portfolio>('/admin/portfolio/', formData);
+    const response = await api.post<Portfolio>('/admin/portfolio/', formData);
     return response.data;
   },
 
   updatePortfolio: async (id: number, data: Partial<Portfolio>): Promise<Portfolio> => {
-    const response = await fetchApi.put<Portfolio>('/admin/portfolio/' + id + '/', data);
+    const response = await api.put<Portfolio>('/admin/portfolio/' + id + '/', data);
     return response.data;
   },
 
   partialUpdatePortfolio: async (id: number, data: Partial<Portfolio>): Promise<Portfolio> => {
-    const response = await fetchApi.patch<Portfolio>('/admin/portfolio/' + id + '/', data);
+    const response = await api.patch<Portfolio>('/admin/portfolio/' + id + '/', data);
     return response.data;
   },
 
@@ -149,7 +149,7 @@ export const portfolioApi = {
       formData.append('media_ids', mediaIds.join(','));
     }
     
-    const response = await fetchApi.post('/admin/portfolio/' + portfolioId + '/add_media/', formData);
+    const response = await api.post('/admin/portfolio/' + portfolioId + '/add_media/', formData);
     return response.data;
   },
 
@@ -165,11 +165,11 @@ export const portfolioApi = {
   },
 
   deletePortfolio: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/portfolio/' + id + '/');
+    await api.delete('/admin/portfolio/' + id + '/');
   },
 
   bulkDeletePortfolios: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/portfolio/bulk-delete/', { ids });
+    const response = await api.post('/admin/portfolio/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -199,7 +199,7 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<PortfolioCategory[]>(url);
+    const response = await api.get<PortfolioCategory[]>(url);
     
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
@@ -227,31 +227,31 @@ export const portfolioApi = {
   },
 
   createCategory: async (data: Partial<PortfolioCategory>): Promise<PortfolioCategory> => {
-    const response = await fetchApi.post<PortfolioCategory>('/admin/portfolio-category/', data);
+    const response = await api.post<PortfolioCategory>('/admin/portfolio-category/', data);
     return response.data;
   },
 
   getCategoryById: async (id: number): Promise<PortfolioCategory> => {
-    const response = await fetchApi.get<PortfolioCategory>('/admin/portfolio-category/' + id + '/');
+    const response = await api.get<PortfolioCategory>('/admin/portfolio-category/' + id + '/');
     return response.data;
   },
 
   updateCategory: async (id: number, data: Partial<PortfolioCategory>): Promise<PortfolioCategory> => {
-    const response = await fetchApi.put<PortfolioCategory>('/admin/portfolio-category/' + id + '/', data);
+    const response = await api.put<PortfolioCategory>('/admin/portfolio-category/' + id + '/', data);
     return response.data;
   },
 
   partialUpdateCategory: async (id: number, data: Partial<PortfolioCategory>): Promise<PortfolioCategory> => {
-    const response = await fetchApi.patch<PortfolioCategory>('/admin/portfolio-category/' + id + '/', data);
+    const response = await api.patch<PortfolioCategory>('/admin/portfolio-category/' + id + '/', data);
     return response.data;
   },
 
   deleteCategory: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/portfolio-category/' + id + '/');
+    await api.delete('/admin/portfolio-category/' + id + '/');
   },
 
   bulkDeleteCategories: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/portfolio-category/bulk-delete/', { ids });
+    const response = await api.post('/admin/portfolio-category/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -281,7 +281,7 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<PortfolioTag[]>(url);
+    const response = await api.get<PortfolioTag[]>(url);
     
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
@@ -309,31 +309,31 @@ export const portfolioApi = {
   },
 
   createTag: async (data: Partial<PortfolioTag>): Promise<PortfolioTag> => {
-    const response = await fetchApi.post<PortfolioTag>('/admin/portfolio-tag/', data);
+    const response = await api.post<PortfolioTag>('/admin/portfolio-tag/', data);
     return response.data;
   },
 
   getTagById: async (id: number): Promise<PortfolioTag> => {
-    const response = await fetchApi.get<PortfolioTag>('/admin/portfolio-tag/' + id + '/');
+    const response = await api.get<PortfolioTag>('/admin/portfolio-tag/' + id + '/');
     return response.data;
   },
 
   updateTag: async (id: number, data: Partial<PortfolioTag>): Promise<PortfolioTag> => {
-    const response = await fetchApi.put<PortfolioTag>('/admin/portfolio-tag/' + id + '/', data);
+    const response = await api.put<PortfolioTag>('/admin/portfolio-tag/' + id + '/', data);
     return response.data;
   },
 
   partialUpdateTag: async (id: number, data: Partial<PortfolioTag>): Promise<PortfolioTag> => {
-    const response = await fetchApi.patch<PortfolioTag>('/admin/portfolio-tag/' + id + '/', data);
+    const response = await api.patch<PortfolioTag>('/admin/portfolio-tag/' + id + '/', data);
     return response.data;
   },
 
   deleteTag: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/portfolio-tag/' + id + '/');
+    await api.delete('/admin/portfolio-tag/' + id + '/');
   },
 
   bulkDeleteTags: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/portfolio-tag/bulk-delete/', { ids });
+    const response = await api.post('/admin/portfolio-tag/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -362,7 +362,7 @@ export const portfolioApi = {
       }
     }
     
-    const response = await fetchApi.get<PortfolioOption[]>(url);
+    const response = await api.get<PortfolioOption[]>(url);
     
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
@@ -390,31 +390,31 @@ export const portfolioApi = {
   },
 
   createOption: async (data: Partial<PortfolioOption>): Promise<PortfolioOption> => {
-    const response = await fetchApi.post<PortfolioOption>('/admin/portfolio-option/', data);
+    const response = await api.post<PortfolioOption>('/admin/portfolio-option/', data);
     return response.data;
   },
 
   getOptionById: async (id: number): Promise<PortfolioOption> => {
-    const response = await fetchApi.get<PortfolioOption>('/admin/portfolio-option/' + id + '/');
+    const response = await api.get<PortfolioOption>('/admin/portfolio-option/' + id + '/');
     return response.data;
   },
 
   updateOption: async (id: number, data: Partial<PortfolioOption>): Promise<PortfolioOption> => {
-    const response = await fetchApi.put<PortfolioOption>('/admin/portfolio-option/' + id + '/', data);
+    const response = await api.put<PortfolioOption>('/admin/portfolio-option/' + id + '/', data);
     return response.data;
   },
 
   partialUpdateOption: async (id: number, data: Partial<PortfolioOption>): Promise<PortfolioOption> => {
-    const response = await fetchApi.patch<PortfolioOption>('/admin/portfolio-option/' + id + '/', data);
+    const response = await api.patch<PortfolioOption>('/admin/portfolio-option/' + id + '/', data);
     return response.data;
   },
 
   deleteOption: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/portfolio-option/' + id + '/');
+    await api.delete('/admin/portfolio-option/' + id + '/');
   },
 
   bulkDeleteOptions: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/portfolio-option/bulk-delete/', { ids });
+    const response = await api.post('/admin/portfolio-option/bulk-delete/', { ids });
     return response.data;
   },
 };

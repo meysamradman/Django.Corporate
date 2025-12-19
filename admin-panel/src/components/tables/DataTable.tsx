@@ -1,23 +1,23 @@
-"use client"
-
 import * as React from "react"
-import {
+import type {
   ColumnDef,
   SortingState,
   VisibilityState,
+  OnChangeFn,
+} from "@tanstack/react-table"
+import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  OnChangeFn,
 } from "@tanstack/react-table"
-import { TablePaginationState } from '@/types/shared/pagination';
+import type { TablePaginationState } from '@/types/shared/pagination';
 import { cn } from "@/core/utils/cn";
 
 import { Button } from "@/components/elements/Button";
-import ProtectedButton from "@/core/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import { Input } from "@/components/elements/Input"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/elements/Card"
 import {
@@ -31,13 +31,13 @@ import {
 
 import { DataTableSelectFilter } from "./DataTableSelectFilter"
 import { DataTableHierarchicalFilter } from "./DataTableHierarchicalFilter"
-import { CategoryItem } from "@/types/shared/table";
+import type { CategoryItem } from "@/types/shared/table";
 import { DataTableDateFilter } from "./DataTableDateFilter"
 import { Trash, Search, Download, Printer, FileSpreadsheet, FileText } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select"
-import {
+import type {
   SearchConfig,
   FilterOption,
   FilterConfig,

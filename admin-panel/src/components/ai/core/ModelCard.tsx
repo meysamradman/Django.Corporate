@@ -1,6 +1,3 @@
-"use client";
-
-import React from 'react';
 import { Badge } from '@/components/elements/Badge';
 import { Switch } from '@/components/elements/Switch';
 import { Card, CardContent } from '@/components/elements/Card';

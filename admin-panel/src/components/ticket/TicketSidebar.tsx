@@ -1,12 +1,10 @@
-"use client";
-
 import React from "react";
 import { Button } from "@/components/elements/Button";
-import ProtectedButton from "@/core/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import { Badge } from "@/components/elements/Badge";
 import { CircleDot, Clock, CheckCircle2, XCircle, Plus } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { TicketStatusType, TicketStatusItem } from "./types";
+import type { TicketStatusType, TicketStatusItem } from "./types";
 
 interface TicketSidebarProps {
   selectedStatus: TicketStatusType | 'all';

@@ -1,8 +1,5 @@
-"use client";
-
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -15,13 +12,9 @@ interface MediaImageProps {
     width?: number;
     height?: number;
     fill?: boolean;
-    sizes?: string;
-    priority?: boolean;
-    quality?: number;
-    unoptimized?: boolean;
     style?: React.CSSProperties;
-  showSkeleton?: boolean;
-  skeletonClassName?: string;
+    showSkeleton?: boolean;
+    skeletonClassName?: string;
 }
 
 export function MediaImage({
@@ -32,10 +25,6 @@ export function MediaImage({
                              width,
                              height,
                              fill = false,
-                             sizes,
-                             priority = false,
-                             quality = 75,
-                             unoptimized = false,
                              style,
                              showSkeleton = true,
                              skeletonClassName,
@@ -88,9 +77,6 @@ export function MediaImage({
         src: imageUrl!,
         alt: imageAlt,
         className: imageClasses,
-        priority,
-        quality,
-        unoptimized,
         style,
         onError: handleError,
         onLoad: handleLoad,
@@ -102,7 +88,7 @@ export function MediaImage({
                 {showSkeleton && !loaded && (
                     <Skeleton className={cn("absolute inset-0 h-full w-full", skeletonClassName)} />
                 )}
-                <Image {...commonProps} fill sizes={sizes || "100vw"} />
+                <img {...commonProps} className={cn(commonProps.className, "absolute inset-0 w-full h-full object-cover")} />
             </div>
         );
     }
@@ -118,7 +104,7 @@ export function MediaImage({
             {showSkeleton && !loaded && (
                 <Skeleton className={cn("absolute inset-0 h-full w-full", skeletonClassName)} />
             )}
-            <Image {...commonProps} width={width || 100} height={height || 100} sizes={sizes} />
+            <img {...commonProps} width={width || 100} height={height || 100} />
         </div>
     );
 } 

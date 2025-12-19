@@ -1,5 +1,3 @@
-'use client'
-
 import { api } from '@/core/config/api';
 import type { ApiResponse } from '@/types/api/apiResponse'
 import type { Role, PermissionGroup, RoleListParams } from '@/types/auth/permission'

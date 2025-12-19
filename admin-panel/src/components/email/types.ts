@@ -1,16 +1,18 @@
+import type React from 'react';
+
 export type MailboxType = "inbox" | "sent" | "draft" | "starred" | "spam" | "trash";
 
-export interface MailboxItem {
+export type MailboxItem = {
   id: MailboxType;
   label: string;
   icon: React.ReactNode;
   count?: number;
   color?: string;
-}
+};
 
-export interface Label {
+export type Label = {
   id: string;
   name: string;
   color: "green" | "purple" | "orange" | "red";
-}
+};
 

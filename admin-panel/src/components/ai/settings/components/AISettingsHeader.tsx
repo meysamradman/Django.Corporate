@@ -1,7 +1,4 @@
-"use client";
-
-import React from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Search, List } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
@@ -17,7 +14,7 @@ export function AISettingsHeader({ searchQuery, onSearchChange }: AISettingsHead
       <div className="flex items-center justify-between">
         <h1 className="page-title">تنظیمات AI Provider</h1>
         <Button asChild>
-          <Link href="/settings/ai/models">
+          <Link to="/settings/ai/models">
             <List className="w-4 h-4" />
             انتخاب مدل‌ها
           </Link>

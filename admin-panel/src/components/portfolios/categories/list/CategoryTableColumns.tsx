@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -19,7 +19,7 @@ export interface CategoryAction {
 }
 
 export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory>[] = []) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<PortfolioCategory>[] = [
     {
@@ -65,7 +65,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
         };
 
         return (
-          <Link href={`/portfolios/categories/${category.id}/edit`} className="flex items-center gap-3">
+          <Link to={`/portfolios/categories/${category.id}/edit`} className="flex items-center gap-3">
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={category.name} />
@@ -136,7 +136,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (category) => router.push(`/portfolios/categories/${category.id}/edit`),
+            onClick: (category) => navigate(`/portfolios/categories/${category.id}/edit`),
           },
           {
             label: "حذف",

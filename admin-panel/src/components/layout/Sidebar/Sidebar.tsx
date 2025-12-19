@@ -18,10 +18,10 @@ import type { MenuItem } from '@/types/shared/menu';
 import {SubMenuItem} from "./SubMenuItem";
 import {useAuth} from "@/core/auth/AuthContext";
 import {useLocation, useNavigate} from "react-router-dom";
-import {toast} from "@/components/elements/Sonner";
+import {toast} from "sonner";
 import { getError } from "@/core/messages/errors";
 import { useAdminStore } from "./stores/sidebarStore";
-import { getUserRoleDisplayText } from "@/core/permissions/config/roles";
+import { getUserRoleDisplayText } from "@/core/permissions/roles";
 
 interface SidebarProps {
   isOpen: boolean;

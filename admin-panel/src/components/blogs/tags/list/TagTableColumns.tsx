@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { BlogTag } from "@/types/blog/tags/blogTag";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -18,7 +18,7 @@ export interface TagAction {
 }
 
 export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<BlogTag>[] = [
     {
@@ -52,7 +52,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => (
         <ProtectedLink 
-          href={`/blogs/tags/${row.original.id}/edit`} 
+          to={`/blogs/tags/${row.original.id}/edit`} 
           permission="blog_tags.update"
           className="table-cell-primary table-cell-wide"
         >
@@ -126,7 +126,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (tag) => router.push(`/blogs/tags/${tag.id}/edit`),
+            onClick: (tag) => navigate(`/blogs/tags/${tag.id}/edit`),
           },
           {
             label: "حذف",

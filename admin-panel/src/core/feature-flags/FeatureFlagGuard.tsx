@@ -1,6 +1,4 @@
-'use client';
-
-import { notFound } from 'next/navigation';
+import { Navigate } from 'react-router-dom';
 import { useFeatureFlag } from './useFeatureFlags';
 import { Loader } from '@/components/elements/Loader';
 
@@ -26,7 +24,7 @@ export function FeatureFlagGuard({
   }
 
   if (!isActive) {
-    notFound();
+    return <Navigate to="/404" replace />;
   }
 
   return <>{children}</>;

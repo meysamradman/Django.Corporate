@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useRef } from 'react';
 import { 
   X, 
@@ -19,7 +17,7 @@ import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { TruncatedText } from "@/components/elements/TruncatedText";
-import { MediaFile } from '../hooks/useMediaUpload';
+import type { MediaFile } from '../hooks/useMediaUpload';
 import { getFileCategory, formatBytes } from '../services';
 
 interface FileItemProps {

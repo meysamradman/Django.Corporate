@@ -1,4 +1,4 @@
-import { Base } from "@/types/shared/base";
+import type { Base } from "@/types/shared/base";
 
 export interface FAQ extends Base {
   question: string;

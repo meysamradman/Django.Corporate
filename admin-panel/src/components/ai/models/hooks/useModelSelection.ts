@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useEffect } from 'react';
-import { aiApi } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
 
 export interface ModelData {

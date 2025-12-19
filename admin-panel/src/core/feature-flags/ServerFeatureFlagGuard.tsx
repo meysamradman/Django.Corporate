@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { Navigate } from 'react-router-dom';
 import { getFeatureFlags } from './getFeatureFlags';
 
 interface ServerFeatureFlagGuardProps {
@@ -18,7 +18,7 @@ export async function ServerFeatureFlagGuard({
   const flags = await getFeatureFlags();
   
   if (!flags[featureKey]) {
-    notFound();
+    return <Navigate to="/404" replace />;
   }
 
   return <>{children}</>;

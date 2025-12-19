@@ -1,11 +1,9 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
-import { UseFormReturn } from "react-hook-form";
-import { UserFormValues } from "@/components/users/validations/userSchema";
+import type { UseFormReturn } from "react-hook-form";
+import type { UserFormValues } from "@/components/users/validations/userSchema";
 import { User } from "lucide-react";
 import { filterNumericOnly } from "@/core/filters/numeric";
 

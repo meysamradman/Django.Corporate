@@ -1,7 +1,5 @@
-"use client";
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { aiApi } from '@/api/ai/route';
+import { useState, useEffect, useMemo, type MutableRefObject } from 'react';
+import { aiApi } from '@/api/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { ModelSelector } from '@/components/ai/core';
 import type { ModelCardModel } from '@/components/ai/core';
@@ -19,7 +17,7 @@ interface HuggingFaceModelSelectorContentProps {
   onSave: (selectedModels: HuggingFaceModel[]) => void;
   onSelectionChange?: (selectedCount: number) => void;
   capability?: 'chat' | 'content' | 'image' | 'audio';
-  onSaveRef?: React.MutableRefObject<(() => void) | undefined>;
+  onSaveRef?: MutableRefObject<(() => void) | undefined>;
 }
 
 const TASK_MAP: Record<string, string> = {
@@ -50,7 +48,6 @@ export function HuggingFaceModelSelectorContent({
       try {
         setLoading(true);
         const task = TASK_MAP[capability];
-        // استفاده از endpoint مناسب بر اساس capability
         let response;
         if (capability === 'image') {
           response = await aiApi.image.getHuggingFaceModels(task);
@@ -63,12 +60,10 @@ export function HuggingFaceModelSelectorContent({
         }
         
         if (response.metaData.status === 'success' && response.data) {
-          // Backend حالا data.models برمی‌گردونه
           const responseData = response.data as any;
           const modelsData = responseData.models || (Array.isArray(response.data) ? response.data : []);
           
           const mappedModels: HuggingFaceModel[] = modelsData.map((model: any) => {
-            // HuggingFace همه مدل‌هایش رایگان است
             const isFree = true;
             const priceDisplay = 'رایگان';
             

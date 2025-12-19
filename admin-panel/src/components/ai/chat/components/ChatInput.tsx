@@ -1,10 +1,9 @@
-"use client";
-
+import { type RefObject, type KeyboardEvent, type ChangeEvent } from 'react';
 import { Button } from '@/components/elements/Button';
 import { Textarea } from '@/components/elements/Textarea';
 import { Loader2, Send, Paperclip, X } from 'lucide-react';
 import { ProviderSelector } from './ProviderSelector';
-import { AvailableProvider } from '@/types/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 
 interface ChatInputProps {
     compact?: boolean;
@@ -13,17 +12,15 @@ interface ChatInputProps {
     sending: boolean;
     selectedProvider: string;
     handleSend: () => void;
-    handleKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-    textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+    handleKeyPress: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
+    textareaRef: RefObject<HTMLTextAreaElement | null>;
     
-    // File upload
     attachedFile: File | null;
-    fileInputRef: React.RefObject<HTMLInputElement | null>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleFileUpload: () => void;
-    handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
     removeAttachedFile: () => void;
     
-    // Provider selector
     loadingProviders: boolean;
     availableProviders: AvailableProvider[];
     setSelectedProvider: (provider: string) => void;
@@ -90,14 +87,11 @@ export function ChatInput({
         );
     }
 
-    // Full page version
     return (
         <div className="sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm z-10">
             <div className="max-w-4xl mx-auto px-4 py-4">
                 <div className="bg-card rounded-2xl shadow-lg border border-br p-4">
-                    {/* Textarea for message input */}
                     <div className="relative">
-                        {/* Attached File Preview */}
                         {attachedFile && (
                             <div className="mb-2 p-2 bg-bg rounded-lg border border-br flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -135,7 +129,6 @@ export function ChatInput({
                             }}
                         />
                         
-                        {/* Hidden File Input */}
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -145,9 +138,7 @@ export function ChatInput({
                         />
                     </div>
 
-                    {/* Bottom controls */}
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-br">
-                        {/* Left side - Provider selector */}
                         <ProviderSelector
                             compact={false}
                             loadingProviders={loadingProviders}
@@ -159,9 +150,7 @@ export function ChatInput({
                             selectedProviderData={selectedProviderData}
                         />
 
-                        {/* Right side - File Upload icon */}
                         <div className="flex items-center gap-2">
-                            {/* Paperclip Icon - File Upload */}
                             <button
                                 type="button"
                                 onClick={handleFileUpload}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { aiApi } from '@/api/ai/route';
-import { AvailableProvider } from '@/types/ai/ai';
+import { aiApi } from '@/api/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 
 interface UseChatProvidersOptions {
     compact?: boolean;

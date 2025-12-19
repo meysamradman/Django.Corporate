@@ -1,9 +1,7 @@
-'use client';
-
 import React, { useEffect } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { usePermissions } from '../utils/permissionUtils';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -22,7 +20,7 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
     const { isAuthenticated, isLoading, user } = useAuth();
     const { hasPermission, hasAllPermissions, hasAnyPermission } = usePermissions();
-    const router = useRouter();
+    const navigate = useNavigate();
 
     let hasRequiredAccess = false;
     if (user?.is_superuser) {
@@ -42,10 +40,10 @@ export function ProtectedRoute({
     useEffect(() => {
         if (!isLoading) {
             if (isAuthenticated && !hasRequiredAccess && (permission || permissions)) {
-                router.push(fallbackPath);
+                navigate(fallbackPath);
             }
         }
-    }, [isLoading, isAuthenticated, hasRequiredAccess, permission, permissions, fallbackPath, router, user]);
+    }, [isLoading, isAuthenticated, hasRequiredAccess, permission, permissions, fallbackPath, navigate, user]);
 
     if (isLoading) {
         return null;

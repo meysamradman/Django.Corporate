@@ -1,8 +1,6 @@
-"use client";
-
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Blog } from "@/types/blog/blog";
+import type { Blog } from "@/types/blog/blog";
 import { Badge } from "@/components/elements/Badge";
 import { FolderOpen, Tag, Globe, Eye, EyeOff, FileText } from "lucide-react";
 

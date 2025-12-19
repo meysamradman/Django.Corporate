@@ -1,12 +1,10 @@
-"use client";
-
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { aiApi } from '@/api/ai/route';
-import { AvailableProvider } from '@/types/ai/ai';
-import { mediaApi } from '@/api/media/route';
-import { Media } from '@/types/shared/media';
+import { aiApi } from '@/api/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
+import { mediaApi } from '@/api/media/media';
+import type { Media } from '@/types/shared/media';
 import { toast } from '@/components/elements/Sonner';
 import { msg } from '@/core/messages';
 import { ImageInputForm } from './ImageInputForm';
@@ -39,7 +37,9 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
 
         if (user && !providersFetched.current) {
 
-            const hasAIPermission = user?.permissions?.some((p: string) => 
+            const permissionsObject = user?.permissions as any;
+            const permissionsArray = (permissionsObject?.permissions || []) as string[];
+            const hasAIPermission = permissionsArray.some((p: string) => 
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
             

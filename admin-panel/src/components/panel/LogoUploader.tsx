@@ -1,11 +1,9 @@
-'use client';
-
 import React, { useState } from 'react';
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { ImagePlus, X, Camera } from "lucide-react";
 
 interface LogoUploaderProps {

@@ -1,7 +1,7 @@
-import { Media } from "@/types/shared/media";
-import { Base } from "@/types/shared/base";
-import { ProvinceCompact, CityCompact } from "@/types/shared/location";
-import { PermissionProfile } from "@/types/auth/permission";
+import type { Media } from "@/types/shared/media";
+import type { Base } from "@/types/shared/base";
+import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import type { PermissionProfile } from "@/types/auth/permission";
 
 export interface User extends Base {
     mobile: string;

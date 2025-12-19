@@ -1,16 +1,13 @@
-"use client";
-
 import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
+import type { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import NextImage from "next/image";
 import { UploadCloud, X, AlertCircle, Search, Image as ImageIcon, Globe } from "lucide-react";
 
 interface SEOTabFormProps {
@@ -329,12 +326,10 @@ export default function SEOTab(props: SEOTabProps) {
                     >
                             {ogImageValue && ogImageUrl ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
-                                    <NextImage
+                                    <img
                                         src={ogImageUrl}
                                         alt={ogImageValue.alt_text || "تصویر Open Graph"}
-                                        fill
-                                        className="object-cover"
-                                        unoptimized
+                                        className="object-cover w-full h-full"
                                     />
                                     <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button

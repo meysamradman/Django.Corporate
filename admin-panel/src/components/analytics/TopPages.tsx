@@ -1,5 +1,3 @@
-"use client";
-
 import { FileText } from "lucide-react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { formatNumber } from "@/core/utils/format";

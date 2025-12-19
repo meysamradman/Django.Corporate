@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { Calendar } from "lucide-react"
 import { Input } from "@/components/elements/Input"

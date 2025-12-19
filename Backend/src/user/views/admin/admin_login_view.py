@@ -178,10 +178,12 @@ class AdminLoginView(APIView):
                 )
                 
                 csrf_token = get_token(request)
+                # ✅ CSRF cookie باید همزمان با session منقضی شود (3 روز)
+                csrf_max_age = settings.ADMIN_SESSION_TIMEOUT_SECONDS
                 response.set_cookie(
                     'csrftoken',
                     csrf_token,
-                    max_age=3600,
+                    max_age=csrf_max_age,
                     httponly=False,
                     samesite='Lax',
                     secure=settings.CSRF_COOKIE_SECURE,

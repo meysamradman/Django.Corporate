@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
@@ -13,10 +11,10 @@ import { Switch } from "@/components/elements/Switch";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText, Globe, Power } from "lucide-react";
-import { blogApi } from "@/api/blogs/route";
-import { BlogCategory } from "@/types/blog/category/blogCategory";
-import { BlogTag } from "@/types/blog/tags/blogTag";
-import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
+import { blogApi } from "@/api/blogs/blogs";
+import type { BlogCategory } from "@/types/blog/category/blogCategory";
+import type { BlogTag } from "@/types/blog/tags/blogTag";
+import type { BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { formatSlug, generateSlug } from '@/core/slug/generate';
 import { QuickCreateDialog } from "./QuickCreateDialog";
 

@@ -1,12 +1,10 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
 import { Input } from '@/components/elements/Input';
 import { Textarea } from '@/components/elements/Textarea';
-import { AIContentGenerationResponse } from '@/types/ai/ai';
+import type { AIContentGenerationResponse } from '@/types/ai/ai';
 import { FileText, Copy, Check } from 'lucide-react';
 import { toast } from '@/components/elements/Sonner';
 import { getAI, getAIUI } from '@/core/messages/modules/ai';

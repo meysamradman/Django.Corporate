@@ -1,8 +1,7 @@
-"use client";
-
 import { Card, CardContent } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
-import { Settings, Sparkles, Mic, FileText, MessageSquare, LucideIcon } from 'lucide-react';
+import { Settings, Sparkles, Mic, FileText, MessageSquare } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type AIType = 'image' | 'audio' | 'content' | 'chat';
 

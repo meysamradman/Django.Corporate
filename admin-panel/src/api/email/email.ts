@@ -1,8 +1,8 @@
 import { api } from '@/core/config/api';
-import { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { ApiResponse } from "@/types/api/apiResponse";
+import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
+import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
-import {
+import type {
   EmailMessage,
   EmailAttachment,
   EmailMessageCreate,
@@ -33,7 +33,7 @@ class EmailApi {
       ? `${this.baseUrl}?${queryParams.toString()}`
       : `${this.baseUrl}/?${queryParams.toString()}`;
     
-    const response = await fetchApi.get<EmailMessage[]>(baseUrlWithQuery);
+    const response = await api.get<EmailMessage[]>(baseUrlWithQuery);
 
     if (response.metaData.status !== 'success') {
       throw new Error(response.metaData.message || 'خطا در دریافت لیست پیام‌ها');
@@ -55,7 +55,7 @@ class EmailApi {
   }
 
   async getById(id: number | string): Promise<EmailMessage> {
-    const response = await fetchApi.get<EmailMessage>(
+    const response = await api.get<EmailMessage>(
       `${this.baseUrl}${id}/`
     );
 
@@ -67,7 +67,7 @@ class EmailApi {
   }
 
   async create(data: EmailMessageCreate): Promise<EmailMessage> {
-    const response = await fetchApi.post<EmailMessage>(
+    const response = await api.post<EmailMessage>(
       this.baseUrl,
       data as unknown as Record<string, unknown>
     );
@@ -80,7 +80,7 @@ class EmailApi {
   }
 
   async update(id: number | string, data: EmailMessageUpdate): Promise<EmailMessage> {
-    const response = await fetchApi.patch<EmailMessage>(
+    const response = await api.patch<EmailMessage>(
       `${this.baseUrl}${id}/`,
       data as unknown as Record<string, unknown>
     );
@@ -93,7 +93,7 @@ class EmailApi {
   }
 
   async delete(id: number | string): Promise<void> {
-    const response = await fetchApi.delete<void>(
+    const response = await api.delete<void>(
       `${this.baseUrl}${id}/`
     );
 
@@ -103,7 +103,7 @@ class EmailApi {
   }
 
   async markAsRead(id: number | string): Promise<EmailMessage> {
-    const response = await fetchApi.post<EmailMessage>(
+    const response = await api.post<EmailMessage>(
       `${this.baseUrl}${id}/mark_as_read/`
     );
 
@@ -115,7 +115,7 @@ class EmailApi {
   }
 
   async markAsReplied(id: number | string, replyMessage: string): Promise<EmailMessage> {
-    const response = await fetchApi.post<EmailMessage>(
+    const response = await api.post<EmailMessage>(
       `${this.baseUrl}${id}/mark_as_replied/`,
       { reply_message: replyMessage }
     );
@@ -128,7 +128,7 @@ class EmailApi {
   }
 
   async toggleStar(id: number | string): Promise<EmailMessage> {
-    const response = await fetchApi.post<EmailMessage>(
+    const response = await api.post<EmailMessage>(
       `${this.baseUrl}${id}/toggle_star/`
     );
 
@@ -140,7 +140,7 @@ class EmailApi {
   }
 
   async getStats(): Promise<EmailStats> {
-    const response = await fetchApi.get<EmailStats>(
+    const response = await api.get<EmailStats>(
       `${this.baseUrl}/stats/`
     );
 

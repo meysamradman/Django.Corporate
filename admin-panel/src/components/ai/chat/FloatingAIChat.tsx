@@ -1,11 +1,9 @@
-"use client";
-
 import { lazy, Suspense } from 'react';
 import { X, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
 import { HelpGuide } from '@/components/elements/HelpGuide';
 import { useAIChat } from './AIChatContext';
-import { useCanManageAIChat } from '@/core/permissions/hooks/useUIPermissions';
+import { useCanManageAIChat } from '@/components/admins/permissions/hooks/useUIPermissions';
 import { cn } from '@/core/utils/cn';
 
 const AIChat = lazy(() => import('./AIChat').then(module => ({ default: module.AIChat })));

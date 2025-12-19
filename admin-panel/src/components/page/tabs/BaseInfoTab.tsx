@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -8,7 +6,7 @@ import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import LogoUploader from "@/components/panel/LogoUploader";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { FileText, Image as ImageIcon } from "lucide-react";
 
 interface BaseInfoTabProps {

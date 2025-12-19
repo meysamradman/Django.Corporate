@@ -1,11 +1,9 @@
-"use client";
-
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/elements/Badge";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { Role } from "@/types/auth/permission";
+import type { Role } from "@/types/auth/permission";
 import { formatDate } from "@/core/utils/format";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 

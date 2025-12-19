@@ -1,11 +1,11 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { Portfolio } from "@/types/portfolio/portfolio";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Portfolio } from "@/types/portfolio/portfolio";
 import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -25,7 +25,7 @@ export const usePortfolioColumns = (
   actions: DataTableRowAction<Portfolio>[] = [],
   onToggleActive?: (portfolio: Portfolio) => void
 ) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<Portfolio>[] = [
     {
@@ -70,7 +70,7 @@ export const usePortfolioColumns = (
 
         return (
           <ProtectedLink 
-            href={`/portfolios/${portfolio.id}/view`} 
+            to={`/portfolios/${portfolio.id}/view`} 
             permission="portfolio.read"
             className="flex items-center gap-3"
           >
@@ -237,7 +237,7 @@ export const usePortfolioColumns = (
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (portfolio) => router.push(`/portfolios/${portfolio.id}/edit`),
+            onClick: (portfolio) => navigate(`/portfolios/${portfolio.id}/edit`),
           },
           {
             label: "حذف",

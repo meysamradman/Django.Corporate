@@ -1,9 +1,7 @@
-'use client';
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPanelSettings } from '@/api/panel/route';
-import { PanelSettings } from '@/types/settings/panelSettings';
-import { fetchApi } from '@/core/config/fetch';
+import { getPanelSettings } from '@/api/panel/panel';
+import type { PanelSettings } from '@/types/settings/panelSettings';
+import { api } from '@/core/config/api';
 import { toast } from '@/components/elements/Sonner';
 
 export function usePanelSettings() {
@@ -20,7 +18,7 @@ export function useUpdatePanelSettings() {
 
   return useMutation({
     mutationFn: async (data: Partial<PanelSettings> | FormData) => {
-      const response = await fetchApi.put<PanelSettings>('/admin/panel-settings/update/', data);
+      const response = await api.put<PanelSettings>('/admin/panel-settings/update/', data);
       return response.data;
     },
     onSuccess: (updatedData) => {

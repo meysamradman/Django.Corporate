@@ -1,5 +1,3 @@
-"use client";
-
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
 import { Monitor, Globe, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
 import {
@@ -11,13 +9,13 @@ import {
   CardTitle,
 } from "@/components/elements/Card";
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
 } from "@/components/elements/Chart";
+import type { ChartConfig } from "@/components/elements/Chart";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { formatNumber, getPersianYear } from "@/core/utils/format";
 import { Badge } from "@/components/elements/Badge";

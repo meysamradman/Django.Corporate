@@ -1,13 +1,11 @@
-"use client";
-
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Grid3x3, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/elements/Input';
 import { Button } from '@/components/elements/Button';
 import { Badge } from '@/components/elements/Badge';
 import { Spinner } from '@/components/elements/Spinner';
-import { ModelCard, ModelCardModel } from './ModelCard';
-import { CapabilityFilter, CapabilityType } from './CapabilityFilter';
+import { ModelCard, type ModelCardModel } from './ModelCard';
+import { CapabilityFilter, type CapabilityType } from './CapabilityFilter';
 import { useModelSelection } from '../models/hooks/useModelSelection';
 
 interface ModelSelectorProps {
@@ -46,11 +44,9 @@ export function ModelSelector({
     mode
   });
 
-  // فیلتر و جستجو
   const { freeModels, paidModels } = useMemo(() => {
     let filtered = models;
 
-    // فیلتر capability
     if (showCapabilityFilter && capabilityFilter !== 'all') {
       filtered = filtered.filter(model => 
         model.category === capabilityFilter ||
@@ -58,7 +54,6 @@ export function ModelSelector({
       );
     }
 
-    // جستجو
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(model =>
@@ -68,21 +63,17 @@ export function ModelSelector({
       );
     }
 
-    // تقسیم به رایگان و پولی
     const free = filtered.filter(m => m.free);
     const paid = filtered.filter(m => !m.free);
 
-    // مرتب‌سازی هر گروه: 1) فعال اول 2) به ترتیب نام
     const sortModels = (models: typeof filtered) => {
       return models.sort((a, b) => {
         const aActive = activeModels.has(a.id);
         const bActive = activeModels.has(b.id);
         
-        // اول: مدل‌های فعال
         if (aActive && !bActive) return -1;
         if (!aActive && bActive) return 1;
         
-        // دوم: به ترتیب حروف الفبا
         return a.name.localeCompare(b.name);
       });
     };
@@ -97,7 +88,6 @@ export function ModelSelector({
     return [...freeModels, ...paidModels];
   }, [freeModels, paidModels]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredModels.length / modelsPerPage);
   const paginatedModels = useMemo(() => {
     const start = (currentPage - 1) * modelsPerPage;
@@ -105,7 +95,6 @@ export function ModelSelector({
     return filteredModels.slice(start, end);
   }, [filteredModels, currentPage, modelsPerPage]);
 
-  // تقسیم مدل‌های paginated به رایگان و پولی
   const paginatedFreeModels = useMemo(() => {
     return paginatedModels.filter(m => m.free);
   }, [paginatedModels]);
@@ -114,8 +103,6 @@ export function ModelSelector({
     return paginatedModels.filter(m => !m.free);
   }, [paginatedModels]);
 
-
-  // تعداد مدل‌ها برای هر capability
   const capabilityCounts = useMemo(() => {
     if (!showCapabilityFilter) return undefined;
     
@@ -139,7 +126,6 @@ export function ModelSelector({
 
   return (
     <div className="space-y-6">
-      {/* Capability Filter */}
       {showCapabilityFilter && (
         <CapabilityFilter
           selected={capabilityFilter}
@@ -151,7 +137,6 @@ export function ModelSelector({
         />
       )}
 
-      {/* Search & View Mode */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary-light dark:text-text-secondary-dark" />
@@ -185,7 +170,6 @@ export function ModelSelector({
         </div>
       </div>
 
-      {/* Stats */}
       <div className="flex items-center justify-between text-sm text-text-secondary-light dark:text-text-secondary-dark">
         <span>
           نمایش {paginatedModels.length} از {filteredModels.length} مدل
@@ -197,14 +181,12 @@ export function ModelSelector({
         </span>
       </div>
 
-      {/* Models Grid/List */}
       {paginatedModels.length === 0 ? (
         <div className="text-center py-12 text-text-secondary-light dark:text-text-secondary-dark">
           {searchQuery ? 'مدلی با این مشخصات یافت نشد' : 'مدلی موجود نیست'}
         </div>
       ) : (
         <div className="space-y-8">
-          {/* مدل‌های رایگان */}
           {paginatedFreeModels.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -234,7 +216,6 @@ export function ModelSelector({
             </div>
           )}
 
-          {/* مدل‌های پولی */}
           {paginatedPaidModels.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -266,7 +247,6 @@ export function ModelSelector({
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button

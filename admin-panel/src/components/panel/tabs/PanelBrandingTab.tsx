@@ -1,7 +1,6 @@
-'use client';
-
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useForm, SubmitHandler} from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import type { SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/elements/Form";
@@ -12,7 +11,7 @@ import LogoUploader from '../LogoUploader';
 import { usePanelSettings, useUpdatePanelSettings } from '../hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Media } from '@/types/shared/media';
+import type { Media } from '@/types/shared/media';
 import { 
     FileText,
 } from 'lucide-react';

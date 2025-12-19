@@ -1,8 +1,8 @@
 import { api } from '@/core/config/api';
-import { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { ApiResponse } from "@/types/api/apiResponse";
+import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
+import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
-import {
+import type {
   Ticket,
   TicketMessage,
   TicketCreate,
@@ -35,7 +35,7 @@ class TicketApi {
       ? `${this.baseUrl}?${queryParams.toString()}`
       : `${this.baseUrl}/?${queryParams.toString()}`;
     
-    const response = await fetchApi.get<Ticket[]>(baseUrlWithQuery);
+    const response = await api.get<Ticket[]>(baseUrlWithQuery);
 
     if (response.metaData.status !== 'success') {
       throw new Error(response.metaData.message || 'Error fetching tickets');
@@ -57,7 +57,7 @@ class TicketApi {
   }
 
   async getById(id: number | string): Promise<Ticket> {
-    const response = await fetchApi.get<Ticket>(
+    const response = await api.get<Ticket>(
       `${this.baseUrl}${id}/`
     );
 
@@ -69,7 +69,7 @@ class TicketApi {
   }
 
   async create(data: TicketCreate): Promise<Ticket> {
-    const response = await fetchApi.post<Ticket>(
+    const response = await api.post<Ticket>(
       `${this.baseUrl}`,
       data as unknown as Record<string, unknown>
     );
@@ -82,7 +82,7 @@ class TicketApi {
   }
 
   async update(id: number | string, data: TicketUpdate): Promise<Ticket> {
-    const response = await fetchApi.put<Ticket>(
+    const response = await api.put<Ticket>(
       `${this.baseUrl}${id}/`,
       data as unknown as Record<string, unknown>
     );
@@ -95,7 +95,7 @@ class TicketApi {
   }
 
   async delete(id: number | string): Promise<void> {
-    const response = await fetchApi.delete<void>(
+    const response = await api.delete<void>(
       `${this.baseUrl}${id}/`
     );
 
@@ -105,7 +105,7 @@ class TicketApi {
   }
 
   async assign(id: number | string, adminId: number | null): Promise<Ticket> {
-    const response = await fetchApi.post<Ticket>(
+    const response = await api.post<Ticket>(
       `${this.baseUrl}${id}/assign/`,
       { admin_id: adminId } as unknown as Record<string, unknown>
     );
@@ -118,7 +118,7 @@ class TicketApi {
   }
 
   async updateStatus(id: number | string, status: Ticket['status']): Promise<Ticket> {
-    const response = await fetchApi.post<Ticket>(
+    const response = await api.post<Ticket>(
       `${this.baseUrl}${id}/update_status/`,
       { status } as unknown as Record<string, unknown>
     );
@@ -131,7 +131,7 @@ class TicketApi {
   }
 
   async getMessages(ticketId: number | string): Promise<TicketMessage[]> {
-    const response = await fetchApi.get<TicketMessage[]>(
+    const response = await api.get<TicketMessage[]>(
       `${this.messageBaseUrl}?ticket_id=${ticketId}`
     );
 
@@ -143,7 +143,7 @@ class TicketApi {
   }
 
   async createMessage(data: TicketMessageCreate): Promise<TicketMessage> {
-    const response = await fetchApi.post<TicketMessage>(
+    const response = await api.post<TicketMessage>(
       `${this.messageBaseUrl}`,
       data as unknown as Record<string, unknown>
     );
@@ -156,7 +156,7 @@ class TicketApi {
   }
 
   async markMessageRead(messageId: number | string): Promise<TicketMessage> {
-    const response = await fetchApi.post<TicketMessage>(
+    const response = await api.post<TicketMessage>(
       `${this.messageBaseUrl}${messageId}/mark_read/`
     );
 
@@ -168,7 +168,7 @@ class TicketApi {
   }
 
   async markTicketAsRead(ticketId: number | string): Promise<Ticket> {
-    const response = await fetchApi.post<Ticket>(
+    const response = await api.post<Ticket>(
       `${this.baseUrl}${ticketId}/mark_as_read/`
     );
 

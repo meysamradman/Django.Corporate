@@ -1,7 +1,5 @@
-"use client";
-
 import React from "react";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { MediaGallery } from "@/components/media/galleries/MediaGallery";
 
 interface BlogMediaGalleryProps {

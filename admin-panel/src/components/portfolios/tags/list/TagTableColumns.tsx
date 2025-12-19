@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -17,7 +17,7 @@ export interface TagAction {
 }
 
 export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<PortfolioTag>[] = [
     {
@@ -50,7 +50,7 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => (
-        <Link href={`/portfolios/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
+        <Link to={`/portfolios/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
           {row.original.name}
         </Link>
       ),
@@ -121,7 +121,7 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (tag) => router.push(`/portfolios/tags/${tag.id}/edit`),
+            onClick: (tag) => navigate(`/portfolios/tags/${tag.id}/edit`),
           },
           {
             label: "حذف",

@@ -1,15 +1,12 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { toast } from "@/components/elements/Sonner";
-import { UserWithProfile } from "@/types/auth/user";
+import React, { useState, useEffect, lazy, Suspense } from "react";
+import { toast } from "sonner";
+import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound } from "lucide-react";
 import { ProfileHeader } from "@/components/users/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { adminApi } from "@/api/admins/route";
-import dynamic from "next/dynamic";
-import { Media } from "@/types/shared/media";
+import { adminApi } from "@/api/admins/admins";
+import type { Media } from "@/types/shared/media";
 import { getCrud, getValidation } from '@/core/messages';
 
 const TabContentSkeleton = () => (
@@ -27,15 +24,8 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-const AccountTab = dynamic(
-    () => import("@/components/users/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })),
-    { loading: () => <TabContentSkeleton />, ssr: false }
-);
-
-const SecurityTab = dynamic(
-    () => import("@/components/users/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })),
-    { loading: () => <TabContentSkeleton />, ssr: false }
-);
+const AccountTab = lazy(() => import("@/components/users/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })));
+const SecurityTab = lazy(() => import("@/components/users/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })));
 
 interface EditUserFormProps {
     userData: UserWithProfile;
@@ -223,22 +213,26 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 </TabsList>
 
                 <TabsContent value="account">
-                    <AccountTab
-                        user={userData}
-                        formData={formData}
-                        editMode={editMode}
-                        setEditMode={setEditMode}
-                        handleInputChange={handleInputChange}
-                        handleSaveProfile={handleSaveProfile}
-                        isSaving={isSaving}
-                        fieldErrors={fieldErrors}
-                        onProvinceChange={handleProvinceChange}
-                        onCityChange={handleCityChange}
-                    />
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <AccountTab
+                            user={userData}
+                            formData={formData}
+                            editMode={editMode}
+                            setEditMode={setEditMode}
+                            handleInputChange={handleInputChange}
+                            handleSaveProfile={handleSaveProfile}
+                            isSaving={isSaving}
+                            fieldErrors={fieldErrors}
+                            onProvinceChange={handleProvinceChange}
+                            onCityChange={handleCityChange}
+                        />
+                    </Suspense>
                 </TabsContent>
 
                 <TabsContent value="security">
-                    <SecurityTab />
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <SecurityTab />
+                    </Suspense>
                 </TabsContent>
             </Tabs>
         </div>

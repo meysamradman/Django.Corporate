@@ -1,17 +1,15 @@
-"use client";
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
-import { FAQ } from "@/types/chatbot/chatbot";
+import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";
 import { FAQDialog } from "./FAQDialog";
-import { ProtectedButton } from "@/core/permissions";
+import { ProtectedButton } from "@/components/admins/permissions";
 import { Skeleton } from "@/components/elements/Skeleton";
 import {
   AlertDialog,

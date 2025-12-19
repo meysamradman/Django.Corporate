@@ -1,13 +1,11 @@
-"use client";
-
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Badge } from "@/components/elements/Badge";
 import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Paperclip, Download, Send, Star } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { EmailMessage } from "@/types/email/emailMessage";
-import { MailboxType } from "./types";
-import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
+import type { EmailMessage } from "@/types/email/emailMessage";
+import type { MailboxType } from "./types";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 
 interface EmailDetailViewProps {
   email: EmailMessage | null;

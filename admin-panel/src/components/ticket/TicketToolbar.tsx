@@ -1,9 +1,7 @@
-"use client";
-
 import React from "react";
 import { Button } from "@/components/elements/Button";
 import { RefreshCw } from "lucide-react";
-import ProtectedButton from "@/core/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 
 interface TicketToolbarProps {
   onRefresh?: () => void;

@@ -142,6 +142,7 @@ export function useModelSelection({
       onSuccess?.();
       await fetchActiveModels();
     } catch (error: any) {
+    } catch (error: any) {
       let errorMessage = 'خطا در تغییر وضعیت مدل';
       
       if (error?.response?._data?.metaData?.message) {

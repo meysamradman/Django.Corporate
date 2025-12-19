@@ -1,5 +1,3 @@
-'use client';
-
 import { usePermission } from '../context/PermissionContext';
 import type { UIPermissions } from '@/types/auth/permission';
 
@@ -106,4 +104,9 @@ export function useCanViewContentStats() {
 export function useCanManageStatistics() {
   const { canManageStatistics } = useUIPermissions();
   return canManageStatistics;
+}
+
+export function useCanViewDashboardStats() {
+  const { canViewDashboardStats } = useUIPermissions();
+  return canViewDashboardStats;
 }

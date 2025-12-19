@@ -1,4 +1,4 @@
-import { AvailableProvider } from '@/types/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 
 export const getProviderDisplayName = (provider: AvailableProvider): string => {
     if ((provider as any).display_name) {

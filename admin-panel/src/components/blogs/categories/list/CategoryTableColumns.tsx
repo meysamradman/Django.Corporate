@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { BlogCategory } from "@/types/blog/category/blogCategory";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -20,7 +20,7 @@ export interface CategoryAction {
 }
 
 export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] = []) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   
   const baseColumns: ColumnDef<BlogCategory>[] = [
     {
@@ -67,7 +67,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
 
         return (
           <ProtectedLink 
-            href={`/blogs/categories/${category.id}/edit`} 
+            to={`/blogs/categories/${category.id}/edit`} 
             permission="blog_categories.update"
             className="flex items-center gap-3"
           >
@@ -141,7 +141,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
           {
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
-            onClick: (category) => router.push(`/blogs/categories/${category.id}/edit`),
+            onClick: (category) => navigate(`/blogs/categories/${category.id}/edit`),
           },
           {
             label: "حذف",

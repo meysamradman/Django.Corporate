@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { Label } from "@/components/elements/Label";
 import { Input } from "@/components/elements/Input";
+import { Textarea } from "@/components/elements/Textarea";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 
@@ -82,6 +83,41 @@ export function FormFieldInput({
     >
       <Input 
         {...inputProps}
+        className={cn(
+          error && "border-red-1 focus-visible:ring-red-1",
+          className
+        )}
+      />
+    </FormField>
+  );
+}
+
+interface FormFieldTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'children'> {
+  label: string;
+  error?: string;
+  required?: boolean;
+  description?: string;
+}
+
+export function FormFieldTextarea({
+  label,
+  error,
+  required,
+  description,
+  className,
+  ...textareaProps
+}: FormFieldTextareaProps) {
+  return (
+    <FormField 
+      label={label} 
+      error={error} 
+      required={required}
+      htmlFor={textareaProps.id}
+      description={description}
+      className={className}
+    >
+      <Textarea 
+        {...textareaProps}
         className={cn(
           error && "border-red-1 focus-visible:ring-red-1",
           className

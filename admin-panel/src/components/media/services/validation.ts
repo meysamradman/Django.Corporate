@@ -1,7 +1,5 @@
-"use client";
-
-import { Media } from '@/types/shared/media';
-import { MediaType } from './config';
+import type { Media } from '@/types/shared/media';
+import type { MediaType } from '../mediaConfig';
 import { mediaConfig } from '../mediaConfig';
 
 export interface ValidationResult {

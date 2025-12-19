@@ -1,12 +1,10 @@
-"use client";
-
 import React from "react";
 import { Button } from "@/components/elements/Button";
-import ProtectedButton from "@/core/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import { Badge } from "@/components/elements/Badge";
 import { Send, FileEdit, Star, AlertCircle, Trash2, Inbox as InboxIcon } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { MailboxType, MailboxItem } from "./types";
+import type { MailboxType, MailboxItem } from "./types";
 
 interface EmailSidebarProps {
   selectedMailbox: MailboxType;

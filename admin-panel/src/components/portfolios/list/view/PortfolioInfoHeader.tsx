@@ -1,9 +1,6 @@
-"use client";
-
-import Image from "next/image";
 import { Card, CardContent } from "@/components/elements/Card";
 import { CheckCircle2, XCircle, Clock, Package } from "lucide-react";
-import { Portfolio } from "@/types/portfolio/portfolio";
+import type { Portfolio } from "@/types/portfolio/portfolio";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 

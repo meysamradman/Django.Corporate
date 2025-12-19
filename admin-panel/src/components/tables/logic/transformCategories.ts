@@ -1,4 +1,4 @@
-import { CategoryItem, FilterOption } from "@/types/shared/table";
+import type { CategoryItem, FilterOption } from "@/types/shared/table";
 
 export function transformCategoriesToHierarchical(options: (FilterOption & { parent_id?: string | number | null })[]): CategoryItem[] {
   const items: CategoryItem[] = options.map(option => ({

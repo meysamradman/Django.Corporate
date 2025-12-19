@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Button } from "@/components/elements/Button";
 import {
@@ -17,8 +15,8 @@ import {
 import { toast } from "@/components/elements/Sonner";
 import { usePermission } from "@/core/permissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
-import { MailboxType } from "./types";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import type { MailboxType } from "./types";
 
 interface EmailToolbarProps {
   selectedCount?: number;

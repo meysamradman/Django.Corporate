@@ -1,5 +1,5 @@
-import { FilterConfig } from "@/types/shared/table";
-import { BlogFilters } from "@/types/blog/blogListParams";
+import type { FilterConfig } from "@/types/shared/table";
+import type { BlogFilters } from "@/types/blog/blogListParams";
 
 export const useBlogFilterOptions = () => {
   const statusFilterOptions = [

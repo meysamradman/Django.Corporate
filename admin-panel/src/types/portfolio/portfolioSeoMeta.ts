@@ -1,5 +1,5 @@
-import { Base } from "@/types/shared/base";
-import { Media } from "@/types/shared/media";
+import type { Base } from "@/types/shared/base";
+import type { Media } from "@/types/shared/media";
 
 export interface PortfolioSEOMeta extends Base {
     meta_title?: string | null;

@@ -1,20 +1,17 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/core/toast';
-import { AdminWithProfile } from "@/types/auth/admin";
+import type { AdminWithProfile } from "@/types/auth/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound, Share2, Settings2 } from "lucide-react";
 import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { adminApi } from "@/api/admins/route";
-import dynamic from "next/dynamic";
+import { adminApi } from "@/api/admins/admins";
 import { msg } from '@/core/messages';
 import { useAuth } from "@/core/auth/AuthContext";
-import { ApiError } from "@/types/api/apiError";
+import type { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -31,25 +28,10 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-const AccountTab = dynamic(
-    () => import("@/components/admins/profile/AccountTab").then((mod) => mod.AccountTab),
-    { loading: () => <TabContentSkeleton />, ssr: false }
-);
-
-const SecurityTab = dynamic(
-    () => import("@/components/admins/profile/SecurityTab").then((mod) => mod.SecurityTab),
-    { loading: () => <TabContentSkeleton />, ssr: false }
-);
-
-const SocialTab = dynamic(
-    () => import("@/components/admins/profile/SocialTab").then((mod) => mod.SocialTab),
-    { loading: () => <TabContentSkeleton />, ssr: false }
-);
-
-const AdvancedSettingsTab = dynamic(
-    () => import("@/components/admins/profile/AdvancedSettingsTab").then((mod) => mod.AdvancedSettingsTab),
-    { loading: () => <TabContentSkeleton />, ssr: false }
-);
+const AccountTab = lazy(() => import("@/components/admins/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })));
+const SecurityTab = lazy(() => import("@/components/admins/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })));
+const SocialTab = lazy(() => import("@/components/admins/profile/SocialTab").then((mod) => ({ default: mod.SocialTab })));
+const AdvancedSettingsTab = lazy(() => import("@/components/admins/profile/AdvancedSettingsTab").then((mod) => ({ default: mod.AdvancedSettingsTab })));
 
 
 interface EditAdminFormProps {
@@ -61,7 +43,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     const [activeTab, setActiveTab] = useState("account");
     const queryClient = useQueryClient();
-    const router = useRouter();
+    const navigate = useNavigate();
     const { user, refreshUser } = useAuth();
     
     const isMeRoute = adminId === "me";
@@ -279,7 +261,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     };
 
     const handleGoToOwnProfile = () => {
-        router.push("/admins/me/edit");
+        navigate("/admins/me/edit");
     };
 
     if (error) {
@@ -348,35 +330,43 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 </TabsList>
 
                 <TabsContent value="account">
-                    <AccountTab
-                        admin={adminData}
-                        formData={formData}
-                        editMode={editMode}
-                        setEditMode={setEditMode}
-                        handleInputChange={handleInputChange}
-                        handleSaveProfile={handleSaveProfile}
-                        isSaving={isSaving}
-                        fieldErrors={fieldErrors}
-                        onProvinceChange={handleProvinceChange}
-                        onCityChange={handleCityChange}
-                    />
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <AccountTab
+                            admin={adminData}
+                            formData={formData}
+                            editMode={editMode}
+                            setEditMode={setEditMode}
+                            handleInputChange={handleInputChange}
+                            handleSaveProfile={handleSaveProfile}
+                            isSaving={isSaving}
+                            fieldErrors={fieldErrors}
+                            onProvinceChange={handleProvinceChange}
+                            onCityChange={handleCityChange}
+                        />
+                    </Suspense>
                 </TabsContent>
 
                 <TabsContent value="security">
-                    <SecurityTab />
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <SecurityTab />
+                    </Suspense>
                 </TabsContent>
 
                 <TabsContent value="social">
-                    <SocialTab
-                        formData={formData}
-                        editMode={editMode}
-                        handleInputChange={handleInputChange}
-                        handleSaveProfile={handleSaveProfile}
-                    />
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <SocialTab
+                            formData={formData}
+                            editMode={editMode}
+                            handleInputChange={handleInputChange}
+                            handleSaveProfile={handleSaveProfile}
+                        />
+                    </Suspense>
                 </TabsContent>
 
                 <TabsContent value="advanced_settings">
-                    <AdvancedSettingsTab admin={adminData} />
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <AdvancedSettingsTab admin={adminData} />
+                    </Suspense>
                 </TabsContent>
             </Tabs>
         </div>

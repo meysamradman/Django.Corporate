@@ -1,10 +1,8 @@
-"use client";
-
-import dynamic from "next/dynamic";
+import { lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { analyticsApi } from "@/api/analytics/route";
+import { analyticsApi } from "@/api/analytics/analytics";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
-import { PermissionGate } from "@/core/permissions/components/PermissionGate";
+import { PermissionGate } from "@/components/admins/permissions/components/PermissionGate";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -80,38 +78,11 @@ const TopCountriesSkeleton = () => (
   </CardWithIcon>
 );
 
-// Dynamic imports
-const SummaryCards = dynamic(
-  () => import("./SummaryCards").then(mod => ({ default: mod.SummaryCards })),
-  { 
-    ssr: false,
-    loading: () => <SummaryCardsSkeleton />
-  }
-);
-
-const VisitorChart = dynamic(
-  () => import("./VisitorChart").then(mod => ({ default: mod.VisitorChart })),
-  { 
-    ssr: false,
-    loading: () => <VisitorChartSkeleton />
-  }
-);
-
-const TopPages = dynamic(
-  () => import("./TopPages").then(mod => ({ default: mod.TopPages })),
-  { 
-    ssr: false,
-    loading: () => <TopPagesSkeleton />
-  }
-);
-
-const TopCountries = dynamic(
-  () => import("./TopCountries").then(mod => ({ default: mod.TopCountries })),
-  { 
-    ssr: false,
-    loading: () => <TopCountriesSkeleton />
-  }
-);
+// Lazy imports
+const SummaryCards = lazy(() => import("./SummaryCards").then(mod => ({ default: mod.SummaryCards })));
+const VisitorChart = lazy(() => import("./VisitorChart").then(mod => ({ default: mod.VisitorChart })));
+const TopPages = lazy(() => import("./TopPages").then(mod => ({ default: mod.TopPages })));
+const TopCountries = lazy(() => import("./TopCountries").then(mod => ({ default: mod.TopCountries })));
 
 // ============================================
 // 📊 داده‌های Mock برای نمایش و تست
@@ -188,32 +159,39 @@ export function AnalyticsOverview() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <PermissionGate permission="analytics.manage">
-        <SummaryCards 
-          analytics={displayAnalytics} 
-          monthlyStats={monthlyStats}
-        />
+        <Suspense fallback={<SummaryCardsSkeleton />}>
+          <SummaryCards 
+            analytics={displayAnalytics} 
+            monthlyStats={monthlyStats}
+          />
+        </Suspense>
       </PermissionGate>
 
       {/* Main Chart */}
       <PermissionGate permission="analytics.manage">
-        <VisitorChart 
-          monthlyStats={monthlyStats}
+        <Suspense fallback={<VisitorChartSkeleton />}>
+          <VisitorChart 
+            monthlyStats={monthlyStats}
           analytics={displayAnalytics}
           isLoading={isLoading}
         />
+        </Suspense>
       </PermissionGate>
 
-      {/* Top Pages & Countries */}
       <PermissionGate permission="analytics.manage">
         <div className="grid md:grid-cols-2 gap-4">
-          <TopPages 
-            topPages={displayAnalytics.top_pages}
-            isLoading={isLoading}
-          />
-          <TopCountries 
-            topCountries={displayAnalytics.top_countries}
-            isLoading={isLoading}
-          />
+          <Suspense fallback={<TopPagesSkeleton />}>
+            <TopPages 
+              topPages={displayAnalytics.top_pages}
+              isLoading={isLoading}
+            />
+          </Suspense>
+          <Suspense fallback={<TopCountriesSkeleton />}>
+            <TopCountries 
+              topCountries={displayAnalytics.top_countries}
+              isLoading={isLoading}
+            />
+          </Suspense>
         </div>
       </PermissionGate>
     </div>

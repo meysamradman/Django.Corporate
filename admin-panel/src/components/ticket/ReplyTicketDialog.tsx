@@ -1,17 +1,12 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/elements/Dialog";
 import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
 import { Send, Paperclip } from "lucide-react";
-import { Ticket } from "@/types/ticket/ticket";
-import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
+import type { Ticket } from "@/types/ticket/ticket";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 
-const MediaLibraryModal = dynamic(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })), {
-  ssr: false,
-});
+const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 
 export interface ReplyTicketData {
   message: string;
@@ -117,7 +112,8 @@ export function ReplyTicketDialog({
       </Dialog>
 
       {mediaLibraryOpen && (
-        <MediaLibraryModal
+        <Suspense fallback={<div>در حال بارگذاری...</div>}>
+          <MediaLibraryModal
           isOpen={mediaLibraryOpen}
           onClose={() => setMediaLibraryOpen(false)}
           onSelect={(mediaItems) => {
@@ -128,6 +124,7 @@ export function ReplyTicketDialog({
           selectMultiple={true}
           initialFileType="all"
         />
+        </Suspense>
       )}
     </>
   );

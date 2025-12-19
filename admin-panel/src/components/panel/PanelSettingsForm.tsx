@@ -1,7 +1,6 @@
-'use client';
-
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useForm, SubmitHandler} from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import type { SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from "@/components/elements/Button";
@@ -13,8 +12,8 @@ import LogoUploader from './LogoUploader';
 import { usePanelSettings, useUpdatePanelSettings } from './hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Media } from '@/types/shared/media';
-import { PanelSettings } from '@/types/settings/panelSettings';
+import type { Media } from '@/types/shared/media';
+import type { PanelSettings } from '@/types/settings/panelSettings';
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { 
     Image as ImageIcon, 
@@ -23,7 +22,7 @@ import {
     Database,
     Download
 } from 'lucide-react';
-import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/panel/route';
+import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/panel/panel';
 
 const formSchema = z.object({
     panel_title: z.string().min(1, "عنوان پنل الزامی است.").max(100),

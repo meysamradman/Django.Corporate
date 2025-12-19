@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { msg } from '@/core/messages';
 import { showError } from '@/core/toast';
 import { Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
-import { ApiError } from '@/types/api/apiError';
+import type { ApiError } from '@/types/api/apiError';
 import { useState, useEffect } from 'react';
 
 interface PasswordLoginFormProps {

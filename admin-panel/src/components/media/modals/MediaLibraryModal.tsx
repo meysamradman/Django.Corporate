@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Dialog,
@@ -11,9 +9,8 @@ import {
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
 import { Progress } from "@/components/elements/Progress";
-import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE, VALID_MEDIA_PAGE_SIZES } from '@/api/media/route';
-import { MediaFilter } from '@/types/shared/media';
-import { Media } from '@/types/shared/media';
+import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE, VALID_MEDIA_PAGE_SIZES } from '@/api/media/media';
+import type { Media, MediaFilter } from '@/types/shared/media';
 import { MediaPreview } from '@/components/media/base/MediaPreview';
 import { Input } from '@/components/elements/Input';
 import { PaginationControls } from '@/components/shared/Pagination';
@@ -31,8 +28,8 @@ import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { toast } from "@/components/elements/Sonner";
-import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
-import { useHasAccess } from '@/core/permissions/hooks/useHasAccess';
+import { useUserPermissions } from '@/components/admins/permissions/hooks/useUserPermissions';
+import { useHasAccess } from '@/components/admins/permissions/hooks/useHasAccess';
 import { mediaService } from '@/components/media/services';
 import { MediaDetailsModal } from '@/components/media/modals/MediaDetailsModal';
 import { useDebounceValue } from '@/core/hooks/useDebounce';

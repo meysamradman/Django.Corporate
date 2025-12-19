@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from 'react';
 import {
     Select,
@@ -12,7 +10,7 @@ import { Skeleton } from '@/components/elements/Skeleton';
 import { ChevronDown, Check } from 'lucide-react';
 import { msg, getAIUI } from '@/core/messages';
 import { getProviderDisplayName, getProviderIcon } from '../../shared/utils';
-import { AvailableProvider } from '@/types/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 
 interface ProviderSelectorProps {
     compact?: boolean;
@@ -91,7 +89,6 @@ export function ProviderSelector({
         );
     }
 
-    // Full page version
     return (
         <div className="relative" ref={providerDropdownRef}>
             {loadingProviders ? (
@@ -114,7 +111,6 @@ export function ProviderSelector({
                         <ChevronDown className="h-4 w-4 text-font-s" />
                     </button>
 
-                    {/* Provider Dropdown */}
                     {showProviderDropdown && (
                         <div className="absolute bottom-full right-0 mb-2 w-80 bg-card rounded-xl shadow-xl border border-br py-2 z-50 max-h-96 overflow-y-auto">
                             {availableProviders.length === 0 ? (

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -23,12 +21,12 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
-import { settingsApi } from "@/api/settings/route";
-import { SocialMedia } from "@/types/settings/generalSettings";
+import { settingsApi } from "@/api/settings/settings";
+import type { SocialMedia } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload } from "lucide-react";
 import { cn } from '@/core/utils/cn';

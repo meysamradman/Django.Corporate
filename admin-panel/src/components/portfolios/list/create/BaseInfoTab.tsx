@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
@@ -13,11 +11,11 @@ import { Switch } from "@/components/elements/Switch";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText, Globe, Power } from "lucide-react";
-import { portfolioApi } from "@/api/portfolios/route";
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
+import { portfolioApi } from "@/api/portfolios/portfolios";
+import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
+import type { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { formatSlug, generateSlug } from '@/core/slug/generate';
 import { QuickCreateDialog } from "./QuickCreateDialog";
 

@@ -1,8 +1,5 @@
-"use client";
-
 import { useMemo } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
 import { Lock, ShieldAlert, ArrowRight, Home, AlertCircle } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { getPermissionTranslation } from "@/core/messages/permissions";
@@ -30,7 +27,7 @@ export function AccessDenied({
   backPath,
   className = "",
 }: AccessDeniedProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const displayMessage = useMemo(() => {
     if (message) return message;
@@ -54,9 +51,9 @@ export function AccessDenied({
 
   const handleBack = () => {
     if (backPath) {
-      router.push(backPath);
+      navigate(backPath);
     } else {
-      router.back();
+      navigate(-1);
     }
   };
 
@@ -168,7 +165,7 @@ export function AccessDenied({
                   size="default"
                   className="bg-primary text-static-w hover:bg-primary/90 shadow-xl shadow-primary/20 text-xs sm:text-sm md:text-base w-full sm:w-auto"
                 >
-                  <Link href="/" className="flex items-center justify-center gap-1.5 sm:gap-2">
+                  <Link to="/" className="flex items-center justify-center gap-1.5 sm:gap-2">
                     <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                     <span>بازگشت به داشبورد</span>
                   </Link>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, type ReactNode, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '@/api/auth/auth';
-import { ApiError } from '@/types/api/apiError';
+import type { ApiError } from '@/types/api/apiError';
 import { csrfManager, sessionManager } from './session';
 import type { LoginRequest, AdminUser } from '@/types/auth/auth';
 
@@ -34,7 +34,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     sessionManager.handleExpiredSession();
   }, []);
 
-  // ✅ جلوگیری از فراخوانی مکرر API
   const hasCheckedRef = React.useRef(false);
 
   const checkUserStatus = useCallback(async () => {
@@ -52,8 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     
-    // ✅ اگر قبلاً چک کردیم و user داریم، دوباره API نزنیم
-    if (hasCheckedRef.current && user) {
+    if (hasCheckedRef.current) {
       setIsLoading(false);
       return;
     }
@@ -75,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [location.pathname, handleSessionExpired, user]);
+  }, [location.pathname, handleSessionExpired]);
 
   useEffect(() => {
     checkUserStatus();
@@ -143,7 +141,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authApi.logout();
     } catch (error) {
-      // Silent fail
     } finally {
       setUser(null);
       sessionManager.clearSession();

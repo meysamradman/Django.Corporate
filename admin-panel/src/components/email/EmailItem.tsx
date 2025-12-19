@@ -1,11 +1,9 @@
-"use client";
-
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Star, Paperclip } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { EmailMessage } from "@/types/email/emailMessage";
+import type { EmailMessage } from "@/types/email/emailMessage";
 
 interface EmailItemProps {
   email: EmailMessage;

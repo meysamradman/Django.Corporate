@@ -1,12 +1,10 @@
-"use client";
-
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Badge } from "@/components/elements/Badge";
 import { Paperclip, MessageSquare } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import { Ticket } from "@/types/ticket/ticket";
+import type { Ticket } from "@/types/ticket/ticket";
 
 interface TicketItemProps {
   ticket: Ticket;

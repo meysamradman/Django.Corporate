@@ -1,4 +1,4 @@
-import { SortingState } from "@tanstack/react-table";
+import type { SortingState } from "@tanstack/react-table";
 
 export function getDefaultSortingState(
   defaultSortField: string = 'created_at',

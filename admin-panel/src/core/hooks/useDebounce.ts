@@ -1,10 +1,21 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-/**
- * Hook برای debounce کردن فانکشن‌ها
- * @param callback - تابعی که باید debounce بشه
- * @param delay - تاخیر به میلی‌ثانیه (پیش‌فرض: 500ms)
- */
+export function useDebounceValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export function useDebounce<T extends (...args: any[]) => any>(
   callback: T,
   delay: number = 500

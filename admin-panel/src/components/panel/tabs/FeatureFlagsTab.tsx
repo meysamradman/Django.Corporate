@@ -1,16 +1,12 @@
-'use client';
+import React, { lazy, Suspense } from 'react';
 
-import React from 'react';
-import dynamic from 'next/dynamic';
-
-const FeatureFlagsSection = dynamic(
-  () => import("@/components/settings").then(mod => ({ default: mod.FeatureFlagsManagement })),
-  { 
-    ssr: false,
-  }
-);
+const FeatureFlagsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.FeatureFlagsManagement })));
 
 export function FeatureFlagsTab() {
-    return <FeatureFlagsSection />;
+    return (
+        <Suspense fallback={<div>در حال بارگذاری...</div>}>
+            <FeatureFlagsSection />
+        </Suspense>
+    );
 }
 

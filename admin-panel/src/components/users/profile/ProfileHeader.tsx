@@ -1,16 +1,13 @@
-"use client";
-
-import Image from "next/image";
 import { Card, CardContent } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { CheckCircle2, XCircle, Smartphone, Camera, Clock } from "lucide-react";
-import { UserWithProfile } from "@/types/auth/user";
+import type { UserWithProfile } from "@/types/auth/user";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { useState } from "react";
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from '@/components/elements/Sonner';
+import { toast } from 'sonner';
 
 interface ProfileHeaderProps {
     user: UserWithProfile;
@@ -37,7 +34,7 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
             
             try {
                 const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                const { adminApi } = await import('@/api/admins/route');
+                const { adminApi } = await import('@/api/admins/admins');
                 
                 await adminApi.updateUserByType(user.id, {
                     profile: {
@@ -75,11 +72,10 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
     return (
         <Card className="overflow-hidden p-0">
             <div className="relative h-40 md:h-56">
-                <Image
+                <img
                     src="/images/profile-banner.png"
                     alt="Cover image"
-                    fill
-                    className="object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                 />
             </div>
             <CardContent className="relative px-6 pt-0 pb-6">
@@ -92,7 +88,6 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                                     alt="Profile picture"
                                     className="object-cover"
                                     fill
-                                    sizes="128px"
                                 />
                             </div>
                         ) : (

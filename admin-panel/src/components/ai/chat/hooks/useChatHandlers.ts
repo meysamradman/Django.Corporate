@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { aiApi } from '@/api/ai/route';
+import { useState, useRef, type RefObject, type KeyboardEvent, type ChangeEvent } from 'react';
+import { aiApi } from '@/api/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 
 interface ChatMessage {
@@ -13,7 +13,7 @@ interface UseChatHandlersOptions {
     messages: ChatMessage[];
     addMessage: (message: ChatMessage) => void;
     removeLastUserMessage: (content: string) => void;
-    textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+    textareaRef: RefObject<HTMLTextAreaElement | null>;
 }
 
 export function useChatHandlers({
@@ -80,17 +80,13 @@ export function useChatHandlers({
                 throw new Error(response.metaData.message || 'خطا در دریافت پاسخ از AI');
             }
         } catch (error: any) {
-            // Remove user message on error
             removeLastUserMessage(currentMessage);
             
-            // Extract error message from ApiError structure
             let errorMessage = 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.';
             
             if (error?.response?.message) {
-                // ApiError structure
                 errorMessage = error.response.message;
             } else if (error?.message) {
-                // Standard Error
                 errorMessage = error.message;
             }
             
@@ -100,7 +96,7 @@ export function useChatHandlers({
         }
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!sending) {
@@ -113,11 +109,10 @@ export function useChatHandlers({
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // بررسی حجم فایل (مثلاً حداکثر 10MB)
-            const maxSize = 10 * 1024 * 1024; // 10MB
+            const maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
                 toast.error('حجم فایل نباید بیشتر از 10 مگابایت باشد');
                 return;
@@ -125,7 +120,6 @@ export function useChatHandlers({
             setAttachedFile(file);
             toast.success(`فایل ${file.name} آماده ارسال است`);
         }
-        // Reset input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }

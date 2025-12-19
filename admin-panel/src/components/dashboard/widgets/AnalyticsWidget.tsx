@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Eye, Calendar, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { useAnalytics } from "@/hooks/dashboard/useAnalytics";
+import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
 import { formatNumber } from "@/core/utils/format";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";

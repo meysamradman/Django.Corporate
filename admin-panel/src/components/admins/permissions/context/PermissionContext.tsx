@@ -1,8 +1,7 @@
-'use client';
-
-import React, { createContext, useContext, useMemo, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useMemo, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { permissionApi } from '@/api/admins/permissions/route';
+import { permissionApi } from '@/api/admins/permissions/permissions';
 import { PERMISSIONS } from '@/core/permissions/constants';
 import type { PermissionMapResponse, PermissionContextValue, UIPermissions } from '@/types/auth/permission';
 
@@ -202,6 +201,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       // analytics.manage = آمار بازدید وب
       // analytics.stats.manage = همه آمار داخلی
       // analytics.*.read = آمار خاص
+      canViewDashboardStats: check(PERMISSIONS.DASHBOARD.READ),
       canViewUsersStats: check(PERMISSIONS.ANALYTICS.USERS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewAdminsStats: check(PERMISSIONS.ANALYTICS.ADMINS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewContentStats: check(PERMISSIONS.ANALYTICS.CONTENT_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),

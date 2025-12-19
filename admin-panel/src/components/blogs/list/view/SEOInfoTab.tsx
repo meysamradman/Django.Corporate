@@ -1,8 +1,6 @@
-"use client";
-
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Blog } from "@/types/blog/blog";
+import type { Blog } from "@/types/blog/blog";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 import { Badge } from "@/components/elements/Badge";

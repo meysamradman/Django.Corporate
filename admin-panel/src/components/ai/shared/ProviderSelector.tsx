@@ -1,6 +1,4 @@
-"use client";
-
-import { AvailableProvider } from '@/types/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 import { getProviderDisplayName, getProviderDescription, getProviderIcon } from './utils';
 import { ArrowRight, Check } from 'lucide-react';
 import { msg } from '@/core/messages';

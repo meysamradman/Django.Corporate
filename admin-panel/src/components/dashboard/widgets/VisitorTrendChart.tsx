@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { useAnalytics } from "@/hooks/dashboard/useAnalytics";
+import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
 import { formatNumber } from "@/core/utils/format";
 import {
   Card,

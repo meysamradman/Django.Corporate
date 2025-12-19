@@ -1,14 +1,12 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { Role } from "@/types/auth/permission";
+import type { Role } from "@/types/auth/permission";
 import { ShieldCheck, ShieldAlert } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
-import { AdminFormValues } from "@/components/admins/validations/adminSchema";
+import type { UseFormReturn } from "react-hook-form";
+import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
 
 interface PermissionsTabProps {
   form: UseFormReturn<AdminFormValues>;

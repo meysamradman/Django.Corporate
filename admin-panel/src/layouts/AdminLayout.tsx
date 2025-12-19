@@ -6,22 +6,10 @@ import { PageSkeleton } from '@/lib/loaders';
 import { cn } from '@/core/utils/cn';
 import { useAdminStore } from '@/components/layout/Sidebar/stores/sidebarStore';
 import { useAuth } from '@/core/auth/AuthContext';
+import { RoutePermissionGuard } from '@/components/admins/permissions';
+import { FloatingAIChat } from '@/components/ai/chat/FloatingAIChat';
 
-/**
- * 🎯 AdminLayout - Layout اصلی پنل ادمین
- * 
- * ✅ مسئولیت‌ها:
- * - مدیریت Sidebar (باز/بسته، collapsed/expanded)
- * - نمایش Header ثابت
- * - مدیریت responsive (موبایل/دسکتاپ)
- * - نمایش PageLoader در حالت بارگذاری auth
- * - رندر محتوای صفحات از طریق Outlet
- * 
- * ✅ رفتار:
- * - Sidebar و Header همیشه نمایش داده میشه (حتی در حالت بارگذاری)
- * - فقط محتوای داخلی در حالت loading، skeleton نشون میده
- * - این باعث میشه فلش سفید نداشته باشیم
- */
+
 export function AdminLayout() {
   const location = useLocation();
   const { isLoading } = useAuth();
@@ -90,9 +78,18 @@ export function AdminLayout() {
         {/* 🎯 Page Content - فقط این بخش تغییر می‌کنه */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
           <div className="p-4 sm:p-6 lg:p-8 min-w-0">
-            {isLoading ? <PageSkeleton /> : <Outlet />}
+            {isLoading ? (
+              <PageSkeleton />
+            ) : (
+              <RoutePermissionGuard>
+                <Outlet />
+              </RoutePermissionGuard>
+            )}
           </div>
         </main>
+        
+        {/* 🎯 Floating AI Chat - در پایین صفحه */}
+        <FloatingAIChat />
       </div>
     </div>
   );

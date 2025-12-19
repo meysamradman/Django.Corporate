@@ -1,24 +1,17 @@
-"use client";
-
-import { useState } from "react";
-import dynamic from "next/dynamic";
-import { UseFormReturn } from "react-hook-form";
+import { useState, lazy, Suspense } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { BlogMediaGallery } from "@/components/blogs/list/BlogMediaGallery";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
-import { BlogFormValues } from "@/components/blogs/validations/blogSchema";
+import type { BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { mediaService } from "@/components/media/services";
-import NextImage from "next/image";
-import { BlogMedia } from "@/types/blog/blogMedia";
+import type { BlogMedia } from "@/types/blog/blogMedia";
 import { Loader } from "@/components/elements/Loader";
 
-const MediaLibraryModal = dynamic(
-  () => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })),
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-8"><Loader /></div> }
-);
+const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 
 interface MediaTabFormProps {
     form: UseFormReturn<BlogFormValues>;
@@ -196,12 +189,10 @@ export default function MediaTab(props: MediaTabProps) {
                     >
                             {currentFeaturedImage ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
-                                    <NextImage
+                                    <img
                                         src={mediaService.getMediaUrlFromObject(currentFeaturedImage)}
                                         alt={currentFeaturedImage.alt_text || "تصویر شاخص"}
-                                        fill
-                                        className="object-cover"
-                                        unoptimized
+                                        className="object-cover w-full h-full"
                                     />
                                     <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button
@@ -250,15 +241,17 @@ export default function MediaTab(props: MediaTabProps) {
 
             </div>
             
-            <MediaLibraryModal
-                isOpen={isMediaModalOpen}
-                onClose={() => setIsMediaModalOpen(false)}
-                onSelect={handleFeaturedImageSelect}
-                selectMultiple={false}
-                initialFileType="image"
-                context="blog"
-                contextId={blogId}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader /></div>}>
+                <MediaLibraryModal
+                    isOpen={isMediaModalOpen}
+                    onClose={() => setIsMediaModalOpen(false)}
+                    onSelect={handleFeaturedImageSelect}
+                    selectMultiple={false}
+                    initialFileType="image"
+                    context="blog"
+                    contextId={blogId}
+                />
+            </Suspense>
         </TabsContent>
     );
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
@@ -38,8 +36,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { formApi } from "@/api/form-builder/route";
-import { ContactFormField, ContactFormFieldCreate } from "@/types/form/contactForm";
+import { formApi } from "@/api/form-builder/form-builder";
+import type { ContactFormField, ContactFormFieldCreate } from "@/types/form/contactForm";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, FileText, Loader2, Globe, Smartphone, MoreVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";

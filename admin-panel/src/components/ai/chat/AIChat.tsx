@@ -1,5 +1,3 @@
-"use client";
-
 import { useRef } from 'react';
 import { Button } from '@/components/elements/Button';
 import { Trash2 } from 'lucide-react';
@@ -17,12 +15,13 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
     const { user } = useAuth();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
-    // Check AI permission
-    const hasAIPermission = user?.permissions?.some((p: string) =>
+    const permissionsObject = user?.permissions as any;
+    const permissionsArray = (permissionsObject?.permissions || []) as string[];
+    
+    const hasAIPermission = permissionsArray.some((p: string) =>
         p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
     );
 
-    // Custom hooks
     const {
         messages,
         messagesEndRef,
@@ -61,7 +60,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         textareaRef,
     });
 
-    // Helper functions
     const getAdminDisplayName = () => {
         if (user?.profile?.full_name) return user.profile.full_name;
         if (user?.full_name) return user.full_name;
@@ -87,24 +85,18 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         return null;
     };
 
-    // Clear chat handler
     const handleClearChat = () => {
         clearMessages();
         clearProviderStorage();
     };
 
-
-
-    // Empty providers check
     if (!loadingProviders && availableProviders.length === 0) {
         return <EmptyProvidersCard type="chat" />;
     }
 
-    // Compact mode
     if (compact) {
         return (
             <div className="flex flex-col h-full relative">
-                {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-br bg-bg/50">
                     <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-font-p">چت با AI</h3>
@@ -131,7 +123,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     )}
                 </div>
 
-                {/* Messages */}
                 <ChatMessageList
                     messages={messages}
                     sending={sending}
@@ -142,7 +133,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     messagesEndRef={messagesEndRef}
                 />
 
-                {/* Input */}
                 <ChatInput
                     compact={true}
                     message={message}
@@ -167,10 +157,8 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         );
     }
 
-    // Full page mode
     return (
         <div className="relative flex flex-col h-full">
-            {/* Messages */}
             <ChatMessageList
                 messages={messages}
                 sending={sending}
@@ -181,7 +169,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                 messagesEndRef={messagesEndRef}
             />
 
-            {/* Input */}
             <ChatInput
                 compact={false}
                 message={message}

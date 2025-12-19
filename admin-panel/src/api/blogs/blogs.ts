@@ -1,11 +1,11 @@
 import { api } from '@/core/config/api';
-import { Blog } from "@/types/blog/blog";
-import { BlogCategory } from "@/types/blog/category/blogCategory";
-import { BlogTag } from "@/types/blog/tags/blogTag";
-import { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { ApiResponse } from "@/types/api/apiResponse";
+import type { Blog } from "@/types/blog/blog";
+import type { BlogCategory } from "@/types/blog/category/blogCategory";
+import type { BlogTag } from "@/types/blog/tags/blogTag";
+import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
+import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
-import {
+import type {
     BlogListParams,
     BlogFilters,
     CategoryListParams,
@@ -48,7 +48,7 @@ export const blogApi = {
       }
     }
     
-    const response = await fetchApi.get<Blog[]>(url);
+    const response = await api.get<Blog[]>(url);
     
     if (!response) {
       return {
@@ -90,12 +90,12 @@ export const blogApi = {
   },
 
   getBlogById: async (id: number): Promise<Blog> => {
-    const response = await fetchApi.get<Blog>('/admin/blog/' + id + '/');
+    const response = await api.get<Blog>('/admin/blog/' + id + '/');
     return response.data;
   },
 
   createBlog: async (data: Partial<Blog>): Promise<Blog> => {
-    const response = await fetchApi.post<Blog>('/admin/blog/', data);
+    const response = await api.post<Blog>('/admin/blog/', data);
     return response.data;
   },
 
@@ -122,17 +122,17 @@ export const blogApi = {
       formData.append('media_ids', (data as any).media_ids.join(','));
     }
     
-    const response = await fetchApi.post<Blog>('/admin/blog/', formData);
+    const response = await api.post<Blog>('/admin/blog/', formData);
     return response.data;
   },
 
   updateBlog: async (id: number, data: Partial<Blog>): Promise<Blog> => {
-    const response = await fetchApi.put<Blog>('/admin/blog/' + id + '/', data);
+    const response = await api.put<Blog>('/admin/blog/' + id + '/', data);
     return response.data;
   },
 
   partialUpdateBlog: async (id: number, data: Partial<Blog>): Promise<Blog> => {
-    const response = await fetchApi.patch<Blog>('/admin/blog/' + id + '/', data);
+    const response = await api.patch<Blog>('/admin/blog/' + id + '/', data);
     return response.data;
   },
 
@@ -146,7 +146,7 @@ export const blogApi = {
       formData.append('media_ids', mediaIds.join(','));
     }
     
-    const response = await fetchApi.post('/admin/blog/' + blogId + '/add_media/', formData);
+    const response = await api.post('/admin/blog/' + blogId + '/add_media/', formData);
     return response.data;
   },
 
@@ -161,11 +161,11 @@ export const blogApi = {
   },
 
   deleteBlog: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/blog/' + id + '/');
+    await api.delete('/admin/blog/' + id + '/');
   },
 
   bulkDeleteBlogs: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/blog/bulk-delete/', { ids });
+    const response = await api.post('/admin/blog/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -194,7 +194,7 @@ export const blogApi = {
       }
     }
     
-    const response = await fetchApi.get<BlogCategory[]>(url);
+    const response = await api.get<BlogCategory[]>(url);
     
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
@@ -222,31 +222,31 @@ export const blogApi = {
   },
 
   createCategory: async (data: Partial<BlogCategory>): Promise<BlogCategory> => {
-    const response = await fetchApi.post<BlogCategory>('/admin/blog-category/', data);
+    const response = await api.post<BlogCategory>('/admin/blog-category/', data);
     return response.data;
   },
 
   getCategoryById: async (id: number): Promise<BlogCategory> => {
-    const response = await fetchApi.get<BlogCategory>('/admin/blog-category/' + id + '/');
+    const response = await api.get<BlogCategory>('/admin/blog-category/' + id + '/');
     return response.data;
   },
 
   updateCategory: async (id: number, data: Partial<BlogCategory>): Promise<BlogCategory> => {
-    const response = await fetchApi.put<BlogCategory>('/admin/blog-category/' + id + '/', data);
+    const response = await api.put<BlogCategory>('/admin/blog-category/' + id + '/', data);
     return response.data;
   },
 
   partialUpdateCategory: async (id: number, data: Partial<BlogCategory>): Promise<BlogCategory> => {
-    const response = await fetchApi.patch<BlogCategory>('/admin/blog-category/' + id + '/', data);
+    const response = await api.patch<BlogCategory>('/admin/blog-category/' + id + '/', data);
     return response.data;
   },
 
   deleteCategory: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/blog-category/' + id + '/');
+    await api.delete('/admin/blog-category/' + id + '/');
   },
 
   bulkDeleteCategories: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/blog-category/bulk-delete/', { ids });
+    const response = await api.post('/admin/blog-category/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -275,7 +275,7 @@ export const blogApi = {
       }
     }
     
-    const response = await fetchApi.get<BlogTag[]>(url);
+    const response = await api.get<BlogTag[]>(url);
     
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
@@ -303,31 +303,31 @@ export const blogApi = {
   },
 
   createTag: async (data: Partial<BlogTag>): Promise<BlogTag> => {
-    const response = await fetchApi.post<BlogTag>('/admin/blog-tag/', data);
+    const response = await api.post<BlogTag>('/admin/blog-tag/', data);
     return response.data;
   },
 
   getTagById: async (id: number): Promise<BlogTag> => {
-    const response = await fetchApi.get<BlogTag>('/admin/blog-tag/' + id + '/');
+    const response = await api.get<BlogTag>('/admin/blog-tag/' + id + '/');
     return response.data;
   },
 
   updateTag: async (id: number, data: Partial<BlogTag>): Promise<BlogTag> => {
-    const response = await fetchApi.put<BlogTag>('/admin/blog-tag/' + id + '/', data);
+    const response = await api.put<BlogTag>('/admin/blog-tag/' + id + '/', data);
     return response.data;
   },
 
   partialUpdateTag: async (id: number, data: Partial<BlogTag>): Promise<BlogTag> => {
-    const response = await fetchApi.patch<BlogTag>('/admin/blog-tag/' + id + '/', data);
+    const response = await api.patch<BlogTag>('/admin/blog-tag/' + id + '/', data);
     return response.data;
   },
 
   deleteTag: async (id: number): Promise<void> => {
-    await fetchApi.delete('/admin/blog-tag/' + id + '/');
+    await api.delete('/admin/blog-tag/' + id + '/');
   },
 
   bulkDeleteTags: async (ids: number[]): Promise<any> => {
-    const response = await fetchApi.post('/admin/blog-tag/bulk-delete/', { ids });
+    const response = await api.post('/admin/blog-tag/bulk-delete/', { ids });
     return response.data;
   },
 };

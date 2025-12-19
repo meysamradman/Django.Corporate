@@ -1,12 +1,12 @@
 import { api } from '@/core/config/api';
-import { BlogExportParams } from "@/types/blog/blogListParams";
+import type { BlogExportParams } from "@/types/blog/blogListParams";
 
 export const exportBlogPdf = async (blogId: number): Promise<void> => {
   const url = `/admin/blog/${blogId}/export-pdf/`;
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `blog_${blogId}_${timestamp}.pdf`;
   
-  await fetchApi.downloadFile(url, filename);
+  await api.downloadFile(url, filename);
 };
 
 export const exportBlogs = async (
@@ -52,7 +52,7 @@ export const exportBlogs = async (
   
   const useFetchForErrorHandling = filters?.export_all === true;
   
-  await fetchApi.downloadFile(url, filename, 'GET', null, { 
+  await api.downloadFile(url, filename, 'GET', null, { 
     useFetchForErrorHandling 
   } as any);
 };

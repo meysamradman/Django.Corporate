@@ -1,12 +1,10 @@
-"use client";
-
 import React from "react";
 import { EmailItem } from "./EmailItem";
-import { EmailMessage } from "@/types/email/emailMessage";
+import type { EmailMessage } from "@/types/email/emailMessage";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { cn } from "@/core/utils/cn";
 
-import { MailboxType } from "./types";
+import type { MailboxType } from "./types";
 
 interface EmailListProps {
   emails: EmailMessage[];

@@ -1,10 +1,8 @@
-"use client";
-
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { aiApi } from '@/api/ai/route';
-import { AvailableProvider, AIContentGenerationResponse } from '@/types/ai/ai';
+import { aiApi } from '@/api/ai/ai';
+import type { AvailableProvider, AIContentGenerationResponse } from '@/types/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { msg } from '@/core/messages';
 import { ContentInputForm } from './ContentInputForm';
@@ -30,7 +28,9 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
     useEffect(() => {
         if (user && !providersFetched.current) {
-            const hasAIPermission = user?.permissions?.some((p: string) => 
+            const permissionsObject = user?.permissions as any;
+            const permissionsArray = (permissionsObject?.permissions || []) as string[];
+            const hasAIPermission = permissionsArray.some((p: string) => 
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
             

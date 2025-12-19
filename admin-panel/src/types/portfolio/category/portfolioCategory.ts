@@ -1,6 +1,6 @@
-import { Base } from "@/types/shared/base";
-import { Media } from "@/types/shared/media";
-import { PortfolioSEOMeta } from "@/types/portfolio/portfolioSeoMeta";
+import type { Base } from "@/types/shared/base";
+import type { Media } from "@/types/shared/media";
+import type { PortfolioSEOMeta } from "@/types/portfolio/portfolioSeoMeta";
 
 export interface PortfolioCategory extends Base {
     name: string;

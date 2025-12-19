@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useCallback } from 'react';
 import { 
   Dialog, 
@@ -18,8 +16,8 @@ import { mediaService } from "@/components/media/services";
 import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
-import { Media } from '@/types/shared/media';
-import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
+import type { Media } from '@/types/shared/media';
+import { useUserPermissions } from '@/components/admins/permissions/hooks/useUserPermissions';
 import { useMediaContext } from '../MediaContext';
 
 interface MediaUploadModalProps {

@@ -1,6 +1,3 @@
-"use client";
-
-import React from 'react';
 import { useModelToggle, useModelPagination } from './hooks';
 import { ProviderSection, ConfirmationDialog } from './components';
 
@@ -10,7 +7,6 @@ interface ModelSelectorProps {
 }
 
 export function ModelSelector({ models, capability }: ModelSelectorProps) {
-    // Custom hooks
     const {
         confirmDialog,
         closeConfirmDialog,
@@ -55,7 +51,6 @@ export function ModelSelector({ models, capability }: ModelSelectorProps) {
                 );
             })}
             
-            {/* Confirmation Dialog */}
             <ConfirmationDialog
                 open={confirmDialog.open}
                 activeModelName={confirmDialog.activeModelName}

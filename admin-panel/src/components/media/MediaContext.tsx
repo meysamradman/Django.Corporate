@@ -1,7 +1,5 @@
-'use client';
-
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { usePathname, useParams } from 'next/navigation';
+import { useLocation, useParams } from 'react-router-dom';
 
 type MediaContextType = 'media_library' | 'portfolio' | 'blog';
 
@@ -23,7 +21,8 @@ export function MediaContextProvider({
   overrideContext, 
   overrideContextId 
 }: MediaContextProviderProps) {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const params = useParams();
 
   const value = useMemo<MediaContextValue>(() => {
@@ -80,7 +79,8 @@ export function useMediaContext(
     return contextValue;
   }
 
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const params = useParams();
 
   return useMemo<MediaContextValue>(() => {

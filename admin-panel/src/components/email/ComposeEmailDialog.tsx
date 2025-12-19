@@ -1,13 +1,11 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/elements/Dialog";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
 import { Send, Save } from "lucide-react";
-import { EmailMessage } from "@/types/email/emailMessage";
-import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
+import type { EmailMessage } from "@/types/email/emailMessage";
+import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 
 export interface ComposeEmailData {
   to: string;

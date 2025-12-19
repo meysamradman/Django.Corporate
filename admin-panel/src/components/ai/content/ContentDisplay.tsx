@@ -1,10 +1,8 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/elements/Card';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
-import { AIContentGenerationResponse } from '@/types/ai/ai';
+import type { AIContentGenerationResponse } from '@/types/ai/ai';
 import { FileText, Copy, Check } from 'lucide-react';
 import { msg } from '@/core/messages';
 

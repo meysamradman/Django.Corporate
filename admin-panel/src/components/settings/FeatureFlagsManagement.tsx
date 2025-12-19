@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/elements/Button";
@@ -71,8 +69,8 @@ export function FeatureFlagsManagement() {
   const { data: flags = [], isLoading } = useQuery({
     queryKey: ["admin-feature-flags"],
     queryFn: async () => {
-      const { fetchApi } = await import("@/core/config/fetch");
-      const response = await fetchApi.get<FeatureFlag[]>("/core/admin/feature-flags/");
+      const { api } = await import("@/core/config/api");
+      const response = await api.get<FeatureFlag[]>("/core/admin/feature-flags/");
       return Array.isArray(response.data) ? response.data : [];
     },
   });
@@ -84,8 +82,8 @@ export function FeatureFlagsManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data: Partial<FeatureFlag>) => {
-      const { fetchApi } = await import("@/core/config/fetch");
-      const response = await fetchApi.post<FeatureFlag>("/core/admin/feature-flags/", data);
+      const { api } = await import("@/core/config/api");
+      const response = await api.post<FeatureFlag>("/core/admin/feature-flags/", data);
       return response.data;
     },
     onSuccess: () => {
@@ -110,8 +108,8 @@ export function FeatureFlagsManagement() {
 
   const toggleMutation = useMutation({
     mutationFn: async (key: string) => {
-      const { fetchApi } = await import("@/core/config/fetch");
-      const response = await fetchApi.patch<FeatureFlag>(`/core/admin/feature-flags/${key}/toggle/`, {});
+      const { api } = await import("@/core/config/api");
+      const response = await api.patch<FeatureFlag>(`/core/admin/feature-flags/${key}/toggle/`, {});
       return response.data;
     },
     onMutate: async (key: string) => {

@@ -1,10 +1,8 @@
-"use client";
-
 import React, { useState } from 'react';
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
-import { Media } from '@/types/shared/media';
+import type { Media } from '@/types/shared/media';
 import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';

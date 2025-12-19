@@ -1,11 +1,10 @@
-"use client";
 import { useState, useCallback } from 'react';
 import { getFileCategory, formatBytes, mediaService, useUploadSettings } from '@/components/media/services';
 import { toast } from "@/components/elements/Sonner";
-import { fetchApi } from '@/core/config/fetch';
+import { api } from '@/core/config/api';
 import { useMediaContext } from '../MediaContext';
 
-export interface MediaFile {
+export type MediaFile = {
   file: File;
   id: string;
   progress: number;
@@ -16,9 +15,9 @@ export interface MediaFile {
   description?: string;
   is_public?: boolean;
   coverFile?: File | null;
-}
+};
 
-export interface UploadSettings {
+export type UploadSettings = {
   sizeLimit: {
     image: number;
     video: number;
@@ -46,7 +45,6 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
   const [isUploading, setIsUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
-  // ✅ تنظیمات مستقیماً از config - بدون API call برای سرعت بالا
   const settings = mediaService.getUploadSettings();
   
   const uploadSettings = {
@@ -194,8 +192,7 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
           formData.append('context_action', contextAction);
         }
 
-        // ✅ Upload بدون toast خودکار - خودمان در انتها toast می‌زنیم
-        await fetchApi.post('/admin/media/', formData);
+        await api.upload('/admin/media/', formData);
 
         setFiles(prev => prev.map(f => 
           f.id === file.id ? { ...f, status: 'success', progress: 100 } : f

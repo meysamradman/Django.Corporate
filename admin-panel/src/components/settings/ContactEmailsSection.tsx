@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -22,8 +20,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
-import { settingsApi } from "@/api/settings/route";
-import { ContactEmail } from "@/types/settings/generalSettings";
+import { settingsApi } from "@/api/settings/settings";
+import type { ContactEmail } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
 import { Plus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";

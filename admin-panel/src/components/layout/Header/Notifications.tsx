@@ -10,14 +10,24 @@ import {
 } from "@/components/elements/DropdownMenu";
 import { useNotifications } from "./hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
+import { usePermission } from "@/components/admins/permissions";
+import { PERMISSIONS } from "@/components/admins/permissions/constants/permissions";
 import { cn } from "@/core/utils/cn";
 
 export function Notifications() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   const { data: notifications, isLoading } = useNotifications();
+  
+  const hasTicketPermission = hasPermission(PERMISSIONS.TICKET.READ) || hasPermission(PERMISSIONS.TICKET.MANAGE);
+  const hasEmailPermission = hasPermission(PERMISSIONS.EMAIL.READ);
   
   const totalCount = notifications?.total || 0;
   const hasNotifications = totalCount > 0;
+
+  if (!hasTicketPermission && !hasEmailPermission) {
+    return null;
+  }
 
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
@@ -75,7 +85,7 @@ export function Notifications() {
           </div>
         ) : (
           <div className="max-h-96 overflow-y-auto">
-            {notifications && notifications.tickets.total_new > 0 && (
+            {hasTicketPermission && notifications && notifications.tickets.total_new > 0 && (
               <>
                 <div className="px-2 py-1.5">
                   <div className="flex items-center gap-2 text-xs font-medium text-font-s mb-1">
@@ -129,7 +139,7 @@ export function Notifications() {
               </>
             )}
 
-            {notifications && notifications.emails.new_count > 0 && (
+            {hasEmailPermission && notifications && notifications.emails.new_count > 0 && (
               <>
                 <div className="px-2 py-1.5">
                   <div className="flex items-center gap-2 text-xs font-medium text-font-s mb-1">
@@ -150,20 +160,24 @@ export function Notifications() {
 
         <DropdownMenuSeparator />
         <div className="flex gap-2 p-2">
-          <DropdownMenuItem
-            className="flex-1 justify-center"
-            onClick={() => navigate('/ticket')}
-          >
-            <Ticket className="h-4 w-4 ml-2" />
-            همه تیکت‌ها
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="flex-1 justify-center"
-            onClick={() => navigate('/email')}
-          >
-            <Mail className="h-4 w-4 ml-2" />
-            همه ایمیل‌ها
-          </DropdownMenuItem>
+          {hasTicketPermission && (
+            <DropdownMenuItem
+              className="flex-1 justify-center"
+              onClick={() => navigate('/ticket')}
+            >
+              <Ticket className="h-4 w-4 ml-2" />
+              همه تیکت‌ها
+            </DropdownMenuItem>
+          )}
+          {hasEmailPermission && (
+            <DropdownMenuItem
+              className="flex-1 justify-center"
+              onClick={() => navigate('/email')}
+            >
+              <Mail className="h-4 w-4 ml-2" />
+              همه ایمیل‌ها
+            </DropdownMenuItem>
+          )}
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

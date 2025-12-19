@@ -232,7 +232,7 @@ html body[data-scroll-locked] {
     width: 238px;
     top: -70px;
     left: -70px;
-    mask-image: url('/download (1).svg');
+    mask-image: url('/images/logindown.svg');
     mask-repeat: no-repeat;
     mask-size: 100% 100%;
     z-index: -1;
@@ -247,7 +247,7 @@ html body[data-scroll-locked] {
     width: 180px;
     bottom: -50px;
     right: -50px;
-    mask-image: url('/download.svg');
+    mask-image: url('/images/logintop.svg');
     mask-repeat: no-repeat;
     mask-size: 100% 100%;
     z-index: -1;

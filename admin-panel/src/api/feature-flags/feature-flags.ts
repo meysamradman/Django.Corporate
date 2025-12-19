@@ -4,7 +4,7 @@ import type { FeatureFlags, FeatureFlag } from '@/types/shared/featureFlags';
 export const featureFlagsApi = {
   getAll: async (): Promise<FeatureFlags> => {
     try {
-      const response = await fetchApi.get<FeatureFlags>('/core/feature-flags/', {
+      const response = await api.get<FeatureFlags>('/core/feature-flags/', {
         silent: true,
       });
       return response.data || {};
@@ -15,9 +15,8 @@ export const featureFlagsApi = {
 
   get: async (key: string): Promise<boolean> => {
     try {
-      const response = await fetchApi.get<{ key: string; is_active: boolean }>(
-        `/core/feature-flags/${key}/`,
-        { silent: true }
+      const response = await api.get<{ key: string; is_active: boolean }>(
+        `/core/feature-flags/${key}/`
       );
       return response.data?.is_active ?? false;
     } catch (error) {

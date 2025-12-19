@@ -1,10 +1,8 @@
-"use client";
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { FAQ } from "@/types/chatbot/chatbot";
+import type { FAQ } from "@/types/chatbot/chatbot";
 import { useCreateFAQ, useUpdateFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import {
   Dialog,

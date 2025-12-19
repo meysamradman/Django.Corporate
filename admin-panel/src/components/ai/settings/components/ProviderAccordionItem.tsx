@@ -1,20 +1,8 @@
-"use client";
-
-import React from 'react';
 import { Card } from '@/components/elements/Card';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/elements/Accordion';
 import { Badge } from '@/components/elements/Badge';
 import { ProviderCard } from './ProviderCard';
-
-interface Provider {
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
-  apiKeyLabel: string;
-  models: any[];
-  backendProvider?: any;
-}
+import type { Provider } from '../hooks/useAISettings';
 
 interface ProviderAccordionItemProps {
   provider: Provider;

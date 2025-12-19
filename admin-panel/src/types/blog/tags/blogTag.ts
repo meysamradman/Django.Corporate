@@ -1,5 +1,5 @@
-import { Base } from "@/types/shared/base";
-import { BlogSEOMeta } from "@/types/blog/blogSeoMeta";
+import type { Base } from "@/types/shared/base";
+import type { BlogSEOMeta } from "@/types/blog/blogSeoMeta";
 
 export interface BlogTag extends Base {
     name: string;

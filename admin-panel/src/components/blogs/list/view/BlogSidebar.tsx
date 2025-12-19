@@ -1,8 +1,6 @@
-"use client";
-
 import { Card, CardContent } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
-import { Blog } from "@/types/blog/blog";
+import type { Blog } from "@/types/blog/blog";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 import { TruncatedText } from "@/components/elements/TruncatedText";

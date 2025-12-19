@@ -1,6 +1,4 @@
-"use client";
-
-import React from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,11 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/elements/Form";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
-import { Button } from "@/components/elements/Button";
 import { Switch } from "@/components/elements/Switch";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Settings as SettingsIcon, Save, MessageSquare, Zap } from "lucide-react";
-import { ProtectedButton } from "@/core/permissions";
+import { ProtectedButton } from "@/components/admins/permissions";
 
 const formSchema = z.object({
   is_enabled: z.boolean(),
@@ -38,7 +35,7 @@ export function ChatbotSettingsForm() {
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings) {
       form.reset({
         is_enabled: settings.is_enabled,

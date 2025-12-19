@@ -1,6 +1,3 @@
-"use client";
-
-import React from 'react';
 import { StaticModelSelector } from '@/components/ai/core/StaticModelSelector';
 import type { StaticModel } from '@/components/ai/core/StaticModelSelector';
 

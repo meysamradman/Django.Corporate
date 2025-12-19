@@ -2,12 +2,6 @@ const SESSION_COOKIE = 'sessionid';
 const CSRF_COOKIE = 'csrftoken';
 const CSRF_STORAGE_KEY = '__csrf_token__';
 
-/**
- * ⚠️ توجه مهم: Session timeout توسط Django کنترل می‌شه (3 روز)
- * Frontend فقط CSRF token رو cache می‌کنه برای performance
- * هیچ timeout check نمی‌کنیم - فقط به Django اعتماد می‌کنیم
- */
-
 interface CSRFTokenStore {
   token: string | null;
   sessionKey: string | null;
@@ -20,13 +14,10 @@ class CSRFTokenManager {
     token: null,
     sessionKey: null,
     isValid: function() {
-      // ✅ فقط چک می‌کنیم token و session موجود باشن
-      // ❌ دیگه timeout check نمی‌کنیم - Django مسئولیتش رو داره
       if (!this.token) return false;
       
       if (typeof window !== 'undefined') {
         const currentSession = CSRFTokenManager.getSessionFromCookie();
-        // اگر session عوض شده، token قدیمی invalid هست
         if (this.sessionKey && currentSession !== this.sessionKey) {
           return false;
         }
@@ -54,7 +45,6 @@ class CSRFTokenManager {
         localStorage.removeItem(oldKey);
       }
     } catch (error) {
-      // Silent
     }
   }
 
@@ -77,7 +67,6 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      // Silent
     }
     return null;
   }
@@ -112,7 +101,6 @@ class CSRFTokenManager {
         }
       }
     } catch (error) {
-      // Silent
     }
     return null;
   }
@@ -154,7 +142,6 @@ class CSRFTokenManager {
         sessionStorage.removeItem(CSRF_STORAGE_KEY);
       }
     } catch (error) {
-      // Silent
     }
   }
 
@@ -256,9 +243,6 @@ class SessionManager {
         }
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[SessionManager] getCookie error:', error);
-      }
     }
     return null;
   }
@@ -272,9 +256,6 @@ class SessionManager {
       try {
         sessionStorage.clear();
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('[SessionManager] Storage clear failed:', error);
-        }
       }
     }
   }
@@ -299,7 +280,6 @@ class SessionManager {
       try {
         document.cookie = config;
       } catch (error) {
-        // Silent fail
       }
     });
   }

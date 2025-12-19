@@ -9,7 +9,7 @@ import { msg } from '@/core/messages';
 import { z } from 'zod';
 import { showError } from '@/core/toast';
 import { Loader2, ChevronLeft } from 'lucide-react';
-import { ApiError } from '@/types/api/apiError';
+import type { ApiError } from '@/types/api/apiError';
 import { useState, useEffect } from 'react';
 import { authApi } from '@/api/auth/auth';
 

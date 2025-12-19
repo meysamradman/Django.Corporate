@@ -1,5 +1,3 @@
-"use client";
-
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/elements/Badge';
 import { Button } from '@/components/elements/Button';

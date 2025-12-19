@@ -1,24 +1,17 @@
 import * as React from "react";
 import { MessageCircle } from 'lucide-react';
 import { useAIChat } from '@/components/ai/chat/AIChatContext';
-import { useAuth } from '@/core/auth/AuthContext';
+import { useCanManageAIChat } from '@/components/admins/permissions/hooks/useUIPermissions';
 
 export function AIChatButton() {
   const { setIsOpen, isOpen } = useAIChat();
-  const { user } = useAuth();
+  const canManageAIChat = useCanManageAIChat();
 
   const handleClick = () => {
     setIsOpen(!isOpen);
   };
 
-  const permissions = (user as any)?.permissions;
-  const hasAIPermission = Array.isArray(permissions) 
-    ? permissions.some((p: string) =>
-        p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
-      )
-    : user?.is_superuser || false;
-
-  if (!hasAIPermission) {
+  if (!canManageAIChat) {
     return null;
   }
 

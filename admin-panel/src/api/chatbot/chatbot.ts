@@ -1,6 +1,6 @@
 import { api } from '@/core/config/api';
-import { ApiResponse } from "@/types/api/apiResponse";
-import {
+import type { ApiResponse } from "@/types/api/apiResponse";
+import type {
   FAQ,
   ChatbotSettings,
   CreateFAQData,
@@ -10,31 +10,31 @@ import {
 
 export const chatbotApi = {
   getFAQList: async (): Promise<ApiResponse<FAQ[]>> => {
-    return fetchApi.get<FAQ[]>("/admin/chatbot/faq/");
+    return api.get<FAQ[]>("/admin/chatbot/faq/");
   },
 
   getFAQ: async (id: number | string): Promise<ApiResponse<FAQ>> => {
-    return fetchApi.get<FAQ>(`/admin/chatbot/faq/${id}/`);
+    return api.get<FAQ>(`/admin/chatbot/faq/${id}/`);
   },
 
   createFAQ: async (data: CreateFAQData): Promise<ApiResponse<FAQ>> => {
-    return fetchApi.post<FAQ>("/admin/chatbot/faq/", data as unknown as Record<string, unknown>);
+    return api.post<FAQ>("/admin/chatbot/faq/", data as unknown as Record<string, unknown>);
   },
 
   updateFAQ: async (id: number | string, data: UpdateFAQData): Promise<ApiResponse<FAQ>> => {
-    return fetchApi.put<FAQ>(`/admin/chatbot/faq/${id}/`, data as unknown as Record<string, unknown>);
+    return api.put<FAQ>(`/admin/chatbot/faq/${id}/`, data as unknown as Record<string, unknown>);
   },
 
   deleteFAQ: async (id: number | string): Promise<ApiResponse<void>> => {
-    return fetchApi.delete<void>(`/admin/chatbot/faq/${id}/`);
+    return api.delete<void>(`/admin/chatbot/faq/${id}/`);
   },
 
   getSettings: async (): Promise<ApiResponse<ChatbotSettings>> => {
-    return fetchApi.get<ChatbotSettings>("/admin/chatbot/settings/");
+    return api.get<ChatbotSettings>("/admin/chatbot/settings/");
   },
 
   updateSettings: async (data: UpdateChatbotSettingsData): Promise<ApiResponse<ChatbotSettings>> => {
-    return fetchApi.put<ChatbotSettings>("/admin/chatbot/settings/update/", data as unknown as Record<string, unknown>);
+    return api.put<ChatbotSettings>("/admin/chatbot/settings/update/", data as unknown as Record<string, unknown>);
   },
 };
 

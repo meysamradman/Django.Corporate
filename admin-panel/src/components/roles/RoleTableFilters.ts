@@ -1,4 +1,4 @@
-import { FilterConfig, FilterOption } from "@/types/shared/table";
+import type { FilterConfig, FilterOption } from "@/types/shared/table";
 
 export const useRoleFilterOptions = () => {
     const roleTypeFilterOptions: FilterOption[] = [

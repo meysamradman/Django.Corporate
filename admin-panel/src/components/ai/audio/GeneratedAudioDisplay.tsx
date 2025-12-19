@@ -1,9 +1,7 @@
-"use client";
-
 import { Card, CardContent } from '@/components/elements/Card';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
-import { Media } from '@/types/shared/media';
+import type { Media } from '@/types/shared/media';
 import { Volume2, Save, Download, Play, Pause } from 'lucide-react';
 import { useState, useRef } from 'react';
 

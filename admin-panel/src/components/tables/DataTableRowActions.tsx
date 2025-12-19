@@ -1,7 +1,6 @@
-"use client"
 import React from "react";
 import { MoreVertical } from "lucide-react"
-import { Row } from "@tanstack/react-table"
+import type { Row } from "@tanstack/react-table"
 import { Button } from "@/components/elements/Button";
 import {
   DropdownMenu,

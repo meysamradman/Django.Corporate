@@ -1,10 +1,8 @@
-"use client";
-
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Accordion } from '@/components/elements/Accordion';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { useUserPermissions } from '@/core/permissions';
+import { useUserPermissions } from '@/components/admins/permissions';
 import { useAISettings } from './hooks/useAISettings';
 import { useProviderActions } from './hooks/useProviderActions';
 import { AISettingsHeader } from './components/AISettingsHeader';
@@ -204,13 +202,11 @@ export default function AISettingsPage() {
                   onSavePersonal={(apiKeyValue) => handleSaveProvider(provider.id, false, apiKeyValue)}
                   onSaveShared={(apiKeyValue) => handleSaveProvider(provider.id, true, apiKeyValue)}
                   onDeletePersonal={() => {
-                    // پاک کردن از state
                     setPersonalApiKeys(prev => {
                       const newKeys = { ...prev };
                       newKeys[provider.id] = '';
                       return newKeys;
                     });
-                    // ارسال string خالی به backend برای حذف کامل
                     saveApiKeyMutation.mutate({
                       providerId: provider.id,
                       apiKey: '',
@@ -218,13 +214,11 @@ export default function AISettingsPage() {
                     });
                   }}
                   onDeleteShared={() => {
-                    // پاک کردن از state
                     setSharedApiKeys(prev => {
                       const newKeys = { ...prev };
                       newKeys[provider.id] = '';
                       return newKeys;
                     });
-                    // ارسال string خالی به backend برای حذف کامل
                     saveApiKeyMutation.mutate({
                       providerId: provider.id,
                       apiKey: '',

@@ -1,8 +1,6 @@
-"use client";
-
 import React from 'react';
 import { FileItem } from './FileItem';
-import { MediaFile } from '../hooks/useMediaUpload';
+import type { MediaFile } from '../hooks/useMediaUpload';
 
 interface FileListProps {
   files: MediaFile[];

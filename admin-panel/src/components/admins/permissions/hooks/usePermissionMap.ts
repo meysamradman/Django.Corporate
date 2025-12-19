@@ -1,8 +1,6 @@
-'use client'
-
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { permissionApi } from '@/api/admins/permissions/route'
+import { permissionApi } from '@/api/admins/permissions/permissions'
 import type { PermissionSnapshot } from '../types'
 
 export const usePermissionMap = () => {

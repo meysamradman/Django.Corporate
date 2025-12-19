@@ -1,12 +1,10 @@
-"use client";
-
 import React from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Button } from "@/components/elements/Button";
 import { User, Save, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface RoleBasicInfoFormProps<T extends { name: string; description?: string; permission_ids?: number[] }> {
   form: UseFormReturn<T>;
@@ -23,7 +21,7 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
   submitButtonText = "بروزرسانی",
   hideSubmitButton = false,
 }: RoleBasicInfoFormProps<T>) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = form;
 
   return (
@@ -68,7 +66,7 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.back()}
+              onClick={() => navigate(-1)}
               disabled={isSubmitting}
             >
               لغو

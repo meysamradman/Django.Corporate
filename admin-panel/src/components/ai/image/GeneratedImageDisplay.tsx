@@ -1,9 +1,7 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
-import { Media } from '@/types/shared/media';
+import type { Media } from '@/types/shared/media';
 import { Image as ImageIcon, Save } from 'lucide-react';
 import { MediaImage } from '@/components/media/base/MediaImage';
 

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -7,10 +5,10 @@ import { Label } from "@/components/elements/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import LogoUploader from "@/components/panel/LogoUploader";
-import { settingsApi } from "@/api/settings/route";
-import { GeneralSettings } from "@/types/settings/generalSettings";
+import { settingsApi } from "@/api/settings/settings";
+import type { GeneralSettings } from "@/types/settings/generalSettings";
 import { toast } from "@/components/elements/Sonner";
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -56,7 +54,6 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                 setEnamadImage(data.enamad_image_data);
             }
         } catch (error: any) {
-            // ✅ Only show toast for critical errors, not 404
             if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
                 toast.error("خطا در بارگذاری تنظیمات");
             }
@@ -95,10 +92,8 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             }
 
             await settingsApi.updateGeneralSettings(updateData);
-            // ✅ Backend sends success message - no need for manual toast
             await fetchSettings();
         } catch (error) {
-            // ✅ fetch.ts already shows error toast
         } finally {
             setSaving(false);
         }

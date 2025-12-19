@@ -1,9 +1,9 @@
-import { BlogCategory } from "@/types/blog/category/blogCategory";
-import { BlogTag } from "@/types/blog/tags/blogTag";
-import { BlogMedia } from "@/types/blog/blogMedia";
-import { Base } from "@/types/shared/base";
-import { BlogSEOMeta } from "@/types/blog/blogSeoMeta";
-import { Media } from "@/types/shared/media";
+import type { BlogCategory } from "@/types/blog/category/blogCategory";
+import type { BlogTag } from "@/types/blog/tags/blogTag";
+import type { BlogMedia } from "@/types/blog/blogMedia";
+import type { Base } from "@/types/shared/base";
+import type { BlogSEOMeta } from "@/types/blog/blogSeoMeta";
+import type { Media } from "@/types/shared/media";
 
 export interface Blog extends Base {
     status: "draft" | "published";

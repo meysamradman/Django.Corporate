@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Input } from '@/components/elements/Input';

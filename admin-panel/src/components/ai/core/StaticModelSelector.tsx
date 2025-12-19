@@ -1,7 +1,5 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { aiApi } from '@/api/ai/route';
+import { useState, useEffect } from 'react';
+import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Badge } from '@/components/elements/Badge';

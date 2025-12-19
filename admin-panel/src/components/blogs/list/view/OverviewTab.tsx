@@ -1,9 +1,7 @@
-"use client";
-
 import { TabsContent } from "@/components/elements/Tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Blog } from "@/types/blog/blog";
+import type { Blog } from "@/types/blog/blog";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
 import {

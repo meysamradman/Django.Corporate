@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
+import { useUserPermissions } from '../hooks/useUserPermissions';
 
 interface PermissionGateProps {
   permission: string;

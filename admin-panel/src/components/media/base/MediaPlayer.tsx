@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Media } from "@/types/shared/media";
+import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';

@@ -1,7 +1,7 @@
-import { Media } from "@/types/shared/media";
-import { Base } from "@/types/shared/base";
-import { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
-import { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import type { Media } from "@/types/shared/media";
+import type { Base } from "@/types/shared/base";
+import type { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
+import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 
 export type UserStatus = 'active' | 'inactive' | 'all';
 export type UserType = 'admin' | 'user';

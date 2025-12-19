@@ -1,6 +1,4 @@
-"use client";
-
-import { Media } from '@/types/shared/media';
+import type { Media } from '@/types/shared/media';
 import { env } from '@/core/config/environment';
 
 

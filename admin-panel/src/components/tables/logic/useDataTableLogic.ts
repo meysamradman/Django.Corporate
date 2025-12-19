@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   PaginationState,
   SortingState,
   VisibilityState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import { toast } from '@/components/elements/Sonner';
+import { toast } from 'sonner';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
 
-import { ApiPagination } from '@/types/shared/pagination';
-import { ApiResponse } from '@/types/api/apiResponse';
-import { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tableFilters';
+import type { ApiPagination } from '@/types/shared/pagination';
+import type { ApiResponse } from '@/types/api/apiResponse';
+import type { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tableFilters';
 
 type FetchDataFn<TData, TApiFilters extends BaseApiFilterParams> = (
   filters: TApiFilters,
@@ -88,8 +88,9 @@ export function useDataTableLogic<
   searchDebounceMs = 300,
   mapClientFiltersToApiFilters,
 }: UseDataTableLogicOptions<TData, TApiFilters, TClientFilters>): UseDataTableLogicResult<TData, TClientFilters> {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   const [data, setData] = useState<TData[]>(initialData);
   const [totalItems, setTotalItems] = useState<number>(initialTotalItems);
@@ -177,8 +178,8 @@ export function useDataTableLogic<
     });
     
     const url = `${pathname}?${queryParams.toString()}`;
-    router.replace(url, { scroll: false });
-  }, [pathname, router, updateUrlOnFilterChange, defaultPageSize, getCurrentClientFilters]);
+    navigate(url, { replace: true });
+  }, [pathname, navigate, updateUrlOnFilterChange, defaultPageSize, getCurrentClientFilters]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);

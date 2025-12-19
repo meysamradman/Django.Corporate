@@ -1,5 +1,5 @@
-import { BlogMedia } from "@/types/blog/blogMedia";
-import { Media } from "@/types/shared/media";
+import type { BlogMedia } from "@/types/blog/blogMedia";
+import type { Media } from "@/types/shared/media";
 
 export function parseBlogMedia(blogMediaArray: any[]): BlogMedia {
   const featuredImage = blogMediaArray.find(m => 

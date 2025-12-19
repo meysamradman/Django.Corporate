@@ -1,10 +1,8 @@
-"use client"
-
 import * as React from "react";
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/elements/Badge"
 import { Checkbox } from "@/components/elements/Checkbox"
-import { AdminWithProfile } from "@/types/auth/admin"
+import type { AdminWithProfile } from "@/types/auth/admin"
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink } from "@/core/permissions";
@@ -70,7 +68,7 @@ export const useAdminColumns = (
 
         return (
           <ProtectedLink 
-            href={`/admins/${admin.id}/edit`} 
+            to={`/admins/${admin.id}/edit`} 
             permission="admin.update"
             className="flex items-center gap-3"
           >

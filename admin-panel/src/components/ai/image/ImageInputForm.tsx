@@ -1,12 +1,10 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
 import { Textarea } from '@/components/elements/Textarea';
 import { Checkbox } from '@/components/elements/Checkbox';
 import { ProviderSelector } from '../shared/ProviderSelector';
-import { AvailableProvider } from '@/types/ai/ai';
+import type { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Wand2, Brain, AlertCircle } from 'lucide-react';
 import { getAI, getAIUI } from '@/core/messages/modules/ai';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -39,7 +37,9 @@ export function ImageInputForm({
     compact = false,
 }: ImageInputFormProps) {
     const { user } = useAuth();
-    const hasMediaPermission = user?.permissions?.some((p: string) => 
+    const permissionsObject = user?.permissions as any;
+    const permissionsArray = (permissionsObject?.permissions || []) as string[];
+    const hasMediaPermission = permissionsArray.some((p: string) => 
         p === 'all' || p === 'media.manage' || p.startsWith('media.')
     ) || false;
     

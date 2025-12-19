@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';
 import { Input } from '@/components/elements/Input';

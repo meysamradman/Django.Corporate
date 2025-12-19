@@ -1,6 +1,6 @@
 import { api } from '@/core/config/api';
-import { ApiResponse } from '@/types/api/apiResponse';
-import { PanelSettings } from '@/types/settings/panelSettings';
+import type { ApiResponse } from '@/types/api/apiResponse';
+import type { PanelSettings } from '@/types/settings/panelSettings';
 import { showSuccess, showError } from '@/core/toast';
 import { env } from '@/core/config/environment';
 
@@ -8,7 +8,7 @@ const BASE_URL = '/admin/panel-settings';
 
 export const getPanelSettings = async (options?: {}): Promise<PanelSettings> => {
     try {
-        const response = await fetchApi.get<PanelSettings>(`${BASE_URL}/`, options);
+        const response = await api.get<PanelSettings>(`${BASE_URL}/`, options);
         if (!response || !response.data) {
             throw new Error("API response missing panel settings data.");
         }
@@ -19,7 +19,7 @@ export const getPanelSettings = async (options?: {}): Promise<PanelSettings> => 
 };
 
 export const updatePanelSettings = async (data: FormData | PanelSettings): Promise<ApiResponse<PanelSettings>> => {
-    const response = await fetchApi.put<PanelSettings>(`${BASE_URL}/update/`, data as any);
+    const response = await api.put<PanelSettings>(`${BASE_URL}/update/`, data as any);
     return response;
 };
 
@@ -45,7 +45,7 @@ export const downloadDatabaseExport = async (): Promise<void> => {
         };
 
         const csrfToken = getCsrfToken();
-        const url = `${env.API_BASE_URL}${BASE_URL}/database-export/download/`;
+        const url = `${env.API_URL}${BASE_URL}/database-export/download/`;
         
         const response = await fetch(url, {
             method: 'GET',
@@ -93,7 +93,7 @@ export const downloadDatabaseExport = async (): Promise<void> => {
 
 export const getDatabaseExportInfo = async (): Promise<{ size: string; table_count: number }> => {
     try {
-        const response = await fetchApi.get<{ size: string; table_count: number }>(`${BASE_URL}/database-export/info/`);
+        const response = await api.get<{ size: string; table_count: number }>(`${BASE_URL}/database-export/info/`);
         if (!response || !response.data) {
             throw new Error("API response missing database info.");
         }

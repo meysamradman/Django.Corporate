@@ -1,10 +1,10 @@
-import { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
-import { Base } from "@/types/shared/base";
-import { PortfolioSEOMeta } from "@/types/portfolio/portfolioSeoMeta";
-import { Media } from "@/types/shared/media";
+import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
+import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
+import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+import type { Base } from "@/types/shared/base";
+import type { PortfolioSEOMeta } from "@/types/portfolio/portfolioSeoMeta";
+import type { Media } from "@/types/shared/media";
 
 export interface Portfolio extends Base {
     status: "draft" | "published";

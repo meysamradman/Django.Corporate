@@ -1,5 +1,3 @@
-'use client'
-
 import { api } from '@/core/config/api';
 import type { PermissionMapResponse } from '@/types/auth/permission'
 import { adminEndpoints } from '@/core/config/adminEndpoints';

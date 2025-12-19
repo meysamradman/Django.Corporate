@@ -1,5 +1,5 @@
-import { Base } from "@/types/shared/base";
-import { PortfolioSEOMeta } from "@/types/portfolio/portfolioSeoMeta";
+import type { Base } from "@/types/shared/base";
+import type { PortfolioSEOMeta } from "@/types/portfolio/portfolioSeoMeta";
 
 export interface PortfolioTag extends Base {
     name: string;

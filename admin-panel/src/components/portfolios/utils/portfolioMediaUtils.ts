@@ -1,5 +1,5 @@
-import { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
-import { Media } from "@/types/shared/media";
+import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+import type { Media } from "@/types/shared/media";
 
 export function parsePortfolioMedia(portfolioMediaArray: any[]): PortfolioMedia {
   const featuredImage = portfolioMediaArray.find(m => 

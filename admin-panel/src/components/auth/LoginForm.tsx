@@ -6,9 +6,8 @@ import { msg } from '@/core/messages';
 import { authApi } from '@/api/auth/auth';
 import { MobileInputForm } from './MobileInputForm';
 import { ChevronLeft } from 'lucide-react';
-import { ApiError } from '@/types/api/apiError';
+import type { ApiError } from '@/types/api/apiError';
 
-// ✅ سینتکس صحیح React 19 + Vite 7
 const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
 const OTPLoginForm = lazy(() => import('./OTPLoginForm'));
 
@@ -86,7 +85,6 @@ export function LoginForm() {
     setMobile(mobileNumber);
     setCaptchaId(captchaIdValue);
     setCaptchaAnswer(captchaAnswerValue);
-    // مستقیماً به صفحه رمز عبور می‌رویم
     setStep('password');
   };
 

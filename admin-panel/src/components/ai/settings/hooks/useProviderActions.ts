@@ -1,8 +1,6 @@
-"use client";
-
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { aiApi } from '@/api/ai/route';
+import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
 import { frontendToBackendProviderMap } from '../hooks/useAISettings';
 

@@ -1,6 +1,6 @@
 import { api } from '@/core/config/api';
 import { getCrud } from '@/core/messages';
-import {
+import type {
     ContactFormField,
     ContactFormFieldCreate,
     ContactFormFieldUpdate,
@@ -24,7 +24,7 @@ class FormApi {
         const url = `${this.baseUrl}fields/${queryString ? '?' + queryString : ''}`;
         
         try {
-            const response = await fetchApi.get<ContactFormField[]>(url, {
+            const response = await api.get<ContactFormField[]>(url, {
                 silent: true
             });
 
@@ -38,7 +38,7 @@ class FormApi {
     }
 
     async getFieldById(id: number): Promise<ContactFormField> {
-        const response = await fetchApi.get<{ data: ContactFormField }>(
+        const response = await api.get<{ data: ContactFormField }>(
             `${this.baseUrl}fields/${id}/`,
             {
                 showErrorToast: true
@@ -48,7 +48,7 @@ class FormApi {
     }
 
     async createField(data: ContactFormFieldCreate): Promise<ContactFormField> {
-        const response = await fetchApi.post<{ data: ContactFormField }>(
+        const response = await api.post<{ data: ContactFormField }>(
             `${this.baseUrl}fields/`,
             data,
             {
@@ -60,7 +60,7 @@ class FormApi {
     }
 
     async updateField(id: number, data: ContactFormFieldUpdate): Promise<ContactFormField> {
-        const response = await fetchApi.patch<{ data: ContactFormField }>(
+        const response = await api.patch<{ data: ContactFormField }>(
             `${this.baseUrl}fields/${id}/`,
             data,
             {
@@ -72,7 +72,7 @@ class FormApi {
     }
 
     async deleteField(id: number): Promise<void> {
-        await fetchApi.delete(`${this.baseUrl}fields/${id}/`, {
+        await api.delete(`${this.baseUrl}fields/${id}/`, {
             showSuccessToast: true,
             successMessage: getCrud('deleted', { item: 'فیلد فرم' })
         });
@@ -80,7 +80,7 @@ class FormApi {
 
     async getFieldsForPlatform(platform: 'website' | 'mobile_app'): Promise<ContactFormField[]> {
         try {
-            const response = await fetchApi.get<ContactFormField[]>(
+            const response = await api.get<ContactFormField[]>(
                 `${this.baseUrl}fields/get_fields_for_platform/?platform=${platform}`,
                 {
                     silent: true
@@ -93,7 +93,7 @@ class FormApi {
     }
 
     async createSubmission(data: ContactFormSubmissionCreate): Promise<void> {
-        await fetchApi.post(
+        await api.post(
             `${this.baseUrl}submissions/`,
             data,
             {

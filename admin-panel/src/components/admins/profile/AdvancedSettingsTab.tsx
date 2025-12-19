@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -7,15 +5,15 @@ import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
-import { AdminWithProfile } from "@/types/auth/admin";
+import type { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
 import { toast } from "sonner";
-import { roleApi } from "@/api/admins/roles/route";
-import { adminApi } from "@/api/admins/route";
+import { roleApi } from "@/api/admins/roles/roles";
+import { adminApi } from "@/api/admins/admins";
 import { useAuth } from "@/core/auth/AuthContext";
 import { hasPermission } from "@/core/permissions/utils/permissionUtils";
-import { Role } from "@/types/auth/permission";
+import type { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { useQueryClient } from "@tanstack/react-query";

@@ -1,4 +1,4 @@
-import { FilterConfig } from "@/types/shared/table";
+import type { FilterConfig } from "@/types/shared/table";
 
 export interface OptionFilters {
   is_active?: string;
