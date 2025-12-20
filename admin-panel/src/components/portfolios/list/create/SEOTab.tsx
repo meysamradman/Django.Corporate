@@ -62,7 +62,7 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
 
-    const handleMetaDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleMetaDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {
@@ -70,7 +70,7 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
 
-    const handleOgTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOgTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {
@@ -78,7 +78,7 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
 
-    const handleOgDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleOgDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {
@@ -86,7 +86,7 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
 
-    const handleCanonicalUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCanonicalUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {
@@ -94,7 +94,7 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
 
-    const handleRobotsMetaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleRobotsMetaChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {

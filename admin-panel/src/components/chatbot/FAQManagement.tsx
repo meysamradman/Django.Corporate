@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
@@ -91,6 +91,9 @@ export function FAQManagement() {
         : updaterOrValue;
     setSorting(newSorting);
   };
+
+  const handleFilterChange = useCallback((_filterId: string | 'search', _value: unknown) => {
+  }, []);
 
   const handleCreate = () => {
     setEditingFAQ(null);
@@ -270,7 +273,7 @@ export function FAQManagement() {
               onPaginationChange={handlePaginationChange}
               onSortingChange={handleSortingChange}
               clientFilters={{}}
-              onFilterChange={() => { }}
+              onFilterChange={handleFilterChange}
               state={{
                 pagination,
                 sorting,

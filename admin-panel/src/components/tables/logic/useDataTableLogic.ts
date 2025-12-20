@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef, type SetStateAction } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
+import type {
   PaginationState,
   SortingState,
   VisibilityState,
@@ -9,7 +9,6 @@ import {
 import { toast } from 'sonner';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
 
-import type { ApiPagination } from '@/types/shared/pagination';
 import type { ApiResponse } from '@/types/api/apiResponse';
 import type { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tableFilters';
 
@@ -62,7 +61,7 @@ interface UseDataTableLogicResult<TData, TClientFilters> {
   rowSelection: RowSelectionState;
   setRowSelection: (value: SetStateAction<RowSelectionState>) => void;
   columnVisibility: VisibilityState;
-  setColumnVisibility: (value: React.SetStateAction<VisibilityState>) => void;
+  setColumnVisibility: (value: SetStateAction<VisibilityState>) => void;
   refetchData: () => Promise<void>;
   handleDeleteItem: (id: number | string) => Promise<void>;
   handleDeleteSelected: (idsToUse?: (string | number)[]) => Promise<void>;
@@ -284,7 +283,7 @@ export function useDataTableLogic<
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }, []);
 
-  const handlePaginationChange = useCallback((updater: React.SetStateAction<PaginationState>) => {
+  const handlePaginationChange = useCallback((updater: SetStateAction<PaginationState>) => {
     setPagination(current => {
         const newState = typeof updater === 'function' ? updater(current) : updater;
         if (!pageSizeOptions.includes(newState.pageSize)) {
