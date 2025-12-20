@@ -81,7 +81,8 @@ export function FAQDialog({ isOpen, onClose, faq }: FAQDialogProps) {
         await createFAQ.mutateAsync(data);
       }
       onClose();
-    } catch (error) {
+    } catch {
+      // Error handling is done by react-query
     }
   };
 

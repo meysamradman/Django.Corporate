@@ -111,10 +111,8 @@ const GROQ_MODELS: Record<string, StaticModel[]> = {
 
 export function GroqModelSelectorContent({
   providerId,
-  providerName,
   capability,
   onSave,
-  onSelectionChange,
 }: GroqModelSelectorContentProps) {
   const models = GROQ_MODELS[capability] || [];
 

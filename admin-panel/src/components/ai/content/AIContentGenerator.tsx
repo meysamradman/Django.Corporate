@@ -93,7 +93,8 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 setGeneratedContent(response.data);
                 toast.success(msg.ai('contentGenerated'));
             }
-        } catch (error: any) {
+        } catch {
+          // Error handling is done by toast
         } finally {
             setGenerating(false);
         }
@@ -105,7 +106,7 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
             setCopiedField(fieldName);
             toast.success(msg.ai('copied'));
             setTimeout(() => setCopiedField(null), 2000);
-        } catch (error) {
+        } catch {
             toast.error(msg.ai('copyError'));
         }
     };

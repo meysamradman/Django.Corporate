@@ -1,36 +1,13 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy } from "react";
 import { useLocation } from "react-router-dom";
 
 import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, type ComposeEmailData } from "@/components/email";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Skeleton } from "@/components/elements/Skeleton";
 import { emailApi } from "@/api/email/email";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "@/components/email/types";
 import { toast } from "@/components/elements/Sonner";
 import { useQueryClient } from '@tanstack/react-query';
-
-const EmailDetailViewSkeleton = () => (
-  <div className="flex-1 flex flex-col h-full overflow-hidden">
-    <div className="border-b p-6 flex-shrink-0">
-      <div className="flex items-start gap-4">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-      </div>
-    </div>
-    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-      <Skeleton className="h-8 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
-    </div>
-  </div>
-);
 
 const EmailDetailView = lazy(() => import("@/components/email").then(mod => ({ default: mod.EmailDetailView })));
 const ComposeEmailDialog = lazy(() => import("@/components/email/ComposeEmailDialog").then(mod => ({ default: mod.ComposeEmailDialog })));

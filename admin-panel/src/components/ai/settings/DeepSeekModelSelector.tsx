@@ -60,10 +60,8 @@ const DEEPSEEK_MODELS: Record<string, StaticModel[]> = {
 
 export function DeepSeekModelSelectorContent({
   providerId,
-  providerName,
   capability,
   onSave,
-  onSelectionChange,
 }: DeepSeekModelSelectorContentProps) {
   const models = DEEPSEEK_MODELS[capability] || [];
 

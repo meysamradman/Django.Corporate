@@ -49,7 +49,7 @@ export function StaticModelSelector({
       if (response.data && response.data.model_id) {
         setActiveModelId(response.data.model_id);
       }
-    } catch (error: any) {
+    } catch {
       setActiveModelId(null);
     } finally {
       setLoading(false);
@@ -88,7 +88,8 @@ export function StaticModelSelector({
               await aiApi.models.update(activeModel.id, { is_active: false });
             }
           }
-        } catch (error) {
+        } catch {
+          // Error handling: continue with activation
         }
       }
 

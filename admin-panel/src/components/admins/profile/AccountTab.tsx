@@ -85,7 +85,8 @@ export function AccountTab({
                     const cities = await locationApi.getCitiesCompactByProvince(selectedProvince.id);
                     setCities(cities);
                 }
-                } catch (error) {
+                } catch {
+                  // Error handling: cities will remain empty
                 } finally {
                     setLoadingCities(false);
                 }

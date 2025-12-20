@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
@@ -63,18 +63,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         hasPermission(userPermissionsObj, 'admin.manage')
     );
 
-    useEffect(() => {
-        setEditMode(false);
-        loadAdminData();
-    }, [admin.id]);
-    
-    useEffect(() => {
-        if (!editMode) {
-            loadAdminData();
-        }
-    }, [admin]);
-
-    const loadAdminData = async () => {
+    const loadAdminData = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
@@ -141,6 +130,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     setBasePermissions(convertedPermissions);
                 }
             } catch {
+                // Silently handle error - base permissions will remain empty
             }
             
         } catch {
@@ -148,7 +138,18 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [admin.id]);
+    
+    useEffect(() => {
+        setEditMode(false);
+        loadAdminData();
+    }, [admin.id, loadAdminData]);
+    
+    useEffect(() => {
+        if (!editMode) {
+            loadAdminData();
+        }
+    }, [admin, editMode, loadAdminData]);
 
     const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode || !canManagePermissions) return;

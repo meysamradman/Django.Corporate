@@ -1,9 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
 import { 
-  PROVIDER_METADATA, 
   getProviderMetadata,
   BACKEND_TO_FRONTEND_ID,
   FRONTEND_TO_BACKEND_NAME 

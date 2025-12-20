@@ -65,13 +65,13 @@ export function getProviderMetadata(providerId: string): ProviderMetadata | null
 
 export function getProvidersByCategory(category: 'popular' | 'standard' | 'specialized'): string[] {
   return Object.entries(PROVIDER_METADATA)
-    .filter(([_, metadata]) => metadata.category === category)
+    .filter(([, metadata]) => metadata.category === category)
     .map(([id]) => id);
 }
 
 export function getProvidersByFeature(feature: 'chat' | 'content' | 'image'): string[] {
   return Object.entries(PROVIDER_METADATA)
-    .filter(([_, metadata]) => metadata.supportedFeatures?.includes(feature))
+    .filter(([, metadata]) => metadata.supportedFeatures?.includes(feature))
     .map(([id]) => id);
 }
 

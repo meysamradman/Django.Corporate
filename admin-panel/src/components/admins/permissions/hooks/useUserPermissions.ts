@@ -182,7 +182,7 @@ export function useUserPermissions() {
       }
     }
     return undefined;
-  }, [user?.permission_profile, user?.permissions]);
+  }, [user]);
 
   const legacyIsSuper =
     typeof user === "object" && user
@@ -196,7 +196,7 @@ export function useUserPermissions() {
   const userRoles = useMemo(() => {
     if (!user?.roles) return [];
     return [...user.roles];
-  }, [user?.roles]);
+  }, [user]);
 
   const moduleActionMap = useMemo(() => {
     const map = new Map<string, Set<ModuleAction>>();

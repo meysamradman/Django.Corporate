@@ -101,7 +101,8 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
                     });
                     return;
                 }
-            } catch (error: any) {
+            } catch {
+              // Silently handle error - continue with mutation
             }
         }
         

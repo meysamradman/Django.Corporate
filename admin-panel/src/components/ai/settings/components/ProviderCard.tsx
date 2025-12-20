@@ -6,7 +6,7 @@ import { Label } from '@/components/elements/Label';
 import { Badge } from '@/components/elements/Badge';
 import { Switch } from '@/components/elements/Switch';
 import { Eye, EyeOff, Sparkles, Loader2, CheckCircle2, Trash2, Edit2, Save, X, Users, User } from 'lucide-react';
-import type { Provider, Model } from '../hooks/useAISettings';
+import type { Provider } from '../hooks/useAISettings';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/elements/Tabs';
 
 interface ProviderCardProps {
@@ -59,7 +59,7 @@ function maskApiKey(apiKey: string, showFull: boolean = false): string {
 
 export function ProviderCard({
   provider,
-  isExpanded,
+  isExpanded = false,
   apiKey,
   showApiKey,
   useSharedApi,

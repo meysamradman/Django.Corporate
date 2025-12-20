@@ -1,4 +1,3 @@
-import { Card, CardContent } from '@/components/elements/Card';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import type { Media } from '@/types/shared/media';

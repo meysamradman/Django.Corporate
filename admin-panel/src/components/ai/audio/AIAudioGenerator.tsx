@@ -33,12 +33,6 @@ export function AIAudioGenerator({
     const [model, setModel] = useState('tts-1');
     const [voice, setVoice] = useState('alloy');
     const [speed, setSpeed] = useState(1.0);
-    const [ttsDefaults, setTtsDefaults] = useState<{
-        model?: string;
-        voice?: string;
-        speed?: number;
-        response_format?: string;
-    } | null>(null);
     const [saveToDb, setSaveToDb] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [generatedMedia, setGeneratedMedia] = useState<Media | null>(null);
@@ -99,7 +93,6 @@ export function AIAudioGenerator({
                 if (providers.length > 0) {
                     const firstProvider = providers[0] as any;
                     if (firstProvider.tts_defaults) {
-                        setTtsDefaults(firstProvider.tts_defaults);
                         setModel(firstProvider.tts_defaults.model || 'tts-1');
                         setVoice(firstProvider.tts_defaults.voice || 'alloy');
                         setSpeed(firstProvider.tts_defaults.speed || 1.0);
@@ -112,7 +105,7 @@ export function AIAudioGenerator({
                     setSelectedProvider('openai');
                 }
             }
-        } catch (error) {
+        } catch {
             setIsDemoMode(true);
             setAvailableProviders([{
                 id: 1,
@@ -174,7 +167,7 @@ export function AIAudioGenerator({
                 
                 fetchAvailableProviders();
             }
-        } catch (error: any) {
+        } catch {
             if (isDemoMode) {
                 setTimeout(() => {
                     setGeneratedAudioUrl('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
@@ -219,8 +212,9 @@ export function AIAudioGenerator({
                 toast.success('فایل صوتی ذخیره شد');
                 onAudioGenerated?.(media);
             }
-        } catch (error: any) {
-            toast.error('خطا در ذخیره فایل صوتی: ' + (error.message || 'خطای نامشخص'));
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'خطای نامشخص';
+            toast.error('خطا در ذخیره فایل صوتی: ' + errorMessage);
         }
     };
 

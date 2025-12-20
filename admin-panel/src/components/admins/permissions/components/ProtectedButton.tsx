@@ -1,5 +1,5 @@
 import { useMemo, isValidElement } from 'react';
-import type { ComponentProps, FC, MouseEventHandler } from 'react';
+import type { ComponentProps, FC, MouseEventHandler, ReactNode } from 'react';
 import { usePermission } from '../context/PermissionContext';
 import { Button } from '@/components/elements/Button';
 import { cn } from '@/core/utils/cn';
@@ -23,7 +23,7 @@ export const ProtectedButton: FC<Props> = ({
   asChild,
   ...rest
 }) => {
-  const { hasPermission, hasAllPermissions, hasAnyPermission, isLoading } = usePermission();
+  const { hasAllPermissions, hasAnyPermission, isLoading } = usePermission();
 
   const hasAccess = useMemo(() => {
     if (isLoading) return false;
@@ -34,7 +34,7 @@ export const ProtectedButton: FC<Props> = ({
       return hasAllPermissions(permissions);
     }
     return hasAnyPermission(permissions);
-  }, [isLoading, hasPermission, hasAllPermissions, hasAnyPermission, permission, requireAll]);
+  }, [isLoading, hasAllPermissions, hasAnyPermission, permission, requireAll]);
 
   const isDisabled = isLoading || !hasAccess;
 
@@ -54,7 +54,10 @@ export const ProtectedButton: FC<Props> = ({
   if (asChild && !hasAccess) {
     let linkChildren = children;
     if (isValidElement(children)) {
-      linkChildren = (children.props as any).children;
+      const props = children.props as { children?: ReactNode };
+      if ('children' in props) {
+        linkChildren = props.children;
+      }
     }
 
     return (

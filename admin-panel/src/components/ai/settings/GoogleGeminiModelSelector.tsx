@@ -101,10 +101,8 @@ const GEMINI_MODELS: Record<string, StaticModel[]> = {
 
 export function GoogleGeminiModelSelectorContent({
   providerId,
-  providerName,
   capability,
   onSave,
-  onSelectionChange,
 }: GoogleGeminiModelSelectorContentProps) {
   const models = GEMINI_MODELS[capability] || [];
 

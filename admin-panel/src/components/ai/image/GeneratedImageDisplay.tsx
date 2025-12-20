@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import type { Media } from '@/types/shared/media';
@@ -55,7 +54,6 @@ export function GeneratedImageDisplay({
                                     media={generatedMedia}
                                     alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
                                     className="w-full h-auto max-h-full object-cover"
-                                    unoptimized
                                 />
                             ) : generatedImageUrl ? (
                                 <img

@@ -3,7 +3,6 @@ import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatb
 import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";

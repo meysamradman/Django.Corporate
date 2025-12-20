@@ -34,7 +34,6 @@ export function useModelSelection({
 }: UseModelSelectionProps) {
   const [activeModels, setActiveModels] = useState<Set<string>>(new Set());
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
-  const [modelDataMap, setModelDataMap] = useState<Map<string, ModelData>>(new Map());
 
   const fetchActiveModels = async () => {
     try {
@@ -48,7 +47,8 @@ export function useModelSelection({
         );
         setActiveModels(activeModelIds);
       }
-    } catch (error) {
+    } catch {
+      // Silently handle error - models will remain in current state
     }
   };
 

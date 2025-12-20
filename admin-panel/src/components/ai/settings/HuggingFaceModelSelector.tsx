@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type MutableRefObject } from 'react';
+import { useState, useEffect, type MutableRefObject } from 'react';
 import { aiApi } from '@/api/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { ModelSelector } from '@/components/ai/core';

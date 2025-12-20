@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/ai';
 import type { AvailableProvider } from '@/types/ai/ai';
@@ -80,9 +79,12 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                     setSelectedProvider('');
                 }
             }
-        } catch (error: any) {
-            if (error?.response?.AppStatusCode === 404) {
-                setAvailableProviders([]);
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const apiError = error as { response?: { AppStatusCode?: number } };
+                if (apiError.response?.AppStatusCode === 404) {
+                    setAvailableProviders([]);
+                }
             }
         } finally {
             setLoadingProviders(false);
@@ -128,7 +130,8 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 
                 fetchAvailableProviders();
             }
-        } catch (error: any) {
+        } catch {
+          // Error handling is done by toast
         } finally {
             setGenerating(false);
         }
@@ -167,8 +170,9 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 toast.success(msg.ai('imageSaved'));
                 onImageGenerated?.(media);
             }
-        } catch (error: any) {
-            toast.error(msg.ai('saveImageError') + ': ' + (error.message || 'خطای نامشخص'));
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'خطای نامشخص';
+            toast.error(msg.ai('saveImageError') + ': ' + errorMessage);
         }
     };
 

@@ -53,7 +53,8 @@ export function useChatProviders({ compact = false, hasAIPermission = false, use
 
                 setAvailableProviders(providersData);
             }
-        } catch (error: any) {
+        } catch {
+          // Error handling is done by react-query
         } finally {
             setLoadingProviders(false);
         }

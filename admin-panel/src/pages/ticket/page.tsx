@@ -1,43 +1,11 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, type ReplyTicketData } from "@/components/ticket";
-import { Skeleton } from "@/components/elements/Skeleton";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
-import type { Ticket, TicketStatusType, TicketMessage } from "@/types/ticket/ticket";
+import type { Ticket, TicketStatusType } from "@/types/ticket/ticket";
 import { toast } from "sonner";
-
-const TicketDetailViewSkeleton = () => (
-  <div className="flex-1 flex flex-col h-full overflow-hidden">
-    <div className="border-b p-6 flex-shrink-0">
-      <div className="flex items-start gap-4">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-      </div>
-    </div>
-    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-      <Skeleton className="h-8 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-32 w-full" />
-      <div className="space-y-3">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex gap-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetailView })));
 const ReplyTicketDialog = lazy(() => import("@/components/ticket/ReplyTicketDialog").then(mod => ({ default: mod.ReplyTicketDialog })));

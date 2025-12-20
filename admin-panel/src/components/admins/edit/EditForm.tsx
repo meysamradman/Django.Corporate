@@ -146,7 +146,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         }
         
         previousEditModeRef.current = editMode;
-    }, [adminData?.id, adminData?.profile?.profile_picture?.id, editMode]);
+    }, [adminData, editMode]);
 
     const handleInputChange = (field: string, value: string | any) => {
         if (field === "cancel") {

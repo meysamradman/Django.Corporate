@@ -46,7 +46,8 @@ export default function ProfileTab({
       try {
         const provinces = await locationApi.getProvincesCompact();
         setProvinces(provinces);
-      } catch (error) {
+      } catch {
+        // Silently handle error - provinces will remain empty
       } finally {
         setLoadingProvinces(false);
       }
@@ -62,7 +63,8 @@ export default function ProfileTab({
         try {
           const cities = await locationApi.getCitiesCompactByProvince(provinceValue);
           setCities(cities);
-        } catch (error) {
+        } catch {
+          // Silently handle error - cities will remain empty
         } finally {
           setLoadingCities(false);
         }
@@ -97,7 +99,7 @@ export default function ProfileTab({
           const { toast } = await import('@/components/elements/Sonner');
           toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
         }
-      } catch (error) {
+      } catch {
         const { toast } = await import('@/components/elements/Sonner');
         toast.error("خطا در ذخیره عکس پروفایل");
       }

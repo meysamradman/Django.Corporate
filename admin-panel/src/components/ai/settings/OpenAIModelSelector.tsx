@@ -162,10 +162,8 @@ const OPENAI_MODELS: Record<string, StaticModel[]> = {
 
 export function OpenAIModelSelectorContent({
   providerId,
-  providerName,
   capability,
   onSave,
-  onSelectionChange,
 }: OpenAIModelSelectorContentProps) {
   const models = OPENAI_MODELS[capability] || [];
 

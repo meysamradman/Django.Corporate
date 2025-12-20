@@ -16,7 +16,6 @@ export function AdminLayout() {
   const {
     sidebarOpen,
     contentCollapsed,
-    selectedItemHasSubMenu,
     toggleSidebar,
     toggleContent,
     setSidebarOpen

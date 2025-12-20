@@ -44,7 +44,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
   const permissionSet = useMemo(() => {
     if (!permissionMap?.user_permissions) return new Set<string>();
     return new Set(permissionMap.user_permissions);
-  }, [permissionMap?.user_permissions]);
+  }, [permissionMap]);
 
   const ACTION_SYNONYMS: Record<string, string[]> = useMemo(() => ({
     read: ['read', 'view', 'list', 'get'],

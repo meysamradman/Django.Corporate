@@ -5,7 +5,7 @@ import type { AdminWithProfile } from "@/types/auth/admin";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import type { Media } from "@/types/shared/media";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from 'sonner';
@@ -31,13 +31,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
     const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
 
-    useEffect(() => {
-        if (admin?.id) {
-            loadAdminRoles();
-        }
-    }, [admin?.id]);
-
-    const loadAdminRoles = async () => {
+    const loadAdminRoles = useCallback(async () => {
         try {
             const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
             const adminRolesData = Array.isArray(adminRolesResponse) 
@@ -49,9 +43,16 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                 })
                 : [];
             setAdminRoles(adminRolesData);
-        } catch (error) {
+        } catch {
+            // Silently handle error - admin roles will remain empty
         }
-    };
+    }, [admin.id]);
+    
+    useEffect(() => {
+        if (admin?.id) {
+            loadAdminRoles();
+        }
+    }, [admin?.id, loadAdminRoles]);
 
     const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
     

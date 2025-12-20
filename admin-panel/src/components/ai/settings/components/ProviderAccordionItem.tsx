@@ -25,7 +25,6 @@ interface ProviderAccordionItemProps {
   isActive: boolean;
   accessStatus: string;
   accessLabel: string;
-  personalSettingsMap: Record<string, any>;
   onToggleApiKeyVisibility: () => void;
   onApiKeyChange: (value: string) => void;
   onPersonalApiKeyChange?: (value: string) => void;
@@ -62,7 +61,6 @@ export function ProviderAccordionItem({
   isActive,
   accessStatus,
   accessLabel,
-  personalSettingsMap,
   onToggleApiKeyVisibility,
   onApiKeyChange,
   onPersonalApiKeyChange,
