@@ -54,6 +54,6 @@ export const exportPortfolios = async (
   
   await api.downloadFile(url, filename, 'GET', null, { 
     useFetchForErrorHandling 
-  } as any);
+  } as { useFetchForErrorHandling?: boolean });
 };
 

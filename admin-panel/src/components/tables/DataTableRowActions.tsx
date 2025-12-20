@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu"
-import { usePermission } from "@/core/permissions";
+import { usePermission } from "@/components/admins/permissions";
 import type { DataTableRowAction } from "@/types/shared/table";
 
 export type { DataTableRowAction };

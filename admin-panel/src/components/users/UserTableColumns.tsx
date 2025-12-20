@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/elements/Checkbox"
 import type { UserWithProfile } from "@/types/auth/user"
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/core/permissions";
+import { ProtectedLink } from "@/components/admins/permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";

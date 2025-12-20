@@ -3,13 +3,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/
 import { Input } from '@/components/elements/Input';
 import { Label } from '@/components/elements/Label';
 import { Badge } from '@/components/elements/Badge';
-import { Search, Zap, DollarSign, Sparkles } from 'lucide-react';
+import { Search, DollarSign, Sparkles } from 'lucide-react';
 import {
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from '@/components/elements/Select';

@@ -3,7 +3,7 @@ import type { PermissionMapResponse } from '@/types/auth/permission'
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 
 export const permissionApi = {
-  async getMap(options?: {}) {
+  async getMap(options?: Record<string, unknown>) {
     const res = await api.get<PermissionMapResponse>(adminEndpoints.permissionsMap(), options)
     return res.data
   },

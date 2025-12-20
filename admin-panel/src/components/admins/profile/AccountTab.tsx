@@ -1,8 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
-import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
@@ -68,7 +66,7 @@ export function AccountTab({
             try {
                 const provinces = await locationApi.getProvincesCompact();
                 setProvinces(provinces);
-            } catch (error) {
+            } catch {
             } finally {
                 setLoadingProvinces(false);
             }

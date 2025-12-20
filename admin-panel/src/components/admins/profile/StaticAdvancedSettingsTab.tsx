@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
+import { Edit2, Loader2, Shield, Check } from "lucide-react";
 import type { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 
@@ -90,10 +90,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
         }))
     );
 
-    const [adminStatusData, setAdminStatusData] = useState({
-        is_active: admin.is_active,
-        is_superuser: admin.is_superuser
-    });
+    // Removed unused adminStatusData state - using admin directly
 
     const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode) return;
@@ -145,7 +142,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                         </div>
                         <Switch
                             id="account-status"
-                            checked={adminStatusData.is_active}
+                            checked={admin.is_active}
                             disabled
                         />
                     </div>
@@ -158,7 +155,7 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
                         </div>
                         <Switch
                             id="super-admin-access"
-                            checked={adminStatusData.is_superuser}
+                            checked={admin.is_superuser}
                             disabled
                         />
                     </div>

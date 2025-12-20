@@ -12,7 +12,7 @@ import {
   MailOpen,
 } from "lucide-react";
 import { toast } from "@/components/elements/Sonner";
-import { usePermission } from "@/core/permissions";
+import { usePermission } from "@/components/admins/permissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import type { MailboxType } from "./types";

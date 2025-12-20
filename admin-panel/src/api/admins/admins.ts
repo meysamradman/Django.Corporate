@@ -1,5 +1,5 @@
 import { api } from '@/core/config/api';
-import type { ApiResponse, Pagination } from '@/types/api/apiResponse';
+import type { Pagination } from '@/types/api/apiResponse';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 import type { 
@@ -10,7 +10,16 @@ import type {
 } from '@/types/auth/admin';
 import type { AdminFilter, UserFilter, Filter } from '@/types/auth/adminFilter';
 
-export function createQueryString(params: Record<string, any>, additionalParams?: Record<string, any>): string {
+interface AdminListResponse {
+  data?: AdminWithProfile[];
+  results?: AdminWithProfile[];
+  pagination?: Pagination;
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+}
+
+export function createQueryString(params: Record<string, unknown>, additionalParams?: Record<string, unknown>): string {
   const queryParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
@@ -73,7 +82,7 @@ export const adminApi = {
     userType: UserType,
     filters?: Filter
   ) => {
-    const finalFilters: Record<string, any> = filters ? { ...filters } : {};
+    const finalFilters: Record<string, unknown> = filters ? { ...filters } : {};
 
     const normalizedParams = normalizePaginationParams(
       { page: finalFilters.page, size: finalFilters.size },
@@ -95,7 +104,7 @@ export const adminApi = {
       ? `${adminEndpoints.management()}?${queryString}`
       : `${adminEndpoints.usersManagement()}?${queryString}`;
 
-    const response = await api.get<any>(endpointUrl);
+    const response = await api.get<AdminListResponse | AdminWithProfile[]>(endpointUrl);
 
     let data: AdminWithProfile[] = [];
     let pagination: Pagination = { 
@@ -120,14 +129,15 @@ export const adminApi = {
         current_page: 1,
         total_pages: 1
       };
-    } else if (response && typeof response === 'object' && Array.isArray((response as any).data) && (response as any).pagination) {
-      data = (response as any).data;
-      pagination = (response as any).pagination;
-    } else if (response && typeof response === 'object' && Array.isArray((response as any).results)) {
-      data = (response as any).results;
-      pagination.count = (response as any).count || 0;
-      pagination.next = (response as any).next ?? null;
-      pagination.previous = (response as any).previous ?? null;
+    } else if (response && typeof response === 'object' && 'data' in response && typeof response.data === 'object' && response.data !== null && 'data' in response.data && Array.isArray(response.data.data) && 'pagination' in response.data && response.data.pagination) {
+      data = response.data.data;
+      pagination = response.data.pagination;
+    } else if (response && typeof response === 'object' && 'data' in response && typeof response.data === 'object' && response.data !== null && 'results' in response.data && Array.isArray(response.data.results)) {
+      const responseData = response.data as AdminListResponse;
+      data = responseData.results || [];
+      pagination.count = responseData.count || 0;
+      pagination.next = responseData.next ?? null;
+      pagination.previous = responseData.previous ?? null;
       pagination.total_pages = Math.ceil((pagination.count || 0) / (pagination.page_size || 10));
     } else {
       data = [];
@@ -166,8 +176,8 @@ export const adminApi = {
     return response.data;
   },
 
-  createUserByType: async (flattenedUserData: Record<string, any>, userType: UserType): Promise<AdminWithProfile> => {
-    const dataToSend: Record<string, any> = {
+  createUserByType: async (flattenedUserData: Record<string, unknown>, userType: UserType): Promise<AdminWithProfile> => {
+    const dataToSend: Record<string, unknown> = {
       ...flattenedUserData,
       is_staff: userType === 'admin',
       is_superuser: userType === 'admin' ? (flattenedUserData.is_superuser ?? false) : false
@@ -192,9 +202,9 @@ export const adminApi = {
     return response.data;
   },
 
-  updateUserByType: async (userId: number, flattenedUserData: Record<string, any>, userType: UserType): Promise<AdminWithProfile> => {
+  updateUserByType: async (userId: number, flattenedUserData: Record<string, unknown>, userType: UserType): Promise<AdminWithProfile> => {
     const { role_id, ...rest } = flattenedUserData;
-    const dataToSend: Record<string, any> = { ...rest };
+    const dataToSend: Record<string, unknown> = { ...rest };
 
     if (userType === 'user') {
       if (dataToSend.province !== undefined && dataToSend.province_id === undefined) {
@@ -223,7 +233,8 @@ export const adminApi = {
         } else {
           await adminApi.assignRoleToAdmin(userId, Number(role_id));
         }
-      } catch (roleError) {
+      } catch {
+        // Silently handle role assignment errors
       }
     }
     
@@ -274,14 +285,14 @@ export const adminApi = {
     await api.post(endpoint, { ids: userIds });
   },
 
-  getAdminRoles: async (adminId: number): Promise<any[]> => {
+  getAdminRoles: async (adminId: number): Promise<Array<{ role: number; role_name?: string }>> => {
     const timestamp = Date.now();
-    const response = await api.get<{roles: any[]}>(`${adminEndpoints.rolesUserRoles(adminId)}&_t=${timestamp}`);
+    const response = await api.get<{roles: Array<{ role: number; role_name?: string }>}>(`${adminEndpoints.rolesUserRoles(adminId)}&_t=${timestamp}`);
     return response.data?.roles || [];
   },
 
-  assignRoleToAdmin: async (adminId: number, roleId: number): Promise<any> => {
-    const response = await api.post<any>(adminEndpoints.rolesAssignRole(), {
+  assignRoleToAdmin: async (adminId: number, roleId: number): Promise<{ success: boolean; message?: string }> => {
+    const response = await api.post<{ success: boolean; message?: string }>(adminEndpoints.rolesAssignRole(), {
       user_id: adminId,
       role_ids: [roleId]
     });
@@ -310,11 +321,11 @@ export const adminApi = {
   },
 
   createAdmin: async (adminData: AdminCreateRequest): Promise<AdminWithProfile> => {
-    return adminApi.createUserByType(adminData, 'admin');
+    return adminApi.createUserByType(adminData as unknown as Record<string, unknown>, 'admin');
   },
 
   updateAdmin: async (adminId: number, adminData: AdminUpdateRequest): Promise<AdminWithProfile> => {
-    return adminApi.updateUserByType(adminId, adminData, 'admin');
+    return adminApi.updateUserByType(adminId, adminData as unknown as Record<string, unknown>, 'admin');
   },
 
   deleteAdmin: async (adminId: number): Promise<void> => {
@@ -341,11 +352,11 @@ export const adminApi = {
     return adminApi.fetchUserById(userId, 'user');
   },
 
-  createUser: async (userData: any): Promise<AdminWithProfile> => {
+  createUser: async (userData: Record<string, unknown>): Promise<AdminWithProfile> => {
     return adminApi.createUserByType(userData, 'user');
   },
 
-  updateUser: async (userId: number, userData: any): Promise<AdminWithProfile> => {
+  updateUser: async (userId: number, userData: Record<string, unknown>): Promise<AdminWithProfile> => {
     return adminApi.updateUserByType(userId, userData, 'user');
   },
 

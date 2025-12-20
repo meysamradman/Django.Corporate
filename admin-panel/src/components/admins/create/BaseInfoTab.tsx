@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
@@ -16,7 +15,7 @@ export default function BaseInfoTab({
   form,
   editMode,
 }: BaseInfoTabProps) {
-  const { register, formState: { errors }, setValue } = form;
+  const { register, formState: { errors } } = form;
   return (
     <div className="space-y-6">
       <CardWithIcon

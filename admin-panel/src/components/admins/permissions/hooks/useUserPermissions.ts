@@ -1,6 +1,5 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
-import { PERMISSIONS } from '@/core/permissions/constants';
 import type { PermissionProfile } from '@/types/auth/permission';
 
 interface UserRole {

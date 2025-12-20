@@ -20,7 +20,7 @@ export const authApi = {
     try {
       const response = await api.getPublic<{ otp_length: number }>('/mobile/otp-settings/');
       return response.data || { otp_length: 5 };
-    } catch (error) {
+    } catch {
       return { otp_length: 5 };
     }
   },

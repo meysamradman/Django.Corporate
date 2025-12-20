@@ -12,7 +12,7 @@ export function Breadcrumb() {
   const location = useLocation();
   const pathname = location.pathname;
   
-  const { breadcrumbItems, displayItems } = useMemo(() => {
+  const { displayItems } = useMemo(() => {
     const getTranslatedLabel = (segment: string): string => {
       const normalizedSegment = segment.toLowerCase();
       
@@ -89,7 +89,7 @@ export function Breadcrumb() {
       ? [items[0], { label: "...", href: undefined }, ...items.slice(-2)]
       : items;
 
-    return { breadcrumbItems: items, displayItems: display };
+    return { displayItems: display };
   }, [pathname]);
 
   return (
@@ -116,7 +116,7 @@ export function Breadcrumb() {
               {item.label}
             </Link>
           )}
-        </React.Fragment>
+        </Fragment>
       ))}
     </nav>
   );

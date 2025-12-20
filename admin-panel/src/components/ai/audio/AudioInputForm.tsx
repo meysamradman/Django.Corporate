@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ProviderSelector } from '../shared/ProviderSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Brain, Mic, Volume2, AlertCircle } from 'lucide-react';
-import { getAI, getAIUI } from '@/core/messages/modules/ai';
+// getAI, getAIUI removed - not used
 
 interface AudioInputFormProps {
     providers: AvailableProvider[];

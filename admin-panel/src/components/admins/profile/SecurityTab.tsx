@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { Label } from "@/components/elements/Label";
 import { TabsContent } from "@/components/elements/Tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { toast } from '@/core/toast';
 import { validatePassword } from '@/core/validation/password';

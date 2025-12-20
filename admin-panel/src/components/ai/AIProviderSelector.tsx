@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Input } from '@/components/elements/Input';
 import { Badge } from '@/components/elements/Badge';
-import { Search, CheckCircle2, Zap, DollarSign } from 'lucide-react';
+import { Search, CheckCircle2, Zap } from 'lucide-react';
 
 function cn(...classes: (string | boolean | undefined)[]) {
     return classes.filter(Boolean).join(' ');

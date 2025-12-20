@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton, useUIPermissions } from '@/core/permissions';
+import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/page";
 import type { AboutPage } from "@/types/page/page";

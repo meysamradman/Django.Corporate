@@ -4,11 +4,9 @@ import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCate
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
 import type {
     PortfolioListParams,
-    PortfolioFilters,
     CategoryListParams,
     TagListParams
 } from "@/types/portfolio/portfolioListParams";
@@ -19,7 +17,7 @@ export const portfolioApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -101,7 +99,7 @@ export const portfolioApi = {
     return response.data;
   },
 
-  createPortfolioWithMedia: async (data: Partial<Portfolio>, mediaFiles: File[]): Promise<Portfolio> => {
+  createPortfolioWithMedia: async (data: Partial<Portfolio> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Portfolio> => {
     const formData = new FormData();
     
     Object.entries(data).forEach(([key, value]) => {
@@ -120,8 +118,8 @@ export const portfolioApi = {
       formData.append('media_files', file);
     });
     
-    if ((data as any).media_ids && Array.isArray((data as any).media_ids) && (data as any).media_ids.length > 0) {
-      formData.append('media_ids', (data as any).media_ids.join(','));
+    if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
+      formData.append('media_ids', data.media_ids.join(','));
     }
     
     const response = await api.post<Portfolio>('/admin/portfolio/', formData);
@@ -138,18 +136,17 @@ export const portfolioApi = {
     return response.data;
   },
 
-  addMediaToPortfolio: async (portfolioId: number, mediaFiles: File[], mediaIds?: number[]): Promise<any> => {
+  addMediaToPortfolio: async (portfolioId: number, mediaFiles: File[], mediaIds?: number[]): Promise<Portfolio> => {
     const formData = new FormData();
     mediaFiles.forEach(file => {
       formData.append('media_files', file);
     });
     
     if (mediaIds && mediaIds.length > 0) {
-
       formData.append('media_ids', mediaIds.join(','));
     }
     
-    const response = await api.post('/admin/portfolio/' + portfolioId + '/add_media/', formData);
+    const response = await api.post<Portfolio>('/admin/portfolio/' + portfolioId + '/add_media/', formData);
     return response.data;
   },
 
@@ -168,7 +165,7 @@ export const portfolioApi = {
     await api.delete('/admin/portfolio/' + id + '/');
   },
 
-  bulkDeletePortfolios: async (ids: number[]): Promise<any> => {
+  bulkDeletePortfolios: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/portfolio/bulk-delete/', { ids });
     return response.data;
   },
@@ -178,7 +175,7 @@ export const portfolioApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -250,7 +247,7 @@ export const portfolioApi = {
     await api.delete('/admin/portfolio-category/' + id + '/');
   },
 
-  bulkDeleteCategories: async (ids: number[]): Promise<any> => {
+  bulkDeleteCategories: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/portfolio-category/bulk-delete/', { ids });
     return response.data;
   },
@@ -260,7 +257,7 @@ export const portfolioApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -332,7 +329,7 @@ export const portfolioApi = {
     await api.delete('/admin/portfolio-tag/' + id + '/');
   },
 
-  bulkDeleteTags: async (ids: number[]): Promise<any> => {
+  bulkDeleteTags: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/portfolio-tag/bulk-delete/', { ids });
     return response.data;
   },
@@ -342,7 +339,7 @@ export const portfolioApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -413,7 +410,7 @@ export const portfolioApi = {
     await api.delete('/admin/portfolio-option/' + id + '/');
   },
 
-  bulkDeleteOptions: async (ids: number[]): Promise<any> => {
+  bulkDeleteOptions: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/portfolio-option/bulk-delete/', { ids });
     return response.data;
   },

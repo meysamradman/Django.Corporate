@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Card, CardContent } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
@@ -8,13 +8,12 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { Button } from "@/components/elements/Button";
 import type { Media } from "@/types/shared/media";
 import { User, Camera, UserCircle, MapPin, FileText } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { locationApi } from "@/api/shared/location/location";
-import { useEffect } from "react";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { filterNumericOnly } from "@/core/filters/numeric";
 

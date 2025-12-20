@@ -1,5 +1,5 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { ProtectedButton } from '@/core/permissions';
+import { ProtectedButton } from '@/components/admins/permissions';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
     Database,

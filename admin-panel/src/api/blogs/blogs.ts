@@ -3,11 +3,9 @@ import type { Blog } from "@/types/blog/blog";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
 import type {
     BlogListParams,
-    BlogFilters,
     CategoryListParams,
     TagListParams
 } from "@/types/blog/blogListParams";
@@ -18,7 +16,7 @@ export const blogApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -99,7 +97,7 @@ export const blogApi = {
     return response.data;
   },
 
-  createBlogWithMedia: async (data: Partial<Blog>, mediaFiles: File[]): Promise<Blog> => {
+  createBlogWithMedia: async (data: Partial<Blog> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Blog> => {
     const formData = new FormData();
     
     Object.entries(data).forEach(([key, value]) => {
@@ -118,8 +116,8 @@ export const blogApi = {
       formData.append('media_files', file);
     });
     
-    if ((data as any).media_ids && Array.isArray((data as any).media_ids) && (data as any).media_ids.length > 0) {
-      formData.append('media_ids', (data as any).media_ids.join(','));
+    if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
+      formData.append('media_ids', data.media_ids.join(','));
     }
     
     const response = await api.post<Blog>('/admin/blog/', formData);
@@ -136,7 +134,7 @@ export const blogApi = {
     return response.data;
   },
 
-  addMediaToBlog: async (blogId: number, mediaFiles: File[], mediaIds?: number[]): Promise<any> => {
+  addMediaToBlog: async (blogId: number, mediaFiles: File[], mediaIds?: number[]): Promise<Blog> => {
     const formData = new FormData();
     mediaFiles.forEach(file => {
       formData.append('media_files', file);
@@ -146,7 +144,7 @@ export const blogApi = {
       formData.append('media_ids', mediaIds.join(','));
     }
     
-    const response = await api.post('/admin/blog/' + blogId + '/add_media/', formData);
+    const response = await api.post<Blog>('/admin/blog/' + blogId + '/add_media/', formData);
     return response.data;
   },
 
@@ -164,7 +162,7 @@ export const blogApi = {
     await api.delete('/admin/blog/' + id + '/');
   },
 
-  bulkDeleteBlogs: async (ids: number[]): Promise<any> => {
+  bulkDeleteBlogs: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/blog/bulk-delete/', { ids });
     return response.data;
   },
@@ -174,7 +172,7 @@ export const blogApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -245,7 +243,7 @@ export const blogApi = {
     await api.delete('/admin/blog-category/' + id + '/');
   },
 
-  bulkDeleteCategories: async (ids: number[]): Promise<any> => {
+  bulkDeleteCategories: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/blog-category/bulk-delete/', { ids });
     return response.data;
   },
@@ -255,7 +253,7 @@ export const blogApi = {
     if (params) {
       const queryParams = new URLSearchParams();
       
-      let apiParams: any = { ...params };
+      const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
         apiParams.limit = limit;
@@ -326,7 +324,7 @@ export const blogApi = {
     await api.delete('/admin/blog-tag/' + id + '/');
   },
 
-  bulkDeleteTags: async (ids: number[]): Promise<any> => {
+  bulkDeleteTags: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post('/admin/blog-tag/bulk-delete/', { ids });
     return response.data;
   },

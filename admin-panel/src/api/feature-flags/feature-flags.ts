@@ -1,5 +1,5 @@
 import { api } from '@/core/config/api';
-import type { FeatureFlags, FeatureFlag } from '@/types/shared/featureFlags';
+import type { FeatureFlags } from '@/types/shared/featureFlags';
 
 export const featureFlagsApi = {
   getAll: async (): Promise<FeatureFlags> => {
@@ -8,7 +8,7 @@ export const featureFlagsApi = {
         silent: true,
       });
       return response.data || {};
-    } catch (error) {
+    } catch {
       return {};
     }
   },
@@ -19,7 +19,7 @@ export const featureFlagsApi = {
         `/core/feature-flags/${key}/`
       );
       return response.data?.is_active ?? false;
-    } catch (error) {
+    } catch {
       return false;
     }
   },

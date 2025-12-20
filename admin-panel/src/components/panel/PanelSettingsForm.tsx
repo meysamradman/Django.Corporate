@@ -14,7 +14,7 @@ import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Media } from '@/types/shared/media';
 import type { PanelSettings } from '@/types/settings/panelSettings';
-import { ProtectedButton, useUIPermissions } from '@/core/permissions';
+import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { 
     Image as ImageIcon, 
     FileText,

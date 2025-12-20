@@ -32,7 +32,7 @@ export const notificationsApi = {
         },
         total,
       };
-    } catch (error) {
+    } catch {
       return {
         tickets: {
           new_count: 0,

@@ -6,8 +6,8 @@ export const locationApi = {
     try {
       const response = await api.get<any>("/provinces/all_for_dropdown/");
       return response.data || [];
-    } catch (error) {
-      throw error;
+    } catch {
+      throw new Error("Failed to fetch location data");
     }
   },
 
@@ -15,8 +15,8 @@ export const locationApi = {
     try {
       const response = await api.get<any>(`/cities/for_province_dropdown/?province_id=${provinceId}`);
       return response.data || [];
-    } catch (error) {
-      throw error;
+    } catch {
+      throw new Error("Failed to fetch location data");
     }
   },
 
@@ -24,8 +24,8 @@ export const locationApi = {
     try {
       const response = await api.get<{data: City[]}>("/cities/");
       return response.data?.data || [];
-    } catch (error) {
-      throw error;
+    } catch {
+      throw new Error("Failed to fetch location data");
     }
   },
 
@@ -33,8 +33,8 @@ export const locationApi = {
     try {
       const response = await api.get<any>(`/cities/for_province_dropdown/?province_id=${provinceId}`);
       return response.data || [];
-    } catch (error) {
-      throw error;
+    } catch {
+      throw new Error("Failed to fetch location data");
     }
   },
 
@@ -42,8 +42,8 @@ export const locationApi = {
     try {
       const response = await api.get<any>("/provinces/all_for_dropdown/");
       return response.data || [];
-    } catch (error) {
-      throw error;
+    } catch {
+      throw new Error("Failed to fetch location data");
     }
   }
 };

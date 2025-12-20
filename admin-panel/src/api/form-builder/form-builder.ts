@@ -32,7 +32,7 @@ class FormApi {
                 return [];
             }
             return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
+        } catch {
             return [];
         }
     }
@@ -87,7 +87,7 @@ class FormApi {
                 }
             );
             return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
+        } catch {
             return [];
         }
     }

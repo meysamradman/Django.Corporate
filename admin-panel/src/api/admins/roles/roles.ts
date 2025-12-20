@@ -1,8 +1,7 @@
 import { api } from '@/core/config/api';
 import type { ApiResponse } from '@/types/api/apiResponse'
-import type { Role, PermissionGroup, RoleListParams } from '@/types/auth/permission'
+import type { Role, PermissionGroup, RoleListParams, BasePermissionDescriptor } from '@/types/auth/permission'
 import { convertToLimitOffset } from '@/core/utils/pagination';
-import type { ApiPagination } from '@/types/shared/pagination';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 
 export const roleApi = {
@@ -88,8 +87,13 @@ export const roleApi = {
     return api.get<Role>(`${adminEndpoints.roles()}${id}/`)
   },
 
-  createRole: async (data: { name: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
-    const requestData = {
+  createRole: async (data: { name: string; description?: string; permissions?: Record<string, unknown> }): Promise<ApiResponse<Role>> => {
+    const requestData: {
+      name: string;
+      display_name: string;
+      description: string;
+      permissions: Record<string, unknown>;
+    } = {
       name: data.name,
       display_name: data.name,
       description: data.description || '',
@@ -99,8 +103,12 @@ export const roleApi = {
     return api.post<Role>(adminEndpoints.roles(), requestData)
   },
 
-  updateRole: async (id: number, data: { name?: string; description?: string; permissions?: any }): Promise<ApiResponse<Role>> => {
-    const updateData: any = {
+  updateRole: async (id: number, data: { name?: string; description?: string; permissions?: Record<string, unknown> }): Promise<ApiResponse<Role>> => {
+    const updateData: {
+      name?: string;
+      description?: string;
+      permissions: Record<string, unknown>;
+    } = {
       name: data.name,
       description: data.description,
       permissions: data.permissions || { specific_permissions: [] }
@@ -125,19 +133,19 @@ export const roleApi = {
     return api.get<PermissionGroup[]>(`${adminEndpoints.roles()}permissions/`)
   },
 
-  getBasePermissions: async (): Promise<ApiResponse<any[]>> => {
-    return api.get<any[]>(`${adminEndpoints.roles()}base_permissions/`)
+  getBasePermissions: async (): Promise<ApiResponse<BasePermissionDescriptor[]>> => {
+    return api.get<BasePermissionDescriptor[]>(`${adminEndpoints.roles()}base_permissions/`)
   },
 
-  getRolePermissions: async (roleId: number): Promise<ApiResponse<{role_id: number; role_name: string; permissions: Record<string, any>}>> => {
-    return api.get<{role_id: number; role_name: string; permissions: Record<string, any>}>(`${adminEndpoints.roles()}${roleId}/role_permissions/`)
+  getRolePermissions: async (roleId: number): Promise<ApiResponse<{role_id: number; role_name: string; permissions: Record<string, unknown>}>> => {
+    return api.get<{role_id: number; role_name: string; permissions: Record<string, unknown>}>(`${adminEndpoints.roles()}${roleId}/role_permissions/`)
   },
 
-  setupDefaultRoles: async (forceUpdate: boolean = false): Promise<ApiResponse<any>> => {
-    return api.post<any>(`${adminEndpoints.roles()}setup_default_roles/`, { force_update: forceUpdate })
+  setupDefaultRoles: async (forceUpdate: boolean = false): Promise<ApiResponse<{ success: boolean; message?: string; roles_created?: number }>> => {
+    return api.post<{ success: boolean; message?: string; roles_created?: number }>(`${adminEndpoints.roles()}setup_default_roles/`, { force_update: forceUpdate })
   },
 
-  getRolesSummary: async (): Promise<ApiResponse<any>> => {
-    return api.get<any>(`${adminEndpoints.roles()}summary/`)
+  getRolesSummary: async (): Promise<ApiResponse<{ total_roles: number; active_roles: number; system_roles: number; custom_roles: number }>> => {
+    return api.get<{ total_roles: number; active_roles: number; system_roles: number; custom_roles: number }>(`${adminEndpoints.roles()}summary/`)
   },
 }

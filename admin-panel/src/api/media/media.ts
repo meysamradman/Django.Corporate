@@ -2,10 +2,9 @@ import { api } from '@/core/config/api';
 import type { Media, MediaFilter, MediaUploadSettings } from '@/types/shared/media';
 import type { ApiResponse, Pagination } from '@/types/api/apiResponse';
 import type { ApiError } from '@/types/api/apiError';
-import { toast } from '@/components/elements/Sonner';
 import { csrfManager } from '@/core/auth/session';
 import { env } from '@/core/config/environment';
-import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
+import { normalizePaginationParams } from '@/core/utils/pagination';
 
 export const VALID_MEDIA_PAGE_SIZES = [12, 24, 36, 48];
 export const DEFAULT_MEDIA_PAGE_SIZE = 12;
@@ -15,7 +14,7 @@ const BASE_MEDIA_PATH = '/admin/media';
 export const mediaApi = {
     getMediaList: async (
         filters?: MediaFilter,
-        options?: {
+        _options?: {
             cookieHeader?: string;
             forceRefresh?: boolean;
         }
@@ -104,7 +103,7 @@ export const mediaApi = {
 
     getMediaDetails: async (
         mediaId: number | string,
-        options?: {
+        _options?: {
             cookieHeader?: string;
         }
     ): Promise<ApiResponse<Media>> => {
@@ -245,7 +244,7 @@ export const mediaApi = {
                             }
                             
                             resolve(formattedResponse);
-                        } catch (error) {
+                        } catch {
                             reject(new Error('Failed to parse server response'));
                         }
                     } else {

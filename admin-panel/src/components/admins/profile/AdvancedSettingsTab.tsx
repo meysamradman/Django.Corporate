@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
@@ -12,7 +11,7 @@ import { toast } from "sonner";
 import { roleApi } from "@/api/admins/roles/roles";
 import { adminApi } from "@/api/admins/admins";
 import { useAuth } from "@/core/auth/AuthContext";
-import { hasPermission } from "@/core/permissions/utils/permissionUtils";
+import { hasPermission } from "@/components/admins/permissions/utils/permissionUtils";
 import type { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 import { getPermissionTranslation } from "@/core/messages/permissions";
@@ -124,12 +123,27 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             try {
                 const basePermsResponse = await roleApi.getBasePermissions();
                 if (basePermsResponse.data && Array.isArray(basePermsResponse.data)) {
-                    setBasePermissions(basePermsResponse.data);
+                    const convertedPermissions: BasePermission[] = basePermsResponse.data
+                        .filter((perm): perm is BasePermission => 
+                            perm.resource !== undefined && 
+                            perm.action !== undefined &&
+                            perm.display_name !== undefined &&
+                            perm.description !== undefined
+                        )
+                        .map(perm => ({
+                            id: perm.id,
+                            resource: perm.resource!,
+                            action: perm.action!,
+                            display_name: perm.display_name,
+                            description: perm.description || '',
+                            is_base: perm.is_base ?? true
+                        }));
+                    setBasePermissions(convertedPermissions);
                 }
-            } catch (permError) {
+            } catch {
             }
             
-        } catch (error) {
+        } catch {
             setError(getPermissionTranslation('خطا در بارگذاری اطلاعات دسترسی‌ها', 'description'));
         } finally {
             setIsLoading(false);

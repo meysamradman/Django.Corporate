@@ -1,14 +1,11 @@
 import { api } from '@/core/config/api';
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import type { ApiResponse } from "@/types/api/apiResponse";
 import { convertToLimitOffset } from '@/core/utils/pagination';
 import type {
   EmailMessage,
-  EmailAttachment,
   EmailMessageCreate,
   EmailMessageUpdate,
   EmailListParams,
-  EmailFilters,
   EmailStats
 } from "@/types/email/emailMessage";
 

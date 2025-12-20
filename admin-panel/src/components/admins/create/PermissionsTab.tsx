@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton, useUIPermissions } from '@/core/permissions';
+import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";

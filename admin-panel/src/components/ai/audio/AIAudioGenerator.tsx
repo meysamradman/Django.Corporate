@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/elements/Card';
+// Card components removed - not used
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/ai';
 import type { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/media';
 import type { Media } from '@/types/shared/media';
 import { toast } from '@/components/elements/Sonner';
-import { getAI, getAIUI } from '@/core/messages/modules/ai';
+// getAI, getAIUI removed - not used
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
 import { EmptyProvidersCard } from '../shared';

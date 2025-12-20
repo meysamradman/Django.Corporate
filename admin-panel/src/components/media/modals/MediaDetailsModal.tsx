@@ -20,7 +20,7 @@ import { mediaApi } from '@/api/media/media';
 import { toast } from '@/core/toast';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { TruncatedText } from '@/components/elements/TruncatedText';
-import { ProtectedButton, usePermission } from '@/core/permissions';
+import { ProtectedButton, usePermission } from '@/components/admins/permissions';
 
 interface MediaDetailsModalProps {
   media: Media | null;

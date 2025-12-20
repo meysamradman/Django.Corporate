@@ -11,7 +11,7 @@ import { Button } from "@/components/elements/Button";
 import { Switch } from "@/components/elements/Switch";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Settings as SettingsIcon, Save, MessageSquare, Zap } from "lucide-react";
-import { ProtectedButton } from "@/core/permissions";
+import { ProtectedButton } from "@/components/admins/permissions";
 
 const formSchema = z.object({
   is_enabled: z.boolean(),
