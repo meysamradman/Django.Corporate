@@ -1,8 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { PERMISSIONS } from '@/core/permissions/constants';
-
-// Import PermissionProfile type
 import type { PermissionProfile } from '@/types/auth/permission';
 
 interface UserRole {
@@ -68,7 +66,6 @@ const normalizeModuleAction = (value?: string): ModuleAction => {
   return 'read';
 };
 
-// Module names extracted from PERMISSIONS constants
 const MODULE_NAMES = {
   BLOG: 'blog',
   BLOG_CATEGORIES: 'blog_categories',

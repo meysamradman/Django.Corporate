@@ -19,7 +19,6 @@ const getEnvVar = (key: string, devDefault?: string): string => {
   return value;
 };
 
-// Cache environment variables on first access to avoid repeated lookups
 let cachedAPI_URL: string | null = null;
 let cachedADMIN_SECRET: string | null = null;
 let cachedMEDIA_BASE_URL: string | null = null;
@@ -39,10 +38,6 @@ export const env = {
     return cachedADMIN_SECRET;
   },
 
-  /**
-   * ⚠️ MEDIA_BASE_URL برای فایل‌های استاتیک (images, videos) هست
-   * Django این فایل‌ها رو از /media/ serve می‌کنه، نه /api/media/
-   */
   get MEDIA_BASE_URL(): string {
     if (cachedMEDIA_BASE_URL === null) {
       cachedMEDIA_BASE_URL = getEnvVar('VITE_MEDIA_BASE_URL', IS_DEV ? 'http://localhost:8000' : undefined);

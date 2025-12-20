@@ -120,7 +120,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
         setIsSaving(true);
         
         setTimeout(() => {
-            alert("تغییرات با موفقیت ذخیره شد (شبیه‌سازی استاتیک)!");
             setEditMode(false);
             setIsSaving(false);
         }, 1000);

@@ -7,11 +7,6 @@ interface ServerFeatureFlagGuardProps {
   children: ReactNode;
 }
 
-/**
- * Server component that guards access to features based on feature flags
- * Shows 404 if feature is disabled
- * Use this in page.tsx files for server-side route protection
- */
 export async function ServerFeatureFlagGuard({ 
   featureKey, 
   children 

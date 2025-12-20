@@ -30,12 +30,10 @@ export function useChatMessages({ compact = false, userAuthenticated = false }: 
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // Save to localStorage
     useEffect(() => {
         if (compact && typeof window !== 'undefined' && userAuthenticated) {
             if (messages.length > 0) {

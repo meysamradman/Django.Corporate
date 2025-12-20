@@ -375,9 +375,7 @@ export default function CreateCategoryPage() {
                     <img
                       src={mediaService.getMediaUrlFromObject(selectedMedia)}
                       alt={selectedMedia.alt_text || "تصویر شاخص"}
-                      fill
-                      className="object-cover"
-                      unoptimized
+                      className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button

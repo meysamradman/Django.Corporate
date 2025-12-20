@@ -9,10 +9,6 @@ interface FeatureFlagGuardProps {
   fallback?: ReactNode;
 }
 
-/**
- * Client component that guards access to features based on feature flags
- * Shows 404 if feature is disabled
- */
 export function FeatureFlagGuard({ 
   featureKey, 
   children, 

@@ -47,7 +47,6 @@ export default function EmailPage() {
   const [replyToEmail, setReplyToEmail] = useState<EmailMessage | null>(null);
   const location = useLocation();
 
-  // Sync selectedMailbox with URL parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const mailboxParam = params.get('mailbox') as MailboxType | null;

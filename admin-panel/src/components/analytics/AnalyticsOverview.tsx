@@ -74,7 +74,6 @@ const TopCountriesSkeleton = () => (
   </CardWithIcon>
 );
 
-// Lazy imports
 const SummaryCards = lazy(() => import("./SummaryCards").then(mod => ({ default: mod.SummaryCards })));
 const VisitorChart = lazy(() => import("./VisitorChart").then(mod => ({ default: mod.VisitorChart })));
 const TopPages = lazy(() => import("./TopPages").then(mod => ({ default: mod.TopPages })));
@@ -139,7 +138,6 @@ export function AnalyticsOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
       <PermissionGate permission="analytics.manage">
         <Suspense fallback={<SummaryCardsSkeleton />}>
           <SummaryCards 
@@ -149,7 +147,6 @@ export function AnalyticsOverview() {
         </Suspense>
       </PermissionGate>
 
-      {/* Main Chart */}
       <PermissionGate permission="analytics.manage">
         <Suspense fallback={<VisitorChartSkeleton />}>
           <VisitorChart 

@@ -28,8 +28,6 @@ export const validateNationalId = (nationalId: string, required: boolean = false
     };
   }
   
-  // If strict mode is enabled, also validate checksum (like original validation.ts)
-  // Otherwise, just check length and format (like original schema)
   if (strict) {
     if (/^(\d)\1{9}$/.test(cleanId)) {
       return {

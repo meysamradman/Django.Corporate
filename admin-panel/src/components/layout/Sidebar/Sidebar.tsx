@@ -109,7 +109,6 @@ export function Sidebar({
     setSelectedItem(activeItem);
     const hasSubMenu = Boolean('items' in activeItem && activeItem.items && activeItem.items.length > 0);
     setSelectedItemHasSubMenu(hasSubMenu);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeItem, selectedItem, hasUserSelectedItem]);
 
   const handleIconClick = (item: MenuItem) => {
@@ -118,7 +117,6 @@ export function Sidebar({
     const hasSubMenu = Boolean('items' in item && item.items && item.items.length > 0);
     setSelectedItemHasSubMenu(hasSubMenu);
 
-    // اگر سایدبار collapsed است و این آیکون زیرمنو دارد، سایدبار را باز کن
     if (isContentCollapsed && hasSubMenu && _onContentToggle) {
       _onContentToggle();
     }
@@ -232,7 +230,6 @@ export function Sidebar({
             {selectedItem && 'items' in selectedItem && selectedItem.items?.length ? (
               <div className="space-y-1">
                 {selectedItem.items.map((subItem, index, array) => {
-                  // Check if previous non-title item exists to determine separator
                   let prevNonTitleIndex = -1;
                   for (let i = index - 1; i >= 0; i--) {
                     if (!array[i].isTitle) {

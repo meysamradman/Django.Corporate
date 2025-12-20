@@ -147,7 +147,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     const check = (perm: string) => isSuperAdmin || permissionSet.has(perm);
     
     return {
-      // Panel & Settings
       canManagePanel: check(PERMISSIONS.PANEL.MANAGE),
       canManagePages: check(PERMISSIONS.PAGES.MANAGE),
       canManageSettings: check(PERMISSIONS.SETTINGS.MANAGE),
@@ -155,7 +154,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageForms: check(PERMISSIONS.FORMS.MANAGE),
       canManageChatbot: check(PERMISSIONS.CHATBOT.MANAGE),
       
-      // AI Specific
       canManageAIChat: check(PERMISSIONS.AI.CHAT_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageAIContent: check(PERMISSIONS.AI.CONTENT_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageAIImage: check(PERMISSIONS.AI.IMAGE_MANAGE) || check(PERMISSIONS.AI.MANAGE),
@@ -163,7 +161,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageAISettings: check(PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageSharedAISettings: check(PERMISSIONS.AI.SETTINGS_SHARED_MANAGE) || isSuperAdmin,
       
-      // CRUD Operations
       canCreateBlog: check(PERMISSIONS.BLOG.CREATE),
       canUpdateBlog: check(PERMISSIONS.BLOG.UPDATE),
       canDeleteBlog: check(PERMISSIONS.BLOG.DELETE),
@@ -177,7 +174,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canUpdateUser: check(PERMISSIONS.USERS.UPDATE),
       canDeleteUser: check(PERMISSIONS.USERS.DELETE),
       
-      // Media
       canReadMedia: check(PERMISSIONS.MEDIA.READ),
       canUploadMedia: check(PERMISSIONS.MEDIA.UPLOAD),
       canUpdateMedia: check(PERMISSIONS.MEDIA.UPDATE),

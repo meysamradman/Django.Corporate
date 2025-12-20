@@ -60,7 +60,6 @@ export function ProviderSection({
 }: ProviderSectionProps) {
     return (
         <div id={`provider-${providerName}`} className="space-y-4">
-            {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-border/50">
                 <div className="flex items-center gap-3">
                     <span className="text-2xl">{getProviderIcon(providerName)}</span>
@@ -77,7 +76,6 @@ export function ProviderSection({
                 </Badge>
             </div>
 
-            {/* Models Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {paginatedModels.map((model) => {
                     const modelId = typeof model.id === 'string' ? model.id : model.id;
@@ -98,7 +96,6 @@ export function ProviderSection({
                 })}
             </div>
 
-            {/* Pagination */}
             {needsPagination && totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/50">
                     <Button

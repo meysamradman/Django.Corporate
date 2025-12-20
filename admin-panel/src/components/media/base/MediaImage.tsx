@@ -13,6 +13,7 @@ interface MediaImageProps {
     width?: number;
     height?: number;
     fill?: boolean;
+    sizes?: string;
     style?: CSSProperties;
     showSkeleton?: boolean;
     skeletonClassName?: string;
@@ -26,6 +27,7 @@ export function MediaImage({
                              width,
                              height,
                              fill = false,
+                             sizes,
                              style,
                              showSkeleton = true,
                              skeletonClassName,
@@ -79,6 +81,7 @@ export function MediaImage({
         alt: imageAlt,
         className: imageClasses,
         style,
+        sizes,
         onError: handleError,
         onLoad: handleLoad,
     };

@@ -39,7 +39,6 @@ export function SubMenuItem({
     "flex items-center w-full"
   );
 
-  // Render title separator
   if (item.isTitle) {
     return (
       <div key={item.title} className="w-full">
@@ -53,7 +52,6 @@ export function SubMenuItem({
     );
   }
 
-  // Render disabled or non-link items
   if (item.disabled || !item.url) {
     return (
       <div
@@ -81,7 +79,6 @@ export function SubMenuItem({
     );
   }
 
-  // Render active link items
   return (
     <Link
       key={item.title}

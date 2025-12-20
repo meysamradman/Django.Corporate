@@ -132,16 +132,13 @@ export interface PermissionMapResponse {
   is_superadmin: boolean;
 }
 
-// UI Permission Context Types
 export interface UIPermissions {
-  // Panel & Settings
   canManagePanel: boolean;
   canManagePages: boolean;
   canManageSettings: boolean;
   canManageForms: boolean;
   canManageChatbot: boolean;
   
-  // AI Permissions
   canManageAI: boolean;
   canManageAIChat: boolean;
   canManageAIContent: boolean;
@@ -151,27 +148,22 @@ export interface UIPermissions {
   canManageSharedAISettings: boolean;
   canViewAI: boolean;
   
-  // Blog CRUD
   canCreateBlog: boolean;
   canUpdateBlog: boolean;
   canDeleteBlog: boolean;
   
-  // Portfolio CRUD
   canCreatePortfolio: boolean;
   canUpdatePortfolio: boolean;
   canDeletePortfolio: boolean;
   
-  // Admin Management
   canCreateAdmin: boolean;
   canUpdateAdmin: boolean;
   canDeleteAdmin: boolean;
   
-  // User Management
   canCreateUser: boolean;
   canUpdateUser: boolean;
   canDeleteUser: boolean;
   
-  // Media Permissions
   canReadMedia: boolean;
   canUploadMedia: boolean;
   canUpdateMedia: boolean;
@@ -190,7 +182,6 @@ export interface UIPermissions {
   canDeleteAudio: boolean;
   canDeleteDocument: boolean;
   
-  // Analytics Permissions
   canViewDashboardStats: boolean;
   canViewUsersStats: boolean;
   canViewAdminsStats: boolean;
@@ -201,7 +192,6 @@ export interface UIPermissions {
   canManageStatistics: boolean;
   canManageAllStats: boolean;
   
-  // Communication
   canViewEmail: boolean;
   canManageTicket: boolean;
 }

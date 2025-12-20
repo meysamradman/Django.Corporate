@@ -38,7 +38,6 @@ const PermissionsSkeleton = () => (
   </div>
 );
 
-// Role Basic Info Form Skeleton
 const RoleBasicInfoFormSkeleton = () => (
   <CardWithIcon
     icon={ShieldCheck}

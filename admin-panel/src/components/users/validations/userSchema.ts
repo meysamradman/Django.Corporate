@@ -73,7 +73,6 @@ export const userFormSchema = z.object({
     .string()
     .superRefine((val, ctx) => {
       if (!val || val === "") return;
-      // Use strict: false to match original schema behavior (only length and format check)
       const result = validateNationalId(val, false, false);
       if (!result.isValid) {
         ctx.addIssue({

@@ -1,4 +1,3 @@
-// Core AI Components - Shared across all providers
 export { ModelCard } from './ModelCard';
 export type { ModelCardModel } from './ModelCard';
 

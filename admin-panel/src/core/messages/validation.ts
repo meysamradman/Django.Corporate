@@ -22,7 +22,6 @@ export const VALIDATION_MESSAGES = {
   nationalIdLength: 'کد ملی باید ۱۰ رقم باشد',
   nationalIdInvalid: 'کد ملی معتبر نیست',
   
-  // Person/Admin/User fields
   phoneMaxLength: 'شماره تلفن نباید بیشتر از ۱۵ رقم باشد',
   phoneInvalid: 'شماره تلفن معتبر نیست',
   addressMaxLength: 'آدرس نباید بیشتر از ۵۰۰ کاراکتر باشد',
@@ -33,20 +32,17 @@ export const VALIDATION_MESSAGES = {
   provinceRequired: 'انتخاب استان الزامی است',
   cityRequired: 'انتخاب شهر الزامی است',
   
-  // Role/Permission fields
   roleNameRequired: 'نام نقش الزامی است',
   roleNameMinLength: 'نام نقش باید حداقل ۲ کاراکتر باشد',
   roleNameMaxLength: 'نام نقش نباید بیشتر از ۱۰۰ کاراکتر باشد',
   roleDescMaxLength: 'توضیحات نقش نباید بیشتر از ۳۰۰ کاراکتر باشد',
   permissionsRequired: 'حداقل یک مجوز باید انتخاب شود',
   
-  // SEO fields
   metaTitleMaxLength: 'عنوان متا نباید بیشتر از ۷۰ کاراکتر باشد',
   metaDescMaxLength: 'توضیحات متا نباید بیشتر از ۱۶۰ کاراکتر باشد',
   ogTitleMaxLength: 'عنوان OG نباید بیشتر از ۷۰ کاراکتر باشد',
   ogDescMaxLength: 'توضیحات OG نباید بیشتر از ۱۶۰ کاراکتر باشد',
   
-  // Slug fields
   slugRequired: 'اسلاگ الزامی است',
   slugMaxLength: 'اسلاگ نباید بیشتر از ۶۰ کاراکتر باشد',
   slugInvalid: 'اسلاگ فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و خط تیره باشد',

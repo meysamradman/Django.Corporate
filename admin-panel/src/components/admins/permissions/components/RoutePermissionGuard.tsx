@@ -74,13 +74,11 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             hasPermission(permissionString) ||
             (rule.module === "admin" && isOwnAdminProfile);
 
-        // Special handling for media: allow access with either media.read or media.manage
         if (!hasAccess && rule.module === "media" && action === "read") {
             hasAccess = hasPermission("media.read") || hasPermission("media.manage");
         }
 
         if (!hasAccess && rule.module === "ai" && action === "manage") {
-            // AI Permission Map using constants
             const aiPermissionMap: Record<string, string[]> = {
                 "/ai/chat": [PERMISSIONS.AI.CHAT_MANAGE, PERMISSIONS.AI.MANAGE],
                 "/ai/content": [PERMISSIONS.AI.CONTENT_MANAGE, PERMISSIONS.AI.MANAGE],

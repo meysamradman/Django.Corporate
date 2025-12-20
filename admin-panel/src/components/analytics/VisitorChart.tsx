@@ -199,13 +199,10 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
       </CardContent>
       <CardFooter>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-stretch">
-          {/* Device Distribution */}
           <DeviceDistribution analytics={analytics} />
           
-          {/* Source Distribution */}
           <SourceDistribution analytics={analytics} />
           
-          {/* Trend Summary */}
           <TrendSummary monthlyStats={monthlyStats} analytics={analytics} />
         </div>
       </CardFooter>

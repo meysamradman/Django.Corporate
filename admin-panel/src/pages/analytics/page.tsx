@@ -8,7 +8,6 @@ import { BarChart3, FileText, MapPin, TrendingUp, Users, Eye, Calendar, Activity
 
 const AnalyticsSkeleton = () => (
   <div className="space-y-6">
-    {/* Summary Cards Skeleton */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {[...Array(4)].map((_, i) => (
         <Card key={i} className="border-b-4 border-b-primary">
@@ -24,7 +23,6 @@ const AnalyticsSkeleton = () => (
       ))}
     </div>
 
-    {/* Chart Skeleton */}
     <Card className="border-b-4 border-b-primary">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
@@ -40,7 +38,6 @@ const AnalyticsSkeleton = () => (
       </CardContent>
     </Card>
 
-    {/* Top Pages & Countries Skeleton */}
     <div className="grid md:grid-cols-2 gap-4">
       <CardWithIcon
         icon={FileText}

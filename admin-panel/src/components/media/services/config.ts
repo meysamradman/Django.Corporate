@@ -27,12 +27,6 @@ export const getUploadSettings = (): UploadSettings => {
     };
 };
 
-/**
- * ⚙️ تنظیمات آپلود (Deprecated - استفاده از getUploadSettings)
- * 
- * @deprecated این hook دیگه API call نمی‌کنه، مستقیماً از config می‌خونه
- * برای سادگی بهتره مستقیماً از getUploadSettings() استفاده کنید
- */
 export const useUploadSettings = () => {
     const settings = getUploadSettings();
     

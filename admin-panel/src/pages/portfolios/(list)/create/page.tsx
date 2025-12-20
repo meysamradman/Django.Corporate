@@ -23,7 +23,6 @@ import { collectMediaFilesAndIds } from "@/components/portfolios/utils/portfolio
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
-      {/* بخش چپ - اطلاعات پایه */}
       <div className="flex-1 min-w-0">
         <CardWithIcon
           icon={FileText}
@@ -33,7 +32,6 @@ const TabSkeleton = () => (
           borderColor="border-b-blue-1"
         >
           <div className="space-y-6">
-            {/* Grid دو ستونی */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-16" />
@@ -45,13 +43,11 @@ const TabSkeleton = () => (
               </div>
             </div>
 
-            {/* Textarea */}
             <div className="space-y-2">
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-20 w-full" />
             </div>
 
-            {/* Editor */}
             <div className="space-y-2">
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-64 w-full rounded-lg" />
@@ -60,7 +56,6 @@ const TabSkeleton = () => (
         </CardWithIcon>
       </div>
 
-      {/* بخش راست - تنظیمات */}
       <div className="w-full lg:w-[420px] lg:flex-shrink-0">
         <CardWithIcon
           icon={Settings}
@@ -71,13 +66,11 @@ const TabSkeleton = () => (
           className="lg:sticky lg:top-20"
         >
           <div className="space-y-8">
-            {/* دسته‌بندی */}
             <div className="space-y-2">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-10 w-full" />
             </div>
 
-            {/* تگ */}
             <div className="space-y-2">
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-10 w-full" />

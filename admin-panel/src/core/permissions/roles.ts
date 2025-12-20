@@ -74,7 +74,6 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     is_system_role: true
   },
 
-  // Content & Communication
   content_manager: {
     name: 'content_manager',
     display_name: 'Content Manager',

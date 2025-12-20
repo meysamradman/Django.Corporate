@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/elements/Card";
 import { CheckCircle2, XCircle, Clock, Package } from "lucide-react";
 import type { Blog } from "@/types/blog/blog";
+import type { Media } from "@/types/shared/media";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 
@@ -10,7 +11,13 @@ interface BlogInfoHeaderProps {
 
 export function BlogInfoHeader({ blog }: BlogInfoHeaderProps) {
   const mainImageUrl = blog.main_image?.file_url
-    ? mediaService.getMediaUrlFromObject({ file_url: blog.main_image.file_url } as any)
+    ? mediaService.getMediaUrlFromObject({ 
+        file_url: blog.main_image.file_url,
+        title: blog.main_image.title,
+        alt_text: blog.main_image.alt_text,
+        media_type: 'image',
+        is_active: true
+      } as Media)
     : "";
 
   const getStatusBadge = () => {
@@ -35,7 +42,7 @@ export function BlogInfoHeader({ blog }: BlogInfoHeaderProps) {
       <div className="relative h-40 md:h-56">
         {mainImageUrl ? (
           <MediaImage
-            media={{ file_url: mainImageUrl } as any}
+            src={mainImageUrl}
             alt="Blog cover"
             className="object-cover"
             fill
@@ -54,7 +61,7 @@ export function BlogInfoHeader({ blog }: BlogInfoHeaderProps) {
             {mainImageUrl ? (
               <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-card relative">
                 <MediaImage
-                  media={{ file_url: mainImageUrl } as any}
+                  src={mainImageUrl}
                   alt="Blog image"
                   className="object-cover"
                   fill

@@ -55,7 +55,6 @@ export default function TicketPage() {
   const [replyToTicket, setReplyToTicket] = useState<Ticket | null>(null);
   const location = useLocation();
 
-  // Sync selectedStatus with URL parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const statusParam = params.get('status') as TicketStatusType | null;

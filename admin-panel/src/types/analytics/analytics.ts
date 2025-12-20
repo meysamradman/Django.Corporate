@@ -1,4 +1,3 @@
-// Analytics Dashboard - Page Views & Tracking
 export interface AnalyticsDashboard {
   today: {
     total: number;
@@ -41,7 +40,6 @@ export interface AnalyticsFilters {
   date_to?: string;
 }
 
-// Analytics Dashboard Stats - System Statistics
 export interface DashboardStats {
   total_portfolios: number;
   total_portfolio_categories: number;

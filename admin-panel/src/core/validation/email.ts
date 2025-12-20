@@ -12,7 +12,6 @@ export const validateEmail = (email: string, required: boolean = false): Validat
     return { isValid: true };
   }
   
-  // Use same validation as Zod .email() - RFC 5322 compliant
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return {
