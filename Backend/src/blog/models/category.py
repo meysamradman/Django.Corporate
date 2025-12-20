@@ -9,11 +9,6 @@ from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import BlogCategoryQuerySet
 
 class BlogCategory(MP_Node, BaseModel, SEOMixin):
-    """
-    Blog category model with hierarchical structure.
-    Follows DJANGO_MODEL_STANDARDS.md conventions.
-    """
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -30,7 +25,6 @@ class BlogCategory(MP_Node, BaseModel, SEOMixin):
         help_text="URL-friendly identifier for the category"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         null=True,
         blank=True,
@@ -38,7 +32,6 @@ class BlogCategory(MP_Node, BaseModel, SEOMixin):
         help_text="Category description"
     )
     
-    # 4. Boolean Flags
     is_public = models.BooleanField(
         default=True,
         db_index=True,
@@ -46,7 +39,6 @@ class BlogCategory(MP_Node, BaseModel, SEOMixin):
         help_text="Designates whether this category is publicly visible"
     )
     
-    # 5. Relationships
     image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,

@@ -6,11 +6,6 @@ from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentM
 
 
 class BlogImage(BaseModel):
-    """
-    Blog image relationship model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Boolean Flags → Order Fields
-    """
-    # 5. Relationships
     blog = models.ForeignKey(
         Blog,
         on_delete=models.CASCADE,
@@ -28,7 +23,6 @@ class BlogImage(BaseModel):
         help_text="Image media file"
     )
     
-    # 4. Boolean Flags
     is_main = models.BooleanField(
         default=False,
         db_index=True,
@@ -36,7 +30,6 @@ class BlogImage(BaseModel):
         help_text="Designates whether this is the main image for the blog post"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -50,7 +43,6 @@ class BlogImage(BaseModel):
         verbose_name_plural = "Blog Images"
         ordering = ["order", "-created_at"]
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=["blog", "is_main"]),
             models.Index(fields=["blog", "order"]),
         ]
@@ -79,11 +71,6 @@ class BlogImage(BaseModel):
 
 
 class BlogVideo(BaseModel):
-    """
-    Blog video relationship model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Boolean Flags → Order Fields
-    """
-    # 5. Relationships
     blog = models.ForeignKey(
         Blog,
         on_delete=models.CASCADE,
@@ -111,7 +98,6 @@ class BlogVideo(BaseModel):
         help_text="Cover image for this video"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -119,7 +105,6 @@ class BlogVideo(BaseModel):
         help_text="Order in which this video should be displayed"
     )
     
-    # 4. Boolean Flags
     autoplay = models.BooleanField(
         default=False,
         verbose_name="Autoplay",
@@ -142,7 +127,6 @@ class BlogVideo(BaseModel):
         verbose_name_plural = "Blog Videos"
         ordering = ["order", "-created_at"]
         indexes = [
-            # Composite index for ordering videos by blog
             models.Index(fields=["blog", "order"]),
         ]
         constraints = [
@@ -160,11 +144,6 @@ class BlogVideo(BaseModel):
 
 
 class BlogAudio(BaseModel):
-    """
-    Blog audio relationship model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Boolean Flags → Order Fields
-    """
-    # 5. Relationships
     blog = models.ForeignKey(
         Blog,
         on_delete=models.CASCADE,
@@ -192,7 +171,6 @@ class BlogAudio(BaseModel):
         help_text="Cover image for this audio"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -200,7 +178,6 @@ class BlogAudio(BaseModel):
         help_text="Order in which this audio should be displayed"
     )
     
-    # 4. Boolean Flags
     autoplay = models.BooleanField(
         default=False,
         verbose_name="Autoplay",
@@ -218,7 +195,6 @@ class BlogAudio(BaseModel):
         verbose_name_plural = "Blog Audios"
         ordering = ["order", "-created_at"]
         indexes = [
-            # Composite index for ordering audios by blog
             models.Index(fields=["blog", "order"]),
         ]
         constraints = [
@@ -236,11 +212,6 @@ class BlogAudio(BaseModel):
 
 
 class BlogDocument(BaseModel):
-    """
-    Blog document relationship model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Content Fields → Order Fields
-    """
-    # 5. Relationships
     blog = models.ForeignKey(
         Blog,
         on_delete=models.CASCADE,
@@ -268,7 +239,6 @@ class BlogDocument(BaseModel):
         help_text="Cover image for this document"
     )
     
-    # 2. Primary Content Fields
     title = models.CharField(
         max_length=255,
         blank=True,
@@ -277,7 +247,6 @@ class BlogDocument(BaseModel):
         help_text="Custom title for this document (optional)"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -291,7 +260,6 @@ class BlogDocument(BaseModel):
         verbose_name_plural = "Blog Documents"
         ordering = ["order", "-created_at"]
         indexes = [
-            # Composite index for ordering documents by blog
             models.Index(fields=["blog", "order"]),
         ]
         constraints = [

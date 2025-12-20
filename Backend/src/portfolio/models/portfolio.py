@@ -9,17 +9,12 @@ from .managers import PortfolioQuerySet
 
 
 class Portfolio(BaseModel, SEOMixin):
-    """
-    Portfolio item model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Status → Content → Flags → Relationships → Metadata → Timestamps
-    """
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('published', 'Published'),
         ('archived', 'Archived'),
     )
     
-    # 1. Status/State Fields
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -29,7 +24,6 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="Publication status of the portfolio item"
     )
     
-    # 2. Primary Content Fields
     title = models.CharField(
         max_length=200,
         db_index=True,
@@ -45,7 +39,6 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="URL-friendly identifier for the portfolio item"
     )
     
-    # 3. Description Fields
     short_description = models.CharField(
         max_length=300,
         blank=True,
@@ -59,7 +52,6 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="Full content of the portfolio item"
     )
     
-    # 4. Boolean Flags
     is_featured = models.BooleanField(
         default=False,
         db_index=True,
@@ -73,7 +65,6 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="Designates whether this portfolio item is publicly visible"
     )
     
-    # 5. Relationships
     categories = models.ManyToManyField(
         'PortfolioCategory',
         blank=True,

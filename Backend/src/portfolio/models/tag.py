@@ -6,10 +6,6 @@ from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioTagQuerySet
 
 class PortfolioTag(BaseModel, SEOMixin):
-    """
-    Portfolio tag model following DJANGO_MODEL_STANDARDS.md conventions.
-    """
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -26,7 +22,6 @@ class PortfolioTag(BaseModel, SEOMixin):
         help_text="URL-friendly identifier for the tag"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         null=True,
         blank=True,
@@ -34,7 +29,6 @@ class PortfolioTag(BaseModel, SEOMixin):
         help_text="Tag description"
     )
     
-    # 4. Boolean Flags
     is_public = models.BooleanField(
         default=True,
         db_index=True,

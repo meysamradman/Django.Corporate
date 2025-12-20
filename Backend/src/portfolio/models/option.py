@@ -8,10 +8,6 @@ from .managers import PortfolioOptionQuerySet
 
 
 class PortfolioOption(BaseModel, SEOMixin):
-    """
-    Portfolio option model following DJANGO_MODEL_STANDARDS.md conventions.
-    """
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -28,7 +24,6 @@ class PortfolioOption(BaseModel, SEOMixin):
         help_text="URL-friendly identifier for the option"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         null=True,
         blank=True,
@@ -36,7 +31,6 @@ class PortfolioOption(BaseModel, SEOMixin):
         help_text="Option description"
     )
     
-    # 4. Boolean Flags
     is_public = models.BooleanField(
         default=True,
         db_index=True,
