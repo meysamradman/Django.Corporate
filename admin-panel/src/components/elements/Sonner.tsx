@@ -1,11 +1,11 @@
-﻿import {
+import {
   CircleCheckIcon,
   InfoIcon,
   Loader2Icon,
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { Toaster as Sonner, type ToasterProps, toast as originalToast } from "sonner"
+import { Toaster as Sonner, type ToasterProps, toast as originalToast, type ExternalToast } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
@@ -24,19 +24,23 @@ const Toaster = ({ ...props }: ToasterProps) => {
   )
 }
 
+type ToastOptions = ExternalToast & {
+  className?: string
+}
+
 const toast = {
   ...originalToast,
-  success: (message: string, options?: any) => 
+  success: (message: string, options?: ToastOptions) => 
     originalToast.success(message, { ...options, className: `toast toast-success ${options?.className || ''}` }),
-  error: (message: string, options?: any) => 
+  error: (message: string, options?: ToastOptions) => 
     originalToast.error(message, { ...options, className: `toast toast-error ${options?.className || ''}` }),
-  warning: (message: string, options?: any) => 
+  warning: (message: string, options?: ToastOptions) => 
     originalToast.warning(message, { ...options, className: `toast toast-warning ${options?.className || ''}` }),
-  info: (message: string, options?: any) => 
+  info: (message: string, options?: ToastOptions) => 
     originalToast.info(message, { ...options, className: `toast toast-info ${options?.className || ''}` }),
-  loading: (message: string, options?: any) => 
+  loading: (message: string, options?: ToastOptions) => 
     originalToast.loading(message, { ...options, className: `toast toast-loading ${options?.className || ''}` }),
-  promise: <T,>(promise: Promise<T>, messages: any) =>
+  promise: <T,>(promise: Promise<T>, messages: { loading: string; success: string | ((data: T) => string); error: string | ((error: unknown) => string) }) =>
     originalToast.promise(promise, messages),
 }
 

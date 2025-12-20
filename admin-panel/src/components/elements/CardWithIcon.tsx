@@ -1,22 +1,22 @@
-import * as React from "react"
+import { memo, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/core/utils/cn"
 import { Card, CardHeader, CardTitle, CardContent } from "./Card"
 
 interface CardWithIconProps {
   icon: LucideIcon
-  title: React.ReactNode
-  children: React.ReactNode
+  title: ReactNode
+  children: ReactNode
   iconBgColor?: string
   iconColor?: string
   borderColor?: string
   className?: string
   headerClassName?: string
   contentClassName?: string
-  titleExtra?: React.ReactNode
+  titleExtra?: ReactNode
 }
 
-const CardWithIcon = React.memo(function CardWithIcon({
+const CardWithIcon = memo(function CardWithIcon({
   icon: Icon,
   title,
   children,

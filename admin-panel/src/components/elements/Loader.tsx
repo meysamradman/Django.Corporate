@@ -2,15 +2,7 @@ import type { HTMLAttributes } from 'react';
 import { cn } from "@/core/utils/cn"
 
 interface LoaderProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * Size of the loading dots
-   * @default "default"
-   */
   size?: "sm" | "default" | "lg"
-  /**
-   * Custom color variant
-   * @default "primary"
-   */
   variant?: "primary" | "secondary" | "muted"
 }
 

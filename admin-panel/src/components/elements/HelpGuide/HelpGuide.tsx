@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useMemo, useCallback } from 'react';
+import { useState, lazy, Suspense, useMemo, useCallback, type ReactNode, type ComponentType } from 'react';
 import { HelpCircle, X } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/elements/Popover';
@@ -8,8 +8,8 @@ const HelpGuideContent = lazy(() => import('./HelpGuideContent').then(m => ({ de
 
 export interface HelpGuideProps {
     title?: string;
-    content: string | React.ReactNode;
-    icon?: React.ComponentType<{ className?: string }>;
+    content: string | ReactNode;
+    icon?: ComponentType<{ className?: string }>;
     size?: 'sm' | 'md' | 'lg';
     position?: 'top' | 'bottom' | 'left' | 'right';
     className?: string;
