@@ -178,7 +178,7 @@ html body[data-scroll-locked] {
 @layer components {
 
   .page-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: -0.025em;
     color: var(--font-p);

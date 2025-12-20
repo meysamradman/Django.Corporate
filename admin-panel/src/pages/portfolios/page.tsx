@@ -1,9 +1,10 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
 import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";
 import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
@@ -556,9 +557,7 @@ export default function PortfolioPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت نمونه‌کارها</h1>
-        </div>
+        <PageHeader title="مدیریت نمونه‌کارها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <p className="text-sm text-font-s mb-4">
@@ -587,23 +586,16 @@ export default function PortfolioPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت نمونه‌کارها
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ProtectedButton 
-            permission="portfolio.create"
-            size="sm"
-            onClick={() => navigate('/portfolios/create')}
-          >
-            <Edit className="h-4 w-4" />
-            افزودن نمونه‌کار
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت نمونه‌کارها">
+        <ProtectedButton 
+          permission="portfolio.create"
+          size="sm"
+          onClick={() => navigate('/portfolios/create')}
+        >
+          <Plus className="h-4 w-4" />
+          افزودن نمونه‌کار
+        </ProtectedButton>
+      </PageHeader>
 
       <Suspense fallback={null}>
         <DataTable

@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
 import type { BlogFilters } from "@/types/blog/blogListParams";
@@ -35,10 +36,10 @@ import { env } from '@/core/config/environment';
 
 const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
   const rootCategories = categories.filter(cat => !cat.parent_id);
-  
+
   const buildTree = (category: BlogCategory): any => {
     const children = categories.filter(cat => cat.parent_id === category.id);
-    
+
     return {
       id: category.id,
       label: category.name,
@@ -47,7 +48,7 @@ const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
       children: children.map(buildTree)
     };
   };
-  
+
   return rootCategories.map(buildTree);
 };
 
@@ -55,10 +56,10 @@ export default function BlogPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
-  
+
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
-  
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -99,7 +100,7 @@ export default function BlogPage() {
       }
       return filters;
     }
-    return {    };
+    return {};
   });
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -121,18 +122,18 @@ export default function BlogPage() {
           is_active: true,
           is_public: true
         });
-        
+
         setCategories(response.data);
         setCategoryOptions(convertCategoriesToHierarchical(response.data));
       } catch (error) {
       }
     };
-    
+
     fetchCategories();
   }, []);
 
   const blogFilterConfig = getBlogFilterConfig(
-    statusFilterOptions, 
+    statusFilterOptions,
     booleanFilterOptions,
     categoryOptions
   );
@@ -249,7 +250,7 @@ export default function BlogPage() {
       permission: "blog.delete",
     },
   ];
-  
+
   const columns = useBlogColumns(rowActions, handleToggleActive) as ColumnDef<Blog>[];
 
   const handleExportExcel = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
@@ -264,14 +265,14 @@ export default function BlogPage() {
         is_active: filters.is_active as boolean | undefined,
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
-      
+
       if (exportAll) {
         exportParams.export_all = true;
       } else {
         exportParams.page = pagination.pageIndex + 1;
         exportParams.size = pagination.pageSize;
       }
-      
+
       await exportBlogs(exportParams, 'excel');
       showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
@@ -292,14 +293,14 @@ export default function BlogPage() {
         is_active: filters.is_active as boolean | undefined,
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
-      
+
       if (exportAll) {
         exportParams.export_all = true;
       } else {
         exportParams.page = pagination.pageIndex + 1;
         exportParams.size = pagination.pageSize;
       }
-      
+
       await exportBlogs(exportParams, 'pdf');
       showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
@@ -369,7 +370,7 @@ export default function BlogPage() {
       const shortDescription = blog.short_description ? blog.short_description.substring(0, 80) : '-';
       const statusText = getStatusText(blog.status);
       const createdDate = blog.created_at ? formatDate(blog.created_at) : '-';
-      
+
       return `
         <tr>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
@@ -480,11 +481,11 @@ export default function BlogPage() {
 
   const handleFilterChange = (filterId: string | number, value: unknown) => {
     const filterKey = filterId as string;
-    
+
     if (filterKey === "search") {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
+
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -499,7 +500,7 @@ export default function BlogPage() {
         [filterKey]: value as string | boolean | number | undefined
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
+
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         if (typeof value === 'boolean') {
@@ -522,12 +523,12 @@ export default function BlogPage() {
   };
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -535,12 +536,12 @@ export default function BlogPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -563,13 +564,13 @@ export default function BlogPage() {
           <p className="text-sm text-font-s mb-4">
             سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
           </p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => {
               queryClient.invalidateQueries({ queryKey: ['blogs'] });
@@ -586,23 +587,16 @@ export default function BlogPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت بلاگ‌ها
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ProtectedButton 
-            size="sm" 
-            permission="blog.create"
-            onClick={() => navigate("/blogs/create")}
-          >
-            <Plus className="h-4 w-4" />
-            افزودن بلاگ
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت بلاگ‌ها">
+        <ProtectedButton
+          size="sm"
+          permission="blog.create"
+          onClick={() => navigate("/blogs/create")}
+        >
+          <Plus className="h-4 w-4" />
+          افزودن بلاگ
+        </ProtectedButton>
+      </PageHeader>
 
       <Suspense fallback={null}>
         <DataTable
@@ -666,8 +660,8 @@ export default function BlogPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

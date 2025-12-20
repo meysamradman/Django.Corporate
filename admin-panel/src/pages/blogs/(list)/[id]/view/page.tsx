@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
@@ -58,7 +59,7 @@ export default function BlogViewPage() {
   if (!blogId) {
     return (
       <div className="space-y-6">
-        <h1 className="page-title">نمایش وبلاگ</h1>
+        <PageHeader title="نمایش وبلاگ" />
         <div className="text-center py-8">
           <p className="text-destructive">شناسه وبلاگ یافت نشد</p>
         </div>
@@ -69,11 +70,8 @@ export default function BlogViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="page-title">اطلاعات وبلاگ</h1>
-          </div>
-          <div className="flex items-center gap-2">
+        <PageHeader title="اطلاعات وبلاگ">
+          <>
             <Button variant="outline" disabled>
               <FileDown className="h-4 w-4" />
               خروجی PDF
@@ -82,8 +80,8 @@ export default function BlogViewPage() {
               <Edit2 />
               ویرایش وبلاگ
             </Button>
-          </div>
-        </div>
+          </>
+        </PageHeader>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
             <div className="rounded-lg border p-6 space-y-4">
@@ -120,7 +118,7 @@ export default function BlogViewPage() {
   if (error || !blogData) {
     return (
       <div className="space-y-6">
-        <h1 className="page-title">نمایش وبلاگ</h1>
+        <PageHeader title="نمایش وبلاگ" />
         <div className="rounded-lg border p-6">
           <div className="text-center py-8">
             <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وبلاگ</p>
@@ -135,11 +133,8 @@ export default function BlogViewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="page-title">اطلاعات وبلاگ</h1>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader title="اطلاعات وبلاگ">
+        <>
           <Button
             variant="outline"
             onClick={async () => {
@@ -160,8 +155,8 @@ export default function BlogViewPage() {
             <Edit2 />
             ویرایش وبلاگ
           </Button>
-        </div>
-      </div>
+        </>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">

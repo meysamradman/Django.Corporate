@@ -1,11 +1,13 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { showError, showSuccess } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
@@ -198,7 +200,7 @@ export default function EditOptionPage() {
                 />
               </FormField>
               <FormField
-                label="اسلاگ"
+                label="نامک"
                 htmlFor="slug"
                 required
               >
@@ -206,7 +208,7 @@ export default function EditOptionPage() {
                   id="slug"
                   value={formData.slug}
                   onChange={(e) => handleInputChange("slug", e.target.value)}
-                  placeholder="نام-گزینه"
+                  placeholder="نامک"
                   required
                 />
               </FormField>
@@ -225,36 +227,40 @@ export default function EditOptionPage() {
               />
             </FormField>
 
-            <div className="flex items-center gap-2">
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) => handleInputChange("is_active", checked)}
-              />
-              <label htmlFor="is_active" className="text-sm font-medium cursor-pointer">
-                فعال
-              </label>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Switch
-                id="is_public"
-                checked={formData.is_public}
-                onCheckedChange={(checked) => handleInputChange("is_public", checked)}
-              />
-              <label htmlFor="is_public" className="text-sm font-medium cursor-pointer">
-                عمومی
-              </label>
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(-1)}
-              >
-                انصراف
-              </Button>
+            <div className="mt-6 space-y-4">
+              <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                <Item variant="default" size="default" className="py-5">
+                  <ItemContent>
+                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                    <ItemDescription>
+                      با غیرفعال شدن، گزینه از لیست مدیریت نیز مخفی می‌شود.
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Switch
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                    />
+                  </ItemActions>
+                </Item>
+              </div>
+              
+              <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                <Item variant="default" size="default" className="py-5">
+                  <ItemContent>
+                    <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                    <ItemDescription>
+                      اگر غیرفعال باشد گزینه در سایت نمایش داده نمی‌شود.
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Switch
+                      checked={formData.is_public}
+                      onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                    />
+                  </ItemActions>
+                </Item>
+              </div>
             </div>
           </div>
         </CardWithIcon>

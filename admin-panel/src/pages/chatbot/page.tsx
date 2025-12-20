@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from "react";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { MessageSquare, Settings as SettingsIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -21,9 +22,7 @@ export default function ChatbotSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="page-title">تنظیمات چت‌بات</h1>
-      </div>
+      <PageHeader title="تنظیمات چت‌بات" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
@@ -37,13 +36,13 @@ export default function ChatbotSettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="faq" className="mt-6">
+        <TabsContent value="faq">
           <Suspense fallback={<TabSkeleton />}>
             <FAQManagement />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="settings" className="mt-6">
+        <TabsContent value="settings">
           <Suspense fallback={<TabSkeleton />}>
             <ChatbotSettingsForm />
           </Suspense>

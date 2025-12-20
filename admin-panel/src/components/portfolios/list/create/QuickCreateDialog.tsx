@@ -147,9 +147,9 @@ export function QuickCreateDialog({
                             />
 
                             <FormFieldInput
-                                label="لینک (اسلاگ)"
+                                label="لینک (نامک)"
                                 id="quick-create-slug"
-                                placeholder="اسلاگ را وارد کنید"
+                                placeholder="نامک"
                                 value={slug}
                                 onChange={handleSlugChange}
                                 disabled={createMutation.isPending}

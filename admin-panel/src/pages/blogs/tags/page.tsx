@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useTagColumns } from "@/components/blogs/tags/list/TagTableColumns";
 import { useTagFilterOptions, getTagFilterConfig } from "@/components/blogs/tags/list/TagTableFilters";
@@ -208,9 +209,7 @@ export default function TagPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت تگ‌ها</h1>
-        </div>
+        <PageHeader title="مدیریت تگ‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
@@ -226,25 +225,18 @@ export default function TagPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت تگ‌ها
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ProtectedButton 
-            permission="blog.create"
-            size="sm" 
-            asChild
-          >
-            <Link to="/blogs/tags/create">
-              <Edit className="h-4 w-4" />
-              افزودن تگ
-            </Link>
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت تگ‌ها">
+        <ProtectedButton 
+          permission="blog.create"
+          size="sm" 
+          asChild
+        >
+          <Link to="/blogs/tags/create">
+            <Edit className="h-4 w-4" />
+            افزودن تگ
+          </Link>
+        </ProtectedButton>
+      </PageHeader>
 
       <DataTable
         columns={columns}

@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission, AccessDenied } from "@/components/admins/permissions";
 import { ClearAnalyticsButton } from "@/components/analytics/ClearAnalyticsButton";
@@ -89,15 +90,12 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">آمار و گزارش‌های بازدید</h1>
-          <p className="text-sm text-font-s mt-1">
-            مشاهده و تحلیل آمار بازدید وب‌سایت و اپلیکیشن
-          </p>
-        </div>
+      <PageHeader 
+        title="آمار و گزارش‌های بازدید"
+        description="مشاهده و تحلیل آمار بازدید وب‌سایت و اپلیکیشن"
+      >
         <ClearAnalyticsButton />
-      </div>
+      </PageHeader>
 
       <Suspense fallback={<AnalyticsSkeleton />}>
         <AnalyticsOverview />

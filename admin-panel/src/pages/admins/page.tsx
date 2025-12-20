@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminColumns } from "@/components/admins/AdminTableColumns";
 import { useAdminFilterOptions, getAdminFilterConfig } from "@/components/admins/AdminTableFilters";
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
@@ -262,9 +263,7 @@ export default function AdminsPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت ادمین‌ها</h1>
-        </div>
+        <PageHeader title="مدیریت ادمین‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
@@ -280,27 +279,20 @@ export default function AdminsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت ادمین‌ها
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ProtectedButton 
-            size="sm" 
-            asChild
-            permission="admin.create"
-            showDenyToast
-            denyMessage="شما مجوز ایجاد ادمین ندارید"
-          >
-            <Link to="/admins/create">
-              <Plus />
-              افزودن ادمین
-            </Link>
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت ادمین‌ها">
+        <ProtectedButton 
+          size="sm" 
+          asChild
+          permission="admin.create"
+          showDenyToast
+          denyMessage="شما مجوز ایجاد ادمین ندارید"
+        >
+          <Link to="/admins/create">
+            <Plus />
+            افزودن ادمین
+          </Link>
+        </ProtectedButton>
+      </PageHeader>
 
       <Suspense fallback={null}>
         <DataTable

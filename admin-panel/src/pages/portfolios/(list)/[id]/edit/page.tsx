@@ -1,5 +1,6 @@
 import { use, useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";

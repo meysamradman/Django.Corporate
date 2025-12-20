@@ -1,4 +1,5 @@
 import { useState, useRef, lazy, Suspense } from "react";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";
@@ -28,9 +29,7 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6 pb-28 relative">
-            <div className="flex items-center justify-between">
-                <h1 className="page-title">تنظیمات سیستم</h1>
-            </div>
+            <PageHeader title="تنظیمات سیستم" />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>

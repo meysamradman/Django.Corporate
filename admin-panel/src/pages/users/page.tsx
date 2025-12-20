@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
 import type { UserWithProfile } from "@/types/auth/user";
@@ -244,9 +245,7 @@ export default function UsersPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت کاربران</h1>
-        </div>
+        <PageHeader title="مدیریت کاربران" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button
@@ -262,23 +261,16 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت کاربران
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ProtectedButton
-            permission="users.create"
-            size="sm"
-            onClick={() => navigate("/users/create")}
-          >
-            <Plus className="h-4 w-4" />
-            افزودن کاربر
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت کاربران">
+        <ProtectedButton
+          permission="users.create"
+          size="sm"
+          onClick={() => navigate("/users/create")}
+        >
+          <Plus className="h-4 w-4" />
+          افزودن کاربر
+        </ProtectedButton>
+      </PageHeader>
 
       <Suspense fallback={null}>
         <DataTable

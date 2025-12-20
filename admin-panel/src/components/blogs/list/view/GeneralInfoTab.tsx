@@ -38,7 +38,7 @@ export function GeneralInfoTab({ blog }: GeneralInfoTabProps) {
 
                 <div>
                   <label className="text-font-s mb-2 block">
-                    لینک (اسلاگ)
+                    لینک (نامک)
                   </label>
                   <div>{blog.slug || '-'}</div>
                 </div>

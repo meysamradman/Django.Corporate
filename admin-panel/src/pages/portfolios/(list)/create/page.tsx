@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
@@ -124,8 +125,9 @@ export default function CreatePortfolioPage() {
         short_description: data.short_description || "",
         description: data.description || "",
         status: data.status as "draft" | "published",
-        is_featured: false,
-        is_public: true,
+        is_featured: data.is_featured ?? false,
+        is_public: data.is_public ?? true,
+        is_active: data.is_active ?? true,
         meta_title: data.meta_title || undefined,
         meta_description: data.meta_description || undefined,
         og_title: data.og_title || undefined,
@@ -211,11 +213,8 @@ export default function CreatePortfolioPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">ایجاد نمونه‌کار جدید</h1>
-        </div>
-        <div className="flex gap-2">
+      <PageHeader title="ایجاد نمونه‌کار جدید">
+        <>
           <Button 
             variant="outline"
             onClick={() => navigate("/portfolios")}
@@ -229,8 +228,8 @@ export default function CreatePortfolioPage() {
               ویرایش
             </Button>
           )}
-        </div>
-      </div>
+        </>
+      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

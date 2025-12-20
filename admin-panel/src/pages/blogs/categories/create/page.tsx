@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
@@ -7,6 +8,7 @@ import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
@@ -180,8 +182,7 @@ export default function CreateCategoryPage() {
   if (isLoadingCategories) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
+        <PageHeader title="ایجاد دسته‌بندی جدید">
           <Button 
             variant="outline"
             onClick={() => navigate("/blogs/categories")}
@@ -189,7 +190,7 @@ export default function CreateCategoryPage() {
             <List className="h-4 w-4" />
             نمایش لیست
           </Button>
-        </div>
+        </PageHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
@@ -247,8 +248,7 @@ export default function CreateCategoryPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <h1 className="page-title">ایجاد دسته‌بندی جدید</h1>
+      <PageHeader title="ایجاد دسته‌بندی جدید">
         <Button 
           variant="outline"
           onClick={() => navigate("/blogs/categories")}
@@ -256,7 +256,7 @@ export default function CreateCategoryPage() {
           <List className="h-4 w-4" />
           نمایش لیست
         </Button>
-      </div>
+      </PageHeader>
 
       <form id="category-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
@@ -286,7 +286,7 @@ export default function CreateCategoryPage() {
                     />
                   </FormField>
                   <FormField
-                    label="اسلاگ"
+                    label="نامک"
                     htmlFor="slug"
                     required
                   >
@@ -294,7 +294,7 @@ export default function CreateCategoryPage() {
                       id="slug"
                       value={formData.slug}
                       onChange={(e) => handleInputChange("slug", e.target.value)}
-                      placeholder="نام-دسته‌بندی"
+                      placeholder="نامک"
                       required
                     />
                   </FormField>
@@ -393,37 +393,42 @@ export default function CreateCategoryPage() {
                   />
                 </FormField>
 
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="is_active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => handleInputChange("is_active", checked)}
-                  />
-                  <label htmlFor="is_active" className="text-sm font-medium cursor-pointer">
-                    فعال
-                  </label>
+                <div className="mt-6 space-y-4">
+                  <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                    <Item variant="default" size="default" className="py-5">
+                      <ItemContent>
+                        <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                        <ItemDescription>
+                          با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
+                        </ItemDescription>
+                      </ItemContent>
+                      <ItemActions>
+                        <Switch
+                          checked={formData.is_active}
+                          onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                        />
+                      </ItemActions>
+                    </Item>
+                  </div>
+                  
+                  <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                    <Item variant="default" size="default" className="py-5">
+                      <ItemContent>
+                        <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                        <ItemDescription>
+                          اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
+                        </ItemDescription>
+                      </ItemContent>
+                      <ItemActions>
+                        <Switch
+                          checked={formData.is_public}
+                          onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                        />
+                      </ItemActions>
+                    </Item>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="is_public"
-                    checked={formData.is_public}
-                    onCheckedChange={(checked) => handleInputChange("is_public", checked)}
-                  />
-                  <label htmlFor="is_public" className="text-sm font-medium cursor-pointer">
-                    عمومی
-                  </label>
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate(-1)}
-                  >
-                    انصراف
-                  </Button>
-                </div>
                 </div>
             </CardWithIcon>
             </div>

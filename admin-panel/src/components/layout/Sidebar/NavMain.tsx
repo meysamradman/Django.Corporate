@@ -12,21 +12,30 @@ import { useCallback } from 'react';
 interface NavMainProps {
   groups: MenuGroup[];
   onIconClick?: (item: MenuItem) => void;
+  selectedItem?: MenuItem | null;
 }
 
-export function NavMain({ groups, onIconClick }: NavMainProps) {
+export function NavMain({ groups, onIconClick, selectedItem }: NavMainProps) {
   const location = useLocation();
   const pathname = location.pathname;
 
   const isItemActive = useCallback((item: MenuItem): boolean => {
-    if (item.url === pathname) return true;
+    // Use selectedItem if available (more accurate from findActiveItem logic)
+    if (selectedItem) {
+      const selectedUrl = 'url' in selectedItem ? selectedItem.url : undefined;
+      const itemUrl = 'url' in item ? item.url : undefined;
+      return selectedItem.title === item.title && selectedUrl === itemUrl;
+    }
 
-    if (item.items) {
+    // Fallback to pathname matching (for initial render)
+    if ('url' in item && item.url === pathname) return true;
+
+    if ('items' in item && item.items) {
       return item.items.some(subItem => subItem.url === pathname);
     }
 
     return false;
-  }, [pathname]);
+  }, [pathname, selectedItem]);
 
   const handleItemClick = useCallback((item: MenuItem) => {
     if (!item.disabled && onIconClick) {

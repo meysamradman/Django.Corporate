@@ -1,5 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useCreateRole, usePermissions, useBasePermissions, useUserPermissions } from "@/components/admins/permissions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -386,8 +387,7 @@ export default function CreateRolePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <h1 className="page-title">ایجاد نقش جدید</h1>
+      <PageHeader title="ایجاد نقش جدید">
         <Button 
           variant="outline"
           onClick={() => navigate("/roles")}
@@ -395,7 +395,7 @@ export default function CreateRolePage() {
           <List className="h-4 w-4" />
           نمایش لیست
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="space-y-6">
         <CardWithIcon

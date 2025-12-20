@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
@@ -28,7 +29,7 @@ export default function PortfolioViewPage() {
   if (!portfolioId) {
     return (
       <div className="space-y-6">
-        <h1 className="page-title">نمایش نمونه‌کار</h1>
+        <PageHeader title="نمایش نمونه‌کار" />
         <div className="text-center py-8">
           <p className="text-destructive">شناسه نمونه‌کار یافت نشد</p>
         </div>
@@ -39,11 +40,8 @@ export default function PortfolioViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex-1">
-            <h1 className="page-title text-right">اطلاعات نمونه کار</h1>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        <PageHeader title="اطلاعات نمونه کار">
+          <>
             <Button variant="outline" disabled>
               <FileDown className="h-4 w-4" />
               خروجی PDF
@@ -52,8 +50,8 @@ export default function PortfolioViewPage() {
               <Edit2 />
               ویرایش نمونه کار
             </Button>
-          </div>
-        </div>
+          </>
+        </PageHeader>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
             <Skeleton className="h-96 w-full rounded-xl" />
@@ -74,7 +72,7 @@ export default function PortfolioViewPage() {
   if (error || !portfolioData) {
     return (
       <div className="space-y-6">
-        <h1 className="page-title">نمایش نمونه‌کار</h1>
+        <PageHeader title="نمایش نمونه‌کار" />
         <div className="rounded-lg border p-6">
           <div className="text-center py-8">
             <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات نمونه‌کار</p>
@@ -89,11 +87,8 @@ export default function PortfolioViewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex-1">
-          <h1 className="page-title text-right">اطلاعات نمونه کار</h1>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+      <PageHeader title="اطلاعات نمونه کار">
+        <>
           <Button
             variant="outline"
             onClick={async () => {
@@ -114,8 +109,8 @@ export default function PortfolioViewPage() {
             <Edit2 />
             ویرایش نمونه کار
           </Button>
-        </div>
-      </div>
+        </>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">

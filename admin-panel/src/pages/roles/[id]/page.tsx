@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useRole, useBasePermissions, usePermissions, usePermissionMap } from "@/components/admins/permissions";
 import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -50,11 +51,8 @@ export default function RoleDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex-1">
-            <h1 className="page-title text-right">اطلاعات نقش</h1>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        <PageHeader title="اطلاعات نقش">
+          <>
             <Button
               variant="outline"
               onClick={() => navigate(-1)}
@@ -67,8 +65,8 @@ export default function RoleDetailPage() {
               <Edit className="h-4 w-4" />
               ویرایش نقش
             </Button>
-          </div>
-        </div>
+          </>
+        </PageHeader>
         
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
@@ -152,11 +150,8 @@ export default function RoleDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex-1">
-          <h1 className="page-title text-right">اطلاعات نقش</h1>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+      <PageHeader title="اطلاعات نقش">
+        <>
           <Button
             variant="outline"
             onClick={() => navigate(-1)}
@@ -170,8 +165,8 @@ export default function RoleDetailPage() {
               ویرایش نقش
             </Button>
           </Link>
-        </div>
-      </div>
+        </>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">

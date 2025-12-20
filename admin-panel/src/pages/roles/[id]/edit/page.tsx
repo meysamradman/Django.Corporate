@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useRole, useUpdateRole, usePermissions, useBasePermissions } from "@/components/admins/permissions";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader } from "@/components/elements/Card";
@@ -446,8 +447,7 @@ export default function EditRolePage() {
   if (roleLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">ویرایش نقش</h1>
+        <PageHeader title="ویرایش نقش">
           <Button 
             variant="outline"
             onClick={() => navigate("/roles")}
@@ -456,7 +456,7 @@ export default function EditRolePage() {
             <ArrowLeft className="h-4 w-4" />
             بازگشت
           </Button>
-        </div>
+        </PageHeader>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -510,10 +510,7 @@ export default function EditRolePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <h1 className="page-title">
-          ویرایش نقش: {role.name}
-        </h1>
+      <PageHeader title={`ویرایش نقش: ${role.name}`}>
         <Button 
           variant="outline"
           onClick={() => navigate("/roles")}
@@ -521,7 +518,7 @@ export default function EditRolePage() {
           <ArrowLeft className="h-4 w-4" />
           بازگشت
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="space-y-6">
         <CardWithIcon

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useOptionColumns } from "@/components/portfolios/options/list/OptionTableColumns";
 import { useOptionFilterOptions, getOptionFilterConfig } from "@/components/portfolios/options/list/OptionTableFilters";
@@ -252,9 +253,7 @@ export default function OptionPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت گزینه‌ها</h1>
-        </div>
+        <PageHeader title="مدیریت گزینه‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
@@ -270,25 +269,18 @@ export default function OptionPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت گزینه‌ها
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ProtectedButton 
-            permission="portfolio.create"
-            size="sm" 
-            asChild
-          >
-            <Link to="/portfolios/options/create">
-              <Edit className="h-4 w-4" />
-              افزودن گزینه
-            </Link>
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت گزینه‌ها">
+        <ProtectedButton 
+          permission="portfolio.create"
+          size="sm" 
+          asChild
+        >
+          <Link to="/portfolios/options/create">
+            <Edit className="h-4 w-4" />
+            افزودن گزینه
+          </Link>
+        </ProtectedButton>
+      </PageHeader>
 
       <DataTable
         columns={columns}

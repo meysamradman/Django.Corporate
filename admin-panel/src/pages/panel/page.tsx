@@ -1,4 +1,5 @@
 import { useRef, useState, lazy, Suspense, type ComponentType, type Ref } from 'react';
+import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
 import { ProtectedButton } from '@/components/admins/permissions';
 import { Save, Loader2, Flag, Image as ImageIcon, Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
@@ -15,9 +16,7 @@ export default function PanelSettingsPage() {
 
     return (
         <div className="space-y-6 pb-28 relative">
-            <div className="flex items-center justify-between">
-                <h1 className="page-title">تنظیمات پنل</h1>
-            </div>
+            <PageHeader title="تنظیمات پنل" />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>

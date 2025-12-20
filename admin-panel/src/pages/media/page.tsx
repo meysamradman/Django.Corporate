@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
@@ -318,11 +319,8 @@ export default function MediaPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">کتابخانه رسانه</h1>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader title="کتابخانه رسانه">
+        <>
           <ProtectedButton
             permission="ai.create"
             size="sm"
@@ -345,8 +343,8 @@ export default function MediaPage() {
             <Upload className="h-4 w-4" />
             آپلود رسانه
           </ProtectedButton>
-        </div>
-      </div>
+        </>
+      </PageHeader>
 
       {error && (
         <div className="text-center text-destructive bg-destructive/10 border border-destructive/20 p-4 rounded">

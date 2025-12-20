@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -191,20 +192,15 @@ export default function CreateAdminPage() {
 
     return (
         <div className="space-y-6 pb-28 relative">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="page-title">ایجاد ادمین جدید</h1>
-                </div>
-                <div className="flex gap-2">
-                    <Button 
-                        variant="outline"
-                        onClick={() => navigate("/admins")}
-                    >
-                        <List className="h-4 w-4" />
-                        نمایش لیست
-                    </Button>
-                </div>
-            </div>
+            <PageHeader title="ایجاد ادمین جدید">
+                <Button 
+                    variant="outline"
+                    onClick={() => navigate("/admins")}
+                >
+                    <List className="h-4 w-4" />
+                    نمایش لیست
+                </Button>
+            </PageHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>

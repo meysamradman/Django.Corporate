@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useRoleColumns } from "@/components/roles/RoleTableColumns";
 import { useRoleFilterOptions, getRoleFilterConfig } from "@/components/roles/RoleTableFilters";
@@ -249,9 +250,7 @@ export default function RolesPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="page-title">مدیریت نقش‌ها</h1>
-        </div>
+        <PageHeader title="مدیریت نقش‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1">خطا در بارگیری داده‌ها</p>
           <Button 
@@ -267,25 +266,18 @@ export default function RolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">
-            مدیریت نقش‌ها
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <ProtectedButton
-            permission="admin.create"
-            size="sm"
-            asChild
-          >
-            <Link to="/roles/create">
-              <Plus />
-              ایجاد نقش
-            </Link>
-          </ProtectedButton>
-        </div>
-      </div>
+      <PageHeader title="مدیریت نقش‌ها">
+        <ProtectedButton
+          permission="admin.create"
+          size="sm"
+          asChild
+        >
+          <Link to="/roles/create">
+            <Plus />
+            ایجاد نقش
+          </Link>
+        </ProtectedButton>
+      </PageHeader>
 
       <DataTable
         columns={columns}

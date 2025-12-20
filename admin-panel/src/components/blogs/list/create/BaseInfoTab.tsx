@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText, Globe, Power } from "lucide-react";
+import { Plus, FolderOpen, Tag, X, Settings, AlertCircle, FileText } from "lucide-react";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
@@ -198,11 +199,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     
                                     {isFormApproach ? (
                                         <FormFieldInput
-                                            label="لینک (اسلاگ)"
+                                            label="لینک (نامک)"
                                             id="slug"
                                             required
                                             error={errors.slug?.message}
-                                            placeholder="وبلاگ-من یا my-blog-post"
+                                            placeholder="نامک"
                                             disabled={!editMode}
                                             {...register!("slug", {
                                                 onChange: (e) => {
@@ -214,11 +215,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         />
                                     ) : (
                                         <FormFieldInput
-                                            label="لینک (اسلاگ)"
+                                            label="لینک (نامک)"
                                             id="slug"
                                             required
                                             error={errors.slug?.message}
-                                            placeholder="وبلاگ-من یا my-blog-post"
+                                            placeholder="نامک"
                                             disabled={!editMode}
                                             value={formData?.slug || ""}
                                             onChange={handleSlugChange}
@@ -462,45 +463,59 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             </div>
 
                             {!isFormApproach && (
-                                <div className="space-y-4 rounded-xl border border-border/60 p-4 bg-bg/50 mt-6">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-1.5 bg-blue rounded-lg">
-                                                <Globe className="w-4 h-4 stroke-blue-2" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">نمایش عمومی</p>
-                                                <p className="text-xs text-font-s">
+                                <div className="mt-6 space-y-4">
+                                    <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                                                <ItemDescription>
                                                     اگر غیرفعال باشد بلاگ در سایت نمایش داده نمی‌شود.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Switch
-                                            checked={(formData?.is_public ?? true)}
-                                            disabled={!editMode}
-                                            onCheckedChange={(checked) => handleInputChange?.("is_public", checked)}
-                                        />
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(formData?.is_public ?? true)}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => handleInputChange?.("is_public", checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
                                     </div>
-
-                                    <div className="h-px bg-border/60" />
-
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-1.5 bg-green rounded-lg">
-                                                <Power className="w-4 h-4 stroke-green-2" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">وضعیت فعال</p>
-                                                <p className="text-xs text-font-s">
+                                    
+                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                                                <ItemDescription>
                                                     با غیرفعال شدن، بلاگ از لیست مدیریت نیز مخفی می‌شود.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Switch
-                                            checked={(formData?.is_active ?? true)}
-                                            disabled={!editMode}
-                                            onCheckedChange={(checked) => handleInputChange?.("is_active", checked)}
-                                        />
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(formData?.is_active ?? true)}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => handleInputChange?.("is_active", checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
+                                    
+                                    <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
+                                                <ItemDescription>
+                                                    بلاگ‌های ویژه در بخش‌های خاص سایت با اولویت نمایش داده می‌شوند.
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(formData?.is_featured ?? false)}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => handleInputChange?.("is_featured", checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
                                     </div>
                                 </div>
                             )}
@@ -512,6 +527,65 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     </div>
                                 )}
                             </div>
+
+                            {/* مثال استفاده از Item با Switch برای formApproach */}
+                            {isFormApproach && (
+                                <div className="mt-6 space-y-4">
+                                    <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                                                <ItemDescription>
+                                                    اگر غیرفعال باشد بلاگ در سایت نمایش داده نمی‌شود.
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(watch?.("is_public" as any) ?? true) as boolean}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => setValue?.("is_public" as any, checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
+                                    
+                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                                                <ItemDescription>
+                                                    با غیرفعال شدن، بلاگ از لیست مدیریت نیز مخفی می‌شود.
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(watch?.("is_active" as any) ?? true) as boolean}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => setValue?.("is_active" as any, checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
+                                    
+                                    <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
+                                                <ItemDescription>
+                                                    بلاگ‌های ویژه در بخش‌های خاص سایت با اولویت نمایش داده می‌شوند.
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(watch?.("is_featured" as any) ?? false) as boolean}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => setValue?.("is_featured" as any, checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
+                                </div>
+                            )}
 
                             </div>
                     </CardWithIcon>

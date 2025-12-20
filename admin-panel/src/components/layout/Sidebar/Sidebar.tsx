@@ -54,31 +54,79 @@ export function Sidebar({
       return menuGroups[0]?.items[0] || null;
     }
 
+    // First, check for exact matches in main items (highest priority)
+    // This handles cases like /media where the main item has url="/media"
     for (const group of menuGroups) {
       for (const item of group.items) {
-        if ('url' in item && item.url === pathname) {
+        if ('url' in item && item.url && item.url === pathname) {
           return item;
         }
+      }
+    }
 
-        if ('url' in item && item.url && pathname.startsWith(item.url + '/')) {
-          return item;
-        }
+    let bestMatch: MenuItem | null = null;
+    let bestMatchLength = 0;
+    let bestMatchPriority = 0;
 
+    for (const group of menuGroups) {
+      for (const item of group.items) {
         if ('items' in item && item.items) {
+          const hasMainUrl = 'url' in item && item.url;
+          
+          if (hasMainUrl && 'url' in item && item.url === pathname) {
+            continue;
+          }
+          
           for (const subItem of item.items) {
+            if (!subItem.url) continue;
+
+            let matchFound = false;
+            let matchLength = 0;
+
             if (subItem.url === pathname) {
-              return item;
+              matchFound = true;
+              matchLength = subItem.url.length;
             }
 
-            if (subItem.url && pathname.startsWith(subItem.url + '/')) {
-              return item;
+            else if (pathname.startsWith(subItem.url + '/')) {
+              matchFound = true;
+              matchLength = subItem.url.length;
+            }
+
+            if (matchFound) {
+
+              const isExactMatch = subItem.url === pathname;
+              const priority = (isExactMatch ? 100 : 50) + (hasMainUrl ? 0 : 25);
+
+              if (!bestMatch || priority > bestMatchPriority || 
+                  (priority === bestMatchPriority && matchLength > bestMatchLength)) {
+                bestMatch = item;
+                bestMatchLength = matchLength;
+                bestMatchPriority = priority;
+              }
             }
           }
         }
       }
     }
 
-    return menuGroups[0]?.items[0] || null;
+    if (bestMatch) {
+      return bestMatch;
+    }
+
+    for (const group of menuGroups) {
+      for (const item of group.items) {
+        if ('url' in item && item.url && item.url !== '/' && pathname.startsWith(item.url + '/')) {
+          const matchLength = item.url.length;
+          if (matchLength > bestMatchLength) {
+            bestMatch = item;
+            bestMatchLength = matchLength;
+          }
+        }
+      }
+    }
+
+    return bestMatch || menuGroups[0]?.items[0] || null;
   }, [pathname, menuGroups]);
 
   const activeItem = useMemo(() => findActiveItem(), [findActiveItem]);
@@ -164,7 +212,7 @@ export function Sidebar({
         <div className={iconStripClasses}>
           <SidebarLogo />
           <nav className="flex-1 overflow-y-auto">
-            <NavMain groups={menuGroups} onIconClick={handleIconClick} />
+            <NavMain groups={menuGroups} onIconClick={handleIconClick} selectedItem={selectedItem} />
           </nav>
           <div className="h-16 flex items-center justify-center border-t">
             <DropdownMenu>
@@ -184,9 +232,9 @@ export function Sidebar({
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <span className="font-medium">
-                      {(user as any)?.full_name || (user as any)?.profile?.full_name ||
-                        (user?.first_name && user?.last_name
-                          ? `${user.first_name} ${user.last_name}`
+                      {user?.full_name || user?.profile?.full_name ||
+                        (user?.profile?.first_name && user?.profile?.last_name
+                          ? `${user.profile.first_name} ${user.profile.last_name}`
                           : user?.email || user?.mobile || "کاربر")}
                     </span>
                     <span className="text-xs text-font-s mt-1">

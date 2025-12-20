@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
 import { Search, List } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
@@ -11,15 +12,14 @@ interface AISettingsHeaderProps {
 export function AISettingsHeader({ searchQuery, onSearchChange }: AISettingsHeaderProps) {
   return (
     <>
-      <div className="flex items-center justify-between">
-        <h1 className="page-title">تنظیمات AI Provider</h1>
+      <PageHeader title="تنظیمات AI Provider">
         <Button asChild>
-          <Link to="/settings/ai/models">
+          <Link to="/ai/models">
             <List className="w-4 h-4" />
             انتخاب مدل‌ها
           </Link>
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-md">

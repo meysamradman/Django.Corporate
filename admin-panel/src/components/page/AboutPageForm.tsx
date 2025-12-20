@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
@@ -110,9 +111,7 @@ export function AboutPageForm() {
     if (loading) {
         return (
             <div className="space-y-6 pb-28 relative">
-                <div className="flex items-center justify-between">
-                    <h1 className="page-title">تنظیمات صفحه درباره ما</h1>
-                </div>
+                <PageHeader title="تنظیمات صفحه درباره ما" />
                 <div className="space-y-6">
                     <div className="flex gap-2">
                         <Skeleton className="h-10 w-32" />
@@ -130,11 +129,7 @@ export function AboutPageForm() {
 
     return (
         <div className="space-y-6 pb-28 relative">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="page-title">تنظیمات صفحه درباره ما</h1>
-                </div>
-            </div>
+            <PageHeader title="تنظیمات صفحه درباره ما" />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>

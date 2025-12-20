@@ -65,7 +65,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
     },
     {
       accessorKey: "slug",
-      header: () => <div className="table-header-text">اسلاگ</div>,
+      header: () => <div className="table-header-text">نامک</div>,
       cell: ({ row }) => (
         <div className="table-cell-muted table-cell-wide">
           {row.original.slug}

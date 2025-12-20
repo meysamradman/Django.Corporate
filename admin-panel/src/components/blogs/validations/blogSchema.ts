@@ -84,6 +84,21 @@ export const blogFormSchema = z.object({
     .string()
     .optional()
     .or(z.literal("")),
+  
+  is_public: z
+    .boolean()
+    .default(true)
+    .optional(),
+  
+  is_active: z
+    .boolean()
+    .default(true)
+    .optional(),
+  
+  is_featured: z
+    .boolean()
+    .default(false)
+    .optional(),
 });
 
 export type BlogFormValues = z.infer<typeof blogFormSchema>;
@@ -103,4 +118,7 @@ export const blogFormDefaults: Partial<BlogFormValues> = {
   og_image: null,
   canonical_url: "",
   robots_meta: "",
+  is_public: true,
+  is_active: true,
+  is_featured: false,
 };
