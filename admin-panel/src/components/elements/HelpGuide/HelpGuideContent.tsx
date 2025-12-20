@@ -1,7 +1,7 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 interface HelpGuideContentProps {
-    content: string | React.ReactNode;
+    content: string | ReactNode;
 }
 
 export function HelpGuideContent({ content }: HelpGuideContentProps) {

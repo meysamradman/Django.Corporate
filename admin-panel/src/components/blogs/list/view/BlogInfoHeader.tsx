@@ -41,7 +41,11 @@ export function BlogInfoHeader({ blog }: BlogInfoHeaderProps) {
             fill
           />
         ) : (
-          <Image src="/images/profile-banner.png" alt="Cover image" fill className="object-cover" />
+          <img 
+            src="/images/profile-banner.png" 
+            alt="Cover image" 
+            className="w-full h-full object-cover" 
+          />
         )}
       </div>
       <CardContent className="relative px-6 pt-0 pb-6">

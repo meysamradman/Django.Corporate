@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/tables/DataTable';
 import { useDataTableLogic } from '@/components/tables/logic/useDataTableLogic';

@@ -1,4 +1,3 @@
-import React from "react";
 import { FormFieldsSection } from "@/components/form-builder/FormFieldsSection";
 
 export default function FormSettingsPage() {

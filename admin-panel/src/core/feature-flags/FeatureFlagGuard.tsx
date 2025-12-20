@@ -1,11 +1,12 @@
+import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useFeatureFlag } from './useFeatureFlags';
 import { Loader } from '@/components/elements/Loader';
 
 interface FeatureFlagGuardProps {
   featureKey: string;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 /**

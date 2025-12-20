@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 export interface SearchConfig {
   placeholder: string;
@@ -46,7 +46,7 @@ export interface CategoryItem {
 
 export interface DataTableRowAction<TData> {
   label: string | ((item: TData) => string);
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   onClick: (item: TData) => void;
   condition?: (item: TData) => boolean;
   isDestructive?: boolean;

@@ -1,7 +1,7 @@
-﻿import React from 'react';
+import type { HTMLAttributes } from 'react';
 import { cn } from "@/core/utils/cn"
 
-interface LoaderProps extends React.HTMLAttributes<HTMLDivElement> {
+interface LoaderProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Size of the loading dots
    * @default "default"

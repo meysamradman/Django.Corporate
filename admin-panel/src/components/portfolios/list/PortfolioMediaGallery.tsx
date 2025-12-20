@@ -1,4 +1,3 @@
-import React from "react";
 import type { Media } from "@/types/shared/media";
 import { MediaGallery } from "@/components/media/galleries/MediaGallery";
 

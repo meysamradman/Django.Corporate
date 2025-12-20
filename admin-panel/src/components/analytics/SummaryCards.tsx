@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -24,7 +25,7 @@ interface StatCardProps {
     isPositive: boolean;
     label: string;
   };
-  icon: React.ReactNode;
+  icon: ReactNode;
   iconColor?: string;
   iconBg?: string;
 }

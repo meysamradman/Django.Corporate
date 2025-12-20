@@ -15,7 +15,7 @@ import {
   Strikethrough, Code as CodeIcon, Code2, Minus,
   Highlighter, Type, Image as ImageIcon
 } from 'lucide-react';
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect, type ChangeEvent } from 'react';
 import { mediaApi } from '@/api/media/media';
 import { toast } from '@/components/elements/Sonner';
 import { mediaService } from '@/components/media/services';
@@ -138,7 +138,7 @@ export function TipTapEditor({
     fileInputRef.current?.click();
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       handleImageUpload(file);
