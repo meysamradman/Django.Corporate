@@ -10,64 +10,10 @@ import { toast } from 'sonner';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
 
 import type { ApiResponse } from '@/types/api/apiResponse';
-import type { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tableFilters';
-
-type FetchDataFn<TData, TApiFilters extends BaseApiFilterParams> = (
-  filters: TApiFilters,
-  options?: { 
-    cookieHeader?: string;
-  }
-) => Promise<unknown>;
-
-type DeleteItemFn = (id: string | number) => Promise<unknown>;
-type DeleteMultipleItemsFn = (ids: (string | number)[]) => Promise<unknown>;
-
-interface UseDataTableLogicOptions<
-  TData,
-  TApiFilters extends BaseApiFilterParams,
-  TClientFilters extends BaseClientFilterParams,
-> {
-  fetchDataFn: FetchDataFn<TData, TApiFilters>;
-  deleteItemFn?: DeleteItemFn;
-  deleteMultipleItemsFn?: DeleteMultipleItemsFn;
-  initialData: TData[];
-  totalItems: number;
-  initialFilters: BaseClientFilterParams & TClientFilters;
-  idField?: keyof TData;
-  defaultPageSize?: number;
-  pageSizeOptions?: number[];
-  updateUrlOnFilterChange?: boolean;
-  searchDebounceMs?: number;
-  
-  mapClientFiltersToApiFilters: (
-    pagination: PaginationState,
-    sorting: SortingState,
-    clientFilters: TClientFilters,
-    search: string | undefined
-  ) => TApiFilters;
-}
-
-interface UseDataTableLogicResult<TData, TClientFilters> {
-  data: TData[];
-  totalItems: number;
-  pageCount: number;
-  isLoading: boolean;
-  pagination: PaginationState;
-  setPagination: (value: SetStateAction<PaginationState>) => void;
-  sorting: SortingState;
-  setSorting: (value: SetStateAction<SortingState>) => void;
-  clientFilters: TClientFilters;
-  handleFilterChange: (filterId: keyof TClientFilters | 'search', value: unknown) => void;
-  rowSelection: RowSelectionState;
-  setRowSelection: (value: SetStateAction<RowSelectionState>) => void;
-  columnVisibility: VisibilityState;
-  setColumnVisibility: (value: SetStateAction<VisibilityState>) => void;
-  refetchData: () => Promise<void>;
-  handleDeleteItem: (id: number | string) => Promise<void>;
-  handleDeleteSelected: (idsToUse?: (string | number)[]) => Promise<void>;
-  hasSelectedItems: boolean;
-  searchValue: string;
-}
+import type {
+  UseDataTableLogicOptions,
+  UseDataTableLogicResult,
+} from '@/types/shared/table';
 
 export function useDataTableLogic<
   TData,

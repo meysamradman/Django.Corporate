@@ -4,7 +4,8 @@ import { Input } from '@/components/elements/Input';
 import { Button } from '@/components/elements/Button';
 import { Badge } from '@/components/elements/Badge';
 import { Spinner } from '@/components/elements/Spinner';
-import { ModelCard, type ModelCardModel } from './ModelCard';
+import { ModelCard } from './ModelCard';
+import type { ModelCardModel } from '@/types/ai/ai';
 import { CapabilityFilter, type CapabilityType } from './CapabilityFilter';
 import { useModelSelection } from '../models/hooks/useModelSelection';
 

@@ -4,9 +4,9 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "@/core/auth/AuthContext";
 import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
-import { findRouteRule } from "@/core/permissions/accessControl";
+import { findRouteRule } from "../config/accessControl";
 import { AccessDenied } from "./AccessDenied";
-import { PERMISSIONS } from "@/core/permissions/constants";
+import { PERMISSIONS } from "../constants";
 
 interface RoutePermissionGuardProps {
     children: ReactNode;

@@ -35,9 +35,9 @@ import {
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
 import { useUserPermissions } from "@/components/admins/permissions/hooks/useUserPermissions"
-import type { ModuleAction } from "@/components/admins/permissions/hooks/useUserPermissions"
+import type { ModuleAction } from "@/types/auth/permission"
 import { useFeatureFlags } from "@/core/feature-flags/useFeatureFlags"
-import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/config/featureFlags"
+import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/feature-flags/featureFlags"
 import type { MenuItem, MenuAccessConfig } from '@/types/shared/menu';
 
 const MODULE_TO_FEATURE_FLAG = CONFIG_MODULE_TO_FEATURE_FLAG;

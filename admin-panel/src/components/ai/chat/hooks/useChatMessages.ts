@@ -1,10 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-
-interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp?: number;
-}
+import type { ChatMessage } from '@/types/ai/ai';
 
 interface UseChatMessagesOptions {
     compact?: boolean;

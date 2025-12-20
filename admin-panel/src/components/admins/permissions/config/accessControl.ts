@@ -1,4 +1,4 @@
-import type { ModuleAction } from "@/components/admins/permissions/hooks/useUserPermissions";
+import type { ModuleAction } from "@/types/auth/permission";
 
 const MODULES = {
   AI: 'ai',

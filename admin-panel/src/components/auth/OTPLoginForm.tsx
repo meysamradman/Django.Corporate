@@ -4,7 +4,7 @@ import { Button } from '@/components/elements/Button';
 import { FormField } from '@/components/forms/FormField';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/elements/InputOtp';
 import { otpLoginSchema } from './validations/loginSchema';
-import { filterNumericOnly } from '@/core/utils/numeric';
+import { filterNumericOnly } from '@/core/filters/numeric';
 import { msg } from '@/core/messages';
 import { z } from 'zod';
 import { showError } from '@/core/toast';

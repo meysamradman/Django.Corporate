@@ -59,7 +59,7 @@ function maskApiKey(apiKey: string, showFull: boolean = false): string {
 
 export function ProviderCard({
   provider,
-  isExpanded = false,
+  isExpanded: _isExpanded = false,
   apiKey,
   showApiKey,
   useSharedApi,
@@ -122,19 +122,35 @@ export function ProviderCard({
   );
 
   const handleSharedApiKeyChange = useCallback((value: string) => {
-    onSharedApiKeyChange ? onSharedApiKeyChange(value) : onApiKeyChange(value);
+    if (onSharedApiKeyChange) {
+      onSharedApiKeyChange(value);
+    } else {
+      onApiKeyChange(value);
+    }
   }, [onSharedApiKeyChange, onApiKeyChange]);
 
   const handlePersonalApiKeyChange = useCallback((value: string) => {
-    onPersonalApiKeyChange ? onPersonalApiKeyChange(value) : onApiKeyChange(value);
+    if (onPersonalApiKeyChange) {
+      onPersonalApiKeyChange(value);
+    } else {
+      onApiKeyChange(value);
+    }
   }, [onPersonalApiKeyChange, onApiKeyChange]);
 
   const handleSharedApiKeyVisibility = useCallback(() => {
-    onToggleSharedApiKeyVisibility ? onToggleSharedApiKeyVisibility() : onToggleApiKeyVisibility();
+    if (onToggleSharedApiKeyVisibility) {
+      onToggleSharedApiKeyVisibility();
+    } else {
+      onToggleApiKeyVisibility();
+    }
   }, [onToggleSharedApiKeyVisibility, onToggleApiKeyVisibility]);
 
   const handlePersonalApiKeyVisibility = useCallback(() => {
-    onTogglePersonalApiKeyVisibility ? onTogglePersonalApiKeyVisibility() : onToggleApiKeyVisibility();
+    if (onTogglePersonalApiKeyVisibility) {
+      onTogglePersonalApiKeyVisibility();
+    } else {
+      onToggleApiKeyVisibility();
+    }
   }, [onTogglePersonalApiKeyVisibility, onToggleApiKeyVisibility]);
 
   const ApiKeyField = ({

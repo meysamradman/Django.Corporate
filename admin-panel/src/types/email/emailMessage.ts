@@ -82,3 +82,9 @@ export interface EmailStats {
   draft: number;
 }
 
+export interface ComposeEmailData {
+  to: string;
+  subject: string;
+  message: string;
+}
+

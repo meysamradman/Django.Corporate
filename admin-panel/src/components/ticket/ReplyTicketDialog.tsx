@@ -8,10 +8,7 @@ import { ProtectedButton } from "@/components/admins/permissions/components/Prot
 
 const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 
-export interface ReplyTicketData {
-  message: string;
-  attachment_ids?: number[];
-}
+import type { ReplyTicketData } from '@/types/ticket/ticket';
 
 interface ReplyTicketDialogProps {
   open: boolean;

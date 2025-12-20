@@ -22,17 +22,8 @@ import {
   AlertTitle,
 } from "@/components/elements/Alert";
 import { cn } from "@/core/utils/cn";
-import { FEATURE_FLAGS_CONFIG } from "@/core/config/featureFlags";
-
-interface FeatureFlag {
-  id?: number;
-  public_id?: string;
-  key: string;
-  is_active: boolean;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { FEATURE_FLAGS_CONFIG } from "@/core/feature-flags/featureFlags";
+import type { FeatureFlag } from "@/types/shared/featureFlags";
 
 const SUGGESTED_FEATURE_FLAGS = FEATURE_FLAGS_CONFIG;
 

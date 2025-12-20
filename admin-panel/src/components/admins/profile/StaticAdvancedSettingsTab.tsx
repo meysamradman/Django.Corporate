@@ -14,10 +14,7 @@ interface StaticAdvancedSettingsTabProps {
     admin: AdminWithProfile;
 }
 
-interface RoleAssignment {
-    roleId: number;
-    assigned: boolean;
-}
+import type { RoleAssignment } from '@/types/auth/permission';
 
 interface BasePermission {
     id: string;

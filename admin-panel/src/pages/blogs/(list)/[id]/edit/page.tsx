@@ -18,14 +18,7 @@ import { validateSlug } from '@/core/slug/validate';
 import { showError } from '@/core/toast';
 import type { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/components/blogs/utils/blogMediaUtils";
-
-interface BlogUpdateData extends Partial<Blog> {
-  categories_ids?: number[];
-  tags_ids?: number[];
-  media_ids?: number[];
-  main_image_id?: number | null;
-  media_covers?: { [mediaId: number]: number | null };
-}
+import type { BlogUpdateData } from "@/types/blog/blog";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">

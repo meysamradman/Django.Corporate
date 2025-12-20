@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/elements/Sonner";
 import { usePermission } from "@/components/admins/permissions";
-import { PERMISSIONS } from "@/core/permissions/constants";
+import { PERMISSIONS } from "@/components/admins/permissions/constants";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import type { MailboxType } from "./types";
 

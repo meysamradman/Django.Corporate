@@ -4,19 +4,7 @@ import { aiApi } from '@/api/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { Button } from '@/components/elements/Button';
 import { ModelSelector } from '@/components/ai/core';
-import type { ModelCardModel } from '@/components/ai/core';
-
-interface OpenRouterModel extends ModelCardModel {
-  architecture?: {
-    modality?: string;
-    tokenizer?: string;
-  };
-  pricing?: {
-    prompt?: number;
-    completion?: number;
-  };
-  category?: 'chat' | 'image' | 'audio' | 'content';
-}
+import type { OpenRouterModel } from '@/types/ai/ai';
 
 interface OpenRouterModelSelectorProps {
   providerId: string;
@@ -207,7 +195,7 @@ export function OpenRouterModelSelectorContent({
           toast.error('خطا در دریافت مدل‌ها از OpenRouter');
           setModels([]);
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('خطا در دریافت مدل‌ها از OpenRouter');
         setModels([]);
       } finally {

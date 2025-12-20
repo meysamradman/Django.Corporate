@@ -2,6 +2,7 @@ import type { Media } from "@/types/shared/media";
 import type { Base } from "@/types/shared/base";
 import type { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import type { Pagination } from '@/types/api/apiResponse';
 
 export type UserStatus = 'active' | 'inactive' | 'all';
 export type UserType = 'admin' | 'user';
@@ -156,4 +157,13 @@ export interface AdminFormData {
     is_staff: boolean;
     is_superuser: boolean;
     role_ids: number[];
+}
+
+export interface AdminListResponse {
+  data?: AdminWithProfile[];
+  results?: AdminWithProfile[];
+  pagination?: Pagination;
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
 }

@@ -1,11 +1,12 @@
 export { PermissionProvider, usePermission } from './context/PermissionContext';
-export type { PermissionContextValue, UIPermissions } from './context/PermissionContext';
+export type { PermissionContextValue, UIPermissions } from '@/types/auth/permission';
 
 export { useHasPermission } from './hooks/useHasPermission';
 export { useCanUpload } from './hooks/useCanUpload';
 export { useHasAccess } from './hooks/useHasAccess';
 export { usePermissionMap } from './hooks/usePermissionMap';
-export { useUserPermissions, type ModuleAction } from './hooks/useUserPermissions';
+export { useUserPermissions } from './hooks/useUserPermissions';
+export type { ModuleAction } from '@/types/auth/permission';
 export {
   useUIPermissions,
   useCanManageSettings,
@@ -85,13 +86,15 @@ export {
   ROLE_COLORS,
   getRoleColorClasses,
   type RoleConfig,
-} from '@/core/permissions/roles';
+} from './config/roles';
 
 export {
   findRouteRule,
   routeRules,
   type RouteRule,
-} from '@/core/permissions/accessControl';
+} from './config/accessControl';
+
+export { PERMISSIONS, getAllPermissions, isValidPermission, type PermissionId } from './constants';
 
 export type {
   PermissionMeta,

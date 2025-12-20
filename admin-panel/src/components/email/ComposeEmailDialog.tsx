@@ -4,14 +4,8 @@ import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
 import { Send, Save } from "lucide-react";
-import type { EmailMessage } from "@/types/email/emailMessage";
+import type { EmailMessage, ComposeEmailData } from "@/types/email/emailMessage";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
-
-export interface ComposeEmailData {
-  to: string;
-  subject: string;
-  message: string;
-}
 
 interface ComposeEmailDialogProps {
   open: boolean;

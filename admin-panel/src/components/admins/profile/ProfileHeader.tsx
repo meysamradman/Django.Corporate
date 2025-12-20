@@ -115,7 +115,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
             }
             
             toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
-        } catch (error) {
+        } catch (_error) {
             toast.error("خطا در ذخیره عکس پروفایل");
         } finally {
             setShowMediaSelector(false);

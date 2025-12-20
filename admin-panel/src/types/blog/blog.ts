@@ -73,3 +73,11 @@ export interface Blog extends Base {
     
     seo?: BlogSEOMeta;
 }
+
+export interface BlogUpdateData extends Partial<Blog> {
+  categories_ids?: number[];
+  tags_ids?: number[];
+  media_ids?: number[];
+  main_image_id?: number | null;
+  media_covers?: { [mediaId: number]: number | null };
+}

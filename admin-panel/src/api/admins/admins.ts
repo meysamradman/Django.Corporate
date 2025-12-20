@@ -1,23 +1,14 @@
 import { api } from '@/core/config/api';
-import type { Pagination } from '@/types/api/apiResponse';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
 import type { 
   AdminWithProfile, 
   AdminCreateRequest, 
   AdminUpdateRequest, 
-  UserType 
+  UserType,
+  AdminListResponse
 } from '@/types/auth/admin';
 import type { AdminFilter, UserFilter, Filter } from '@/types/auth/adminFilter';
-
-interface AdminListResponse {
-  data?: AdminWithProfile[];
-  results?: AdminWithProfile[];
-  pagination?: Pagination;
-  count?: number;
-  next?: string | null;
-  previous?: string | null;
-}
 
 export function createQueryString(params: Record<string, unknown>, additionalParams?: Record<string, unknown>): string {
   const queryParams = new URLSearchParams();

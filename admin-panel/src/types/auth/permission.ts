@@ -208,3 +208,31 @@ export interface PermissionContextValue {
   refresh: () => Promise<void>;
   ui: UIPermissions;
 }
+
+export interface UserRole {
+  id: number;
+  name: string;
+  permissions?: {
+    code: string;
+    name: string;
+  }[];
+}
+
+export type ModuleAction =
+  | 'read'
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'manage'
+  | 'view'
+  | 'list'
+  | 'edit'
+  | 'change'
+  | 'add'
+  | 'remove'
+  | 'admin';
+
+export interface RoleAssignment {
+  roleId: number;
+  assigned: boolean;
+}

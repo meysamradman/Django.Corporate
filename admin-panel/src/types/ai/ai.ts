@@ -171,3 +171,57 @@ export interface AvailableProvider {
     last_used_at?: string | null;
 }
 
+export interface ModelData {
+  id: string;
+  name: string;
+  provider?: string;
+  price?: string;
+  free?: boolean;
+  category?: 'chat' | 'image' | 'audio' | 'content';
+  description?: string;
+  context_length?: number;
+  pricing?: {
+    prompt?: number;
+    completion?: number;
+  };
+}
+
+// Alias for ModelCardModel - use ModelData instead
+export type ModelCardModel = ModelData;
+
+export interface StaticModel {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  pricing_input: number | null;
+  pricing_output: number | null;
+  max_tokens: number | null;
+  context_window: number | null;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: number;
+}
+
+export interface OpenRouterModel extends ModelCardModel {
+  architecture?: {
+    modality?: string;
+    tokenizer?: string;
+  };
+  pricing?: {
+    prompt?: number;
+    completion?: number;
+  };
+  category?: 'chat' | 'image' | 'audio' | 'content';
+}
+
+export interface HuggingFaceModel extends ModelCardModel {
+  task?: string;
+  downloads?: number;
+  likes?: number;
+  tags?: string[];
+}
+

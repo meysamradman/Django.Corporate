@@ -75,3 +75,12 @@ export interface Portfolio extends Base {
     
     seo?: PortfolioSEOMeta;
 }
+
+export interface PortfolioUpdateData extends Partial<Portfolio> {
+  categories_ids?: number[];
+  tags_ids?: number[];
+  options_ids?: number[];
+  media_ids?: number[];
+  main_image_id?: number | null;
+  media_covers?: { [mediaId: number]: number | null };
+}

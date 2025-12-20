@@ -5,17 +5,7 @@ import { Card, CardContent } from '@/components/elements/Card';
 import { Badge } from '@/components/elements/Badge';
 import { Spinner } from '@/components/elements/Spinner';
 import { Switch } from '@/components/elements/Switch';
-
-export interface StaticModel {
-  id: string;
-  name: string;
-  display_name: string;
-  description: string;
-  pricing_input: number | null;
-  pricing_output: number | null;
-  max_tokens: number | null;
-  context_window: number | null;
-}
+import type { StaticModel } from '@/types/ai/ai';
 
 interface StaticModelSelectorProps {
   providerId: string;

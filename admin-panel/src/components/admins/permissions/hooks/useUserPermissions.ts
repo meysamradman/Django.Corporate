@@ -1,29 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
-import type { PermissionProfile } from '@/types/auth/permission';
-
-interface UserRole {
-  id: number;
-  name: string;
-  permissions?: {
-    code: string;
-    name: string;
-  }[];
-}
-
-export type ModuleAction =
-  | 'read'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'manage'
-  | 'view'
-  | 'list'
-  | 'edit'
-  | 'change'
-  | 'add'
-  | 'remove'
-  | 'admin';
+import type { PermissionProfile, UserRole, ModuleAction } from '@/types/auth/permission';
 
 const ACTION_SYNONYMS: Record<ModuleAction, ModuleAction[]> = {
   read: ['read', 'view', 'list'],

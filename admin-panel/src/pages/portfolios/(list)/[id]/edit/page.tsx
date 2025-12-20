@@ -18,15 +18,7 @@ import { validateSlug } from '@/core/slug/validate';
 import { showError } from '@/core/toast';
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/components/portfolios/utils/portfolioMediaUtils";
-
-interface PortfolioUpdateData extends Partial<Portfolio> {
-  categories_ids?: number[];
-  tags_ids?: number[];
-  options_ids?: number[];
-  media_ids?: number[];
-  main_image_id?: number | null;
-  media_covers?: { [mediaId: number]: number | null };
-}
+import type { PortfolioUpdateData } from "@/types/portfolio/portfolio";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">

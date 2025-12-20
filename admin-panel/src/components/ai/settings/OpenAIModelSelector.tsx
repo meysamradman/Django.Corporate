@@ -1,5 +1,5 @@
 import { StaticModelSelector } from '@/components/ai/core/StaticModelSelector';
-import type { StaticModel } from '@/components/ai/core/StaticModelSelector';
+import type { StaticModel } from '@/types/ai/ai';
 
 interface OpenAIModelSelectorContentProps {
   providerId: string;

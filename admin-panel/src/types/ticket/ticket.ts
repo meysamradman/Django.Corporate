@@ -132,3 +132,8 @@ export interface TicketListParams {
 export type TicketStatusType = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type TicketPriorityType = 'low' | 'medium' | 'high' | 'urgent';
 
+export interface ReplyTicketData {
+  message: string;
+  attachment_ids?: number[];
+}
+

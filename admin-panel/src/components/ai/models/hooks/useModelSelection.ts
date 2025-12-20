@@ -1,21 +1,7 @@
 import { useState, useEffect } from 'react';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
-
-export interface ModelData {
-  id: string;
-  name: string;
-  provider?: string;
-  price?: string;
-  free?: boolean;
-  category?: 'chat' | 'image' | 'audio' | 'content';
-  description?: string;
-  context_length?: number;
-  pricing?: {
-    prompt?: number;
-    completion?: number;
-  };
-}
+import type { ModelData } from '@/types/ai/ai';
 
 interface UseModelSelectionProps {
   providerId: string;

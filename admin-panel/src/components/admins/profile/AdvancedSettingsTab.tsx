@@ -21,10 +21,7 @@ interface AdvancedSettingsTabProps {
     admin: AdminWithProfile;
 }
 
-interface RoleAssignment {
-    roleId: number;
-    assigned: boolean;
-}
+import type { RoleAssignment } from '@/types/auth/permission';
 
 interface BasePermission {
     id: string;
@@ -179,7 +176,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             await adminApi.updateUserStatusByType(admin.id, value, 'admin');
             setAdminStatusData(prev => ({ ...prev, [field]: value }));
             toast.success(getPermissionTranslation('وضعیت ادمین با موفقیت به‌روزرسانی شد', 'description'));
-        } catch (error) {
+        } catch (_error) {
             toast.error(getPermissionTranslation('خطا در به‌روزرسانی وضعیت ادمین', 'description'));
         }
     };
@@ -323,7 +320,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 }
             }
             
-        } catch (error) {
+        } catch (_error) {
             toast.error(getPermissionTranslation('خطا در ذخیره تغییرات', 'description'));
         } finally {
             setIsSaving(false);

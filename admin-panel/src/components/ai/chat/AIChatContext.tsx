@@ -7,7 +7,7 @@ interface AIChatContextType {
   setIsMinimized: (minimized: boolean) => void;
 }
 
-const AIChatContext = createContext<AIChatContextType | undefined>(undefined);
+export const AIChatContext = createContext<AIChatContextType | undefined>(undefined);
 
 export function AIChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);

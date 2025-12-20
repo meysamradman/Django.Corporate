@@ -2,21 +2,7 @@ import { Badge } from '@/components/elements/Badge';
 import { Switch } from '@/components/elements/Switch';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Info, DollarSign, Sparkles } from 'lucide-react';
-
-export interface ModelCardModel {
-  id: string;
-  name: string;
-  provider?: string;
-  price?: string;
-  free?: boolean;
-  description?: string;
-  context_length?: number;
-  category?: 'chat' | 'image' | 'audio' | 'content'; // اضافه شد
-  pricing?: {
-    prompt?: number;
-    completion?: number;
-  };
-}
+import type { ModelCardModel } from '@/types/ai/ai';
 
 interface ModelCardProps {
   model: ModelCardModel;

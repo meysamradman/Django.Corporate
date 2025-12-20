@@ -23,13 +23,11 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
         mutationFn: async ({ 
             modelId, 
             isActive, 
-            isOpenRouter, 
-            providerSlug 
+            isOpenRouter
         }: { 
             modelId: number | string; 
             isActive: boolean; 
             isOpenRouter?: boolean; 
-            providerSlug?: string 
         }) => {
             if (isOpenRouter) {
                 throw new Error('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');

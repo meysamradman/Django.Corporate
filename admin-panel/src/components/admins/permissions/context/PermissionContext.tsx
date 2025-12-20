@@ -2,10 +2,10 @@ import { createContext, useContext, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { permissionApi } from '@/api/admins/permissions/permissions';
-import { PERMISSIONS } from '@/core/permissions/constants';
+import { PERMISSIONS } from '../constants';
 import type { PermissionMapResponse, PermissionContextValue, UIPermissions } from '@/types/auth/permission';
 
-const PermissionContext = createContext<PermissionContextValue | undefined>(undefined);
+export const PermissionContext = createContext<PermissionContextValue | undefined>(undefined);
 
 interface PermissionProviderProps {
   children: ReactNode;

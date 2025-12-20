@@ -13,11 +13,7 @@ const BASE_MEDIA_PATH = '/admin/media';
 
 export const mediaApi = {
     getMediaList: async (
-        filters?: MediaFilter,
-        _options?: {
-            cookieHeader?: string;
-            forceRefresh?: boolean;
-        }
+        filters?: MediaFilter
     ): Promise<ApiResponse<Media[]>> => {
         try {
             const safeFilters: Partial<MediaFilter> = filters ? { ...filters } : {};
@@ -102,10 +98,7 @@ export const mediaApi = {
     },
 
     getMediaDetails: async (
-        mediaId: number | string,
-        _options?: {
-            cookieHeader?: string;
-        }
+        mediaId: number | string
     ): Promise<ApiResponse<Media>> => {
         try {
             const mediaIdNumber = typeof mediaId === 'string' ? parseInt(mediaId, 10) : mediaId;

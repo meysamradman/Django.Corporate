@@ -2,14 +2,7 @@ import { useState, useEffect, type MutableRefObject } from 'react';
 import { aiApi } from '@/api/ai/ai';
 import { toast } from '@/components/elements/Sonner';
 import { ModelSelector } from '@/components/ai/core';
-import type { ModelCardModel } from '@/components/ai/core';
-
-interface HuggingFaceModel extends ModelCardModel {
-  task?: string;
-  downloads?: number;
-  likes?: number;
-  tags?: string[];
-}
+import type { HuggingFaceModel } from '@/types/ai/ai';
 
 interface HuggingFaceModelSelectorContentProps {
   providerId: string;
@@ -89,7 +82,7 @@ export function HuggingFaceModelSelectorContent({
           toast.error('خطا در دریافت مدل‌ها از Hugging Face');
           setModels([]);
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('خطا در دریافت مدل‌ها از Hugging Face');
         setModels([]);
       } finally {
