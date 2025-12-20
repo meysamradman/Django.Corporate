@@ -88,6 +88,7 @@ const MODULE_NAMES = {
   CHATBOT: 'chatbot',
   AI: 'ai',
   ANALYTICS: 'analytics',
+  USERS: 'users',
 } as const;
 
 const ROLE_ACCESS_OVERRIDES: Record<
@@ -139,11 +140,14 @@ const ROLE_ACCESS_OVERRIDES: Record<
   analytics_manager: {
     full: [MODULE_NAMES.ANALYTICS],
   },
+  user_manager: {
+    full: [MODULE_NAMES.USERS],
+  },
 };
 
 export function useUserPermissions() {
   const { user } = useAuth();
-  
+
   const permissions = useMemo(() => {
     if (!user?.permissions) return [];
     if (Array.isArray(user.permissions)) {
@@ -187,8 +191,8 @@ export function useUserPermissions() {
   const legacyIsSuper =
     typeof user === "object" && user
       ? Boolean(
-          (user as unknown as Record<string, unknown>)["is_super"]
-        )
+        (user as unknown as Record<string, unknown>)["is_super"]
+      )
       : false;
 
   const isSuperAdmin = Boolean(user?.is_superuser || legacyIsSuper);
@@ -208,12 +212,12 @@ export function useUserPermissions() {
       if (parts.length < 2) {
         return;
       }
-      
+
       const resource = parts[0];
       const lastPart = parts[parts.length - 1];
-      
+
       const normalizedAction = normalizeModuleAction(lastPart);
-      
+
       if (normalizedAction && lastPart !== '') {
         const actionSet = map.get(resource) ?? new Set<ModuleAction>();
         actionSet.add(normalizedAction);
@@ -248,38 +252,38 @@ export function useUserPermissions() {
 
   const hasPermission = useCallback((permission: string): boolean => {
     if (isSuperAdmin) return true;
-    
+
     if (!permissions.length) return false;
-    
+
     if (permissions.includes('*') || permissions.includes('*.*')) {
       return true;
     }
-    
+
     if (permissions.includes(permission)) {
       return true;
     }
-    
+
     const parts = permission.split('.');
     if (parts.length < 2) return false;
-    
+
     const resource = parts[0];
     const action = parts[parts.length - 1];
-    
+
     if (permissions.includes(`${resource}.*`)) {
       return true;
     }
-    
+
     if (permissions.includes(`${resource}.manage`) || permissions.includes(`${resource}.admin`)) {
       return true;
     }
-    
+
     if (resource === 'ai' && action === 'manage') {
-      const hasAnyAIPermission = permissions.some(perm => 
+      const hasAnyAIPermission = permissions.some(perm =>
         perm.startsWith('ai.') && perm.endsWith('.manage')
       );
       return hasAnyAIPermission;
     }
-    
+
     return false;
   }, [isSuperAdmin, permissions]);
 
@@ -293,7 +297,7 @@ export function useUserPermissions() {
       if (moduleSpecificActions.has('manage') || moduleSpecificActions.has('admin')) {
         return true;
       }
-      
+
       if (isReadAction) {
         const hasReadAccess = Array.from(READ_ACTIONS).some(readAction => moduleSpecificActions.has(readAction));
         if (hasReadAccess) {
@@ -384,7 +388,7 @@ export function useUserPermissions() {
   };
 
   const hasRole = useCallback((roleName: string): boolean => {
-    return userRoles.some((role: UserRole) => 
+    return userRoles.some((role: UserRole) =>
       role.name === roleName
     );
   }, [userRoles]);

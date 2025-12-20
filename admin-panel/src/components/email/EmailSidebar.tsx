@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import { Badge } from "@/components/elements/Badge";

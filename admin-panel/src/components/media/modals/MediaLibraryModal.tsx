@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
 import { Progress } from "@/components/elements/Progress";
-import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE, VALID_MEDIA_PAGE_SIZES } from '@/api/media/media';
+import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
 import { MediaPreview } from '@/components/media/base/MediaPreview';
 import { Input } from '@/components/elements/Input';
@@ -275,12 +276,7 @@ export function MediaLibraryModal({
     }
   };
 
-  const handleMediaClick = (media: Media) => {
-    setDetailMedia(media);
-    setIsDetailModalOpen(true);
-  };
-
-  const handleEditMedia = (media: Media) => {
+  const handleEditMedia = () => {
     setIsDetailModalOpen(false);
   };
 
@@ -301,7 +297,7 @@ export function MediaLibraryModal({
   };
 
   const dialogContent = (
-      <DialogContent className="max-w-6xl h-[80vh] flex flex-col p-0" showCloseButton={false} aria-describedby="media-library-description">
+      <DialogContent className="max-w-6xl h-[80vh] flex flex-col p-0" showCloseButton={false}>
           <DialogHeader className="p-4 border-b">
               <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -319,11 +315,10 @@ export function MediaLibraryModal({
                       </DialogClose>
                   </div>
               </div>
+              <DialogDescription className="sr-only">
+                کتابخانه رسانه برای انتخاب فایل‌های موجود یا آپلود فایل جدید استفاده می‌شود.
+              </DialogDescription>
           </DialogHeader>
-          
-          <div id="media-library-description" className="sr-only">
-            کتابخانه رسانه برای انتخاب فایل‌های موجود یا آپلود فایل جدید استفاده می‌شود.
-          </div>
 
           {showTabs && (
             <div className="border-b">
@@ -578,11 +573,6 @@ export function MediaLibraryModal({
           )}
       </DialogContent>
   );
-
-  const handleUploadComplete = () => {
-    fetchMedia(filters, true);
-    onUploadComplete?.();
-  };
 
   return (
     <>

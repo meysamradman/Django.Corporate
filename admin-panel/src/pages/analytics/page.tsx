@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { BarChart3, FileText, MapPin, TrendingUp, Users, Eye, Calendar, Activity } from "lucide-react";
 
-// Analytics Skeleton
 const AnalyticsSkeleton = () => (
   <div className="space-y-6">
     {/* Summary Cards Skeleton */}
@@ -79,7 +78,6 @@ const AnalyticsOverview = lazy(() => import("@/components/analytics").then(mod =
 export default function AnalyticsPage() {
   const { hasPermission, hasAnyPermission, isLoading } = usePermission();
 
-  // نمایش Skeleton تا زمانی که permissions لود شود
   if (isLoading) {
     return <AnalyticsSkeleton />;
   }

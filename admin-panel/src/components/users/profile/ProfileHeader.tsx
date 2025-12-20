@@ -28,37 +28,37 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
     const currentProfileImage = formData.profileImage || user?.profile?.profile_picture;
 
     const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
-                if (onProfileImageChange) {
-            const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
-                        onProfileImageChange(selectedImage);
+        const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
+        const profilePictureId = selectedImage?.id || null;
+        
+        try {
+            const { adminApi } = await import('@/api/admins/admins');
             
-            try {
-                const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                const { adminApi } = await import('@/api/admins/admins');
-                
-                await adminApi.updateUserByType(user.id, {
-                    profile: {
-                        profile_picture: profilePictureId,
-                    }
-                }, 'user');
-                
-                await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
-                await queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
-                await queryClient.refetchQueries({ queryKey: ['user-profile'] });
-                
-                const userIdMatch = window.location.pathname.match(/\/users\/(\d+)\//);
-                if (userIdMatch) {
-                    const userId = userIdMatch[1];
-                    await queryClient.invalidateQueries({ queryKey: ['user', userId] });
-                    await queryClient.refetchQueries({ queryKey: ['user', userId] });
+            const updatedUser = await adminApi.updateUserByType(user.id, {
+                profile: {
+                    profile_picture: profilePictureId,
                 }
-                
-                toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
-            } catch (error) {
-                toast.error("خطا در ذخیره عکس پروفایل");
+            }, 'user');
+            
+            if (updatedUser?.profile?.profile_picture && onProfileImageChange) {
+                onProfileImageChange(updatedUser.profile.profile_picture);
             }
+            
+            await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+            await queryClient.invalidateQueries({ queryKey: ['current-user-profile'] });
+            
+            const userIdMatch = window.location.pathname.match(/\/users\/(\d+)\//);
+            if (userIdMatch) {
+                const userId = userIdMatch[1];
+                await queryClient.invalidateQueries({ queryKey: ['user', userId] });
+            }
+            
+            toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
+        } catch (error) {
+            toast.error("خطا در ذخیره عکس پروفایل");
+        } finally {
+            setShowMediaSelector(false);
         }
-        setShowMediaSelector(false);
     };
 
     const handleTabChange = (tab: "select" | "upload") => {

@@ -46,7 +46,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header با تاریخ و ساعت */}
       <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="text-right">
@@ -67,24 +66,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* کارت‌های خلاصه آمار */}
       <SummaryCards stats={stats} isLoading={statsLoading} />
-
-      {/* Grid سه‌تایی: Pie Chart, System Stats, Support Stats */}
       <div className="grid lg:grid-cols-3 gap-6">
         <VisitorPieChart isLoading={isLoading} />
         <SystemStats systemStats={systemStats} isLoading={systemLoading} />
         <SupportStats stats={stats} isLoading={statsLoading} />
       </div>
-
-      {/* Analytics Widget */}
       <AnalyticsWidget isLoading={isLoading} />
-
-      {/* Visitor Trend Chart */}
       <VisitorTrendChart isLoading={isLoading} />
-
-      {/* Content Distribution */}
       <ContentDistribution stats={stats} isLoading={statsLoading} />
     </div>
   );

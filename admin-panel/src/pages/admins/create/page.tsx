@@ -18,7 +18,6 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Loader2, Save, User, UserCircle, ShieldCheck, List } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 
-// Tab Skeleton
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
@@ -56,7 +55,6 @@ const TabSkeleton = () => (
   </div>
 );
 
-// Dynamic imports
 const BaseInfoTab = lazy(() => import("@/components/admins/create/BaseInfoTab"));
 const ProfileTab = lazy(() => import("@/components/admins/create/ProfileTab"));
 const PermissionsTab = lazy(() => import("@/components/admins/create/PermissionsTab"));

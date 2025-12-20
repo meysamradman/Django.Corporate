@@ -173,6 +173,10 @@ class AdminManagementView(AdminAuthMixin, APIView):
 
     def put(self, request, admin_id, **kwargs):
         try:
+            action = kwargs.get('action')
+            if action == 'me':
+                admin_id = request.user.id
+            
             is_own_profile = str(admin_id) == str(request.user.id)
             admin = AdminManagementService.get_admin_detail(admin_id)
 

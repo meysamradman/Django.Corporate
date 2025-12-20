@@ -4,7 +4,6 @@ import { ProtectedButton, useUIPermissions } from '@/components/admins/permissio
 import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
-// Tab Skeleton
 const TabSkeleton = () => (
   <div className="space-y-6">
     <div className="space-y-4">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";

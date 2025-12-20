@@ -1,7 +1,6 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/core/toast';
-import type { AdminWithProfile } from "@/types/auth/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound, Share2, Settings2 } from "lucide-react";
 import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
@@ -9,7 +8,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
 import { msg } from '@/core/messages';
 import { useAuth } from "@/core/auth/AuthContext";
-import type { ApiError } from "@/types/api/apiError";
+import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
 import { useNavigate } from "react-router-dom";
 
@@ -89,49 +88,65 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
     const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+    const previousAdminIdRef = useRef<number | undefined>(undefined);
+    const previousEditModeRef = useRef<boolean>(false);
 
     useEffect(() => {
-        if (adminData) {
-            setFormData({
-                firstName: adminData.profile?.first_name || "",
-                lastName: adminData.profile?.last_name || "",
-                email: adminData.email || "",
-                mobile: adminData.mobile || "",
-                phone: adminData.profile?.phone || "",
-                nationalId: adminData.profile?.national_id || "",
-                address: adminData.profile?.address || "",
-                province: adminData.profile?.province?.name || "",
-                city: adminData.profile?.city?.name || "",
-                bio: adminData.profile?.bio || "",
-                profileImage: adminData.profile?.profile_picture || null,
-                birthDate: adminData.profile?.birth_date || "",
+        if (!adminData) return;
+        
+        const isFirstLoad = previousAdminIdRef.current !== adminData.id;
+        const editModeChanged = previousEditModeRef.current && !editMode;
+        
+        if (isFirstLoad || editModeChanged) {
+            setFormData(prev => {
+                const currentImageId = prev.profileImage?.id;
+                const newImageId = adminData.profile?.profile_picture?.id;
+                
+                return {
+                    firstName: adminData.profile?.first_name || "",
+                    lastName: adminData.profile?.last_name || "",
+                    email: adminData.email || "",
+                    mobile: adminData.mobile || "",
+                    phone: adminData.profile?.phone || "",
+                    nationalId: adminData.profile?.national_id || "",
+                    address: adminData.profile?.address || "",
+                    province: adminData.profile?.province?.name || "",
+                    city: adminData.profile?.city?.name || "",
+                    bio: adminData.profile?.bio || "",
+                    profileImage: currentImageId === newImageId ? prev.profileImage : (adminData.profile?.profile_picture || null),
+                    birthDate: adminData.profile?.birth_date || "",
+                };
             });
             setSelectedProvinceId(adminData.profile?.province?.id || null);
             setSelectedCityId(adminData.profile?.city?.id || null);
+            previousAdminIdRef.current = adminData.id;
+        } else if (!editMode) {
+            setFormData(prev => {
+                const currentImageId = prev.profileImage?.id;
+                const newImageId = adminData.profile?.profile_picture?.id;
+                const newImageIsNull = !adminData.profile?.profile_picture;
+                const currentImageIsNull = !prev.profileImage;
+                
+                if (currentImageId !== newImageId) {
+                    return {
+                        ...prev,
+                        profileImage: adminData.profile?.profile_picture || null,
+                    };
+                }
+                
+                if (newImageIsNull && !currentImageIsNull) {
+                    return {
+                        ...prev,
+                        profileImage: null,
+                    };
+                }
+                
+                return prev;
+            });
         }
-    }, [adminData?.id]);
-
-    useEffect(() => {
-        if (!adminData || editMode) return;
         
-        setFormData(prev => ({
-            ...prev,
-            firstName: adminData.profile?.first_name || "",
-            lastName: adminData.profile?.last_name || "",
-            email: adminData.email || "",
-            mobile: adminData.mobile || "",
-            phone: adminData.profile?.phone || "",
-            nationalId: adminData.profile?.national_id || "",
-            address: adminData.profile?.address || "",
-            province: adminData.profile?.province?.name || "",
-            city: adminData.profile?.city?.name || "",
-            bio: adminData.profile?.bio || "",
-            profileImage: adminData.profile?.profile_picture || null,
-            birthDate: adminData.profile?.birth_date || "",
-        }));
-        setSelectedProvinceId(adminData.profile?.province?.id || null);
-        setSelectedCityId(adminData.profile?.city?.id || null);
-    }, [adminData, editMode]);
+        previousEditModeRef.current = editMode;
+    }, [adminData?.id, adminData?.profile?.profile_picture?.id, editMode]);
 
     const handleInputChange = (field: string, value: string | any) => {
         if (field === "cancel") {
@@ -139,9 +154,9 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             return;
         }
         
-                setFormData(prev => {
+        setFormData(prev => {
             const newData = { ...prev, [field]: value };
-                        return newData;
+            return newData;
         });
         
         if (fieldErrors[field]) {
@@ -201,7 +216,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 return;
             }
             
-            const result = await adminApi.updateUserByType(adminData.id, profileData, 'admin');
+            await adminApi.updateUserByType(adminData.id, profileData, 'admin');
             setEditMode(false);
             
             await queryClient.invalidateQueries({ queryKey: ['admin', adminId] });
@@ -307,6 +322,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 admin={adminData} 
                 formData={formData} 
                 onProfileImageChange={(media) => handleInputChange("profileImage", media)}
+                adminId={adminId}
             />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

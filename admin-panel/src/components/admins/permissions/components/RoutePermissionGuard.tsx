@@ -1,5 +1,6 @@
-import { ReactNode, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import type { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/core/auth/AuthContext";
 import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
@@ -14,7 +15,6 @@ interface RoutePermissionGuardProps {
 export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
     const location = useLocation();
     const pathname = location.pathname;
-    const navigate = useNavigate();
     const { isLoading: authLoading, user } = useAuth();
     const { isLoading: permissionLoading, hasPermission } = usePermission();
     const { isSuperAdmin } = useUserPermissions();
@@ -39,7 +39,6 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
 
     const isLoading = authLoading || permissionLoading;
 
-    // Loading را به کامپوننت‌های خود صفحه واگذار می‌کنیم
     if (isLoading) {
         return <>{children}</>;
     }
@@ -75,6 +74,11 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             hasPermission(permissionString) ||
             (rule.module === "admin" && isOwnAdminProfile);
 
+        // Special handling for media: allow access with either media.read or media.manage
+        if (!hasAccess && rule.module === "media" && action === "read") {
+            hasAccess = hasPermission("media.read") || hasPermission("media.manage");
+        }
+
         if (!hasAccess && rule.module === "ai" && action === "manage") {
             // AI Permission Map using constants
             const aiPermissionMap: Record<string, string[]> = {
@@ -107,7 +111,6 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             
             for (const [pathPrefix, perms] of Object.entries(aiPermissionMap)) {
                 if (pathname?.startsWith(pathPrefix)) {
-                    // برای /ai/models فقط سوپر ادمین
                     if (pathPrefix === "/ai/models") {
                         hasAccess = isSuperAdmin;
                     } else {

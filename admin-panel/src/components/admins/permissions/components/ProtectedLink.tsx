@@ -1,18 +1,19 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
+import type { ComponentProps, FC, ReactNode, MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermission } from '../context/PermissionContext';
 import { cn } from '@/core/utils/cn';
 import { toast } from 'sonner';
 
-interface ProtectedLinkProps extends React.ComponentProps<typeof Link> {
+interface ProtectedLinkProps extends ComponentProps<typeof Link> {
   permission?: string | string[];
   requireAll?: boolean;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
   showWhenDenied?: boolean;
   showDenyToast?: boolean;
   denyMessage?: string;
 }
-export const ProtectedLink: React.FC<ProtectedLinkProps> = ({
+export const ProtectedLink: FC<ProtectedLinkProps> = ({
   permission,
   requireAll = false,
   fallback,
@@ -68,7 +69,7 @@ export const ProtectedLink: React.FC<ProtectedLinkProps> = ({
     return <>{fallback || null}</>;
   }
 
-  const handleDisabledClick = (e: React.MouseEvent) => {
+  const handleDisabledClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();

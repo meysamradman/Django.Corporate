@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { BarChart3, FileText, MapPin } from "lucide-react";
 
-// Summary Cards Skeleton
 const SummaryCardsSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
     {[...Array(4)].map((_, i) => (
@@ -26,7 +25,6 @@ const SummaryCardsSkeleton = () => (
   </div>
 );
 
-// Visitor Chart Skeleton
 const VisitorChartSkeleton = () => (
   <Card className="border-b-4 border-b-primary">
     <CardHeader>
@@ -44,7 +42,6 @@ const VisitorChartSkeleton = () => (
   </Card>
 );
 
-// Top Pages Skeleton
 const TopPagesSkeleton = () => (
   <CardWithIcon
     icon={FileText}
@@ -61,7 +58,6 @@ const TopPagesSkeleton = () => (
   </CardWithIcon>
 );
 
-// Top Countries Skeleton
 const TopCountriesSkeleton = () => (
   <CardWithIcon
     icon={MapPin}
@@ -84,10 +80,6 @@ const VisitorChart = lazy(() => import("./VisitorChart").then(mod => ({ default:
 const TopPages = lazy(() => import("./TopPages").then(mod => ({ default: mod.TopPages })));
 const TopCountries = lazy(() => import("./TopCountries").then(mod => ({ default: mod.TopCountries })));
 
-// ============================================
-// 📊 داده‌های Mock برای نمایش و تست
-// بعدا این داده‌ها با API واقعی جایگزین می‌شوند
-// ============================================
 const mockAnalytics = {
   today: {
     total: 1247,
@@ -139,18 +131,8 @@ export function AnalyticsOverview() {
     refetchOnWindowFocus: false,
   });
 
-  // ============================================
-  // 🔄 استفاده از داده‌های Mock (موقت)
-  // برای فعال کردن API واقعی، این خطوط رو تغییر بدید:
-  // const displayAnalytics = analytics || mockAnalytics;
-  // const displayMonthlyData = monthlyData || mockMonthlyStats;
-  // ============================================
-  const displayAnalytics = mockAnalytics; // موقت: استفاده از mock data
-  const displayMonthlyData = mockMonthlyStats; // موقت: استفاده از mock data
-
-  // برای نمایش mock data، loading رو false می‌ذاریم
-  // بعدا که API واقعی رو فعال کردید، این رو تغییر بدید:
-  // const isLoading = analyticsLoading || monthlyLoading;
+  const displayAnalytics = mockAnalytics;
+  const displayMonthlyData = mockMonthlyStats;
   const isLoading = false;
 
   const monthlyStats = displayMonthlyData?.monthly_stats || [];

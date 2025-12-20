@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
+import type { ReactNode, FC } from "react";
 import { Lock } from "lucide-react";
 import { usePermission } from "../context/PermissionContext";
 import { cn } from "@/core/utils/cn";
@@ -7,7 +8,7 @@ import { Card, CardContent } from "@/components/elements/Card";
 interface PermissionLockedProps {
   permission: string | string[];
   requireAll?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   lockedMessage?: string;
   borderColorClass?: string; // Kept for backward compatibility, not used when locked
@@ -15,7 +16,7 @@ interface PermissionLockedProps {
   iconColorClass?: string;
 }
 
-export const PermissionLocked: React.FC<PermissionLockedProps> = ({
+export const PermissionLocked: FC<PermissionLockedProps> = ({
   permission,
   requireAll = false,
   children,

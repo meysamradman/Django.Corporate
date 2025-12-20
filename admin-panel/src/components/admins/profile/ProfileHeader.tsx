@@ -21,9 +21,10 @@ interface ProfileHeaderProps {
         profileImage?: Media | null;
     };
     onProfileImageChange?: (media: Media | null) => void;
+    adminId?: string;
 }
 
-export function ProfileHeader({ admin, formData, onProfileImageChange }: ProfileHeaderProps) {
+export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }: ProfileHeaderProps) {
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
     const [adminRoles, setAdminRoles] = useState<Role[]>([]);
@@ -54,38 +55,70 @@ export function ProfileHeader({ admin, formData, onProfileImageChange }: Profile
 
     const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
     
-        const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
-                if (onProfileImageChange) {
-            const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
-                        onProfileImageChange(selectedImage);
-            
-            try {
-                const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-                const { adminApi } = await import('@/api/admins/admins');
-                
-                await adminApi.updateProfile({
+    const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
+        const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
+        const profilePictureId = selectedImage?.id || null;
+        const isMeRoute = adminId === "me";
+        const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
+        
+        if (!targetAdminId) {
+            toast.error("شناسه ادمین یافت نشد");
+            setShowMediaSelector(false);
+            return;
+        }
+        
+        try {
+            let updatedAdmin;
+            if (isMeRoute) {
+                updatedAdmin = await adminApi.updateProfile({
                     profile_picture: profilePictureId,
                 } as any);
-                
-                await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
-                await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
-                await queryClient.refetchQueries({ queryKey: ['admin-profile'] });
-                
-                const adminIdMatch = window.location.pathname.match(/\/admins\/(\d+)\//);
-                if (adminIdMatch) {
-                    const adminId = adminIdMatch[1];
-                    await queryClient.invalidateQueries({ queryKey: ['admin', adminId] });
-                    await queryClient.refetchQueries({ queryKey: ['admin', adminId] });
-                                    }
-                
-                await refreshUser();
-                
-                toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
-            } catch (error) {
-                toast.error("خطا در ذخیره عکس پروفایل");
+            } else {
+                const currentProfile = admin?.profile;
+                const updateData = {
+                    profile: {
+                        first_name: currentProfile?.first_name || null,
+                        last_name: currentProfile?.last_name || null,
+                        phone: currentProfile?.phone || null,
+                        address: currentProfile?.address || null,
+                        province: currentProfile?.province?.id || null,
+                        city: currentProfile?.city?.id || null,
+                        bio: currentProfile?.bio || null,
+                        national_id: currentProfile?.national_id || null,
+                        profile_picture: profilePictureId,
+                        birth_date: currentProfile?.birth_date || null,
+                    }
+                };
+                updatedAdmin = await adminApi.updateUserByType(targetAdminId, updateData, 'admin');
             }
+            
+            if (!updatedAdmin) {
+                toast.error("خطا در دریافت پاسخ از سرور");
+                setShowMediaSelector(false);
+                return;
+            }
+            
+            const queryKeyForInvalidate = isMeRoute ? 'me' : (adminId || String(admin?.id));
+            
+            if (updatedAdmin.profile?.profile_picture && onProfileImageChange) {
+                onProfileImageChange(updatedAdmin.profile.profile_picture);
+            }
+            
+            await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
+            await queryClient.invalidateQueries({ queryKey: ['admin', queryKeyForInvalidate] });
+            await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
+            await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
+            
+            if (isMeRoute) {
+                await refreshUser();
+            }
+            
+            toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
+        } catch (error) {
+            toast.error("خطا در ذخیره عکس پروفایل");
+        } finally {
+            setShowMediaSelector(false);
         }
-        setShowMediaSelector(false);
     };
 
     const handleTabChange = (tab: "select" | "upload") => {

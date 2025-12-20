@@ -24,7 +24,6 @@ export function AdminLayout() {
 
   const hasInitializedRef = React.useRef(false);
 
-  // 🎯 مقداردهی اولیه: در دسکتاپ sidebar باز باشه
   useEffect(() => {
     if (typeof window !== 'undefined' && !hasInitializedRef.current) {
       const isMobile = window.innerWidth < 1024;
@@ -33,10 +32,8 @@ export function AdminLayout() {
       }
       hasInitializedRef.current = true;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sidebarOpen, setSidebarOpen]);
 
-  // 🎯 بستن خودکار sidebar در موبایل هنگام تغییر route
   const prevPathnameRef = React.useRef(location.pathname);
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -49,33 +46,25 @@ export function AdminLayout() {
       
       prevPathnameRef.current = location.pathname;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, sidebarOpen, setSidebarOpen]);
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* 🎯 Sidebar - ثابت و همیشه موجود */}
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={toggleSidebar}
         isContentCollapsed={contentCollapsed}
         onContentToggle={toggleContent}
       />
-
-      {/* 🎯 Main Content Area */}
       <div className={cn(
         "flex flex-col flex-1 min-w-0 transition-all duration-300",
         contentCollapsed ? "lg:mr-14" : "lg:mr-80"
       )}>
-        {/* 🎯 Header - ثابت و همیشه موجود */}
         <Header
           onMenuClick={toggleSidebar}
           isContentCollapsed={contentCollapsed}
           onContentToggle={toggleContent}
-          hasSubMenu={selectedItemHasSubMenu}
         />
-
-        {/* 🎯 Page Content - فقط این بخش تغییر می‌کنه */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
           <div className="p-4 sm:p-6 lg:p-8 min-w-0">
             {isLoading ? (
@@ -87,8 +76,6 @@ export function AdminLayout() {
             )}
           </div>
         </main>
-        
-        {/* 🎯 Floating AI Chat - در پایین صفحه */}
         <FloatingAIChat />
       </div>
     </div>

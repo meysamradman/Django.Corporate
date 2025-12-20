@@ -1,17 +1,18 @@
-import React, { useMemo } from 'react';
+import { useMemo, isValidElement } from 'react';
+import type { ComponentProps, FC, MouseEventHandler } from 'react';
 import { usePermission } from '../context/PermissionContext';
 import { Button } from '@/components/elements/Button';
 import { cn } from '@/core/utils/cn';
 import { toast } from '@/components/elements/Sonner';
 
-interface Props extends React.ComponentProps<typeof Button> {
+interface Props extends ComponentProps<typeof Button> {
   permission: string | string[];
   requireAll?: boolean;
   showDenyToast?: boolean;
   denyMessage?: string;
 }
 
-export const ProtectedButton: React.FC<Props> = ({
+export const ProtectedButton: FC<Props> = ({
   permission,
   requireAll = false,
   showDenyToast = false,
@@ -37,7 +38,7 @@ export const ProtectedButton: React.FC<Props> = ({
 
   const isDisabled = isLoading || !hasAccess;
 
-  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+  const handleClick: MouseEventHandler<HTMLButtonElement> = (e) => {
     if (!hasAccess) {
       e.preventDefault();
       e.stopPropagation();
@@ -52,7 +53,7 @@ export const ProtectedButton: React.FC<Props> = ({
 
   if (asChild && !hasAccess) {
     let linkChildren = children;
-    if (React.isValidElement(children)) {
+    if (isValidElement(children)) {
       linkChildren = (children.props as any).children;
     }
 

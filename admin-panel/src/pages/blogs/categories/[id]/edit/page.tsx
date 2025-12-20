@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -17,7 +16,7 @@ import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List, Settings } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, FolderOpen, Folder, Home, Loader2, Save, List } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditCategoryPage() {
@@ -137,15 +136,27 @@ export default function EditCategoryPage() {
   }, [category]);
 
   const updateCategoryMutation = useMutation({
-    mutationFn: (data: Partial<BlogCategory>) => blogApi.updateCategory(categoryId, data),
-    onSuccess: (data) => {
+    mutationFn: (data: Partial<BlogCategory>) => blogApi.partialUpdateCategory(categoryId, data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-category', categoryId] });
       queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
       toast.success("دسته‌بندی با موفقیت به‌روزرسانی شد");
       navigate("/blogs/categories");
     },
-    onError: (error) => {
-      toast.error("خطا در به‌روزرسانی دسته‌بندی");
+    onError: (error: any) => {
+      const errorData = error?.response?.data?.data;
+      const errorMessage = errorData?.detail || 
+                          error?.response?.data?.metaData?.message ||
+                          "خطا در به‌روزرسانی دسته‌بندی";
+      
+      if (errorData?.name || errorData?.slug) {
+        const validationErrors: string[] = [];
+        if (errorData.name) validationErrors.push(...errorData.name);
+        if (errorData.slug) validationErrors.push(...errorData.slug);
+        toast.error(validationErrors.join(", "));
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 
@@ -190,18 +201,52 @@ export default function EditCategoryPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!category) return;
+    
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
       toast.error(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
     
-    const formDataWithImage = {
-      ...formData,
-      ...(selectedMedia?.id && { image_id: selectedMedia.id })
-    };
+    const submitData: Partial<BlogCategory> = {};
     
-    updateCategoryMutation.mutate(formDataWithImage);
+    if (formData.name !== category.name) {
+      submitData.name = formData.name;
+    }
+    
+    if (formData.slug !== category.slug) {
+      submitData.slug = formData.slug;
+    }
+    
+    if (formData.parent_id !== (category.parent_id || null)) {
+      submitData.parent_id = formData.parent_id;
+    }
+    
+    if (formData.is_active !== category.is_active) {
+      submitData.is_active = formData.is_active;
+    }
+    
+    if (formData.is_public !== category.is_public) {
+      submitData.is_public = formData.is_public;
+    }
+    
+    if (formData.description !== (category.description || "")) {
+      submitData.description = formData.description || "";
+    }
+    
+    const currentImageId = category.image?.id || null;
+    const newImageId = selectedMedia?.id || null;
+    if (currentImageId !== newImageId) {
+      submitData.image_id = newImageId;
+    }
+    
+    if (Object.keys(submitData).length === 0) {
+      toast.info("تغییری اعمال نشده است");
+      return;
+    }
+    
+    updateCategoryMutation.mutate(submitData);
   };
 
   if (isLoading) {
@@ -488,9 +533,7 @@ export default function EditCategoryPage() {
                     <img
                       src={mediaService.getMediaUrlFromObject(selectedMedia)}
                       alt={selectedMedia.alt_text || "تصویر شاخص"}
-                      fill
-                      className="object-cover"
-                      unoptimized
+                      className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button

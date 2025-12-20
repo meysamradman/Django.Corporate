@@ -17,7 +17,6 @@ import { roleFormSchema, roleFormDefaults, type RoleFormValues } from "@/compone
 import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
 import { getResourceIcon } from "@/components/roles/form/utils";
 
-// Permissions Skeleton
 const PermissionsSkeleton = () => (
   <div className="space-y-6">
     <div className="space-y-4 rounded-lg border p-4">
@@ -61,7 +60,6 @@ const RoleBasicInfoFormSkeleton = () => (
   </CardWithIcon>
 );
 
-// Lazy imports for React
 const StandardPermissionsTable = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.StandardPermissionsTable }))
 );

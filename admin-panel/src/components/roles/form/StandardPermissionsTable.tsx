@@ -1,4 +1,3 @@
-import React from "react";
 import { Checkbox } from "@/components/elements/Checkbox";
 import {
   Table,
@@ -10,6 +9,7 @@ import {
 } from "@/components/elements/Table";
 import { Shield } from "lucide-react";
 import { getPermissionTranslation } from "@/core/messages/permissions";
+import type { ReactElement } from "react";
 
 interface Permission {
   id: number;
@@ -37,7 +37,7 @@ interface StandardPermissionsTableProps {
   isPermissionSelected: (permissionId: number | undefined) => boolean;
   areAllResourcePermissionsSelected: (resourcePermissions: Permission[]) => boolean;
   getActionPermission: (resourcePermissions: Permission[], action: string) => Permission | undefined;
-  getResourceIcon: (resourceKey: string) => React.ReactElement;
+  getResourceIcon: (resourceKey: string) => ReactElement;
 }
 
 export function StandardPermissionsTable({
@@ -104,43 +104,48 @@ export function StandardPermissionsTable({
                   </div>
                 </TableCell>
                 <TableCell className="text-center relative">
-                  <div className="flex justify-center relative group">
-                    <div className="relative">
-                      <Checkbox
-                        checked={isPermissionSelected(viewPerm?.id)}
-                        disabled={
-                          !isSuperAdmin && viewPerm?.requires_superadmin
-                        }
-                        onCheckedChange={() => {
-                          if (
-                            viewPerm &&
-                            (isSuperAdmin || !viewPerm.requires_superadmin)
-                          ) {
-                            onTogglePermission(viewPerm.id);
+                  {viewPerm ? (
+                    <div className="flex justify-center relative group">
+                      <div className="relative">
+                        <Checkbox
+                          checked={isPermissionSelected(viewPerm.id)}
+                          disabled={
+                            !isSuperAdmin && viewPerm.requires_superadmin
                           }
-                        }}
-                        className={
-                          hasError
-                            ? "border-amber-1 data-[state=unchecked]:bg-amber"
-                            : ""
-                        }
-                      />
-                      {hasError && (
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 pointer-events-none">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-1 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-1 border-2 border-white"></span>
-                        </span>
+                          onCheckedChange={() => {
+                            if (
+                              isSuperAdmin || !viewPerm.requires_superadmin
+                            ) {
+                              onTogglePermission(viewPerm.id);
+                            }
+                          }}
+                          className={
+                            hasError
+                              ? "border-amber-1 data-[state=unchecked]:bg-amber"
+                              : ""
+                          }
+                        />
+                        {hasError && (
+                          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 pointer-events-none">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-1 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-1 border-2 border-white"></span>
+                          </span>
+                        )}
+                      </div>
+                      {viewPerm.requires_superadmin && (
+                        <div
+                          className="absolute -top-2 -right-3 text-amber-500"
+                          title="نیازمند دسترسی سوپر ادمین"
+                        >
+                          <Shield className="h-3 w-3" />
+                        </div>
                       )}
                     </div>
-                    {viewPerm?.requires_superadmin && (
-                      <div
-                        className="absolute -top-2 -right-3 text-amber-500"
-                        title="نیازمند دسترسی سوپر ادمین"
-                      >
-                        <Shield className="h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
+                  ) : (
+                    <div className="flex justify-center">
+                      <span className="text-sm text-font-s">-</span>
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   {resource.resource === 'ticket' ? (

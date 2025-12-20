@@ -99,7 +99,6 @@ interface SummaryCardsProps {
 }
 
 export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps) {
-  // Calculate trends
   const calculateTrend = (current: number, previous: number) => {
     if (previous === 0) return { value: 0, isPositive: true };
     const change = ((current - previous) / previous) * 100;
@@ -109,12 +108,9 @@ export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps
     };
   };
 
-  // Today vs Yesterday (mock for now)
   const todayTotal = analytics.today?.total || 0;
   const yesterdayTotal = Math.floor(todayTotal * 0.85);
   const todayTrend = calculateTrend(todayTotal, yesterdayTotal);
-
-  // This month vs Last month
   const thisMonthTotal = monthlyStats.length > 0 
     ? (monthlyStats[monthlyStats.length - 1]?.desktop || 0) + (monthlyStats[monthlyStats.length - 1]?.mobile || 0)
     : 0;

@@ -21,7 +21,6 @@ import { collectMediaFilesAndIds } from "@/components/blogs/utils/blogMediaUtils
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
-// Skeleton دقیقاً شبیه فرم واقعی با CardWithIcon
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
@@ -91,7 +90,6 @@ const TabSkeleton = () => (
   </div>
 );
 
-// Lazy imports
 const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));

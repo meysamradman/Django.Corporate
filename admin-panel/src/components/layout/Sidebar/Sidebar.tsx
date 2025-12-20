@@ -1,5 +1,5 @@
-import {useState, useEffect, useCallback, useMemo} from "react";
-import {User, LogOut} from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,17 +8,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu";
-import {SidebarHeader} from "./SidebarHeader";
-import {NavMain} from "./NavMain";
-import {NavUser} from "./NavUser";
-import {SidebarLogo} from "./SidebarLogo";
-import {cn} from "@/core/utils/cn";
-import {useMenuData} from "./SidebarMenu";
+import { SidebarHeader } from "./SidebarHeader";
+import { NavMain } from "./NavMain";
+import { NavUser } from "./NavUser";
+import { SidebarLogo } from "./SidebarLogo";
+import { cn } from "@/core/utils/cn";
+import { useMenuData } from "./SidebarMenu";
 import type { MenuItem } from '@/types/shared/menu';
-import {SubMenuItem} from "./SubMenuItem";
-import {useAuth} from "@/core/auth/AuthContext";
-import {useLocation, useNavigate} from "react-router-dom";
-import {toast} from "sonner";
+import { SubMenuItem } from "./SubMenuItem";
+import { useAuth } from "@/core/auth/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { getError } from "@/core/messages/errors";
 import { useAdminStore } from "./stores/sidebarStore";
 import { getUserRoleDisplayText } from "@/core/permissions/roles";
@@ -40,7 +40,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [hasUserSelectedItem, setHasUserSelectedItem] = useState(false);
-  const {user, logout} = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export function Sidebar({
         if ('url' in item && item.url === pathname) {
           return item;
         }
-        
+
         if ('url' in item && item.url && pathname.startsWith(item.url + '/')) {
           return item;
         }
@@ -69,7 +69,7 @@ export function Sidebar({
             if (subItem.url === pathname) {
               return item;
             }
-            
+
             if (subItem.url && pathname.startsWith(subItem.url + '/')) {
               return item;
             }
@@ -117,6 +117,11 @@ export function Sidebar({
     setSelectedItem(item);
     const hasSubMenu = Boolean('items' in item && item.items && item.items.length > 0);
     setSelectedItemHasSubMenu(hasSubMenu);
+
+    // اگر سایدبار collapsed است و این آیکون زیرمنو دارد، سایدبار را باز کن
+    if (isContentCollapsed && hasSubMenu && _onContentToggle) {
+      _onContentToggle();
+    }
   };
 
   const handleProfileClick = () => {
@@ -159,7 +164,7 @@ export function Sidebar({
       )}
       <aside className={sidebarClasses}>
         <div className={iconStripClasses}>
-          <SidebarLogo/>
+          <SidebarLogo />
           <nav className="flex-1 overflow-y-auto">
             <NavMain groups={menuGroups} onIconClick={handleIconClick} />
           </nav>
@@ -170,7 +175,7 @@ export function Sidebar({
                   className="flex items-center justify-center h-10 w-10 rounded-md text-sdb-menu-txt hover:bg-sdb-hv hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label="User menu"
                 >
-                  <NavUser size="sm"/>
+                  <NavUser size="sm" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -181,71 +186,73 @@ export function Sidebar({
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <span className="font-medium">
-                      {(user as any)?.full_name || (user as any)?.profile?.full_name || 
-                       (user?.first_name && user?.last_name 
-                         ? `${user.first_name} ${user.last_name}`
-                         : user?.email || user?.mobile || "کاربر")}
+                      {(user as any)?.full_name || (user as any)?.profile?.full_name ||
+                        (user?.first_name && user?.last_name
+                          ? `${user.first_name} ${user.last_name}`
+                          : user?.email || user?.mobile || "کاربر")}
                     </span>
                     <span className="text-xs text-font-s mt-1">
                       {getUserRoleDisplayText(user)}
                     </span>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator/>
+                <DropdownMenuSeparator />
 
                 <DropdownMenuItem
                   onClick={handleProfileClick}
                   className="cursor-pointer"
                 >
-                  <User className="h-4 w-4"/>
+                  <User className="h-4 w-4" />
                   <span>پروفایل</span>
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator/>
+                <DropdownMenuSeparator />
 
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
-                  <LogOut className="h-4 w-4"/>
+                  <LogOut className="h-4 w-4" />
                   <span>خروج</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
-        <div className="sidebar-content flex-1 flex flex-col min-w-0">
+        <div className={cn(
+          "sidebar-content flex-1 flex flex-col min-w-0",
+          isContentCollapsed && "hidden"
+        )}>
           <SidebarHeader
             selectedItem={selectedItem}
+            isContentCollapsed={isContentCollapsed}
+            onContentToggle={_onContentToggle}
           />
-          <div className={cn(
-            "flex-1 overflow-hidden transition-opacity duration-200 ease-out",
-            isContentCollapsed ? "opacity-0" : "opacity-100"
-          )}>
-            {!isContentCollapsed && (
-              <div className="h-full overflow-x-hidden p-4 overflow-y-auto">
-                {selectedItem && 'items' in selectedItem && selectedItem.items?.length ? (
-                  <div className="space-y-1">
-                    {(
-                      [
-                        ...(selectedItem.items && selectedItem.items.length > 0 && 
-                          !selectedItem.items[0]?.isTitle && 
-                          selectedItem.title.trim()
-                          ? [{title: selectedItem.title, isTitle: true}] 
-                          : []),
-                        ...(selectedItem.items || []),
-                      ] as MenuItem[]
-                    ).map((subItem, index) => (
-                      <SubMenuItem
-                        key={`${subItem.title}-${index}`}
-                        item={subItem}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                ) : null}
+          <div className="flex-1 overflow-hidden p-4 overflow-y-auto">
+            {selectedItem && 'items' in selectedItem && selectedItem.items?.length ? (
+              <div className="space-y-1">
+                {selectedItem.items.map((subItem, index, array) => {
+                  // Check if previous non-title item exists to determine separator
+                  let prevNonTitleIndex = -1;
+                  for (let i = index - 1; i >= 0; i--) {
+                    if (!array[i].isTitle) {
+                      prevNonTitleIndex = i;
+                      break;
+                    }
+                  }
+                  const shouldShowSeparator = subItem.isTitle && prevNonTitleIndex !== -1;
+
+                  return (
+                    <SubMenuItem
+                      key={`${subItem.title}-${index}`}
+                      item={subItem}
+                      index={index}
+                      showSeparator={shouldShowSeparator}
+                    />
+                  );
+                })}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </aside>

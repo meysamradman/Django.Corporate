@@ -15,7 +15,6 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Loader2, Save, User, UserCircle, List } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 
-// Tab Skeleton
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">

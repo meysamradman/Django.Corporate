@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/elements/Dialog";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";

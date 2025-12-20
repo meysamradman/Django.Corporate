@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Media } from "@/types/shared/media";
 import { cn } from '@/core/utils/cn';
 import { Play } from 'lucide-react';

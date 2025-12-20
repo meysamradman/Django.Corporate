@@ -1,7 +1,6 @@
-import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Badge } from "@/components/elements/Badge";
-import { Calendar, User, MessageSquare, Reply, Trash2, Paperclip, Download } from "lucide-react";
+import { Calendar, User, MessageSquare, Reply, Trash2, Download } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import type { Ticket, TicketMessage } from "@/types/ticket/ticket";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";

@@ -1,4 +1,3 @@
-import React from "react";
 import { TicketItem } from "./TicketItem";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Ticket } from "@/types/ticket/ticket";

@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/
 import { MessageSquare, Settings as SettingsIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
-// Tab Skeleton
 const TabSkeleton = () => (
   <div className="space-y-6">
     <div className="space-y-4">

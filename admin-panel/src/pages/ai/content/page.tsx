@@ -5,7 +5,6 @@ import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Sparkles } from 'lucide-react';
 import { usePermission, AccessDenied } from '@/components/admins/permissions';
 
-// AIContentGenerator Skeleton
 const AIContentGeneratorSkeleton = () => (
   <CardWithIcon
     icon={Sparkles}

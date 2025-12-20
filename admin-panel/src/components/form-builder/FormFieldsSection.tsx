@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Input } from "@/components/elements/Input";

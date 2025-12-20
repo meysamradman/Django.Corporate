@@ -1,15 +1,6 @@
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/elements/Card';
 
-/**
- * 🎯 AuthLayout - صفحه ورود به پنل ادمین
- * 
- * Layout کامل برای صفحات احراز هویت با:
- * - تزئینات پس‌زمینه (authentication-inner)
- * - Card با shadow و border
- * - Header با عنوان gradient
- * - Form کامل ورود
- */
 export function AuthLayout() {
   return (
     <div className="min-h-screen flex items-center justify-center grow p-4 bg-bg">

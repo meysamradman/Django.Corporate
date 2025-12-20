@@ -1,11 +1,4 @@
-/**
- * Permission Constants
- * Single source of truth for all permission IDs
- * استفاده: import { PERMISSIONS } from '@/core/permissions/constants'
- */
-
 export const PERMISSIONS = {
-  // ==================== AI ====================
   AI: {
     MANAGE: 'ai.manage',
     CHAT_MANAGE: 'ai.chat.manage',
@@ -15,8 +8,6 @@ export const PERMISSIONS = {
     SETTINGS_SHARED_MANAGE: 'ai.settings.shared.manage',
     SETTINGS_PERSONAL_MANAGE: 'ai.settings.personal.manage',
   },
-  
-  // ==================== Blog ====================
   BLOG: {
     CREATE: 'blog.create',
     READ: 'blog.read',
@@ -38,8 +29,6 @@ export const PERMISSIONS = {
     UPDATE: 'blog_tags.update',
     DELETE: 'blog_tags.delete',
   },
-  
-  // ==================== Portfolio ====================
   PORTFOLIO: {
     CREATE: 'portfolio.create',
     READ: 'portfolio.read',
@@ -68,8 +57,6 @@ export const PERMISSIONS = {
     UPDATE: 'portfolio_options.update',
     DELETE: 'portfolio_options.delete',
   },
-  
-  // ==================== Media ====================
   MEDIA: {
     READ: 'media.read',
     UPLOAD: 'media.upload',
@@ -102,8 +89,6 @@ export const PERMISSIONS = {
     UPDATE: 'media.document.update',
     DELETE: 'media.document.delete',
   },
-  
-  // ==================== Admin ====================
   ADMIN: {
     CREATE: 'admin.create',
     READ: 'admin.read',
@@ -111,8 +96,6 @@ export const PERMISSIONS = {
     DELETE: 'admin.delete',
     MANAGE: 'admin.manage',
   },
-  
-  // ==================== Users ====================
   USERS: {
     CREATE: 'users.create',
     READ: 'users.read',
@@ -120,8 +103,6 @@ export const PERMISSIONS = {
     DELETE: 'users.delete',
     MANAGE: 'users.manage',
   },
-  
-  // ==================== Analytics ====================
   ANALYTICS: {
     MANAGE: 'analytics.manage',
     STATS_MANAGE: 'analytics.stats.manage',
@@ -133,7 +114,6 @@ export const PERMISSIONS = {
     SYSTEM_READ: 'analytics.system.read',
   },
   
-  // ==================== Email ====================
   EMAIL: {
     CREATE: 'email.create',
     READ: 'email.read',
@@ -142,7 +122,6 @@ export const PERMISSIONS = {
     VIEW: 'email.view',
   },
   
-  // ==================== Ticket ====================
   TICKET: {
     CREATE: 'ticket.create',
     READ: 'ticket.read',
@@ -151,7 +130,6 @@ export const PERMISSIONS = {
     MANAGE: 'ticket.manage',
   },
   
-  // ==================== Settings ====================
   SETTINGS: {
     MANAGE: 'settings.manage',
   },
@@ -172,20 +150,17 @@ export const PERMISSIONS = {
   CHATBOT: {
     MANAGE: 'chatbot.manage',
   },
-  
-  // ==================== Dashboard ====================
+
   DASHBOARD: {
     READ: 'dashboard.read',
   },
-  
-  // ==================== Profile ====================
+
   PROFILE: {
     READ: 'profile.read',
     UPDATE: 'profile.update',
   },
 } as const;
 
-// Type helper for autocomplete
 export type PermissionId = 
   | typeof PERMISSIONS.AI[keyof typeof PERMISSIONS.AI]
   | typeof PERMISSIONS.BLOG[keyof typeof PERMISSIONS.BLOG]
@@ -204,9 +179,6 @@ export type PermissionId =
   | typeof PERMISSIONS.DASHBOARD[keyof typeof PERMISSIONS.DASHBOARD]
   | typeof PERMISSIONS.PROFILE[keyof typeof PERMISSIONS.PROFILE];
 
-/**
- * Helper function to get all permissions as array
- */
 export function getAllPermissions(): string[] {
   const permissions: string[] = [];
   
@@ -221,9 +193,6 @@ export function getAllPermissions(): string[] {
   return permissions;
 }
 
-/**
- * Helper function to check if a permission ID is valid
- */
 export function isValidPermission(permissionId: string): boolean {
   return getAllPermissions().includes(permissionId);
 }

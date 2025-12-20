@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, type ReplyTicketData } from "@/components/ticket";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -8,7 +8,6 @@ import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, us
 import type { Ticket, TicketStatusType, TicketMessage } from "@/types/ticket/ticket";
 import { toast } from "sonner";
 
-// TicketDetailView Skeleton
 const TicketDetailViewSkeleton = () => (
   <div className="flex-1 flex flex-col h-full overflow-hidden">
     <div className="border-b p-6 flex-shrink-0">
@@ -47,13 +46,23 @@ export default function TicketPage() {
   const [searchParams] = useSearchParams();
   const ticketIdFromUrl = searchParams.get('ticketId');
   const queryClient = useQueryClient();
-  
+
   const [selectedStatus, setSelectedStatus] = useState<TicketStatusType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTickets, setSelectedTickets] = useState<Set<number>>(new Set());
   const [replyOpen, setReplyOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [replyToTicket, setReplyToTicket] = useState<Ticket | null>(null);
+  const location = useLocation();
+
+  // Sync selectedStatus with URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const statusParam = params.get('status') as TicketStatusType | null;
+    if (statusParam && ['open', 'in_progress', 'resolved', 'closed'].includes(statusParam)) {
+      setSelectedStatus(statusParam);
+    }
+  }, [location.search]);
 
   const { data: ticketsData, isLoading, refetch } = useTicketList({
     page: 1,
@@ -157,7 +166,7 @@ export default function TicketPage() {
 
   const handleSendReply = useCallback(async (data: ReplyTicketData) => {
     if (!replyToTicket) return;
-    
+
     try {
       await createMessage.mutateAsync({
         ticket: replyToTicket.id,
@@ -179,14 +188,14 @@ export default function TicketPage() {
 
   const filteredTickets = useMemo(() => {
     let filtered = tickets;
-    
+
     if (selectedStatus !== 'all') {
       filtered = filtered.filter(t => t.status === selectedStatus);
     }
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
+      filtered = filtered.filter(t =>
         t.subject.toLowerCase().includes(query) ||
         t.description.toLowerCase().includes(query) ||
         t.user?.full_name?.toLowerCase().includes(query) ||
@@ -194,7 +203,7 @@ export default function TicketPage() {
         t.user?.mobile?.includes(query)
       );
     }
-    
+
     return filtered;
   }, [tickets, selectedStatus, searchQuery]);
 
@@ -244,8 +253,8 @@ export default function TicketPage() {
                       filteredTickets.length > 0 && filteredTickets.every(t => selectedTickets.has(t.id))
                         ? true
                         : filteredTickets.some(t => selectedTickets.has(t.id))
-                        ? "indeterminate"
-                        : false
+                          ? "indeterminate"
+                          : false
                     }
                     onCheckedChange={() => handleSelectAll(filteredTickets)}
                     aria-label="انتخاب همه"

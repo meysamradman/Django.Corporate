@@ -1,4 +1,3 @@
-import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/elements/Badge"
 import { Checkbox } from "@/components/elements/Checkbox"

@@ -1,6 +1,6 @@
-import React from "react";
 import { AlertCircle } from "lucide-react";
 import { getPermissionTranslation } from "@/core/messages/permissions";
+import type { ReactElement } from "react";
 
 interface Resource {
   resource: string;
@@ -11,7 +11,7 @@ interface Resource {
 interface PermissionWarningAlertProps {
   logicalPermissionErrors: string[];
   standardResources: Resource[];
-  getResourceIcon: (resourceKey: string) => React.ReactElement;
+  getResourceIcon: (resourceKey: string) => ReactElement;
 }
 
 export function PermissionWarningAlert({

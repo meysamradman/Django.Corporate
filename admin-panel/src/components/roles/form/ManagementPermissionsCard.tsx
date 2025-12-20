@@ -1,8 +1,8 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Switch } from "@/components/elements/Switch";
 import { Settings, Shield } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
+import type { ReactElement } from "react";
 
 interface Permission {
   id: number;
@@ -23,7 +23,7 @@ interface ManagementPermissionsCardProps {
   isSuperAdmin: boolean;
   onTogglePermission: (permissionId: number) => void;
   isPermissionSelected: (permissionId: number | undefined) => boolean;
-  getResourceIcon: (resourceKey: string) => React.ReactElement;
+  getResourceIcon: (resourceKey: string) => ReactElement;
 }
 
 export function ManagementPermissionsCard({

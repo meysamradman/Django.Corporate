@@ -1,23 +1,23 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { useUserPermissions } from '../hooks/useUserPermissions';
 
 interface PermissionGateProps {
   permission: string;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface PermissionMultiGateProps {
   permissions: string[];
   mode?: 'any' | 'all';
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface ProtectedActionProps {
   permission: string;
-  children: React.ReactNode;
-  renderFallback?: () => React.ReactNode;
+  children: ReactNode;
+  renderFallback?: () => ReactNode;
 }
 
 export function PermissionGate({ permission, children, fallback = null }: PermissionGateProps) {

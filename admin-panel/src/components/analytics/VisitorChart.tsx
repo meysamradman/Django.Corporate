@@ -20,7 +20,6 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { formatNumber, getPersianYear } from "@/core/utils/format";
 import { Badge } from "@/components/elements/Badge";
 
-// Chart config uses hex colors matching theme: blue-100
 const chartConfig = {
   desktop: {
     label: "دسکتاپ",

@@ -3,14 +3,6 @@ import type { MediaType } from '../mediaConfig';
 
 export type { MediaType };
 
-/**
- * 🎯 تنظیمات آپلود مدیا - مستقیماً از config مرکزی
- * 
- * مزایا:
- * ✅ سرعت بالا - بدون API call
- * ✅ کاهش فشار روی سرور
- * ✅ یک منبع واحد برای تمام پاپ‌آپ‌های مدیا
- */
 export interface UploadSettings {
     MEDIA_IMAGE_SIZE_LIMIT: number;
     MEDIA_ALLOWED_IMAGE_EXTENSIONS: string[];
@@ -22,10 +14,6 @@ export interface UploadSettings {
     MEDIA_DOCUMENT_SIZE_LIMIT: number;
 }
 
-/**
- * 📦 دریافت تنظیمات آپلود - مستقیماً از config
- * بدون نیاز به API call - سرعت بالا
- */
 export const getUploadSettings = (): UploadSettings => {
     return {
         MEDIA_IMAGE_SIZE_LIMIT: mediaConfig.sizeLimits.image,
@@ -56,9 +44,6 @@ export const useUploadSettings = () => {
     };
 };
 
-/**
- * 🚀 تنظیمات آپلود - سریع و بهینه
- */
 export const getUploadConfig = () => ({
     chunkSize: mediaConfig.uploadConfig.chunkSize,
     timeout: mediaConfig.uploadConfig.timeout,

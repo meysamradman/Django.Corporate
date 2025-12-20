@@ -1,9 +1,7 @@
-// Re-export core permission configs
 export * from './constants';
 export * from './roles';
 export * from './accessControl';
 
-// Re-export permission components and hooks from admins/permissions
 export { 
   PermissionProvider, 
   usePermission,

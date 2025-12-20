@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useRef, type ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode, type FC, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '@/api/auth/auth';
-import type { ApiError } from '@/types/api/apiError';
 import { csrfManager, sessionManager } from './session';
+import { ApiError } from '@/types/api/apiError';
 import type { LoginRequest, AdminUser } from '@/types/auth/auth';
 
 interface AuthContextType {
@@ -23,7 +23,7 @@ interface AuthProviderProps {
 
 const publicPaths = ['/login'];
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     sessionManager.handleExpiredSession();
   }, []);
 
-  const hasCheckedRef = React.useRef(false);
+  const hasCheckedRef = useRef(false);
 
   const checkUserStatus = useCallback(async () => {
     const isPublicPath = publicPaths.includes(location.pathname);
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const loginData: LoginRequest = {
         mobile,
-        password: '', // Required field but empty for OTP login
+        password: '',
         otp_code: otp,
         captcha_id: captchaId || '',
         captcha_answer: captchaAnswer || '',

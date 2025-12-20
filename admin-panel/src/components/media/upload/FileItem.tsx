@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import { 
   X, 
   Loader2, 
@@ -24,7 +25,7 @@ interface FileItemProps {
   file: MediaFile;
   onRemove: (id: string) => void;
   onUpdateMetadata: (id: string, field: keyof MediaFile, value: any) => void;
-  onCoverFileChange: (event: React.ChangeEvent<HTMLInputElement>, fileId: string) => void;
+  onCoverFileChange: (event: ChangeEvent<HTMLInputElement>, fileId: string) => void;
   onRemoveCoverFile: (id: string) => void;
   disabled?: boolean;
 }

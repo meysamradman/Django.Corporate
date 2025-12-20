@@ -20,7 +20,6 @@ import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaFilesAndIds } from "@/components/portfolios/utils/portfolioMediaUtils";
 
-// Skeleton دقیقاً شبیه فرم واقعی با CardWithIcon
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
@@ -90,7 +89,6 @@ const TabSkeleton = () => (
   </div>
 );
 
-// Lazy imports for code splitting
 const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));

@@ -38,7 +38,6 @@ export function ClearAnalyticsButton() {
         `با موفقیت ${result.deleted_page_views.toLocaleString('fa-IR')} بازدید و ${result.deleted_daily_stats.toLocaleString('fa-IR')} آمار روزانه پاک شد`
       );
       
-      // Invalidate و refetch همه queries مربوط به analytics
       await queryClient.invalidateQueries({ queryKey: ["analytics"] });
       await queryClient.invalidateQueries({ queryKey: ["analytics", "monthly-stats"] });
       

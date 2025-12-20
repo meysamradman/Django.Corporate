@@ -27,7 +27,6 @@ interface BlogUpdateData extends Partial<Blog> {
   media_covers?: { [mediaId: number]: number | null };
 }
 
-// Tab Skeleton
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
@@ -93,7 +92,6 @@ const TabSkeleton = () => (
   </div>
 );
 
-// Lazy imports
 const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));

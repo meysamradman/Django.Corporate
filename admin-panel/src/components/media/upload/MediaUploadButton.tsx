@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/elements/Button";
 import { MediaUploadModal } from "@/components/media/modals/MediaUploadModal";
 import { Upload, Plus } from "lucide-react";
@@ -10,7 +11,7 @@ interface MediaUploadButtonProps {
     onMediaSelect?: (media: Media | Media[]) => void;
     variant?: "default" | "outline";
     size?: "default" | "sm" | "lg";
-    children?: React.ReactNode;
+    children?: ReactNode;
     className?: string;
     showIcon?: boolean;
     context?: 'media_library' | 'portfolio' | 'blog';

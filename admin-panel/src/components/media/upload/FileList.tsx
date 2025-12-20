@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ChangeEvent } from 'react';
 import { FileItem } from './FileItem';
 import type { MediaFile } from '../hooks/useMediaUpload';
 
@@ -8,7 +8,7 @@ interface FileListProps {
   onTabChange: (tab: string) => void;
   onRemoveFile: (id: string) => void;
   onUpdateMetadata: (id: string, field: keyof MediaFile, value: any) => void;
-  onCoverFileChange: (event: React.ChangeEvent<HTMLInputElement>, fileId: string) => void;
+  onCoverFileChange: (event: ChangeEvent<HTMLInputElement>, fileId: string) => void;
   onRemoveCoverFile: (id: string) => void;
   disabled?: boolean;
 }

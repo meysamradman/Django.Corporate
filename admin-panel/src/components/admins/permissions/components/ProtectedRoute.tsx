@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { usePermissions } from '../utils/permissionUtils';
 import { useNavigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
-    children: React.ReactNode;
+    children: ReactNode;
     permission?: string;
     permissions?: string[];
     requireAll?: boolean;

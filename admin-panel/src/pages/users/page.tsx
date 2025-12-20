@@ -45,7 +45,7 @@ export default function UsersPage() {
 
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -54,7 +54,7 @@ export default function UsersPage() {
       const size = parseInt(urlParams.get('size')!, 10);
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
-    
+
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
@@ -62,11 +62,11 @@ export default function UsersPage() {
     } else {
       setSorting(initSortingFromURL());
     }
-    
+
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
-    
+
     const newClientFilters: typeof clientFilters = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
@@ -74,7 +74,7 @@ export default function UsersPage() {
     if (urlParams.get('is_verified') !== null) {
       newClientFilters.is_verified = urlParams.get('is_verified') === 'true';
     }
-    
+
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
@@ -183,7 +183,7 @@ export default function UsersPage() {
     if (filterId === "search") {
       setSearchValue(typeof value === 'string' ? value : '');
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
+
       const url = new URL(window.location.href);
       if (value && typeof value === 'string') {
         url.searchParams.set('search', value);
@@ -198,7 +198,7 @@ export default function UsersPage() {
         [filterId]: value as boolean | undefined
       }));
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
+
       const url = new URL(window.location.href);
       if (value !== undefined && value !== null) {
         url.searchParams.set(String(filterId), String(value));
@@ -211,12 +211,12 @@ export default function UsersPage() {
   };
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -224,12 +224,12 @@ export default function UsersPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -249,8 +249,8 @@ export default function UsersPage() {
         </div>
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -307,8 +307,8 @@ export default function UsersPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

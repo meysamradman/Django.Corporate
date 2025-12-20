@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { blogApi } from "@/api/blogs/blogs";
 import { BlogSidebar } from "@/components/blogs/list/view/BlogSidebar";
 
-// Skeleton برای Tab Components
 const TabSkeleton = () => (
   <div className="mt-6 space-y-4">
     <div className="rounded-lg border p-6">
@@ -39,7 +38,6 @@ const TabSkeleton = () => (
   </div>
 );
 
-// Lazy imports برای Tab Components
 const OverviewTab = lazy(() => import("@/components/blogs/list/view/OverviewTab").then(m => ({ default: m.OverviewTab })));
 const MediaInfoTab = lazy(() => import("@/components/blogs/list/view/MediaInfoTab").then(m => ({ default: m.MediaInfoTab })));
 const SEOInfoTab = lazy(() => import("@/components/blogs/list/view/SEOInfoTab").then(m => ({ default: m.SEOInfoTab })));

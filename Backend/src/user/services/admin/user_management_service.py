@@ -170,7 +170,7 @@ class UserManagementService:
                     )
                     
                     if media:
-                        profile_fields_to_update['profile_picture_id'] = media.id
+                        profile_fields_to_update['profile_picture'] = media.id
                 except Exception as e:
                     pass
             elif profile_picture:

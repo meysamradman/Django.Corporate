@@ -1,9 +1,9 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Switch } from "@/components/elements/Switch";
 import { Sparkles, Shield, Info } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
+import type { ReactElement } from "react";
 
 interface Permission {
   id: number;
@@ -20,7 +20,7 @@ interface AIPermissionsCardProps {
   onTogglePermission: (permissionId: number) => void;
   onToggleAllAI: (checked: boolean, aiPermIds: number[]) => void;
   isPermissionSelected: (permissionId: number | undefined) => boolean;
-  getResourceIcon: (resourceKey: string) => React.ReactElement;
+  getResourceIcon: (resourceKey: string) => ReactElement;
   allPermissions?: any[];
 }
 

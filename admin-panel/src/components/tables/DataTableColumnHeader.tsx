@@ -1,6 +1,6 @@
-import * as React from "react"
+import type { HTMLAttributes } from "react"
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from "lucide-react"
-import { Column } from "@tanstack/react-table"
+import type { Column } from "@tanstack/react-table"
 import { cn } from '@/core/utils/cn';
 import { Button } from "@/components/elements/Button";
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu"
 interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
+  extends HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>
   title: string
 }

@@ -8,14 +8,11 @@ import type {
 
 class PageApi {
     async getAboutPage(): Promise<AboutPage> {
-        // در DRF router، route به صورت 'pages/about' register شده
-        // پس باید 'list' action صدا زده شود که با GET /api/pages/about/ کار می‌کند
         const response = await api.get<AboutPage>('pages/about/');
         return response.data;
     }
 
     async updateAboutPage(data: AboutPageUpdate): Promise<AboutPage> {
-        // برای update باید PATCH /api/pages/about/ استفاده شود
         const response = await api.patch<AboutPage>(
             'pages/about/',
             data as Record<string, unknown>

@@ -12,6 +12,26 @@ import {
   Ticket,
   List,
   BarChart3,
+  FileText,
+  Plus,
+  Folder,
+  Tag,
+  Upload,
+  Video,
+  File,
+  UserPlus,
+  Clock,
+  Circle,
+  CheckCircle,
+  XCircle,
+  PanelRight,
+  Bot,
+  Info,
+  FileCheck,
+  MessageSquare,
+  Cpu,
+  Image as ImageIcon,
+  Music,
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
 import { useUserPermissions } from "@/components/admins/permissions/hooks/useUserPermissions"
@@ -38,13 +58,17 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
       {
         title: "داشبورد",
         icon: Home,
+        url: "/",
         items: [
-          { title: "گزارش‌ها", isTitle: true },
-          { title: "گزارش کلی", url: "/analytics" },
-          { title: "گزارش روزانه", url: "/analytics?view=daily" },
-          { title: "گزارش ماهانه", url: "/analytics?view=monthly" },
+          { title: "صفحه اصلی", url: "/", icon: Home },
+          { title: "آمار بازدید", url: "/analytics", icon: BarChart3 },
+          { title: "دسترسی سریع", isTitle: true },
+          { title: "بلاگ‌ها", url: "/blogs", icon: BookOpen },
+          { title: "نمونه کارها", url: "/portfolios", icon: Layers },
+          { title: "رسانه‌ها", url: "/media", icon: Images },
+          { title: "کاربران", url: "/users", icon: Users },
         ],
-        tooltip: "خانه و گزارش‌های کلی"
+        tooltip: "داشبورد و دسترسی سریع"
       },
     ]
   },
@@ -63,14 +87,14 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           roles: ["blog_manager", "content_manager", "super_admin"]
         },
         items: [
-          { title: "لیست بلاگ‌ها", url: "/blogs", access: { module: "blog", allowReadOnly: true } },
-          { title: "ایجاد بلاگ", url: "/blogs/create", access: { module: "blog", actions: ["create"] } },
+          { title: "لیست بلاگ‌ها", url: "/blogs", icon: FileText, access: { module: "blog", allowReadOnly: true } },
+          { title: "ایجاد بلاگ", url: "/blogs/create", icon: Plus, access: { module: "blog", actions: ["create"] } },
           { title: "دسته‌بندی‌های بلاگ", isTitle: true },
-          { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories", access: { module: "blog_categories", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create", access: { module: "blog_categories", actions: ["create"] } },
+          { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories", icon: Folder, access: { module: "blog_categories", allowReadOnly: true } },
+          { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create", icon: Plus, access: { module: "blog_categories", actions: ["create"] } },
           { title: "تگ‌های بلاگ", isTitle: true },
-          { title: "لیست تگ‌ها", url: "/blogs/tags", access: { module: "blog_tags", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/blogs/tags/create", access: { module: "blog_tags", actions: ["create"] } },
+          { title: "لیست تگ‌ها", url: "/blogs/tags", icon: Tag, access: { module: "blog_tags", allowReadOnly: true } },
+          { title: "ایجاد تگ", url: "/blogs/tags/create", icon: Plus, access: { module: "blog_tags", actions: ["create"] } },
         ],
       },
       {
@@ -84,32 +108,32 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "لیست نمونه کارها", url: "/portfolios", access: { module: "portfolio", allowReadOnly: true } },
-          { title: "ایجاد نمونه کار", url: "/portfolios/create", access: { module: "portfolio", actions: ["create"] } },
+          { title: "لیست نمونه کارها", url: "/portfolios", icon: Layers, access: { module: "portfolio", allowReadOnly: true } },
+          { title: "ایجاد نمونه کار", url: "/portfolios/create", icon: Plus, access: { module: "portfolio", actions: ["create"] } },
           { title: "دسته‌بندی‌های نمونه کار", isTitle: true },
-          { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories", access: { module: "portfolio_categories", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create", access: { module: "portfolio_categories", actions: ["create"] } },
+          { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories", icon: Folder, access: { module: "portfolio_categories", allowReadOnly: true } },
+          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create", icon: Plus, access: { module: "portfolio_categories", actions: ["create"] } },
           { title: "تگ‌های نمونه کار", isTitle: true },
-          { title: "لیست تگ‌ها", url: "/portfolios/tags", access: { module: "portfolio_tags", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/portfolios/tags/create", access: { module: "portfolio_tags", actions: ["create"] } },
+          { title: "لیست تگ‌ها", url: "/portfolios/tags", icon: Tag, access: { module: "portfolio_tags", allowReadOnly: true } },
+          { title: "ایجاد تگ", url: "/portfolios/tags/create", icon: Plus, access: { module: "portfolio_tags", actions: ["create"] } },
         ],
       },
       {
         title: "رسانه‌ها",
         icon: Images,
-        access: { 
-          module: "media", 
+        url: "/media",
+        access: {
+          module: "media",
           actions: ["manage"],
           allowReadOnly: false
         },
         items: [
-          { title: "دسترسی سریع", isTitle: true },
-          { title: "همه رسانه‌ها", url: "/media" },
-          { title: "آپلود جدید", url: "/media?action=upload", access: { module: "media", actions: ["manage"] } },
-          { title: "فیلترها", isTitle: true },
-          { title: "تصاویر", url: "/media?type=image" },
-          { title: "ویدیوها", url: "/media?type=video" },
-          { title: "اسناد", url: "/media?type=document" },
+          { title: "کتابخانه رسانه", url: "/media", icon: Images },
+          { title: "فیلتر بر اساس نوع", isTitle: true },
+          { title: "تصاویر", url: "/media?file_type=image", icon: ImageIcon },
+          { title: "ویدیوها", url: "/media?file_type=video", icon: Video },
+          { title: "فایل‌های صوتی", url: "/media?file_type=audio", icon: Music },
+          { title: "اسناد PDF", url: "/media?file_type=pdf", icon: File },
         ]
       },
     ]
@@ -120,31 +144,31 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
       {
         title: "مدیریت ادمین‌ها",
         icon: ShieldUser,
-        access: { 
-          module: "admin", 
-          actions: ["read", "view"], 
-          requireSuperAdmin: true,
-          allowReadOnly: true 
+        access: {
+          module: "admin",
+          actions: ["read", "view"],
+          allowReadOnly: true
         },
         items: [
-          { 
-            title: "لیست ادمین‌ها", 
-            url: "/admins", 
-            access: { 
-              module: "admin", 
-              actions: ["read", "view"], 
-              requireSuperAdmin: true,
-              allowReadOnly: true 
-            } 
+          {
+            title: "لیست ادمین‌ها",
+            url: "/admins",
+            icon: ShieldUser,
+            access: {
+              module: "admin",
+              actions: ["read", "view"],
+              allowReadOnly: true
+            }
           },
-          { 
-            title: "ایجاد ادمین", 
-            url: "/admins/create", 
-            access: { 
-              module: "admin", 
-              actions: ["create"], 
-              requireSuperAdmin: true 
-            } 
+          {
+            title: "ایجاد ادمین",
+            url: "/admins/create",
+            icon: UserPlus,
+            access: {
+              module: "admin",
+              actions: ["create"],
+              requireSuperAdmin: true
+            }
           },
         ],
       },
@@ -153,8 +177,8 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Users,
         access: { module: "users", allowReadOnly: true, readOnlyLabel: "فقط مشاهده" },
         items: [
-          { title: "لیست کاربران", url: "/users", access: { module: "users", allowReadOnly: true } },
-          { title: "ایجاد کاربر", url: "/users/create", access: { module: "users", actions: ["create"] } },
+          { title: "لیست کاربران", url: "/users", icon: Users, access: { module: "users", allowReadOnly: true } },
+          { title: "ایجاد کاربر", url: "/users/create", icon: UserPlus, access: { module: "users", actions: ["create"] } },
         ],
       },
     ]
@@ -167,8 +191,8 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Shield,
         access: { module: "admin", requireSuperAdmin: true },
         items: [
-          { title: "لیست نقش‌ها", url: "/roles", access: { module: "admin", requireSuperAdmin: true } },
-          { title: "ایجاد نقش", url: "/roles/create", access: { module: "admin", requireSuperAdmin: true } },
+          { title: "لیست نقش‌ها", url: "/roles", icon: Shield, access: { module: "admin", requireSuperAdmin: true } },
+          { title: "ایجاد نقش", url: "/roles/create", icon: Plus, access: { module: "admin", requireSuperAdmin: true } },
         ],
       },
     ]
@@ -181,10 +205,10 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Sparkles,
         access: { module: "ai", allowReadOnly: true },
         items: [
-          { title: "چت با AI", url: "/ai/chat", access: { module: "ai", allowReadOnly: true } },
-          { title: "تولید محتوا با AI", url: "/ai/content", access: { module: "ai", allowReadOnly: true } },
-          { title: "تولید تصویر با AI", url: "/ai/image", access: { module: "ai", allowReadOnly: true } },
-          { title: "تولید پادکست با AI", url: "/ai/audio", access: { module: "ai", allowReadOnly: true } },
+          { title: "چت با AI", url: "/ai/chat", icon: MessageSquare, access: { module: "ai", allowReadOnly: true } },
+          { title: "تولید محتوا با AI", url: "/ai/content", icon: FileText, access: { module: "ai", allowReadOnly: true } },
+          { title: "تولید تصویر با AI", url: "/ai/image", icon: ImageIcon, access: { module: "ai", allowReadOnly: true } },
+          { title: "تولید پادکست با AI", url: "/ai/audio", icon: Music, access: { module: "ai", allowReadOnly: true } },
         ],
       },
     ]
@@ -195,37 +219,39 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
       {
         title: "ایمیل",
         icon: Mail,
-        access: { 
-          module: "email", 
+        url: "/email",
+        access: {
+          module: "email",
           actions: ["read"],
           allowReadOnly: true,
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "فیلترها", isTitle: true },
-          { title: "ارسال شده", url: "/email?status=sent" },
-          { title: "در انتظار", url: "/email?status=pending" },
-          { title: "ناموفق", url: "/email?status=failed" },
-          { title: "دسترسی سریع", isTitle: true },
-          { title: "همه ایمیل‌ها", url: "/email" },
+          { title: "همه ایمیل‌ها", url: "/email", icon: Mail },
+          { title: "صندوق‌ها", isTitle: true },
+          { title: "دریافتی", url: "/email?mailbox=inbox", icon: Mail },
+          { title: "ارسال شده", url: "/email?mailbox=sent", icon: Upload },
+          { title: "پیش‌نویس‌ها", url: "/email?mailbox=draft", icon: FileText },
+          { title: "ستاره‌دار", url: "/email?mailbox=starred", icon: Sparkles },
         ]
       },
       {
         title: "تیکت",
         icon: Ticket,
-        access: { 
-          module: "ticket", 
+        url: "/ticket",
+        access: {
+          module: "ticket",
           actions: ["read"],
           allowReadOnly: true,
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "وضعیت‌ها", isTitle: true },
-          { title: "باز", url: "/ticket?status=open" },
-          { title: "در حال بررسی", url: "/ticket?status=in_progress" },
-          { title: "بسته شده", url: "/ticket?status=closed" },
-          { title: "دسترسی سریع", isTitle: true },
-          { title: "همه تیکت‌ها", url: "/ticket" },
+          { title: "همه تیکت‌ها", url: "/ticket", icon: Ticket },
+          { title: "وضعیت تیکت‌ها", isTitle: true },
+          { title: "تیکت‌های باز", url: "/ticket?status=open", icon: Circle },
+          { title: "در حال بررسی", url: "/ticket?status=in_progress", icon: Clock },
+          { title: "حل شده", url: "/ticket?status=resolved", icon: CheckCircle },
+          { title: "بسته شده", url: "/ticket?status=closed", icon: XCircle },
         ]
       },
     ]
@@ -236,17 +262,15 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
       {
         title: "آمار بازدید",
         icon: BarChart3,
-        access: { 
-          module: "analytics", 
+        url: "/analytics",
+        access: {
+          module: "analytics",
           actions: ["manage"],
           allowReadOnly: true,
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "گزارش‌ها", isTitle: true },
-          { title: "گزارش کلی", url: "/analytics" },
-          { title: "گزارش روزانه", url: "/analytics?view=daily" },
-          { title: "گزارش ماهانه", url: "/analytics?view=monthly" },
+          { title: "گزارش آماری", url: "/analytics", icon: BarChart3 },
         ]
       },
     ]
@@ -259,16 +283,16 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Settings,
         items: [
           { title: "تنظیمات پنل ادمین", isTitle: true },
-          { title: "تنظیمات پنل", url: "/panel", access: { module: "panel", actions: ["manage"] } },
+          { title: "تنظیمات پنل", url: "/panel", icon: PanelRight, access: { module: "panel", actions: ["manage"] } },
           { title: "تنظیمات هوش مصنوعی", isTitle: true },
-          { title: "مدیریت Provider ها", url: "/ai/settings", access: { module: "ai", actions: ["manage"] } },
+          { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"] } },
           { title: "انتخاب مدل‌ها", url: "/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },
           { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
-          { title: "تنظیمات عمومی", url: "/settings", access: { module: "settings", actions: ["manage"] } },
-          { title: "چت‌بات", url: "/chatbot", access: { module: "chatbot", actions: ["manage"] } },
-          { title: "فرم‌ها", url: "/form-builder", access: { module: "forms", allowReadOnly: true } },
-          { title: "درباره ما", url: "/page/about", access: { module: "pages", actions: ["manage"] } },
-          { title: "قوانین و مقررات", url: "/page/terms", access: { module: "pages", actions: ["manage"] } },
+          { title: "تنظیمات عمومی", url: "/settings", icon: Settings, access: { module: "settings", actions: ["manage"] } },
+          { title: "چت‌بات", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"] } },
+          { title: "فرم‌ها", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true } },
+          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"] } },
+          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"] } },
         ],
       },
     ]
@@ -353,8 +377,8 @@ export const useMenuData = () => {
     const hideIfNoAccess = access.hideIfNoAccess ?? true;
     const primaryModule = access.module;
     const fallbackModules = access.fallbackModules || [];
-    const actions: ModuleAction[] = access.actions && access.actions.length > 0 
-      ? (access.actions.map(a => a as ModuleAction)) 
+    const actions: ModuleAction[] = access.actions && access.actions.length > 0
+      ? (access.actions.map(a => a as ModuleAction))
       : ["read"];
 
     const primaryProfile = primaryModule ? getModuleAccessProfile(primaryModule) : null;
@@ -438,13 +462,13 @@ export const useMenuData = () => {
         }
         const itemsAfter = childItems.slice(index + 1);
         const nextTitleIndex = itemsAfter.findIndex(item => item.isTitle);
-        const itemsInSection = nextTitleIndex === -1 
-          ? itemsAfter 
+        const itemsInSection = nextTitleIndex === -1
+          ? itemsAfter
           : itemsAfter.slice(0, nextTitleIndex);
         return itemsInSection.some(item => !item.isTitle && (item.url || (item.items && item.items.length > 0)));
       }) as MenuItem[] | undefined;
 
-      const hasActionableChild = filteredChildItems?.some(child => 
+      const hasActionableChild = filteredChildItems?.some(child =>
         !child.isTitle && (child.url || (child.items && child.items.length > 0))
       );
 

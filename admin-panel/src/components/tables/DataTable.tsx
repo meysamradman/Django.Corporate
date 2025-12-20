@@ -1,10 +1,11 @@
-import * as React from "react"
+import { useState } from "react"
 import type {
   ColumnDef,
   SortingState,
   VisibilityState,
   OnChangeFn,
 } from "@tanstack/react-table"
+import type { ReactNode } from "react"
 import {
   flexRender,
   getCoreRowModel,
@@ -69,7 +70,7 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   onPrint?: () => void;
   pageSizeOptions?: number[];
   searchValue?: string;
-  customHeaderActions?: React.ReactNode;
+  customHeaderActions?: ReactNode;
 }
 
 export function DataTable<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>>({
@@ -94,7 +95,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   customHeaderActions,
 }: DataTableProps<TData, TValue, TClientFilters>) {
 
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(controlledState.columnVisibility ?? {});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(controlledState.columnVisibility ?? {});
 
   const table = useReactTable({
     data,

@@ -105,7 +105,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
 
   const check = useCallback(
     (permissionId: string): boolean => {
-      // Exact match - بدون wildcard و synonym
       if (!permissionMap) return false;
       if (permissionMap.is_superadmin) return true;
       return permissionSet.has(permissionId);
@@ -196,11 +195,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canDeleteVideo: check(PERMISSIONS.MEDIA_VIDEO.DELETE),
       canDeleteAudio: check(PERMISSIONS.MEDIA_AUDIO.DELETE),
       canDeleteDocument: check(PERMISSIONS.MEDIA_DOCUMENT.DELETE),
-      
-      // Analytics - دقیق طبق Backend
-      // analytics.manage = آمار بازدید وب
-      // analytics.stats.manage = همه آمار داخلی
-      // analytics.*.read = آمار خاص
       canViewDashboardStats: check(PERMISSIONS.DASHBOARD.READ),
       canViewUsersStats: check(PERMISSIONS.ANALYTICS.USERS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewAdminsStats: check(PERMISSIONS.ANALYTICS.ADMINS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
@@ -208,10 +202,8 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canViewTicketsStats: check(PERMISSIONS.ANALYTICS.TICKETS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewEmailsStats: check(PERMISSIONS.ANALYTICS.EMAILS_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewSystemStats: check(PERMISSIONS.ANALYTICS.SYSTEM_READ) || check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
-      canManageStatistics: check(PERMISSIONS.ANALYTICS.MANAGE), // فقط آمار بازدید وب
-      canManageAllStats: check(PERMISSIONS.ANALYTICS.STATS_MANAGE), // همه آمار داخلی
-      
-      // Communication
+      canManageStatistics: check(PERMISSIONS.ANALYTICS.MANAGE),
+      canManageAllStats: check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewEmail: check(PERMISSIONS.EMAIL.READ) || check(PERMISSIONS.EMAIL.VIEW),
       canViewAI: check(PERMISSIONS.AI.MANAGE),
       canManageTicket: check(PERMISSIONS.TICKET.MANAGE),

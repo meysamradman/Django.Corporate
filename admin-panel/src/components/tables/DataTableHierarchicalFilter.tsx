@@ -1,4 +1,4 @@
-import * as React from "react"
+import { useState, useEffect, Fragment } from "react"
 import { Check, ChevronsUpDown, ChevronRight } from "lucide-react"
 import { cn } from '@/core/utils/cn';
 import { Button } from "@/components/elements/Button";
@@ -33,12 +33,12 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
   onChange
 }: DataTableHierarchicalFilterProps<TValue>) {
 
-  const [open, setOpen] = React.useState(false)
-  const [selectedLabel, setSelectedLabel] = React.useState<string>("")
+  const [open, setOpen] = useState(false)
+  const [selectedLabel, setSelectedLabel] = useState<string>("")
   const filterValue = value === undefined ? undefined : String(value);
   const defaultPlaceholder = placeholder || title || "انتخاب کنید...";
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (filterValue) {
       const findLabel = (items: CategoryItem[]): string => {
         for (const item of items) {
@@ -81,7 +81,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
 
   const renderItems = (items: CategoryItem[], depth = 0) => {
     return items.map((item) => (
-      <React.Fragment key={`item-${item.id}-${depth}`}>
+      <Fragment key={`item-${item.id}-${depth}`}>
         <CommandItem
           key={`command-${item.id}-${depth}`}
           value={item.value}
@@ -115,7 +115,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
           />
         </CommandItem>
         {item.children?.length ? renderItems(item.children, depth + 1) : null}
-      </React.Fragment>
+      </Fragment>
     ))
   }
 

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/
 import { Mic } from 'lucide-react';
 import { usePermission, AccessDenied } from '@/components/admins/permissions';
 
-// AIAudioGenerator Skeleton
 const AIAudioGeneratorSkeleton = () => (
   <div className="space-y-6">
     <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-1">

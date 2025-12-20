@@ -1,11 +1,11 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 export type MailboxType = "inbox" | "sent" | "draft" | "starred" | "spam" | "trash";
 
 export type MailboxItem = {
   id: MailboxType;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   count?: number;
   color?: string;
 };

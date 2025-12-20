@@ -39,7 +39,7 @@ class MediaPermission(RequireModuleAccess):
 
 class UserPermission(RequireModuleAccess):
     def __init__(self):
-        super().__init__('user')
+        super().__init__('users')
 
 class AdminPermission(RequireModuleAccess):
     def __init__(self):

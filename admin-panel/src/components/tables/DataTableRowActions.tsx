@@ -1,4 +1,3 @@
-import React from "react";
 import { MoreVertical } from "lucide-react"
 import type { Row } from "@tanstack/react-table"
 import { Button } from "@/components/elements/Button";

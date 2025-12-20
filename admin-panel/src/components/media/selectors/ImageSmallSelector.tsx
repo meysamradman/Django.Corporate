@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
 import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";

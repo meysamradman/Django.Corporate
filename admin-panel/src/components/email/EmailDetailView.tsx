@@ -1,4 +1,3 @@
-import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Badge } from "@/components/elements/Badge";
 import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Paperclip, Download, Send, Star } from "lucide-react";

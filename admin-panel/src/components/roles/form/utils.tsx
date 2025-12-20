@@ -1,4 +1,3 @@
-import React from "react";
 import {
   LayoutDashboard,
   Users,
@@ -23,9 +22,10 @@ import {
   BookOpenCheck,
   Shield,
 } from "lucide-react";
+import type { ReactElement } from "react";
 
-export function getResourceIcon(resourceKey: string): React.ReactElement {
-  const resourceIconMap: Record<string, React.ReactElement> = {
+export function getResourceIcon(resourceKey: string): ReactElement {
+  const resourceIconMap: Record<string, ReactElement> = {
     dashboard: <LayoutDashboard className="h-4 w-4 text-blue-600" />,
     users: <Users className="h-4 w-4 text-blue-600" />,
     admin: <ShieldCheck className="h-4 w-4 text-purple-600" />,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { mediaApi, VALID_MEDIA_PAGE_SIZES, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
@@ -8,8 +8,8 @@ import { Skeleton } from "@/components/elements/Skeleton";
 const MediaGridSkeleton = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
     {Array.from({ length: 10 }).map((_, index) => (
-      <Card 
-        key={`media-skeleton-${index}`} 
+      <Card
+        key={`media-skeleton-${index}`}
         className="overflow-hidden border-2 border-transparent hover:border-font-s/20 p-0 group relative transition-all"
       >
         <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
@@ -150,8 +150,10 @@ export default function MediaPage() {
     }
   }, []);
 
+  const location = useLocation();
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     const urlFilters: Partial<MediaFilter> = {};
 
     if (urlParams.get('search')) urlFilters.search = urlParams.get('search')!;
@@ -164,14 +166,10 @@ export default function MediaPage() {
     if (Object.keys(urlFilters).length > 0) {
       const newFilters = { ...actualDefaultFilters, ...urlFilters };
       setFilters(newFilters);
-      fetchMedia(newFilters);
     } else {
-      fetchMedia(actualDefaultFilters);
-      if (window.location.search) {
-        window.history.replaceState({}, '', window.location.pathname);
-      }
+      setFilters(actualDefaultFilters);
     }
-  }, []);
+  }, [location.search]);
 
   const debouncedSearch = useDebounce((searchTerm: string) => {
     setFilters(prev => ({ ...prev, search: searchTerm, page: 1 }));
@@ -622,10 +620,10 @@ export default function MediaPage() {
         <MediaDetailsModal
           media={detailMedia}
           isOpen={isDetailModalOpen}
-        onClose={() => setDetailModalOpen(false)}
-        onEdit={handleEditMedia}
-        showEditButton={true}
-        onMediaUpdated={handleMediaUpdated}
+          onClose={() => setDetailModalOpen(false)}
+          onEdit={handleEditMedia}
+          showEditButton={true}
+          onMediaUpdated={handleMediaUpdated}
         />
       </Suspense>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';

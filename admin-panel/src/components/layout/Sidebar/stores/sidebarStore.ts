@@ -61,8 +61,6 @@ export const useAdminStore = create<AdminStore>()(
       },
       onRehydrateStorage: () => (state, error) => {
         if (error || !state) return;
-        // تنظیمات اولیه در DashboardLayout انجام می‌شود
-        // اینجا فقط state را برمی‌گردانیم
       },
     }
   )

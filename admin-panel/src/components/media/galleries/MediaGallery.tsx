@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/elements/Button";
 import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";

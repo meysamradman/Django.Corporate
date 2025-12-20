@@ -1,6 +1,5 @@
-import * as React from "react"
 import { PlusCircle } from "lucide-react"
-import { Column } from "@tanstack/react-table"
+import type { Column, ComponentType } from "@tanstack/react-table"
 import { cn } from '@/core/utils/cn';
 import { Badge } from "@/components/elements/Badge"
 import { Button } from "@/components/elements/Button";
@@ -33,7 +32,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   options: {
     label: string
     value: string | boolean
-    icon?: React.ComponentType<{ className?: string }>
+    icon?: ComponentType<{ className?: string }>
   }[]
   type?: "select" | "command"
   placeholder?: string

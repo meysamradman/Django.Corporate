@@ -92,7 +92,6 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint جدید browse-models
                 const params = new URLSearchParams({ 
                     provider: 'openrouter', 
                     capability: 'image',
@@ -108,7 +107,6 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint جدید browse-models
                 const params = new URLSearchParams({ 
                     provider: 'huggingface', 
                     capability: 'image',
@@ -139,7 +137,6 @@ export const aiApi = {
     content: {
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                // استفاده از endpoint اصلی با capability
                 const endpoint = '/admin/ai-providers/available/?capability=content';
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
@@ -152,7 +149,6 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint جدید browse-models
                 const params = new URLSearchParams({ 
                     provider: 'openrouter', 
                     capability: 'content',
@@ -168,7 +164,6 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint جدید browse-models
                 const params = new URLSearchParams({ 
                     provider: 'huggingface', 
                     capability: 'content',
@@ -193,7 +188,6 @@ export const aiApi = {
     audio: {
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                // استفاده از endpoint اصلی با capability
                 const endpoint = '/admin/ai-providers/available/?capability=audio';
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
@@ -222,7 +216,6 @@ export const aiApi = {
     chat: {
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                // استفاده از endpoint اصلی با capability
                 const endpoint = '/admin/ai-providers/available/?capability=chat';
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error: any) {
@@ -235,7 +228,6 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint جدید browse-models
                 const params = new URLSearchParams({ 
                     provider: 'openrouter', 
                     capability: 'chat',
@@ -251,7 +243,6 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<any[]>> => {
             try {
-                // استفاده از endpoint جدید browse-models
                 const params = new URLSearchParams({ 
                     provider: 'huggingface', 
                     capability: 'chat',
@@ -412,12 +403,9 @@ export const aiApi = {
 
         getActiveModel: async (providerSlug: string, capability: string): Promise<ApiResponse<AIModelDetail>> => {
             try {
-                // استفاده از endpoint جدید active-model در ai-models viewset
                 const endpoint = `/admin/ai-models/active-model/?provider=${providerSlug}&capability=${capability}`;
-                // Silent mode - 404 is expected when no active model exists
                 return await api.get<AIModelDetail>(endpoint);
             } catch (error: any) {
-                // Silently throw - caller will handle
                 throw error;
             }
         },

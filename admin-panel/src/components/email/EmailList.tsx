@@ -1,4 +1,3 @@
-import React from "react";
 import { EmailItem } from "./EmailItem";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import { Skeleton } from "@/components/elements/Skeleton";

@@ -1,7 +1,4 @@
-import {
-  Menu,
-  PanelRight,
-} from "lucide-react";
+import { Menu, PanelRight } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Breadcrumb } from "@/components/layout/Breadcrumb/Breadcrumb";
 import { Notifications } from "@/components/layout/Header/Notifications";
@@ -13,10 +10,9 @@ interface HeaderProps {
   onMenuClick: () => void;
   isContentCollapsed?: boolean;
   onContentToggle?: () => void;
-  hasSubMenu?: boolean;
 }
 
-export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSubMenu }: HeaderProps) {
+export function Header({ onMenuClick, isContentCollapsed = false, onContentToggle }: HeaderProps) {
   return (
     <header className="flex h-16 min-h-16 items-center justify-between gap-2 sm:gap-4 border-b bg-header px-2 sm:px-4 lg:px-6 shrink-0">
       <div className="flex flex-1 items-center gap-2 min-w-0 sm:gap-4">
@@ -30,17 +26,17 @@ export function Header({ onMenuClick, isContentCollapsed, onContentToggle, hasSu
           <Menu className="h-5 w-5" />
         </Button>
 
-        {onContentToggle && (
+        {isContentCollapsed && onContentToggle && (
           <button
             onClick={() => onContentToggle()}
             className={cn(
-              "hidden lg:flex items-center justify-center w-8 h-8 rounded-md hover:bg-bg transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+              "hidden lg:flex items-center justify-center w-8 h-8 rounded-md",
+              "hover:bg-bg transition-colors",
+              "focus:outline-none focus:ring-2 focus:ring-ring"
             )}
-            aria-label={
-              isContentCollapsed ? "گسترش سایدبار" : "جمع کردن سایدبار"
-            }
+            aria-label="گسترش سایدبار"
           >
-            <PanelRight className="h-5 w-5" />
+            <PanelRight className="h-5 w-5 rotate-180 transition-transform duration-200" />
           </button>
         )}
         

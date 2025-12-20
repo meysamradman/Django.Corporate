@@ -1,4 +1,3 @@
-import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/elements/Avatar";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Star, Paperclip } from "lucide-react";

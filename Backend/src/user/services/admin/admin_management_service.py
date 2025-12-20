@@ -120,7 +120,7 @@ class AdminManagementService:
                         continue
                     admin_fields_to_update[field] = value
 
-            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone']
+            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone', 'profile_picture']
             for field in profile_model_fields:
                 if field in validated_data:
                     profile_fields_to_update[field] = validated_data.pop(field)
@@ -160,7 +160,7 @@ class AdminManagementService:
                     )
                     
                     if media:
-                        profile_fields_to_update['profile_picture_id'] = media.id
+                        profile_fields_to_update['profile_picture'] = media.id
                 except Exception as e:
                     pass
             elif profile_picture:

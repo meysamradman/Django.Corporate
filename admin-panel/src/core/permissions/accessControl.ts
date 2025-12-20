@@ -1,7 +1,5 @@
-import type { ModuleAction } from "../hooks/useUserPermissions";
-import { PERMISSIONS } from "@/core/permissions/constants";
+import type { ModuleAction } from "@/components/admins/permissions/hooks/useUserPermissions";
 
-// Extract module names from PERMISSIONS for type safety
 const MODULES = {
   AI: 'ai',
   BLOG: 'blog',
@@ -50,8 +48,8 @@ const mediaRoutes: RouteRule[] = [
     id: "media-list",
     pattern: /^\/media\/?$/,
     module: MODULES.MEDIA,
-    action: "manage",
-    description: "Media library - requires media.manage permission",
+    action: "read",
+    description: "Media library - requires media.read or media.manage permission",
   }),
   createRule({
     id: "media-detail",

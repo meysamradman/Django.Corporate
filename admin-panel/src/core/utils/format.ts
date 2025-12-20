@@ -1,17 +1,11 @@
 import { format } from 'date-fns-jalali'
 import { faIR } from 'date-fns-jalali/locale'
 
-/**
- * فرمت کردن اعداد با جداکننده هزارگان فارسی
- */
 export const formatNumber = (num: number | undefined | null): string => {
   if (num === undefined || num === null) return '0';
   return num.toLocaleString('fa-IR');
 };
 
-/**
- * فرمت کردن حجم فایل
- */
 export const formatFileSize = (bytes: number | undefined | null): string => {
   if (!bytes || bytes === 0) return '0 B';
   
@@ -22,17 +16,11 @@ export const formatFileSize = (bytes: number | undefined | null): string => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
-/**
- * فرمت کردن درصد
- */
 export const formatPercent = (value: number | undefined | null, decimals: number = 1): string => {
   if (value === undefined || value === null) return '0%';
   return `${value.toFixed(decimals)}%`;
 };
 
-/**
- * فرمت کردن تاریخ به فارسی
- */
 export function formatDate(date: string | Date | undefined | null): string {
   if (!date) {
     return '-'
@@ -67,9 +55,6 @@ export function formatDate(date: string | Date | undefined | null): string {
   }
 }
 
-/**
- * فرمت کردن تاریخ برای input
- */
 export function formatInputDate(date: string | Date | undefined | null): string {
   if (!date) {
     return ''
@@ -87,9 +72,6 @@ export function formatInputDate(date: string | Date | undefined | null): string 
   }
 }
 
-/**
- * دریافت سال شمسی از تاریخ
- */
 export function getPersianYear(date?: Date | string | null): string {
   if (!date) {
     const d = new Date()

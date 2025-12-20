@@ -15,7 +15,6 @@ interface ProviderCardProps {
   onSelect: () => void;
 }
 
-// رنگ‌های provider بر اساس slug
 const getProviderColorConfig = (slug: string) => {
   const slugLower = slug.toLowerCase();
   
@@ -90,13 +89,10 @@ export function ProviderCard({
   activeModel,
   onSelect,
 }: ProviderCardProps) {
-  // استفاده از همان آیکون‌هایی که در settings استفاده می‌شود
   const metadata = getProviderMetadata(providerSlug);
   const hasActiveModel = Boolean(activeModel);
   const displayName = activeModel?.display_name || activeModel?.name;
   const colorConfig = getProviderColorConfig(providerSlug);
-  
-  // استفاده از آیکون از metadata یا fallback
   const providerIcon = metadata?.icon || '✨';
 
   return (

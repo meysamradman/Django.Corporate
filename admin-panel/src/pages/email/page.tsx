@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useLocation } from "react-router-dom";
 
 import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, type ComposeEmailData } from "@/components/email";
 import { Checkbox } from "@/components/elements/Checkbox";
@@ -9,7 +10,6 @@ import type { MailboxType } from "@/components/email/types";
 import { toast } from "@/components/elements/Sonner";
 import { useQueryClient } from '@tanstack/react-query';
 
-// EmailDetailView Skeleton
 const EmailDetailViewSkeleton = () => (
   <div className="flex-1 flex flex-col h-full overflow-hidden">
     <div className="border-b p-6 flex-shrink-0">
@@ -45,6 +45,16 @@ export default function EmailPage() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
   const [replyToEmail, setReplyToEmail] = useState<EmailMessage | null>(null);
+  const location = useLocation();
+
+  // Sync selectedMailbox with URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const mailboxParam = params.get('mailbox') as MailboxType | null;
+    if (mailboxParam && ['inbox', 'sent', 'draft', 'starred', 'spam', 'trash'].includes(mailboxParam)) {
+      setSelectedMailbox(mailboxParam);
+    }
+  }, [location.search]);
 
   const fetchEmails = useCallback(async () => {
     try {
@@ -57,7 +67,7 @@ export default function EmailPage() {
         sent: "read",
         trash: undefined,
       };
-      
+
       const response = await emailApi.getList({
         page: 1,
         size: 50,
@@ -107,11 +117,11 @@ export default function EmailPage() {
 
   const handleEmailClick = useCallback(async (email: EmailMessage) => {
     setSelectedEmail(email);
-    
+
     if (email.status === 'new') {
       try {
         await emailApi.markAsRead(email.id);
-        setEmails(prev => prev.map(e => 
+        setEmails(prev => prev.map(e =>
           e.id === email.id ? { ...e, status: 'read' as const, is_new: false } : e
         ));
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -233,8 +243,8 @@ export default function EmailPage() {
   const filteredEmails = useMemo(() => {
     switch (selectedMailbox) {
       case "inbox":
-        return emails.filter(e => 
-          e.status !== 'draft' && 
+        return emails.filter(e =>
+          e.status !== 'draft' &&
           e.status !== 'archived' &&
           (e.source === 'website' || e.source === 'mobile_app')
         );
@@ -245,18 +255,18 @@ export default function EmailPage() {
       case "starred":
         return emails.filter(e => e.is_starred === true);
       case "spam":
-        return emails.filter(e => 
+        return emails.filter(e =>
           e.status === 'archived' && (
-            e.subject?.toLowerCase().includes('هرزنامه') || 
-            e.subject?.toLowerCase().includes('spam') || 
+            e.subject?.toLowerCase().includes('هرزنامه') ||
+            e.subject?.toLowerCase().includes('spam') ||
             e.email?.toLowerCase().includes('spam')
           )
         );
       case "trash":
-        return emails.filter(e => 
+        return emails.filter(e =>
           e.status === 'archived' && (
-            e.subject?.toLowerCase().includes('حذف') || 
-            e.subject?.toLowerCase().includes('deleted') || 
+            e.subject?.toLowerCase().includes('حذف') ||
+            e.subject?.toLowerCase().includes('deleted') ||
             e.email?.toLowerCase().includes('deleted')
           )
         );
@@ -267,25 +277,25 @@ export default function EmailPage() {
 
   const mailboxCounts = useMemo(() => {
     return {
-      inbox: emails.filter(e => 
-        e.status !== 'draft' && 
+      inbox: emails.filter(e =>
+        e.status !== 'draft' &&
         e.status !== 'archived' &&
         (e.source === 'website' || e.source === 'mobile_app')
       ).length,
       sent: emails.filter(e => e.source === 'email' && e.status !== 'draft').length,
       draft: emails.filter(e => e.status === 'draft' || e.is_draft).length,
       starred: emails.filter(e => e.is_starred === true).length,
-      spam: emails.filter(e => 
+      spam: emails.filter(e =>
         e.status === 'archived' && (
-          e.subject?.toLowerCase().includes('هرزنامه') || 
-          e.subject?.toLowerCase().includes('spam') || 
+          e.subject?.toLowerCase().includes('هرزنامه') ||
+          e.subject?.toLowerCase().includes('spam') ||
           e.email?.toLowerCase().includes('spam')
         )
       ).length,
-      trash: emails.filter(e => 
+      trash: emails.filter(e =>
         e.status === 'archived' && (
-          e.subject?.toLowerCase().includes('حذف') || 
-          e.subject?.toLowerCase().includes('deleted') || 
+          e.subject?.toLowerCase().includes('حذف') ||
+          e.subject?.toLowerCase().includes('deleted') ||
           e.email?.toLowerCase().includes('deleted')
         )
       ).length,
@@ -325,8 +335,8 @@ export default function EmailPage() {
                       filteredEmails.length > 0 && filteredEmails.every(e => selectedEmails.has(e.id))
                         ? true
                         : filteredEmails.some(e => selectedEmails.has(e.id))
-                        ? "indeterminate"
-                        : false
+                          ? "indeterminate"
+                          : false
                     }
                     onCheckedChange={() => handleSelectAll(filteredEmails)}
                     aria-label="انتخاب همه"
