@@ -112,7 +112,7 @@ export default function CreateAdminPage() {
                 email: data.email || undefined,
                 full_name: data.full_name || undefined,
                 password: data.password,
-                is_active: true,
+                is_active: data.is_active ?? true,
                 is_superuser: data.is_superuser,
                 ...(data.role_id !== 'none' && { role_id: Number(data.role_id) }),
             };

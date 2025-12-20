@@ -125,6 +125,11 @@ export const userFormSchema = z.object({
     .any()
     .nullable()
     .optional(),
+  
+  is_active: z
+    .boolean()
+    .default(true)
+    .optional(),
 });
 
 export type UserFormValues = z.infer<typeof userFormSchema>;
@@ -144,4 +149,5 @@ export const userFormDefaults: Partial<UserFormValues> = {
   profile_address: "",
   profile_bio: "",
   profile_picture: null,
+  is_active: true,
 };

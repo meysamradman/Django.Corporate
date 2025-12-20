@@ -75,7 +75,7 @@ export default function CreateUserPage() {
                 identifier: data.mobile,
                 full_name: data.full_name,
                 password: data.password,
-                is_active: true,
+                is_active: data.is_active ?? true,
                 is_staff: false,
                 is_superuser: false,
                 user_type: 'regular',

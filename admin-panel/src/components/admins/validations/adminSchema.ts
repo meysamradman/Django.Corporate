@@ -54,6 +54,11 @@ export const adminFormSchema = z.object({
   
   is_superuser: z.boolean().default(false),
   
+  is_active: z
+    .boolean()
+    .default(true)
+    .optional(),
+  
   role_id: z
     .string()
     .optional()
@@ -164,6 +169,7 @@ export const adminFormDefaults: Partial<AdminFormValues> = {
   password: "",
   full_name: "",
   is_superuser: false,
+  is_active: true,
   role_id: "none",
   profile_first_name: "",
   profile_last_name: "",

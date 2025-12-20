@@ -5,6 +5,8 @@ import type { UseFormReturn } from "react-hook-form";
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { User } from "lucide-react";
 import { filterNumericOnly } from "@/core/filters/numeric";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { Switch } from "@/components/elements/Switch";
 
 interface BaseInfoTabProps {
   form: UseFormReturn<AdminFormValues>;
@@ -15,7 +17,7 @@ export default function BaseInfoTab({
   form,
   editMode,
 }: BaseInfoTabProps) {
-  const { register, formState: { errors } } = form;
+  const { register, formState: { errors }, setValue, watch } = form;
   return (
     <div className="space-y-6">
       <CardWithIcon
@@ -93,6 +95,26 @@ export default function BaseInfoTab({
                 {...register("full_name")}
               />
             </FormField>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+              <Item variant="default" size="default" className="py-5">
+                <ItemContent>
+                  <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                  <ItemDescription>
+                    با غیرفعال شدن، ادمین از سیستم خارج شده و امکان ورود به پنل نخواهد داشت.
+                  </ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Switch
+                    checked={watch("is_active") ?? true}
+                    disabled={!editMode}
+                    onCheckedChange={(checked) => setValue("is_active", checked)}
+                  />
+                </ItemActions>
+              </Item>
+            </div>
           </div>
       </CardWithIcon>
     </div>
