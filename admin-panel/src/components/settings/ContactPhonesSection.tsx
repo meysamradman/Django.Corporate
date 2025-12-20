@@ -22,7 +22,7 @@ import {
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
 import type { ContactPhone } from "@/types/settings/generalSettings";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { Plus, Edit, Trash2, Phone, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -51,7 +51,7 @@ export function ContactPhonesSection() {
             const data = await settingsApi.getContactPhones();
             setPhones(data);
         } catch (error) {
-            toast.error("خطا در دریافت شماره‌های تماس");
+            showError("خطا در دریافت شماره‌های تماس");
         } finally {
             setLoading(false);
         }
@@ -82,7 +82,7 @@ export function ContactPhonesSection() {
 
     const handleSave = async () => {
         if (!phoneNumber.trim()) {
-            toast.error("شماره تماس الزامی است");
+            showError("شماره تماس الزامی است");
             return;
         }
 
@@ -95,20 +95,20 @@ export function ContactPhonesSection() {
                     label: label || undefined,
                     order,
                 });
-                toast.success("شماره تماس با موفقیت به‌روزرسانی شد");
+                showSuccess("شماره تماس با موفقیت به‌روزرسانی شد");
             } else {
                 await settingsApi.createContactPhone({
                     phone_number: phoneNumber,
                     label: label || undefined,
                     order,
                 });
-                toast.success("شماره تماس با موفقیت ایجاد شد");
+                showSuccess("شماره تماس با موفقیت ایجاد شد");
             }
             
             handleCloseDialog();
             await fetchPhones();
         } catch (error) {
-            toast.error("خطا در ذخیره شماره تماس");
+            showError("خطا در ذخیره شماره تماس");
         } finally {
             setSaving(false);
         }
@@ -124,12 +124,12 @@ export function ContactPhonesSection() {
 
         try {
             await settingsApi.deleteContactPhone(phoneToDelete);
-            toast.success("شماره تماس با موفقیت حذف شد");
+            showSuccess("شماره تماس با موفقیت حذف شد");
             await fetchPhones();
             setDeleteDialogOpen(false);
             setPhoneToDelete(null);
         } catch (error) {
-            toast.error("خطا در حذف شماره تماس");
+            showError("خطا در حذف شماره تماس");
         }
     };
 

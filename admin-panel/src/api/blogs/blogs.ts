@@ -163,7 +163,7 @@ export const blogApi = {
   },
 
   bulkDeleteBlogs: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/blog/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/blog/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -244,7 +244,7 @@ export const blogApi = {
   },
 
   bulkDeleteCategories: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/blog-category/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/blog-category/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -325,7 +325,7 @@ export const blogApi = {
   },
 
   bulkDeleteTags: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/blog-tag/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/blog-tag/bulk-delete/', { ids });
     return response.data;
   },
 };

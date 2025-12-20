@@ -22,7 +22,7 @@ import {
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
 import type { ContactEmail } from "@/types/settings/generalSettings";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { Plus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -51,7 +51,7 @@ export function ContactEmailsSection() {
             const data = await settingsApi.getContactEmails();
             setEmails(data);
         } catch (error) {
-            toast.error("خطا در دریافت ایمیل‌ها");
+            showError("خطا در دریافت ایمیل‌ها");
         } finally {
             setLoading(false);
         }
@@ -82,7 +82,7 @@ export function ContactEmailsSection() {
 
     const handleSave = async () => {
         if (!email.trim()) {
-            toast.error("ایمیل الزامی است");
+            showError("ایمیل الزامی است");
             return;
         }
 
@@ -95,20 +95,20 @@ export function ContactEmailsSection() {
                     label: label || undefined,
                     order,
                 });
-                toast.success("ایمیل با موفقیت به‌روزرسانی شد");
+                showSuccess("ایمیل با موفقیت به‌روزرسانی شد");
             } else {
                 await settingsApi.createContactEmail({
                     email: email,
                     label: label || undefined,
                     order,
                 });
-                toast.success("ایمیل با موفقیت ایجاد شد");
+                showSuccess("ایمیل با موفقیت ایجاد شد");
             }
             
             handleCloseDialog();
             await fetchEmails();
         } catch (error) {
-            toast.error("خطا در ذخیره ایمیل");
+            showError("خطا در ذخیره ایمیل");
         } finally {
             setSaving(false);
         }
@@ -124,12 +124,12 @@ export function ContactEmailsSection() {
 
         try {
             await settingsApi.deleteContactEmail(emailToDelete);
-            toast.success("ایمیل با موفقیت حذف شد");
+            showSuccess("ایمیل با موفقیت حذف شد");
             await fetchEmails();
             setDeleteDialogOpen(false);
             setEmailToDelete(null);
         } catch (error) {
-            toast.error("خطا در حذف ایمیل");
+            showError("خطا در حذف ایمیل");
         }
     };
 

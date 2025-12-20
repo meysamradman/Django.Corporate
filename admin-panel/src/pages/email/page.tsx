@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { emailApi } from "@/api/email/email";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "@/components/email/types";
-import { toast } from "@/components/elements/Sonner";
+import { showSuccess, showError } from "@/core/toast";
 import { useQueryClient } from '@tanstack/react-query';
 
 const EmailDetailView = lazy(() => import("@/components/email").then(mod => ({ default: mod.EmailDetailView })));
@@ -52,7 +52,7 @@ export default function EmailPage() {
       });
       setEmails(response.data);
     } catch (error) {
-      toast.error("خطا در دریافت ایمیل‌ها");
+      showError("خطا در دریافت ایمیل‌ها");
     } finally {
       setLoading(false);
     }
@@ -115,37 +115,37 @@ export default function EmailPage() {
     try {
       setEmails(prev => prev.filter(e => e.id !== email.id));
       setSelectedEmail(null);
-      toast.success("ایمیل با موفقیت حذف شد");
+      showSuccess("ایمیل با موفقیت حذف شد");
     } catch (error) {
-      toast.error("خطا در حذف ایمیل");
+      showError("خطا در حذف ایمیل");
     }
   }, []);
 
   const handleMarkAsRead = useCallback(async () => {
     if (selectedEmails.size === 0) {
-      toast.error("لطفا ابتدا ایمیل‌هایی را انتخاب کنید");
+      showError("لطفا ابتدا ایمیل‌هایی را انتخاب کنید");
       return;
     }
     try {
-      toast.success("ایمیل‌ها به عنوان خوانده شده علامت‌گذاری شدند");
+      showSuccess("ایمیل‌ها به عنوان خوانده شده علامت‌گذاری شدند");
       fetchEmails();
       setSelectedEmails(new Set());
     } catch (error) {
-      toast.error("خطا در علامت‌گذاری ایمیل‌ها");
+      showError("خطا در علامت‌گذاری ایمیل‌ها");
     }
   }, [selectedEmails.size, fetchEmails]);
 
   const handleMarkAsUnread = useCallback(async () => {
     if (selectedEmails.size === 0) {
-      toast.error("لطفا ابتدا ایمیل‌هایی را انتخاب کنید");
+      showError("لطفا ابتدا ایمیل‌هایی را انتخاب کنید");
       return;
     }
     try {
-      toast.success("ایمیل‌ها به عنوان نخوانده علامت‌گذاری شدند");
+      showSuccess("ایمیل‌ها به عنوان نخوانده علامت‌گذاری شدند");
       fetchEmails();
       setSelectedEmails(new Set());
     } catch (error) {
-      toast.error("خطا در علامت‌گذاری ایمیل‌ها");
+      showError("خطا در علامت‌گذاری ایمیل‌ها");
     }
   }, [selectedEmails.size, fetchEmails]);
 
@@ -153,7 +153,7 @@ export default function EmailPage() {
     try {
       if (replyToEmail) {
         await emailApi.markAsReplied(replyToEmail.id, data.message);
-        toast.success("پاسخ با موفقیت ارسال شد");
+        showSuccess("پاسخ با موفقیت ارسال شد");
       } else {
         await emailApi.create({
           name: data.to.split("@")[0],
@@ -163,13 +163,13 @@ export default function EmailPage() {
           source: "email",
           status: "new",
         });
-        toast.success("ایمیل با موفقیت ارسال شد");
+        showSuccess("ایمیل با موفقیت ارسال شد");
       }
       setReplyToEmail(null);
       fetchEmails();
     } catch (error: any) {
       const errorMessage = error.message || 'خطا در ارسال ایمیل';
-      toast.error(errorMessage);
+      showError(errorMessage);
     }
   }, [fetchEmails, replyToEmail]);
 
@@ -182,10 +182,10 @@ export default function EmailPage() {
         message: data.message || "",
         source: "email",
       });
-      toast.success("پیش‌نویس با موفقیت ذخیره شد");
+      showSuccess("پیش‌نویس با موفقیت ذخیره شد");
       fetchEmails();
     } catch (error) {
-      toast.error("خطا در ذخیره پیش‌نویس");
+      showError("خطا در ذخیره پیش‌نویس");
     }
   }, [fetchEmails]);
 
@@ -194,11 +194,11 @@ export default function EmailPage() {
       await emailApi.update(email.id, {
         status: "new",
       });
-      toast.success("پیش‌نویس با موفقیت منتشر شد");
+      showSuccess("پیش‌نویس با موفقیت منتشر شد");
       setSelectedEmail(null);
       fetchEmails();
     } catch (error) {
-      toast.error("خطا در انتشار پیش‌نویس");
+      showError("خطا در انتشار پیش‌نویس");
     }
   }, [fetchEmails]);
 
@@ -210,9 +210,9 @@ export default function EmailPage() {
       if (selectedEmail?.id === email.id) {
         setSelectedEmail(updatedEmail);
       }
-      toast.success(email.is_starred ? "ستاره حذف شد" : "ستاره اضافه شد");
+      showSuccess(email.is_starred ? "ستاره حذف شد" : "ستاره اضافه شد");
     } catch (error) {
-      toast.error("خطا در تغییر وضعیت ستاره");
+      showError("خطا در تغییر وضعیت ستاره");
     }
   }, [selectedEmail]);
 

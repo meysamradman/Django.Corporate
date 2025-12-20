@@ -17,7 +17,7 @@ import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { mediaApi } from '@/api/media/media';
-import { toast } from '@/core/toast';
+import { showSuccess, showError } from '@/core/toast';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { TruncatedText } from '@/components/elements/TruncatedText';
 import { ProtectedButton, usePermission } from '@/components/admins/permissions';
@@ -134,7 +134,7 @@ export function MediaDetailsModal({
       const response = await mediaApi.updateMedia(media.id, updateData);
       
       if (response.metaData.status === 'success' && response.data) {
-        toast.success('تغییرات با موفقیت ذخیره شد');
+        showSuccess('تغییرات با موفقیت ذخیره شد');
         setIsEditing(false);
         setNewCoverImage(null);
         
@@ -145,10 +145,10 @@ export function MediaDetailsModal({
           onMediaUpdated(finalUpdatedMedia);
         }
       } else {
-        toast.error(response.metaData.message || 'خطا در ذخیره تغییرات');
+        showError(response.metaData.message || 'خطا در ذخیره تغییرات');
       }
     } catch (error) {
-      toast.error('خطا در ذخیره تغییرات');
+      showError('خطا در ذخیره تغییرات');
     } finally {
       setIsSaving(false);
     }

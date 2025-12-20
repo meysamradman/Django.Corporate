@@ -7,7 +7,7 @@ import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { Image as ImageIcon, X } from 'lucide-react';
-import { toast } from '@/core/toast';
+import { showError } from '@/core/toast';
 
 interface CoverImageManagerProps {
   currentCoverImage?: Media | number | null;
@@ -42,7 +42,7 @@ export function CoverImageManager({
     const media = Array.isArray(selectedMedia) ? selectedMedia[0] : selectedMedia;
     
     if (media.media_type !== 'image') {
-      toast.error('فایل انتخاب شده باید یک تصویر باشد');
+      showError('فایل انتخاب شده باید یک تصویر باشد');
       return;
     }
     

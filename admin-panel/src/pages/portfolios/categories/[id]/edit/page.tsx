@@ -6,7 +6,7 @@ import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
-import { toast } from "sonner";
+import { showError, showSuccess, showInfo } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
@@ -140,7 +140,7 @@ export default function EditCategoryPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio-category', categoryId] });
       queryClient.invalidateQueries({ queryKey: ['portfolio-categories'] });
-      toast.success("دسته‌بندی با موفقیت به‌روزرسانی شد");
+      showSuccess("دسته‌بندی با موفقیت به‌روزرسانی شد");
       navigate("/portfolios/categories");
     },
     onError: (error: any) => {
@@ -153,9 +153,9 @@ export default function EditCategoryPage() {
         const validationErrors: string[] = [];
         if (errorData.name) validationErrors.push(...errorData.name);
         if (errorData.slug) validationErrors.push(...errorData.slug);
-        toast.error(validationErrors.join(", "));
+        showError(validationErrors.join(", "));
       } else {
-        toast.error(errorMessage);
+        showError(errorMessage);
       }
     },
   });
@@ -205,7 +205,7 @@ export default function EditCategoryPage() {
     
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
-      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
     
@@ -242,7 +242,7 @@ export default function EditCategoryPage() {
     }
     
     if (Object.keys(submitData).length === 0) {
-      toast.info("تغییری اعمال نشده است");
+      showInfo("تغییری اعمال نشده است");
       return;
     }
     

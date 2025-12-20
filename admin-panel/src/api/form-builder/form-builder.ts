@@ -1,5 +1,4 @@
 import { api } from '@/core/config/api';
-import { getCrud } from '@/core/messages';
 import type {
     ContactFormField,
     ContactFormFieldCreate,
@@ -24,9 +23,7 @@ class FormApi {
         const url = `${this.baseUrl}fields/${queryString ? '?' + queryString : ''}`;
         
         try {
-            const response = await api.get<ContactFormField[]>(url, {
-                silent: true
-            });
+            const response = await api.get<ContactFormField[]>(url);
 
             if (!response || !response.data) {
                 return [];
@@ -39,10 +36,7 @@ class FormApi {
 
     async getFieldById(id: number): Promise<ContactFormField> {
         const response = await api.get<{ data: ContactFormField }>(
-            `${this.baseUrl}fields/${id}/`,
-            {
-                showErrorToast: true
-            }
+            `${this.baseUrl}fields/${id}/`
         );
         return response.data.data;
     }
@@ -50,11 +44,7 @@ class FormApi {
     async createField(data: ContactFormFieldCreate): Promise<ContactFormField> {
         const response = await api.post<{ data: ContactFormField }>(
             `${this.baseUrl}fields/`,
-            data,
-            {
-                showSuccessToast: true,
-                successMessage: getCrud('created', { item: 'فیلد فرم' })
-            }
+            data
         );
         return response.data.data;
     }
@@ -62,29 +52,19 @@ class FormApi {
     async updateField(id: number, data: ContactFormFieldUpdate): Promise<ContactFormField> {
         const response = await api.patch<{ data: ContactFormField }>(
             `${this.baseUrl}fields/${id}/`,
-            data,
-            {
-                showSuccessToast: true,
-                successMessage: getCrud('updated', { item: 'فیلد فرم' })
-            }
+            data
         );
         return response.data.data;
     }
 
     async deleteField(id: number): Promise<void> {
-        await api.delete(`${this.baseUrl}fields/${id}/`, {
-            showSuccessToast: true,
-            successMessage: getCrud('deleted', { item: 'فیلد فرم' })
-        });
+        await api.delete(`${this.baseUrl}fields/${id}/`);
     }
 
     async getFieldsForPlatform(platform: 'website' | 'mobile_app'): Promise<ContactFormField[]> {
         try {
             const response = await api.get<ContactFormField[]>(
-                `${this.baseUrl}fields/get_fields_for_platform/?platform=${platform}`,
-                {
-                    silent: true
-                }
+                `${this.baseUrl}fields/get_fields_for_platform/?platform=${platform}`
             );
             return Array.isArray(response.data) ? response.data : [];
         } catch {
@@ -95,11 +75,7 @@ class FormApi {
     async createSubmission(data: ContactFormSubmissionCreate): Promise<void> {
         await api.post(
             `${this.baseUrl}submissions/`,
-            data,
-            {
-                showSuccessToast: true,
-                successMessage: getCrud('created', { item: 'پیام' })
-            }
+            data
         );
     }
 }

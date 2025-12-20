@@ -166,7 +166,7 @@ export const portfolioApi = {
   },
 
   bulkDeletePortfolios: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/portfolio/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/portfolio/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -248,7 +248,7 @@ export const portfolioApi = {
   },
 
   bulkDeleteCategories: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/portfolio-category/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/portfolio-category/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -330,7 +330,7 @@ export const portfolioApi = {
   },
 
   bulkDeleteTags: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/portfolio-tag/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/portfolio-tag/bulk-delete/', { ids });
     return response.data;
   },
 
@@ -411,7 +411,7 @@ export const portfolioApi = {
   },
 
   bulkDeleteOptions: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post('/admin/portfolio-option/bulk-delete/', { ids });
+    const response = await api.post<{ success: boolean }>('/admin/portfolio-option/bulk-delete/', { ids });
     return response.data;
   },
 };

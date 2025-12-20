@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/ai';
 import type { AvailableProvider, AIContentGenerationResponse } from '@/types/ai/ai';
-import { toast } from '@/components/elements/Sonner';
+import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { ContentInputForm } from './ContentInputForm';
 import { SEOInfoCard } from './SEOInfoCard';
@@ -71,12 +71,12 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
     const handleGenerate = async () => {
         if (!selectedProvider) {
-            toast.error(msg.ai('selectModel'));
+            showError(msg.ai('selectModel'));
             return;
         }
 
         if (!topic.trim()) {
-            toast.error(msg.ai('enterTopic'));
+            showError(msg.ai('enterTopic'));
             return;
         }
 
@@ -91,7 +91,7 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
 
             if (response.metaData.status === 'success') {
                 setGeneratedContent(response.data);
-                toast.success(msg.ai('contentGenerated'));
+                showSuccess(msg.ai('contentGenerated'));
             }
         } catch {
           // Error handling is done by toast
@@ -104,10 +104,10 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
         try {
             await navigator.clipboard.writeText(text);
             setCopiedField(fieldName);
-            toast.success(msg.ai('copied'));
+            showSuccess(msg.ai('copied'));
             setTimeout(() => setCopiedField(null), 2000);
         } catch {
-            toast.error(msg.ai('copyError'));
+            showError(msg.ai('copyError'));
         }
     };
 

@@ -38,7 +38,7 @@ import {
 import { Checkbox } from "@/components/elements/Checkbox";
 import { formApi } from "@/api/form-builder/form-builder";
 import type { ContactFormField, ContactFormFieldCreate } from "@/types/form/contactForm";
-import { toast } from "@/components/elements/Sonner";
+import { showError } from "@/core/toast";
 import { Plus, Edit, Trash2, FileText, Loader2, Globe, Smartphone, MoreVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Badge } from "@/components/elements/Badge";
@@ -144,41 +144,41 @@ export function FormFieldsSection() {
     const handleSave = async () => {
         const trimmedFieldKey = fieldKey.trim();
         if (!trimmedFieldKey) {
-            toast.error("کلید فیلد الزامی است");
+            showError("کلید فیلد الزامی است");
             return;
         }
         
         if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmedFieldKey)) {
-            toast.error("کلید فیلد باید با حرف یا underscore شروع شود و فقط شامل حروف انگلیسی، اعداد و underscore باشد");
+            showError("کلید فیلد باید با حرف یا underscore شروع شود و فقط شامل حروف انگلیسی، اعداد و underscore باشد");
             return;
         }
         
         if (trimmedFieldKey.length < 2) {
-            toast.error("کلید فیلد باید حداقل 2 کاراکتر باشد");
+            showError("کلید فیلد باید حداقل 2 کاراکتر باشد");
             return;
         }
         
         if (!label.trim()) {
-            toast.error("برچسب فیلد الزامی است");
+            showError("برچسب فیلد الزامی است");
             return;
         }
         
         if (platforms.length === 0) {
-            toast.error("حداقل یک پلتفرم باید انتخاب شود");
+            showError("حداقل یک پلتفرم باید انتخاب شود");
             return;
         }
         
         if (fieldType === 'select' || fieldType === 'radio') {
             const validOptions = options.filter(opt => opt.value && opt.label);
             if (validOptions.length === 0) {
-                toast.error("فیلدهای انتخابی باید حداقل یک گزینه معتبر (با مقدار و برچسب) داشته باشند");
+                showError("فیلدهای انتخابی باید حداقل یک گزینه معتبر (با مقدار و برچسب) داشته باشند");
                 return;
             }
             
             const values = validOptions.map(opt => opt.value.trim().toLowerCase());
             const uniqueValues = new Set(values);
             if (values.length !== uniqueValues.size) {
-                toast.error("مقادیر گزینه‌ها نمی‌توانند تکراری باشند");
+                showError("مقادیر گزینه‌ها نمی‌توانند تکراری باشند");
                 return;
             }
         }

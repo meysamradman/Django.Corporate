@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, type MutableRefObject } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { aiApi } from '@/api/ai/ai';
-import { toast } from '@/components/elements/Sonner';
+import { showError } from '@/core/toast';
 import { Button } from '@/components/elements/Button';
 import { ModelSelector } from '@/components/ai/core';
 import type { OpenRouterModel } from '@/types/ai/ai';
@@ -192,11 +192,11 @@ export function OpenRouterModelSelectorContent({
           });
           setModels(realModels);
         } else {
-          toast.error('خطا در دریافت مدل‌ها از OpenRouter');
+          showError('خطا در دریافت مدل‌ها از OpenRouter');
           setModels([]);
         }
-      } catch (_error) {
-        toast.error('خطا در دریافت مدل‌ها از OpenRouter');
+      } catch {
+        showError('خطا در دریافت مدل‌ها از OpenRouter');
         setModels([]);
       } finally {
         setLoading(false);

@@ -23,7 +23,7 @@ import {
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
 import { settingsApi } from "@/api/settings/settings";
 import type { SocialMedia } from "@/types/settings/generalSettings";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Media } from "@/types/shared/media";
@@ -54,7 +54,7 @@ export function SocialMediaSection() {
             const data = await settingsApi.getSocialMedias();
             setSocialMedias(data);
         } catch (error) {
-            toast.error("خطا در دریافت شبکه‌های اجتماعی");
+            showError("خطا در دریافت شبکه‌های اجتماعی");
         } finally {
             setLoading(false);
         }
@@ -93,7 +93,7 @@ export function SocialMediaSection() {
 
     const handleSave = async () => {
         if (!name.trim() || !url.trim()) {
-            toast.error("نام و لینک الزامی هستند");
+            showError("نام و لینک الزامی هستند");
             return;
         }
 
@@ -107,7 +107,7 @@ export function SocialMediaSection() {
                     order,
                     icon: icon?.id || null,
                 });
-                toast.success("شبکه اجتماعی با موفقیت به‌روزرسانی شد");
+                showSuccess("شبکه اجتماعی با موفقیت به‌روزرسانی شد");
             } else {
                 await settingsApi.createSocialMedia({
                     name: name,
@@ -115,13 +115,13 @@ export function SocialMediaSection() {
                     order,
                     icon: icon?.id || null,
                 });
-                toast.success("شبکه اجتماعی با موفقیت ایجاد شد");
+                showSuccess("شبکه اجتماعی با موفقیت ایجاد شد");
             }
             
             handleCloseDialog();
             await fetchSocialMedias();
         } catch (error) {
-            toast.error("خطا در ذخیره شبکه اجتماعی");
+            showError("خطا در ذخیره شبکه اجتماعی");
         } finally {
             setSaving(false);
         }
@@ -137,12 +137,12 @@ export function SocialMediaSection() {
 
         try {
             await settingsApi.deleteSocialMedia(socialMediaToDelete);
-            toast.success("شبکه اجتماعی با موفقیت حذف شد");
+            showSuccess("شبکه اجتماعی با موفقیت حذف شد");
             await fetchSocialMedias();
             setDeleteDialogOpen(false);
             setSocialMediaToDelete(null);
         } catch (error) {
-            toast.error("خطا در حذف شبکه اجتماعی");
+            showError("خطا در حذف شبکه اجتماعی");
         }
     };
 

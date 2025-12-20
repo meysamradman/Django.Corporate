@@ -7,7 +7,7 @@ import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
@@ -51,13 +51,13 @@ export default function EditTagPage() {
   const updateTagMutation = useMutation({
     mutationFn: (data: Partial<PortfolioTag>) => portfolioApi.updateTag(tagId, data),
     onSuccess: (data) => {
-      toast.success("تگ با موفقیت به‌روزرسانی شد");
+      showSuccess("تگ با موفقیت به‌روزرسانی شد");
       queryClient.invalidateQueries({ queryKey: ['tag', tagId] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
       navigate("/portfolios/tags");
     },
     onError: (error) => {
-      toast.error("خطا در به‌روزرسانی تگ");
+      showError("خطا در به‌روزرسانی تگ");
     },
   });
 
@@ -89,7 +89,7 @@ export default function EditTagPage() {
     
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
-      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
     

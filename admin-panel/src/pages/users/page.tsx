@@ -8,7 +8,7 @@ import type { Filter } from "@/types/auth/adminFilter";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -116,10 +116,10 @@ export default function UsersPage() {
     mutationFn: (userId: number) => adminApi.deleteUserByType(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 
@@ -127,11 +127,11 @@ export default function UsersPage() {
     mutationFn: (userIds: number[]) => adminApi.bulkDeleteUsersByType(userIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 

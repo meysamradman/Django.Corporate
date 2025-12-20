@@ -6,7 +6,7 @@ import { msg } from '@/core/messages';
 import { authApi } from '@/api/auth/auth';
 import { MobileInputForm } from './MobileInputForm';
 import { ChevronLeft } from 'lucide-react';
-import type { ApiError } from '@/types/api/apiError';
+import { ApiError } from '@/types/api/apiError';
 
 const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
 const OTPLoginForm = lazy(() => import('./OTPLoginForm'));

@@ -1,6 +1,6 @@
 import { useState, useEffect, type MutableRefObject } from 'react';
 import { aiApi } from '@/api/ai/ai';
-import { toast } from '@/components/elements/Sonner';
+import { showError } from '@/core/toast';
 import { ModelSelector } from '@/components/ai/core';
 import type { HuggingFaceModel } from '@/types/ai/ai';
 
@@ -79,11 +79,11 @@ export function HuggingFaceModelSelectorContent({
           });
           setModels(mappedModels);
         } else {
-          toast.error('خطا در دریافت مدل‌ها از Hugging Face');
+          showError('خطا در دریافت مدل‌ها از Hugging Face');
           setModels([]);
         }
-      } catch (_error) {
-        toast.error('خطا در دریافت مدل‌ها از Hugging Face');
+      } catch {
+        showError('خطا در دریافت مدل‌ها از Hugging Face');
         setModels([]);
       } finally {
         setLoading(false);

@@ -11,7 +11,7 @@ import {
   Mail,
   MailOpen,
 } from "lucide-react";
-import { toast } from "@/components/elements/Sonner";
+import { showError } from "@/core/toast";
 import { usePermission } from "@/components/admins/permissions";
 import { PERMISSIONS } from "@/components/admins/permissions/constants";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
@@ -69,7 +69,7 @@ function EmailActionsDropdown({
 
   const handleClick = (callback?: () => void) => {
     if (!canUpdate) {
-      toast.error("شما دسترسی تغییر وضعیت ایمیل ندارید");
+      showError("شما دسترسی تغییر وضعیت ایمیل ندارید");
       return;
     }
     callback?.();

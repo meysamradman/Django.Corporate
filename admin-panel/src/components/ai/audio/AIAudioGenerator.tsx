@@ -5,7 +5,7 @@ import { aiApi } from '@/api/ai/ai';
 import type { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/media';
 import type { Media } from '@/types/shared/media';
-import { toast } from '@/components/elements/Sonner';
+import { showSuccess, showError, showInfo } from '@/core/toast';
 // getAI, getAIUI removed - not used
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
@@ -122,17 +122,17 @@ export function AIAudioGenerator({
 
     const handleGenerate = async () => {
         if (!selectedProvider) {
-            toast.error('لطفاً مدل AI را انتخاب کنید');
+            showError('لطفاً مدل AI را انتخاب کنید');
             return;
         }
 
         if (!text.trim()) {
-            toast.error('لطفاً متن را وارد کنید');
+            showError('لطفاً متن را وارد کنید');
             return;
         }
 
         if (text.length > 4096) {
-            toast.error('متن نمی‌تواند بیشتر از 4096 کاراکتر باشد');
+            showError('متن نمی‌تواند بیشتر از 4096 کاراکتر باشد');
             return;
         }
 
@@ -157,11 +157,11 @@ export function AIAudioGenerator({
                 if (data.saved === false && data.audio_data_url) {
                     setGeneratedAudioUrl(data.audio_data_url);
                     setGeneratedMedia(null);
-                    toast.success('پادکست با موفقیت تولید شد');
+                    showSuccess('پادکست با موفقیت تولید شد');
                 } else {
                     setGeneratedMedia(data as Media);
                     setGeneratedAudioUrl(null);
-                    toast.success('پادکست با موفقیت تولید و ذخیره شد');
+                    showSuccess('پادکست با موفقیت تولید و ذخیره شد');
                     onAudioGenerated?.(data as Media);
                 }
                 
@@ -171,7 +171,7 @@ export function AIAudioGenerator({
             if (isDemoMode) {
                 setTimeout(() => {
                     setGeneratedAudioUrl('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
-                    toast.info('حالت نمایشی: این یک نمونه است. برای استفاده واقعی، API را فعال کنید.');
+                    showInfo('حالت نمایشی: این یک نمونه است. برای استفاده واقعی، API را فعال کنید.');
                     setGenerating(false);
                 }, 1500);
             } else {
@@ -209,12 +209,12 @@ export function AIAudioGenerator({
                 const media = uploadResponse.data;
                 setGeneratedMedia(media);
                 setGeneratedAudioUrl(null);
-                toast.success('فایل صوتی ذخیره شد');
+                showSuccess('فایل صوتی ذخیره شد');
                 onAudioGenerated?.(media);
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'خطای نامشخص';
-            toast.error('خطا در ذخیره فایل صوتی: ' + errorMessage);
+            showError('خطا در ذخیره فایل صوتی: ' + errorMessage);
         }
     };
 

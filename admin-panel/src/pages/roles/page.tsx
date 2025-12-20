@@ -8,7 +8,7 @@ import { useRoles, useDeleteRole, useBulkDeleteRoles } from "@/components/admins
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
-import { toast } from "@/components/elements/Sonner";
+import { showWarning } from "@/core/toast";
 import type { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useMutation } from "@tanstack/react-query";
 import { getConfirm, getCrud } from '@/core/messages';
@@ -139,7 +139,7 @@ export default function RolesPage() {
   const handleDeleteRole = (roleId: number) => {
     const role = data.find(r => r.id === roleId);
     if (role?.is_system_role) {
-      toast.warning('نقش‌های سیستمی قابل حذف نیستند');
+      showWarning('نقش‌های سیستمی قابل حذف نیستند');
       return;
     }
     
@@ -156,12 +156,12 @@ export default function RolesPage() {
     const deletableRoles = selectedRoles.filter(role => !role.is_system_role);
     
     if (deletableRoles.length === 0) {
-      toast.warning('نقش‌های سیستمی قابل حذف نیستند');
+      showWarning('نقش‌های سیستمی قابل حذف نیستند');
       return;
     }
     
     if (deletableRoles.length < selectedRoles.length) {
-      toast.warning(`تنها ${deletableRoles.length} نقش غیرسیستمی حذف خواهد شد`);
+      showWarning(`تنها ${deletableRoles.length} نقش غیرسیستمی حذف خواهد شد`);
     }
     
     setDeleteConfirm({

@@ -6,7 +6,7 @@ export const exportBlogPdf = async (blogId: number): Promise<void> => {
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `blog_${blogId}_${timestamp}.pdf`;
   
-  await api.downloadFile(url, filename);
+  await api.download(url, filename);
 };
 
 export const exportBlogs = async (
@@ -50,10 +50,6 @@ export const exportBlogs = async (
     ? `blogs_${timestamp}.pdf`
     : `blogs_${timestamp}.xlsx`;
   
-  const useFetchForErrorHandling = filters?.export_all === true;
-  
-  await api.downloadFile(url, filename, 'GET', null, { 
-    useFetchForErrorHandling 
-  } as { useFetchForErrorHandling?: boolean });
+  await api.download(url, filename);
 };
 

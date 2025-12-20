@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { roleApi } from '@/api/admins/roles/roles'
 import type { RoleListParams } from '@/types/auth/permission'
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess } from '@/core/toast';
 import { getPermissionTranslation } from '@/core/messages/permissions';
 
 const translateRoleError = (message: string): string => {
@@ -82,16 +82,16 @@ export const useCreateRole = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
-      toast.success('نقش با موفقیت ایجاد شد')
+      showSuccess('نقش با موفقیت ایجاد شد')
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
         const translatedMessage = translateRoleError(error.metaData.message);
-        toast.error(translatedMessage)
+        showError(translatedMessage)
       } else if (error?.message) {
-        toast.error(error.message)
+        showError(error.message)
       } else {
-        toast.error('خطا در ایجاد نقش')
+        showError('خطا در ایجاد نقش')
       }
     },
   })
@@ -110,16 +110,16 @@ export const useUpdateRole = () => {
       
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       
-      toast.success('نقش با موفقیت بروزرسانی شد')
+      showSuccess('نقش با موفقیت بروزرسانی شد')
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
         const translatedMessage = translateRoleError(error.metaData.message);
-        toast.error(translatedMessage)
+        showError(translatedMessage)
       } else if (error?.message) {
-        toast.error(error.message)
+        showError(error.message)
       } else {
-        toast.error('خطا در بروزرسانی نقش')
+        showError('خطا در بروزرسانی نقش')
       }
     },
   })
@@ -133,16 +133,16 @@ export const useDeleteRole = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
-      toast.success('نقش با موفقیت حذف شد')
+      showSuccess('نقش با موفقیت حذف شد')
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
         const translatedMessage = translateRoleError(error.metaData.message);
-        toast.error(translatedMessage)
+        showError(translatedMessage)
       } else if (error?.message) {
-        toast.error(error.message)
+        showError(error.message)
       } else {
-        toast.error('خطا در حذف نقش')
+        showError('خطا در حذف نقش')
       }
     },
   })
@@ -160,19 +160,19 @@ export const useBulkDeleteRoles = () => {
         const successMessage = translateRoleSuccess(
           `Successfully deleted ${response.data.deleted_count} admin roles`
         );
-        toast.success(successMessage)
+        showSuccess(successMessage)
       } else {
-        toast.success('نقش‌ها با موفقیت حذف شدند')
+        showSuccess('نقش‌ها با موفقیت حذف شدند')
       }
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
         const translatedMessage = translateRoleError(error.metaData.message);
-        toast.error(translatedMessage)
+        showError(translatedMessage)
       } else if (error?.message) {
-        toast.error(error.message)
+        showError(error.message)
       } else {
-        toast.error('خطا در حذف نقش‌ها')
+        showError('خطا در حذف نقش‌ها')
       }
     },
   })
@@ -187,16 +187,16 @@ export const useUpdateRoleStatus = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
-      toast.success('وضعیت نقش با موفقیت تغییر کرد')
+      showSuccess('وضعیت نقش با موفقیت تغییر کرد')
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
         const translatedMessage = translateRoleError(error.metaData.message);
-        toast.error(translatedMessage)
+        showError(translatedMessage)
       } else if (error?.message) {
-        toast.error(error.message)
+        showError(error.message)
       } else {
-        toast.error('خطا در تغییر وضعیت نقش')
+        showError('خطا در تغییر وضعیت نقش')
       }
     },
   })

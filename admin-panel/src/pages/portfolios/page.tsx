@@ -6,7 +6,7 @@ import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess, showWarning } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -167,10 +167,10 @@ export default function PortfolioPage() {
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(getCrud('deleted', { item: 'نمونه‌کار' }));
+      showSuccess(getCrud('deleted', { item: 'نمونه‌کار' }));
     },
     onError: (error) => {
-      toast.error('خطای سرور رخ داد');
+      showError('خطای سرور رخ داد');
     },
   });
 
@@ -178,11 +178,11 @@ export default function PortfolioPage() {
     mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(getCrud('deleted', { item: 'نمونه‌کارها' }));
+      showSuccess(getCrud('deleted', { item: 'نمونه‌کارها' }));
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error('خطای سرور رخ داد');
+      showError('خطای سرور رخ داد');
     },
   });
 
@@ -192,10 +192,10 @@ export default function PortfolioPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      toast.success(data.is_active ? getStatus('active') : getStatus('inactive'));
+      showSuccess(data.is_active ? getStatus('active') : getStatus('inactive'));
     },
     onError: (error) => {
-      toast.error(getStatus('statusChangeError'));
+      showError(getStatus('statusChangeError'));
     },
   });
 
@@ -273,10 +273,10 @@ export default function PortfolioPage() {
       }
       
       await exportPortfolios(exportParams, 'excel');
-      toast.success(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
+      showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
-      toast.error(errorMessage);
+      showError(errorMessage);
     }
   };
 
@@ -301,17 +301,17 @@ export default function PortfolioPage() {
       }
       
       await exportPortfolios(exportParams, 'pdf');
-      toast.success(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
+      showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
-      toast.error(errorMessage);
+      showError(errorMessage);
     }
   };
 
   const handlePrint = async (printAll: boolean = false) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast.error("لطفاً popup blocker را غیرفعال کنید");
+      showError("لطفاً popup blocker را غیرفعال کنید");
       return;
     }
 
@@ -335,11 +335,11 @@ export default function PortfolioPage() {
         printData = response.data;
         const totalCount = response.pagination?.count || 0;
         if (totalCount > MAX_PRINT_ITEMS) {
-          toast.warning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
+          showWarning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
         }
       } catch (error: any) {
         const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
-        toast.error(errorMessage);
+        showError(errorMessage);
         printWindow.close();
         return;
       }

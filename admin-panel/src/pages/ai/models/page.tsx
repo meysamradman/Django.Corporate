@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback, lazy, Suspense, type ElementType } from 'react';
+import { useState, useMemo, useEffect, useCallback, lazy, type ElementType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Image, Music, FileText, Search, Sparkles, Check, X } from 'lucide-react';
+import { MessageSquare, Image, Music, FileText, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';
 import { Skeleton } from '@/components/elements/Skeleton';
@@ -13,22 +13,7 @@ import { api } from '@/core/config/api';
 import { useUserPermissions } from '@/components/admins/permissions';
 import { useAuth } from '@/core/auth/AuthContext';
 import { showError, showSuccess } from '@/core/toast';
-import { toast } from '@/core/toast';
 
-const TabSkeleton = () => (
-    <div className="space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-24 w-full" />
-            ))}
-        </div>
-    </div>
-);
-
-const ModelSelector = lazy(() => import('@/components/ai/models/ModelSelector').then(mod => ({ default: mod.ModelSelector })));
 const OpenRouterModelSelectorContent = lazy(() => import('@/components/ai/settings/OpenRouterModelSelector').then(mod => ({ default: mod.OpenRouterModelSelectorContent })));
 const HuggingFaceModelSelectorContent = lazy(() => import('@/components/ai/settings/HuggingFaceModelSelector').then(mod => ({ default: mod.HuggingFaceModelSelectorContent })));
 const OpenAIModelSelectorContent = lazy(() => import('@/components/ai/settings/OpenAIModelSelector').then(mod => ({ default: mod.OpenAIModelSelectorContent })));

@@ -1,10 +1,11 @@
 import { api } from '@/core/config/api';
 import type { Media, MediaFilter, MediaUploadSettings } from '@/types/shared/media';
 import type { ApiResponse, Pagination } from '@/types/api/apiResponse';
-import type { ApiError } from '@/types/api/apiError';
+import { ApiError } from '@/types/api/apiError';
 import { csrfManager } from '@/core/auth/session';
 import { env } from '@/core/config/environment';
 import { normalizePaginationParams } from '@/core/utils/pagination';
+import { showError } from '@/core/toast';
 
 export const VALID_MEDIA_PAGE_SIZES = [12, 24, 36, 48];
 export const DEFAULT_MEDIA_PAGE_SIZE = 12;

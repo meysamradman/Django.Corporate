@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormField } from "@/components/forms/FormField";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
-import { toast } from '@/core/toast';
+import { showError, showSuccess } from '@/core/toast';
 import { validatePassword } from '@/core/validation/password';
 
 export function SecurityTab() {
@@ -18,10 +18,10 @@ export function SecurityTab() {
 
     const handleChangePassword = () => {
         if (newPassword !== confirmPassword) {
-            toast.error("رمز عبور و تکرار آن یکسان نیستند");
+            showError("رمز عبور و تکرار آن یکسان نیستند");
             return;
         }
-        toast.success("رمز عبور با موفقیت تغییر کرد");
+        showSuccess("رمز عبور با موفقیت تغییر کرد");
         setNewPassword("");
         setConfirmPassword("");
     };

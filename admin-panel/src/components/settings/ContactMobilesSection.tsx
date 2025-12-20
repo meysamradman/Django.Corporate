@@ -22,7 +22,7 @@ import {
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
 import type { ContactMobile } from "@/types/settings/generalSettings";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { Plus, Edit, Trash2, Smartphone, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -51,7 +51,7 @@ export function ContactMobilesSection() {
             const data = await settingsApi.getContactMobiles();
             setMobiles(data);
         } catch (error) {
-            toast.error("خطا در دریافت شماره‌های موبایل");
+            showError("خطا در دریافت شماره‌های موبایل");
         } finally {
             setLoading(false);
         }
@@ -82,7 +82,7 @@ export function ContactMobilesSection() {
 
     const handleSave = async () => {
         if (!mobileNumber.trim()) {
-            toast.error("شماره موبایل الزامی است");
+            showError("شماره موبایل الزامی است");
             return;
         }
 
@@ -95,20 +95,20 @@ export function ContactMobilesSection() {
                     label: label || undefined,
                     order,
                 });
-                toast.success("شماره موبایل با موفقیت به‌روزرسانی شد");
+                showSuccess("شماره موبایل با موفقیت به‌روزرسانی شد");
             } else {
                 await settingsApi.createContactMobile({
                     mobile_number: mobileNumber,
                     label: label || undefined,
                     order,
                 });
-                toast.success("شماره موبایل با موفقیت ایجاد شد");
+                showSuccess("شماره موبایل با موفقیت ایجاد شد");
             }
             
             handleCloseDialog();
             await fetchMobiles();
         } catch (error) {
-            toast.error("خطا در ذخیره شماره موبایل");
+            showError("خطا در ذخیره شماره موبایل");
         } finally {
             setSaving(false);
         }
@@ -124,12 +124,12 @@ export function ContactMobilesSection() {
 
         try {
             await settingsApi.deleteContactMobile(mobileToDelete);
-            toast.success("شماره موبایل با موفقیت حذف شد");
+            showSuccess("شماره موبایل با موفقیت حذف شد");
             await fetchMobiles();
             setDeleteDialogOpen(false);
             setMobileToDelete(null);
         } catch (error) {
-            toast.error("خطا در حذف شماره موبایل");
+            showError("خطا در حذف شماره موبایل");
         }
     };
 

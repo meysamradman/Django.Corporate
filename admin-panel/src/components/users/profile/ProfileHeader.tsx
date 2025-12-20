@@ -7,7 +7,7 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import type { Media } from "@/types/shared/media";
 import { useState } from "react";
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { showError, showSuccess } from '@/core/toast';
 
 interface ProfileHeaderProps {
     user: UserWithProfile;
@@ -53,9 +53,9 @@ export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileH
                 await queryClient.invalidateQueries({ queryKey: ['user', userId] });
             }
             
-            toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
+            showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
         } catch (error) {
-            toast.error("خطا در ذخیره عکس پروفایل");
+            showError("خطا در ذخیره عکس پروفایل");
         } finally {
             setShowMediaSelector(false);
         }

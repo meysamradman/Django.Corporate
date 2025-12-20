@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { getFileCategory, formatBytes, mediaService, useUploadSettings } from '@/components/media/services';
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { api } from '@/core/config/api';
 import { useMediaContext } from '../MediaContext';
 
@@ -158,7 +158,7 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
 
   const uploadFiles = useCallback(async (): Promise<{ successCount: number; totalCount: number }> => {
     if (files.length === 0) {
-      toast.error("لطفا فایل‌ها را انتخاب کنید");
+      showError("لطفا فایل‌ها را انتخاب کنید");
       return { successCount: 0, totalCount: 0 };
     }
 
@@ -215,7 +215,7 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
     setIsUploading(false);
     
     if (successCount > 0) {
-      toast.success(`${successCount} فایل با موفقیت آپلود شد`);
+      showSuccess(`${successCount} فایل با موفقیت آپلود شد`);
     }
 
     return { successCount, totalCount: files.length };

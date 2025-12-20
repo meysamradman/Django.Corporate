@@ -7,7 +7,7 @@ import { Button } from "@/components/elements/Button";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
-import { toast } from "sonner";
+import { showSuccess, showError, showInfo, showWarning } from "@/core/toast";
 import { roleApi } from "@/api/admins/roles/roles";
 import { adminApi } from "@/api/admins/admins";
 import { useAuth } from "@/core/auth/AuthContext";
@@ -168,16 +168,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
     const handleStatusChange = async (field: 'is_active' | 'is_superuser', value: boolean) => {
         if (!canManagePermissions) {
-            toast.error(getPermissionTranslation('شما دسترسی تغییر وضعیت این ادمین را ندارید', 'description'));
+            showError(getPermissionTranslation('شما دسترسی تغییر وضعیت این ادمین را ندارید', 'description'));
             return;
         }
 
         try {
             await adminApi.updateUserStatusByType(admin.id, value, 'admin');
             setAdminStatusData(prev => ({ ...prev, [field]: value }));
-            toast.success(getPermissionTranslation('وضعیت ادمین با موفقیت به‌روزرسانی شد', 'description'));
-        } catch (_error) {
-            toast.error(getPermissionTranslation('خطا در به‌روزرسانی وضعیت ادمین', 'description'));
+            showSuccess(getPermissionTranslation('وضعیت ادمین با موفقیت به‌روزرسانی شد', 'description'));
+        } catch (error) {
+            showError(error, { customMessage: getPermissionTranslation('خطا در به‌روزرسانی وضعیت ادمین', 'description') });
         }
     };
 
@@ -192,12 +192,12 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
     const handleSave = async () => {
         if (!canManagePermissions) {
-            toast.error(getPermissionTranslation('شما دسترسی ویرایش دسترسی‌ها را ندارید', 'description'));
+            showError(getPermissionTranslation('شما دسترسی ویرایش دسترسی‌ها را ندارید', 'description'));
             return;
         }
 
         if (admin.is_superuser) {
-            toast.info(getPermissionTranslation('سوپر ادمین به صورت خودکار تمام دسترسی‌ها را دارد', 'description'));
+            showInfo(getPermissionTranslation('سوپر ادمین به صورت خودکار تمام دسترسی‌ها را دارد', 'description'));
             setEditMode(false);
             return;
         }
@@ -279,10 +279,10 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             const totalSuccess = removeResults.success.length + assignResults.success.length;
             
             if (totalFailed === 0 && totalSuccess > 0) {
-                toast.success(getPermissionTranslation("نقش‌های ادمین با موفقیت به‌روزرسانی شد", 'description'));
+                showSuccess(getPermissionTranslation("نقش‌های ادمین با موفقیت به‌روزرسانی شد", 'description'));
             } else if (totalSuccess === 0 && totalFailed > 0) {
                 const allErrors = [...removeResults.failed, ...assignResults.failed].map(f => f.error);
-                toast.error(
+                showError(
                     getPermissionTranslation('خطا در به‌روزرسانی نقش‌ها', 'description'),
                     {
                         description: allErrors.join('\n')
@@ -290,7 +290,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 );
             } else if (totalFailed > 0) {
                 const allErrors = [...removeResults.failed, ...assignResults.failed].map(f => f.error);
-                toast.warning(
+                showWarning(
                     getPermissionTranslation('بعضی نقش‌ها با خطا مواجه شدند', 'description'),
                     {
                         description: [
@@ -320,8 +320,8 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 }
             }
             
-        } catch (_error) {
-            toast.error(getPermissionTranslation('خطا در ذخیره تغییرات', 'description'));
+        } catch (error) {
+            showError(error, { customMessage: getPermissionTranslation('خطا در ذخیره تغییرات', 'description') });
         } finally {
             setIsSaving(false);
         }

@@ -96,12 +96,12 @@ export default function ProfileTab({
             profile_picture: profilePictureId,
           });
           
-          const { toast } = await import('@/components/elements/Sonner');
-          toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
+          const { showSuccess } = await import('@/core/toast');
+          showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
         }
       } catch {
-        const { toast } = await import('@/components/elements/Sonner');
-        toast.error("خطا در ذخیره عکس پروفایل");
+        const { showError } = await import('@/core/toast');
+        showError("خطا در ذخیره عکس پروفایل");
       }
     }
   };

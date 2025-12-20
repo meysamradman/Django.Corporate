@@ -6,7 +6,7 @@ import type {
   VisibilityState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import { toast } from 'sonner';
+import { showSuccess, showError, showInfo } from '@/core/toast';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
 
 import type { ApiResponse } from '@/types/api/apiResponse';
@@ -14,6 +14,7 @@ import type {
   UseDataTableLogicOptions,
   UseDataTableLogicResult,
 } from '@/types/shared/table';
+import type { BaseApiFilterParams, BaseClientFilterParams } from '@/types/shared/tableFilters';
 
 export function useDataTableLogic<
   TData,
@@ -168,8 +169,8 @@ export function useDataTableLogic<
         setTotalItems(0);
       }
     } catch (error) {
-      toast.error("خطا در بارگذاری داده‌ها", {
-          description: error instanceof Error ? error.message : "خطای نامشخص",
+      showError(error instanceof Error ? error : new Error("خطای نامشخص"), {
+          customMessage: "خطا در بارگذاری داده‌ها",
       });
       setData([]);
       setTotalItems(0);
@@ -244,22 +245,22 @@ export function useDataTableLogic<
 
   const handleDeleteItem = useCallback(async (id: number | string) => {
     if (!deleteItemFn) {
-              toast.error("خطا در حذف آیتم");
+              showError("خطا در حذف آیتم");
       return;
     }
     try {
       await deleteItemFn(id);
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
       triggerRefetch();
       setRowSelection({});
     } catch (error) {
-        toast.error("خطای نامشخص");
+        showError(error);
     }
   }, [deleteItemFn, triggerRefetch, setRowSelection]);
    
   const handleDeleteSelected = useCallback(async (idsToUse?: (string | number)[]) => {
     if (!deleteMultipleItemsFn) {
-              toast.error("خطا در حذف آیتم‌های انتخاب شده");
+              showError("خطا در حذف آیتم‌های انتخاب شده");
       return;
     }
     const selectedIds = idsToUse ?? Object.keys(rowSelection).filter(key => rowSelection[key]).map(key => {
@@ -271,17 +272,17 @@ export function useDataTableLogic<
     }).filter(id => id !== null) as (string | number)[];
 
     if (!selectedIds || selectedIds.length === 0) {
-      toast.info("آیتمی انتخاب نشده");
+      showInfo("آیتمی انتخاب نشده");
       return;
     }
 
     try {
       await deleteMultipleItemsFn(selectedIds);
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
       triggerRefetch();
       setRowSelection({});
     } catch (error) {
-        toast.error("خطای نامشخص");
+        showError(error);
     }
   }, [deleteMultipleItemsFn, triggerRefetch, setRowSelection, rowSelection, data, idField]);
   

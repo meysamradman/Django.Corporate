@@ -4,7 +4,7 @@ import { ProtectedButton, useUIPermissions } from '@/components/admins/permissio
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/page";
 import type { AboutPage } from "@/types/page/page";
-import { toast } from "@/components/elements/Sonner";
+import { showError } from "@/core/toast";
 import type { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Search } from "lucide-react";
 import { BaseInfoTab } from "./tabs/BaseInfoTab";
@@ -58,7 +58,7 @@ export function AboutPageForm() {
             }
         } catch (error: any) {
             if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
-                toast.error("خطا در بارگذاری صفحه");
+                showError("خطا در بارگذاری صفحه");
             }
         } finally {
             setLoading(false);
@@ -68,7 +68,7 @@ export function AboutPageForm() {
 
     const handleSave = async () => {
         if (!title.trim()) {
-            toast.error("عنوان صفحه الزامی است");
+            showError("عنوان صفحه الزامی است");
             return;
         }
 

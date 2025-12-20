@@ -6,7 +6,7 @@ import type { BlogFilters } from "@/types/blog/blogListParams";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess, showWarning } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -167,10 +167,10 @@ export default function BlogPage() {
     mutationFn: (blogId: number) => blogApi.deleteBlog(blogId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 
@@ -178,11 +178,11 @@ export default function BlogPage() {
     mutationFn: (blogIds: number[]) => blogApi.bulkDeleteBlogs(blogIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 
@@ -192,10 +192,10 @@ export default function BlogPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      toast.success(`بلاگ با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
+      showSuccess(`بلاگ با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
     },
     onError: (error) => {
-      toast.error("خطا در تغییر وضعیت");
+      showError("خطا در تغییر وضعیت");
     },
   });
 
@@ -273,10 +273,10 @@ export default function BlogPage() {
       }
       
       await exportBlogs(exportParams, 'excel');
-      toast.success(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
+      showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
-      toast.error(errorMessage);
+      showError(errorMessage);
     }
   };
 
@@ -301,17 +301,17 @@ export default function BlogPage() {
       }
       
       await exportBlogs(exportParams, 'pdf');
-      toast.success(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
+      showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
       const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
-      toast.error(errorMessage);
+      showError(errorMessage);
     }
   };
 
   const handlePrint = async (printAll: boolean = false) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast.error("لطفاً popup blocker را غیرفعال کنید");
+      showError("لطفاً popup blocker را غیرفعال کنید");
       return;
     }
 
@@ -335,11 +335,11 @@ export default function BlogPage() {
         printData = response.data;
         const totalCount = response.pagination?.count || 0;
         if (totalCount > MAX_PRINT_ITEMS) {
-          toast.warning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
+          showWarning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
         }
       } catch (error: any) {
         const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
-        toast.error(errorMessage);
+        showError(errorMessage);
         printWindow.close();
         return;
       }

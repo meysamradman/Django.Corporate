@@ -550,6 +550,7 @@ const normalizePathname = (pathname: string): string => {
     const url = new URL(pathname, "http://localhost");
     pathname = url.pathname;
   } catch {
+    // Invalid URL format, use pathname as-is
   }
 
   if (pathname.length > 1 && pathname.endsWith("/")) {

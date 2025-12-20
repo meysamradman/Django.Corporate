@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
-import { toast } from 'sonner';
+import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { PortfolioSidebar } from "@/components/portfolios/list/view/PortfolioSidebar";
@@ -99,9 +99,9 @@ export default function PortfolioViewPage() {
             onClick={async () => {
               try {
                 await portfolioApi.exportPortfolioPdf(Number(portfolioId));
-                toast.success("فایل PDF با موفقیت دانلود شد");
+                showSuccess("فایل PDF با موفقیت دانلود شد");
               } catch (error) {
-                toast.error("خطا در دانلود فایل PDF");
+                showError("خطا در دانلود فایل PDF");
               }
             }}
           >

@@ -6,7 +6,7 @@ export const exportPortfolioPdf = async (portfolioId: number): Promise<void> => 
   const timestamp = new Date().toISOString().split('T')[0];
   const filename = `portfolio_${portfolioId}_${timestamp}.pdf`;
   
-  await api.downloadFile(url, filename);
+  await api.download(url, filename);
 };
 
 export const exportPortfolios = async (
@@ -50,10 +50,6 @@ export const exportPortfolios = async (
     ? `portfolios_${timestamp}.pdf`
     : `portfolios_${timestamp}.xlsx`;
   
-  const useFetchForErrorHandling = filters?.export_all === true;
-  
-  await api.downloadFile(url, filename, 'GET', null, { 
-    useFetchForErrorHandling 
-  } as { useFetchForErrorHandling?: boolean });
+  await api.download(url, filename);
 };
 

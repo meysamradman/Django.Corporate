@@ -4,9 +4,7 @@ import type { FeatureFlags } from '@/types/shared/featureFlags';
 export const featureFlagsApi = {
   getAll: async (): Promise<FeatureFlags> => {
     try {
-      const response = await api.get<FeatureFlags>('/core/feature-flags/', {
-        silent: true,
-      });
+      const response = await api.get<FeatureFlags>('/core/feature-flags/');
       return response.data || {};
     } catch {
       return {};

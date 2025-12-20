@@ -16,7 +16,7 @@ const ERROR_OPTIONS: ExternalToast = {
 };
 
 export function showError(
-  error: unknown,
+  error: unknown | string,
   options?: {
     customMessage?: string;
     showToast?: boolean;
@@ -24,6 +24,14 @@ export function showError(
   } & ExternalToast
 ): string {
   const { customMessage, showToast = true, silent = false, ...toastOptions } = options || {};
+
+  // اگر string بود، مستقیماً استفاده کن
+  if (typeof error === 'string') {
+    if (showToast && typeof window !== 'undefined') {
+      toast.error(error, { ...ERROR_OPTIONS, ...toastOptions });
+    }
+    return error;
+  }
 
   let errorMessage = getNetworkError('unknown');
   let statusCode: number | undefined;
@@ -44,8 +52,6 @@ export function showError(
     }
   } else if (error instanceof Error) {
     errorMessage = error.message || getNetworkError('network');
-  } else if (typeof error === 'string') {
-    errorMessage = error;
   }
 
   if (showToast && typeof window !== 'undefined') {
@@ -55,16 +61,16 @@ export function showError(
   return errorMessage;
 }
 
-export const showSuccess = (message: string) => {
-  toast.success(message);
+export const showSuccess = (message: string, options?: ExternalToast) => {
+  toast.success(message, { ...DEFAULT_OPTIONS, ...options });
 };
 
-export const showInfo = (message: string) => {
-  toast.info(message);
+export const showInfo = (message: string, options?: ExternalToast) => {
+  toast.info(message, { ...DEFAULT_OPTIONS, ...options });
 };
 
-export const showWarning = (message: string) => {
-  toast.warning(message);
+export const showWarning = (message: string, options?: ExternalToast) => {
+  toast.warning(message, { ...DEFAULT_OPTIONS, ...options });
 };
 
 export function extractFieldErrors(error: unknown): Record<string, string> {

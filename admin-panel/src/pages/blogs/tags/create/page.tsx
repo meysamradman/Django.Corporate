@@ -7,7 +7,7 @@ import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
@@ -31,12 +31,12 @@ export default function CreateTagPage() {
   const createTagMutation = useMutation({
     mutationFn: (data: Partial<BlogTag>) => blogApi.createTag(data),
     onSuccess: () => {
-      toast.success("تگ با موفقیت ایجاد شد");
+      showSuccess("تگ با موفقیت ایجاد شد");
       queryClient.invalidateQueries();
       navigate("/blogs/tags");
     },
     onError: (error) => {
-      toast.error("خطا در ایجاد تگ");
+      showError("خطا در ایجاد تگ");
     },
   });
 
@@ -82,7 +82,7 @@ export default function CreateTagPage() {
     
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
-      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
     

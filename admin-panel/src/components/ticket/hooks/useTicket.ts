@@ -8,7 +8,7 @@ import type {
   TicketMessageCreate,
   TicketListParams,
 } from "@/types/ticket/ticket";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 
 export function useTicketStats() {
   return useQuery({
@@ -63,10 +63,10 @@ export function useCreateTicket() {
     mutationFn: (data: TicketCreate) => ticketApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      toast.success("تیکت با موفقیت ایجاد شد");
+      showSuccess("تیکت با موفقیت ایجاد شد");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در ایجاد تیکت");
+      showError(error?.message || "خطا در ایجاد تیکت");
     },
   });
 }
@@ -80,10 +80,10 @@ export function useUpdateTicket() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
-      toast.success("تیکت با موفقیت به‌روزرسانی شد");
+      showSuccess("تیکت با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در به‌روزرسانی تیکت");
+      showError(error?.message || "خطا در به‌روزرسانی تیکت");
     },
   });
 }
@@ -95,10 +95,10 @@ export function useDeleteTicket() {
     mutationFn: (id: number | string) => ticketApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      toast.success("تیکت با موفقیت حذف شد");
+      showSuccess("تیکت با موفقیت حذف شد");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در حذف تیکت");
+      showError(error?.message || "خطا در حذف تیکت");
     },
   });
 }
@@ -112,10 +112,10 @@ export function useAssignTicket() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
-      toast.success("تیکت با موفقیت اختصاص داده شد");
+      showSuccess("تیکت با موفقیت اختصاص داده شد");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در اختصاص تیکت");
+      showError(error?.message || "خطا در اختصاص تیکت");
     },
   });
 }
@@ -131,10 +131,10 @@ export function useUpdateTicketStatus() {
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
-      toast.success("وضعیت تیکت با موفقیت به‌روزرسانی شد");
+      showSuccess("وضعیت تیکت با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در به‌روزرسانی وضعیت تیکت");
+      showError(error?.message || "خطا در به‌روزرسانی وضعیت تیکت");
     },
   });
 }
@@ -150,10 +150,10 @@ export function useCreateTicketMessage() {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
-      toast.success("پیام با موفقیت ارسال شد");
+      showSuccess("پیام با موفقیت ارسال شد");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "خطا در ارسال پیام");
+      showError(error?.message || "خطا در ارسال پیام");
     },
   });
 }

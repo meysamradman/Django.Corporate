@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useCallback, useMemo, useEffect, type ChangeEvent } from 'react';
 import { mediaApi } from '@/api/media/media';
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess } from '@/core/toast';
 import { mediaService } from '@/components/media/services';
 
 interface TipTapEditorProps {
@@ -100,13 +100,13 @@ export function TipTapEditor({
     if (!editor) return;
     
     if (!file.type.startsWith('image/')) {
-      toast.error('فقط فایل‌های تصویری مجاز هستند');
+      showError('فقط فایل‌های تصویری مجاز هستند');
       return;
     }
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error('حجم فایل نباید از 5 مگابایت بیشتر باشد');
+      showError('حجم فایل نباید از 5 مگابایت بیشتر باشد');
       return;
     }
 
@@ -124,11 +124,11 @@ export function TipTapEditor({
         
         if (imageUrl) {
           editor.chain().focus().setImage({ src: imageUrl, alt: response.data.alt_text || '' }).run();
-          toast.success('عکس با موفقیت اضافه شد');
+          showSuccess('عکس با موفقیت اضافه شد');
         }
       }
     } catch (error: any) {
-      toast.error('خطا در آپلود عکس: ' + (error.message || 'خطای نامشخص'));
+      showError('خطا در آپلود عکس: ' + (error.message || 'خطای نامشخص'));
     } finally {
       setIsUploadingImage(false);
     }

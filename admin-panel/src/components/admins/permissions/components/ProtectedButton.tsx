@@ -3,7 +3,7 @@ import type { ComponentProps, FC, MouseEventHandler, ReactNode } from 'react';
 import { usePermission } from '../context/PermissionContext';
 import { Button } from '@/components/elements/Button';
 import { cn } from '@/core/utils/cn';
-import { toast } from '@/components/elements/Sonner';
+import { toast } from '@/core/toast';
 
 interface Props extends ComponentProps<typeof Button> {
   permission: string | string[];

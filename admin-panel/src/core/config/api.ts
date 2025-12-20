@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiResponse } from '@/types/api/apiResponse';
-import type { ApiError } from '@/types/api/apiError';
+import { ApiError } from '@/types/api/apiError';
 import { sessionManager } from '../auth/session';
 import { env } from './environment';
 

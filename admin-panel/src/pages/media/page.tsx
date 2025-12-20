@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDebounce } from '@/core/hooks/useDebounce';
-import { mediaApi, VALID_MEDIA_PAGE_SIZES, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
+import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
 import { MediaImage } from '@/components/media/base/MediaImage';
 import { Skeleton } from "@/components/elements/Skeleton";
+
 const MediaGridSkeleton = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
     {Array.from({ length: 10 }).map((_, index) => (
@@ -22,34 +23,21 @@ const MediaGridSkeleton = () => (
     ))}
   </div>
 );
+
 import { Input } from '@/components/elements/Input';
 import { mediaService } from '@/components/media/services';
-import { Button } from '@/components/elements/Button';
 import { ProtectedButton } from '@/components/admins/permissions';
 import { PaginationControls } from '@/components/shared/Pagination';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-} from "@/components/elements/Pagination";
-import { ImageOff, Trash2, Upload, Search, ChevronRight, ChevronLeft, Filter, X, Play, FileAudio } from 'lucide-react';
+import { ImageOff, Trash2, Upload, Search, Play, FileAudio } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardHeader,
   CardFooter,
 } from "@/components/elements/Card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/elements/DropdownMenu";
 import { Checkbox } from '@/components/elements/Checkbox';
-import { toast } from '@/components/elements/Sonner';
-import { useUserPermissions, useHasAccess, useCanUpload } from '@/components/admins/permissions';
+import { toast, showError } from '@/core/toast';
+import { useUserPermissions } from '@/components/admins/permissions';
 import { cn } from '@/core/utils/cn';
 import {
   AlertDialog,
@@ -76,11 +64,12 @@ import {
 } from "@/components/elements/Select"
 import { Loader } from '@/components/elements/Loader';
 
+import { Sparkles } from 'lucide-react';
+import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
+
 const MediaUploadModal = lazy(() => import('@/components/media/modals/MediaUploadModal').then(mod => ({ default: mod.MediaUploadModal })));
 const MediaDetailsModal = lazy(() => import('@/components/media/modals/MediaDetailsModal').then(mod => ({ default: mod.MediaDetailsModal })));
 const AIImageGenerator = lazy(() => import('@/components/ai/image').then(mod => ({ default: mod.AIImageGenerator })));
-import { Sparkles } from 'lucide-react';
-import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 
 const actualDefaultFilters: MediaFilter = {
   search: "",
@@ -107,8 +96,6 @@ export default function MediaPage() {
   const [mounted, setMounted] = useState(false);
   const { getResourceAccess, hasModuleAction } = useUserPermissions();
   const mediaAccess = getResourceAccess('media');
-  const canUploadMedia = useCanUpload('media_library');
-  const aiAccess = getResourceAccess('ai');
   const canDeleteMedia = mediaAccess.delete || mediaAccess.manage;
   const canUseAI = hasModuleAction('ai', 'create');
 
@@ -116,7 +103,7 @@ export default function MediaPage() {
     setMounted(true);
   }, []);
 
-  const fetchMedia = useCallback(async (currentFilters: MediaFilter, forceRefresh: boolean = false) => {
+  const fetchMedia = useCallback(async (currentFilters: MediaFilter) => {
     setIsLoading(true);
     setError(null);
 
@@ -130,9 +117,7 @@ export default function MediaPage() {
     };
 
     try {
-      const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
-        forceRefresh: true
-      } : undefined);
+      const response = await mediaApi.getMediaList(apiFilters);
 
       if (response.metaData.status === 'success') {
         const mediaData = Array.isArray(response.data) ? response.data : [];
@@ -264,7 +249,7 @@ export default function MediaPage() {
 
   const handleDeleteSelected = async () => {
     if (!canDeleteMedia) {
-      toast.error("شما اجازه حذف رسانه‌ها را ندارید");
+      showError("شما اجازه حذف رسانه‌ها را ندارید");
       return;
     }
     const selectedMediaItems = mediaItems.filter(item => selectedItems[item.id]);
@@ -307,7 +292,7 @@ export default function MediaPage() {
   };
 
   const handleUploadComplete = () => {
-    fetchMedia({ ...filters, page: 1 }, true);
+    fetchMedia({ ...filters, page: 1 });
   };
 
   const handleMediaClick = (media: Media) => {
@@ -315,7 +300,7 @@ export default function MediaPage() {
     setDetailModalOpen(true);
   };
 
-  const handleEditMedia = (media: Media) => {
+  const handleEditMedia = () => {
     setDetailModalOpen(false);
   };
 
@@ -598,7 +583,7 @@ export default function MediaPage() {
             <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader /></div>}>
               <AIImageGenerator
                 compact={true}
-                onImageGenerated={(media) => {
+                onImageGenerated={() => {
                   fetchMedia(filters);
                   setIsAIGenerateModalOpen(false);
                 }}

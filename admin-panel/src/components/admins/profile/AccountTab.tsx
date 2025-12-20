@@ -66,7 +66,7 @@ export function AccountTab({
             try {
                 const provinces = await locationApi.getProvincesCompact();
                 setProvinces(provinces);
-            } catch (_error) {
+            } catch {
                 // Silently handle error - provinces will remain empty
             } finally {
                 setLoadingProvinces(false);

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/elements/Button";
 import { Progress } from "@/components/elements/Progress";
 import { Loader2, X, Upload, AlertCircle } from "lucide-react";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showWarning } from "@/core/toast";
 import { mediaService } from "@/components/media/services";
 import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
@@ -64,13 +64,13 @@ export function MediaUploadModal({
     
     const fileCategory = mediaService.getFileCategory(selectedCoverFile);
     if (fileCategory !== 'image') {
-      toast.error("کاور باید یک تصویر باشد");
+      showError("کاور باید یک تصویر باشد");
       return;
     }
 
     if (!uploadSettings?.sizeLimit?.image || selectedCoverFile.size > uploadSettings.sizeLimit.image) {
       const maxSize = uploadSettings?.sizeLimitFormatted?.image || 'نامشخص';
-      toast.error(`حجم فایل کاور بیش از حد مجاز است (${maxSize})`);
+      showError(`حجم فایل کاور بیش از حد مجاز است (${maxSize})`);
       return;
     }
     
@@ -79,7 +79,7 @@ export function MediaUploadModal({
 
   const handleUpload = async () => {
     if (!canUploadMedia) {
-      toast.error("اجازه آپلود رسانه را ندارید");
+      showError("اجازه آپلود رسانه را ندارید");
       return;
     }
     setUploadProgress(0);
@@ -163,11 +163,11 @@ export function MediaUploadModal({
                     <FileDropzone 
                       onFilesAdded={(files) => {
                         if (!canUploadMedia) {
-                          toast.error("اجازه آپلود رسانه را ندارید");
+                          showError("اجازه آپلود رسانه را ندارید");
                           return;
                         }
                         if (isLoadingSettings) {
-                          toast.warning('لطفا صبر کنید تا تنظیمات بارگذاری شود');
+                          showWarning('لطفا صبر کنید تا تنظیمات بارگذاری شود');
                           return;
                         }
                         processFiles(files);

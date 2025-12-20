@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/elements/Select";
 import { analyticsApi } from "@/api/analytics/analytics";
-import { toast } from "@/components/elements/Sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function ClearAnalyticsButton() {
@@ -34,7 +34,7 @@ export function ClearAnalyticsButton() {
     try {
       const result = await analyticsApi.clearAnalytics(period);
       
-      toast.success(
+      showSuccess(
         `با موفقیت ${result.deleted_page_views.toLocaleString('fa-IR')} بازدید و ${result.deleted_daily_stats.toLocaleString('fa-IR')} آمار روزانه پاک شد`
       );
       
@@ -43,7 +43,7 @@ export function ClearAnalyticsButton() {
       
       setOpen(false);
     } catch (error: any) {
-      toast.error(error?.message || "خطا در پاک کردن بازدیدها");
+      showError(error?.message || "خطا در پاک کردن بازدیدها");
     } finally {
       setIsClearing(false);
     }

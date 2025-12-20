@@ -6,7 +6,7 @@ import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -85,10 +85,10 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 
@@ -98,11 +98,11 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      toast.success("با موفقیت حذف شد");
+      showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
     onError: (error) => {
-      toast.error("خطای سرور");
+      showError("خطای سرور");
     },
   });
 

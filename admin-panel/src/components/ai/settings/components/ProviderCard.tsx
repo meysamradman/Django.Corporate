@@ -11,7 +11,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/elements/
 
 interface ProviderCardProps {
   provider: Provider;
-  isExpanded: boolean;
   apiKey: string;
   showApiKey: boolean;
   useSharedApi: boolean;
@@ -59,7 +58,6 @@ function maskApiKey(apiKey: string, showFull: boolean = false): string {
 
 export function ProviderCard({
   provider,
-  isExpanded: _isExpanded = false,
   apiKey,
   showApiKey,
   useSharedApi,

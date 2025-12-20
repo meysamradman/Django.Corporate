@@ -4,7 +4,7 @@ import { aiApi } from '@/api/ai/ai';
 import type { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/media';
 import type { Media } from '@/types/shared/media';
-import { toast } from '@/components/elements/Sonner';
+import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { ImageInputForm } from './ImageInputForm';
 import { GeneratedImageDisplay } from './GeneratedImageDisplay';
@@ -93,12 +93,12 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
 
     const handleGenerate = async () => {
         if (!selectedProvider) {
-            toast.error(msg.ai('selectModel'));
+            showError(msg.ai('selectModel'));
             return;
         }
 
         if (!prompt.trim()) {
-            toast.error(msg.ai('enterPrompt'));
+            showError(msg.ai('enterPrompt'));
             return;
         }
 
@@ -120,11 +120,11 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 if ((data as any).saved === false && (data as any).image_data_url) {
                     setGeneratedImageUrl((data as any).image_data_url);
                     setGeneratedMedia(null);
-                    toast.success(msg.ai('imageGenerated'));
+                    showSuccess(msg.ai('imageGenerated'));
                 } else {
                     setGeneratedMedia(data as Media);
                     setGeneratedImageUrl(null);
-                    toast.success(msg.ai('imageGeneratedAndSaved'));
+                    showSuccess(msg.ai('imageGeneratedAndSaved'));
                     onImageGenerated?.(data as Media);
                 }
                 
@@ -167,12 +167,12 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 const media = uploadResponse.data;
                 setGeneratedMedia(media);
                 setGeneratedImageUrl(null);
-                toast.success(msg.ai('imageSaved'));
+                showSuccess(msg.ai('imageSaved'));
                 onImageGenerated?.(media);
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'خطای نامشخص';
-            toast.error(msg.ai('saveImageError') + ': ' + errorMessage);
+            showError(msg.ai('saveImageError') + ': ' + errorMessage);
         }
     };
 

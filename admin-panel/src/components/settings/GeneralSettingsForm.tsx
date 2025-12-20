@@ -7,7 +7,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import LogoUploader from "@/components/panel/LogoUploader";
 import { settingsApi } from "@/api/settings/settings";
 import type { GeneralSettings } from "@/types/settings/generalSettings";
-import { toast } from "@/components/elements/Sonner";
+import { showError } from "@/core/toast";
 import type { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -55,7 +55,7 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
             }
         } catch (error: any) {
             if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
-                toast.error("خطا در بارگذاری تنظیمات");
+                showError("خطا در بارگذاری تنظیمات");
             }
         } finally {
             setLoading(false);
@@ -102,7 +102,7 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
     useImperativeHandle(ref, () => ({
         handleSave: () => {
             if (!siteName.trim()) {
-                toast.error("عنوان الزامی است");
+                showError("عنوان الزامی است");
                 return;
             }
             handleSave();

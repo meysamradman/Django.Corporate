@@ -8,7 +8,7 @@ import type { Media } from "@/types/shared/media";
 import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/core/auth/AuthContext';
-import { toast } from 'sonner';
+import { showSuccess, showError } from '@/core/toast';
 import { adminApi } from '@/api/admins/admins';
 import type { Role } from '@/types/auth/permission';
 
@@ -63,7 +63,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
         const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
         
         if (!targetAdminId) {
-            toast.error("شناسه ادمین یافت نشد");
+            showError("شناسه ادمین یافت نشد");
             setShowMediaSelector(false);
             return;
         }
@@ -94,7 +94,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
             }
             
             if (!updatedAdmin) {
-                toast.error("خطا در دریافت پاسخ از سرور");
+                showError("خطا در دریافت پاسخ از سرور");
                 setShowMediaSelector(false);
                 return;
             }
@@ -114,9 +114,9 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                 await refreshUser();
             }
             
-            toast.success("عکس پروفایل با موفقیت به‌روزرسانی شد");
-        } catch (_error) {
-            toast.error("خطا در ذخیره عکس پروفایل");
+            showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
+        } catch (error) {
+            showError(error, { customMessage: "خطا در ذخیره عکس پروفایل" });
         } finally {
             setShowMediaSelector(false);
         }

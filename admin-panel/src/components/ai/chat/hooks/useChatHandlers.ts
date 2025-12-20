@@ -1,6 +1,6 @@
 import { useState, useRef, type RefObject, type KeyboardEvent, type ChangeEvent } from 'react';
 import { aiApi } from '@/api/ai/ai';
-import { toast } from '@/components/elements/Sonner';
+import { showError, showSuccess, showInfo } from '@/core/toast';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -30,12 +30,12 @@ export function useChatHandlers({
 
     const handleSend = async () => {
         if (!selectedProvider) {
-            toast.error('لطفاً ابتدا یک مدل AI انتخاب کنید');
+            showError('لطفاً ابتدا یک مدل AI انتخاب کنید');
             return;
         }
 
         if (!message.trim()) {
-            toast.error('لطفاً پیام خود را وارد کنید');
+            showError('لطفاً پیام خود را وارد کنید');
             return;
         }
 
@@ -90,7 +90,7 @@ export function useChatHandlers({
                 errorMessage = error.message;
             }
             
-            toast.error(errorMessage);
+            showError(errorMessage);
         } finally {
             setSending(false);
         }
@@ -114,11 +114,11 @@ export function useChatHandlers({
         if (file) {
             const maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
-                toast.error('حجم فایل نباید بیشتر از 10 مگابایت باشد');
+                showError('حجم فایل نباید بیشتر از 10 مگابایت باشد');
                 return;
             }
             setAttachedFile(file);
-            toast.success(`فایل ${file.name} آماده ارسال است`);
+            showSuccess(`فایل ${file.name} آماده ارسال است`);
         }
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -127,7 +127,7 @@ export function useChatHandlers({
 
     const removeAttachedFile = () => {
         setAttachedFile(null);
-        toast.info('فایل حذف شد');
+        showInfo('فایل حذف شد');
     };
 
     return {

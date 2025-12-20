@@ -1,6 +1,7 @@
 import { api } from '@/core/config/api';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
+import type { Pagination } from '@/types/api/apiResponse';
 import type { 
   AdminWithProfile, 
   AdminCreateRequest, 
@@ -76,7 +77,7 @@ export const adminApi = {
     const finalFilters: Record<string, unknown> = filters ? { ...filters } : {};
 
     const normalizedParams = normalizePaginationParams(
-      { page: finalFilters.page, size: finalFilters.size },
+      { page: finalFilters.page as number | undefined, size: finalFilters.size as number | undefined },
       SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT,
       SERVER_PAGINATION_CONFIG.VALID_PAGE_SIZES
     );

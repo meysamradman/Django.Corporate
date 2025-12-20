@@ -3,7 +3,7 @@ import type { ComponentProps, FC, ReactNode, MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermission } from '../context/PermissionContext';
 import { cn } from '@/core/utils/cn';
-import { toast } from 'sonner';
+import { toast } from '@/core/toast';
 
 interface ProtectedLinkProps extends ComponentProps<typeof Link> {
   permission?: string | string[];

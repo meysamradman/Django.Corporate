@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/
 import { Button } from "@/components/elements/Button";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
-import { toast } from 'sonner';
+import { showError, showSuccess } from '@/core/toast';
 import { blogApi } from "@/api/blogs/blogs";
 import { BlogSidebar } from "@/components/blogs/list/view/BlogSidebar";
 
@@ -145,9 +145,9 @@ export default function BlogViewPage() {
             onClick={async () => {
               try {
                 await blogApi.exportBlogPdf(Number(blogId));
-                toast.success("فایل PDF با موفقیت دانلود شد");
+                showSuccess("فایل PDF با موفقیت دانلود شد");
               } catch (error) {
-                toast.error("خطا در دانلود فایل PDF");
+                showError("خطا در دانلود فایل PDF");
               }
             }}
           >

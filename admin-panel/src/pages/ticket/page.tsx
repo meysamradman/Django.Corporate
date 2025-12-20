@@ -5,7 +5,7 @@ import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, type ReplyTicke
 import { Checkbox } from "@/components/elements/Checkbox";
 import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
 import type { Ticket, TicketStatusType } from "@/types/ticket/ticket";
-import { toast } from "sonner";
+import { showSuccess } from "@/core/toast";
 
 const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetailView })));
 const ReplyTicketDialog = lazy(() => import("@/components/ticket/ReplyTicketDialog").then(mod => ({ default: mod.ReplyTicketDialog })));
@@ -51,7 +51,7 @@ export default function TicketPage() {
     refetch();
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
     queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
-    toast.success('داده‌ها به‌روزرسانی شدند');
+    showSuccess('داده‌ها به‌روزرسانی شدند');
   }, [refetch, queryClient]);
 
   useEffect(() => {

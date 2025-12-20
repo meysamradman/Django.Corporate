@@ -116,7 +116,6 @@ export function ProviderAccordionItem({
         <AccordionContent>
           <ProviderCard
             provider={provider}
-            isExpanded={isExpanded}
             apiKey={apiKey}
             showApiKey={showApiKey}
             useSharedApi={useSharedApi}

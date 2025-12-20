@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/core/toast";
 import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound } from "lucide-react";
@@ -145,7 +145,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             }
             
                                     const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
-                        toast.success(getCrud('updated', { item: 'پروفایل کاربر' }));
+                        showSuccess(getCrud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
         } catch (error: any) {
             if (error?.response?.errors) {
@@ -161,7 +161,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 if (errorData.profile?.national_id) {
                     if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
                         newFieldErrors.nationalId = getValidation('nationalIdInvalid');
-                        toast.error('کد ملی تکراری است');
+                        showError('کد ملی تکراری است');
                     } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
                         newFieldErrors.nationalId = getValidation('nationalIdLength');
                     } else {
@@ -176,7 +176,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 }
                 
                 if (errorData.detail) {
-                    toast.error(errorData.detail);
+                    showError(errorData.detail);
                     return;
                 }
                 
@@ -186,7 +186,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 }
             }
             
-            toast.error('خطا در به‌روزرسانی پروفایل');
+            showError('خطا در به‌روزرسانی پروفایل');
         } finally {
             setIsSaving(false);
         }

@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { Power, PowerOff, AlertCircle, CheckCircle2, XCircle, FolderOpen, FileText, Bot, MessageSquare, Ticket, Mail, File, FormInput, type LucideIcon } from "lucide-react";
-import { toast } from "@/components/elements/Sonner";
+import { showSuccess, showError } from "@/core/toast";
 import { Skeleton } from "@/components/elements/Skeleton";
 import {
   Alert,
@@ -124,13 +124,13 @@ export function FeatureFlagsManagement() {
         queryClient.setQueryData(["admin-feature-flags"], context.previousFlags);
       }
       const message = (err as any)?.response?.metaData?.message || "خطا در تغییر وضعیت Feature Flag";
-      toast.error(message);
+      showError(message);
     },
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-feature-flags"] });
       await queryClient.invalidateQueries({ queryKey: ["feature-flags"] });
       await queryClient.refetchQueries({ queryKey: ["feature-flags"] });
-      toast.success(
+      showSuccess(
         `Feature Flag "${data.key}" ${data.is_active ? "فعال" : "غیرفعال"} شد.`
       );
     },

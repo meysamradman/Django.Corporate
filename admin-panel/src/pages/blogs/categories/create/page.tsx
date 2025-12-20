@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { toast } from "sonner";
+import { showError, showSuccess } from "@/core/toast";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List, Settings } from "lucide-react";
@@ -113,12 +113,12 @@ export default function CreateCategoryPage() {
   const createCategoryMutation = useMutation({
     mutationFn: (data: Partial<BlogCategory>) => blogApi.createCategory(data),
     onSuccess: (data) => {
-      toast.success("دسته‌بندی با موفقیت ایجاد شد");
+      showSuccess("دسته‌بندی با موفقیت ایجاد شد");
       queryClient.invalidateQueries();
       navigate("/blogs/categories");
     },
     onError: (error) => {
-      toast.error("خطا در ایجاد دسته‌بندی");
+      showError("خطا در ایجاد دسته‌بندی");
     },
   });
 
@@ -165,7 +165,7 @@ export default function CreateCategoryPage() {
     
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
-      toast.error(slugValidation.error || "اسلاگ معتبر نیست");
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
     
