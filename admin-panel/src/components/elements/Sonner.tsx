@@ -40,8 +40,23 @@ const toast = {
     originalToast.info(message, { ...options, className: `toast toast-info ${options?.className || ''}` }),
   loading: (message: string, options?: ToastOptions) => 
     originalToast.loading(message, { ...options, className: `toast toast-loading ${options?.className || ''}` }),
-  promise: <T,>(promise: Promise<T>, messages: { loading: string; success: string | ((data: T) => string); error: string | ((error: unknown) => string) }) =>
-    originalToast.promise(promise, messages),
+  promise: <T,>(
+    promise: Promise<T>, 
+    messages: { 
+      loading: string; 
+      success: string | ((data: T) => string); 
+      error: string | ((error: unknown) => string);
+    },
+    options?: ToastOptions
+  ) => {
+    // برای promise، sonner خودش loading, success, error را مدیریت می‌کند
+    // className را به عنوان option سوم پاس می‌دهیم که به همه states اعمال می‌شود
+    // اما از CSS می‌توانیم بر اساس data-type استایل‌های مختلف اعمال کنیم
+    return originalToast.promise(promise, messages, {
+      ...options,
+      className: `toast ${options?.className || ''}`,
+    });
+  },
 }
 
 export { Toaster, toast }

@@ -5,30 +5,11 @@ import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
 import { MediaImage } from '@/components/media/base/MediaImage';
 import { Skeleton } from "@/components/elements/Skeleton";
-
-const MediaGridSkeleton = () => (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
-    {Array.from({ length: 10 }).map((_, index) => (
-      <Card
-        key={`media-skeleton-${index}`}
-        className="overflow-hidden border-2 border-transparent hover:border-font-s/20 p-0 group relative transition-all"
-      >
-        <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
-          <Skeleton className="h-full w-full" />
-        </div>
-        <div className="absolute top-2 right-2 z-10">
-          <Skeleton className="h-5 w-5 rounded" />
-        </div>
-      </Card>
-    ))}
-  </div>
-);
-
 import { Input } from '@/components/elements/Input';
 import { mediaService } from '@/components/media/services';
 import { ProtectedButton } from '@/components/admins/permissions';
 import { PaginationControls } from '@/components/shared/Pagination';
-import { ImageOff, Trash2, Upload, Search, Play, FileAudio } from 'lucide-react';
+import { ImageOff, Trash2, Upload, Search, Play, FileAudio, Sparkles } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -63,9 +44,25 @@ import {
   SelectValue,
 } from "@/components/elements/Select"
 import { Loader } from '@/components/elements/Loader';
-
-import { Sparkles } from 'lucide-react';
 import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
+
+const MediaGridSkeleton = () => (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
+    {Array.from({ length: 10 }).map((_, index) => (
+      <Card
+        key={`media-skeleton-${index}`}
+        className="overflow-hidden border-2 border-transparent hover:border-font-s/20 p-0 group relative transition-all"
+      >
+        <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
+          <Skeleton className="h-full w-full" />
+        </div>
+        <div className="absolute top-2 right-2 z-10">
+          <Skeleton className="h-5 w-5 rounded" />
+        </div>
+      </Card>
+    ))}
+  </div>
+);
 
 const MediaUploadModal = lazy(() => import('@/components/media/modals/MediaUploadModal').then(mod => ({ default: mod.MediaUploadModal })));
 const MediaDetailsModal = lazy(() => import('@/components/media/modals/MediaDetailsModal').then(mod => ({ default: mod.MediaDetailsModal })));
