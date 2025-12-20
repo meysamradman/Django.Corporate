@@ -43,9 +43,7 @@ export const blogFormSchema = z.object({
   featuredImage: z
     .any()
     .nullable()
-    .refine((val) => val !== null, {
-      message: msg.blog("featuredImageRequired")
-    }),
+    .optional(),
   
   meta_title: z
     .string()

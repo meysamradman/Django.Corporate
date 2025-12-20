@@ -5,7 +5,7 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { Toaster as Sonner, type ToasterProps, toast as originalToast, type ExternalToast } from "sonner"
+import { Toaster as Sonner, type ToasterProps, toast as originalToast } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
@@ -24,39 +24,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
   )
 }
 
-type ToastOptions = ExternalToast & {
-  className?: string
-}
-
 const toast = {
   ...originalToast,
-  success: (message: string, options?: ToastOptions) => 
+  success: (message: string, options?: any) => 
     originalToast.success(message, { ...options, className: `toast toast-success ${options?.className || ''}` }),
-  error: (message: string, options?: ToastOptions) => 
+  error: (message: string, options?: any) => 
     originalToast.error(message, { ...options, className: `toast toast-error ${options?.className || ''}` }),
-  warning: (message: string, options?: ToastOptions) => 
+  warning: (message: string, options?: any) => 
     originalToast.warning(message, { ...options, className: `toast toast-warning ${options?.className || ''}` }),
-  info: (message: string, options?: ToastOptions) => 
+  info: (message: string, options?: any) => 
     originalToast.info(message, { ...options, className: `toast toast-info ${options?.className || ''}` }),
-  loading: (message: string, options?: ToastOptions) => 
+  loading: (message: string, options?: any) => 
     originalToast.loading(message, { ...options, className: `toast toast-loading ${options?.className || ''}` }),
-  promise: <T,>(
-    promise: Promise<T>, 
-    messages: { 
-      loading: string; 
-      success: string | ((data: T) => string); 
-      error: string | ((error: unknown) => string);
-    },
-    options?: ToastOptions
-  ) => {
-    // برای promise، sonner خودش loading, success, error را مدیریت می‌کند
-    // className را به عنوان option سوم پاس می‌دهیم که به همه states اعمال می‌شود
-    // اما از CSS می‌توانیم بر اساس data-type استایل‌های مختلف اعمال کنیم
-    return originalToast.promise(promise, messages, {
-      ...options,
-      className: `toast ${options?.className || ''}`,
-    });
-  },
+  promise: <T,>(promise: Promise<T>, messages: any) =>
+    originalToast.promise(promise, messages),
 }
 
 export { Toaster, toast }

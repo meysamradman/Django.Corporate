@@ -96,6 +96,11 @@ class PortfolioAdminService:
     
     @staticmethod
     def create_portfolio(validated_data, created_by=None):
+        categories_ids = validated_data.pop('categories_ids', [])
+        tags_ids = validated_data.pop('tags_ids', [])
+        options_ids = validated_data.pop('options_ids', [])
+        media_files = validated_data.pop('media_files', [])
+        
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
             
@@ -113,7 +118,17 @@ class PortfolioAdminService:
             if not canonical_url.startswith(('http://', 'https://')):
                 validated_data['canonical_url'] = None
         
-        return Portfolio.objects.create(**validated_data)
+        with transaction.atomic():
+            portfolio = Portfolio.objects.create(**validated_data)
+            
+            if categories_ids:
+                portfolio.categories.set(categories_ids)
+            if tags_ids:
+                portfolio.tags.set(tags_ids)
+            if options_ids:
+                portfolio.options.set(options_ids)
+        
+        return portfolio
     
     @staticmethod
     def create_portfolio_with_media(validated_data, media_files, created_by=None):

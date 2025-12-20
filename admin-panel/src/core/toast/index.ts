@@ -25,7 +25,6 @@ export function showError(
 ): string {
   const { customMessage, showToast = true, silent = false, ...toastOptions } = options || {};
 
-  // اگر string بود، مستقیماً استفاده کن
   if (typeof error === 'string') {
     if (showToast && typeof window !== 'undefined') {
       toast.error(error, { ...ERROR_OPTIONS, ...toastOptions });

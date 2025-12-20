@@ -47,9 +47,7 @@ export const portfolioFormSchema = z.object({
   featuredImage: z
     .any()
     .nullable()
-    .refine((val) => val !== null, {
-      message: msg.portfolio("featuredImageRequired")
-    }),
+    .optional(),
   
   meta_title: z
     .string()

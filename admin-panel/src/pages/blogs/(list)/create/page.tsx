@@ -135,7 +135,7 @@ export default function CreateBlogPage() {
         canonical_url: data.canonical_url || undefined,
         robots_meta: data.robots_meta || undefined,
         categories_ids: data.selectedCategories ? data.selectedCategories.map((cat: any) => typeof cat === 'number' ? cat : cat.id) : [],
-        tags_ids: data.selectedTags.map(tag => tag.id),
+        tags_ids: data.selectedTags ? data.selectedTags.map(tag => tag.id) : [],
       };
 
       if (allMediaIds.length > 0) {
