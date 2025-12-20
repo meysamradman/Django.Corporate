@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Label } from "@/components/elements/Label";
 import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
@@ -58,7 +58,9 @@ export function FormField({
   );
 }
 
-interface FormFieldInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'children'> {
+import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+
+interface FormFieldInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'children'> {
   label: string;
   error?: string;
   required?: boolean;
@@ -92,7 +94,7 @@ export function FormFieldInput({
   );
 }
 
-interface FormFieldTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'children'> {
+interface FormFieldTextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'children'> {
   label: string;
   error?: string;
   required?: boolean;

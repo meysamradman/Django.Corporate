@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";

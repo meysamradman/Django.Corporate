@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAdminColumns } from "@/components/admins/AdminTableColumns";
 import { useAdminFilterOptions, getAdminFilterConfig } from "@/components/admins/AdminTableFilters";
@@ -44,7 +44,7 @@ export default function AdminsPage() {
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<AdminFilters>({});
 
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
     if (urlParams.get('page')) {
@@ -167,7 +167,7 @@ export default function AdminsPage() {
   const isSuperAdmin = user?.is_superuser || user?.is_admin_full;
 
   const columns = useAdminColumns(
-    React.useMemo(() => {
+    useMemo(() => {
       const actions: DataTableRowAction<AdminWithProfile>[] = [];
       
       actions.push({

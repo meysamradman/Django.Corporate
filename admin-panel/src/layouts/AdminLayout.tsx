@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar';
 import { Header } from '@/components/layout/Header/Header';
@@ -22,7 +22,7 @@ export function AdminLayout() {
     setSidebarOpen
   } = useAdminStore();
 
-  const hasInitializedRef = React.useRef(false);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !hasInitializedRef.current) {
@@ -34,7 +34,7 @@ export function AdminLayout() {
     }
   }, [sidebarOpen, setSidebarOpen]);
 
-  const prevPathnameRef = React.useRef(location.pathname);
+  const prevPathnameRef = useRef(location.pathname);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isMobile = window.innerWidth < 1024;

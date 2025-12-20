@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { env } from '@/core/config/environment';
@@ -19,7 +20,7 @@ interface MediaThumbnailProps {
   fill?: boolean;
   sizes?: string;
   showIcon?: boolean;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }
 
 export function MediaThumbnail({

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ChangeEvent } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -209,7 +209,7 @@ export function MediaLibraryModal({
     onClose();
   };
 
-  const handleCoverFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>, mediaFileId: string) => {
+  const handleCoverFileChange = useCallback((event: ChangeEvent<HTMLInputElement>, mediaFileId: string) => {
     const selectedCoverFile = event.target.files?.[0];
     if (!selectedCoverFile) return;
     

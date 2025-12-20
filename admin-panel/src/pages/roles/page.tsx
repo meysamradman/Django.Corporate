@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { DataTable } from "@/components/tables/DataTable";
 import { useRoleColumns } from "@/components/roles/RoleTableColumns";
@@ -41,7 +41,7 @@ export default function RolesPage() {
     is_system_role?: boolean;
   }>({});
 
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
     if (urlParams.get('page')) {
@@ -88,7 +88,7 @@ export default function RolesPage() {
     isBulk: false,
   });
 
-  const queryParams = React.useMemo(() => {
+  const queryParams = useMemo(() => {
     const params = {
       search: searchValue,
       page: pagination.pageIndex + 1,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 
 import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, type ComposeEmailData } from "@/components/email";

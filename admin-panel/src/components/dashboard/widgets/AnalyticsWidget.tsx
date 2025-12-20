@@ -1,3 +1,4 @@
+import { type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Eye, Calendar, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -10,7 +11,7 @@ interface AnalyticsWidgetProps {
   isLoading?: boolean;
 }
 
-export const AnalyticsWidget: React.FC<AnalyticsWidgetProps> = ({ isLoading: externalLoading }) => {
+export const AnalyticsWidget: FC<AnalyticsWidgetProps> = ({ isLoading: externalLoading }) => {
   const navigate = useNavigate();
   const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
   const isLoading = externalLoading || analyticsLoading;

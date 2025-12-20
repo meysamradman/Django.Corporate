@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
@@ -52,7 +52,7 @@ export default function SEOTab(props: SEOTabProps) {
     const robotsMetaValue = isFormApproach ? watch?.("robots_meta") : formData?.robots_meta;
     const ogImageValue = isFormApproach ? watch?.("og_image") : formData?.og_image;
 
-    const handleMetaTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMetaTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {
@@ -60,7 +60,7 @@ export default function SEOTab(props: SEOTabProps) {
         }
     };
 
-    const handleMetaDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleMetaDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {

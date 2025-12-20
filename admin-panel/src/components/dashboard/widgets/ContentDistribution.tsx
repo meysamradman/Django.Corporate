@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type FC } from "react";
 import { LayoutList } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { DashboardStats } from "@/types/analytics";
@@ -28,7 +28,7 @@ const COLORS = {
   media: 'hsl(var(--color-purple-1))',
 };
 
-export const ContentDistribution: React.FC<ContentDistributionProps> = ({ stats, isLoading = false }) => {
+export const ContentDistribution: FC<ContentDistributionProps> = ({ stats, isLoading = false }) => {
   const contentDistribution = useMemo(() => {
     if (!stats) return [];
     return [

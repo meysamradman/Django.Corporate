@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type FC } from "react";
 import { Server, Database, HardDrive, Activity } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { SystemStats as SystemStatsType } from "@/types/analytics";
@@ -14,7 +14,7 @@ const COLORS = {
   media: 'hsl(var(--color-purple-1))',
 };
 
-export const SystemStats: React.FC<SystemStatsProps> = ({ systemStats, isLoading = false }) => {
+export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = false }) => {
   const storageData = useMemo(() => {
     if (!systemStats?.storage?.by_type) return [];
     return Object.entries(systemStats.storage.by_type).map(([type, data]) => ({

@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Bell, Mail, Ticket, ChevronLeft } from 'lucide-react';
 import {
   DropdownMenu,

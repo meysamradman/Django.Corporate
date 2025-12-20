@@ -1,4 +1,4 @@
-import React, { useState, useRef, lazy, Suspense } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";

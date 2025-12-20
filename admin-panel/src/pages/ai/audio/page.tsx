@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 export default function CreateOptionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isInitialLoading, setIsInitialLoading] = React.useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -70,7 +70,7 @@ export default function CreateOptionPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
     const slugValidation = validateSlug(formData.slug, true);

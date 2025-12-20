@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
 import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";

@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
@@ -43,7 +43,7 @@ export default function UsersPage() {
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<Filter>({});
 
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
 
     if (urlParams.get('page')) {

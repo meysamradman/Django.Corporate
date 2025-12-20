@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";

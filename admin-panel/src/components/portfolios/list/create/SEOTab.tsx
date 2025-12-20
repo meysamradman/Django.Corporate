@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
@@ -54,7 +54,7 @@ export default function SEOTab(props: SEOTabProps) {
 
     const ogImageUrl = ogImageValue ? mediaService.getMediaUrlFromObject(ogImageValue) : "";
 
-    const handleMetaTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMetaTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {

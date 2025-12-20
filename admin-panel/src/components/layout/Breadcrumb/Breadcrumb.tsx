@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo, Fragment } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 
@@ -12,7 +12,7 @@ export function Breadcrumb() {
   const location = useLocation();
   const pathname = location.pathname;
   
-  const { breadcrumbItems, displayItems } = React.useMemo(() => {
+  const { breadcrumbItems, displayItems } = useMemo(() => {
     const getTranslatedLabel = (segment: string): string => {
       const normalizedSegment = segment.toLowerCase();
       
@@ -95,7 +95,7 @@ export function Breadcrumb() {
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-font-p h-full py-2">
       {displayItems.map((item, index) => (
-        <React.Fragment key={index}>
+        <Fragment key={index}>
           {index > 0 && (
             <ChevronRight 
               className="h-4 w-4 text-font-s/50 rotate-180 shrink-0" 

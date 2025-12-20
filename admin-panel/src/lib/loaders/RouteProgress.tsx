@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import NProgress from 'nprogress';
 
 export function RouteProgress() {
   const location = useLocation();
-  const prevPathnameRef = React.useRef(location.pathname);
+  const prevPathnameRef = useRef(location.pathname);
 
   useEffect(() => {
     const pathnameChanged = prevPathnameRef.current !== location.pathname;

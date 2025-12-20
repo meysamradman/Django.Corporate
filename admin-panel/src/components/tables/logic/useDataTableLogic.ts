@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type SetStateAction } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   PaginationState,
@@ -54,13 +54,13 @@ interface UseDataTableLogicResult<TData, TClientFilters> {
   pageCount: number;
   isLoading: boolean;
   pagination: PaginationState;
-  setPagination: (value: React.SetStateAction<PaginationState>) => void;
+  setPagination: (value: SetStateAction<PaginationState>) => void;
   sorting: SortingState;
-  setSorting: (value: React.SetStateAction<SortingState>) => void;
+  setSorting: (value: SetStateAction<SortingState>) => void;
   clientFilters: TClientFilters;
   handleFilterChange: (filterId: keyof TClientFilters | 'search', value: unknown) => void;
   rowSelection: RowSelectionState;
-  setRowSelection: (value: React.SetStateAction<RowSelectionState>) => void;
+  setRowSelection: (value: SetStateAction<RowSelectionState>) => void;
   columnVisibility: VisibilityState;
   setColumnVisibility: (value: React.SetStateAction<VisibilityState>) => void;
   refetchData: () => Promise<void>;
@@ -279,7 +279,7 @@ export function useDataTableLogic<
      setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }, []);
 
-  const handleSetSorting = useCallback((updater: React.SetStateAction<SortingState>) => {
+  const handleSetSorting = useCallback((updater: SetStateAction<SortingState>) => {
     setSorting(updater);
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }, []);

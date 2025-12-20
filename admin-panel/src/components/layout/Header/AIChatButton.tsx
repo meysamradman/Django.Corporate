@@ -1,4 +1,3 @@
-import * as React from "react";
 import { MessageCircle } from 'lucide-react';
 import { useAIChat } from '@/components/ai/chat/AIChatContext';
 import { useCanManageAIChat } from '@/components/admins/permissions/hooks/useUIPermissions';

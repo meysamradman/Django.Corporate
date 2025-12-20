@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 
 const FeatureFlagsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.FeatureFlagsManagement })));
 

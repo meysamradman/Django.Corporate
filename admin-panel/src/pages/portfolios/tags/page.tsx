@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { DataTable } from "@/components/tables/DataTable";
 import { useTagColumns } from "@/components/portfolios/tags/list/TagTableColumns";

@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { MessageSquare, Settings as SettingsIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useMemo, useEffect, useCallback, lazy, Suspense, type ElementType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Image, Music, FileText, Search, Sparkles, Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
@@ -38,7 +38,7 @@ const GroqModelSelectorContent = lazy(() => import('@/components/ai/settings/Gro
 
 type Capability = 'chat' | 'content' | 'image' | 'audio';
 
-const CAPABILITY_CONFIG: Record<Capability, { label: string; icon: React.ElementType; description: string }> = {
+const CAPABILITY_CONFIG: Record<Capability, { label: string; icon: ElementType; description: string }> = {
     chat: {
         label: 'چت',
         icon: MessageSquare,

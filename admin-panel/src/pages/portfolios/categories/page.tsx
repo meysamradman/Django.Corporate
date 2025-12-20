@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { DataTable } from "@/components/tables/DataTable";
 import { useCategoryColumns } from "@/components/portfolios/categories/list/CategoryTableColumns";
@@ -150,7 +150,7 @@ export default function CategoryPage() {
   
   const columns = useCategoryColumns(rowActions) as ColumnDef<PortfolioCategory>[];
 
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
     if (urlParams.get('page')) {

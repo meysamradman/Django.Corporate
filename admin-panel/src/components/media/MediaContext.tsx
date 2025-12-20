@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
 type MediaContextType = 'media_library' | 'portfolio' | 'blog';

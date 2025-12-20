@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
@@ -198,7 +198,7 @@ export default function EditCategoryPage() {
     setSelectedMedia(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
     if (!category) return;

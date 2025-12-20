@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
@@ -43,7 +43,7 @@ export default function PermissionsManagementPage() {
     (role.description?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const groupedPermissions = React.useMemo(() => {
+  const groupedPermissions = useMemo(() => {
     if (!Array.isArray(permissionGroups)) return {};
     
     const groups: Record<string, Permission[]> = {};

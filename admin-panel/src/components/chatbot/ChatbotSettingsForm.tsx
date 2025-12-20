@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -35,7 +36,7 @@ export function ChatbotSettingsForm() {
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings) {
       form.reset({
         is_enabled: settings.is_enabled,

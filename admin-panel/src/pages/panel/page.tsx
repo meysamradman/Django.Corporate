@@ -1,9 +1,9 @@
-import React, { useRef, useState, lazy, Suspense } from 'react';
+import { useRef, useState, lazy, Suspense, type ComponentType, type Ref } from 'react';
 import { ProtectedButton } from '@/components/admins/permissions';
 import { Save, Loader2, Flag, Image as ImageIcon, Database } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 
-const PanelBrandingTab = lazy(() => import('@/components/panel/tabs/PanelBrandingTab').then(mod => ({ default: mod.default }))) as React.ComponentType<{ ref?: React.Ref<PanelBrandingTabRef> }>;
+const PanelBrandingTab = lazy(() => import('@/components/panel/tabs/PanelBrandingTab').then(mod => ({ default: mod.default }))) as ComponentType<{ ref?: Ref<PanelBrandingTabRef> }>;
 const PanelDatabaseTab = lazy(() => import('@/components/panel/tabs/PanelDatabaseTab').then(mod => ({ default: mod.PanelDatabaseTab })));
 const FeatureFlagsTab = lazy(() => import('@/components/panel/tabs/FeatureFlagsTab').then(mod => ({ default: mod.FeatureFlagsTab })));
 

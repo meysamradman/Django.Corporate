@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useMemo, type FC } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
@@ -44,20 +44,20 @@ const generateMockData = () => {
   }));
 };
 
-export const VisitorTrendChart: React.FC<{ isLoading?: boolean }> = ({
+export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
   const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
   const isLoading = externalLoading || analyticsLoading;
-  const [timeRange, setTimeRange] = React.useState("year");
+  const [timeRange, setTimeRange] = useState("year");
 
-  const mockData = React.useMemo(() => generateMockData(), []);
+  const mockData = useMemo(() => generateMockData(), []);
 
-  const chartData = React.useMemo(() => {
+  const chartData = useMemo(() => {
     return mockData;
   }, [mockData]);
 
-  const metrics = React.useMemo(() => {
+  const metrics = useMemo(() => {
     const total = chartData.reduce((sum, item) => sum + item.total, 0);
     const unique = chartData.reduce((sum, item) => sum + item.unique, 0);
     const avgDaily = Math.floor(total / 30);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -46,7 +46,7 @@ export function MediaDetailsModal({
   const [newCoverImage, setNewCoverImage] = useState<Media | number | null>(null);
   const { hasPermission } = usePermission();
   
-  const getUpdatePermission = React.useCallback(() => {
+  const getUpdatePermission = useCallback(() => {
     if (!media) return 'media.update';
     if (media.media_type === 'image') return 'media.image.update';
     if (media.media_type === 'video') return 'media.video.update';
@@ -55,12 +55,12 @@ export function MediaDetailsModal({
     return 'media.update';
   }, [media]);
   
-  const canUpdateMedia = React.useMemo(() => {
+  const canUpdateMedia = useMemo(() => {
     if (!media) return false;
     return hasPermission(getUpdatePermission());
   }, [media, hasPermission, getUpdatePermission]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (media) {
       setEditedMedia({ ...media });
       setIsEditing(false);

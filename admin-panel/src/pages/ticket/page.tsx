@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, type ReplyTicketData } from "@/components/ticket";

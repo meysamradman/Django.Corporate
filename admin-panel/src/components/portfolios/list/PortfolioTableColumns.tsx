@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { Button } from "@/components/elements/Button";
@@ -16,7 +17,7 @@ import { mediaService } from "@/components/media/services";
 
 export interface PortfolioAction {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   onClick: (portfolio: Portfolio) => void;
   isDestructive?: boolean;
 }

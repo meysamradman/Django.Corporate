@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ElementType } from "react";
 import { Users, ShieldUser, LayoutList, Image, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Card } from "@/components/elements/Card";
@@ -7,7 +7,7 @@ import type { DashboardStats } from "@/types/analytics";
 
 interface SummaryCard {
   id: string;
-  icon: React.ElementType;
+  icon: ElementType;
   label: string;
   value: number;
   colors: {

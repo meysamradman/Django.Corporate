@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -85,7 +85,7 @@ export default function EditTagPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
     const slugValidation = validateSlug(formData.slug, true);

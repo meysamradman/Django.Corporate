@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type RefObject } from 'react';
 import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';
@@ -163,7 +163,7 @@ export function MediaPlayer({
     if (media.media_type === 'video') {
       return (
         <video
-          ref={mediaRef as React.RefObject<HTMLVideoElement>}
+          ref={mediaRef as RefObject<HTMLVideoElement>}
           src={mediaUrl}
           className="w-full h-full object-contain"
           controls={controls}
@@ -175,7 +175,7 @@ export function MediaPlayer({
     } else if (media.media_type === 'audio') {
       return (
         <audio
-          ref={mediaRef as React.RefObject<HTMLAudioElement>}
+          ref={mediaRef as RefObject<HTMLAudioElement>}
           src={mediaUrl}
           controls={controls}
           autoPlay={autoPlay}

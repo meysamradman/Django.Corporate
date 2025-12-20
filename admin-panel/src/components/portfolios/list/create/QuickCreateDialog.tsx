@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent, type ChangeEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
     Dialog,
@@ -67,7 +67,7 @@ export function QuickCreateDialog({
         onOpenChange(false);
     };
 
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setName(value);
         
@@ -75,13 +75,13 @@ export function QuickCreateDialog({
         setSlug(generatedSlug);
     };
 
-    const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const formattedSlug = formatSlug(value);
         setSlug(formattedSlug);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
         

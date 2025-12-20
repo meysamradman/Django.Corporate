@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";

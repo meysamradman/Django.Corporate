@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';
@@ -12,7 +13,7 @@ interface MediaImageProps {
     width?: number;
     height?: number;
     fill?: boolean;
-    style?: React.CSSProperties;
+    style?: CSSProperties;
     showSkeleton?: boolean;
     skeletonClassName?: string;
 }

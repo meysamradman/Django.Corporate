@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/elements/Button";
 import { Badge } from "@/components/elements/Badge";
@@ -94,7 +94,7 @@ export function FeatureFlagsManagement() {
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading && missingFlags.length > 0) {
       missingFlags.forEach((suggested) => {
         createMutation.mutate({

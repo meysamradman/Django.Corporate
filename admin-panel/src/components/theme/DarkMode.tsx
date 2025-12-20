@@ -1,11 +1,11 @@
 import {Moon, SunMedium} from "lucide-react"
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export function DarkMode() {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = React.useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -23,7 +23,7 @@ export function DarkMode() {
     }
   };
 
-  const toggleTheme = React.useCallback(() => {
+  const toggleTheme = useCallback(() => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);

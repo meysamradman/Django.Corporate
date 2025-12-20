@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { mediaApi, VALID_MEDIA_PAGE_SIZES, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';

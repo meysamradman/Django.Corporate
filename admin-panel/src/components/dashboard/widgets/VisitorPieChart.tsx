@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo, type FC, type ComponentType, type CSSProperties } from "react";
 import { Label, Pie, PieChart } from "recharts";
 import { Monitor, Smartphone, Laptop } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -46,12 +46,12 @@ const chartConfig = {
 interface SourceItem {
   name: "web" | "mobile" | "desktop";
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   value: number;
   color: string;
 }
 
-export const VisitorPieChart: React.FC<{ isLoading?: boolean }> = ({
+export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
   const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
@@ -70,7 +70,7 @@ export const VisitorPieChart: React.FC<{ isLoading?: boolean }> = ({
 
   const displayData = analytics || testData;
 
-  const sources: SourceItem[] = React.useMemo(() => {
+  const sources: SourceItem[] = useMemo(() => {
     const data = displayData?.last_30_days || testData.last_30_days;
     return [
       {
@@ -97,7 +97,7 @@ export const VisitorPieChart: React.FC<{ isLoading?: boolean }> = ({
     ].filter(item => item.value > 0) as SourceItem[];
   }, [displayData]);
 
-  const chartData = React.useMemo(() => {
+  const chartData = useMemo(() => {
     return sources.map(item => ({
       name: item.name,
       value: item.value,
@@ -105,7 +105,7 @@ export const VisitorPieChart: React.FC<{ isLoading?: boolean }> = ({
     }));
   }, [sources]);
 
-  const totalVisitors = React.useMemo(() => {
+  const totalVisitors = useMemo(() => {
     return sources.reduce((sum, item) => sum + item.value, 0);
   }, [sources]);
 
@@ -220,7 +220,7 @@ export const VisitorPieChart: React.FC<{ isLoading?: boolean }> = ({
                     >
                       <Icon 
                         className="w-5 h-5" 
-                        style={{ color: source.color } as React.CSSProperties}
+                        style={{ color: source.color } as CSSProperties}
                       />
                     </div>
                     <div className="flex flex-col">

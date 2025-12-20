@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, type DragEvent } from 'react';
 import type { ChangeEvent } from 'react';
 import { Upload } from "lucide-react";
 import { cn } from '@/core/utils/cn';
@@ -29,12 +29,12 @@ export function FileDropzone({ onFilesAdded, allowedTypes, disabled = false }: F
     }
   }, [onFilesAdded]);
 
-  const handleDragEvents = (e: React.DragEvent) => {
+  const handleDragEvents = (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
   
-  const handleDragEnter = (e: React.DragEvent) => {
+  const handleDragEnter = (e: DragEvent) => {
     handleDragEvents(e);
     if (!disabled) setIsDragging(true);
   };

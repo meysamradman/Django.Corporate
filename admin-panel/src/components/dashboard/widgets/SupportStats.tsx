@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type FC } from "react";
 import { Activity, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { DashboardStats } from "@/types/analytics";
@@ -22,7 +22,7 @@ interface SupportStatsProps {
   isLoading?: boolean;
 }
 
-export const SupportStats: React.FC<SupportStatsProps> = ({ stats, isLoading = false }) => {
+export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }) => {
   const supportStats = useMemo(() => {
     if (!stats) return [];
     const replied = (stats.total_emails || 0) - (stats.new_emails || 0) - (stats.unanswered_emails || 0);

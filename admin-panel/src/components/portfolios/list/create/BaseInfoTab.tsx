@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
@@ -165,7 +165,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         }
     };
 
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {
@@ -177,7 +177,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         }
     };
 
-    const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const formattedSlug = formatSlug(value);
         if (isFormApproach) {
@@ -187,7 +187,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         }
     };
 
-    const handleShortDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleShortDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (isFormApproach) {
         } else {

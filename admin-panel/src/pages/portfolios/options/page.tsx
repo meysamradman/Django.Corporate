@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/tables/DataTable";
 import { useOptionColumns } from "@/components/portfolios/options/list/OptionTableColumns";
@@ -148,7 +148,7 @@ export default function OptionPage() {
   
   const columns = useOptionColumns(rowActions) as ColumnDef<PortfolioOption>[];
 
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
     if (urlParams.get('page')) {
