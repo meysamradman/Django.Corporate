@@ -72,11 +72,11 @@ export function Sidebar({
       for (const item of group.items) {
         if ('items' in item && item.items) {
           const hasMainUrl = 'url' in item && item.url;
-          
+
           if (hasMainUrl && 'url' in item && item.url === pathname) {
             continue;
           }
-          
+
           for (const subItem of item.items) {
             if (!subItem.url) continue;
 
@@ -98,8 +98,8 @@ export function Sidebar({
               const isExactMatch = subItem.url === pathname;
               const priority = (isExactMatch ? 100 : 50) + (hasMainUrl ? 0 : 25);
 
-              if (!bestMatch || priority > bestMatchPriority || 
-                  (priority === bestMatchPriority && matchLength > bestMatchLength)) {
+              if (!bestMatch || priority > bestMatchPriority ||
+                (priority === bestMatchPriority && matchLength > bestMatchLength)) {
                 bestMatch = item;
                 bestMatchLength = matchLength;
                 bestMatchPriority = priority;

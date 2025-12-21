@@ -38,11 +38,11 @@ export function AdminLayout() {
     if (typeof window !== 'undefined') {
       const isMobile = window.innerWidth < 1024;
       const pathnameChanged = prevPathnameRef.current !== location.pathname;
-      
+
       if (pathnameChanged && isMobile && sidebarOpen) {
         setSidebarOpen(false);
       }
-      
+
       prevPathnameRef.current = location.pathname;
     }
   }, [location.pathname, sidebarOpen, setSidebarOpen]);

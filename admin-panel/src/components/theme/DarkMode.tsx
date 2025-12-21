@@ -1,4 +1,4 @@
-import {Moon, SunMedium} from "lucide-react"
+import { Moon, SunMedium } from "lucide-react"
 import { useState, useEffect, useCallback } from "react";
 
 export function DarkMode() {
@@ -15,12 +15,34 @@ export function DarkMode() {
   }, []);
 
   const applyTheme = (newTheme: 'light' | 'dark') => {
+    // 👇 جلوگیری از حالت تیکه‌تیکه شدن با غیرفعال کردن موقت انیمیشن‌ها
+    const css = document.createElement('style');
+    css.type = 'text/css';
+    css.appendChild(
+      document.createTextNode(
+        `* {
+           -webkit-transition: none !important;
+           -moz-transition: none !important;
+           -o-transition: none !important;
+           -ms-transition: none !important;
+           transition: none !important;
+        }`
+      )
+    );
+    document.head.appendChild(css);
+
     const root = document.documentElement;
     if (newTheme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
+
+    // Force a reflow
+    window.getComputedStyle(css).opacity;
+
+    // Remove the style tag
+    document.head.removeChild(css);
   };
 
   const toggleTheme = useCallback(() => {

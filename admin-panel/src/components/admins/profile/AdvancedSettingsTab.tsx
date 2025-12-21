@@ -5,7 +5,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Edit2, Loader2, AlertTriangle, Users, Shield, Check } from "lucide-react";
+import { Edit2, Loader2, AlertTriangle, Users } from "lucide-react";
 import { showSuccess, showError, showInfo, showWarning } from "@/core/toast";
 import { roleApi } from "@/api/admins/roles/roles";
 import { adminApi } from "@/api/admins/admins";
@@ -22,22 +22,12 @@ interface AdvancedSettingsTabProps {
 
 import type { RoleAssignment } from '@/types/auth/permission';
 
-interface BasePermission {
-    id: string;
-    resource: string;
-    action: string;
-    display_name: string;
-    description: string;
-    is_base: boolean;
-}
-
 export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     const { user, refreshUser } = useAuth();
     const queryClient = useQueryClient();
     const [adminRoles, setAdminRoles] = useState<Role[]>([]);
     const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
     const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
-    const [basePermissions, setBasePermissions] = useState<BasePermission[]>([]);
     const [editMode, setEditMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -100,30 +90,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             });
             
             setRoleAssignments(initialAssignments);
-
-            try {
-                const basePermsResponse = await roleApi.getBasePermissions();
-                if (basePermsResponse.data && Array.isArray(basePermsResponse.data)) {
-                    const convertedPermissions: BasePermission[] = basePermsResponse.data
-                        .filter((perm): perm is BasePermission => 
-                            perm.resource !== undefined && 
-                            perm.action !== undefined &&
-                            perm.display_name !== undefined &&
-                            perm.description !== undefined
-                        )
-                        .map(perm => ({
-                            id: perm.id,
-                            resource: perm.resource!,
-                            action: perm.action!,
-                            display_name: perm.display_name,
-                            description: perm.description || '',
-                            is_base: perm.is_base ?? true
-                        }));
-                    setBasePermissions(convertedPermissions);
-                }
-            } catch {
-                // Silently handle error - base permissions will remain empty
-            }
             
         } catch {
             setError(getPermissionTranslation('خطا در بارگذاری اطلاعات دسترسی‌ها', 'description'));
@@ -311,56 +277,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     return (
         <TabsContent value="advanced_settings">
             <div className="space-y-6">
-            <CardWithIcon
-                icon={Shield}
-                title="تنظیمات پیشرفته"
-                iconBgColor="bg-purple"
-                iconColor="stroke-purple-2"
-                borderColor="border-b-purple-1"
-                className="hover:shadow-lg transition-all duration-300"
-            >
-                        {adminRoles.length > 0 && (
-                            <div className="rounded-lg border p-4">
-                                <Label>{getPermissionTranslation('نقش‌های فعلی', 'resource')}</Label>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                    {adminRoles.map((role) => (
-                                        <span
-                                            key={role.id}
-                                            className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary ring-1 ring-inset ring-primary/20"
-                                        >
-                                            {getPermissionTranslation(role.name, 'role')}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {basePermissions.length > 0 && (
-                            <div className="rounded-lg border p-4 bg-green">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Shield className="w-4 h-4 text-green-1" />
-                                    <Label className="text-green-2">دسترسی‌های پایه</Label>
-                                </div>
-                                <p className="text-font-s mb-3">
-                                    این دسترسی‌ها به صورت خودکار برای همه ادمین‌ها فعال است:
-                                </p>
-                                <div className="space-y-2">
-                                    {basePermissions.map((perm) => (
-                                        <div key={perm.id} className="flex items-start gap-2 p-2 rounded-md bg-card border border-green-1">
-                                            <Check className="w-4 h-4 text-green-1 mt-0.5 flex-shrink-0" />
-                                            <div className="flex-1">
-                                                <div className="text-font-p">{perm.display_name}</div>
-                                                {perm.description && (
-                                                    <div className="text-font-s">{perm.description}</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-            </CardWithIcon>
-
             <CardWithIcon
                 icon={Users}
                 title="اختصاص نقش‌ها"
