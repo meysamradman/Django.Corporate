@@ -1,2 +1,0 @@
-export { AIImageGenerator } from './AIImageGenerator';
-
