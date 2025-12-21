@@ -16,7 +16,6 @@ import {
   Plus,
   Folder,
   Tag,
-  Upload,
   Video,
   File,
   UserPlus,
@@ -24,7 +23,6 @@ import {
   Circle,
   CheckCircle,
   XCircle,
-  PanelRight,
   Bot,
   Info,
   FileCheck,
@@ -32,6 +30,15 @@ import {
   Cpu,
   Image as ImageIcon,
   Music,
+  LayoutDashboard,
+  ListTodo,
+  BookPlus,
+  FolderPlus,
+  Inbox,
+  Send,
+  FileEdit,
+  Star,
+  FilePlus,
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
 import { useUserPermissions } from "@/components/admins/permissions/hooks/useUserPermissions"
@@ -87,11 +94,11 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           roles: ["blog_manager", "content_manager", "super_admin"]
         },
         items: [
-          { title: "لیست بلاگ‌ها", url: "/blogs", icon: FileText, access: { module: "blog", allowReadOnly: true } },
-          { title: "ایجاد بلاگ", url: "/blogs/create", icon: Plus, access: { module: "blog", actions: ["create"] } },
+          { title: "لیست بلاگ‌ها", url: "/blogs", icon: ListTodo, access: { module: "blog", allowReadOnly: true } },
+          { title: "ایجاد بلاگ", url: "/blogs/create", icon: BookPlus, access: { module: "blog", actions: ["create"] } },
           { title: "دسته‌بندی‌های بلاگ", isTitle: true },
           { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories", icon: Folder, access: { module: "blog_categories", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create", icon: Plus, access: { module: "blog_categories", actions: ["create"] } },
+          { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create", icon: FolderPlus, access: { module: "blog_categories", actions: ["create"] } },
           { title: "تگ‌های بلاگ", isTitle: true },
           { title: "لیست تگ‌ها", url: "/blogs/tags", icon: Tag, access: { module: "blog_tags", allowReadOnly: true } },
           { title: "ایجاد تگ", url: "/blogs/tags/create", icon: Plus, access: { module: "blog_tags", actions: ["create"] } },
@@ -108,11 +115,11 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "لیست نمونه کارها", url: "/portfolios", icon: Layers, access: { module: "portfolio", allowReadOnly: true } },
-          { title: "ایجاد نمونه کار", url: "/portfolios/create", icon: Plus, access: { module: "portfolio", actions: ["create"] } },
+          { title: "لیست نمونه کارها", url: "/portfolios", icon: ListTodo, access: { module: "portfolio", allowReadOnly: true } },
+          { title: "ایجاد نمونه کار", url: "/portfolios/create", icon: FilePlus, access: { module: "portfolio", actions: ["create"] } },
           { title: "دسته‌بندی‌های نمونه کار", isTitle: true },
           { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories", icon: Folder, access: { module: "portfolio_categories", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create", icon: Plus, access: { module: "portfolio_categories", actions: ["create"] } },
+          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create", icon: FolderPlus, access: { module: "portfolio_categories", actions: ["create"] } },
           { title: "تگ‌های نمونه کار", isTitle: true },
           { title: "لیست تگ‌ها", url: "/portfolios/tags", icon: Tag, access: { module: "portfolio_tags", allowReadOnly: true } },
           { title: "ایجاد تگ", url: "/portfolios/tags/create", icon: Plus, access: { module: "portfolio_tags", actions: ["create"] } },
@@ -229,10 +236,10 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         items: [
           { title: "همه ایمیل‌ها", url: "/email", icon: Mail },
           { title: "صندوق‌ها", isTitle: true },
-          { title: "دریافتی", url: "/email?mailbox=inbox", icon: Mail },
-          { title: "ارسال شده", url: "/email?mailbox=sent", icon: Upload },
-          { title: "پیش‌نویس‌ها", url: "/email?mailbox=draft", icon: FileText },
-          { title: "ستاره‌دار", url: "/email?mailbox=starred", icon: Sparkles },
+          { title: "دریافتی", url: "/email?mailbox=inbox", icon: Inbox },
+          { title: "ارسال شده", url: "/email?mailbox=sent", icon: Send },
+          { title: "پیش‌نویس‌ها", url: "/email?mailbox=draft", icon: FileEdit },
+          { title: "ستاره‌دار", url: "/email?mailbox=starred", icon: Star },
         ]
       },
       {
@@ -283,7 +290,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Settings,
         items: [
           { title: "تنظیمات پنل ادمین", isTitle: true },
-          { title: "تنظیمات پنل", url: "/panel", icon: PanelRight, access: { module: "panel", actions: ["manage"] } },
+          { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { module: "panel", actions: ["manage"] } },
           { title: "تنظیمات هوش مصنوعی", isTitle: true },
           { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"] } },
           { title: "انتخاب مدل‌ها", url: "/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },
