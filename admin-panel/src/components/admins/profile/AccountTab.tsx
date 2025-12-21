@@ -78,7 +78,7 @@ export function AccountTab({
         is_super: user?.is_superuser || false,
         is_superuser: user?.is_superuser || false
     };
-    
+
     const canManagePermissions = user && (
         user.is_superuser ||
         hasPermission(userPermissionsObj, 'role.manage') ||
@@ -111,13 +111,13 @@ export function AccountTab({
             const fetchCities = async () => {
                 setLoadingCities(true);
                 try {
-                const selectedProvince = provinces.find(p => p.name === formData.province);
-                if (selectedProvince) {
-                    const cities = await locationApi.getCitiesCompactByProvince(selectedProvince.id);
-                    setCities(cities);
-                }
+                    const selectedProvince = provinces.find(p => p.name === formData.province);
+                    if (selectedProvince) {
+                        const cities = await locationApi.getCitiesCompactByProvince(selectedProvince.id);
+                        setCities(cities);
+                    }
                 } catch {
-                  // Error handling: cities will remain empty
+                    // Error handling: cities will remain empty
                 } finally {
                     setLoadingCities(false);
                 }
@@ -155,7 +155,7 @@ export function AccountTab({
     const updateActiveStatusMutation = useMutation({
         mutationFn: async (newStatus: boolean) => {
             const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
-            
+
             if (!targetAdminId) {
                 throw new Error("شناسه ادمین یافت نشد");
             }
@@ -168,11 +168,11 @@ export function AccountTab({
             await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
             await queryClient.invalidateQueries({ queryKey: ['admin', queryKeyForInvalidate] });
             await queryClient.invalidateQueries({ queryKey: ['admins'] });
-            
+
             if (adminId === "me") {
                 await refreshUser();
             }
-            
+
             showSuccess("وضعیت حساب کاربری با موفقیت به‌روزرسانی شد");
         },
         onError: (error) => {
@@ -189,7 +189,7 @@ export function AccountTab({
     const updateSuperuserStatusMutation = useMutation({
         mutationFn: async (newStatus: boolean) => {
             const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
-            
+
             if (!targetAdminId) {
                 throw new Error("شناسه ادمین یافت نشد");
             }
@@ -204,11 +204,11 @@ export function AccountTab({
             await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
             await queryClient.invalidateQueries({ queryKey: ['admin', queryKeyForInvalidate] });
             await queryClient.invalidateQueries({ queryKey: ['admins'] });
-            
+
             if (adminId === "me") {
                 await refreshUser();
             }
-            
+
             showSuccess("وضعیت سوپر ادمین با موفقیت به‌روزرسانی شد");
         },
         onError: (error) => {
@@ -221,7 +221,7 @@ export function AccountTab({
         setIsSuperuser(checked);
         updateSuperuserStatusMutation.mutate(checked);
     };
-    
+
     return (
         <TabsContent value="account">
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
@@ -235,149 +235,149 @@ export function AccountTab({
                         className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-gradient-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-gradient-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
                         contentClassName="pt-4 pb-4"
                     >
-                            <div className="space-y-5">
-                                <div>
-                                    <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                        <div className="flex items-center justify-between gap-3 pb-3">
-                                            <div className="flex items-center gap-2">
-                                                <User className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>نام کامل:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p">
-                                                    {formData.firstName && formData.lastName
-                                                        ? `${formData.firstName} ${formData.lastName}`
-                                                        : admin.full_name || "نام وارد نشده"
-                                                    }
-                                                </span>
-                                            </div>
+                        <div className="space-y-5">
+                            <div>
+                                <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                                    <div className="flex items-center justify-between gap-3 pb-3">
+                                        <div className="flex items-center gap-2">
+                                            <User className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>نام کامل:</label>
                                         </div>
-                                        {canManagePermissions && (
-                                            <div className="py-3 space-y-3">
-                                                <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                        <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                            <span className="text-font-p">
+                                                {formData.firstName && formData.lastName
+                                                    ? `${formData.firstName} ${formData.lastName}`
+                                                    : admin.full_name || "نام وارد نشده"
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {canManagePermissions && (
+                                        <div className="py-3 space-y-3">
+                                            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                                <Item variant="default" size="default" className="py-4">
+                                                    <ItemContent>
+                                                        <ItemTitle className="text-green-2 text-sm">وضعیت فعال</ItemTitle>
+                                                        <ItemDescription className="text-xs">
+                                                            حساب کاربری این ادمین را فعال یا غیرفعال کنید.
+                                                        </ItemDescription>
+                                                    </ItemContent>
+                                                    <ItemActions>
+                                                        <Switch
+                                                            checked={isActive}
+                                                            onCheckedChange={handleActiveStatusChange}
+                                                            disabled={updateActiveStatusMutation.isPending}
+                                                        />
+                                                    </ItemActions>
+                                                </Item>
+                                            </div>
+                                            {user?.is_superuser && (
+                                                <div className="rounded-xl border border-amber-1/40 bg-amber-0/30 hover:border-amber-1/60 transition-colors overflow-hidden">
                                                     <Item variant="default" size="default" className="py-4">
                                                         <ItemContent>
-                                                            <ItemTitle className="text-green-2 text-sm">وضعیت فعال</ItemTitle>
+                                                            <ItemTitle className="text-amber-2 text-sm">سوپر ادمین</ItemTitle>
                                                             <ItemDescription className="text-xs">
-                                                                حساب کاربری این ادمین را فعال یا غیرفعال کنید.
+                                                                دسترسی کامل به تمام بخش‌های سیستم.
                                                             </ItemDescription>
                                                         </ItemContent>
                                                         <ItemActions>
                                                             <Switch
-                                                                checked={isActive}
-                                                                onCheckedChange={handleActiveStatusChange}
-                                                                disabled={updateActiveStatusMutation.isPending}
+                                                                checked={isSuperuser}
+                                                                onCheckedChange={handleSuperuserStatusChange}
+                                                                disabled={updateSuperuserStatusMutation.isPending}
                                                             />
                                                         </ItemActions>
                                                     </Item>
                                                 </div>
-                                                {user?.is_superuser && (
-                                                    <div className="rounded-xl border border-amber-1/40 bg-amber-0/30 hover:border-amber-1/60 transition-colors overflow-hidden">
-                                                        <Item variant="default" size="default" className="py-4">
-                                                            <ItemContent>
-                                                                <ItemTitle className="text-amber-2 text-sm">سوپر ادمین</ItemTitle>
-                                                                <ItemDescription className="text-xs">
-                                                                    دسترسی کامل به تمام بخش‌های سیستم.
-                                                                </ItemDescription>
-                                                            </ItemContent>
-                                                            <ItemActions>
-                                                                <Switch
-                                                                    checked={isSuperuser}
-                                                                    onCheckedChange={handleSuperuserStatusChange}
-                                                                    disabled={updateSuperuserStatusMutation.isPending}
-                                                                />
-                                                            </ItemActions>
-                                                        </Item>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>موبایل:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.mobile || admin.mobile || "وارد نشده"}</p>
+                                            )}
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>ایمیل:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p break-all">{formData.email || admin.email || "وارد نشده"}</span>
-                                            </div>
+                                    )}
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>موبایل:</label>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>تلفن:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
+                                        <p className="text-font-p text-left">{formData.mobile || admin.mobile || "وارد نشده"}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>ایمیل:</label>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 pt-3">
-                                            <div className="flex items-center gap-2">
-                                                <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>کد ملی:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
+                                        <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                            <span className="text-font-p break-all">{formData.email || admin.email || "وارد نشده"}</span>
                                         </div>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>تلفن:</label>
+                                        </div>
+                                        <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 pt-3">
+                                        <div className="flex items-center gap-2">
+                                            <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>کد ملی:</label>
+                                        </div>
+                                        <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
                                     </div>
                                 </div>
-                                <div className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-br/50"></div>
-                                    </div>
-                                    <div className="relative flex justify-center">
-                                        <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
-                                            <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
-                                        </div>
+                            </div>
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-br/50"></div>
+                                </div>
+                                <div className="relative flex justify-center">
+                                    <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
+                                        <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
                                     </div>
                                 </div>
-                                <div className="mt-2">
-                                    <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                        <div className="flex items-center justify-between gap-3 pb-3">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>تاریخ تولد:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">
-                                                {formData.birthDate ? formatDate(formData.birthDate) : "وارد نشده"}
-                                            </p>
+                            </div>
+                            <div className="mt-2">
+                                <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                                    <div className="flex items-center justify-between gap-3 pb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>تاریخ تولد:</label>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Globe className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>کشور:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">ایران</p>
+                                        <p className="text-font-p text-left">
+                                            {formData.birthDate ? formatDate(formData.birthDate) : "وارد نشده"}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <Globe className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>کشور:</label>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Map className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>استان:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.province || "وارد نشده"}</p>
+                                        <p className="text-font-p text-left">ایران</p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <Map className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>استان:</label>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>شهر:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
+                                        <p className="text-font-p text-left">{formData.province || "وارد نشده"}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>شهر:</label>
                                         </div>
-                                        <div className="flex items-center justify-between gap-3 pt-3">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>آدرس:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p">{formData.address || "وارد نشده"}</span>
-                                            </div>
+                                        <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 pt-3">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <label>آدرس:</label>
+                                        </div>
+                                        <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                            <span className="text-font-p">{formData.address || "وارد نشده"}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                     </CardWithIcon>
                 </div>
 
@@ -404,195 +404,195 @@ export function AccountTab({
                         }
                         contentClassName="space-y-6"
                     >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        label="نام"
-                                        error={fieldErrors.firstName}
-                                        required
-                                    >
-                                        <Input
-                                            id="firstName"
-                                            value={formData.firstName || ""}
-                                            onChange={(e) => handleInputChange("firstName", e.target.value)}
-                                            disabled={!editMode}
-                                            placeholder="نام خود را وارد کنید"
-                                        />
-                                    </FormField>
-                                    <FormField
-                                        label="نام خانوادگی"
-                                        error={fieldErrors.lastName}
-                                        required
-                                    >
-                                        <Input
-                                            id="lastName"
-                                            value={formData.lastName || ""}
-                                            onChange={(e) => handleInputChange("lastName", e.target.value)}
-                                            disabled={!editMode}
-                                            placeholder="نام خانوادگی خود را وارد کنید"
-                                        />
-                                    </FormField>
-                                </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <FormField
-                                    label="تاریخ تولد"
-                                    htmlFor="birthDate"
-                                >
-                                    <PersianDatePicker
-                                        value={formData.birthDate || ""}
-                                        onChange={handleBirthDateChange}
-                                        placeholder="تاریخ تولد را انتخاب کنید"
-                                        disabled={!editMode}
-                                    />
-                                </FormField>
-                                <FormField
-                                    label="کد ملی"
-                                    error={fieldErrors.nationalId}
-                                >
-                                    <Input
-                                        id="nationalId"
-                                        value={formData.nationalId || ""}
-                                        onChange={(e) => {
-                                            const filteredValue = filterNumericOnly(e.target.value);
-                                            handleInputChange("nationalId", filteredValue);
-                                        }}
-                                        disabled={!editMode}
-                                        placeholder="کد ملی خود را وارد کنید"
-                                        inputMode="numeric"
-                                    />
-                                </FormField>
-                                <FormField
-                                    label="تلفن"
-                                    htmlFor="phone"
-                                >
-                                    <Input
-                                        id="phone"
-                                        type="tel"
-                                        value={formData.phone || ""}
-                                        onChange={(e) => {
-                                            const filteredValue = filterNumericOnly(e.target.value);
-                                            handleInputChange("phone", filteredValue);
-                                        }}
-                                        disabled={!editMode}
-                                        placeholder="تلفن ثابت را وارد کنید"
-                                        inputMode="tel"
-                                    />
-                                </FormField>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField
-                                    label="موبایل"
-                                    error={fieldErrors.mobile}
-                                    required
-                                >
-                                    <Input
-                                        id="mobile"
-                                        type="tel"
-                                        value={formData.mobile || ""}
-                                        onChange={(e) => {
-                                            const filteredValue = filterNumericOnly(e.target.value);
-                                            handleInputChange("mobile", filteredValue);
-                                        }}
-                                        disabled={!editMode}
-                                        placeholder="شماره موبایل خود را وارد کنید"
-                                        inputMode="tel"
-                                    />
-                                </FormField>
-                                <FormField
-                                    label="ایمیل"
-                                    error={fieldErrors.email}
-                                >
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={formData.email || ""}
-                                        onChange={(e) => handleInputChange("email", e.target.value)}
-                                        disabled={!editMode}
-                                        placeholder="آدرس ایمیل خود را وارد کنید"
-                                    />
-                                </FormField>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                <FormField
-                                    label="استان"
-                                    htmlFor="province"
-                                >
-                                    <Select
-                                        value={formData.province || ""}
-                                        onValueChange={handleProvinceChange}
-                                        disabled={!editMode || loadingProvinces}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "استان خود را انتخاب کنید"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {provinces.map((province) => (
-                                                <SelectItem key={province.id} value={province.name}>
-                                                    {province.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormField>
-                                <FormField
-                                    label="شهر"
-                                    htmlFor="city"
-                                >
-                                    <Select
-                                        value={formData.city || ""}
-                                        onValueChange={handleCityChange}
-                                        disabled={!editMode || loadingCities}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={
-                                                !formData.province 
-                                                    ? "ابتدا استان را انتخاب کنید" 
-                                                    : loadingCities 
-                                                        ? "در حال بارگذاری..." 
-                                                        : cities.length === 0
-                                                            ? "شهری برای این استان یافت نشد"
-                                                            : "شهر خود را انتخاب کنید"
-                                            } />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {cities.map((city) => (
-                                                <SelectItem key={city.id} value={city.name}>
-                                                    {city.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormField>
-                                <FormField
-                                    label="آدرس"
-                                    htmlFor="address"
-                                >
-                                    <Input
-                                        id="address"
-                                        value={formData.address || ""}
-                                        onChange={(e) => handleInputChange("address", e.target.value)}
-                                        disabled={!editMode}
-                                        placeholder="آدرس خود را وارد کنید"
-                                        className="w-full"
-                                    />
-                                </FormField>
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
-                                label="بیوگرافی"
-                                htmlFor="bio"
+                                label="نام"
+                                error={fieldErrors.firstName}
+                                required
                             >
-                                <Textarea
-                                    id="bio"
-                                    value={formData.bio || ""}
-                                    onChange={(e) => handleInputChange("bio", e.target.value)}
+                                <Input
+                                    id="firstName"
+                                    value={formData.firstName || ""}
+                                    onChange={(e) => handleInputChange("firstName", e.target.value)}
                                     disabled={!editMode}
-                                    placeholder="درباره خود بنویسید..."
-                                    rows={4}
+                                    placeholder="نام خود را وارد کنید"
                                 />
                             </FormField>
+                            <FormField
+                                label="نام خانوادگی"
+                                error={fieldErrors.lastName}
+                                required
+                            >
+                                <Input
+                                    id="lastName"
+                                    value={formData.lastName || ""}
+                                    onChange={(e) => handleInputChange("lastName", e.target.value)}
+                                    disabled={!editMode}
+                                    placeholder="نام خانوادگی خود را وارد کنید"
+                                />
+                            </FormField>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormField
+                                label="تاریخ تولد"
+                                htmlFor="birthDate"
+                            >
+                                <PersianDatePicker
+                                    value={formData.birthDate || ""}
+                                    onChange={handleBirthDateChange}
+                                    placeholder="تاریخ تولد را انتخاب کنید"
+                                    disabled={!editMode}
+                                />
+                            </FormField>
+                            <FormField
+                                label="کد ملی"
+                                error={fieldErrors.nationalId}
+                            >
+                                <Input
+                                    id="nationalId"
+                                    value={formData.nationalId || ""}
+                                    onChange={(e) => {
+                                        const filteredValue = filterNumericOnly(e.target.value);
+                                        handleInputChange("nationalId", filteredValue);
+                                    }}
+                                    disabled={!editMode}
+                                    placeholder="کد ملی خود را وارد کنید"
+                                    inputMode="numeric"
+                                />
+                            </FormField>
+                            <FormField
+                                label="تلفن"
+                                htmlFor="phone"
+                            >
+                                <Input
+                                    id="phone"
+                                    type="tel"
+                                    value={formData.phone || ""}
+                                    onChange={(e) => {
+                                        const filteredValue = filterNumericOnly(e.target.value);
+                                        handleInputChange("phone", filteredValue);
+                                    }}
+                                    disabled={!editMode}
+                                    placeholder="تلفن ثابت را وارد کنید"
+                                    inputMode="tel"
+                                />
+                            </FormField>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                label="موبایل"
+                                error={fieldErrors.mobile}
+                                required
+                            >
+                                <Input
+                                    id="mobile"
+                                    type="tel"
+                                    value={formData.mobile || ""}
+                                    onChange={(e) => {
+                                        const filteredValue = filterNumericOnly(e.target.value);
+                                        handleInputChange("mobile", filteredValue);
+                                    }}
+                                    disabled={!editMode}
+                                    placeholder="شماره موبایل خود را وارد کنید"
+                                    inputMode="tel"
+                                />
+                            </FormField>
+                            <FormField
+                                label="ایمیل"
+                                error={fieldErrors.email}
+                            >
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={formData.email || ""}
+                                    onChange={(e) => handleInputChange("email", e.target.value)}
+                                    disabled={!editMode}
+                                    placeholder="آدرس ایمیل خود را وارد کنید"
+                                />
+                            </FormField>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <FormField
+                                label="استان"
+                                htmlFor="province"
+                            >
+                                <Select
+                                    value={formData.province || ""}
+                                    onValueChange={handleProvinceChange}
+                                    disabled={!editMode || loadingProvinces}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "استان خود را انتخاب کنید"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {provinces.map((province) => (
+                                            <SelectItem key={province.id} value={province.name}>
+                                                {province.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
+                            <FormField
+                                label="شهر"
+                                htmlFor="city"
+                            >
+                                <Select
+                                    value={formData.city || ""}
+                                    onValueChange={handleCityChange}
+                                    disabled={!editMode || loadingCities}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder={
+                                            !formData.province
+                                                ? "ابتدا استان را انتخاب کنید"
+                                                : loadingCities
+                                                    ? "در حال بارگذاری..."
+                                                    : cities.length === 0
+                                                        ? "شهری برای این استان یافت نشد"
+                                                        : "شهر خود را انتخاب کنید"
+                                        } />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {cities.map((city) => (
+                                            <SelectItem key={city.id} value={city.name}>
+                                                {city.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
+                            <FormField
+                                label="آدرس"
+                                htmlFor="address"
+                            >
+                                <Input
+                                    id="address"
+                                    value={formData.address || ""}
+                                    onChange={(e) => handleInputChange("address", e.target.value)}
+                                    disabled={!editMode}
+                                    placeholder="آدرس خود را وارد کنید"
+                                    className="w-full"
+                                />
+                            </FormField>
+                        </div>
+
+                        <FormField
+                            label="بیوگرافی"
+                            htmlFor="bio"
+                        >
+                            <Textarea
+                                id="bio"
+                                value={formData.bio || ""}
+                                onChange={(e) => handleInputChange("bio", e.target.value)}
+                                disabled={!editMode}
+                                placeholder="درباره خود بنویسید..."
+                                rows={4}
+                            />
+                        </FormField>
 
                     </CardWithIcon>
                 </div>

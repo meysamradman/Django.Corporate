@@ -34,7 +34,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
     const loadAdminRoles = useCallback(async () => {
         try {
             const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
-            const adminRolesData = Array.isArray(adminRolesResponse) 
+            const adminRolesData = Array.isArray(adminRolesResponse)
                 ? adminRolesResponse.map((assignment: any) => {
                     if (assignment.role && typeof assignment.role === 'object') {
                         return assignment.role;
@@ -47,7 +47,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
             // Silently handle error - admin roles will remain empty
         }
     }, [admin.id]);
-    
+
     useEffect(() => {
         if (admin?.id) {
             loadAdminRoles();
@@ -55,19 +55,19 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
     }, [admin?.id, loadAdminRoles]);
 
     const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
-    
+
     const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
         const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
         const profilePictureId = selectedImage?.id || null;
         const isMeRoute = adminId === "me";
         const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
-        
+
         if (!targetAdminId) {
             showError("شناسه ادمین یافت نشد");
             setShowMediaSelector(false);
             return;
         }
-        
+
         try {
             let updatedAdmin;
             if (isMeRoute) {
@@ -92,28 +92,28 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                 };
                 updatedAdmin = await adminApi.updateUserByType(targetAdminId, updateData, 'admin');
             }
-            
+
             if (!updatedAdmin) {
                 showError("خطا در دریافت پاسخ از سرور");
                 setShowMediaSelector(false);
                 return;
             }
-            
+
             const queryKeyForInvalidate = isMeRoute ? 'me' : (adminId || String(admin?.id));
-            
+
             if (updatedAdmin.profile?.profile_picture && onProfileImageChange) {
                 onProfileImageChange(updatedAdmin.profile.profile_picture);
             }
-            
+
             await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
             await queryClient.invalidateQueries({ queryKey: ['admin', queryKeyForInvalidate] });
             await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
             await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
-            
+
             if (isMeRoute) {
                 await refreshUser();
             }
-            
+
             showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
         } catch (error) {
             showError(error, { customMessage: "خطا در ذخیره عکس پروفایل" });
@@ -158,7 +158,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                                 </span>
                             </div>
                         )}
-                        
+
                         <Button
                             variant="outline"
                             size="sm"
@@ -177,9 +177,8 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                         </h2>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-font-s mt-3">
                             <div className="flex items-center gap-2">
-                                <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${
-                                    admin.is_active ? "bg-green" : "bg-yellow"
-                                }`}>
+                                <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${admin.is_active ? "bg-green" : "bg-yellow"
+                                    }`}>
                                     {admin.is_active ? (
                                         <CheckCircle2 className="w-5 h-5 text-green-1" />
                                     ) : (
