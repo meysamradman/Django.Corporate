@@ -289,6 +289,7 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
     provider_slug = serializers.CharField(source='provider.slug', read_only=True)
     has_personal_api = serializers.SerializerMethodField()
     api_key = serializers.SerializerMethodField()
+    personal_api_key_value = serializers.SerializerMethodField()
     usage_info = serializers.SerializerMethodField()
     api_config = serializers.SerializerMethodField()
     actions = serializers.SerializerMethodField()
@@ -297,7 +298,7 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
         model = AdminProviderSettings
         fields = [
             'id', 'provider_name', 'provider_slug',
-            'has_personal_api', 'api_key', 'use_shared_api',
+            'has_personal_api', 'api_key', 'personal_api_key_value', 'use_shared_api',
             'monthly_limit', 'monthly_usage', 'usage_info',
             'api_config', 'actions',
             'total_requests', 'last_used_at', 'is_active'
@@ -319,6 +320,12 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
             except Exception:
                 return None
         return None
+    
+    def get_personal_api_key_value(self, obj):
+        try:
+            return obj.get_personal_api_key()
+        except Exception:
+            return None
     
     def get_usage_info(self, obj):
         return obj.get_usage_info()

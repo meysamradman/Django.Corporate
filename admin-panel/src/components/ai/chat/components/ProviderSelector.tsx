@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import {
     Select,
     SelectContent,
@@ -6,8 +5,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/elements/Select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/elements/DropdownMenu";
 import { Skeleton } from '@/components/elements/Skeleton';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Plus, Check } from 'lucide-react';
 import { msg, getAIUI } from '@/core/messages';
 import { getProviderDisplayName, getProviderIcon } from '../../shared/utils';
 import type { AvailableProvider } from '@/types/ai/ai';
@@ -21,6 +26,7 @@ interface ProviderSelectorProps {
     showProviderDropdown: boolean;
     setShowProviderDropdown: (show: boolean) => void;
     selectedProviderData?: AvailableProvider;
+    variant?: 'default' | 'plus';
 }
 
 export function ProviderSelector({
@@ -32,21 +38,8 @@ export function ProviderSelector({
     showProviderDropdown,
     setShowProviderDropdown,
     selectedProviderData,
+    variant = 'default',
 }: ProviderSelectorProps) {
-    const providerDropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (providerDropdownRef.current && !providerDropdownRef.current.contains(event.target as Node)) {
-                setShowProviderDropdown(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [setShowProviderDropdown]);
 
     if (compact) {
         if (loadingProviders) {
@@ -89,65 +82,77 @@ export function ProviderSelector({
         );
     }
 
-    return (
-        <div className="relative" ref={providerDropdownRef}>
-            {loadingProviders ? (
-                <Skeleton className="h-9 w-32 rounded-full" />
-            ) : (
-                <>
-                    <button
-                        onClick={() => setShowProviderDropdown(!showProviderDropdown)}
-                        disabled={!availableProviders.length}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray hover:bg-bg rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {selectedProviderData && (
-                            <span className="text-lg">{getProviderIcon(selectedProviderData)}</span>
-                        )}
-                        <span className="text-sm font-medium text-font-p">
-                            {selectedProviderData
-                                ? (selectedProviderData.display_name || getProviderDisplayName(selectedProviderData))
-                                : getAIUI('selectModelPlaceholder')}
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-font-s" />
-                    </button>
+    if (loadingProviders) {
+        return <Skeleton className="h-9 w-32 rounded-full" />;
+    }
 
-                    {showProviderDropdown && (
-                        <div className="absolute bottom-full right-0 mb-2 w-80 bg-card rounded-xl shadow-xl border border-br py-2 z-50 max-h-96 overflow-y-auto">
-                            {availableProviders.length === 0 ? (
-                                <div className="p-4 text-sm text-font-s text-center">
-                                    {getAIUI('noActiveProviders')}
-                                </div>
-                            ) : (
-                                availableProviders.map((provider) => {
-                                    const isSelected = (provider.slug || provider.provider_name || String(provider.id)) === selectedProvider;
-                                    return (
-                                        <button
-                                            key={provider.id}
-                                            onClick={() => {
-                                                setSelectedProvider(provider.slug || provider.provider_name || String(provider.id));
-                                                setShowProviderDropdown(false);
-                                            }}
-                                            className="w-full px-4 py-3 text-right hover:bg-bg flex items-center justify-between transition-colors group"
-                                        >
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <span className="text-lg">{getProviderIcon(provider)}</span>
-                                                <div className="flex flex-col items-start">
-                                                    <span className="text-sm font-medium text-font-p">
-                                                        {provider.display_name || getProviderDisplayName(provider)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            {isSelected && (
-                                                <Check className="h-4 w-4 text-blue-1" />
-                                            )}
-                                        </button>
-                                    );
-                                })
+    return (
+        <DropdownMenu open={showProviderDropdown} onOpenChange={setShowProviderDropdown}>
+            <DropdownMenuTrigger asChild>
+                <button
+                    disabled={!availableProviders.length}
+                    className={`flex items-center gap-2 transition-colors group outline-none ${variant === 'plus'
+                        ? 'bg-transparent hover:opacity-80'
+                        : 'px-4 py-2 bg-gray hover:bg-bg rounded-full'
+                        }`}
+                >
+                    {variant === 'plus' ? (
+                        <>
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full border border-br text-font-s group-hover:border-primary group-hover:text-primary transition-colors">
+                                <Plus className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-medium text-font-p">
+                                {selectedProviderData
+                                    ? getProviderDisplayName(selectedProviderData)
+                                    : "انتخاب مدل"}
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            {selectedProviderData && (
+                                <span className="text-lg">{getProviderIcon(selectedProviderData)}</span>
                             )}
-                        </div>
+                            <span className="text-sm font-medium text-font-p">
+                                {selectedProviderData
+                                    ? getProviderDisplayName(selectedProviderData)
+                                    : getAIUI('selectModelPlaceholder')}
+                            </span>
+                            <ChevronDown className="h-4 w-4 text-font-s" />
+                        </>
                     )}
-                </>
-            )}
-        </div>
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-auto min-w-[12rem] p-2 max-h-96 overflow-y-auto">
+                {availableProviders.length === 0 ? (
+                    <div className="p-4 text-sm text-font-s text-center">
+                        {getAIUI('noActiveProviders')}
+                    </div>
+                ) : (
+                    availableProviders.map((provider) => {
+                        const isSelected = (provider.slug || provider.provider_name || String(provider.id)) === selectedProvider;
+                        return (
+                            <DropdownMenuItem
+                                key={provider.id}
+                                onClick={() => setSelectedProvider(provider.slug || provider.provider_name || String(provider.id))}
+                                className="flex items-center justify-between p-3 cursor-pointer rounded-lg"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl">{getProviderIcon(provider)}</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium text-font-p">
+                                            {getProviderDisplayName(provider)}
+                                        </span>
+                                        {provider.slug && (
+                                            <span className="text-xs text-font-s opacity-70">{provider.slug}</span>
+                                        )}
+                                    </div>
+                                </div>
+                                {isSelected && <Check className="h-4 w-4 text-primary" />}
+                            </DropdownMenuItem>
+                        );
+                    })
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

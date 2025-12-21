@@ -111,79 +111,56 @@ export function ChatMessageList({
 
     return (
         <div className={`flex-1 ${messages.length === 0 ? '' : 'overflow-y-auto'}`}>
-            <div className={`${messages.length === 0 
-                ? 'h-full flex flex-col justify-center items-center px-4' 
-                : 'pt-8 pb-[200px]'
-            }`}>
-                {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto">
-                        <div className="w-16 h-16 bg-blue rounded-2xl flex items-center justify-center mb-6">
-                            <Sparkles className="h-8 w-8 text-blue-1" />
+            <div className="max-w-4xl mx-auto w-full px-4 pt-8 pb-[200px]">
+                {messages.length > 0 && messages.length <= 5 && (
+                    <div className="mb-8 p-4 bg-blue/10 border border-blue-1 rounded-xl">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <p className="text-sm text-font-s leading-relaxed">
+                                    <strong className="text-blue-2">توجه:</strong> چت‌های شما به صورت موقت در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
+                                </p>
+                            </div>
                         </div>
-                        <h1 className="text-2xl font-semibold text-font-p mb-2">
-                            چطور می‌تونم کمکت کنم؟
-                        </h1>
-                        <p className="text-base text-font-s">
-                            من اینجام تا به هر سوال یا کاری کمکت کنم
-                        </p>
                     </div>
                 )}
 
-                {messages.length > 0 && (
-                    <div className="max-w-4xl mx-auto w-full px-4">
-                        {messages.length <= 5 && (
-                            <div className="mb-8 p-4 bg-blue/10 border border-blue-1 rounded-xl">
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
-                                    <div className="flex-1">
-                                        <p className="text-sm text-font-s leading-relaxed">
-                                            <strong className="text-blue-2">توجه:</strong> چت‌های شما به صورت موقت در مرورگر ذخیره می‌شوند (حداکثر 50 پیام). برای حفظ طولانی‌مدت، از دکمه پاک کردن استفاده نکنید.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="space-y-6">
-                            {messages.map((msg, idx) => (
+                <div className="space-y-6">
+                    {messages.map((msg, idx) => (
+                        <div
+                            key={idx}
+                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                            <div className={`max-w-[80%] ${msg.role === 'user' ? 'ml-auto' : 'mr-auto'}`}>
                                 <div
-                                    key={idx}
-                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    className={`rounded-2xl px-6 py-4 ${msg.role === 'user'
+                                        ? 'bg-gray text-font-p'
+                                        : 'bg-card border border-br shadow-sm text-font-p'
+                                        }`}
                                 >
-                                    <div className={`max-w-[80%] ${msg.role === 'user' ? 'ml-auto' : 'mr-auto'}`}>
-                                        <div
-                                            className={`rounded-2xl px-6 py-4 ${
-                                                msg.role === 'user'
-                                                    ? 'bg-gray text-font-p'
-                                                    : 'bg-card border border-br shadow-sm text-font-p'
-                                            }`}
-                                        >
-                                            <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
-                                                {msg.content}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {sending && (
-                            <div className="flex justify-start mt-6">
-                                <div className="max-w-[80%]">
-                                    <div className="bg-card border border-br rounded-2xl px-6 py-4 shadow-sm">
-                                        <div className="flex items-center gap-3">
-                                            <Loader2 className="h-4 w-4 animate-spin text-font-s" />
-                                            <span className="text-base text-font-p">{getAIUI('responding')}</span>
-                                        </div>
-                                    </div>
+                                    <p className="text-base whitespace-pre-wrap break-words leading-relaxed">
+                                        {msg.content}
+                                    </p>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    ))}
+                </div>
+
+                {sending && (
+                    <div className="flex justify-start mt-6">
+                        <div className="max-w-[80%]">
+                            <div className="bg-card border border-br rounded-2xl px-6 py-4 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <Loader2 className="h-4 w-4 animate-spin text-font-s" />
+                                    <span className="text-base text-font-p">{getAIUI('responding')}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
-                
-                <div ref={messagesEndRef} />
             </div>
+            <div ref={messagesEndRef} />
         </div>
     );
 }

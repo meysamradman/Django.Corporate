@@ -1,7 +1,13 @@
 import { type RefObject, type KeyboardEvent, type ChangeEvent } from 'react';
 import { Button } from '@/components/elements/Button';
-import { Textarea } from '@/components/elements/Textarea';
-import { Loader2, Send, Paperclip, X } from 'lucide-react';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupTextarea,
+} from "@/components/elements/InputGroup";
+import { Textarea } from "@/components/elements/Textarea";
+import { Loader2, Paperclip, X, ArrowUpIcon, Send } from 'lucide-react';
 import { ProviderSelector } from './ProviderSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
 
@@ -14,19 +20,20 @@ interface ChatInputProps {
     handleSend: () => void;
     handleKeyPress: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
     textareaRef: RefObject<HTMLTextAreaElement | null>;
-    
+
     attachedFile: File | null;
     fileInputRef: RefObject<HTMLInputElement | null>;
     handleFileUpload: () => void;
     handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
     removeAttachedFile: () => void;
-    
+
     loadingProviders: boolean;
     availableProviders: AvailableProvider[];
     setSelectedProvider: (provider: string) => void;
     showProviderDropdown: boolean;
     setShowProviderDropdown: (show: boolean) => void;
     selectedProviderData?: AvailableProvider;
+    variant?: 'center' | 'bottom';
 }
 
 export function ChatInput({
@@ -49,6 +56,7 @@ export function ChatInput({
     showProviderDropdown,
     setShowProviderDropdown,
     selectedProviderData,
+    variant = 'bottom',
 }: ChatInputProps) {
     if (compact) {
         return (
@@ -57,7 +65,7 @@ export function ChatInput({
                     <Textarea
                         ref={textareaRef}
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="پیام خود را بنویسید..."
                         className="min-h-[44px] max-h-[120px] resize-none w-full border border-br bg-card pr-10 pl-12 rounded-lg text-xs py-2"
@@ -87,80 +95,100 @@ export function ChatInput({
         );
     }
 
+    const containerClasses = variant === 'center'
+        ? "w-full max-w-3xl mx-auto"
+        : "sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm z-10";
+
+    const wrapperClasses = variant === 'center'
+        ? "w-full"
+        : "max-w-4xl mx-auto px-4 py-4";
+
     return (
-        <div className="sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm z-10">
-            <div className="max-w-4xl mx-auto px-4 py-4">
-                <div className="bg-card rounded-2xl shadow-lg border border-br p-4">
-                    <div className="relative">
-                        {attachedFile && (
-                            <div className="mb-2 p-2 bg-bg rounded-lg border border-br flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Paperclip className="h-4 w-4 text-font-s" />
-                                    <span className="text-sm text-font-p">{attachedFile.name}</span>
-                                    <span className="text-xs text-font-s">({(attachedFile.size / 1024).toFixed(1)} KB)</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={removeAttachedFile}
-                                    className="p-1 hover:bg-card rounded transition-colors"
-                                >
-                                    <X className="h-4 w-4 text-font-s" />
-                                </button>
+        <div className={containerClasses}>
+            <div className={wrapperClasses}>
+                <div className="bg-card rounded-2xl shadow-lg border border-br p-2">
+                    {attachedFile && (
+                        <div className="mb-2 p-2 bg-bg rounded-lg border border-br flex items-center justify-between mx-2">
+                            <div className="flex items-center gap-2">
+                                <Paperclip className="h-4 w-4 text-font-s" />
+                                <span className="text-sm text-font-p">{attachedFile.name}</span>
+                                <span className="text-xs text-font-s">({(attachedFile.size / 1024).toFixed(1)} KB)</span>
                             </div>
-                        )}
-                        
-                        <textarea
+                            <button
+                                type="button"
+                                onClick={removeAttachedFile}
+                                className="p-1 hover:bg-card rounded transition-colors"
+                            >
+                                <X className="h-4 w-4 text-font-s" />
+                            </button>
+                        </div>
+                    )}
+
+                    <InputGroup className="border-0 shadow-none">
+                        <InputGroupTextarea
                             ref={textareaRef}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="پیام..."
-                            rows={1}
-                            disabled={sending || !selectedProvider}
-                            className="w-full px-4 py-3 resize-none focus:outline-none text-base text-font-p placeholder-font-s bg-transparent overflow-hidden rounded-lg"
-                            style={{
-                                minHeight: '24px',
-                                maxHeight: '200px',
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
+                                }
                             }}
-                            onInput={(e) => {
-                                const target = e.target as HTMLTextAreaElement;
-                                target.style.height = 'auto';
-                                target.style.height = `${target.scrollHeight}px`;
-                            }}
-                        />
-                        
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
-                            onChange={handleFileChange}
-                            className="hidden"
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-br">
-                        <ProviderSelector
-                            compact={false}
-                            loadingProviders={loadingProviders}
-                            availableProviders={availableProviders}
-                            selectedProvider={selectedProvider}
-                            setSelectedProvider={setSelectedProvider}
-                            showProviderDropdown={showProviderDropdown}
-                            setShowProviderDropdown={setShowProviderDropdown}
-                            selectedProviderData={selectedProviderData}
+                            placeholder="چیزی بپرسید..."
+                            disabled={sending}
+                            className="min-h-[44px] max-h-[200px] text-base px-2 py-3"
                         />
 
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
+                        <InputGroupAddon align="block-start" className="gap-2 px-2 pb-2">
+                            <ProviderSelector
+                                compact={false}
+                                loadingProviders={loadingProviders}
+                                availableProviders={availableProviders}
+                                selectedProvider={selectedProvider}
+                                setSelectedProvider={setSelectedProvider}
+                                showProviderDropdown={showProviderDropdown}
+                                setShowProviderDropdown={setShowProviderDropdown}
+                                selectedProviderData={selectedProviderData}
+                                variant="plus"
+                            />
+
+                            <InputGroupButton
+                                variant="outline"
+                                className="rounded-full gap-2 px-2 border-0 hover:bg-bg text-font-s"
+                                size="sm"
                                 onClick={handleFileUpload}
-                                className="p-2.5 text-font-s hover:text-font-p hover:bg-bg rounded-full transition-colors"
-                                aria-label="آپلود فایل"
+                                title="آپلود فایل"
                             >
-                                <Paperclip className="h-5 w-5" />
-                            </button>
-                        </div>
-                    </div>
+                                <Paperclip className="size-5" />
+                            </InputGroupButton>
+
+                            <div className="flex-1" />
+
+                            <InputGroupButton
+                                variant="default"
+                                className="rounded-full w-9 h-9 p-0 flex items-center justify-center bg-primary hover:bg-primary/90 text-static-w shadow-sm"
+                                size="icon-sm"
+                                disabled={sending || !message.trim() || !selectedProvider}
+                                onClick={handleSend}
+                            >
+                                {sending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <ArrowUpIcon className="h-5 w-5" />
+                                )}
+                                <span className="sr-only">Send</span>
+                            </InputGroupButton>
+                        </InputGroupAddon>
+                    </InputGroup>
+
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
                 </div>
             </div>
         </div>

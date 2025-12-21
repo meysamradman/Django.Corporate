@@ -86,13 +86,13 @@ export default function AISettingsPage() {
               const hasSharedApi = backendProvider?.has_shared_api ?? backendProvider?.has_shared_api_key ?? false;
               const canUseSharedApi = isSuperAdmin || (allowNormalAdmins && hasSharedApi);
               const useSharedApi = canUseSharedApi ? (setting?.use_shared_api ?? false) : false;
-              
+
               const personalApiKey = personalApiKeys[provider.id] || '';
               const sharedApiKey = sharedApiKeys[provider.id] || '';
-              const apiKey = useSharedApi && isSuperAdmin 
+              const apiKey = useSharedApi && isSuperAdmin
                 ? sharedApiKey
                 : personalApiKey;
-              
+
               const hasStoredApiKey = Boolean(apiKey && apiKey.trim() !== '' && apiKey !== '***');
               const hasStoredPersonalApiKey = Boolean(personalApiKey && personalApiKey.trim() !== '' && personalApiKey !== '***');
               const hasStoredSharedApiKey = Boolean(sharedApiKey && sharedApiKey.trim() !== '' && sharedApiKey !== '***');

@@ -91,31 +91,31 @@ export function ProviderCard({
   const canUseSharedApi = canUseSharedApiProp !== undefined
     ? canUseSharedApiProp
     : (isSuperAdmin || (allowNormalAdmins && hasSharedApi));
-  
+
   const hasModels = provider.models && provider.models.length > 0;
 
-  const currentPersonalApiKey = useMemo(() => 
-    personalApiKey || (useSharedApi ? '' : apiKey), 
+  const currentPersonalApiKey = useMemo(() =>
+    personalApiKey || (useSharedApi ? '' : apiKey),
     [personalApiKey, useSharedApi, apiKey]
   );
-  const currentSharedApiKey = useMemo(() => 
-    sharedApiKey || (useSharedApi && isSuperAdmin ? apiKey : ''), 
+  const currentSharedApiKey = useMemo(() =>
+    sharedApiKey || (useSharedApi && isSuperAdmin ? apiKey : ''),
     [sharedApiKey, useSharedApi, isSuperAdmin, apiKey]
   );
-  const currentHasStoredPersonalApiKey = useMemo(() => 
-    hasStoredPersonalApiKey || (useSharedApi ? false : hasStoredApiKey), 
+  const currentHasStoredPersonalApiKey = useMemo(() =>
+    hasStoredPersonalApiKey || (useSharedApi ? false : hasStoredApiKey),
     [hasStoredPersonalApiKey, useSharedApi, hasStoredApiKey]
   );
-  const currentHasStoredSharedApiKey = useMemo(() => 
-    hasStoredSharedApiKey || (useSharedApi && isSuperAdmin ? hasStoredApiKey : false), 
+  const currentHasStoredSharedApiKey = useMemo(() =>
+    hasStoredSharedApiKey || (useSharedApi && isSuperAdmin ? hasStoredApiKey : false),
     [hasStoredSharedApiKey, useSharedApi, isSuperAdmin, hasStoredApiKey]
   );
-  const currentShowPersonalApiKey = useMemo(() => 
-    showPersonalApiKey !== undefined ? showPersonalApiKey : (useSharedApi ? false : showApiKey), 
+  const currentShowPersonalApiKey = useMemo(() =>
+    showPersonalApiKey !== undefined ? showPersonalApiKey : (useSharedApi ? false : showApiKey),
     [showPersonalApiKey, useSharedApi, showApiKey]
   );
-  const currentShowSharedApiKey = useMemo(() => 
-    showSharedApiKey !== undefined ? showSharedApiKey : (useSharedApi && isSuperAdmin ? showApiKey : false), 
+  const currentShowSharedApiKey = useMemo(() =>
+    showSharedApiKey !== undefined ? showSharedApiKey : (useSharedApi && isSuperAdmin ? showApiKey : false),
     [showSharedApiKey, useSharedApi, isSuperAdmin, showApiKey]
   );
 
@@ -212,7 +212,7 @@ export function ProviderCard({
       }
     };
 
-  return (
+    return (
       <div className="p-4 bg-gradient-to-br from-bg/50 to-bg/30 rounded-lg border border-br hover:border-primary/30 transition-all">
         <div className="flex items-center gap-2 mb-3">
           <div className={`p-1.5 rounded-lg ${iconColor}`}>
@@ -230,11 +230,11 @@ export function ProviderCard({
           )}
         </div>
 
-          <div className="space-y-3">
-            <div className="relative">
-              <Input
+        <div className="space-y-3">
+          <div className="relative">
+            <Input
               id={fieldId}
-                type={showApiKey ? "text" : "password"}
+              type={showApiKey ? "text" : "password"}
               value={isEditing ? tempApiKey : (hasStoredApiKey && !showApiKey && apiKey ? maskApiKey(apiKey, false) : (apiKey || ''))}
               onChange={(e) => {
                 const newValue = e.target.value;
@@ -254,53 +254,53 @@ export function ProviderCard({
               placeholder={placeholder}
               className="pr-10 pl-10 font-mono text-xs h-9"
               disabled={isSaving && !isEditing}
-                autoComplete="new-password"
-              />
+              autoComplete="new-password"
+            />
 
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 border-0 shadow-none bg-transparent hover:bg-transparent text-font-s hover:text-font-p z-10"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleVisibility();
+              }}
+              disabled={isSaving}
+              title={showApiKey ? 'مخفی کردن' : 'نمایش'}
+            >
+              {showApiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            </Button>
+
+            {apiKey && (
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 border-0 shadow-none bg-transparent hover:bg-transparent text-font-s hover:text-font-p z-10"
+                className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7 border-0 shadow-none bg-transparent hover:bg-transparent text-font-s hover:text-red-1 z-10"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                onToggleVisibility();
-                }}
-                disabled={isSaving}
-                title={showApiKey ? 'مخفی کردن' : 'نمایش'}
-              >
-              {showApiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </Button>
-
-              {apiKey && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7 border-0 shadow-none bg-transparent hover:bg-transparent text-font-s hover:text-red-1 z-10"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
                   if (isEditing) {
                     setTempApiKey('');
                   } else {
                     onApiKeyChange('');
                   }
-                  }}
-                  disabled={isSaving}
-                  title="پاک کردن"
-                >
+                }}
+                disabled={isSaving}
+                title="پاک کردن"
+              >
                 <X className="h-3.5 w-3.5" />
-                </Button>
+              </Button>
             )}
           </div>
 
           <div className="flex items-center gap-2">
             {isEditing ? (
               <>
-              <Button
-                type="button"
+                <Button
+                  type="button"
                   size="sm"
                   onClick={handleSave}
                   disabled={isSaving || !tempApiKey.trim()}
@@ -317,7 +317,7 @@ export function ProviderCard({
                       ذخیره
                     </>
                   )}
-              </Button>
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -385,8 +385,8 @@ export function ProviderCard({
                         ذخیره API Key
                       </>
                     )}
-                </Button>
-              )}
+                  </Button>
+                )}
               </>
             )}
           </div>
@@ -416,8 +416,8 @@ export function ProviderCard({
               </p>
             </div>
           </div>
-          </div>
-        )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {onToggleActive && (
@@ -427,8 +427,8 @@ export function ProviderCard({
                 <Label className="text-sm font-semibold block text-font-p truncate">وضعیت</Label>
                 <p className="text-xs text-font-s mt-0.5 truncate">
                   {isActive ? '✅ فعال' : '❌ غیرفعال'}
-                  </p>
-                </div>
+                </p>
+              </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Switch
                   checked={isActive}
@@ -461,7 +461,7 @@ export function ProviderCard({
                   className={`scale-90 ${useSharedApi
                     ? "data-[state=checked]:bg-blue-1 data-[state=unchecked]:bg-gray-1"
                     : "data-[state=checked]:bg-purple-1 data-[state=unchecked]:bg-gray-1"
-                  }`}
+                    }`}
                 />
                 <Badge
                   variant={useSharedApi ? "default" : "outline"}

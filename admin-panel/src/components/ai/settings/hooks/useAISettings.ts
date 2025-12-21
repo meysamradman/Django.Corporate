@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
-import { 
+import {
   getProviderMetadata,
   BACKEND_TO_FRONTEND_ID,
-  FRONTEND_TO_BACKEND_NAME 
+  FRONTEND_TO_BACKEND_NAME
 } from '../config/providerConfig';
 
 export type Model = {
@@ -70,23 +70,23 @@ export function useAISettings() {
   const providers = useMemo((): Provider[] => {
     if (backendProviders && backendProviders.length > 0) {
       const result: Provider[] = [];
-      
+
       backendProviders.forEach((backendProvider: any) => {
-        
+
         const backendName = backendProvider.name;
         const backendSlug = backendProvider.slug;
         const frontendId = backendToFrontendIdMap[backendName] || backendToFrontendIdMap[backendSlug] || backendSlug;
         const metadata = getProviderMetadata(frontendId);
-        
+
         if (metadata) {
           const providerModels: Model[] = [];
-          
+
           if (modelsData && Array.isArray(modelsData)) {
-            const filteredModels = modelsData.filter((model: any) => 
-              model.provider === backendProvider.id || 
+            const filteredModels = modelsData.filter((model: any) =>
+              model.provider === backendProvider.id ||
               model.provider_name === backendName
             );
-            
+
             filteredModels.forEach((model: any, index: number) => {
               providerModels.push({
                 id: model.id || index + 1,
@@ -98,7 +98,7 @@ export function useAISettings() {
               });
             });
           }
-          
+
           result.push({
             id: frontendId,
             name: metadata.name,
@@ -110,15 +110,15 @@ export function useAISettings() {
           });
         }
       });
-      
+
       return result;
     }
-    
+
     const fallbackProviders: Provider[] = [];
-    
+
     if (modelsData && Array.isArray(modelsData)) {
       const modelsByProvider: Record<string, any[]> = {};
-      
+
       modelsData.forEach((model: any) => {
         const providerName = model.provider_name || 'unknown';
         if (!modelsByProvider[providerName]) {
@@ -126,11 +126,11 @@ export function useAISettings() {
         }
         modelsByProvider[providerName].push(model);
       });
-      
+
       Object.entries(modelsByProvider).forEach(([backendName, models]) => {
         const frontendId = BACKEND_TO_FRONTEND_ID[backendName] || backendName;
         const metadata = getProviderMetadata(frontendId);
-        
+
         if (metadata) {
           const providerModels: Model[] = models.map((model: any, index: number) => ({
             id: model.id || index + 1,
@@ -140,7 +140,7 @@ export function useAISettings() {
             free: false,
             selected: false,
           }));
-          
+
           fallbackProviders.push({
             id: frontendId,
             name: metadata.name,
@@ -152,7 +152,7 @@ export function useAISettings() {
         }
       });
     }
-  
+
     return fallbackProviders;
   }, [backendProviders, modelsData]);
 
@@ -162,16 +162,16 @@ export function useAISettings() {
       personalSettings.forEach((setting: any) => {
         const backendProviderSlug = setting.provider_slug || setting.provider_name;
         const frontendIds = backendToFrontendProviderMap[backendProviderSlug] || [];
-        
+
         if (frontendIds.length === 0) {
           frontendIds.push(backendProviderSlug);
         }
-        
+
         frontendIds.forEach((frontendId) => {
           map[frontendId] = {
             id: setting.id,
             use_shared_api: setting.use_shared_api ?? true,
-            api_key: setting.api_key,
+            api_key: setting.personal_api_key_value || '',
             backend_name: backendProviderSlug,
             is_active: setting.is_active ?? false,
           };
@@ -184,12 +184,12 @@ export function useAISettings() {
   const toggleUseSharedApiMutation = useMutation({
     mutationFn: async ({ providerId, useSharedApi }: { providerId: string; useSharedApi: boolean }) => {
       const setting = personalSettingsMap[providerId];
-      
+
       const backendProviderName = frontendToBackendProviderMap[providerId];
       if (!backendProviderName) {
         throw new Error(`Provider '${providerId}' در backend پشتیبانی نمی‌شود`);
       }
-      
+
       const data = {
         provider_name: backendProviderName,
         use_shared_api: useSharedApi,
@@ -215,7 +215,7 @@ export function useAISettings() {
           return setting;
         });
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccess('تنظیمات با موفقیت به‌روزرسانی شد');
     },

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Button } from '@/components/elements/Button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Sparkles } from 'lucide-react';
 import { EmptyProvidersCard } from '../shared';
 import { useAuth } from '@/core/auth/AuthContext';
 import { mediaService } from '@/components/media/services';
@@ -14,10 +14,10 @@ interface AIChatProps {
 export function AIChat({ compact = false }: AIChatProps = {}) {
     const { user } = useAuth();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    
+
     const permissionsObject = user?.permissions as any;
     const permissionsArray = (permissionsObject?.permissions || []) as string[];
-    
+
     const hasAIPermission = permissionsArray.some((p: string) =>
         p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
     );
@@ -90,9 +90,9 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         clearProviderStorage();
     };
 
-    if (!loadingProviders && availableProviders.length === 0) {
-        return <EmptyProvidersCard type="chat" />;
-    }
+    // if (!loadingProviders && availableProviders.length === 0) {
+    //     return <EmptyProvidersCard type="chat" />;
+    // }
 
     if (compact) {
         return (
@@ -157,39 +157,91 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         );
     }
 
+    const renderChatContent = () => {
+        if (messages.length === 0) {
+            return (
+                <div className="flex-1 flex flex-col items-center justify-center p-4">
+                    <div className="w-full max-w-3xl space-y-8">
+                        <div className="flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-blue rounded-2xl flex items-center justify-center mb-6">
+                                <Sparkles className="h-8 w-8 text-blue-1" />
+                            </div>
+                            <h1 className="text-2xl font-semibold text-font-p mb-2">
+                                چطور می‌تونم کمکت کنم؟
+                            </h1>
+                            <p className="text-base text-font-s">
+                                من اینجام تا به هر سوال یا کاری کمکت کنم
+                            </p>
+                        </div>
+
+                        <ChatInput
+                            compact={false}
+                            message={message}
+                            setMessage={setMessage}
+                            sending={sending}
+                            selectedProvider={selectedProvider}
+                            handleSend={handleSend}
+                            handleKeyPress={handleKeyPress}
+                            textareaRef={textareaRef}
+                            attachedFile={attachedFile}
+                            fileInputRef={fileInputRef}
+                            handleFileUpload={handleFileUpload}
+                            handleFileChange={handleFileChange}
+                            removeAttachedFile={removeAttachedFile}
+                            loadingProviders={loadingProviders}
+                            availableProviders={availableProviders}
+                            setSelectedProvider={setSelectedProvider}
+                            showProviderDropdown={showProviderDropdown}
+                            setShowProviderDropdown={setShowProviderDropdown}
+                            selectedProviderData={selectedProviderData}
+                            variant="center"
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <>
+                <ChatMessageList
+                    messages={messages}
+                    sending={sending}
+                    compact={false}
+                    getAdminDisplayName={getAdminDisplayName}
+                    getAdminInitials={getAdminInitials}
+                    getAdminProfileImageUrl={getAdminProfileImageUrl}
+                    messagesEndRef={messagesEndRef}
+                />
+
+                <ChatInput
+                    compact={false}
+                    message={message}
+                    setMessage={setMessage}
+                    sending={sending}
+                    selectedProvider={selectedProvider}
+                    handleSend={handleSend}
+                    handleKeyPress={handleKeyPress}
+                    textareaRef={textareaRef}
+                    attachedFile={attachedFile}
+                    fileInputRef={fileInputRef}
+                    handleFileUpload={handleFileUpload}
+                    handleFileChange={handleFileChange}
+                    removeAttachedFile={removeAttachedFile}
+                    loadingProviders={loadingProviders}
+                    availableProviders={availableProviders}
+                    setSelectedProvider={setSelectedProvider}
+                    showProviderDropdown={showProviderDropdown}
+                    setShowProviderDropdown={setShowProviderDropdown}
+                    selectedProviderData={selectedProviderData}
+                    variant="bottom"
+                />
+            </>
+        );
+    };
+
     return (
         <div className="relative flex flex-col h-full">
-            <ChatMessageList
-                messages={messages}
-                sending={sending}
-                compact={false}
-                getAdminDisplayName={getAdminDisplayName}
-                getAdminInitials={getAdminInitials}
-                getAdminProfileImageUrl={getAdminProfileImageUrl}
-                messagesEndRef={messagesEndRef}
-            />
-
-            <ChatInput
-                compact={false}
-                message={message}
-                setMessage={setMessage}
-                sending={sending}
-                selectedProvider={selectedProvider}
-                handleSend={handleSend}
-                handleKeyPress={handleKeyPress}
-                textareaRef={textareaRef}
-                attachedFile={attachedFile}
-                fileInputRef={fileInputRef}
-                handleFileUpload={handleFileUpload}
-                handleFileChange={handleFileChange}
-                removeAttachedFile={removeAttachedFile}
-                loadingProviders={loadingProviders}
-                availableProviders={availableProviders}
-                setSelectedProvider={setSelectedProvider}
-                showProviderDropdown={showProviderDropdown}
-                setShowProviderDropdown={setShowProviderDropdown}
-                selectedProviderData={selectedProviderData}
-            />
+            {renderChatContent()}
         </div>
     );
 }

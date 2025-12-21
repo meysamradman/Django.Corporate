@@ -137,10 +137,10 @@ export function useProviderActions({
     onSuccess: async (response, variables) => {
       const { providerId, apiKey, useSharedApi } = variables;
       const backendProviderName = frontendToBackendProviderMap[providerId];
-      
+
       await queryClient.refetchQueries({ queryKey: ['ai-backend-providers'] });
       await queryClient.refetchQueries({ queryKey: ['ai-personal-settings'] });
-      
+
       if (useSharedApi && isSuperAdmin) {
         if (apiKey.trim()) {
           setSharedApiKeys(prev => ({
@@ -168,13 +168,13 @@ export function useProviderActions({
           });
         }
       }
-      
+
       if (apiKey.trim()) {
         showSuccess('API key با موفقیت ذخیره شد');
       } else {
         showSuccess('API key با موفقیت حذف شد');
       }
-      
+
       setShowApiKeys(prev => ({
         ...prev,
         [providerId]: false
@@ -219,7 +219,7 @@ export function useProviderActions({
     },
     onSuccess: (response, variables) => {
       const { providerId, isActive, useSharedApi } = variables;
-      
+
       if (useSharedApi && isSuperAdmin) {
         queryClient.setQueryData(['ai-backend-providers'], (old: any) => {
           if (!old) return old;
@@ -230,16 +230,16 @@ export function useProviderActions({
             }
             return p;
           });
-          });
-        } else {
-          queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
-            if (!old) return old;
-            const backendProviderName = frontendToBackendProviderMap[providerId];
-            
-            const exists = old.some((s: any) =>
+        });
+      } else {
+        queryClient.setQueryData(['ai-personal-settings'], (old: any) => {
+          if (!old) return old;
+          const backendProviderName = frontendToBackendProviderMap[providerId];
+
+          const exists = old.some((s: any) =>
             s.provider_name === backendProviderName || s.provider_slug === backendProviderName
           );
-          
+
           if (exists) {
             return old.map((setting: any) => {
               if (setting.provider_name === backendProviderName || setting.provider_slug === backendProviderName) {
@@ -257,7 +257,7 @@ export function useProviderActions({
           }
         });
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccess('وضعیت با موفقیت تغییر کرد');
@@ -268,10 +268,10 @@ export function useProviderActions({
   });
 
   const handleSaveProvider = useCallback((providerId: string, useSharedApi: boolean, apiKeyValue?: string) => {
-    const apiKey = apiKeyValue !== undefined 
-      ? apiKeyValue 
+    const apiKey = apiKeyValue !== undefined
+      ? apiKeyValue
       : (useSharedApi ? (sharedApiKeys[providerId] || '') : (personalApiKeys[providerId] || ''));
-    
+
     saveApiKeyMutation.mutate({
       providerId,
       apiKey: apiKey.trim(),
