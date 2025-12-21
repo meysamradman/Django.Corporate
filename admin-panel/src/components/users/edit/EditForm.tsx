@@ -225,6 +225,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                             fieldErrors={fieldErrors}
                             onProvinceChange={handleProvinceChange}
                             onCityChange={handleCityChange}
+                            userId={String(userData.id)}
                         />
                     </Suspense>
                 </TabsContent>

@@ -15,6 +15,13 @@ import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { formatDate } from "@/core/utils/format";
 import { filterNumericOnly } from "@/core/filters/numeric";
+import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/core/auth/AuthContext';
+import { showSuccess, showError } from '@/core/toast';
+import { adminApi } from '@/api/admins/admins';
+import { hasPermission } from "@/components/admins/permissions/utils/permissionUtils";
 
 interface FormData {
     firstName: string;
@@ -41,6 +48,7 @@ interface AccountTabProps {
     fieldErrors?: Record<string, string>;
     onProvinceChange?: (provinceName: string, provinceId: number) => void;
     onCityChange?: (cityName: string, cityId: number) => void;
+    adminId?: string;
 }
 
 export function AccountTab({
@@ -54,11 +62,33 @@ export function AccountTab({
     fieldErrors = {},
     onProvinceChange,
     onCityChange,
+    adminId,
 }: AccountTabProps) {
     const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
     const [cities, setCities] = useState<CityCompact[]>([]);
     const [loadingProvinces, setLoadingProvinces] = useState(false);
     const [loadingCities, setLoadingCities] = useState(false);
+    const [isActive, setIsActive] = useState(admin.is_active);
+    const [isSuperuser, setIsSuperuser] = useState(admin.is_superuser);
+    const queryClient = useQueryClient();
+    const { user, refreshUser } = useAuth();
+
+    const userPermissionsObj = {
+        permissions: user?.permissions || [],
+        is_super: user?.is_superuser || false,
+        is_superuser: user?.is_superuser || false
+    };
+    
+    const canManagePermissions = user && (
+        user.is_superuser ||
+        hasPermission(userPermissionsObj, 'role.manage') ||
+        hasPermission(userPermissionsObj, 'admin.manage')
+    );
+
+    useEffect(() => {
+        setIsActive(admin.is_active);
+        setIsSuperuser(admin.is_superuser);
+    }, [admin.is_active, admin.is_superuser]);
 
     useEffect(() => {
         const fetchProvinces = async () => {
@@ -121,6 +151,76 @@ export function AccountTab({
     const handleBirthDateChange = (dateString: string) => {
         handleInputChange("birthDate", dateString);
     };
+
+    const updateActiveStatusMutation = useMutation({
+        mutationFn: async (newStatus: boolean) => {
+            const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
+            
+            if (!targetAdminId) {
+                throw new Error("شناسه ادمین یافت نشد");
+            }
+
+            return await adminApi.updateUserStatusByType(targetAdminId, newStatus, 'admin');
+        },
+        onSuccess: async (updatedAdmin) => {
+            setIsActive(updatedAdmin.is_active);
+            const queryKeyForInvalidate = adminId === "me" ? 'me' : (adminId || String(admin?.id));
+            await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
+            await queryClient.invalidateQueries({ queryKey: ['admin', queryKeyForInvalidate] });
+            await queryClient.invalidateQueries({ queryKey: ['admins'] });
+            
+            if (adminId === "me") {
+                await refreshUser();
+            }
+            
+            showSuccess("وضعیت حساب کاربری با موفقیت به‌روزرسانی شد");
+        },
+        onError: (error) => {
+            setIsActive(admin.is_active);
+            showError(error, { customMessage: "خطا در به‌روزرسانی وضعیت حساب کاربری" });
+        },
+    });
+
+    const handleActiveStatusChange = (checked: boolean) => {
+        setIsActive(checked);
+        updateActiveStatusMutation.mutate(checked);
+    };
+
+    const updateSuperuserStatusMutation = useMutation({
+        mutationFn: async (newStatus: boolean) => {
+            const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
+            
+            if (!targetAdminId) {
+                throw new Error("شناسه ادمین یافت نشد");
+            }
+
+            return await adminApi.updateUserByType(targetAdminId, {
+                is_superuser: newStatus,
+            }, 'admin');
+        },
+        onSuccess: async (updatedAdmin) => {
+            setIsSuperuser(updatedAdmin.is_superuser);
+            const queryKeyForInvalidate = adminId === "me" ? 'me' : (adminId || String(admin?.id));
+            await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
+            await queryClient.invalidateQueries({ queryKey: ['admin', queryKeyForInvalidate] });
+            await queryClient.invalidateQueries({ queryKey: ['admins'] });
+            
+            if (adminId === "me") {
+                await refreshUser();
+            }
+            
+            showSuccess("وضعیت سوپر ادمین با موفقیت به‌روزرسانی شد");
+        },
+        onError: (error) => {
+            setIsSuperuser(admin.is_superuser);
+            showError(error, { customMessage: "خطا در به‌روزرسانی وضعیت سوپر ادمین" });
+        },
+    });
+
+    const handleSuperuserStatusChange = (checked: boolean) => {
+        setIsSuperuser(checked);
+        updateSuperuserStatusMutation.mutate(checked);
+    };
     
     return (
         <TabsContent value="account">
@@ -152,20 +252,91 @@ export function AccountTab({
                                                 </span>
                                             </div>
                                         </div>
+                                        {canManagePermissions && (
+                                            <div className="py-3 space-y-3">
+                                                <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                                    <Item variant="default" size="default" className="py-4">
+                                                        <ItemContent>
+                                                            <ItemTitle className="text-green-2 text-sm">وضعیت فعال</ItemTitle>
+                                                            <ItemDescription className="text-xs">
+                                                                حساب کاربری این ادمین را فعال یا غیرفعال کنید.
+                                                            </ItemDescription>
+                                                        </ItemContent>
+                                                        <ItemActions>
+                                                            <Switch
+                                                                checked={isActive}
+                                                                onCheckedChange={handleActiveStatusChange}
+                                                                disabled={updateActiveStatusMutation.isPending}
+                                                            />
+                                                        </ItemActions>
+                                                    </Item>
+                                                </div>
+                                                {user?.is_superuser && (
+                                                    <div className="rounded-xl border border-amber-1/40 bg-amber-0/30 hover:border-amber-1/60 transition-colors overflow-hidden">
+                                                        <Item variant="default" size="default" className="py-4">
+                                                            <ItemContent>
+                                                                <ItemTitle className="text-amber-2 text-sm">سوپر ادمین</ItemTitle>
+                                                                <ItemDescription className="text-xs">
+                                                                    دسترسی کامل به تمام بخش‌های سیستم.
+                                                                </ItemDescription>
+                                                            </ItemContent>
+                                                            <ItemActions>
+                                                                <Switch
+                                                                    checked={isSuperuser}
+                                                                    onCheckedChange={handleSuperuserStatusChange}
+                                                                    disabled={updateSuperuserStatusMutation.isPending}
+                                                                />
+                                                            </ItemActions>
+                                                        </Item>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                {admin.is_active ? (
-                                                    <CheckCircle2 className="w-4 h-4 text-green-1 flex-shrink-0" />
-                                                ) : (
-                                                    <XCircle className="w-4 h-4 text-red-1 flex-shrink-0" />
-                                                )}
-                                                <label>وضعیت:</label>
+                                                <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>موبایل:</label>
                                             </div>
-                                            <p className="text-font-p text-left">
-                                                {admin.is_active ? "فعال" : "غیرفعال"}
-                                            </p>
+                                            <p className="text-font-p text-left">{formData.mobile || admin.mobile || "وارد نشده"}</p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>ایمیل:</label>
+                                            </div>
+                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                                <span className="text-font-p break-all">{formData.email || admin.email || "وارد نشده"}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>تلفن:</label>
+                                            </div>
+                                            <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 pt-3">
+                                            <div className="flex items-center gap-2">
+                                                <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>کد ملی:</label>
+                                            </div>
+                                            <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="relative my-6">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-br/50"></div>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
+                                            <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-2">
+                                    <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                                        <div className="flex items-center justify-between gap-3 pb-3">
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
                                                 <label>تاریخ تولد:</label>
@@ -194,50 +365,6 @@ export function AccountTab({
                                                 <label>شهر:</label>
                                             </div>
                                             <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 pt-3">
-                                            <div className="flex items-center gap-2">
-                                                <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>کد ملی:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-br/50"></div>
-                                    </div>
-                                    <div className="relative flex justify-center">
-                                        <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
-                                            <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-2">
-                                    <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                        <div className="flex items-center justify-between gap-3 pb-3">
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>ایمیل:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p break-all">{formData.email || admin.email || "وارد نشده"}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>موبایل:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.mobile || admin.mobile || "وارد نشده"}</p>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>تلفن:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 pt-3">
                                             <div className="flex items-center gap-2">

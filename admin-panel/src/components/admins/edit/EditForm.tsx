@@ -358,6 +358,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                             fieldErrors={fieldErrors}
                             onProvinceChange={handleProvinceChange}
                             onCityChange={handleCityChange}
+                            adminId={adminId}
                         />
                     </Suspense>
                 </TabsContent>

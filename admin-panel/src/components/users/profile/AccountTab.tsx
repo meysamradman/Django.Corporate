@@ -7,7 +7,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { FormField } from "@/components/forms/FormField";
 import {
-    User, Mail, Phone, MapPin, Fingerprint, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
+    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
 } from "lucide-react";
 import type { UserWithProfile } from "@/types/auth/user";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
@@ -15,6 +15,13 @@ import { locationApi } from "@/api/shared/location/location";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { filterNumericOnly } from "@/core/filters/numeric";
+import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/core/auth/AuthContext';
+import { showSuccess, showError } from '@/core/toast';
+import { adminApi } from '@/api/admins/admins';
+import { hasPermission } from "@/components/admins/permissions/utils/permissionUtils";
 
 interface FormData {
     firstName: string;
@@ -41,6 +48,7 @@ interface AccountTabProps {
     fieldErrors?: Record<string, string>;
     onProvinceChange?: (provinceName: string, provinceId: number) => void;
     onCityChange?: (cityName: string, cityId: number) => void;
+    userId?: string;
 }
 
 export function AccountTab({
@@ -54,12 +62,33 @@ export function AccountTab({
     fieldErrors = {},
     onProvinceChange,
     onCityChange,
+    userId,
 }: AccountTabProps) {
     
     const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
     const [cities, setCities] = useState<CityCompact[]>([]);
     const [loadingProvinces, setLoadingProvinces] = useState(false);
     const [loadingCities, setLoadingCities] = useState(false);
+    const [isActive, setIsActive] = useState(user.is_active);
+    const queryClient = useQueryClient();
+    const { user: currentUser, refreshUser } = useAuth();
+
+    const userPermissionsObj = {
+        permissions: currentUser?.permissions || [],
+        is_super: currentUser?.is_superuser || false,
+        is_superuser: currentUser?.is_superuser || false
+    };
+    
+    const canManagePermissions = currentUser && (
+        currentUser.is_superuser ||
+        hasPermission(userPermissionsObj, 'role.manage') ||
+        hasPermission(userPermissionsObj, 'admin.manage') ||
+        hasPermission(userPermissionsObj, 'user.manage')
+    );
+
+    useEffect(() => {
+        setIsActive(user.is_active);
+    }, [user.is_active]);
 
     useEffect(() => {
         const fetchProvinces = async () => {
@@ -115,6 +144,36 @@ export function AccountTab({
     const handleBirthDateChange = (dateString: string) => {
         handleInputChange("birthDate", dateString);
     };
+
+    const updateActiveStatusMutation = useMutation({
+        mutationFn: async (newStatus: boolean) => {
+            const targetUserId = userId && !isNaN(Number(userId)) ? Number(userId) : user?.id;
+            
+            if (!targetUserId) {
+                throw new Error("شناسه کاربر یافت نشد");
+            }
+
+            return await adminApi.updateUserStatusByType(targetUserId, newStatus, 'user');
+        },
+        onSuccess: async (updatedUser) => {
+            setIsActive(updatedUser.is_active);
+            const queryKeyForInvalidate = userId || String(user?.id);
+            await queryClient.setQueryData(['user', queryKeyForInvalidate], updatedUser);
+            await queryClient.invalidateQueries({ queryKey: ['user', queryKeyForInvalidate] });
+            await queryClient.invalidateQueries({ queryKey: ['users'] });
+            
+            showSuccess("وضعیت حساب کاربری با موفقیت به‌روزرسانی شد");
+        },
+        onError: (error) => {
+            setIsActive(user.is_active);
+            showError(error, { customMessage: "خطا در به‌روزرسانی وضعیت حساب کاربری" });
+        },
+    });
+
+    const handleActiveStatusChange = (checked: boolean) => {
+        setIsActive(checked);
+        updateActiveStatusMutation.mutate(checked);
+    };
     
     return (
         <TabsContent value="account">
@@ -146,48 +205,49 @@ export function AccountTab({
                                                 </span>
                                             </div>
                                         </div>
+                                        {canManagePermissions && (
+                                            <div className="py-3 space-y-3">
+                                                <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                                    <Item variant="default" size="default" className="py-4">
+                                                        <ItemContent>
+                                                            <ItemTitle className="text-green-2 text-sm">وضعیت فعال</ItemTitle>
+                                                            <ItemDescription className="text-xs">
+                                                                حساب کاربری این کاربر را فعال یا غیرفعال کنید.
+                                                            </ItemDescription>
+                                                        </ItemContent>
+                                                        <ItemActions>
+                                                            <Switch
+                                                                checked={isActive}
+                                                                onCheckedChange={handleActiveStatusChange}
+                                                                disabled={updateActiveStatusMutation.isPending}
+                                                            />
+                                                        </ItemActions>
+                                                    </Item>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                {user.is_active ? (
-                                                    <CheckCircle2 className="w-4 h-4 text-green-1 flex-shrink-0" />
-                                                ) : (
-                                                    <XCircle className="w-4 h-4 text-red-1 flex-shrink-0" />
-                                                )}
-                                                <label>وضعیت:</label>
+                                                <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>موبایل:</label>
                                             </div>
-                                            <p className="text-font-p text-left">
-                                                {user.is_active ? "فعال" : "غیرفعال"}
-                                            </p>
+                                            <p className="text-font-p text-left">{formData.mobile || user.mobile || "وارد نشده"}</p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>تاریخ تولد:</label>
+                                                <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>ایمیل:</label>
                                             </div>
-                                            <p className="text-font-p text-left">
-                                                {formData.birthDate || "وارد نشده"}
-                                            </p>
+                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                                <span className="text-font-p break-all">{formData.email || user.email || "وارد نشده"}</span>
+                                            </div>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>کشور:</label>
+                                                <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>تلفن:</label>
                                             </div>
-                                            <p className="text-font-p text-left">ایران</p>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>استان:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.province || "وارد نشده"}</p>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>شهر:</label>
-                                            </div>
-                                            <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
+                                            <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 pt-3">
                                             <div className="flex items-center gap-2">
@@ -212,26 +272,33 @@ export function AccountTab({
                                     <div className="space-y-0 [&>div:not(:last-child)]:border-b">
                                         <div className="flex items-center justify-between gap-3 pb-3">
                                             <div className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>ایمیل:</label>
+                                                <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>تاریخ تولد:</label>
                                             </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p break-all">{formData.email || user.email || "وارد نشده"}</span>
-                                            </div>
+                                            <p className="text-font-p text-left">
+                                                {formData.birthDate || "وارد نشده"}
+                                            </p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>موبایل:</label>
+                                                <Globe className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>کشور:</label>
                                             </div>
-                                            <p className="text-font-p text-left">{formData.mobile || user.mobile || "وارد نشده"}</p>
+                                            <p className="text-font-p text-left">ایران</p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>تلفن:</label>
+                                                <Map className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>استان:</label>
                                             </div>
-                                            <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
+                                            <p className="text-font-p text-left">{formData.province || "وارد نشده"}</p>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>شهر:</label>
+                                            </div>
+                                            <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 pt-3">
                                             <div className="flex items-center gap-2">

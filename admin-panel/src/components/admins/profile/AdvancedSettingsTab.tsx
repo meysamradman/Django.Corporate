@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Label } from "@/components/elements/Label";
-import { Switch } from "@/components/elements/Switch";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import type { AdminWithProfile } from "@/types/auth/admin";
@@ -43,10 +42,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [adminStatusData, setAdminStatusData] = useState({
-        is_active: admin.is_active,
-        is_superuser: admin.is_superuser
-    });
 
     const userPermissionsObj = {
         permissions: user?.permissions || [],
@@ -166,20 +161,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         });
     };
 
-    const handleStatusChange = async (field: 'is_active' | 'is_superuser', value: boolean) => {
-        if (!canManagePermissions) {
-            showError(getPermissionTranslation('شما دسترسی تغییر وضعیت این ادمین را ندارید', 'description'));
-            return;
-        }
-
-        try {
-            await adminApi.updateUserStatusByType(admin.id, value, 'admin');
-            setAdminStatusData(prev => ({ ...prev, [field]: value }));
-            showSuccess(getPermissionTranslation('وضعیت ادمین با موفقیت به‌روزرسانی شد', 'description'));
-        } catch (error) {
-            showError(error, { customMessage: getPermissionTranslation('خطا در به‌روزرسانی وضعیت ادمین', 'description') });
-        }
-    };
 
     const handleCancel = () => {
         const originalAssignments = availableRoles.map((role: Role) => ({
@@ -338,35 +319,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 borderColor="border-b-purple-1"
                 className="hover:shadow-lg transition-all duration-300"
             >
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="account-status">{getPermissionTranslation('وضعیت حساب', 'resource')}</Label>
-                                <p className="text-sm text-font-s">
-                                    {getPermissionTranslation('حساب کاربری این ادمین را فعال یا غیرفعال کنید.', 'description')}
-                                </p>
-                            </div>
-                            <Switch
-                                id="account-status"
-                                checked={adminStatusData.is_active}
-                                onCheckedChange={(checked) => handleStatusChange('is_active', checked)}
-                                disabled={!canManagePermissions}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="super-admin-access">{getPermissionTranslation('دسترسی سوپر ادمین', 'resource')}</Label>
-                                <p className="text-sm text-font-s">
-                                    {getPermissionTranslation('این کاربر به تمام بخش‌های سیستم دسترسی خواهد داشت.', 'description')}
-                                </p>
-                            </div>
-                            <Switch
-                                id="super-admin-access"
-                                checked={adminStatusData.is_superuser}
-                                onCheckedChange={(checked) => handleStatusChange('is_superuser', checked)}
-                                disabled={!canManagePermissions || !user?.is_superuser}
-                            />
-                        </div>
-
                         {adminRoles.length > 0 && (
                             <div className="rounded-lg border p-4">
                                 <Label>{getPermissionTranslation('نقش‌های فعلی', 'resource')}</Label>
