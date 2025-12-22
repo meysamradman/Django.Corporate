@@ -6,16 +6,16 @@ import { cn } from "@/core/utils/cn"
 import { Spinner } from "@/components/elements/Spinner"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all leading-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 [&_svg]:!stroke-current outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive cursor-pointer",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all leading-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 [&_svg]:!stroke-current outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] aria-invalid:ring-red-1/20 aria-invalid:border-red-1 cursor-pointer",
   {
     variants: {
       variant: {
         default:
           "bg-primary text-static-w shadow-xs hover:bg-primary",
         destructive:
-          "bg-red-1 text-static-w shadow-xs hover:bg-btn-destructive-hover",
+          "bg-red-1 text-static-w shadow-xs hover:bg-red-2",
         outline:
-          "border bg-btn-outline shadow-xs text-font-s hover:bg-btn-outline-hover",
+          "border bg-wt shadow-xs text-font-s hover:bg-bg",
         link: "text-primary underline-offset-4 hover:text-primary hover:underline",
       },
       size: {

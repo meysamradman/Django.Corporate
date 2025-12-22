@@ -1,23 +1,26 @@
-import { useState, lazy, Suspense, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { useAdminColumns } from "@/components/admins/AdminTableColumns";
-import { useAdminFilterOptions, getAdminFilterConfig } from "@/components/admins/AdminTableFilters";
+import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, Search } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { Input } from "@/components/elements/Input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showSuccess, showError } from '@/core/toast';
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
+import type { SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-
-const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { getConfirm, getCrud } from '@/core/messages';
+import { AdminCard } from "@/components/admins/AdminCard";
+import { PaginationControls } from "@/components/shared/Pagination";
+import { Loader } from "@/components/elements/Loader";
+import { DataTableSelectFilter } from "@/components/tables/DataTableSelectFilter";
+import { getConfirm } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,14 +37,12 @@ export default function AdminsPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { booleanFilterOptions, roleFilterOptions } = useAdminFilterOptions();
-  const adminFilterConfig = getAdminFilterConfig(booleanFilterOptions, roleFilterOptions);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<AdminFilters>({});
 
@@ -119,7 +120,7 @@ export default function AdminsPage() {
       queryClient.invalidateQueries({ queryKey: ['admins'] });
       showSuccess("با موفقیت حذف شد");
     },
-    onError: (error) => {
+    onError: () => {
       showError("خطای سرور");
     },
   });
@@ -129,9 +130,8 @@ export default function AdminsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admins'] });
       showSuccess("با موفقیت حذف شد");
-      setRowSelection({});
     },
-    onError: (error) => {
+    onError: () => {
       showError("خطای سرور");
     },
   });
@@ -141,14 +141,6 @@ export default function AdminsPage() {
       open: true,
       adminId: Number(adminId),
       isBulk: false,
-    });
-  };
-
-  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    setDeleteConfirm({
-      open: true,
-      adminIds: selectedIds.map(id => Number(id)),
-      isBulk: true,
     });
   };
 
@@ -165,36 +157,34 @@ export default function AdminsPage() {
   };
 
   const currentUserId = user?.id;
-  const isSuperAdmin = user?.is_superuser || user?.is_admin_full;
+  const isSuperAdmin = user?.is_superuser || false;
 
-  const columns = useAdminColumns(
-    useMemo(() => {
-      const actions: DataTableRowAction<AdminWithProfile>[] = [];
-      
-      actions.push({
-        label: "ویرایش",
-        icon: <Edit className="h-4 w-4" />,
-        onClick: (admin: AdminWithProfile) => {
-          navigate(`/admins/${admin.id}/edit`);
-        },
-        isDisabled: (admin: AdminWithProfile) => {
-          if (!currentUserId) return true;
-          const isOwnProfile = currentUserId === admin.id;
-          return !isSuperAdmin && !isOwnProfile;
-        },
-      });
-      
-      actions.push({
-        label: "حذف",
-        icon: <Trash2 className="h-4 w-4" />,
-        onClick: (admin: AdminWithProfile) => handleDeleteAdmin(admin.id),
-        isDestructive: true,
-        isDisabled: () => !isSuperAdmin,
-      });
-      
-      return actions;
-    }, [navigate, currentUserId, isSuperAdmin])
-  );
+  const actions = useMemo(() => {
+    const adminActions: DataTableRowAction<AdminWithProfile>[] = [];
+    
+    adminActions.push({
+      label: "ویرایش",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: (admin: AdminWithProfile) => {
+        navigate(`/admins/${admin.id}/edit`);
+      },
+      isDisabled: (admin: AdminWithProfile) => {
+        if (!currentUserId) return true;
+        const isOwnProfile = currentUserId === admin.id;
+        return !isSuperAdmin && !isOwnProfile;
+      },
+    });
+    
+    adminActions.push({
+      label: "حذف",
+      icon: <Trash2 className="h-4 w-4" />,
+      onClick: (admin: AdminWithProfile) => handleDeleteAdmin(admin.id),
+      isDestructive: true,
+      isDisabled: () => !isSuperAdmin,
+    });
+    
+    return adminActions;
+  }, [navigate, currentUserId, isSuperAdmin]);
 
   const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
     if (filterId === "search") {
@@ -229,7 +219,7 @@ export default function AdminsPage() {
     }
   };
 
-  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
+  const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
       : updaterOrValue;
@@ -242,23 +232,6 @@ export default function AdminsPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
-      : updaterOrValue;
-    
-    setSorting(newSorting);
-    
-    const url = new URL(window.location.href);
-    if (newSorting.length > 0) {
-      url.searchParams.set('order_by', newSorting[0].id);
-      url.searchParams.set('order_desc', String(newSorting[0].desc));
-    } else {
-      url.searchParams.delete('order_by');
-      url.searchParams.delete('order_desc');
-    }
-    window.history.replaceState({}, '', url.toString());
-  };
 
   if (error) {
     return (
@@ -294,33 +267,108 @@ export default function AdminsPage() {
         </ProtectedButton>
       </PageHeader>
 
-      <Suspense fallback={null}>
-        <DataTable
-          columns={columns as any}
-          data={data}
-          pageCount={pageCount}
-          isLoading={isLoading}
-          onPaginationChange={handlePaginationChange}
-          onSortingChange={handleSortingChange}
-          onRowSelectionChange={setRowSelection}
-          clientFilters={clientFilters}
-          onFilterChange={handleFilterChange}
-          state={{
-            pagination,
-            sorting,
-            rowSelection,
-          }}
+      {/* Filters and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
+        <div className="text-sm font-medium text-font-p">
+          {isLoading ? "در حال بارگذاری..." : `نمایش ${data.length} ادمین${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
+        </div>
 
-          filterConfig={adminFilterConfig}
-          deleteConfig={{
-            onDeleteSelected: handleDeleteSelected,
-            permission: "admin.delete",
-            denyMessage: "اجازه حذف ادمین ندارید",
-          }}
-          searchValue={searchValue}
-          pageSizeOptions={[10, 20, 50]}
-        />
-      </Suspense>
+        <div className="flex items-center gap-3 flex-wrap flex-1 justify-end">
+          <div className="relative w-full sm:w-[240px]">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s pointer-events-none" />
+            <Input
+              placeholder="جستجو نام، ایمیل..."
+              value={searchValue}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              className="pr-10 h-9"
+            />
+          </div>
+
+          <DataTableSelectFilter
+            title="وضعیت"
+            placeholder="وضعیت"
+            options={booleanFilterOptions}
+            value={clientFilters.is_active}
+            onChange={(value) => handleFilterChange('is_active', value)}
+          />
+
+          <DataTableSelectFilter
+            title="نقش"
+            placeholder="نقش"
+            options={roleFilterOptions}
+            value={clientFilters.is_superuser}
+            onChange={(value) => handleFilterChange('is_superuser', value)}
+          />
+
+          <Select
+            value={sorting.length > 0 ? `${sorting[0].id}_${sorting[0].desc ? 'desc' : 'asc'}` : "latest"}
+            onValueChange={(value) => {
+              const sortMap: Record<string, { id: string; desc: boolean }> = {
+                latest: { id: "created_at", desc: true },
+                oldest: { id: "created_at", desc: false },
+                name_asc: { id: "full_name", desc: false },
+                name_desc: { id: "full_name", desc: true },
+              };
+              const sort = sortMap[value];
+              if (sort) {
+                setSorting([sort]);
+                const url = new URL(window.location.href);
+                url.searchParams.set('order_by', sort.id);
+                url.searchParams.set('order_desc', String(sort.desc));
+                window.history.replaceState({}, '', url.toString());
+              }
+            }}
+          >
+            <SelectTrigger className="w-[120px] h-9">
+              <SelectValue>
+                {sorting.length === 0 ? "جدیدترین" : (
+                  sorting[0].id === "created_at" 
+                    ? (sorting[0].desc ? "جدیدترین" : "قدیمی‌ترین")
+                    : (sorting[0].desc ? "نام (نزولی)" : "نام (صعودی)")
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">جدیدترین</SelectItem>
+              <SelectItem value="oldest">قدیمی‌ترین</SelectItem>
+              <SelectItem value="name_asc">نام (صعودی)</SelectItem>
+              <SelectItem value="name_desc">نام (نزولی)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Cards Grid */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader />
+        </div>
+      ) : data.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-font-s">هیچ ادمینی یافت نشد</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {data.map((admin) => (
+              <AdminCard key={admin.id} admin={admin} actions={actions} />
+            ))}
+          </div>
+
+          <PaginationControls
+            currentPage={pagination.pageIndex + 1}
+            totalPages={pageCount}
+            onPageChange={(page) => handlePaginationChange({ ...pagination, pageIndex: page - 1 })}
+            pageSize={pagination.pageSize}
+            onPageSizeChange={(size) => handlePaginationChange({ ...pagination, pageSize: size, pageIndex: 0 })}
+            pageSizeOptions={[10, 20, 50]}
+            showPageSize={true}
+            showInfo={true}
+            totalCount={response?.pagination?.count || data.length}
+            className="mt-6"
+          />
+        </>
+      )}
 
       <AlertDialog 
         open={deleteConfirm.open} 
@@ -342,7 +390,7 @@ export default function AdminsPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-destructive text-static-w hover:bg-destructive/90"
+              className="bg-red-1 text-static-w hover:bg-red-2"
             >
               حذف
             </AlertDialogAction>

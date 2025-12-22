@@ -28,6 +28,8 @@ export interface AdminProfile extends Base {
     city: CityCompact | null;
     bio: string | null;
     profile_picture: Media | null;
+    department?: string | null;
+    position?: string | null;
 }
 
 export interface AdminWithProfile extends Base {
