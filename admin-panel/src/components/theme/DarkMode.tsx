@@ -15,7 +15,6 @@ export function DarkMode() {
   }, []);
 
   const applyTheme = (newTheme: 'light' | 'dark') => {
-    // 👇 جلوگیری از حالت تیکه‌تیکه شدن با غیرفعال کردن موقت انیمیشن‌ها
     const css = document.createElement('style');
     css.type = 'text/css';
     css.appendChild(
@@ -38,10 +37,8 @@ export function DarkMode() {
       root.classList.remove('dark');
     }
 
-    // Force a reflow
     window.getComputedStyle(css).opacity;
 
-    // Remove the style tag
     document.head.removeChild(css);
   };
 

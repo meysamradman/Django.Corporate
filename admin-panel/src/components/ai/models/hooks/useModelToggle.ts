@@ -100,7 +100,6 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
                     return;
                 }
             } catch {
-              // Silently handle error - continue with mutation
             }
         }
         

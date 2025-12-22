@@ -87,8 +87,6 @@ export function StaticAdvancedSettingsTab({ admin }: StaticAdvancedSettingsTabPr
         }))
     );
 
-    // Removed unused adminStatusData state - using admin directly
-
     const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode) return;
         

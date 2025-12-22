@@ -34,7 +34,6 @@ export function useModelSelection({
         setActiveModels(activeModelIds);
       }
     } catch {
-      // Silently handle error - models will remain in current state
     }
   };
 

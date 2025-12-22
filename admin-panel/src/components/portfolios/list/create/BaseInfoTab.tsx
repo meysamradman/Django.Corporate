@@ -658,7 +658,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 </div>
                             )}
 
-                            {/* مثال استفاده از Item با Switch برای formApproach */}
                             {isFormApproach && (
                                 <div className="mt-6 space-y-4">
                                     <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">

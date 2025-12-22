@@ -88,7 +88,6 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
       titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">System Resources</p>}
     >
       <div className="flex flex-col flex-1 gap-6">
-        {/* Radar Chart Area - Clean Design */}
         <div className="flex-1 flex items-center justify-center min-h-[220px]">
           <ChartContainer
             config={chartConfig}
@@ -118,9 +117,7 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
           </ChartContainer>
         </div>
 
-        {/* High-density metrics list */}
         <div className="space-y-3">
-          {/* Database Section */}
           <div className="flex items-center justify-between p-3.5 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
@@ -134,7 +131,6 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
             <p className="text-sm font-black text-font-p tabular-nums">{systemStats?.database?.size_formatted || '0 B'}</p>
           </div>
 
-          {/* Storage Section */}
           <div className="flex items-center justify-between p-3.5 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-green-500/10 text-green-600">
@@ -149,7 +145,6 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
           </div>
         </div>
 
-        {/* Footer info */}
         <div className="mt-auto flex items-center justify-between pt-2 border-t border-br/30">
           <div className="flex items-center gap-1.5 opacity-40">
             <Clock className="w-3 h-3" />

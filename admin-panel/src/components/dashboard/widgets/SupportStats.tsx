@@ -14,7 +14,6 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
   const totalItems = (stats?.total_emails || 0) + (stats?.total_tickets || 0);
   const totalUnanswered = (stats?.unanswered_emails || 0) + (stats?.unanswered_tickets || 0);
 
-  // Real statistical calculation: percentage of items that have been addressed
   const responseRate = totalItems > 0
     ? Math.round(((totalItems - totalUnanswered) / totalItems) * 100)
     : 100;
@@ -59,7 +58,6 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
       contentClassName="flex-1 flex flex-col pt-5 px-5 pb-0 gap-6"
       titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">Support Analytics</p>}
     >
-      {/* Global Performance Indicator */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-transparent border border-primary/10 p-5 group">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -77,7 +75,6 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
           </div>
         </div>
 
-        {/* Segmented Progress Bar */}
         <div className="flex gap-1.5 h-2">
           {[...Array(12)].map((_, i) => (
             <div
@@ -90,7 +87,6 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
       </div>
 
       <div className="space-y-4">
-        {/* Email Section */}
         <div className="p-4 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300 group/item">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -123,7 +119,6 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
           </div>
         </div>
 
-        {/* Ticket Section */}
         <div className="p-4 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300 group/item">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -157,7 +152,6 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
         </div>
       </div>
 
-      {/* Real Stats Metrics - No more placeholders */}
       <div className="mt-auto pt-2 grid grid-cols-2 gap-3">
         <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
           <AlertCircle className="w-3.5 h-3.5 text-amber-500" />

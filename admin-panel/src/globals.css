@@ -2,11 +2,7 @@
 @import "./theme.css";
 @custom-variant dark (&:is(.dark *));
 
-/* ========================================
-   🔄 NProgress (RouteProgress) Styles
-   ======================================== */
 
-/* نوار پیشرفت اصلی */
 #nprogress {
   pointer-events: none;
 }
@@ -14,14 +10,13 @@
 #nprogress .bar {
   background: var(--primary);
   position: fixed;
-  z-index: 99999; /* بالاتر از sidebar (z-50) و همه چیز */
+  z-index: 99999;
   top: 0;
   left: 0;
   width: 100%;
   height: 3px;
 }
 
-/* انیمیشن درخشش */
 #nprogress .peg {
   display: block;
   position: absolute;
@@ -33,7 +28,6 @@
   transform: rotate(3deg) translate(0px, -4px);
 }
 
-/* Font Face Definition */
 @font-face {
   font-family: 'IRANSansXV';
   src: url('./assets/fonts/IRANSansXV.woff2') format('woff2');
@@ -42,7 +36,6 @@
   font-display: swap;
 }
 
-/* Root variables */
 :root {
   --font-persian: 'IRANSansXV', Tahoma, Arial, sans-serif;
 }
@@ -257,7 +250,6 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Ripple animation for HelpGuide */
 @keyframes ripple {
   0% {
     width: 0;

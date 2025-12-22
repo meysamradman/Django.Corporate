@@ -186,7 +186,6 @@ export interface ModelData {
   };
 }
 
-// Alias for ModelCardModel - use ModelData instead
 export type ModelCardModel = ModelData;
 
 export interface StaticModel {

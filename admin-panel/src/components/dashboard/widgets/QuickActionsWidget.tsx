@@ -104,7 +104,6 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
                         to={action.href}
                         className="group relative flex flex-col items-center justify-center p-6 rounded-xl border border-br/60 bg-white/40 dark:bg-card/40 hover:bg-white dark:hover:bg-card hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/40 transition-all duration-500 overflow-hidden"
                     >
-                        {/* Interactive Background Glow */}
                         <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700", action.bgColor)} />
 
                         <div className={cn("relative p-4 rounded-2xl mb-4 transition-all duration-700 group-hover:scale-110 group-hover:-translate-y-2 shadow-sm", action.bgColor)}>
@@ -114,7 +113,6 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
                             {action.label}
                         </span>
 
-                        {/* Interactive Sparkle Overlay */}
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-40 transition-opacity duration-500">
                             <Zap className={cn("w-3 h-3 h-white", action.color)} />
                         </div>

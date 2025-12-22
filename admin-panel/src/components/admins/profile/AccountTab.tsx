@@ -97,7 +97,6 @@ export function AccountTab({
                 const provinces = await locationApi.getProvincesCompact();
                 setProvinces(provinces);
             } catch {
-                // Silently handle error - provinces will remain empty
             } finally {
                 setLoadingProvinces(false);
             }
@@ -117,7 +116,6 @@ export function AccountTab({
                         setCities(cities);
                     }
                 } catch {
-                    // Error handling: cities will remain empty
                 } finally {
                     setLoadingCities(false);
                 }

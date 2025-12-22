@@ -226,7 +226,6 @@ export const adminApi = {
           await adminApi.assignRoleToAdmin(userId, Number(role_id));
         }
       } catch {
-        // Silently handle role assignment errors
       }
     }
     

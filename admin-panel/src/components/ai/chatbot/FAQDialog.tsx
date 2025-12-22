@@ -82,7 +82,6 @@ export function FAQDialog({ isOpen, onClose, faq }: FAQDialogProps) {
       }
       onClose();
     } catch {
-      // Error handling is done by react-query
     }
   };
 

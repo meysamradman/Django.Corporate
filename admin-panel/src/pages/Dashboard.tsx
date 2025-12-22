@@ -83,12 +83,10 @@ export default function Dashboard() {
         {null}
       </CardWithIcon>
       <div className="grid lg:grid-cols-12 gap-6 items-stretch">
-        {/* Side Widget (Prominent) */}
         <div className="lg:col-span-4 order-2 lg:order-1 flex flex-col h-full">
           <VisitorPieChart isLoading={isLoading} />
         </div>
 
-        {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-6 order-1 lg:order-2 flex flex-col">
           <SummaryCards stats={stats} isLoading={statsLoading} />
           <div className="flex-1 min-h-0">

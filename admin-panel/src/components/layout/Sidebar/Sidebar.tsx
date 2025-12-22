@@ -54,8 +54,6 @@ export function Sidebar({
       return menuGroups[0]?.items[0] || null;
     }
 
-    // First, check for exact matches in main items (highest priority)
-    // This handles cases like /media where the main item has url="/media"
     for (const group of menuGroups) {
       for (const item of group.items) {
         if ('url' in item && item.url && item.url === pathname) {

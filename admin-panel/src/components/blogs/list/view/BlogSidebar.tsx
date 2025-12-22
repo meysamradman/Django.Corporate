@@ -239,7 +239,6 @@ export function BlogSidebar({ blog }: BlogSidebarProps) {
               </div>
             </div>
 
-            {/* بخش تنظیمات با Item و Switch */}
             <div className="pt-4 border-t">
               <h4 className="mb-4 text-font-p">تنظیمات</h4>
               <div className="space-y-4">

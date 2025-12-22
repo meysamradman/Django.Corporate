@@ -313,23 +313,19 @@ html body[data-scroll-locked] {
   background: color-mix(in srgb, var(--font-s) 50%, transparent);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--font-s) 30%, transparent) var(--bg);
 }
 
-/* RTL: scrollbar on left for main content area */
 main {
   direction: rtl;
 }
 
-/* Content inside main should remain RTL for proper Persian text alignment */
 main>div {
   direction: rtl;
 }
 
-/* Mobile: Adjust padding to compensate for scrollbar on left side */
 @media (max-width: 640px) {
   main>div {
     padding: 1rem calc(1rem + 5px) 1rem 1rem;

@@ -131,7 +131,6 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 fetchAvailableProviders();
             }
         } catch {
-          // Error handling is done by toast
         } finally {
             setGenerating(false);
         }

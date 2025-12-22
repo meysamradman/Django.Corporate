@@ -47,7 +47,6 @@ export default function ProfileTab({
         const provinces = await locationApi.getProvincesCompact();
         setProvinces(provinces);
       } catch {
-        // Silently handle error - provinces will remain empty
       } finally {
         setLoadingProvinces(false);
       }
@@ -64,7 +63,6 @@ export default function ProfileTab({
           const cities = await locationApi.getCitiesCompactByProvince(provinceValue);
           setCities(cities);
         } catch {
-          // Silently handle error - cities will remain empty
         } finally {
           setLoadingCities(false);
         }

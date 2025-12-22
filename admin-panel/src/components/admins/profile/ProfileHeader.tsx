@@ -44,7 +44,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                 : [];
             setAdminRoles(adminRolesData);
         } catch {
-            // Silently handle error - admin roles will remain empty
         }
     }, [admin.id]);
 

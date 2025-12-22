@@ -64,7 +64,6 @@ export const downloadDatabaseExport = async (): Promise<void> => {
                     errorMessage = errorData?.metaData?.message || errorData?.message || errorMessage;
                 }
             } catch {
-                // Ignore JSON parsing errors, use default error message
             }
             throw new Error(errorMessage);
         }

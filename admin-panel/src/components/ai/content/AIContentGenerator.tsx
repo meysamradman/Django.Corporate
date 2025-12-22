@@ -94,7 +94,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 showSuccess(msg.ai('contentGenerated'));
             }
         } catch {
-          // Error handling is done by toast
         } finally {
             setGenerating(false);
         }

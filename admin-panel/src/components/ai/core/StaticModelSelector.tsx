@@ -79,7 +79,6 @@ export function StaticModelSelector({
             }
           }
         } catch {
-          // Error handling: continue with activation
         }
       }
 

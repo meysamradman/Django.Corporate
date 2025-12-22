@@ -90,10 +90,6 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         clearProviderStorage();
     };
 
-    // if (!loadingProviders && availableProviders.length === 0) {
-    //     return <EmptyProvidersCard type="chat" />;
-    // }
-
     if (compact) {
         return (
             <div className="flex flex-col h-full relative">

@@ -20,14 +20,12 @@ export function NavMain({ groups, onIconClick, selectedItem }: NavMainProps) {
   const pathname = location.pathname;
 
   const isItemActive = useCallback((item: MenuItem): boolean => {
-    // Use selectedItem if available (more accurate from findActiveItem logic)
     if (selectedItem) {
       const selectedUrl = 'url' in selectedItem ? selectedItem.url : undefined;
       const itemUrl = 'url' in item ? item.url : undefined;
       return selectedItem.title === item.title && selectedUrl === itemUrl;
     }
 
-    // Fallback to pathname matching (for initial render)
     if ('url' in item && item.url === pathname) return true;
 
     if ('items' in item && item.items) {

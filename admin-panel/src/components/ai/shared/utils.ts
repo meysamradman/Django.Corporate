@@ -3,7 +3,6 @@ import type { AvailableProvider } from '@/types/ai/ai';
 export const getProviderDisplayName = (provider: AvailableProvider): string => {
     if ((provider as any).display_name) {
         const name = String((provider as any).display_name);
-        // Remove content in parentheses, e.g., "OpenRouter (60+ Providers)" -> "OpenRouter"
         return name.split('(')[0].trim();
     }
 
