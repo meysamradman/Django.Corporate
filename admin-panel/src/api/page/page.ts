@@ -14,7 +14,7 @@ class PageApi {
 
     async updateAboutPage(data: AboutPageUpdate): Promise<AboutPage> {
         const response = await api.patch<AboutPage>(
-            'pages/about/',
+            'pages/about/update_page/',
             data as Record<string, unknown>
         );
         return response.data;
@@ -27,7 +27,7 @@ class PageApi {
 
     async updateTermsPage(data: TermsPageUpdate): Promise<TermsPage> {
         const response = await api.patch<TermsPage>(
-            'pages/terms/',
+            'pages/terms/update_page/',
             data as Record<string, unknown>
         );
         return response.data;

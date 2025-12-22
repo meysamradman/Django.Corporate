@@ -105,7 +105,7 @@ export function ImageSelector({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="absolute h-7 w-7 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors shadow-lg pointer-events-auto"
+                            className="absolute h-8 w-8 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors shadow-lg pointer-events-auto flex items-center justify-center"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -121,7 +121,7 @@ export function ImageSelector({
                                 zIndex: 9999
                             }}
                         >
-                            <X className="h-3 w-3 text-destructive" />
+                            <X className="h-4 w-4 text-destructive" />
                         </Button>
                     )}
                 </>
@@ -136,12 +136,12 @@ export function ImageSelector({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors"
+                    className="absolute -bottom-1 -right-1 h-8 w-8 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors flex items-center justify-center"
                     onClick={() => setShowMediaSelector(true)}
                     disabled={disabled}
                     aria-label="تغییر عکس"
                 >
-                    <Camera className="h-3 w-3" />
+                    <Camera className="h-4 w-4" />
                 </Button>
             )}
 

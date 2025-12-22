@@ -244,14 +244,15 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((_props, r
                         className={`relative overflow-hidden text-center transition-transform duration-300 hover:-translate-y-1 border-b-4 ${card.borderClass}`}
                     >
                         <CardContent className="flex flex-col items-center gap-5 py-8">
-                            <ImageSelector
-                                selectedMedia={card.selectedMedia}
-                                onMediaSelect={card.onSelect}
-                                size="md"
-                                className="w-full"
-                                context="media_library"
-                                alt={card.title}
-                            />
+                            <div className="flex justify-center w-full">
+                                <ImageSelector
+                                    selectedMedia={card.selectedMedia}
+                                    onMediaSelect={card.onSelect}
+                                    size="md"
+                                    context="media_library"
+                                    alt={card.title}
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <div className="text-base font-semibold text-foreground">
                                     {card.title}

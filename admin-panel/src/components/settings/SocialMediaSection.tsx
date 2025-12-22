@@ -19,7 +19,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
-import { MediaSelector } from "@/components/media/selectors/MediaSelector";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import { settingsApi } from "@/api/settings/settings";
 import type { SocialMedia } from "@/types/settings/generalSettings";
 import { showError, showSuccess } from "@/core/toast";
@@ -298,12 +298,16 @@ export function SocialMediaSection() {
                         </div>
 
                         <div className="space-y-2">
-                            <MediaSelector
-                                selectedMedia={icon}
-                                onMediaSelect={setIcon}
-                                label="آیکون"
-                                size="sm"
-                            />
+                            <Label>آیکون</Label>
+                            <div className="flex justify-center">
+                                <ImageSelector
+                                    selectedMedia={icon}
+                                    onMediaSelect={setIcon}
+                                    size="sm"
+                                    context="media_library"
+                                    alt="آیکون شبکه اجتماعی"
+                                />
+                            </div>
                         </div>
 
                         <div className="flex justify-end gap-2 pt-4">
