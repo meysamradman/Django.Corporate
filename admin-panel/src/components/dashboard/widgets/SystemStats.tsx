@@ -1,5 +1,5 @@
 import { useMemo, type FC } from "react";
-import { Server, Database, Zap } from "lucide-react";
+import { Server, Database, HardDrive, Clock, Box } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { SystemStats as SystemStatsType } from "@/types/analytics";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -23,7 +23,7 @@ interface SystemStatsProps {
 
 const chartConfig = {
   storage: {
-    label: "حجم",
+    label: "حجم (MB)",
     color: "#3b82f6",
   },
 } satisfies ChartConfig;
@@ -32,7 +32,7 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
   const storageData = useMemo(() => {
     const types = {
       image: 'تصاویر',
-      video: 'ویدیویی',
+      video: 'ویدیو',
       audio: 'صوتی',
       document: 'اسناد',
       other: 'سایر'
@@ -41,11 +41,19 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
     return Object.entries(types).map(([key, label]) => {
       const data = systemStats?.storage?.by_type?.[key];
       return {
-        month: label,
+        label,
         storage: data?.size_mb || 0,
       };
     });
   }, [systemStats]);
+
+  const lastUpdateTime = useMemo(() => {
+    if (!systemStats?.generated_at) return null;
+    return new Date(systemStats.generated_at).toLocaleTimeString('fa-IR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }, [systemStats?.generated_at]);
 
   if (isLoading) {
     return (
@@ -70,33 +78,36 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
 
   return (
     <CardWithIcon
-      icon={Server}
-      title="آمار سیستم"
+      icon={HardDrive}
+      title="آنالیز منابع سیستم"
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
       borderColor="border-b-primary"
-      className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/5"
-      contentClassName="flex-1 flex flex-col p-4"
-      titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">System Analytics</p>}
+      className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/10 group/card"
+      contentClassName="flex-1 flex flex-col pt-5 px-5 pb-0 gap-6"
+      titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">System Resources</p>}
     >
       <div className="flex flex-col flex-1 gap-6">
-        {/* EXACT CHART IMPLEMENTATION FROM SNIPPET */}
-        <div className="flex-1 flex items-center justify-center">
+        {/* Radar Chart Area - Clean Design */}
+        <div className="flex-1 flex items-center justify-center min-h-[220px]">
           <ChartContainer
             config={chartConfig}
             className="mx-auto aspect-square w-full max-h-[250px]"
           >
             <RadarChart data={storageData}>
               <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <PolarAngleAxis dataKey="month" />
-              <PolarGrid />
+              <PolarAngleAxis
+                dataKey="label"
+                tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 700, opacity: 0.6 }}
+              />
+              <PolarGrid strokeOpacity={0.1} />
               <Radar
                 dataKey="storage"
                 stroke="#3b82f6"
                 fill="#3b82f6"
-                fillOpacity={0.5}
+                fillOpacity={0.25}
                 dot={{
-                  r: 4,
+                  r: 3,
                   fillOpacity: 1,
                   fill: "#3b82f6",
                   stroke: "#fff",
@@ -107,30 +118,46 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
           </ChartContainer>
         </div>
 
-        {/* PRETTY BOTTOM CARDS (RESTORED) */}
-        <div className="grid grid-cols-2 gap-4 pb-1">
-          <div className="p-4 rounded-xl border border-br/60 bg-white/40 dark:bg-card/40 hover:bg-white dark:hover:bg-card hover:border-blue-1/40 hover:shadow-lg transition-all duration-500 group">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-blue-0 shadow-sm group-hover:scale-110 transition-transform">
-                <Database className="w-3.5 h-3.5 text-blue-1" />
+        {/* High-density metrics list */}
+        <div className="space-y-3">
+          {/* Database Section */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
+                <Database className="w-4 h-4" />
               </div>
-              <span className="text-[10px] text-font-s font-black uppercase tracking-widest">دیتابیس</span>
+              <div>
+                <p className="text-xs font-black text-font-p leading-tight">پایگاه داده</p>
+                <p className="text-[10px] font-bold text-font-s opacity-60">{systemStats?.database?.vendor || 'SQL'} Engine</p>
+              </div>
             </div>
-            <p className="text-lg font-black text-font-p tabular-nums tracking-tighter">
-              {systemStats?.database?.size_formatted || '0 B'}
-            </p>
+            <p className="text-sm font-black text-font-p tabular-nums">{systemStats?.database?.size_formatted || '0 B'}</p>
           </div>
 
-          <div className="p-4 rounded-xl border border-br/60 bg-white/40 dark:bg-card/40 hover:bg-white dark:hover:bg-card hover:border-amber-1/40 hover:shadow-lg transition-all duration-500 group">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-amber-0 shadow-sm group-hover:scale-110 transition-transform">
-                <Zap className="w-3.5 h-3.5 text-amber-1" />
+          {/* Storage Section */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10 text-green-600">
+                <Box className="w-4 h-4" />
               </div>
-              <span className="text-[10px] text-font-s font-black uppercase tracking-widest">کش</span>
+              <div>
+                <p className="text-xs font-black text-font-p leading-tight">کل فایل‌ها</p>
+                <p className="text-[10px] font-bold text-font-s opacity-60">مجموع رسانه‌ها و اسناد</p>
+              </div>
             </div>
-            <p className="text-lg font-black text-font-p tabular-nums tracking-tighter">
-              {systemStats?.cache?.hit_rate ? `${systemStats.cache.hit_rate.toFixed(1)}%` : '0%'}
-            </p>
+            <p className="text-sm font-black text-font-p tabular-nums">{systemStats?.storage?.total_formatted || '0 B'}</p>
+          </div>
+        </div>
+
+        {/* Footer info */}
+        <div className="mt-auto flex items-center justify-between pt-2 border-t border-br/30">
+          <div className="flex items-center gap-1.5 opacity-40">
+            <Clock className="w-3 h-3" />
+            <span className="text-[9px] font-bold">آخرین واکشی: {lastUpdateTime || '--:--'}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50 animate-pulse" />
+            <span className="text-[9px] font-black text-font-s opacity-60 uppercase tracking-tighter">System Pulse</span>
           </div>
         </div>
       </div>

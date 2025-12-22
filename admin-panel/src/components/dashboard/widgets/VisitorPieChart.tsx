@@ -137,8 +137,8 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
       borderColor="border-b-primary"
-      className="h-full"
-      contentClassName="space-y-2 p-4 pt-0"
+      className="h-full flex flex-col"
+      contentClassName="flex-1 flex flex-col pt-0 px-4 pb-0"
       titleExtra={
         <Select defaultValue="all">
           <SelectTrigger className="w-[100px] h-8 text-xs">
@@ -153,65 +153,66 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
         </Select>
       }
     >
-      <ChartStyle id="visitor-pie" config={chartConfig} />
-      <div className="flex justify-center">
-        <ChartContainer
-          id="visitor-pie"
-          config={chartConfig}
-          className="w-full max-w-[320px] aspect-square mx-auto"
-        >
-          <RechartsPieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={chartData}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={65}
-              outerRadius={100}
-              strokeWidth={2}
-              stroke="#fff"
-              startAngle={90}
-              endAngle={-270}
-            >
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="fill-font-p"
-                      >
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) - 6}
-                          className="text-xs fill-font-s"
-                        >
-                          کل بازدیدکنندگان
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 15}
-                          className="text-xl font-bold fill-font-p"
-                        >
-                          {formatNumber(totalVisitors)}
-                        </tspan>
-                      </text>
-                    );
-                  }
-                }}
+      <div className="flex flex-col flex-1">
+        <ChartStyle id="visitor-pie" config={chartConfig} />
+        <div className="flex justify-center">
+          <ChartContainer
+            id="visitor-pie"
+            config={chartConfig}
+            className="w-full max-w-[320px] aspect-square mx-auto"
+          >
+            <RechartsPieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
               />
-            </Pie>
-          </RechartsPieChart>
-        </ChartContainer>
-      </div>
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={65}
+                outerRadius={100}
+                strokeWidth={2}
+                stroke="#fff"
+                startAngle={90}
+                endAngle={-270}
+              >
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="fill-font-p"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) - 6}
+                            className="text-xs fill-font-s"
+                          >
+                            کل بازدیدکنندگان
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 15}
+                            className="text-xl font-bold fill-font-p"
+                          >
+                            {formatNumber(totalVisitors)}
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+            </RechartsPieChart>
+          </ChartContainer>
+        </div>
 
-      <div className="space-y-0 border-t border-br pt-2">
+        <div className="mt-auto space-y-0 border-t border-br pt-2">
         {sources.map((source, index) => {
           const Icon = source.icon;
           const percentage = getPercentage(source.value);
@@ -259,6 +260,7 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
             </div>
           );
         })}
+      </div>
       </div>
     </CardWithIcon>
   );

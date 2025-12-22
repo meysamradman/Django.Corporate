@@ -61,7 +61,7 @@ export default function Dashboard() {
         iconColor="stroke-primary"
         borderColor="border-b-primary"
         className="!shadow-none !h-fit !py-0"
-        headerClassName="!py-3 !px-4 !items-center"
+        headerClassName="!pt-3 !pb-2 !px-4 !items-center"
         contentClassName="hidden"
         titleExtra={
           <div className="flex items-center gap-5">

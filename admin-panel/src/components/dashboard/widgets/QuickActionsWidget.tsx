@@ -94,7 +94,7 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
             iconColor="stroke-primary"
             borderColor="border-b-primary"
             className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/5"
-            contentClassName="flex-1 flex flex-col p-4"
+            contentClassName="flex-1 flex flex-col pt-4 px-4 pb-0"
             titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">Quick Control</p>}
         >
             <div className="grid grid-cols-2 gap-4 flex-1">
