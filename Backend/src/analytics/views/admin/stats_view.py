@@ -26,6 +26,7 @@ class AdminStatsViewSet(viewsets.ViewSet):
             'users_stats': [RequirePermission('analytics.users.read')],
             'admins_stats': [RequirePermission('analytics.admins.read')],
             'content_stats': [RequirePermission('analytics.content.read')],
+            'content_trend': [RequirePermission('analytics.content.read')],
             'tickets_stats': [RequirePermission('analytics.tickets.read')],
             'emails_stats': [RequirePermission('analytics.emails.read')],
             'system_stats': [RequirePermission('analytics.system.read')],
@@ -89,6 +90,19 @@ class AdminStatsViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_403_FORBIDDEN
             )
         data = ContentStatsService.get_stats()
+        return APIResponse.success(
+            data=data,
+            message=ANALYTICS_SUCCESS["content_stats_retrieved"]
+        )
+    
+    @action(detail=False, methods=['get'])
+    def content_trend(self, request):
+        if not PermissionValidator.has_any_permission(request.user, ['analytics.stats.manage', 'analytics.content.read']):
+            return APIResponse.error(
+                message=ANALYTICS_ERRORS["not_authorized"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        data = ContentStatsService.get_monthly_trend()
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["content_stats_retrieved"]

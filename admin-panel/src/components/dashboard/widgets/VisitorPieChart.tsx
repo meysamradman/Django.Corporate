@@ -1,15 +1,10 @@
 import { useMemo, type FC, type ComponentType, type CSSProperties } from "react";
-import { Label, Pie, PieChart } from "recharts";
-import { Monitor, Smartphone, Laptop } from "lucide-react";
+import { Label, Pie, PieChart as RechartsPieChart } from "recharts";
+import { Monitor, Smartphone, Laptop, PieChart } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
 import { formatNumber } from "@/core/utils/format";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   ChartContainer,
   ChartStyle,
@@ -46,7 +41,7 @@ const chartConfig = {
 interface SourceItem {
   name: "web" | "mobile" | "desktop";
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string; color?: string; style?: CSSProperties }>;
   value: number;
   color: string;
 }
@@ -116,145 +111,155 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
 
   if (isLoading) {
     return (
-      <Card className="flex flex-col">
-        <CardHeader className="flex-row items-center justify-between pb-4">
-          <CardTitle>آمار بازدید</CardTitle>
-          <Skeleton className="h-9 w-32 rounded-md" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-lg" />
-        </CardContent>
-      </Card>
+      <CardWithIcon
+        icon={PieChart}
+        title="آمار بازدید"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+      >
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-[280px] w-full max-w-[280px] aspect-square mx-auto rounded-full" />
+          <div className="space-y-4 border-t border-br pt-4">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+          </div>
+        </div>
+      </CardWithIcon>
     );
   }
 
   return (
-    <Card className="flex flex-col">
+    <CardWithIcon
+      icon={PieChart}
+      title="آمار بازدید"
+      iconBgColor="bg-primary/10"
+      iconColor="stroke-primary"
+      borderColor="border-b-primary"
+      className="h-full"
+      contentClassName="space-y-2 p-4 pt-0"
+      titleExtra={
+        <Select defaultValue="all">
+          <SelectTrigger className="w-[100px] h-8 text-xs">
+            <SelectValue placeholder="انتخاب" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">همه</SelectItem>
+            <SelectItem value="web">وب</SelectItem>
+            <SelectItem value="mobile">موبایل</SelectItem>
+            <SelectItem value="desktop">دسکتاپ</SelectItem>
+          </SelectContent>
+        </Select>
+      }
+    >
       <ChartStyle id="visitor-pie" config={chartConfig} />
-      <CardHeader className="flex-row items-center justify-between pb-4 gap-4">
-        <div className="flex items-center gap-3 flex-1">
-          <CardTitle>آمار بازدید</CardTitle>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[120px] h-9">
-              <SelectValue placeholder="انتخاب" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">همه</SelectItem>
-              <SelectItem value="web">وب</SelectItem>
-              <SelectItem value="mobile">موبایل</SelectItem>
-              <SelectItem value="desktop">دسکتاپ</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex justify-center">
-          <ChartContainer
-            id="visitor-pie"
-            config={chartConfig}
-            className="w-full max-w-[400px] aspect-square"
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={70}
-                outerRadius={110}
-                strokeWidth={2}
-                stroke="#fff"
-                startAngle={90}
-                endAngle={-270}
-              >
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                      return (
-                        <text
+      <div className="flex justify-center">
+        <ChartContainer
+          id="visitor-pie"
+          config={chartConfig}
+          className="w-full max-w-[320px] aspect-square mx-auto"
+        >
+          <RechartsPieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={65}
+              outerRadius={100}
+              strokeWidth={2}
+              stroke="#fff"
+              startAngle={90}
+              endAngle={-270}
+            >
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-font-p"
+                      >
+                        <tspan
                           x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          className="fill-font-p"
+                          y={(viewBox.cy || 0) - 6}
+                          className="text-xs fill-font-s"
                         >
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) - 8}
-                            className="text-sm fill-font-s"
-                          >
-                            کل بازدیدکنندگان
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 16}
-                            className="text-3xl font-bold fill-font-p"
-                          >
-                            {formatNumber(totalVisitors)}
-                          </tspan>
-                        </text>
-                      );
-                    }
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-        </div>
+                          کل بازدیدکنندگان
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 15}
+                          className="text-xl font-bold fill-font-p"
+                        >
+                          {formatNumber(totalVisitors)}
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
+            </Pie>
+          </RechartsPieChart>
+        </ChartContainer>
+      </div>
 
-        <div className="space-y-0 border-t border-br pt-4">
-          {sources.map((source, index) => {
-            const Icon = source.icon;
-            const percentage = getPercentage(source.value);
-            
-            return (
-              <div key={source.name}>
-                <div className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${source.color}15` }}
-                    >
-                      <Icon 
-                        className="w-5 h-5" 
-                        style={{ color: source.color } as CSSProperties}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-font-p">
-                        {source.label}
-                      </span>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: source.color }}
-                        />
-                        <span className="text-xs text-font-s">
-                          {source.name.toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
+      <div className="space-y-0 border-t border-br pt-2">
+        {sources.map((source, index) => {
+          const Icon = source.icon;
+          const percentage = getPercentage(source.value);
+
+          return (
+            <div key={source.name}>
+              <div className="flex items-center justify-between py-2.5">
+                <div className="flex items-center gap-3 flex-1">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${source.color}15` }}
+                  >
+                    <Icon
+                      className="w-[18px] h-[18px]"
+                      style={{ color: source.color } as CSSProperties}
+                    />
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-sm font-semibold text-font-p">
-                      {formatNumber(source.value)}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-font-p">
+                      {source.label}
                     </span>
-                    <span className="text-xs text-font-s mt-0.5">
-                      {percentage}%
-                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: source.color }}
+                      />
+                      <span className="text-xs text-font-s">
+                        {source.name.toUpperCase()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                {index < sources.length - 1 && (
-                  <div className="border-t border-br" />
-                )}
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-semibold text-font-p">
+                    {formatNumber(source.value)}
+                  </span>
+                  <span className="text-xs text-font-s mt-0.5">
+                    {percentage}%
+                  </span>
+                </div>
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+              {index < sources.length - 1 && (
+                <div className="border-t border-br" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </CardWithIcon>
   );
 };

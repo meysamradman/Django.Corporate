@@ -11,3 +11,11 @@ export const useAnalytics = () => {
     refetchOnWindowFocus: false,
   });
 };
+
+export const useContentTrend = () => {
+  return useQuery<any[]>({
+    queryKey: ["analytics", "content_trend"],
+    queryFn: () => analyticsApi.getContentTrend(),
+    staleTime: 5 * 60 * 1000,
+  });
+};

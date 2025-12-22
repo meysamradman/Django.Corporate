@@ -1,66 +1,70 @@
 import { useMemo, type FC } from "react";
-import { Server, Database, HardDrive, Activity } from "lucide-react";
+import { Server, Database, Zap } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { SystemStats as SystemStatsType } from "@/types/analytics";
-import { formatNumber } from "@/core/utils/format";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/elements/Chart";
 
 interface SystemStatsProps {
   systemStats: SystemStatsType | undefined;
   isLoading?: boolean;
 }
 
-const COLORS = {
-  media: 'hsl(var(--color-purple-1))',
-};
+const chartConfig = {
+  storage: {
+    label: "حجم",
+    color: "#3b82f6",
+  },
+} satisfies ChartConfig;
 
 export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = false }) => {
   const storageData = useMemo(() => {
-    if (!systemStats?.storage?.by_type) return [];
-    return Object.entries(systemStats.storage.by_type).map(([type, data]) => ({
-      name: type === 'image' ? 'تصاویر' : type === 'video' ? 'ویدیو' : type === 'audio' ? 'صدا' : 'اسناد',
-      value: data.size_mb || 0,
-      count: data.count || 0,
-      formatted: data.formatted || '0 B'
-    })).filter(item => item.value > 0);
+    const types = {
+      image: 'تصاویر',
+      video: 'ویدیویی',
+      audio: 'صوتی',
+      document: 'اسناد',
+      other: 'سایر'
+    };
+
+    return Object.entries(types).map(([key, label]) => {
+      const data = systemStats?.storage?.by_type?.[key];
+      return {
+        month: label,
+        storage: data?.size_mb || 0,
+      };
+    });
   }, [systemStats]);
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-br rounded-xl p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <Skeleton className="w-9 h-9 rounded-lg" />
-          <div className="text-right flex-1">
-            <Skeleton className="h-6 w-28 mb-2" />
-            <Skeleton className="h-4 w-36" />
-          </div>
-        </div>
-        <div className="space-y-4">
+      <CardWithIcon
+        icon={Server}
+        title="آمار سیستم"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="h-full w-full"
+      >
+        <div className="space-y-6 h-full p-2">
+          <Skeleton className="h-44 w-full rounded-xl" />
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg border border-br bg-bg">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <Skeleton className="h-5 w-16" />
-            </div>
-            <div className="p-3 rounded-lg border border-br bg-bg">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <Skeleton className="h-5 w-16" />
-            </div>
-          </div>
-          <div className="p-3 rounded-lg border border-br bg-bg">
-            <Skeleton className="h-4 w-20 mb-2" />
-            <Skeleton className="h-5 w-12 mb-2" />
-            <div className="flex justify-between">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-16" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[...Array(2)].map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-lg" />
-            ))}
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
           </div>
         </div>
-      </div>
+      </CardWithIcon>
     );
   }
 
@@ -71,62 +75,64 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
       borderColor="border-b-primary"
-      className="shadow-sm"
-      titleExtra={<p className="text-xs text-font-s">وضعیت سرور و دیتابیس</p>}
+      className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/5"
+      contentClassName="flex-1 flex flex-col p-4"
+      titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">System Analytics</p>}
     >
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg border border-br bg-bg">
-            <div className="flex items-center gap-2 mb-2">
-              <Database className="w-4 h-4 text-blue-1" />
-              <span className="text-xs text-font-s font-medium text-right">حجم دیتابیس</span>
-            </div>
-            <p className="text-base font-bold text-font-p text-right">
-              {systemStats?.database?.size_formatted || 'N/A'}
-            </p>
-          </div>
-
-          <div className="p-3 rounded-lg border border-br bg-bg">
-            <div className="flex items-center gap-2 mb-2">
-              <HardDrive className="w-4 h-4 text-purple-1" />
-              <span className="text-xs text-font-s font-medium text-right">ذخیره‌سازی کل</span>
-            </div>
-            <p className="text-base font-bold text-font-p text-right">
-              {systemStats?.storage?.total_formatted || '0 B'}
-            </p>
-          </div>
+      <div className="flex flex-col flex-1 gap-6">
+        {/* EXACT CHART IMPLEMENTATION FROM SNIPPET */}
+        <div className="flex-1 flex items-center justify-center">
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square w-full max-h-[250px]"
+          >
+            <RadarChart data={storageData}>
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <PolarAngleAxis dataKey="month" />
+              <PolarGrid />
+              <Radar
+                dataKey="storage"
+                stroke="#3b82f6"
+                fill="#3b82f6"
+                fillOpacity={0.5}
+                dot={{
+                  r: 4,
+                  fillOpacity: 1,
+                  fill: "#3b82f6",
+                  stroke: "#fff",
+                  strokeWidth: 2
+                }}
+              />
+            </RadarChart>
+          </ChartContainer>
         </div>
 
-        <div className="p-3 rounded-lg border border-br bg-bg">
-          <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-4 h-4 text-emerald-1" />
-            <span className="text-xs text-font-s font-medium text-right">وضعیت کش</span>
-          </div>
-          <div>
-            <p className="text-base font-bold text-font-p mb-1 text-right">
-              {systemStats?.cache?.status === 'connected' ? 'متصل' : 'خطا'}
-            </p>
-            <div className="flex items-center justify-between text-xs text-font-s">
-              <span>حافظه: {systemStats?.cache?.used_memory_formatted || '0B'}</span>
-              <span>Hit: {systemStats?.cache?.hit_rate ? `${systemStats.cache.hit_rate.toFixed(1)}%` : '0%'}</span>
-            </div>
-          </div>
-        </div>
-
-        {storageData.length > 0 && (
-          <div className="grid grid-cols-2 gap-2">
-            {storageData.map((item, index) => (
-              <div key={index} className="p-2.5 rounded-lg border border-br bg-bg">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.media }} />
-                  <span className="text-xs text-font-s font-medium">{item.name}</span>
-                </div>
-                <p className="text-sm font-bold text-font-p text-right">{item.formatted}</p>
-                <p className="text-xs text-font-s text-right">{formatNumber(item.count)} فایل</p>
+        {/* PRETTY BOTTOM CARDS (RESTORED) */}
+        <div className="grid grid-cols-2 gap-4 pb-1">
+          <div className="p-4 rounded-xl border border-br/60 bg-white/40 dark:bg-card/40 hover:bg-white dark:hover:bg-card hover:border-blue-1/40 hover:shadow-lg transition-all duration-500 group">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 rounded-lg bg-blue-0 shadow-sm group-hover:scale-110 transition-transform">
+                <Database className="w-3.5 h-3.5 text-blue-1" />
               </div>
-            ))}
+              <span className="text-[10px] text-font-s font-black uppercase tracking-widest">دیتابیس</span>
+            </div>
+            <p className="text-lg font-black text-font-p tabular-nums tracking-tighter">
+              {systemStats?.database?.size_formatted || '0 B'}
+            </p>
           </div>
-        )}
+
+          <div className="p-4 rounded-xl border border-br/60 bg-white/40 dark:bg-card/40 hover:bg-white dark:hover:bg-card hover:border-amber-1/40 hover:shadow-lg transition-all duration-500 group">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 rounded-lg bg-amber-0 shadow-sm group-hover:scale-110 transition-transform">
+                <Zap className="w-3.5 h-3.5 text-amber-1" />
+              </div>
+              <span className="text-[10px] text-font-s font-black uppercase tracking-widest">کش</span>
+            </div>
+            <p className="text-lg font-black text-font-p tabular-nums tracking-tighter">
+              {systemStats?.cache?.hit_rate ? `${systemStats.cache.hit_rate.toFixed(1)}%` : '0%'}
+            </p>
+          </div>
+        </div>
       </div>
     </CardWithIcon>
   );

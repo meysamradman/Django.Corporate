@@ -65,7 +65,7 @@ export function AdminLayout() {
           onContentToggle={toggleContent}
         />
         <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
-          <div className="p-4 sm:p-6 lg:p-8 min-w-0">
+          <div className="p-4 lg:p-6 min-w-0">
             {isLoading ? (
               <PageSkeleton />
             ) : (

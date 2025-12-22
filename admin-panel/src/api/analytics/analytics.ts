@@ -1,6 +1,6 @@
 import { api } from '@/core/config/api';
-import type { 
-  AnalyticsDashboard, 
+import type {
+  AnalyticsDashboard,
   DashboardStats,
   SystemStats
 } from '@/types/analytics';
@@ -18,6 +18,11 @@ export const analyticsApi = {
 
   getSystemStats: async (): Promise<SystemStats> => {
     const response = await api.get<SystemStats>('/analytics/admin/stats/system_stats/');
+    return response.data;
+  },
+
+  getContentTrend: async (): Promise<any[]> => {
+    const response = await api.get<any[]>('/analytics/admin/stats/content_trend/');
     return response.data;
   },
 

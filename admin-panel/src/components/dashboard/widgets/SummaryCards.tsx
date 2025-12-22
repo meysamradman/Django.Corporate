@@ -1,5 +1,5 @@
 import { useMemo, type ElementType } from "react";
-import { Users, ShieldUser, LayoutList, Image, Mail, Ticket } from "lucide-react";
+import { Users, ShieldUser, Mail, Ticket } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Card } from "@/components/elements/Card";
 import { cn } from "@/core/utils/cn";
@@ -75,22 +75,6 @@ export function SummaryCards({ stats, isLoading = false }: SummaryCardsProps) {
       trend: null
     },
     {
-      id: 'content',
-      icon: LayoutList,
-      label: 'کل محتوا',
-      value: (stats?.total_portfolios || 0) + (stats?.total_posts || 0),
-      colors: CARD_COLORS.content,
-      trend: null
-    },
-    {
-      id: 'media',
-      icon: Image,
-      label: 'رسانه‌ها',
-      value: stats?.total_media || 0,
-      colors: CARD_COLORS.media,
-      trend: null
-    },
-    {
       id: 'emails',
       icon: Mail,
       label: 'ایمیل‌ها',
@@ -110,21 +94,18 @@ export function SummaryCards({ stats, isLoading = false }: SummaryCardsProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {[...Array(6)].map((_, i) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-fit items-start">
+        {[...Array(4)].map((_, i) => (
           <Card
             key={i}
-            className="!py-5 p-5 border-b-4 border-b-gray-1"
+            className="!p-4 !gap-1 border-b-2 border-b-gray-1 h-fit"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <Skeleton className="w-12 h-12 rounded-lg" />
-                <div className="flex-1">
-                  <Skeleton className="h-8 w-16 mb-2" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              </div>
+            <div className="flex items-center gap-3 mb-1.5">
+              <Skeleton className="w-9 h-9 rounded-lg" />
+              <Skeleton className="h-7 w-12" />
             </div>
+            <Skeleton className="h-4 w-20 mb-0.5" />
+            <Skeleton className="h-3 w-28" />
           </Card>
         ))}
       </div>
@@ -132,35 +113,38 @@ export function SummaryCards({ stats, isLoading = false }: SummaryCardsProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-fit items-start">
       {allCards.map((card) => {
         const Icon = card.icon;
         return (
           <Card
             key={card.id}
             className={cn(
-              "!py-5 p-5 hover:shadow-md hover:border-primary/20 transition-all duration-200 border-b-4",
+              "!py-3.5 !px-4 !gap-1 hover:shadow-md transition-all duration-300 border-b-2 h-fit",
               card.colors.border
             )}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <div 
-                  className={cn("p-2.5 rounded-lg flex-shrink-0", card.colors.iconBg)}
-                >
-                  <Icon className={cn("w-5 h-5", card.colors.icon)} />
-                </div>
-                <div className="flex-1">
-                  <div className="text-2xl font-bold text-font-p leading-none mb-1">
-                    {card.value.toLocaleString('fa-IR')}
-                  </div>
-                  <div className="text-xs text-font-s font-medium">{card.label}</div>
-                </div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className={cn("p-2 rounded-lg", card.colors.iconBg)}>
+                <Icon className={cn("w-5 h-5", card.colors.icon)} />
               </div>
-              {card.trend && (
-                <div className="text-xs text-font-s bg-primary/10 text-primary px-2 py-1 rounded-md font-medium whitespace-nowrap flex-shrink-0">
-                  {card.trend.value} {card.trend.label}
-                </div>
+              <div className="text-2xl font-bold text-font-p leading-none">
+                {card.value.toLocaleString('fa-IR')}
+              </div>
+            </div>
+
+            <div className="text-sm font-bold text-font-p mb-1">
+              {card.label}
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[10px] font-medium text-font-s opacity-70">
+              {card.trend ? (
+                <>
+                  <span className="text-primary font-bold">{card.trend.value}+</span>
+                  <span className="opacity-80">{card.trend.label}</span>
+                </>
+              ) : (
+                <span className="opacity-60">آمار کلی تا این لحظه</span>
               )}
             </div>
           </Card>

@@ -44,7 +44,7 @@ const CardWithIcon = memo(function CardWithIcon({
       <CardContent className={contentClassName}>
         {children}
       </CardContent>
-    </Card>
+    </Card >
   )
 })
 

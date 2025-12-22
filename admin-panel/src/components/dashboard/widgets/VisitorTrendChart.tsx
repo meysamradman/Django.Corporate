@@ -1,14 +1,10 @@
 import { useState, useMemo, type FC } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
+import { useContentTrend } from "@/hooks/dashboard/useAnalytics";
 import { formatNumber } from "@/core/utils/format";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { LineChart } from "lucide-react";
 import {
   ChartContainer,
   ChartStyle,
@@ -25,68 +21,68 @@ import {
 } from "@/components/elements/Select";
 
 const chartConfig = {
-  total: {
-    label: "کل بازدید",
-    color: "var(--chart-1)",
+  portfolios: {
+    label: "نمونه کارها",
+    color: "hsl(var(--primary))",
   },
-  unique: {
-    label: "بازدید یکتا",
-    color: "var(--chart-2)",
+  posts: {
+    label: "وبلاگ",
+    color: "#2563eb",
+  },
+  media: {
+    label: "رسانه‌ها",
+    color: "#10b981",
   },
 } satisfies ChartConfig;
-
-const generateMockData = () => {
-  const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
-  return months.map((month) => ({
-    month: month.substring(0, 3),
-    total: Math.floor(Math.random() * 50000) + 20000,
-    unique: Math.floor(Math.random() * 35000) + 15000,
-  }));
-};
 
 export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
-  const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
-  const isLoading = externalLoading || analyticsLoading;
+  const { data: trendData, isLoading: trendLoading } = useContentTrend();
+  const isLoading = externalLoading || trendLoading;
   const [timeRange, setTimeRange] = useState("year");
 
-  const mockData = useMemo(() => generateMockData(), []);
-
   const chartData = useMemo(() => {
-    return mockData;
-  }, [mockData]);
+    return trendData || [];
+  }, [trendData]);
 
   const metrics = useMemo(() => {
-    const total = chartData.reduce((sum, item) => sum + item.total, 0);
-    const unique = chartData.reduce((sum, item) => sum + item.unique, 0);
-    const avgDaily = Math.floor(total / 30);
-    return {
-      total,
-      unique,
-      avgDaily,
-    };
+    if (!chartData.length) return { portfolios: 0, posts: 0, media: 0 };
+    return chartData.reduce(
+      (acc, curr) => ({
+        portfolios: acc.portfolios + (Number(curr.portfolios) || 0),
+        posts: acc.posts + (Number(curr.posts) || 0),
+        media: acc.media + (Number(curr.media) || 0),
+      }),
+      { portfolios: 0, posts: 0, media: 0 }
+    );
   }, [chartData]);
 
   if (isLoading) {
     return (
-      <Card className="flex flex-col">
-        <CardHeader className="flex-row items-center justify-between pb-4 gap-4">
-          <CardTitle>روند بازدید</CardTitle>
-          <Skeleton className="h-9 w-32 rounded-md" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-lg" />
-        </CardContent>
-      </Card>
+      <CardWithIcon
+        icon={LineChart}
+        title="روند انتشار محتوا"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="h-full"
+      >
+        <Skeleton className="h-[300px] w-full rounded-lg" />
+      </CardWithIcon>
     );
   }
 
   return (
-    <Card className="flex flex-col">
-      <ChartStyle id="visitor-trend" config={chartConfig} />
-      <CardHeader className="flex-row items-center justify-between pb-4 gap-4">
-        <CardTitle>روند بازدید</CardTitle>
+    <CardWithIcon
+      icon={LineChart}
+      title="روند انتشار محتوا"
+      iconBgColor="bg-primary/10"
+      iconColor="stroke-primary"
+      borderColor="border-b-primary"
+      className="h-full"
+      contentClassName="space-y-6"
+      titleExtra={
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-[140px] h-9">
             <SelectValue placeholder="انتخاب بازه" />
@@ -97,26 +93,29 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
             <SelectItem value="year">سال جاری</SelectItem>
           </SelectContent>
         </Select>
-      </CardHeader>
-      <CardContent className="space-y-6">
+      }
+    >
+      <div className="space-y-6">
+        <ChartStyle id="visitor-trend" config={chartConfig} />
+
         <div className="grid grid-cols-3 gap-4 border-b border-br pb-4">
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-font-p">
-              {formatNumber(metrics.total)}
+              {formatNumber(metrics.portfolios)}
             </span>
-            <span className="text-sm text-font-s mt-1">کل بازدید</span>
+            <span className="text-sm text-font-s mt-1">نمونه کارها</span>
           </div>
           <div className="flex flex-col border-r border-l border-br px-4">
             <span className="text-2xl font-bold text-font-p">
-              {formatNumber(metrics.unique)}
+              {formatNumber(metrics.posts)}
             </span>
-            <span className="text-sm text-font-s mt-1">بازدید یکتا</span>
+            <span className="text-sm text-font-s mt-1">وبلاگ</span>
           </div>
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-font-p">
-              {formatNumber(metrics.avgDaily)}
+              {formatNumber(metrics.media)}
             </span>
-            <span className="text-sm text-font-s mt-1">میانگین روزانه</span>
+            <span className="text-sm text-font-s mt-1">رسانه‌ها</span>
           </div>
         </div>
 
@@ -127,27 +126,39 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
         >
           <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="fillTotal" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillPortfolios" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-total)"
+                  stopColor="var(--color-portfolios)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-total)"
+                  stopColor="var(--color-portfolios)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillUnique" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillPosts" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-unique)"
+                  stopColor="var(--color-posts)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-unique)"
+                  stopColor="var(--color-posts)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+              <linearGradient id="fillMedia" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-media)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-media)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -165,7 +176,6 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
               axisLine={false}
               tickMargin={8}
               className="text-xs fill-font-s"
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
             />
             <ChartTooltip
               cursor={false}
@@ -173,38 +183,28 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
             />
             <Area
               type="monotone"
-              dataKey="total"
-              stroke="var(--color-total)"
-              fill="url(#fillTotal)"
+              dataKey="portfolios"
+              stroke="var(--color-portfolios)"
+              fill="url(#fillPortfolios)"
               strokeWidth={2}
             />
             <Area
               type="monotone"
-              dataKey="unique"
-              stroke="var(--color-unique)"
-              fill="url(#fillUnique)"
+              dataKey="posts"
+              stroke="var(--color-posts)"
+              fill="url(#fillPosts)"
+              strokeWidth={2}
+            />
+            <Area
+              type="monotone"
+              dataKey="media"
+              stroke="var(--color-media)"
+              fill="url(#fillMedia)"
               strokeWidth={2}
             />
           </AreaChart>
         </ChartContainer>
-
-        <div className="flex items-center justify-center gap-6 pt-2">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: "var(--color-total)" }}
-            />
-            <span className="text-sm text-font-s">کل بازدید</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: "var(--color-unique)" }}
-            />
-            <span className="text-sm text-font-s">بازدید یکتا</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </CardWithIcon>
   );
 };

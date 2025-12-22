@@ -18,6 +18,77 @@ class ContentStatsService:
         return data
     
     @classmethod
+    def get_monthly_trend(cls) -> dict:
+        cache_key = 'analytics:content_trend'
+        data = cache.get(cache_key)
+        if not data:
+            data = cls._calculate_monthly_trend()
+            cache.set(cache_key, data, cls.CACHE_TIMEOUT)
+        return data
+
+    @classmethod
+    def _calculate_monthly_trend(cls) -> list:
+        from datetime import date, timedelta
+        from django.db.models.functions import TruncMonth
+        from django.db.models import Count
+        
+        now = timezone.now()
+        trends = []
+        
+        # Get last 6 months
+        for i in range(5, -1, -1):
+            # Calculate range for the month
+            # target_date is roughly start of month
+            month_date = now.date() - timedelta(days=30 * i)
+            start_date = month_date.replace(day=1)
+            
+            # Simple Persian month names (approximate)
+            gregorian_month = start_date.month
+            approximate_jalali_month = ((gregorian_month + 1) % 12) + 1
+            persian_month_names = [
+                'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+                'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+            ]
+            month_name = persian_month_names[approximate_jalali_month - 1]
+
+            month_data = {
+                'month': month_name,
+                'portfolios': 0,
+                'posts': 0,
+                'media': 0
+            }
+
+            # Portfolio Trend
+            if apps.is_installed('src.portfolio'):
+                from src.portfolio.models.portfolio import Portfolio
+                month_data['portfolios'] = Portfolio.objects.filter(
+                    created_at__year=start_date.year,
+                    created_at__month=start_date.month
+                ).count()
+
+            # Blog Trend
+            if apps.is_installed('src.blog'):
+                from src.blog.models.blog import Blog
+                month_data['posts'] = Blog.objects.filter(
+                    created_at__year=start_date.year,
+                    created_at__month=start_date.month
+                ).count()
+
+            # Media Trend
+            if apps.is_installed('src.media'):
+                from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+                month_data['media'] = (
+                    ImageMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count() +
+                    VideoMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count() +
+                    AudioMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count() +
+                    DocumentMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count()
+                )
+            
+            trends.append(month_data)
+            
+        return trends
+
+    @classmethod
     def _calculate_stats(cls) -> dict:
         stats = {
             'generated_at': timezone.now().isoformat(),
