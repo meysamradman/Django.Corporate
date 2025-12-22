@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Button } from "@/components/elements/Button";
 import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/page";
@@ -17,7 +16,7 @@ export function AboutPageForm() {
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState("base");
     const [page, setPage] = useState<AboutPage | null>(null);
-    const { canManagePages } = useUIPermissions();
+    const { canManagePages: _canManagePages } = useUIPermissions();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [shortDescription, setShortDescription] = useState("");

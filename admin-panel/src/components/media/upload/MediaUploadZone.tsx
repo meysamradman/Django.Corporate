@@ -14,7 +14,7 @@ interface FileDropzoneProps {
   disabled?: boolean;
 }
 
-export function FileDropzone({ onFilesAdded, allowedTypes, disabled = false }: FileDropzoneProps) {
+export function FileDropzone({ onFilesAdded, allowedTypes: _allowedTypes, disabled = false }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

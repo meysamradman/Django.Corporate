@@ -1,5 +1,5 @@
 import { type FC } from "react";
-import { MessageSquare, Mail, Ticket, Activity, CheckCircle2, Inbox, AlertCircle } from "lucide-react";
+import { MessageSquare, Mail, Ticket, Activity, Inbox, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { DashboardStats } from "@/types/analytics";
 import { formatNumber } from "@/core/utils/format";

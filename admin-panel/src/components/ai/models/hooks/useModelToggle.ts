@@ -27,7 +27,7 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
         }: { 
             modelId: number | string; 
             isActive: boolean; 
-            isOpenRouter?: boolean; 
+            isOpenRouter?: boolean;
         }) => {
             if (isOpenRouter) {
                 throw new Error('مدل‌های OpenRouter از API می‌آیند و قابل فعال/غیرفعال کردن نیستند');
@@ -56,7 +56,7 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
             queryClient.invalidateQueries({ queryKey: ['ai-models', capability] });
             showSuccess('وضعیت مدل با موفقیت تغییر کرد');
         },
-        onError: (error: any, variables, context) => {
+        onError: (error: any, _variables, context) => {
             if (context?.previousModels) {
                 queryClient.setQueryData(['ai-models', capability], context.previousModels);
             }
@@ -93,7 +93,6 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
                                 modelId,
                                 isActive: isActivating,
                                 isOpenRouter,
-                                providerSlug,
                             });
                         },
                     });
@@ -107,7 +106,6 @@ export function useModelToggle(capability: 'chat' | 'content' | 'image' | 'audio
             modelId,
             isActive: isActivating,
             isOpenRouter,
-            providerSlug,
         });
     };
 

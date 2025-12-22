@@ -1,12 +1,12 @@
 import { useState, lazy, Suspense, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
 import type { UserWithProfile } from "@/types/auth/user";
 import { adminApi } from "@/api/admins/admins";
 import type { Filter } from "@/types/auth/adminFilter";
-import { Edit, Trash2, Eye, Plus } from "lucide-react";
+import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showError, showSuccess } from '@/core/toast';
@@ -17,7 +17,7 @@ import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
-import { getConfirm, getCrud } from '@/core/messages';
+import { getConfirm } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,7 +119,7 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       showSuccess("با موفقیت حذف شد");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });
@@ -131,7 +131,7 @@ export default function UsersPage() {
       showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });

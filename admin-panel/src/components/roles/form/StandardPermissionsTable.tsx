@@ -42,7 +42,7 @@ interface StandardPermissionsTableProps {
 
 export function StandardPermissionsTable({
   resources,
-  selectedPermissions,
+  selectedPermissions: _selectedPermissions,
   isSuperAdmin,
   logicalPermissionErrors,
   onTogglePermission,

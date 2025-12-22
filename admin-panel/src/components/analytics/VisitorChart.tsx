@@ -12,7 +12,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
   ChartLegendContent,
 } from "@/components/elements/Chart";
 import type { ChartConfig } from "@/components/elements/Chart";

@@ -141,7 +141,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (category) => {
+            onClick: (_category) => {
             },
             isDestructive: true,
           },

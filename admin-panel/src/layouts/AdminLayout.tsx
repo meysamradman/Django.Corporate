@@ -8,6 +8,7 @@ import { useAdminStore } from '@/components/layout/Sidebar/stores/sidebarStore';
 import { useAuth } from '@/core/auth/AuthContext';
 import { RoutePermissionGuard } from '@/components/admins/permissions';
 import { FloatingAIChat } from '@/components/ai/chat/FloatingAIChat';
+import { FaviconManager } from '@/components/panel/FaviconManager';
 
 
 export function AdminLayout() {
@@ -48,8 +49,10 @@ export function AdminLayout() {
   }, [location.pathname, sidebarOpen, setSidebarOpen]);
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar
+    <>
+      <FaviconManager />
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar
         isOpen={sidebarOpen}
         onToggle={toggleSidebar}
         isContentCollapsed={contentCollapsed}
@@ -78,5 +81,6 @@ export function AdminLayout() {
         <FloatingAIChat />
       </div>
     </div>
+    </>
   );
 }

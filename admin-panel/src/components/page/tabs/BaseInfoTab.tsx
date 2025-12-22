@@ -1,10 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
-import LogoUploader from "@/components/panel/LogoUploader";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { FileText, Image as ImageIcon } from "lucide-react";
 
@@ -81,12 +80,12 @@ export function BaseInfoTab({
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
             >
-                    <LogoUploader
-                        label="تصویر شاخص"
+                    <ImageSelector
                         selectedMedia={featuredImage}
                         onMediaSelect={onFeaturedImageChange}
                         size="md"
-                        showLabel={false}
+                        context="media_library"
+                        alt="تصویر شاخص"
                     />
             </CardWithIcon>
         </div>

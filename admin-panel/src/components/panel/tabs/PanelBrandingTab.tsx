@@ -7,7 +7,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/elements/Input";
 import { Card, CardContent } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import LogoUploader from '../LogoUploader';
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import { usePanelSettings, useUpdatePanelSettings } from '../hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -28,7 +28,7 @@ export interface PanelBrandingTabRef {
     handleSubmit: () => void;
 }
 
-const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((props, ref) => {
+const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
     
@@ -79,17 +79,25 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((props, ref) => {
                 formData.append('panel_title', data.panel_title);
             }
 
+            // Handle logo
+            const currentLogo = panelSettings?.logo_detail || panelSettings?.logo;
+            const logoChanged = selectedLogo?.id !== currentLogo?.id;
+            const logoWasRemoved = !selectedLogo && currentLogo;
+            
             if (selectedLogo?.id) {
                 formData.append('logo', selectedLogo.id.toString());
-            }
-            if (logoDeleted) {
+            } else if (logoWasRemoved || logoDeleted) {
                 formData.append('remove_logo', 'true');
             }
 
+            // Handle favicon
+            const currentFavicon = panelSettings?.favicon_detail || panelSettings?.favicon;
+            const faviconChanged = selectedFavicon?.id !== currentFavicon?.id;
+            const faviconWasRemoved = !selectedFavicon && currentFavicon;
+            
             if (selectedFavicon?.id) {
                 formData.append('favicon', selectedFavicon.id.toString());
-            }
-            if (faviconDeleted) {
+            } else if (faviconWasRemoved || faviconDeleted) {
                 formData.append('remove_favicon', 'true');
             }
 
@@ -224,16 +232,15 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((props, ref) => {
                             className={`text-center transition-transform duration-300 hover:-translate-y-1 border-b-4 ${card.borderClass}`}
                         >
                             <CardContent className="flex flex-col items-center gap-5 py-8">
-                                <LogoUploader
-                                    label={card.title}
-                                    selectedMedia={card.selectedMedia}
-                                    onMediaSelect={card.onSelect}
-                                    size="md"
-                                    showLabel={false}
-                                    className="w-full"
-                                    statusColor={card.statusColor}
-                                    accentGradient={card.accent}
-                                />
+                                <div className="flex justify-center">
+                                    <ImageSelector
+                                        selectedMedia={card.selectedMedia}
+                                        onMediaSelect={card.onSelect}
+                                        size="md"
+                                        context="media_library"
+                                        alt={card.title}
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <div className="text-base font-semibold text-foreground">
                                         {card.title}

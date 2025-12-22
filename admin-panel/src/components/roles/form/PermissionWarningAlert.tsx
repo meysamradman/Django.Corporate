@@ -17,7 +17,7 @@ interface PermissionWarningAlertProps {
 export function PermissionWarningAlert({
   logicalPermissionErrors,
   standardResources,
-  getResourceIcon,
+  getResourceIcon: _getResourceIcon,
 }: PermissionWarningAlertProps) {
   if (logicalPermissionErrors.length === 0) {
     return null;

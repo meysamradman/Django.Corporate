@@ -6,7 +6,6 @@ import { User, KeyRound } from "lucide-react";
 import { ProfileHeader } from "@/components/users/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
-import type { Media } from "@/types/shared/media";
 import { getCrud, getValidation } from '@/core/messages';
 
 const TabContentSkeleton = () => (
@@ -144,7 +143,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 updateData.email = formData.email;
             }
             
-                                    const result = await adminApi.updateUserByType(userData.id, updateData, 'user');
+                                    await adminApi.updateUserByType(userData.id, updateData, 'user');
                         showSuccess(getCrud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
         } catch (error: any) {

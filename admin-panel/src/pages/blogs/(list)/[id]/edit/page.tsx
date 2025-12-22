@@ -1,10 +1,8 @@
-import { use, useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Loader } from "@/components/elements/Loader";
 import { 
   FileText, Edit2, Image, Search,
   Loader2, Save, List, Settings
@@ -265,7 +263,7 @@ export default function EditBlogPage() {
         is_active: formData.is_active,
       };
       
-      const updatedBlog = await blogApi.updateBlog(blog.id, updateData);
+      await blogApi.updateBlog(blog.id, updateData);
       
       navigate("/blogs");
     } catch (error) {
@@ -317,7 +315,7 @@ export default function EditBlogPage() {
         is_active: formData.is_active,
       };
       
-      const updatedBlog = await blogApi.partialUpdateBlog(blog.id, updateData);
+      await blogApi.partialUpdateBlog(blog.id, updateData);
       
       navigate("/blogs");
     } catch (error) {

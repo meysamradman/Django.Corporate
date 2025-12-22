@@ -28,7 +28,7 @@ export function useUpdatePanelSettings() {
       queryClient.invalidateQueries({ queryKey: ['panel-settings'] });
       showSuccess('تنظیمات پنل با موفقیت به‌روزرسانی شد');
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError('خطا در به‌روزرسانی تنظیمات پنل');
     },
   });

@@ -1,7 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -52,13 +51,13 @@ export default function EditTagPage() {
 
   const updateTagMutation = useMutation({
     mutationFn: (data: Partial<PortfolioTag>) => portfolioApi.updateTag(tagId, data),
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       showSuccess("تگ با موفقیت به‌روزرسانی شد");
       queryClient.invalidateQueries({ queryKey: ['tag', tagId] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
       navigate("/portfolios/tags");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطا در به‌روزرسانی تگ");
     },
   });

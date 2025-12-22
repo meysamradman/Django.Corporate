@@ -1,7 +1,6 @@
 import { EmailItem } from "./EmailItem";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { cn } from "@/core/utils/cn";
 
 import type { MailboxType } from "./types";
 

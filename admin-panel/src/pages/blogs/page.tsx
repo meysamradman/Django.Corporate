@@ -14,7 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { getConfirm, getCrud } from '@/core/messages';
+import { getConfirm } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +57,7 @@ export default function BlogPage() {
   const queryClient = useQueryClient();
   const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
 
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  const [_categories, setCategories] = useState<BlogCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
@@ -170,7 +170,7 @@ export default function BlogPage() {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
       showSuccess("با موفقیت حذف شد");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });
@@ -182,7 +182,7 @@ export default function BlogPage() {
       showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });
@@ -195,7 +195,7 @@ export default function BlogPage() {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
       showSuccess(`بلاگ با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطا در تغییر وضعیت");
     },
   });

@@ -26,6 +26,10 @@ axiosInstance.interceptors.request.use(
       config.headers['X-CSRFToken'] = csrfToken;
     }
 
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => {

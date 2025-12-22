@@ -3,7 +3,6 @@ import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -146,7 +145,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (category) => {
+            onClick: (_category) => {
             },
             isDestructive: true,
           },

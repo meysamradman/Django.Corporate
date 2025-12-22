@@ -15,8 +15,6 @@ import {
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
-import { Textarea } from "@/components/elements/Textarea";
-import { Switch } from "@/components/elements/Switch";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 import type { MediaFile } from '../hooks/useMediaUpload';
 import { getFileCategory, formatBytes } from '../services';

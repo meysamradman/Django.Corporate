@@ -1,7 +1,6 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -19,7 +18,7 @@ import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from "@/core/toast";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, AlertCircle, FolderTree, Image as ImageIcon, FolderOpen, Folder, ChevronRight, Home, Loader2, Save, List, Settings } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, FolderOpen, Folder, Home, Loader2, Save, List, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateCategoryPage() {
@@ -114,12 +113,12 @@ export default function CreateCategoryPage() {
 
   const createCategoryMutation = useMutation({
     mutationFn: (data: Partial<BlogCategory>) => blogApi.createCategory(data),
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       showSuccess("دسته‌بندی با موفقیت ایجاد شد");
       queryClient.invalidateQueries();
       navigate("/blogs/categories");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطا در ایجاد دسته‌بندی");
     },
   });

@@ -1,6 +1,5 @@
-import { use, useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -286,7 +285,7 @@ export default function EditPortfolioPage() {
         is_active: formData.is_active,
       };
       
-      const updatedPortfolio = await portfolioApi.updatePortfolio(portfolio.id, updateData);
+      await portfolioApi.updatePortfolio(portfolio.id, updateData);
       
       navigate("/portfolios");
     } catch (error) {
@@ -340,7 +339,7 @@ export default function EditPortfolioPage() {
         is_active: formData.is_active,
       };
       
-      const updatedPortfolio = await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
+      await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
       
       navigate("/portfolios");
     } catch (error) {

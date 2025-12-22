@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
-import type { PermissionProfile, UserRole, ModuleAction } from '@/types/auth/permission';
+import type { PermissionProfile, UserRole, ModuleAction, Role } from '@/types/auth/permission';
 
 const ACTION_SYNONYMS: Record<ModuleAction, ModuleAction[]> = {
   read: ['read', 'view', 'list'],
@@ -204,7 +204,7 @@ export function useUserPermissions() {
     const fullModules = new Set<string>();
     const readOnlyModules = new Set<string>();
 
-    userRoles.forEach((role: UserRole) => {
+    userRoles.forEach((role: Role | UserRole) => {
       const overrides = ROLE_ACCESS_OVERRIDES[role.name];
       if (!overrides) {
         return;
@@ -361,7 +361,7 @@ export function useUserPermissions() {
   };
 
   const hasRole = useCallback((roleName: string): boolean => {
-    return userRoles.some((role: UserRole) =>
+    return userRoles.some((role: Role | UserRole) =>
       role.name === roleName
     );
   }, [userRoles]);

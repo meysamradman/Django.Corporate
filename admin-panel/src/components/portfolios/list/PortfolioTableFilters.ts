@@ -1,5 +1,4 @@
 import type { FilterConfig } from "@/types/shared/table";
-import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 
 export const usePortfolioFilterOptions = () => {
   const statusFilterOptions = [

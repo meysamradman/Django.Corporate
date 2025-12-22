@@ -3,8 +3,6 @@ import { Button } from "@/components/elements/Button";
 import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
-import { Textarea } from "@/components/elements/Textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
     Dialog,
@@ -52,7 +50,7 @@ export function FormFieldsSection() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
     
-    const { canManageForms } = useUIPermissions();
+    const { canManageForms: _canManageForms } = useUIPermissions();
     
     const [fieldKey, setFieldKey] = useState("");
     const [fieldType, setFieldType] = useState<ContactFormField['field_type']>('text');

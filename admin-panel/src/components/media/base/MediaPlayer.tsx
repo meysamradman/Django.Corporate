@@ -23,7 +23,7 @@ export function MediaPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, _setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,14 +43,6 @@ export function MediaPlayer({
       mediaRef.current.play();
     }
     setIsPlaying(!isPlaying);
-  };
-
-  const handleVolumeChange = (newVolume: number) => {
-    if (!mediaRef.current) return;
-    
-    setVolume(newVolume);
-    mediaRef.current.volume = newVolume;
-    setIsMuted(newVolume === 0);
   };
 
   const toggleMute = () => {

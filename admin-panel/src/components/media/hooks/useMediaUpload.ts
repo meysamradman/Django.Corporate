@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getFileCategory, formatBytes, mediaService, useUploadSettings } from '@/components/media/services';
+import { getFileCategory, formatBytes, mediaService } from '@/components/media/services';
 import { showError, showSuccess } from "@/core/toast";
 import { api } from '@/core/config/api';
 import { useMediaContext } from '../MediaContext';

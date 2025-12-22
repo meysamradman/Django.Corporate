@@ -134,9 +134,8 @@ export function useProviderActions({
         return await aiApi.personalSettings.saveMySettings(data);
       }
     },
-    onSuccess: async (response, variables) => {
+    onSuccess: async (_response, variables) => {
       const { providerId, apiKey, useSharedApi } = variables;
-      const backendProviderName = frontendToBackendProviderMap[providerId];
 
       await queryClient.refetchQueries({ queryKey: ['ai-backend-providers'] });
       await queryClient.refetchQueries({ queryKey: ['ai-personal-settings'] });
@@ -217,7 +216,7 @@ export function useProviderActions({
         return await aiApi.personalSettings.saveMySettings(data);
       }
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (_response, variables) => {
       const { providerId, isActive, useSharedApi } = variables;
 
       if (useSharedApi && isSuperAdmin) {

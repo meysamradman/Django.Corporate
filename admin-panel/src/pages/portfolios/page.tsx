@@ -57,7 +57,7 @@ export default function PortfolioPage() {
   const queryClient = useQueryClient();
   const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
   
-  const [categories, setCategories] = useState<PortfolioCategory[]>([]);
+  const [_categories, setCategories] = useState<PortfolioCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
@@ -170,7 +170,7 @@ export default function PortfolioPage() {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       showSuccess(getCrud('deleted', { item: 'نمونه‌کار' }));
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError('خطای سرور رخ داد');
     },
   });
@@ -182,7 +182,7 @@ export default function PortfolioPage() {
       showSuccess(getCrud('deleted', { item: 'نمونه‌کارها' }));
       setRowSelection({});
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError('خطای سرور رخ داد');
     },
   });
@@ -195,7 +195,7 @@ export default function PortfolioPage() {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       showSuccess(data.is_active ? getStatus('active') : getStatus('inactive'));
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError(getStatus('statusChangeError'));
     },
   });

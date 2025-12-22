@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { FormField } from "@/components/forms/FormField";
 import {
-    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
+    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, Edit2, Smartphone, Calendar
 } from "lucide-react";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";

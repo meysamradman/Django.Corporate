@@ -1,6 +1,5 @@
 import { Calendar } from "lucide-react"
 import { Input } from "@/components/elements/Input"
-import { cn } from "@/core/utils/cn"
 
 interface DataTableDateFilterProps {
   title?: string

@@ -34,20 +34,6 @@ export function PortfolioSidebar({ portfolio }: PortfolioSidebarProps) {
     ? mediaService.getMediaUrlFromObject({ file_url: portfolio.main_image.file_url } as any)
     : null;
 
-  const allMedia = portfolio.portfolio_media || [];
-  const imagesCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "image"
-  ).length;
-  const videosCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "video"
-  ).length;
-  const audiosCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "audio"
-  ).length;
-  const documentsCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "document"
-  ).length;
-
   const formatDate = (dateString: string) => {
     if (!dateString) return "نامشخص";
     const date = new Date(dateString);

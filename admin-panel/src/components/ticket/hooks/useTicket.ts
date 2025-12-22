@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ticketApi } from "@/api/ticket/ticket";
 import type {
   Ticket,
-  TicketMessage,
   TicketCreate,
   TicketUpdate,
   TicketMessageCreate,
@@ -169,7 +168,7 @@ export function useMarkMessageRead() {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
-    onError: (error: any) => {
+    onError: (_error: any) => {
     },
   });
 }
@@ -186,7 +185,7 @@ export function useMarkTicketAsRead() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
     },
-    onError: (error: any) => {
+    onError: (_error: any) => {
     },
   });
 }

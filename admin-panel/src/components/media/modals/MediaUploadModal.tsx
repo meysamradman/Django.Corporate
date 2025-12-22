@@ -2,10 +2,7 @@ import { useState, useCallback, type ChangeEvent } from 'react';
 import { 
   Dialog, 
   DialogContent, 
-  DialogHeader, 
   DialogTitle, 
-  DialogFooter,
-  DialogDescription,
   DialogClose
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
@@ -24,16 +21,18 @@ interface MediaUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadComplete: () => void;
-  onMediaSelect?: (media: Media | Media[]) => void;
+  onMediaSelect?: (_media: Media | Media[]) => void;
   context?: 'media_library' | 'portfolio' | 'blog';
   contextId?: number | string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 export function MediaUploadModal({ 
   isOpen, 
   onClose,
   onUploadComplete,
-  onMediaSelect,
+  onMediaSelect: _onMediaSelect,
   context: overrideContext,
   contextId: overrideContextId
 }: MediaUploadModalProps) {

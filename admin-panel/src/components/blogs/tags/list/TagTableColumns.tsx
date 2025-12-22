@@ -3,7 +3,6 @@ import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
-import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -131,7 +130,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (tag) => {},
+            onClick: (_tag) => {},
             isDestructive: true,
           },
         ];

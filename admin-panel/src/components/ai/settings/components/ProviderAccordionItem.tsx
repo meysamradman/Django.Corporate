@@ -25,6 +25,7 @@ interface ProviderAccordionItemProps {
   isActive: boolean;
   accessStatus: string;
   accessLabel: string;
+  personalSettingsMap?: Record<string, any>;
   onToggleApiKeyVisibility: () => void;
   onApiKeyChange: (value: string) => void;
   onPersonalApiKeyChange?: (value: string) => void;
@@ -32,9 +33,9 @@ interface ProviderAccordionItemProps {
   onTogglePersonalApiKeyVisibility?: () => void;
   onToggleSharedApiKeyVisibility?: () => void;
   onToggleUseSharedApi: (checked: boolean) => void;
-  onSave: () => void;
-  onSavePersonal?: () => void;
-  onSaveShared?: () => void;
+  onSave?: (apiKeyValue?: string) => void;
+  onSavePersonal?: (apiKeyValue?: string) => void;
+  onSaveShared?: (apiKeyValue?: string) => void;
   onDeletePersonal?: () => void;
   onDeleteShared?: () => void;
   onToggleActive: (checked: boolean) => void;
@@ -74,6 +75,7 @@ export function ProviderAccordionItem({
   onDeletePersonal,
   onDeleteShared,
   onToggleActive,
+  personalSettingsMap: _personalSettingsMap,
 }: ProviderAccordionItemProps) {
   return (
     <AccordionItem value={provider.id} className="border-none">

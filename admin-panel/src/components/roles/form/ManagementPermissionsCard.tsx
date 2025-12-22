@@ -28,7 +28,7 @@ interface ManagementPermissionsCardProps {
 
 export function ManagementPermissionsCard({
   resources,
-  selectedPermissions,
+  selectedPermissions: _selectedPermissions,
   isSuperAdmin,
   onTogglePermission,
   isPermissionSelected,
@@ -129,7 +129,7 @@ export function ManagementPermissionsCard({
                       )}
                       <Switch
                         checked={isSelected}
-                        onCheckedChange={(checked) => {
+                        onCheckedChange={(_checked) => {
                           if (!canToggle) return;
                           onTogglePermission(managePerm.id!);
                         }}

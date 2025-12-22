@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/page";

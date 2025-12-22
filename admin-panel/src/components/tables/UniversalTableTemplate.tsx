@@ -60,7 +60,7 @@ export function UniversalTableTemplate<
   
   const {
     data,
-    totalItems,
+    totalItems: _totalItems,
     pageCount,
     isLoading,
     pagination,
@@ -71,12 +71,12 @@ export function UniversalTableTemplate<
     handleFilterChange,
     rowSelection,
     setRowSelection,
-    columnVisibility,
-    setColumnVisibility,
-    refetchData,
-    handleDeleteItem,
+    columnVisibility: _columnVisibility,
+    setColumnVisibility: _setColumnVisibility,
+    refetchData: _refetchData,
+    handleDeleteItem: _handleDeleteItem,
     handleDeleteSelected,
-    hasSelectedItems,
+    hasSelectedItems: _hasSelectedItems,
     searchValue,
   } = useDataTableLogic({
     fetchDataFn: config.fetchDataFn,
@@ -109,7 +109,7 @@ export function UniversalTableTemplate<
           pagination,
           sorting,
           rowSelection,
-          columnVisibility,
+          columnVisibility: _columnVisibility,
         }}
         searchConfig={config.searchConfig}
         filterConfig={config.filterConfig}

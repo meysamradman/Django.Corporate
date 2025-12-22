@@ -11,8 +11,7 @@ import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showWarning } from "@/core/toast";
 import type { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table";
-import { useMutation } from "@tanstack/react-query";
-import { getConfirm, getCrud } from '@/core/messages';
+import { getConfirm } from '@/core/messages';
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import type { DataTableRowAction } from "@/types/shared/table";
 import {
@@ -103,7 +102,7 @@ export default function RolesPage() {
     return params;
   }, [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role]);
 
-  const { data: response, isLoading, error, refetch } = useRoles(queryParams);
+  const { data: response, isLoading, error } = useRoles(queryParams);
 
   const data = response?.data || [];
   const pageCount = response?.pagination?.total_pages || 1;

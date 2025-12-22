@@ -1,5 +1,6 @@
 import { PlusCircle } from "lucide-react"
-import type { Column, ComponentType } from "@tanstack/react-table"
+import type { Column } from "@tanstack/react-table"
+import type { ComponentType } from "react"
 import { cn } from '@/core/utils/cn';
 import { Badge } from "@/components/elements/Badge"
 import { Button } from "@/components/elements/Button";

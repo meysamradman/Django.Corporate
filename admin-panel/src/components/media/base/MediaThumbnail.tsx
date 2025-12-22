@@ -2,15 +2,12 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Media } from "@/types/shared/media";
 import { mediaService } from "@/components/media/services";
-import { env } from '@/core/config/environment';
 import { cn } from '@/core/utils/cn';
 import { 
   Play, 
-  FileVideo, 
   FileAudio, 
   FileText, 
-  File,
-  ImageOff 
+  File
 } from 'lucide-react';
 
 interface MediaThumbnailProps {
@@ -28,7 +25,7 @@ export function MediaThumbnail({
   alt,
   className,
   fill = false,
-  sizes,
+  sizes: _sizes,
   showIcon = true,
   style,
 }: MediaThumbnailProps) {

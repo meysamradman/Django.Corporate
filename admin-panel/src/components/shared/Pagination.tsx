@@ -67,7 +67,7 @@ export function PaginationControls({
   totalCount = 0,
   infoText,
   className,
-  showFirstLast = true,
+  showFirstLast: _showFirstLast = true,
   showPageNumbers = true
 }: PaginationControlsProps) {
   if (totalPages <= 0) {

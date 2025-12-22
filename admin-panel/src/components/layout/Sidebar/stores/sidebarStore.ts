@@ -23,7 +23,7 @@ const isMobileDevice = (): boolean => {
 
 export const useAdminStore = create<AdminStore>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       sidebarOpen: false,
       contentCollapsed: false,
       selectedItemHasSubMenu: true,

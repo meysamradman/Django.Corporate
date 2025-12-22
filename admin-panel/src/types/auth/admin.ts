@@ -38,6 +38,7 @@ export interface AdminWithProfile extends Base {
     is_active: boolean;
     is_staff: boolean;
     is_superuser: boolean;
+    is_admin_full?: boolean;
     profile?: AdminProfile;
     permissions?: string[];
     permission_categories?: PermissionCategory;

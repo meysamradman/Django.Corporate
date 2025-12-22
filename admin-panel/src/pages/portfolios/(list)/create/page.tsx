@@ -15,7 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { portfolioFormSchema, portfolioFormDefaults, type PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
-import { getCrud, getStatus } from '@/core/messages';
+import { getCrud } from '@/core/messages';
 import { env } from "@/core/config/environment";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
@@ -153,7 +153,7 @@ export default function CreatePortfolioPage() {
       
       return portfolio;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       
       const successMessage = variables.status === "draft" 

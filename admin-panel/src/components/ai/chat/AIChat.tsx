@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { Button } from '@/components/elements/Button';
 import { Trash2, Sparkles } from 'lucide-react';
-import { EmptyProvidersCard } from '../shared';
 import { useAuth } from '@/core/auth/AuthContext';
 import { mediaService } from '@/components/media/services';
 import { useChatMessages, useChatProviders, useChatHandlers } from './hooks';

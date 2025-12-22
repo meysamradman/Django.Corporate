@@ -119,7 +119,7 @@ export function FeatureFlagsManagement() {
       
       return { previousFlags };
     },
-    onError: (err, key, context) => {
+    onError: (err, _key, context) => {
       if (context?.previousFlags) {
         queryClient.setQueryData(["admin-feature-flags"], context.previousFlags);
       }
@@ -214,7 +214,6 @@ export function FeatureFlagsManagement() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {flags.map((flag: FeatureFlag) => {
-            const suggested = SUGGESTED_FEATURE_FLAGS.find(s => s.key === flag.key);
             const Icon = getFeatureIcon(flag.key);
             
             const getColorClasses = (featureKey: string, isActive: boolean) => {

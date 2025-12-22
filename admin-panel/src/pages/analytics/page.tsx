@@ -5,7 +5,7 @@ import { usePermission, AccessDenied } from "@/components/admins/permissions";
 import { ClearAnalyticsButton } from "@/components/analytics/ClearAnalyticsButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { BarChart3, FileText, MapPin, TrendingUp, Users, Eye, Calendar, Activity } from "lucide-react";
+import { BarChart3, FileText, MapPin } from "lucide-react";
 
 const AnalyticsSkeleton = () => (
   <div className="space-y-6">
@@ -74,7 +74,7 @@ const AnalyticsSkeleton = () => (
 const AnalyticsOverview = lazy(() => import("@/components/analytics").then(mod => ({ default: mod.AnalyticsOverview })));
 
 export default function AnalyticsPage() {
-  const { hasPermission, hasAnyPermission, isLoading } = usePermission();
+  const { hasPermission: _hasPermission, hasAnyPermission, isLoading } = usePermission();
 
   if (isLoading) {
     return <AnalyticsSkeleton />;

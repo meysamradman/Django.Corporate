@@ -11,7 +11,7 @@ import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { FormFieldInput } from "@/components/forms/FormField";
-import { ImageSmallSelector } from "@/components/media/selectors/ImageSmallSelector";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Loader2 } from "lucide-react";
 import { showSuccess, showError } from '@/core/toast';
@@ -121,12 +121,14 @@ export function QuickCreateDialog({
                     <div className="space-y-5">
                         {type === 'category' && (
                             <div className="flex justify-center pb-1">
-                                <ImageSmallSelector
+                                <ImageSelector
                                     selectedMedia={selectedMedia}
                                     onMediaSelect={setSelectedMedia}
                                     label=""
                                     name={name}
                                     disabled={createMutation.isPending}
+                                    size="sm"
+                                    placeholderColor="purple"
                                     context={context}
                                     contextId={contextId}
                                 />

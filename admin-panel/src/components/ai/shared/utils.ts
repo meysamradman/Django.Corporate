@@ -38,7 +38,7 @@ export const getProviderDisplayName = (provider: AvailableProvider): string => {
     return providerMap[nameKey] || String(providerName);
 };
 
-export const getProviderDescription = (provider: AvailableProvider, type: 'content' | 'image' | 'chat' = 'content'): string => {
+export const getProviderDescription = (provider: AvailableProvider, _type: 'content' | 'image' | 'chat' = 'content'): string => {
 
     let providerName = (provider as any).slug;
 

@@ -125,7 +125,7 @@ export default function CreateUserPage() {
                 userDataToSubmit.profile_picture_id = selectedMedia.id;
             }
 
-            return await adminApi.createUser(userDataToSubmit, undefined);
+            return await adminApi.createUser(userDataToSubmit);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });

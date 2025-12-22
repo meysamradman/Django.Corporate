@@ -129,7 +129,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (option) => {},
+            onClick: (_option) => {},
             isDestructive: true,
           },
         ];

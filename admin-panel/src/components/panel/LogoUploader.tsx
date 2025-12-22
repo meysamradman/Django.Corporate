@@ -44,8 +44,13 @@ export default function LogoUploader({
         setActiveTab("select");
     };
 
-    const handleRemoveImage = () => {
-        onMediaSelect(null);
+    const handleRemoveImage = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+        if (onMediaSelect) {
+            onMediaSelect(null);
+        }
     };
 
     const sizeClasses: Record<typeof size, string> = {
@@ -92,9 +97,10 @@ export default function LogoUploader({
                         <Button
                             variant="outline"
                             size="sm"
-                            className="absolute -top-1 -left-1 h-7 w-7 rounded-full border bg-card p-0 transition-colors hover:bg-destructive hover:text-static-w"
+                            className="absolute -top-1 -left-1 h-7 w-7 rounded-full border bg-card p-0 transition-colors hover:bg-destructive hover:text-static-w pointer-events-auto"
                             onClick={handleRemoveImage}
                             type="button"
+                            style={{ zIndex: 9999 }}
                         >
                             <X className="h-3 w-3" />
                         </Button>

@@ -15,10 +15,7 @@ import {
   ShieldCheck,
   AlertCircle,
 } from "lucide-react";
-import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
-import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
-import { msg } from '@/core/messages';
-import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
 import { useUserPermissions } from "@/components/admins/permissions";
 import {
   StandardPermissionsTable,
@@ -76,7 +73,6 @@ export default function EditRolePage() {
   });
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     reset,
@@ -317,7 +313,6 @@ export default function EditRolePage() {
   const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
   
   const isManagementResource = (resource: any) => {
-    const name = resource.resource?.toLowerCase() || '';
     const perms = resource.permissions || [];
 
     const hasStandalonePermission = perms.some((p: any) => p.is_standalone);
@@ -353,7 +348,6 @@ export default function EditRolePage() {
     return organizedPermissions.filter((r: any) => !isManagementResource(r) && r.resource !== 'analytics' && r.resource !== 'ai');
   }, [organizedPermissions]);
 
-  const hasManageOnlyResources = manageOnlyResources.length > 0;
 
   const logicalPermissionErrors = useMemo(() => {
     const errors: string[] = [];

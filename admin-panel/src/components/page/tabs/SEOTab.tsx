@@ -1,9 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
-import LogoUploader from "@/components/panel/LogoUploader";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Search, Image as ImageIcon } from "lucide-react";
 
@@ -142,12 +141,12 @@ export function SEOTab({
 
                     <div className="space-y-2">
                         <Label>OG Image</Label>
-                        <LogoUploader
-                            label="تصویر Open Graph"
+                        <ImageSelector
                             selectedMedia={ogImage}
                             onMediaSelect={onOgImageChange}
                             size="md"
-                            showLabel={false}
+                            context="media_library"
+                            alt="تصویر Open Graph"
                         />
                     </div>
             </CardWithIcon>

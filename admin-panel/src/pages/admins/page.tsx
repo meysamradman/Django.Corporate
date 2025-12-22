@@ -269,11 +269,7 @@ export default function AdminsPage() {
 
       {/* Filters and Search Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
-        <div className="text-sm font-medium text-font-p">
-          {isLoading ? "در حال بارگذاری..." : `نمایش ${data.length} ادمین${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
-        </div>
-
-        <div className="flex items-center gap-3 flex-wrap flex-1 justify-end">
+        <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
           <div className="relative w-full sm:w-[240px]">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s pointer-events-none" />
             <Input
@@ -335,6 +331,10 @@ export default function AdminsPage() {
               <SelectItem value="name_desc">نام (نزولی)</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="text-sm font-medium text-font-p">
+          {isLoading ? "در حال بارگذاری..." : `نمایش ${data.length} ادمین${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
         </div>
       </div>
 

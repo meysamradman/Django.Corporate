@@ -15,8 +15,8 @@ interface FileListProps {
 
 export function FileList({ 
   files, 
-  activeTab, 
-  onTabChange, 
+  activeTab: _activeTab, 
+  onTabChange: _onTabChange, 
   onRemoveFile,
   onUpdateMetadata,
   onCoverFileChange,

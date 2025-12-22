@@ -122,8 +122,8 @@ const mockMonthlyStats = {
 };
 
 export function AnalyticsOverview() {
-  const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
-  const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
+  const { data: _analytics, isLoading: _analyticsLoading } = useAnalytics();
+  const { data: _monthlyData, isLoading: _monthlyLoading } = useQuery({
     queryKey: ["analytics", "monthly-stats"],
     queryFn: () => analyticsApi.getMonthlyStats(),
     staleTime: 10 * 60 * 1000,

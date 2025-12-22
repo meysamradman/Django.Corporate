@@ -1,16 +1,21 @@
 import { Calendar, Clock, LayoutDashboard } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, lazy, Suspense } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
 import { useStatistics, useSystemStats } from "@/hooks/dashboard/useStatistics";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import {
-  SummaryCards,
-  SystemStats,
-  SupportStats,
-  QuickActionsWidget,
-  VisitorPieChart,
-  VisitorTrendChart,
-} from "@/components/dashboard/widgets";
+import { SummaryCards, SupportStats, QuickActionsWidget } from "@/components/dashboard/widgets";
+import { Skeleton } from "@/components/elements/Skeleton";
+
+// Lazy load components that use recharts (heavy library)
+const VisitorPieChart = lazy(() => 
+  import("@/components/dashboard/widgets").then(mod => ({ default: mod.VisitorPieChart }))
+);
+const VisitorTrendChart = lazy(() => 
+  import("@/components/dashboard/widgets").then(mod => ({ default: mod.VisitorTrendChart }))
+);
+const SystemStats = lazy(() => 
+  import("@/components/dashboard/widgets").then(mod => ({ default: mod.SystemStats }))
+);
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useStatistics();
@@ -84,13 +89,17 @@ export default function Dashboard() {
       </CardWithIcon>
       <div className="grid lg:grid-cols-12 gap-6 items-stretch">
         <div className="lg:col-span-4 order-2 lg:order-1 flex flex-col h-full">
-          <VisitorPieChart isLoading={isLoading} />
+          <Suspense fallback={<Skeleton className="h-full w-full" />}>
+            <VisitorPieChart isLoading={isLoading} />
+          </Suspense>
         </div>
 
         <div className="lg:col-span-8 space-y-6 order-1 lg:order-2 flex flex-col">
           <SummaryCards stats={stats} isLoading={statsLoading} />
           <div className="flex-1 min-h-0">
-            <VisitorTrendChart isLoading={isLoading} />
+            <Suspense fallback={<Skeleton className="h-full w-full" />}>
+              <VisitorTrendChart isLoading={isLoading} />
+            </Suspense>
           </div>
         </div>
       </div>
@@ -98,7 +107,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         <QuickActionsWidget isLoading={isLoading} />
         <SupportStats stats={stats} isLoading={statsLoading} />
-        <SystemStats systemStats={systemStats} isLoading={systemLoading} />
+        <Suspense fallback={<Skeleton className="h-full w-full" />}>
+          <SystemStats systemStats={systemStats} isLoading={systemLoading} />
+        </Suspense>
       </div>
     </div>
   );

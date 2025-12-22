@@ -4,7 +4,7 @@ import { getCrud, getAction, getConfirm, getExport, getStatus, getAuth } from '.
 import { getPortfolio } from './modules/portfolio';
 import { getBlog } from './modules/blog';
 import { getAI, getAIUI } from './modules/ai';
-import { translatePagePath, PAGE_PATH_TRANSLATIONS } from './analytics';
+import { translatePagePath } from './analytics';
 export { getValidation } from './validation';
 export { getError } from './errors';
 export { getCrud, getAction, getConfirm, getExport, getStatus, getAuth } from './ui';

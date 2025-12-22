@@ -3,26 +3,22 @@ import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from "@/components/elements/Button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/elements/Form";
 import { Input } from "@/components/elements/Input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import LogoUploader from './LogoUploader';
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import { usePanelSettings, useUpdatePanelSettings } from './hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Media } from '@/types/shared/media';
-import type { PanelSettings } from '@/types/settings/panelSettings';
 import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
 import { 
-    Image as ImageIcon, 
     FileText,
-    Save,
     Database,
     Download
 } from 'lucide-react';
-import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/panel/panel';
+import { downloadDatabaseExport } from '@/api/panel/panel';
 
 const formSchema = z.object({
     panel_title: z.string().min(1, "عنوان پنل الزامی است.").max(100),
@@ -36,11 +32,11 @@ export interface PanelSettingsFormRef {
     handleSubmit: () => void;
 }
 
-const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
+const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((_props, ref) => {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
     
-    const { canManagePanel } = useUIPermissions();
+    const { canManagePanel: _canManagePanel } = useUIPermissions();
     
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
     const [selectedFavicon, setSelectedFavicon] = useState<Media | null>(null);
@@ -89,17 +85,25 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
                 formData.append('panel_title', data.panel_title);
             }
 
+            // Handle logo
+            const currentLogo = panelSettings?.logo_detail || panelSettings?.logo;
+            const logoChanged = selectedLogo?.id !== currentLogo?.id;
+            const logoWasRemoved = !selectedLogo && currentLogo;
+            
             if (selectedLogo?.id) {
                 formData.append('logo', selectedLogo.id.toString());
-            }
-            if (logoDeleted) {
+            } else if (logoWasRemoved || logoDeleted) {
                 formData.append('remove_logo', 'true');
             }
 
+            // Handle favicon
+            const currentFavicon = panelSettings?.favicon_detail || panelSettings?.favicon;
+            const faviconChanged = selectedFavicon?.id !== currentFavicon?.id;
+            const faviconWasRemoved = !selectedFavicon && currentFavicon;
+            
             if (selectedFavicon?.id) {
                 formData.append('favicon', selectedFavicon.id.toString());
-            }
-            if (faviconDeleted) {
+            } else if (faviconWasRemoved || faviconDeleted) {
                 formData.append('remove_favicon', 'true');
             }
 
@@ -190,16 +194,15 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((props, ref) => {
                             className={`text-center transition-transform duration-300 hover:-translate-y-1 border-b-4 ${card.borderClass}`}
                         >
                             <CardContent className="flex flex-col items-center gap-5 py-8">
-                                <LogoUploader
-                                    label={card.title}
-                                    selectedMedia={card.selectedMedia}
-                                    onMediaSelect={card.onSelect}
-                                    size="md"
-                                    showLabel={false}
-                                    className="w-full"
-                                    statusColor={card.statusColor}
-                                    accentGradient={card.accent}
-                                />
+                                <div className="flex justify-center">
+                                    <ImageSelector
+                                        selectedMedia={card.selectedMedia}
+                                        onMediaSelect={card.onSelect}
+                                        size="md"
+                                        context="media_library"
+                                        alt={card.title}
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <div className="text-base font-semibold text-foreground">
                                         {card.title}

@@ -1,7 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -16,7 +15,6 @@ import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { Loader2, Save, List, Tag } from "lucide-react";
-import { Loader } from "@/components/elements/Loader";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditTagPage() {
@@ -53,13 +51,13 @@ export default function EditTagPage() {
 
   const updateTagMutation = useMutation({
     mutationFn: (data: Partial<BlogTag>) => blogApi.updateTag(tagId, data),
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ['blog-tag', tagId] });
       queryClient.invalidateQueries({ queryKey: ['blog-tags'] });
       showSuccess("تگ با موفقیت به‌روزرسانی شد");
       navigate("/blogs/tags");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطا در به‌روزرسانی تگ");
     },
   });

@@ -1,7 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
@@ -52,12 +50,12 @@ export default function EditOptionPage() {
 
   const updateOptionMutation = useMutation({
     mutationFn: (data: Partial<PortfolioOption>) => portfolioApi.updateOption(optionId, data),
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       showSuccess("گزینه با موفقیت به‌روزرسانی شد");
       queryClient.invalidateQueries({ queryKey: ['option', optionId] });
       navigate("/portfolios/options");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطا در به‌روزرسانی گزینه");
     },
   });

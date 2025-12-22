@@ -3,11 +3,9 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Textarea } from "@/components/elements/Textarea";
-import { MediaImage } from "@/components/media/base/MediaImage";
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { Button } from "@/components/elements/Button";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
-import { User, Camera, UserCircle, MapPin, FileText } from "lucide-react";
+import { UserCircle, MapPin, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
@@ -31,8 +29,6 @@ export default function ProfileTab({
   editMode,
 }: ProfileTabProps) {
   const { register, formState: { errors }, setValue, watch } = form;
-  const [showMediaSelector, setShowMediaSelector] = useState(false);
-  const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
   const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
   const [cities, setCities] = useState<CityCompact[]>([]);
   const [loadingProvinces, setLoadingProvinces] = useState(false);
@@ -74,42 +70,8 @@ export default function ProfileTab({
     }
   }, [provinceValue, provinces]);
 
-  const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
-    if (Array.isArray(selectedMedia)) {
-      setSelectedMedia(selectedMedia[0] || null);
-    } else {
-      setSelectedMedia(selectedMedia);
-    }
-    setShowMediaSelector(false);
-    
-    if (editMode && selectedMedia) {
-      try {
-        const profilePictureId = Array.isArray(selectedMedia) ? selectedMedia[0]?.id || null : selectedMedia?.id || null;
-        
-        const { adminApi } = await import('@/api/admins/admins');
-        
-        const adminId = (form.getValues as any)('id') || (form.getValues as any)('admin_id');
-        if (adminId) {
-          await adminApi.updateProfile({
-            profile_picture: profilePictureId,
-          });
-          
-          const { showSuccess } = await import('@/core/toast');
-          showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
-        }
-      } catch {
-        const { showError } = await import('@/core/toast');
-        showError("خطا در ذخیره عکس پروفایل");
-      }
-    }
-  };
-
-  const handleTabChange = (tab: "select" | "upload") => {
-    setActiveTab(tab);
-  };
-
-  const handleUploadComplete = () => {
-    setActiveTab("select");
+  const handleProfileImageSelect = (selectedMedia: Media | null) => {
+    setSelectedMedia(selectedMedia);
   };
 
   const handleBirthDateChange = (dateString: string) => {
@@ -328,50 +290,19 @@ export default function ProfileTab({
           <Card className="sticky top-6">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative shrink-0 group">
-                  {selectedMedia ? (
-                    <div className="w-64 h-64 rounded-xl overflow-hidden border-4 border-card relative">
-                      <MediaImage
-                        media={selectedMedia}
-                        alt="تصویر پروفایل"
-                        className="object-cover"
-                        fill
-                        sizes="256px"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-64 h-64 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-static-w text-4xl font-bold border-4 border-card">
-                      <User className="w-32 h-32" strokeWidth={1.5} />
-                    </div>
-                  )}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors"
-                    onClick={() => setShowMediaSelector(true)}
-                  >
-                    <Camera className="h-3 w-3" />
-                  </Button>
-                </div>
+                <ImageSelector
+                  selectedMedia={selectedMedia}
+                  onMediaSelect={handleProfileImageSelect}
+                  disabled={!editMode}
+                  size="lg"
+                  context="media_library"
+                  alt="تصویر پروفایل"
+                />
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      <MediaLibraryModal
-        isOpen={showMediaSelector}
-        onClose={() => setShowMediaSelector(false)}
-        onSelect={handleProfileImageSelect}
-        selectMultiple={false}
-        initialFileType="image"
-        showTabs={true}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        onUploadComplete={handleUploadComplete}
-        context={"media_library" as any}
-      />
     </div>
   );
 }

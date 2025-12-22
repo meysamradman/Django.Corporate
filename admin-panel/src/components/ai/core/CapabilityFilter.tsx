@@ -40,7 +40,7 @@ export function CapabilityFilter({ selected, onChange, counts }: CapabilityFilte
             <span>{cap.label}</span>
             {count !== undefined && count > 0 && (
               <Badge 
-                variant={isSelected ? 'secondary' : 'outline'} 
+                variant={isSelected ? 'gray' : 'outline'} 
                 className="mr-1 text-xs"
               >
                 {count}

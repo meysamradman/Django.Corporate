@@ -26,7 +26,7 @@ interface AIPermissionsCardProps {
 
 export function AIPermissionsCard({
   permissions,
-  selectedPermissions,
+  selectedPermissions: _selectedPermissions,
   isSuperAdmin,
   aiUsedPermissions,
   onTogglePermission,
@@ -237,7 +237,7 @@ export function AIPermissionsCard({
                         )}
                         <Switch
                           checked={isSelected}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(_checked) => {
                             if (!canToggle) return;
                             onTogglePermission(perm.id);
                           }}

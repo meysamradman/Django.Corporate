@@ -1,12 +1,11 @@
-import { useAuth } from '@/core/auth/AuthContext';
+import { usePanelSettings } from '@/components/panel/hooks/usePanelSettings';
 import { mediaService } from '@/components/media/services';
 import { useState, useEffect } from 'react';
 
 export function SidebarLogo() {
-  const { user } = useAuth();
+  const { data: panelSettings } = usePanelSettings();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   
-  const panelSettings = (user as any)?.panel_settings || null;
   const panelTitle = panelSettings?.panel_title || 'پنل ادمین';
 
   useEffect(() => {

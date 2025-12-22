@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
@@ -7,7 +6,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { FormField } from "@/components/forms/FormField";
 import {
-    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, CheckCircle2, XCircle, Edit2, Smartphone, Calendar
+    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, Edit2, Smartphone, Calendar
 } from "lucide-react";
 import type { UserWithProfile } from "@/types/auth/user";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
@@ -71,7 +70,7 @@ export function AccountTab({
     const [loadingCities, setLoadingCities] = useState(false);
     const [isActive, setIsActive] = useState(user.is_active);
     const queryClient = useQueryClient();
-    const { user: currentUser, refreshUser } = useAuth();
+    const { user: currentUser } = useAuth();
 
     const userPermissionsObj = {
         permissions: currentUser?.permissions || [],

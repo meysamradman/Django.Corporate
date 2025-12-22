@@ -1,9 +1,7 @@
 import { Card, CardContent } from "@/components/elements/Card";
-import { Button } from "@/components/elements/Button";
-import { CheckCircle2, XCircle, Smartphone, Camera, Clock, Shield } from "lucide-react";
+import { CheckCircle2, XCircle, Smartphone, Clock, Shield } from "lucide-react";
 import type { AdminWithProfile } from "@/types/auth/admin";
-import { MediaImage } from "@/components/media/base/MediaImage";
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from '@tanstack/react-query';
@@ -25,8 +23,6 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }: ProfileHeaderProps) {
-    const [showMediaSelector, setShowMediaSelector] = useState(false);
-    const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
     const [adminRoles, setAdminRoles] = useState<Role[]>([]);
     const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
@@ -53,29 +49,31 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
         }
     }, [admin?.id, loadAdminRoles]);
 
-    const currentProfileImage = formData.profileImage || admin?.profile?.profile_picture;
+    const currentProfileImage: Media | null = formData.profileImage || admin?.profile?.profile_picture || null;
 
-    const handleProfileImageSelect = async (selectedMedia: Media | Media[]) => {
-        const selectedImage = Array.isArray(selectedMedia) ? selectedMedia[0] || null : selectedMedia;
-        const profilePictureId = selectedImage?.id || null;
+    const handleProfileImageSelect = async (selectedMedia: Media | null) => {
+        const profilePictureId = selectedMedia?.id || null;
         const isMeRoute = adminId === "me";
         const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
 
         if (!targetAdminId) {
             showError("شناسه ادمین یافت نشد");
-            setShowMediaSelector(false);
             return;
         }
 
         try {
             let updatedAdmin;
             if (isMeRoute) {
-                updatedAdmin = await adminApi.updateProfile({
+                const updatePayload: any = {
                     profile_picture: profilePictureId,
-                } as any);
+                };
+                if (!profilePictureId) {
+                    updatePayload.remove_profile_picture = "true";
+                }
+                updatedAdmin = await adminApi.updateProfile(updatePayload);
             } else {
                 const currentProfile = admin?.profile;
-                const updateData = {
+                const updateData: any = {
                     profile: {
                         first_name: currentProfile?.first_name || null,
                         last_name: currentProfile?.last_name || null,
@@ -89,19 +87,23 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                         birth_date: currentProfile?.birth_date || null,
                     }
                 };
+                if (!profilePictureId) {
+                    updateData.remove_profile_picture = "true";
+                }
                 updatedAdmin = await adminApi.updateUserByType(targetAdminId, updateData, 'admin');
             }
 
             if (!updatedAdmin) {
                 showError("خطا در دریافت پاسخ از سرور");
-                setShowMediaSelector(false);
                 return;
             }
 
             const queryKeyForInvalidate = isMeRoute ? 'me' : (adminId || String(admin?.id));
 
-            if (updatedAdmin.profile?.profile_picture && onProfileImageChange) {
-                onProfileImageChange(updatedAdmin.profile.profile_picture);
+            // Update callback whether image is set or removed
+            if (onProfileImageChange) {
+                const updatedImage: Media | null = updatedAdmin.profile?.profile_picture ?? null;
+                onProfileImageChange(updatedImage);
             }
 
             await queryClient.setQueryData(['admin', queryKeyForInvalidate], updatedAdmin);
@@ -113,20 +115,14 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                 await refreshUser();
             }
 
-            showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
+            if (profilePictureId) {
+                showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
+            } else {
+                showSuccess("عکس پروفایل با موفقیت حذف شد");
+            }
         } catch (error) {
             showError(error, { customMessage: "خطا در ذخیره عکس پروفایل" });
-        } finally {
-            setShowMediaSelector(false);
         }
-    };
-
-    const handleTabChange = (tab: "select" | "upload") => {
-        setActiveTab(tab);
-    };
-
-    const handleUploadComplete = () => {
-        setActiveTab("select");
     };
 
     return (
@@ -140,33 +136,14 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
             </div>
             <CardContent className="relative px-6 pt-0 pb-6">
                 <div className="flex items-end gap-6 -mt-16">
-                    <div className="relative shrink-0 group">
-                        {currentProfileImage ? (
-                            <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-card relative">
-                                <MediaImage
-                                    media={currentProfileImage}
-                                    alt="Profile picture"
-                                    className="object-cover"
-                                    fill
-                                />
-                            </div>
-                        ) : (
-                            <div className="w-32 h-32 rounded-xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-static-w border-4 border-card">
-                                <span>
-                                    {(formData.firstName?.[0] || admin.full_name?.[0] || "U")}{(formData.lastName?.[0] || admin.full_name?.split(" ")?.[1]?.[0] || "")}
-                                </span>
-                            </div>
-                        )}
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="absolute -bottom-1 -right-1 h-7 w-7 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors"
-                            onClick={() => setShowMediaSelector(true)}
-                        >
-                            <Camera className="h-3 w-3" />
-                        </Button>
-                    </div>
+                    <ImageSelector
+                        selectedMedia={currentProfileImage}
+                        onMediaSelect={handleProfileImageSelect}
+                        size="md"
+                        placeholderText={(formData.firstName?.[0] || admin.full_name?.[0] || "U") + (formData.lastName?.[0] || admin.full_name?.split(" ")?.[1]?.[0] || "")}
+                        context="media_library"
+                        alt="تصویر پروفایل"
+                    />
                     <div className="flex-1 pt-16 pb-2">
                         <h2>
                             {formData.firstName && formData.lastName
@@ -230,19 +207,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                     </div>
                 </div>
             </CardContent>
-
-            <MediaLibraryModal
-                isOpen={showMediaSelector}
-                onClose={() => setShowMediaSelector(false)}
-                onSelect={handleProfileImageSelect}
-                selectMultiple={false}
-                initialFileType="image"
-                showTabs={true}
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                onUploadComplete={handleUploadComplete}
-                context="media_library"
-            />
         </Card>
     );
 }

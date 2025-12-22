@@ -62,7 +62,7 @@ export interface DataTableRowAction<TData> {
   isDisabled?: (item: TData) => boolean;
 }
 
-export type FetchDataFn<TData, TApiFilters extends BaseApiFilterParams> = (
+export type FetchDataFn<_TData, TApiFilters extends BaseApiFilterParams> = (
   filters: TApiFilters,
   options?: { 
     cookieHeader?: string;

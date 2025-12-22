@@ -2,14 +2,12 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
-import { Textarea } from "@/components/elements/Textarea";
 import { X, Download, Edit3, FileText, Play, FileAudio, Save, ImageOff } from 'lucide-react';
 import type { Media } from '@/types/shared/media';
 import { MediaPlayer } from '@/components/media/base/MediaPlayer';
@@ -35,7 +33,7 @@ export function MediaDetailsModal({
   media,
   isOpen,
   onClose,
-  onEdit,
+  onEdit: _onEdit,
   showEditButton = true,
   onMediaUpdated,
 }: MediaDetailsModalProps) {
@@ -79,12 +77,6 @@ export function MediaDetailsModal({
     link.click();
     document.body.removeChild(link);
     setIsDownloading(false);
-  };
-
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(media);
-    }
   };
 
   const handleStartEdit = () => {
@@ -183,8 +175,6 @@ export function MediaDetailsModal({
   };
 
   const renderCoverImageSection = () => {
-    const coverImage = isEditing ? newCoverImage : media.cover_image;
-    
     const getCoverImageUrl = (): string | null => {
       if (isEditing) {
         if (!newCoverImage) return null;

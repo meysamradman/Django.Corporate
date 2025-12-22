@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import type { Media } from '@/types/shared/media';
 import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
@@ -22,7 +21,7 @@ export function CoverImageManager({
 }: CoverImageManagerProps) {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
-  const [newCoverImage, setNewCoverImage] = useState<Media | null>(null);
+  const [_newCoverImage, setNewCoverImage] = useState<Media | null>(null);
 
   const getCoverImageUrl = () => {
     if (!currentCoverImage) return null;

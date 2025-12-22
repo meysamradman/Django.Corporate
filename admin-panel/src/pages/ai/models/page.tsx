@@ -49,7 +49,7 @@ const CAPABILITY_CONFIG: Record<Capability, { label: string; icon: ElementType; 
 
 export default function AIModelsPage() {
     const navigate = useNavigate();
-    const { isLoading: isAuthLoading, user } = useAuth();
+    const { isLoading: isAuthLoading } = useAuth();
     const { isSuperAdmin, hasPermission } = useUserPermissions();
 
     const hasAccess = 
@@ -61,7 +61,6 @@ export default function AIModelsPage() {
         hasPermission('ai.audio.manage');
 
     const [activeTab, setActiveTab] = useState<Capability>('chat');
-    const [searchQuery, setSearchQuery] = useState<string>('');
     const [showOpenRouterModal, setShowOpenRouterModal] = useState(false);
     const [showHuggingFaceModal, setShowHuggingFaceModal] = useState(false);
     const [showOpenAIModal, setShowOpenAIModal] = useState(false);
@@ -84,7 +83,7 @@ export default function AIModelsPage() {
         return provider?.id?.toString() || '1';
     };
 
-    const { data: availableProviders, isLoading: isLoadingProviders } = useQuery({
+    const { data: availableProviders } = useQuery({
         queryKey: ['ai-available-providers', activeTab],
         queryFn: async () => {
             try {
@@ -133,7 +132,7 @@ export default function AIModelsPage() {
         return map;
     }, [availableProviders, normalizeProviderSlug]);
 
-    const { data: activeModels, isLoading: isLoadingActiveModels, refetch: refetchActiveModels } = useQuery({
+    const { data: activeModels, isLoading: isLoadingActiveModels } = useQuery({
         queryKey: ['ai-active-models', activeTab],
         queryFn: async () => {
             const providers = availableProviders 

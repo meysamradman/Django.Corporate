@@ -336,5 +336,3 @@ export {
   ChartLegendContent,
   ChartStyle,
 }
-
-export type { ChartConfig }

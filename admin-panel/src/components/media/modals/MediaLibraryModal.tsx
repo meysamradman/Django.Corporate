@@ -119,7 +119,7 @@ export function MediaLibraryModal({
   
   const isLoadingSettings = false;
 
-  const fetchMedia = useCallback(async (currentFilters: typeof filters, forceRefresh: boolean = false) => {
+  const fetchMedia = useCallback(async (currentFilters: typeof filters, _forceRefresh: boolean = false) => {
     setIsLoading(true);
     setError(null);
 
@@ -132,9 +132,7 @@ export function MediaLibraryModal({
     };
 
     try {
-      const response = await mediaApi.getMediaList(apiFilters, forceRefresh ? {
-        forceRefresh: true
-      } : undefined);
+      const response = await mediaApi.getMediaList(apiFilters);
       
       if (response.metaData.status === 'success') {
         const mediaData = Array.isArray(response.data) ? response.data : [];

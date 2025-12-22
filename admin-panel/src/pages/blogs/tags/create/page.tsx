@@ -1,7 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -37,7 +36,7 @@ export default function CreateTagPage() {
       queryClient.invalidateQueries();
       navigate("/blogs/tags");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطا در ایجاد تگ");
     },
   });

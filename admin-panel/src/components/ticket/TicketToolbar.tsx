@@ -1,4 +1,3 @@
-import { Button } from "@/components/elements/Button";
 import { RefreshCw } from "lucide-react";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 

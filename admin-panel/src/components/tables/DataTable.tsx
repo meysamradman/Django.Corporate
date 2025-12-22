@@ -17,7 +17,6 @@ import {
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { cn } from "@/core/utils/cn";
 
-import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
 import { Input } from "@/components/elements/Input"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/elements/Card"
@@ -37,10 +36,9 @@ import { DataTableDateFilter } from "./DataTableDateFilter"
 import { Trash, Search, Download, Printer, FileSpreadsheet, FileText } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/elements/Select"
 import type {
   SearchConfig,
-  FilterOption,
   FilterConfig,
   DeleteConfig,
   ExportConfig
@@ -84,13 +82,13 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   clientFilters,
   onFilterChange,
   state: controlledState = {},
-  searchConfig: providedSearchConfig,
+  searchConfig: _providedSearchConfig,
   filterConfig = [],
   deleteConfig,
   exportConfig,
   exportConfigs,
   onPrint,
-  pageSizeOptions = [10, 20, 30, 50],
+  pageSizeOptions: _pageSizeOptions = [10, 20, 30, 50],
   searchValue,
   customHeaderActions,
 }: DataTableProps<TData, TValue, TClientFilters>) {
@@ -120,12 +118,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  const searchConfig = {
-    placeholder: "جستجو...",
-    columnId: "search",
-    ...providedSearchConfig,
-  };
 
   const selectedRowCount = Object.keys(controlledState.rowSelection ?? {}).length;
 

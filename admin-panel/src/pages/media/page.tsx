@@ -211,20 +211,6 @@ export default function MediaPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  const clearFilters = () => {
-    setFilters(actualDefaultFilters);
-
-    const url = new URL(window.location.href);
-    url.searchParams.delete('search');
-    url.searchParams.delete('file_type');
-    url.searchParams.delete('date_from');
-    url.searchParams.delete('date_to');
-    url.searchParams.set('page', '1');
-    url.searchParams.set('limit', actualDefaultFilters.size.toString());
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const hasActiveFilters = filters.search || filters.file_type !== "all" || filters.date_from || filters.date_to;
 
   const handleSelectItem = (itemId: number, checked: boolean) => {
     setSelectedItems(prev => ({

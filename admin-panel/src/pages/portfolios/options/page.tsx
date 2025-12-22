@@ -12,7 +12,6 @@ import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { msg } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,7 +85,7 @@ export default function OptionPage() {
       queryClient.invalidateQueries({ queryKey: ['portfolio-options'] });
       showSuccess("با موفقیت حذف شد");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });
@@ -100,7 +99,7 @@ export default function OptionPage() {
       showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });

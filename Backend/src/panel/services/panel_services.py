@@ -15,14 +15,17 @@ class PanelSettingsService:
     def update_panel_settings(instance, validated_data, remove_logo=False, remove_favicon=False):
 
         with transaction.atomic():
+            data_to_update = validated_data.copy()
 
             if remove_logo:
                 instance.logo = None
+                data_to_update.pop('logo', None)
 
             if remove_favicon:
                 instance.favicon = None
+                data_to_update.pop('favicon', None)
 
-            for attr, value in validated_data.items():
+            for attr, value in data_to_update.items():
                 setattr(instance, attr, value)
             
             instance.save()

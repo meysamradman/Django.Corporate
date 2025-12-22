@@ -34,9 +34,9 @@ interface ProviderCardProps {
   onToggleSharedApiKeyVisibility?: () => void;
   onToggleUseSharedApi: (checked: boolean) => void;
   onToggleActive?: (checked: boolean) => void;
-  onSave: () => void;
-  onSavePersonal?: () => void;
-  onSaveShared?: () => void;
+  onSave?: (apiKeyValue?: string) => void;
+  onSavePersonal?: (apiKeyValue?: string) => void;
+  onSaveShared?: (apiKeyValue?: string) => void;
   onDeletePersonal?: () => void;
   onDeleteShared?: () => void;
   isSaving?: boolean;
@@ -193,7 +193,7 @@ export function ProviderCard({
       if (onSave) {
         const trimmedValue = tempApiKey.trim();
         onApiKeyChange(trimmedValue);
-        onSave(trimmedValue);
+        onSave?.(trimmedValue);
         setIsEditing(false);
       }
     };
@@ -368,7 +368,7 @@ export function ProviderCard({
                       const valueToSave = isEditing ? tempApiKey.trim() : apiKey.trim();
                       if (valueToSave && onSave) {
                         onApiKeyChange(valueToSave);
-                        onSave(valueToSave);
+                        onSave?.(valueToSave);
                       }
                     }}
                     disabled={isSaving || !(isEditing ? tempApiKey.trim() : apiKey.trim())}

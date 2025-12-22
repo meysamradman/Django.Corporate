@@ -1,15 +1,14 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Card, CardContent } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import LogoUploader from "@/components/panel/LogoUploader";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import { settingsApi } from "@/api/settings/settings";
 import type { GeneralSettings } from "@/types/settings/generalSettings";
 import { showError } from "@/core/toast";
 import type { Media } from "@/types/shared/media";
-import { Save, Loader2, FileText, Image as ImageIcon } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export interface GeneralSettingsFormRef {
@@ -17,7 +16,7 @@ export interface GeneralSettingsFormRef {
     saving: boolean;
 }
 
-export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, ref) => {
+export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((_props, ref) => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [settings, setSettings] = useState<GeneralSettings | null>(null);
@@ -245,15 +244,13 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((props, re
                         className={`relative overflow-hidden text-center transition-transform duration-300 hover:-translate-y-1 border-b-4 ${card.borderClass}`}
                     >
                         <CardContent className="flex flex-col items-center gap-5 py-8">
-                            <LogoUploader
-                                label={card.title}
+                            <ImageSelector
                                 selectedMedia={card.selectedMedia}
                                 onMediaSelect={card.onSelect}
                                 size="md"
-                                showLabel={false}
                                 className="w-full"
-                                statusColor={card.statusColor}
-                                accentGradient={card.accent}
+                                context="media_library"
+                                alt={card.title}
                             />
                             <div className="space-y-2">
                                 <div className="text-base font-semibold text-foreground">

@@ -12,7 +12,6 @@ import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { msg } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +27,6 @@ import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCate
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
-import type { CategoryListParams } from "@/types/portfolio/portfolioListParams";
 
 export default function CategoryPage() {
   const navigate = useNavigate();
@@ -88,7 +86,7 @@ export default function CategoryPage() {
       queryClient.invalidateQueries();
       showSuccess("با موفقیت حذف شد");
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });
@@ -102,7 +100,7 @@ export default function CategoryPage() {
       showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
-    onError: (error) => {
+    onError: (_error) => {
       showError("خطای سرور");
     },
   });

@@ -41,7 +41,12 @@ export function PortfolioInfoHeader({ portfolio }: PortfolioInfoHeaderProps) {
             fill
           />
         ) : (
-          <Image src="/images/profile-banner.png" alt="Cover image" fill className="object-cover" />
+          <MediaImage
+            media={{ file_url: "/images/profile-banner.png" } as any}
+            alt="Cover image"
+            className="object-cover"
+            fill
+          />
         )}
       </div>
       <CardContent className="relative px-6 pt-0 pb-6">

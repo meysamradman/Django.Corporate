@@ -25,7 +25,7 @@ interface StatisticsPermissionsCardProps {
 
 export function StatisticsPermissionsCard({
   permissions,
-  selectedPermissions,
+  selectedPermissions: _selectedPermissions,
   isSuperAdmin,
   statisticsUsedPermissions,
   onTogglePermission,
@@ -140,7 +140,7 @@ export function StatisticsPermissionsCard({
                         )}
                         <Switch
                           checked={isSelected}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(_checked) => {
                             if (!canToggle) return;
                             onTogglePermission(perm.id);
                           }}

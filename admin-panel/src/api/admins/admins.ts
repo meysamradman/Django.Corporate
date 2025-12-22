@@ -98,13 +98,16 @@ export const adminApi = {
 
     const response = await api.get<AdminListResponse | AdminWithProfile[]>(endpointUrl);
 
+    const pageSize = typeof finalFilters.size === 'number' ? finalFilters.size : SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT;
+    const currentPage = typeof finalFilters.page === 'number' ? finalFilters.page : 1;
+    
     let data: AdminWithProfile[] = [];
     let pagination: Pagination = { 
       count: 0, 
       next: null, 
       previous: null, 
-      page_size: finalFilters.size || SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT, 
-      current_page: finalFilters.page || 1, 
+      page_size: pageSize, 
+      current_page: currentPage, 
       total_pages: 0 
     };
 
@@ -137,7 +140,7 @@ export const adminApi = {
         count: 0, 
         next: null, 
         previous: null, 
-        page_size: finalFilters.size || SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT, 
+        page_size: pageSize, 
         current_page: 1, 
         total_pages: 0 
       };
@@ -147,8 +150,8 @@ export const adminApi = {
       count: pagination.count || 0,
       next: pagination.next || null,
       previous: pagination.previous || null,
-      page_size: pagination.page_size || finalFilters.size || SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT,
-      current_page: pagination.current_page || finalFilters.page || 1,
+      page_size: pagination.page_size || pageSize,
+      current_page: pagination.current_page || currentPage,
       total_pages: pagination.total_pages || (pagination.count && pagination.page_size ? Math.ceil(pagination.count / pagination.page_size) : 0)
     };
 

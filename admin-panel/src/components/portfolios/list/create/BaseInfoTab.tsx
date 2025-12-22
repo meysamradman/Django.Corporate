@@ -1,8 +1,6 @@
 import { useState, useEffect, type ChangeEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Input } from "@/components/elements/Input";
-import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Button } from "@/components/elements/Button";
@@ -72,8 +70,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const onOptionToggle = isFormApproach ? null : (props as any).onOptionToggle;
     const onOptionRemove = isFormApproach ? null : (props as any).onOptionRemove;
     const nameValue = isFormApproach ? watch?.("name") : formData?.name;
-    const slugValue = isFormApproach ? watch?.("slug") : formData?.slug;
-    const shortDescriptionValue = isFormApproach ? watch?.("short_description") : formData?.short_description;
     const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
     const formSelectedCategories = isFormApproach ? (watch?.("selectedCategories" as any) || []) : selectedCategories || [];
     const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : selectedTags || [];

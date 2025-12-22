@@ -1,12 +1,10 @@
 import { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Portfolio } from "@/types/portfolio/portfolio";
-import { Button } from "@/components/elements/Button";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
-import { Link } from "react-router-dom";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -243,7 +241,7 @@ export const usePortfolioColumns = (
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (portfolio) => {},
+            onClick: (_portfolio) => {},
             isDestructive: true,
           },
         ];

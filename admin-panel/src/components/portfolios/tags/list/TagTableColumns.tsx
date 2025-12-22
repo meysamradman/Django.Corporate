@@ -126,7 +126,7 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (tag) => {},
+            onClick: (_tag) => {},
             isDestructive: true,
           },
         ];

@@ -125,7 +125,7 @@ export default function CreateAdminPage() {
                 adminDataToSubmit.profile_picture_id = selectedMedia.id;
             }
 
-            return await adminApi.createAdmin(adminDataToSubmit as any, undefined);
+            return await adminApi.createAdmin(adminDataToSubmit as any);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });

@@ -39,7 +39,6 @@ export function AdminCard({ admin, actions }: AdminCardProps) {
     ? "bg-green-0 text-green-1" 
     : "bg-red-0 text-red-1";
   
-  const position = profile?.position || "-";
   const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
 
   const getRoleDisplay = () => {
