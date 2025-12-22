@@ -102,10 +102,11 @@ export function AdminCard({ admin, actions }: AdminCardProps) {
               {profilePictureUrl ? (
                 <AvatarImage src={profilePictureUrl} alt={fullName} className="rounded-xl" />
               ) : (
-                <AvatarFallback className="bg-gray-0 text-font-p text-xl font-semibold rounded-xl">
-                  {initial}
-                </AvatarFallback>
+                <AvatarImage src="/images/default_profile.png" alt={fullName} className="rounded-xl" />
               )}
+              <AvatarFallback className="bg-gray-0 text-font-p text-xl font-semibold rounded-xl">
+                {initial}
+              </AvatarFallback>
             </Avatar>
             <h3 className="text-lg font-bold text-font-p">{fullName}</h3>
           </div>
