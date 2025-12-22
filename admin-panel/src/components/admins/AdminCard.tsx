@@ -146,7 +146,7 @@ export function AdminCard({ admin, actions }: AdminCardProps) {
             ) : (
               <div className="flex items-center gap-2 text-sm text-font-s">
                 <Mail className="size-4 shrink-0" />
-                <span>-</span>
+                <span>وارد نشده</span>
               </div>
             )}
           </div>
