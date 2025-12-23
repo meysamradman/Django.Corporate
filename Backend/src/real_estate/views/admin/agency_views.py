@@ -56,7 +56,6 @@ class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'is_verified': self._parse_bool(request.query_params.get('is_verified')),
             'city_id': request.query_params.get('city_id'),
-            'manager_id': request.query_params.get('manager_id'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
         search = request.query_params.get('search')

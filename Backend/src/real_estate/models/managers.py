@@ -11,6 +11,7 @@ class PropertyQuerySet(models.QuerySet):
         return self.filter(is_active=True)
     
     def with_relations(self):
+        """Load all relations with select_related and prefetch_related to avoid N+1 queries"""
         from django.db.models import Prefetch
         from src.real_estate.models.media import PropertyImage
         
@@ -18,6 +19,8 @@ class PropertyQuerySet(models.QuerySet):
             'property_type',
             'state',
             'agent',
+            'agent__agency',
+            'agent__user',
             'agency',
             'city',
             'province',
@@ -35,11 +38,24 @@ class PropertyQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
+        """Optimized queryset for admin listing with all relations to avoid N+1"""
+        from django.db.models import Prefetch
+        from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
+        
         queryset = self.with_relations()
         queryset = queryset.prefetch_related(
-            'videos',
-            'audios',
-            'documents'
+            Prefetch(
+                'videos',
+                queryset=PropertyVideo.objects.select_related('video', 'cover_image').order_by('order', 'created_at')
+            ),
+            Prefetch(
+                'audios',
+                queryset=PropertyAudio.objects.select_related('audio', 'cover_image').order_by('order', 'created_at')
+            ),
+            Prefetch(
+                'documents',
+                queryset=PropertyDocument.objects.select_related('document', 'cover_image').order_by('order', 'created_at')
+            )
         )
         return queryset.annotate(
             labels_count=Count('labels', distinct=True),
@@ -242,9 +258,11 @@ class PropertyAgentQuerySet(models.QuerySet):
         return self.filter(is_verified=True)
     
     def with_agency(self):
-        return self.select_related('agency', 'user', 'city')
+        """Load agent with agency, user, and city relations to avoid N+1"""
+        return self.select_related('agency', 'agency__city', 'user', 'city', 'avatar', 'cover_image')
     
     def with_counts(self):
+        """Annotate with property count"""
         return self.annotate(
             properties_count=Count('properties', 
                                 filter=Q(properties__is_published=True))
@@ -257,4 +275,5 @@ class PropertyAgentQuerySet(models.QuerySet):
         return self.filter(agency_id=agency_id)
     
     def independent(self):
+        """Agents without agency"""
         return self.filter(agency__isnull=True)

@@ -1,12 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.auth import get_user_model
 from src.core.models import BaseModel
 from src.real_estate.models.seo import SEOMixin
 from src.real_estate.models.location import City
 from src.real_estate.models.managers import RealEstateAgencyQuerySet
-
-User = get_user_model()
 
 
 class RealEstateAgency(BaseModel, SEOMixin):
@@ -118,16 +115,6 @@ class RealEstateAgency(BaseModel, SEOMixin):
         help_text="Total number of reviews"
     )
     
-    manager = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='managed_real_estate_agencies',
-        verbose_name="Manager",
-        help_text="Admin user managing this agency"
-    )
-    
     description = models.TextField(
         blank=True,
         verbose_name="Description",
@@ -145,7 +132,6 @@ class RealEstateAgency(BaseModel, SEOMixin):
             # Composite indexes for common query patterns
             models.Index(fields=['is_active', 'is_verified', '-rating']),
             models.Index(fields=['city', 'is_active']),
-            models.Index(fields=['manager', 'is_active']),
             models.Index(fields=['license_number']),
             models.Index(fields=['slug']),
             models.Index(fields=['-rating', '-total_reviews']),

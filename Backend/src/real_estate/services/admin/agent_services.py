@@ -59,10 +59,26 @@ class PropertyAgentAdminService:
     
     @staticmethod
     def create_agent(validated_data, created_by=None):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
         user_id = validated_data.pop('user_id', None)
         
         if not user_id:
             raise ValidationError(AGENT_ERRORS["agent_create_failed"])
+        
+        # Validate user is admin
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise ValidationError("کاربر یافت نشد.")
+        
+        user_type = getattr(user, 'user_type', None)
+        is_staff = getattr(user, 'is_staff', False)
+        is_admin_active = getattr(user, 'is_admin_active', False)
+        
+        if user_type != 'admin' or not is_staff or not is_admin_active:
+            raise ValidationError(AGENT_ERRORS["user_must_be_admin"])
         
         if PropertyAgent.objects.filter(user_id=user_id).exists():
             raise ValidationError(AGENT_ERRORS["user_already_has_agent"])
@@ -96,12 +112,29 @@ class PropertyAgentAdminService:
     
     @staticmethod
     def update_agent_by_id(agent_id, validated_data, updated_by=None):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
         agent = PropertyAgentAdminService.get_agent_by_id(agent_id)
         
         if not agent:
             raise PropertyAgent.DoesNotExist(AGENT_ERRORS["agent_not_found"])
         
         user_id = validated_data.pop('user_id', None)
+        
+        # Validate user is admin if user_id is provided
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                raise ValidationError("کاربر یافت نشد.")
+            
+            user_type = getattr(user, 'user_type', None)
+            is_staff = getattr(user, 'is_staff', False)
+            is_admin_active = getattr(user, 'is_admin_active', False)
+            
+            if user_type != 'admin' or not is_staff or not is_admin_active:
+                raise ValidationError(AGENT_ERRORS["user_must_be_admin"])
         
         if 'first_name' in validated_data or 'last_name' in validated_data:
             if not validated_data.get('slug'):

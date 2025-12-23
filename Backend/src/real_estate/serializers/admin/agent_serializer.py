@@ -79,6 +79,25 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
             'canonical_url', 'robots_meta'
         ]
     
+    def validate_user_id(self, value):
+        """Validate that user is an admin user"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        try:
+            user = User.objects.get(id=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("کاربر یافت نشد.")
+        
+        user_type = getattr(user, 'user_type', None)
+        is_staff = getattr(user, 'is_staff', False)
+        is_admin_active = getattr(user, 'is_admin_active', False)
+        
+        if user_type != 'admin' or not is_staff or not is_admin_active:
+            raise serializers.ValidationError(AGENT_ERRORS["user_must_be_admin"])
+        
+        return value
+    
     def validate_license_number(self, value):
         if PropertyAgent.objects.filter(license_number=value).exists():
             raise serializers.ValidationError(AGENT_ERRORS["license_number_exists"])
@@ -102,6 +121,25 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+    
+    def validate_user_id(self, value):
+        """Validate that user is an admin user"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        try:
+            user = User.objects.get(id=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("کاربر یافت نشد.")
+        
+        user_type = getattr(user, 'user_type', None)
+        is_staff = getattr(user, 'is_staff', False)
+        is_admin_active = getattr(user, 'is_admin_active', False)
+        
+        if user_type != 'admin' or not is_staff or not is_admin_active:
+            raise serializers.ValidationError(AGENT_ERRORS["user_must_be_admin"])
+        
+        return value
     
     def validate_license_number(self, value):
         if PropertyAgent.objects.exclude(id=self.instance.id).filter(license_number=value).exists():

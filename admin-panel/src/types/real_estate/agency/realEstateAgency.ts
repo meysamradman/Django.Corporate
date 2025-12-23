@@ -11,8 +11,6 @@ export interface RealEstateAgency extends Base {
   website?: string | null;
   license_number?: string | null;
   
-  manager?: number | null;
-  
   city?: number | null;
   city_name?: string;
   province?: number | null;

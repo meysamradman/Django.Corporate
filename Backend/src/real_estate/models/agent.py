@@ -227,7 +227,26 @@ class PropertyAgent(BaseModel, SEOMixin):
             return f"/agent/{self.slug}/"
         return f"/agent/{self.public_id}/"
     
+    def clean(self):
+        """Validate that user is an admin user"""
+        from django.core.exceptions import ValidationError
+        from src.real_estate.messages.messages import AGENT_ERRORS
+        
+        if self.user_id:
+            user = self.user
+            user_type = getattr(user, 'user_type', None)
+            is_staff = getattr(user, 'is_staff', False)
+            is_admin_active = getattr(user, 'is_admin_active', False)
+            
+            if user_type != 'admin' or not is_staff or not is_admin_active:
+                raise ValidationError({
+                    'user': AGENT_ERRORS["user_must_be_admin"]
+                })
+    
     def save(self, *args, **kwargs):
+        # Validate user is admin before saving
+        self.full_clean()
+        
         # Auto-generate slug if not provided
         if not self.slug and self.first_name and self.last_name:
             from django.utils.text import slugify

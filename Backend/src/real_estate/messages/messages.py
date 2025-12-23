@@ -85,6 +85,7 @@ AGENT_ERRORS = {
     "agents_not_found": "مشاورین انتخاب شده یافت نشدند.",
     "agent_has_properties": "این مشاور دارای {count} ملک است و قابل حذف نیست.",
     "user_already_has_agent": "این کاربر قبلاً یک پروفایل مشاور دارد.",
+    "user_must_be_admin": "فقط کاربران ادمین می‌توانند مشاور املاک باشند.",
     "license_number_exists": "شماره پروانه قبلاً استفاده شده است.",
 }
 

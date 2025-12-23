@@ -14,7 +14,6 @@ class RealEstateAgencyAdminService:
     def get_agency_queryset(filters=None, search=None):
         queryset = RealEstateAgency.objects.select_related(
             'city',
-            'manager',
             'logo',
             'cover_image'
         ).annotate(
@@ -29,8 +28,6 @@ class RealEstateAgencyAdminService:
                 queryset = queryset.filter(is_verified=filters['is_verified'])
             if filters.get('city_id'):
                 queryset = queryset.filter(city_id=filters['city_id'])
-            if filters.get('manager_id'):
-                queryset = queryset.filter(manager_id=filters['manager_id'])
         
         if search:
             queryset = queryset.filter(
@@ -47,7 +44,6 @@ class RealEstateAgencyAdminService:
         try:
             return RealEstateAgency.objects.select_related(
                 'city',
-                'manager',
                 'logo',
                 'cover_image'
             ).annotate(
@@ -59,8 +55,6 @@ class RealEstateAgencyAdminService:
     
     @staticmethod
     def create_agency(validated_data, created_by=None):
-        manager_id = validated_data.pop('manager_id', None)
-        
         if not validated_data.get('slug') and validated_data.get('name'):
             base_slug = slugify(validated_data['name'])
             slug = base_slug
@@ -83,8 +77,6 @@ class RealEstateAgencyAdminService:
             validated_data['og_description'] = validated_data['meta_description']
         
         with transaction.atomic():
-            if manager_id:
-                validated_data['manager_id'] = manager_id
             agency = RealEstateAgency.objects.create(**validated_data)
         
         return agency
@@ -95,8 +87,6 @@ class RealEstateAgencyAdminService:
         
         if not agency:
             raise RealEstateAgency.DoesNotExist(AGENCY_ERRORS["agency_not_found"])
-        
-        manager_id = validated_data.pop('manager_id', None)
         
         if 'name' in validated_data and not validated_data.get('slug'):
             base_slug = slugify(validated_data['name'])
@@ -120,8 +110,6 @@ class RealEstateAgencyAdminService:
                     validated_data['og_description'] = validated_data['meta_description']
         
         with transaction.atomic():
-            if manager_id is not None:
-                validated_data['manager_id'] = manager_id
             for field, value in validated_data.items():
                 setattr(agency, field, value)
             agency.save()

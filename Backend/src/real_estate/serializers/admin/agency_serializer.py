@@ -6,7 +6,6 @@ from src.media.serializers.media_serializer import MediaAdminSerializer
 
 class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
-    manager_name = serializers.SerializerMethodField()
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
     logo_url = serializers.SerializerMethodField()
@@ -16,18 +15,13 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'name', 'slug', 'license_number',
             'phone', 'email', 'website',
-            'city_name', 'manager_name',
+            'city_name',
             'property_count', 'agent_count',
             'is_verified', 'rating', 'total_reviews',
             'logo_url', 'is_active',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-    
-    def get_manager_name(self, obj):
-        if obj.manager:
-            return obj.manager.get_full_name() or obj.manager.email
-        return None
     
     def get_logo_url(self, obj):
         if obj.logo and obj.logo.file:
@@ -37,7 +31,6 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
 
 class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
-    manager_name = serializers.SerializerMethodField()
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
     logo = MediaAdminSerializer(read_only=True)
@@ -49,7 +42,6 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
             'id', 'public_id', 'name', 'slug', 'license_number',
             'phone', 'email', 'website',
             'city', 'city_name', 'address', 'latitude', 'longitude',
-            'manager', 'manager_name',
             'logo', 'cover_image',
             'property_count', 'agent_count',
             'is_verified', 'rating', 'total_reviews',
@@ -59,23 +51,16 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
             'canonical_url', 'robots_meta'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-    
-    def get_manager_name(self, obj):
-        if obj.manager:
-            return obj.manager.get_full_name() or obj.manager.email
-        return None
 
 
 class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
-    manager_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    
     class Meta:
         model = RealEstateAgency
         fields = [
             'name', 'slug', 'license_number',
             'phone', 'email', 'website',
             'city', 'address', 'latitude', 'longitude',
-            'manager_id', 'logo', 'cover_image',
+            'logo', 'cover_image',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
@@ -89,15 +74,13 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
 
 
 class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
-    manager_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    
     class Meta:
         model = RealEstateAgency
         fields = [
             'name', 'slug', 'license_number',
             'phone', 'email', 'website',
             'city', 'address', 'latitude', 'longitude',
-            'manager_id', 'logo', 'cover_image',
+            'logo', 'cover_image',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
