@@ -13,6 +13,7 @@ from .modules.ticket import TICKET_PERMISSIONS
 from .modules.ai import AI_PERMISSIONS
 from .modules.analytics import ANALYTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
+from .modules.real_estate import REAL_ESTATE_PERMISSIONS
 
 
 BASE_ADMIN_PERMISSIONS = BASE_PERMISSIONS
@@ -28,6 +29,7 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
     **AI_PERMISSIONS,
     **ANALYTICS_PERMISSIONS,
     **MANAGEMENT_PERMISSIONS,
+    **REAL_ESTATE_PERMISSIONS,
 }
 
 @dataclass
@@ -200,6 +202,34 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_admin_users', 'no_delete', 'no_system_settings']
         },
     ),
+    'property_agent': _build_role_config(
+        'property_agent',
+        level=4,
+        permissions={
+            'modules': ['real_estate', 'media'],
+            'actions': ['create', 'read', 'update'],
+            'restrictions': [
+                'no_delete',
+                'own_properties_only',
+                'no_user_management',
+                'no_system_settings'
+            ]
+        },
+    ),
+    'agency_manager': _build_role_config(
+        'agency_manager',
+        level=3,
+        permissions={
+            'modules': ['real_estate', 'media', 'analytics'],
+            'actions': ['create', 'read', 'update', 'delete'],
+            'restrictions': [
+                'agency_properties_only',
+                'no_user_management',
+                'no_system_settings'
+            ],
+            'special': ['agent_management']
+        },
+    ),
 }
 
 AVAILABLE_MODULES = {
@@ -282,6 +312,11 @@ AVAILABLE_MODULES = {
         'name': 'analytics',
         'display_name': 'Analytics',
         'description': 'View website and app visit analytics and statistics.'
+    },
+    'real_estate': {
+        'name': 'real_estate',
+        'display_name': 'Real Estate Management',
+        'description': 'Manage properties, agents, agencies, and real estate listings.'
     },
 }
 

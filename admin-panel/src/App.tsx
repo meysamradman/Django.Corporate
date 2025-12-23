@@ -62,6 +62,21 @@ import ChatbotPage from './pages/chatbot/page';
 import FormBuilderPage from './pages/form-builder/page';
 import PageAbout from './pages/page/about/page';
 import PageTerms from './pages/page/terms/page';
+import PropertiesPage from './pages/real-estate/properties/page';
+// import PropertiesCreatePage from './pages/real-estate/properties/create/page';
+import PropertiesEditPage from './pages/real-estate/properties/[id]/edit/page';
+import PropertiesViewPage from './pages/real-estate/properties/[id]/view/page';
+
+import RealEstateStaticPage from './pages/Staticstyle/realstate/page';
+import RealEstateListPage from './pages/Staticstyle/realstate/list/page';
+import RealEstateViewPage from './pages/Staticstyle/realstate/[id]/view/page';
+import RealEstateEditPage from './pages/Staticstyle/realstate/[id]/edit/page';
+import AdvisorsListPage from './pages/Staticstyle/realstate/advisors/list/page';
+import AdvisorViewPage from './pages/Staticstyle/realstate/advisors/[id]/view/page';
+import AdvisorEditPage from './pages/Staticstyle/realstate/advisors/[id]/edit/page';
+import AgenciesListPage from './pages/Staticstyle/realstate/agencies/list/page';
+import AgencyViewPage from './pages/Staticstyle/realstate/agencies/[id]/view/page';
+import AgencyEditPage from './pages/Staticstyle/realstate/agencies/[id]/edit/page';
 
 
 function App() {
@@ -159,6 +174,37 @@ function App() {
                   <Route path="page">
                     <Route path="about" element={<PageAbout />} />
                     <Route path="terms" element={<PageTerms />} />
+                  </Route>
+                  <Route path="real-estate">
+                    <Route path="properties">
+                      <Route index element={<PropertiesPage />} />
+                      {/* <Route path="create" element={<PropertiesCreatePage />} /> */}
+                      <Route path=":id/edit" element={<PropertiesEditPage />} />
+                      <Route path=":id/view" element={<PropertiesViewPage />} />
+                    </Route>
+                    <Route path="types" element={<div>Types Page - Coming Soon</div>} />
+                    <Route path="states" element={<div>States Page - Coming Soon</div>} />
+                    <Route path="labels" element={<div>Labels Page - Coming Soon</div>} />
+                    <Route path="features" element={<div>Features Page - Coming Soon</div>} />
+                    <Route path="tags" element={<div>Tags Page - Coming Soon</div>} />
+                    <Route path="agents" element={<div>Agents Page - Coming Soon</div>} />
+                    <Route path="agencies" element={<div>Agencies Page - Coming Soon</div>} />
+                  </Route>
+                  <Route path="staticstyle">
+                    <Route path="realstate">
+                      <Route index element={<RealEstateStaticPage />} />
+                      <Route path="list" element={<RealEstateListPage />} />
+                      <Route path="advisors/list" element={<AdvisorsListPage />} />
+                      <Route path="advisors/:id/view" element={<AdvisorViewPage />} />
+                      <Route path="advisors/:id/edit" element={<AdvisorEditPage />} />
+                      <Route path="agencies/list" element={<AgenciesListPage />} />
+                      <Route path="agencies/:id/view" element={<AgencyViewPage />} />
+                      <Route path="agencies/:id/edit" element={<AgencyEditPage />} />
+                      <Route path=":id">
+                        <Route path="view" element={<RealEstateViewPage />} />
+                        <Route path="edit" element={<RealEstateEditPage />} />
+                      </Route>
+                    </Route>
                   </Route>
                 </Route>
                 <Route path="/dashboard" element={<Navigate to="/" replace />} />

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.cache import cache
 from django.http import StreamingHttpResponse, HttpResponse
+from django.conf import settings
 
 from src.user.access_control import RequirePermission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
@@ -110,6 +111,19 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='database-export/download')
     def download_database_export(self, request):
+        if not getattr(request.user, 'is_admin_full', False):
+            from django.core.cache import cache
+            export_rate_limit = settings.DATABASE_EXPORT_RATE_LIMIT
+            export_rate_window = settings.DATABASE_EXPORT_RATE_LIMIT_WINDOW
+            cache_key = f"database_export_limit_{request.user.id}"
+            export_count = cache.get(cache_key, 0)
+            if export_count >= export_rate_limit:
+                return APIResponse.error(
+                    message='Database export rate limit exceeded. Please try again later.',
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS
+                )
+            cache.set(cache_key, export_count + 1, export_rate_window)
+        
         try:
             buffer = export_database_to_sql()
             filename = get_database_export_filename()

@@ -8,6 +8,7 @@ from .ticket import TICKET_PERMISSIONS
 from .ai import AI_PERMISSIONS
 from .analytics import ANALYTICS_PERMISSIONS
 from .management import MANAGEMENT_PERMISSIONS
+from .real_estate import REAL_ESTATE_PERMISSIONS
 
 __all__ = [
     'BASE_PERMISSIONS',
@@ -20,4 +21,5 @@ __all__ = [
     'AI_PERMISSIONS',
     'ANALYTICS_PERMISSIONS',
     'MANAGEMENT_PERMISSIONS',
+    'REAL_ESTATE_PERMISSIONS',
 ]

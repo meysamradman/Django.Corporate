@@ -55,35 +55,28 @@ LOGGING = {
     },
 }
 APPEND_SLASH = False
-# ========================================
-# 🔵 CORE APPS (همیشه لازم هستند)
-# ========================================
+
 CORE_APPS = [
-    'src.core.apps.CoreConfig',        # Core functionality
-    'src.user.apps.UserConfig',        # User & Admin management
-    'src.media.apps.MediaConfig',      # Media Library (centralized)
-    'src.panel.apps.PanelConfig',      # Panel Settings
-    'src.settings.apps.SettingsConfig', # System Settings
-    'src.analytics.apps.AnalyticsConfig',  # Analytics & Tracking
+    'src.core.apps.CoreConfig',
+    'src.user.apps.UserConfig',
+    'src.media.apps.MediaConfig',
+    'src.panel.apps.PanelConfig',
+    'src.settings.apps.SettingsConfig',
+    'src.analytics.apps.AnalyticsConfig',
 ]
 
-# ========================================
-# 🟠 CORPORATE APPS (برای وب‌سایت شرکتی)
-# ========================================
 CORPORATE_APPS = [
-    'src.blog.apps.BlogConfig',        # Blog Management
-    'src.portfolio.apps.PortfolioConfig',  # Portfolio Management
-    'src.page.apps.PageConfig',        # Pages (About, Contact, etc.)
-    'src.form.apps.FormConfig',        # Forms Builder
-    'src.chatbot.apps.ChatbotConfig',  # Chatbot Management
-    'src.ticket.apps.TicketConfig',    # Ticket System
-    'src.email.apps.EmailConfig',      # Email Management
-    'src.ai.apps.AiConfig',            # AI Tools
+    'src.blog.apps.BlogConfig', 
+    'src.portfolio.apps.PortfolioConfig',
+    'src.real_estate.apps.RealEstateConfig',
+    'src.page.apps.PageConfig',
+    'src.form.apps.FormConfig',
+    'src.chatbot.apps.ChatbotConfig',
+    'src.ticket.apps.TicketConfig',
+    'src.email.apps.EmailConfig',
+    'src.ai.apps.AiConfig', 
 ]
 
-# ========================================
-# 📦 تمام اپ‌های محلی
-# ========================================
 LOCAL_APPS = [
     *CORE_APPS,
     *CORPORATE_APPS,
@@ -95,6 +88,7 @@ INSTALLED_APPS = [
      'django.contrib.sessions',
      'django.contrib.messages',
      'django.contrib.staticfiles',
+     'django.contrib.postgres',  # Required for SearchVectorField, GinIndex, BrinIndex
      'treebeard',
      'rest_framework',
      'django_filters',
@@ -209,19 +203,9 @@ REST_FRAMEWORK = {
     ]
 }
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:4173",  # Vite preview server
+    "http://localhost:5173",
+    "http://localhost:4173",
     "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://localhost:3003",
-    "http://localhost:3004",
-    "http://localhost:3005",
-    "http://localhost:3006",
-    "http://localhost:3007",
-    "http://localhost:3008",
-    "http://localhost:3009",
-    "http://localhost:30010",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -241,13 +225,9 @@ CORS_ALLOW_METHODS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:4173",  # Vite preview server
+    "http://localhost:5173",
+    "http://localhost:4173",
     'http://localhost:3000',
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://localhost:3004",
-    "http://localhost:3005",
 ]
 
 AUTH_COOKIE_NAME = 'auth_token'
@@ -395,17 +375,32 @@ PORTFOLIO_EXPORT_PAGE_SIZE = env.int('PORTFOLIO_EXPORT_PAGE_SIZE', default=50)
 PORTFOLIO_EXPORT_RATE_LIMIT = env.int('PORTFOLIO_EXPORT_RATE_LIMIT', default=10)
 PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW = env.int('PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW', default=3600)
 
-BLOG_EXPORT_MAX_ITEMS = env.int('BLOG_EXPORT_MAX_ITEMS', default=PORTFOLIO_EXPORT_MAX_ITEMS)
-BLOG_EXPORT_RATE_LIMIT = env.int('BLOG_EXPORT_RATE_LIMIT', default=PORTFOLIO_EXPORT_RATE_LIMIT)
-BLOG_EXPORT_RATE_LIMIT_WINDOW = env.int('BLOG_EXPORT_RATE_LIMIT_WINDOW', default=PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW)
+BLOG_EXPORT_MAX_ITEMS = env.int('BLOG_EXPORT_MAX_ITEMS', default=500)
+BLOG_EXPORT_PRINT_MAX_ITEMS = env.int('BLOG_EXPORT_PRINT_MAX_ITEMS', default=2000)
+BLOG_EXPORT_PAGE_SIZE = env.int('BLOG_EXPORT_PAGE_SIZE', default=50)
+BLOG_EXPORT_RATE_LIMIT = env.int('BLOG_EXPORT_RATE_LIMIT', default=10)
+BLOG_EXPORT_RATE_LIMIT_WINDOW = env.int('BLOG_EXPORT_RATE_LIMIT_WINDOW', default=3600)
+
+DATABASE_EXPORT_RATE_LIMIT = env.int('DATABASE_EXPORT_RATE_LIMIT', default=5)
+DATABASE_EXPORT_RATE_LIMIT_WINDOW = env.int('DATABASE_EXPORT_RATE_LIMIT_WINDOW', default=3600)
 
 PORTFOLIO_MEDIA_LIST_LIMIT = env.int('PORTFOLIO_MEDIA_LIST_LIMIT', default=5)
 PORTFOLIO_MEDIA_DETAIL_LIMIT = env.int('PORTFOLIO_MEDIA_DETAIL_LIMIT', default=0)
 PORTFOLIO_MEDIA_UPLOAD_MAX = env.int('PORTFOLIO_MEDIA_UPLOAD_MAX', default=50)
 
-BLOG_MEDIA_LIST_LIMIT = env.int('BLOG_MEDIA_LIST_LIMIT', default=PORTFOLIO_MEDIA_LIST_LIMIT)
-BLOG_MEDIA_DETAIL_LIMIT = env.int('BLOG_MEDIA_DETAIL_LIMIT', default=PORTFOLIO_MEDIA_DETAIL_LIMIT)
-BLOG_MEDIA_UPLOAD_MAX = env.int('BLOG_MEDIA_UPLOAD_MAX', default=PORTFOLIO_MEDIA_UPLOAD_MAX)
+BLOG_MEDIA_LIST_LIMIT = env.int('BLOG_MEDIA_LIST_LIMIT', default=5)
+BLOG_MEDIA_DETAIL_LIMIT = env.int('BLOG_MEDIA_DETAIL_LIMIT', default=0)
+BLOG_MEDIA_UPLOAD_MAX = env.int('BLOG_MEDIA_UPLOAD_MAX', default=50)
+
+REAL_ESTATE_EXPORT_MAX_ITEMS = env.int('REAL_ESTATE_EXPORT_MAX_ITEMS', default=500)
+REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS = env.int('REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS', default=2000)
+REAL_ESTATE_EXPORT_PAGE_SIZE = env.int('REAL_ESTATE_EXPORT_PAGE_SIZE', default=50)
+REAL_ESTATE_EXPORT_RATE_LIMIT = env.int('REAL_ESTATE_EXPORT_RATE_LIMIT', default=10)
+REAL_ESTATE_EXPORT_RATE_LIMIT_WINDOW = env.int('REAL_ESTATE_EXPORT_RATE_LIMIT_WINDOW', default=3600)
+
+REAL_ESTATE_MEDIA_LIST_LIMIT = env.int('REAL_ESTATE_MEDIA_LIST_LIMIT', default=5)
+REAL_ESTATE_MEDIA_DETAIL_LIMIT = env.int('REAL_ESTATE_MEDIA_DETAIL_LIMIT', default=0)
+REAL_ESTATE_MEDIA_UPLOAD_MAX = env.int('REAL_ESTATE_MEDIA_UPLOAD_MAX', default=50)
 
 MEDIA_ALLOWED_EXTENSIONS = {
     'image': os.getenv('MEDIA_IMAGE_EXTENSIONS', 'jpg,jpeg,webp,png,svg,gif').split(','),

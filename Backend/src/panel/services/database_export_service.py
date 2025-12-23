@@ -74,7 +74,7 @@ def _export_with_django_to_sql(db_config):
         import psycopg
         from psycopg.rows import dict_row
     except ImportError:
-        raise Exception("psycopg is required for database export. Please install it: pip install 'psycopg[binary]'")
+        raise Exception("psycopg (psycopg3) is required for database export. Please install it: pip install 'psycopg[binary]'")
     
     buffer = io.BytesIO()
     sql_lines = []

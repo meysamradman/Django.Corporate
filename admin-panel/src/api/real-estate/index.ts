@@ -1,0 +1,2 @@
+export { realEstateApi } from './properties';
+

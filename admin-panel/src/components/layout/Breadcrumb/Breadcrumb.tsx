@@ -60,6 +60,15 @@ export function Breadcrumb() {
         'models': 'مدلهای ai',
         'form-builder': 'فرم',
         'analytics': 'آمار',
+        'real-estate': 'املاک',
+        'properties': 'املاک',
+        'property': 'ملک',
+        'types': 'نوع‌ها',
+        'states': 'وضعیت‌ها',
+        'labels': 'برچسب‌ها',
+        'features': 'ویژگی‌ها',
+        'agents': 'نمایندگان',
+        'agencies': 'آژانس‌ها',
         'me': 'من'
       };
       

@@ -1,34 +1,3 @@
-"""
-Configuration file for Feature Flags.
-
-برای اضافه کردن یک Feature Flag جدید، فقط این فایل را ویرایش کنید:
-
-1. یک entry جدید در FEATURE_CONFIG اضافه کنید:
-   - url_patterns: لیست regex patterns برای URL matching
-   - module_name: نام module برای mapping در sidebar (اختیاری، پیش‌فرض همان feature_key است)
-   - error_message: پیام خطا هنگام غیرفعال بودن feature (اختیاری)
-
-2. در guards.py یک guard function اضافه کنید (ensure_{feature_key}_enabled)
-
-3. در admin/src/core/config/featureFlags.ts یک entry جدید اضافه کنید:
-   - key: همان feature_key
-   - description: توضیحات فارسی
-   - icon: آیکون از lucide-react
-   - color: رنگ بر اساس COLOR_GUIDE.md
-
-4. در MODULE_TO_FEATURE_FLAG mapping اضافه کنید (اگر menu item دارید)
-
-مثال:
-    'product': {
-        'url_patterns': [
-            r'^/api/admin/product',
-            r'^/api/(product|products)/',
-        ],
-        'module_name': 'product',
-        'error_message': 'Product feature is currently disabled',
-    },
-"""
-
 FEATURE_CONFIG = {
     'portfolio': {
         'url_patterns': [
@@ -87,6 +56,21 @@ FEATURE_CONFIG = {
         ],
         'module_name': 'forms',
         'error_message': 'Form feature is currently disabled',
+    },
+    'real_estate': {
+        'url_patterns': [
+            r'^/api/admin/property',
+            r'^/api/admin/property-type',
+            r'^/api/admin/property-state',
+            r'^/api/admin/property-label',
+            r'^/api/admin/property-feature',
+            r'^/api/admin/property-tag',
+            r'^/api/admin/property-agent',
+            r'^/api/admin/real-estate-agency',
+            r'^/api/(property|properties|real-estate)/',
+        ],
+        'module_name': 'real_estate',
+        'error_message': 'Real Estate feature is currently disabled',
     },
 }
 

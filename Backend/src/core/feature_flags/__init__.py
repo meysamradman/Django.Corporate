@@ -15,6 +15,7 @@ from .guards import (
     ensure_email_enabled,
     ensure_page_enabled,
     ensure_form_enabled,
+    ensure_real_estate_enabled,
 )
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     'ensure_email_enabled',
     'ensure_page_enabled',
     'ensure_form_enabled',
+    'ensure_real_estate_enabled',
 ]
 

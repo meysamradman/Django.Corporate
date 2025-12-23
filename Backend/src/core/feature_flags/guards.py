@@ -49,3 +49,8 @@ def ensure_page_enabled():
 def ensure_form_enabled():
     config = get_feature_config('form')
     ensure_feature_enabled('form', config.get('error_message'))
+
+
+def ensure_real_estate_enabled():
+    config = get_feature_config('real_estate')
+    ensure_feature_enabled('real_estate', config.get('error_message'))

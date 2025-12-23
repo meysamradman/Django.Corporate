@@ -36,11 +36,16 @@ export const FEATURE_FLAGS_CONFIG: FeatureFlagConfig[] = [
     key: "form", 
     description: "سازنده فرم"
   },
+  { 
+    key: "real_estate", 
+    description: "مدیریت املاک"
+  },
 ];
 
 export const MODULE_TO_FEATURE_FLAG: Record<string, string> = {
   blog: "blog",
   portfolio: "portfolio",
+  real_estate: "real_estate",
   ai: "ai",
   chatbot: "chatbot",
   ticket: "ticket",

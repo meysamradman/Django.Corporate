@@ -5,6 +5,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from src.portfolio.views.admin.portfolio_export_view import PortfolioExportView
 from src.blog.views.admin.blog_export_view import BlogExportView
+from src.real_estate.views.admin.property_export_view import PropertyExportView
 
 urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
@@ -22,11 +23,14 @@ urlpatterns = [
     path('api/', include('src.form.urls')),
     path('api/', include('src.blog.urls')),
     path('api/', include('src.portfolio.urls')),
+    path('api/', include('src.real_estate.urls')),
     # Export views (also feature flag controlled via middleware)
     path('api/admin/blog/export/', BlogExportView.as_view(), name='admin-blog-export'),
     path('api/admin/blog/export', BlogExportView.as_view(), name='admin-blog-export-no-slash'),
     path('api/admin/portfolio/export/', PortfolioExportView.as_view(), name='admin-portfolio-export'),
     path('api/admin/portfolio/export', PortfolioExportView.as_view(), name='admin-portfolio-export-no-slash'),
+    path('api/admin/property/export/', PropertyExportView.as_view(), name='admin-property-export'),
+    path('api/admin/property/export', PropertyExportView.as_view(), name='admin-property-export-no-slash'),
     # ========================================
     # API Documentation
     # ========================================

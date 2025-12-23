@@ -13,7 +13,10 @@ class PermissionHelper:
         'admin': 'system_admin',
         'auth': 'authentication',
         'contenttypes': 'content_types',
-        'sessions': 'session_management'
+        'sessions': 'session_management',
+        'real_estate': 'real_estate_management',
+        'blog': 'blog_management',
+        'portfolio': 'portfolio_management',
     }
     
     ACTION_MAP = {

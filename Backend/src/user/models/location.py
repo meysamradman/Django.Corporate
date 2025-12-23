@@ -3,12 +3,7 @@ from src.core.models import BaseModel
 
 
 class Province(BaseModel):
-    """
-    Province model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Metadata
-    Note: is_active is inherited from BaseModel
-    """
-    # 2. Primary Content Fields
+
     name = models.CharField(
         max_length=50,
         unique=True,
@@ -38,12 +33,7 @@ class Province(BaseModel):
 
 
 class City(BaseModel):
-    """
-    City model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Relationships → Metadata
-    Note: is_active is inherited from BaseModel
-    """
-    # 2. Primary Content Fields
+
     name = models.CharField(
         max_length=50,
         db_index=True,
@@ -57,7 +47,6 @@ class City(BaseModel):
         help_text="Unique code for the city within province"
     )
     
-    # 5. Relationships
     province = models.ForeignKey(
         Province,
         on_delete=models.CASCADE,

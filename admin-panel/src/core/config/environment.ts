@@ -72,5 +72,10 @@ export const env = {
     const value = import.meta.env.VITE_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS;
     return value ? parseInt(value, 10) : 100;
   },
+
+  get REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS(): number {
+    const value = import.meta.env.VITE_REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS;
+    return value ? parseInt(value, 10) : 100;
+  },
 } as const;
 

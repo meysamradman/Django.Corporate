@@ -32,6 +32,7 @@ from .classes import (
     chatbot_permission,
     form_permission,
     page_permission,
+    real_estate_permission,
     super_admin_permission,
 )
 
@@ -97,6 +98,7 @@ __all__ = [
     "chatbot_permission",
     "form_permission",
     "page_permission",
+    "real_estate_permission",
     "super_admin_permission",
     
     # ==================== Permission Definitions ====================
