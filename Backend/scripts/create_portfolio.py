@@ -21,13 +21,16 @@ import uuid
 
 # Add the project directory to Python path
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-src_dir = os.path.join(project_dir, 'src')
 sys.path.insert(0, project_dir)
-sys.path.insert(0, src_dir)
 
-# Set up Django
+# Set up Django (before adding src_dir to avoid email module conflict)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 django.setup()
+
+# Now we can safely add src_dir after Django setup
+src_dir = os.path.join(project_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 from django.contrib.auth import get_user_model
 from src.portfolio.models.portfolio import Portfolio

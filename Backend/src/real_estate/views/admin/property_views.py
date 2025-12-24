@@ -41,7 +41,10 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return Property.objects.for_admin_listing()
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            return Property.objects.for_detail()
+            # Ensure district and related location fields are loaded for updates
+            return Property.objects.for_detail().select_related(
+                'district__region__city__province__country'
+            )
         else:
             return Property.objects.all()
     

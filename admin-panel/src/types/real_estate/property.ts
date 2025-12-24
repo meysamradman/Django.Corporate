@@ -44,6 +44,7 @@ export interface Property extends Base {
   country?: number | null;
   country_name?: string;
   district_name?: string;
+  region_name?: string;
   address?: string | null;
   postal_code?: string | null;
   latitude?: number | null;

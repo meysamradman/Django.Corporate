@@ -66,17 +66,45 @@ import PropertiesPage from './pages/real-estate/properties/page';
 // import PropertiesCreatePage from './pages/real-estate/properties/create/page';
 import PropertiesEditPage from './pages/real-estate/properties/[id]/edit/page';
 import PropertiesViewPage from './pages/real-estate/properties/[id]/view/page';
+import PropertyTypesPage from './pages/real-estate/types/page';
+import PropertyTypeCreatePage from './pages/real-estate/types/create/page';
+import PropertyTypeEditPage from './pages/real-estate/types/[id]/edit/page';
+import PropertyTypeViewPage from './pages/real-estate/types/[id]/view/page';
+import PropertyStatesPage from './pages/real-estate/states/page';
+import PropertyStateCreatePage from './pages/real-estate/states/create/page';
+import PropertyStateEditPage from './pages/real-estate/states/[id]/edit/page';
+import PropertyStateViewPage from './pages/real-estate/states/[id]/view/page';
+import PropertyLabelsPage from './pages/real-estate/labels/page';
+import PropertyLabelCreatePage from './pages/real-estate/labels/create/page';
+import PropertyLabelEditPage from './pages/real-estate/labels/[id]/edit/page';
+import PropertyLabelViewPage from './pages/real-estate/labels/[id]/view/page';
+import PropertyFeaturesPage from './pages/real-estate/features/page';
+import PropertyFeatureCreatePage from './pages/real-estate/features/create/page';
+import PropertyFeatureEditPage from './pages/real-estate/features/[id]/edit/page';
+import PropertyFeatureViewPage from './pages/real-estate/features/[id]/view/page';
+import PropertyTagsPage from './pages/real-estate/tags/page';
+import PropertyTagCreatePage from './pages/real-estate/tags/create/page';
+import PropertyTagEditPage from './pages/real-estate/tags/[id]/edit/page';
+import PropertyTagViewPage from './pages/real-estate/tags/[id]/view/page';
+import AdvisorsListPage from './pages/real-estate/advisors/page';
+import AgenciesListPage from './pages/real-estate/agencies/page';
+import AgentViewPage from './pages/real-estate/agents/[id]/view/page';
+import AgentEditPage from './pages/real-estate/agents/[id]/edit/page';
+import AgentCreatePage from './pages/real-estate/agents/create/page';
+import AgencyViewPage from './pages/real-estate/agencies/[id]/view/page';
+import AgencyEditPage from './pages/real-estate/agencies/[id]/edit/page';
+import AgencyCreatePage from './pages/real-estate/agencies/create/page';
 
 import RealEstateStaticPage from './pages/Staticstyle/realstate/page';
 import RealEstateListPage from './pages/Staticstyle/realstate/list/page';
 import RealEstateViewPage from './pages/Staticstyle/realstate/[id]/view/page';
 import RealEstateEditPage from './pages/Staticstyle/realstate/[id]/edit/page';
-import AdvisorsListPage from './pages/Staticstyle/realstate/advisors/list/page';
+import AdvisorsListPageStatic from './pages/Staticstyle/realstate/advisors/list/page';
 import AdvisorViewPage from './pages/Staticstyle/realstate/advisors/[id]/view/page';
 import AdvisorEditPage from './pages/Staticstyle/realstate/advisors/[id]/edit/page';
-import AgenciesListPage from './pages/Staticstyle/realstate/agencies/list/page';
-import AgencyViewPage from './pages/Staticstyle/realstate/agencies/[id]/view/page';
-import AgencyEditPage from './pages/Staticstyle/realstate/agencies/[id]/edit/page';
+import AgenciesListPageStatic from './pages/Staticstyle/realstate/agencies/list/page';
+import AgencyViewPageStatic from './pages/Staticstyle/realstate/agencies/[id]/view/page';
+import AgencyEditPageStatic from './pages/Staticstyle/realstate/agencies/[id]/edit/page';
 
 
 function App() {
@@ -182,24 +210,65 @@ function App() {
                       <Route path=":id/edit" element={<PropertiesEditPage />} />
                       <Route path=":id/view" element={<PropertiesViewPage />} />
                     </Route>
-                    <Route path="types" element={<div>Types Page - Coming Soon</div>} />
-                    <Route path="states" element={<div>States Page - Coming Soon</div>} />
-                    <Route path="labels" element={<div>Labels Page - Coming Soon</div>} />
-                    <Route path="features" element={<div>Features Page - Coming Soon</div>} />
-                    <Route path="tags" element={<div>Tags Page - Coming Soon</div>} />
-                    <Route path="agents" element={<div>Agents Page - Coming Soon</div>} />
-                    <Route path="agencies" element={<div>Agencies Page - Coming Soon</div>} />
+                    <Route path="types">
+                      <Route index element={<PropertyTypesPage />} />
+                      <Route path="create" element={<PropertyTypeCreatePage />} />
+                      <Route path=":id/edit" element={<PropertyTypeEditPage />} />
+                      <Route path=":id/view" element={<PropertyTypeViewPage />} />
+                    </Route>
+                    <Route path="states">
+                      <Route index element={<PropertyStatesPage />} />
+                      <Route path="create" element={<PropertyStateCreatePage />} />
+                      <Route path=":id/edit" element={<PropertyStateEditPage />} />
+                      <Route path=":id/view" element={<PropertyStateViewPage />} />
+                    </Route>
+                    <Route path="labels">
+                      <Route index element={<PropertyLabelsPage />} />
+                      <Route path="create" element={<PropertyLabelCreatePage />} />
+                      <Route path=":id/edit" element={<PropertyLabelEditPage />} />
+                      <Route path=":id/view" element={<PropertyLabelViewPage />} />
+                    </Route>
+                    <Route path="features">
+                      <Route index element={<PropertyFeaturesPage />} />
+                      <Route path="create" element={<PropertyFeatureCreatePage />} />
+                      <Route path=":id/edit" element={<PropertyFeatureEditPage />} />
+                      <Route path=":id/view" element={<PropertyFeatureViewPage />} />
+                    </Route>
+                    <Route path="tags">
+                      <Route index element={<PropertyTagsPage />} />
+                      <Route path="create" element={<PropertyTagCreatePage />} />
+                      <Route path=":id/edit" element={<PropertyTagEditPage />} />
+                      <Route path=":id/view" element={<PropertyTagViewPage />} />
+                    </Route>
+                    <Route path="agents">
+                      <Route index element={<AdvisorsListPage />} />
+                      <Route path="create" element={<AgentCreatePage />} />
+                      <Route path=":id/view" element={<AgentViewPage />} />
+                      <Route path=":id/edit" element={<AgentEditPage />} />
+                    </Route>
+                    <Route path="advisors">
+                      <Route index element={<AdvisorsListPage />} />
+                      <Route path="create" element={<AgentCreatePage />} />
+                      <Route path=":id/view" element={<AgentViewPage />} />
+                      <Route path=":id/edit" element={<AgentEditPage />} />
+                    </Route>
+                    <Route path="agencies">
+                      <Route index element={<AgenciesListPage />} />
+                      <Route path="create" element={<AgencyCreatePage />} />
+                      <Route path=":id/view" element={<AgencyViewPage />} />
+                      <Route path=":id/edit" element={<AgencyEditPage />} />
+                    </Route>
                   </Route>
                   <Route path="staticstyle">
                     <Route path="realstate">
                       <Route index element={<RealEstateStaticPage />} />
                       <Route path="list" element={<RealEstateListPage />} />
-                      <Route path="advisors/list" element={<AdvisorsListPage />} />
+                      <Route path="advisors/list" element={<AdvisorsListPageStatic />} />
                       <Route path="advisors/:id/view" element={<AdvisorViewPage />} />
                       <Route path="advisors/:id/edit" element={<AdvisorEditPage />} />
-                      <Route path="agencies/list" element={<AgenciesListPage />} />
-                      <Route path="agencies/:id/view" element={<AgencyViewPage />} />
-                      <Route path="agencies/:id/edit" element={<AgencyEditPage />} />
+                      <Route path="agencies/list" element={<AgenciesListPageStatic />} />
+                      <Route path="agencies/:id/view" element={<AgencyViewPageStatic />} />
+                      <Route path="agencies/:id/edit" element={<AgencyEditPageStatic />} />
                       <Route path=":id">
                         <Route path="view" element={<RealEstateViewPage />} />
                         <Route path="edit" element={<RealEstateEditPage />} />

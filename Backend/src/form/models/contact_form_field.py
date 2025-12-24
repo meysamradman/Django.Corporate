@@ -21,7 +21,7 @@ class ContactFormField(BaseModel):
         ('date', 'Date'),
         ('url', 'URL'),
     ]
-    
+
     # 1. Status/State Fields
     field_type = models.CharField(
         max_length=20,
@@ -31,7 +31,7 @@ class ContactFormField(BaseModel):
         verbose_name="Field Type",
         help_text="Type of field (text, email, select, etc.)"
     )
-    
+
     # 2. Primary Content Fields
     field_key = models.CharField(
         max_length=100,
@@ -53,7 +53,7 @@ class ContactFormField(BaseModel):
         verbose_name="Placeholder",
         help_text="Placeholder text inside the field (optional)"
     )
-    
+
     # 4. Boolean Flags
     required = models.BooleanField(
         default=True,
@@ -61,7 +61,7 @@ class ContactFormField(BaseModel):
         verbose_name="Required",
         help_text="Whether this field is required"
     )
-    
+
     # Order Field
     order = models.PositiveIntegerField(
         default=0,
@@ -69,7 +69,7 @@ class ContactFormField(BaseModel):
         verbose_name="Display Order",
         help_text="Display order in form (lower numbers appear first)"
     )
-    
+
     # Metadata Fields
     platforms = models.JSONField(
         default=list,
@@ -88,7 +88,7 @@ class ContactFormField(BaseModel):
         verbose_name="Validation Rules",
         help_text="Validation rules: {'min_length': 3, 'max_length': 100, 'pattern': '...'}"
     )
-    
+
     class Meta(BaseModel.Meta):
         db_table = 'form_contact_fields'
         verbose_name = "Contact Form Field"
@@ -98,38 +98,37 @@ class ContactFormField(BaseModel):
             models.Index(fields=['is_active', 'order']),
             models.Index(fields=['field_type', 'is_active']),
         ]
-    
+
     def __str__(self):
         return f"{self.label} ({self.field_key})"
-    
+
     def clean(self):
         super().clean()
-        
+
         if not isinstance(self.platforms, list):
             raise models.ValidationError("Platforms must be a list.")
-        
+
         valid_platforms = ['website', 'mobile_app']
         for platform in self.platforms:
             if platform not in valid_platforms:
                 raise models.ValidationError("Invalid platform.")
-        
+
         if self.field_type in ['select', 'radio']:
             if not self.options or not isinstance(self.options, list):
                 raise models.ValidationError(f"{self.field_type} fields must have at least one option.")
-            
+
             for option in self.options:
                 if not isinstance(option, dict) or 'value' not in option or 'label' not in option:
                     raise models.ValidationError("Each option must have value and label.")
-    
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-    
+
     @property
     def is_for_website(self):
         return 'website' in (self.platforms or [])
-    
+
     @property
     def is_for_mobile_app(self):
         return 'mobile_app' in (self.platforms or [])
-

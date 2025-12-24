@@ -119,7 +119,11 @@ export default function EditPropertyPage() {
     city: null as number | null,
     district: null as number | null,
     country: null as number | null,
+    region_name: null as string | null,
+    district_name: null as string | null,
     address: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     land_area: null as number | null,
     built_area: null as number | null,
     bedrooms: null as number | null,
@@ -167,7 +171,11 @@ export default function EditPropertyPage() {
         city: propertyData.city || null,
         district: propertyData.district || null,
         country: propertyData.country || null,
+        region_name: propertyData.region_name || null,
+        district_name: propertyData.district_name || null,
         address: propertyData.address || "",
+        latitude: propertyData.latitude ? Number(propertyData.latitude) : null,
+        longitude: propertyData.longitude ? Number(propertyData.longitude) : null,
         land_area: propertyData.land_area ? Number(propertyData.land_area) : null,
         built_area: propertyData.built_area ? Number(propertyData.built_area) : null,
         bedrooms: propertyData.bedrooms || null,
@@ -311,11 +319,18 @@ export default function EditPropertyPage() {
         state: formData.state || property.state?.id || undefined,
         agent: formData.agent || property.agent?.id || undefined,
         agency: formData.agency || property.agency?.id || undefined,
-        province: formData.province || property.province || undefined,
-        city: formData.city || property.city || undefined,
+        // Only send district - city, province, country are auto-filled from district in backend
+        // If district doesn't exist, send region_name and district_name to create it
         district: formData.district || property.district || undefined,
-        country: formData.country || property.country || undefined,
+        region_name: formData.region_name || undefined,
+        district_name: formData.district_name || undefined,
         address: formData.address || property.address || undefined,
+        latitude: formData.latitude !== null && formData.latitude !== undefined 
+          ? formData.latitude 
+          : (property.latitude ? Number(property.latitude) : undefined),
+        longitude: formData.longitude !== null && formData.longitude !== undefined 
+          ? formData.longitude 
+          : (property.longitude ? Number(property.longitude) : undefined),
         land_area: formData.land_area !== null && formData.land_area !== undefined 
           ? formData.land_area 
           : (property.land_area ? Number(property.land_area) : undefined),
@@ -388,11 +403,18 @@ export default function EditPropertyPage() {
         state: formData.state || property.state?.id || undefined,
         agent: formData.agent || property.agent?.id || undefined,
         agency: formData.agency || property.agency?.id || undefined,
-        province: formData.province || property.province || undefined,
-        city: formData.city || property.city || undefined,
+        // Only send district - city, province, country are auto-filled from district in backend
+        // If district doesn't exist, send region_name and district_name to create it
         district: formData.district || property.district || undefined,
-        country: formData.country || property.country || undefined,
+        region_name: formData.region_name || undefined,
+        district_name: formData.district_name || undefined,
         address: formData.address || property.address || undefined,
+        latitude: formData.latitude !== null && formData.latitude !== undefined 
+          ? formData.latitude 
+          : (property.latitude ? Number(property.latitude) : undefined),
+        longitude: formData.longitude !== null && formData.longitude !== undefined 
+          ? formData.longitude 
+          : (property.longitude ? Number(property.longitude) : undefined),
         land_area: formData.land_area !== null && formData.land_area !== undefined 
           ? formData.land_area 
           : (property.land_area ? Number(property.land_area) : undefined),
@@ -529,6 +551,13 @@ export default function EditPropertyPage() {
               onFeatureToggle={handleFeatureToggle}
               onFeatureRemove={handleFeatureRemove}
               propertyId={id}
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              regionName={property?.region_name || null}
+              onLocationChange={(lat, lng) => {
+                handleInputChange("latitude", lat);
+                handleInputChange("longitude", lng);
+              }}
             />
           </Suspense>
         </TabsContent>

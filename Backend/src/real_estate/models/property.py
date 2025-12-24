@@ -4,7 +4,7 @@ from django.contrib.postgres.indexes import GinIndex, BrinIndex
 from django.contrib.postgres.search import SearchVectorField
 from src.core.models import BaseModel
 from src.real_estate.models.seo import SEOMixin
-from src.real_estate.models.location import Country, Province, City, District
+from src.real_estate.models.location import Country, Province, City, Region, District
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.state import PropertyState
 from src.real_estate.models.label import PropertyLabel
@@ -106,7 +106,7 @@ class Property(BaseModel, SEOMixin):
         related_name='properties',
         db_index=True,
         verbose_name="District",
-        help_text="District or neighborhood"
+        help_text="District or neighborhood (can be selected via map)"
     )
     city = models.ForeignKey(
         City,
@@ -114,7 +114,7 @@ class Property(BaseModel, SEOMixin):
         related_name='real_estate_properties',
         db_index=True,
         verbose_name="City",
-        help_text="City where property is located"
+        help_text="City where property is located (denormalized for performance)"
     )
     province = models.ForeignKey(
         Province,
@@ -148,16 +148,18 @@ class Property(BaseModel, SEOMixin):
         decimal_places=8,
         null=True,
         blank=True,
+        db_index=True,
         verbose_name="Latitude",
-        help_text="Geographic latitude"
+        help_text="Geographic latitude (for map selection and reverse geocoding)"
     )
     longitude = models.DecimalField(
         max_digits=11,
         decimal_places=8,
         null=True,
         blank=True,
+        db_index=True,
         verbose_name="Longitude",
-        help_text="Geographic longitude"
+        help_text="Geographic longitude (for map selection and reverse geocoding)"
     )
     
     price = models.BigIntegerField(
@@ -595,7 +597,8 @@ class Property(BaseModel, SEOMixin):
         
         # Auto-populate location (denormalization)
         if self.district_id and not self.city_id:
-            self.city = self.district.city
+            # District now belongs to Region, Region belongs to City
+            self.city = self.district.region.city
         if self.city_id and not self.province_id:
             self.province = self.city.province
         if self.province_id and not self.country_id:

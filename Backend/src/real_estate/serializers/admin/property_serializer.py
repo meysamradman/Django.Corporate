@@ -11,6 +11,7 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
+from src.real_estate.models.location import City, Province, Country
 from src.real_estate.utils.cache import PropertyCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 
@@ -129,6 +130,7 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
     city_name = serializers.SerializerMethodField()
     province_name = serializers.SerializerMethodField()
     district_name = serializers.SerializerMethodField()
+    region_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Property
@@ -138,7 +140,7 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'labels_count', 'tags_count', 'features_count',
             'media_count', 'seo_status',
-            'city_name', 'province_name', 'district_name',
+            'city_name', 'province_name', 'district_name', 'region_name',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm', 'currency',
             'monthly_rent', 'rent_amount', 'mortgage_amount',
             'land_area', 'built_area',
@@ -228,6 +230,9 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
     
     def get_district_name(self, obj):
         return obj.district.name if obj.district else None
+    
+    def get_region_name(self, obj):
+        return obj.district.region.name if obj.district and obj.district.region else None
 
 
 class PropertyAdminDetailSerializer(serializers.ModelSerializer):
@@ -249,6 +254,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     city_name = serializers.SerializerMethodField()
     province_name = serializers.SerializerMethodField()
     district_name = serializers.SerializerMethodField()
+    region_name = serializers.SerializerMethodField()
     country_name = serializers.SerializerMethodField()
     
     class Meta:
@@ -259,7 +265,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'tags', 'features', 'media', 'property_media',
             'district', 'city', 'city_name', 'province', 'province_name',
-            'country', 'country_name', 'district_name',
+            'country', 'country_name', 'district_name', 'region_name',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm', 'currency', 'is_negotiable',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
@@ -419,6 +425,9 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     def get_district_name(self, obj):
         return obj.district.name if obj.district else None
     
+    def get_region_name(self, obj):
+        return obj.district.region.name if obj.district and obj.district.region else None
+    
     def get_country_name(self, obj):
         return obj.country.name if obj.country else None
 
@@ -445,6 +454,19 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         required=False
     )
     
+    city = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        help_text="City (auto-filled from district)"
+    )
+    province = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        help_text="Province (auto-filled from district)"
+    )
+    country = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        help_text="Country (auto-filled from district)"
+    )
+    
     class Meta:
         model = Property
         fields = [
@@ -463,6 +485,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'og_image', 'canonical_url', 'robots_meta',
             'labels_ids', 'tags_ids', 'features_ids',
         ]
+        read_only_fields = ['city', 'province', 'country']
     
     def validate(self, attrs):
         # Validate that at least one price field is provided
@@ -470,19 +493,14 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         if not any(attrs.get(field) for field in price_fields):
             raise serializers.ValidationError("حداقل یکی از فیلدهای قیمت باید پر شود.")
         
-        # Validate district-city-province-country consistency
+        # Auto-populate city, province, country from district (denormalization for performance)
+        # District -> Region -> City -> Province -> Country
         if attrs.get('district'):
-            if not attrs.get('city'):
-                attrs['city'] = attrs['district'].city
-            if not attrs.get('province'):
-                attrs['province'] = attrs['city'].province
-            if not attrs.get('country'):
-                from src.real_estate.models.location import Country
-                iran_country, _ = Country.objects.get_or_create(
-                    code='IRN',
-                    defaults={'name': 'Iran'}
-                )
-                attrs['country'] = iran_country
+            attrs['city'] = attrs['district'].region.city
+            attrs['province'] = attrs['district'].region.city.province
+            attrs['country'] = attrs['district'].region.city.province.country
+        elif not attrs.get('district'):
+            raise serializers.ValidationError("فیلد district الزامی است.")
         
         return attrs
 
@@ -525,6 +543,33 @@ class PropertyAdminUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Mapping of media_id to cover_image_id for property-specific covers. Format: {media_id: cover_image_id}"
     )
+    region_name = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        help_text="Region name to create if district doesn't exist (used with district_name and latitude/longitude)"
+    )
+    district_name = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        help_text="District name to create if district doesn't exist (used with region_name and latitude/longitude)"
+    )
+    
+    city = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        help_text="City (auto-filled from district)"
+    )
+    province = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        help_text="Province (auto-filled from district)"
+    )
+    country = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        help_text="Country (auto-filled from district)"
+    )
     
     class Meta:
         model = Property
@@ -543,22 +588,107 @@ class PropertyAdminUpdateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'labels_ids', 'tags_ids', 'features_ids', 'media_ids', 'main_image_id', 'media_covers',
+            'region_name', 'district_name',
         ]
     
     def validate(self, attrs):
-        # Validate district-city-province-country consistency if district is updated
-        if attrs.get('district'):
-            if not attrs.get('city'):
-                attrs['city'] = attrs['district'].city
-            if not attrs.get('province'):
-                attrs['province'] = attrs['city'].province
-            if not attrs.get('country'):
-                from src.real_estate.models.location import Country
-                iran_country, _ = Country.objects.get_or_create(
-                    code='IRN',
-                    defaults={'name': 'Iran'}
-                )
-                attrs['country'] = iran_country
+        # Auto-populate city, province, country from district
+        # Priority: 1) district from request, 2) create district from region_name/district_name, 3) existing district from instance
+        # District is required - must be selected via map
+        
+        district = None
+        region_name = attrs.get('region_name')
+        district_name = attrs.get('district_name')
+        latitude = attrs.get('latitude')
+        longitude = attrs.get('longitude')
+        
+        # Check if district is provided in the request (and not None)
+        if 'district' in attrs and attrs['district'] is not None:
+            district = attrs['district']
+        # If district is not provided but region_name and district_name are provided, create district
+        elif region_name and district_name and latitude and longitude:
+            # باید city را از instance بگیریم یا از attrs
+            city = None
+            if self.instance and self.instance.pk:
+                city = self.instance.city
+            elif 'city' in attrs and attrs['city']:
+                from src.real_estate.models.location import City
+                try:
+                    city = City.objects.get(id=attrs['city'], is_active=True)
+                except City.DoesNotExist:
+                    pass
+            
+            if not city:
+                raise serializers.ValidationError({
+                    'city': 'شهر باید مشخص باشد تا محله ایجاد شود.'
+                })
+            
+            # ایجاد یا پیدا کردن region و district
+            from src.real_estate.models.location import Region, District
+            from decimal import Decimal, ROUND_DOWN
+            
+            # محدود کردن lat/lng به 8 رقم اعشار
+            lat_rounded = Decimal(str(latitude)).quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+            lng_rounded = Decimal(str(longitude)).quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+            
+            # ایجاد یا پیدا کردن region
+            region, region_created = Region.objects.get_or_create(
+                city=city,
+                name=region_name,
+                defaults={
+                    'is_active': True,
+                    'latitude': lat_rounded,
+                    'longitude': lng_rounded
+                }
+            )
+            
+            # ایجاد یا پیدا کردن district
+            district, district_created = District.objects.get_or_create(
+                region=region,
+                name=district_name,
+                defaults={
+                    'is_active': True,
+                    'latitude': lat_rounded,
+                    'longitude': lng_rounded
+                }
+            )
+        # If district is not provided in request, use existing district from instance
+        elif self.instance and self.instance.pk:
+            # Refresh from DB with select_related to ensure we have latest data
+            try:
+                from src.real_estate.models.property import Property
+                instance_with_district = Property.objects.select_related(
+                    'district__region__city__province__country'
+                ).get(pk=self.instance.pk)
+                district = instance_with_district.district
+            except Exception:
+                # Fallback: try to get district directly
+                try:
+                    district = self.instance.district
+                except Exception:
+                    pass
+        
+        # District is required - if we don't have one, raise error
+        if not district:
+            raise serializers.ValidationError({
+                'district': 'محله باید با نقشه انتخاب شود یا region_name و district_name باید ارسال شوند.'
+            })
+        
+        # Remove city, province, country, region_name, district_name from attrs (they are read_only or write_only)
+        attrs.pop('city', None)
+        attrs.pop('province', None)
+        attrs.pop('country', None)
+        attrs.pop('region_name', None)
+        attrs.pop('district_name', None)
+        
+        # Populate city, province, country from district
+        # District -> Region -> City -> Province -> Country
+        attrs['city'] = district.region.city
+        attrs['province'] = district.region.city.province
+        attrs['country'] = district.region.city.province.country
+        
+        # Ensure district is set in attrs
+        attrs['district'] = district
         
         return attrs
 

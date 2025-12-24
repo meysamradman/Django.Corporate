@@ -7,6 +7,7 @@ import type { PropertyFeature } from "@/types/real_estate/feature/propertyFeatur
 import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
 import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
+import type { RealEstateProvince, RealEstateCity, RealEstateDistrict } from "@/types/real_estate/location";
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
 import { convertToLimitOffset } from '@/core/utils/pagination';
 import type { PropertyListParams } from "@/types/real_estate/propertyListParams";
@@ -621,7 +622,7 @@ export const realEstateApi = {
     await api.delete('/admin/property-agent/' + id + '/');
   },
 
-  getAgencies: async (params?: { page?: number; size?: number; is_active?: boolean; is_verified?: boolean; city?: number; manager?: number }): Promise<PaginatedResponse<RealEstateAgency>> => {
+  getAgencies: async (params?: { page?: number; size?: number; is_active?: boolean; is_verified?: boolean; city?: number }): Promise<PaginatedResponse<RealEstateAgency>> => {
     let url = '/admin/real-estate-agency/';
     if (params) {
       const queryParams = new URLSearchParams();
@@ -697,6 +698,35 @@ export const realEstateApi = {
   exportProperties: async (filters?: PropertyListParams, format: 'excel' | 'pdf' = 'excel'): Promise<void> => {
     const { exportProperties } = await import('./export');
     return exportProperties(filters, format);
+  },
+
+  // Real Estate Location APIs
+  getProvinces: async (): Promise<RealEstateProvince[]> => {
+    const response = await api.get<RealEstateProvince[]>('/admin/real-estate-provinces/');
+    return response.data || [];
+  },
+
+  getProvinceCities: async (provinceId: number): Promise<RealEstateCity[]> => {
+    const response = await api.get<RealEstateCity[]>(`/admin/real-estate-provinces/${provinceId}/cities/`);
+    return response.data || [];
+  },
+
+  getCityDistricts: async (cityId: number): Promise<RealEstateDistrict[]> => {
+    const response = await api.get<RealEstateDistrict[]>(`/admin/real-estate-districts/?city_id=${cityId}`);
+    return response.data || [];
+  },
+
+  reverseGeocode: async (latitude: number, longitude: number, cityId?: number, regionName?: string, districtName?: string): Promise<any> => {
+    const params = new URLSearchParams({
+      latitude: String(latitude),
+      longitude: String(longitude),
+    });
+    if (cityId) params.append('city_id', String(cityId));
+    if (regionName) params.append('region_name', regionName);
+    if (districtName) params.append('district_name', districtName);
+    
+    const response = await api.get(`/admin/real-estate-districts/reverse-geocode/?${params.toString()}`);
+    return response.data;
   },
 };
 

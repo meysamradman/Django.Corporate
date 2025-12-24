@@ -25,8 +25,7 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
-from src.real_estate.models.location import Country, District
-from src.user.models.location import City, Province
+from src.real_estate.models.location import Country, Province, City, Region, District
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.real_estate.signals import update_property_search_vector
 
@@ -77,11 +76,12 @@ def get_or_create_defaults():
     
     country, _ = Country.objects.get_or_create(
         name="Iran",
-        defaults={'code': 'IR', 'is_active': True}
+        defaults={'code': 'IRN', 'is_active': True}
     )
     
     province, _ = Province.objects.get_or_create(
         name="Tehran",
+        country=country,
         defaults={'code': 'THR', 'is_active': True}
     )
     
@@ -91,9 +91,16 @@ def get_or_create_defaults():
         defaults={'code': '001', 'is_active': True}
     )
     
+    region, _ = Region.objects.get_or_create(
+        name="Region 1",
+        city=city,
+        defaults={'is_active': True}
+    )
+    
     district, _ = District.objects.get_or_create(
         name="District 1",
-        defaults={'city': city, 'is_active': True}
+        region=region,
+        defaults={'is_active': True}
     )
     
     property_type, _ = PropertyType.objects.get_or_create(

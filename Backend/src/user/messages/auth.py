@@ -1,4 +1,4 @@
-PROTECTED_ADMIN_ID = None
+PROTECTED_ADMIN_ID = 1
 
 AUTH_SUCCESS = {
     "auth_created": "ورود احراز هویت با موفقیت ایجاد شد",
