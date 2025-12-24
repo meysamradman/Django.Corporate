@@ -12,17 +12,16 @@ import { showSuccess, showError } from '@/core/toast';
 import {
   CheckCircle2,
   XCircle,
-  Star,
   Hash,
   Link as LinkIcon,
   Clock,
-  FileText,
   Zap,
   User,
   Phone,
   Mail,
   MapPin,
   Building2,
+  Briefcase,
 } from "lucide-react";
 
 interface AgentSidebarProps {
@@ -148,7 +147,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 <div className="flex items-center justify-between gap-3 pb-3">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-font-s flex-shrink-0" />
-                    <label>نام:</label>
+                    <label>مشاور:</label>
                   </div>
                   <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
                     <TruncatedText
@@ -158,6 +157,38 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                     />
                   </div>
                 </div>
+
+                {agent.agency && (
+                  <div className="flex items-center justify-between gap-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <label>آژانس:</label>
+                    </div>
+                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                      <TruncatedText
+                        text={agent.agency.name}
+                        maxLength={35}
+                        className="text-font-p"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {agent.specialization && (
+                  <div className="flex items-center justify-between gap-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <label>نوع:</label>
+                    </div>
+                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                      <TruncatedText
+                        text={agent.specialization}
+                        maxLength={35}
+                        className="text-font-p"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {agent.phone && (
                   <div className="flex items-center justify-between gap-3 py-3">
@@ -180,22 +211,6 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                     <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
                       <TruncatedText
                         text={agent.email}
-                        maxLength={35}
-                        className="text-font-p"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {agent.agency && (
-                  <div className="flex items-center justify-between gap-3 py-3">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-font-s flex-shrink-0" />
-                      <label>آژانس:</label>
-                    </div>
-                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                      <TruncatedText
-                        text={agent.agency.name}
                         maxLength={35}
                         className="text-font-p"
                       />

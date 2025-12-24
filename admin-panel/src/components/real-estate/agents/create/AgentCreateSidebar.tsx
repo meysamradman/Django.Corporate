@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   XCircle,
   User,
+  Building2,
+  Briefcase,
 } from "lucide-react";
 
 interface AgentCreateSidebarProps {
@@ -79,11 +81,39 @@ export function AgentCreateSidebar({ formData }: AgentCreateSidebarProps) {
                     <div className="flex items-center justify-between gap-3 pb-3">
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-font-s flex-shrink-0" />
-                        <label>نام:</label>
+                        <label>مشاور:</label>
                       </div>
                       <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
                         <p className="text-font-p truncate">
                           {fullName}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.agency && (
+                    <div className="flex items-center justify-between gap-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-font-s flex-shrink-0" />
+                        <label>آژانس:</label>
+                      </div>
+                      <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                        <p className="text-font-p truncate">
+                          {typeof formData.agency === 'object' ? formData.agency.name : formData.agency}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.specialization && (
+                    <div className="flex items-center justify-between gap-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-font-s flex-shrink-0" />
+                        <label>نوع:</label>
+                      </div>
+                      <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                        <p className="text-font-p truncate">
+                          {formData.specialization}
                         </p>
                       </div>
                     </div>
