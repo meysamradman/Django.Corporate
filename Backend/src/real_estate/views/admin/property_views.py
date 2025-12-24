@@ -483,11 +483,6 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
         
         stats = PropertyAdminService.get_property_statistics()
         
-        recent_properties = Property.objects.for_admin_listing()[:5]
-        recent_serializer = PropertyAdminListSerializer(recent_properties, many=True)
-        
-        stats['recent_properties'] = recent_serializer.data
-        
         return APIResponse.success(
             message=PROPERTY_SUCCESS["property_statistics_retrieved"],
             data=stats,

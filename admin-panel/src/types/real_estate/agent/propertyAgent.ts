@@ -32,6 +32,7 @@ export interface PropertyAgent extends Base {
   rating?: number | null;
   total_sales?: number;
   total_reviews?: number;
+  property_count?: number;
   
   seo?: PropertySEOMeta | null;
   meta_title?: string | null;

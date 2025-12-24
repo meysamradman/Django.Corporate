@@ -296,28 +296,16 @@ class PropertyAdminService:
     
     @staticmethod
     def get_property_statistics():
-        cache_key = PropertyCacheKeys.statistics()
-        cached_stats = cache.get(cache_key)
-        if cached_stats:
-            return cached_stats
+        """استفاده از PropertyStatisticsService برای آمار"""
+        from src.real_estate.services.admin.property_statistics_service import PropertyStatisticsService
+        stats = PropertyStatisticsService.get_statistics()
         
-        total = Property.objects.count()
-        published = Property.objects.filter(is_published=True, is_public=True).count()
-        draft = Property.objects.filter(is_published=False).count()
-        featured = Property.objects.filter(is_featured=True).count()
-        verified = Property.objects.filter(is_verified=True).count()
+        # اضافه کردن recent_properties برای backward compatibility
+        recent_properties = Property.objects.for_admin_listing()[:5]
+        from src.real_estate.serializers.admin.property_serializer import PropertyAdminListSerializer
+        recent_serializer = PropertyAdminListSerializer(recent_properties, many=True)
+        stats['recent_properties'] = recent_serializer.data
         
-        stats = {
-            'total': total,
-            'published': published,
-            'draft': draft,
-            'featured': featured,
-            'verified': verified,
-            'published_percentage': round((published / total * 100) if total > 0 else 0, 1),
-            'featured_percentage': round((featured / total * 100) if total > 0 else 0, 1),
-        }
-        
-        cache.set(cache_key, stats, 600)
         return stats
     
     @staticmethod

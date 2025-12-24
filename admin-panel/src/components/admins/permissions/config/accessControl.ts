@@ -406,6 +406,13 @@ const portfolioRoutes: RouteRule[] = [
 
 const realEstateRoutes: RouteRule[] = [
   createRule({
+    id: "property-statistics",
+    pattern: /^\/real-estate\/statistics\/?$/,
+    module: MODULES.REAL_ESTATE,
+    action: "read",
+    description: "آمار املاک",
+  }),
+  createRule({
     id: "property-list",
     pattern: /^\/real-estate\/properties\/?$/,
     module: MODULES.REAL_ESTATE,

@@ -1,20 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
-import { Button } from "@/components/elements/Button";
-import { Badge } from "@/components/elements/Badge";
+import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { PaginationControls } from "@/components/shared/Pagination";
-import { Plus, Search, Phone, Mail, Award, Calendar, Edit, Trash2, Eye, Star, Loader2 } from "lucide-react";
-import { formatDate } from "@/core/utils/format";
+import { Plus, Search, Phone, Mail, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
 import { mediaService } from "@/components/media/services";
 import { ProtectedButton } from "@/components/admins/permissions";
+import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 
 export default function AdvisorsListPage() {
   const navigate = useNavigate();
@@ -56,7 +53,14 @@ export default function AdvisorsListPage() {
 
   const getInitial = (agent: PropertyAgent) => {
     if (agent.full_name) {
+      const parts = agent.full_name.split(" ");
+      if (parts.length >= 2) {
+        return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+      }
       return agent.full_name.charAt(0).toUpperCase();
+    }
+    if (agent.first_name && agent.last_name) {
+      return `${agent.first_name.charAt(0)}${agent.last_name.charAt(0)}`.toUpperCase();
     }
     if (agent.first_name) {
       return agent.first_name.charAt(0).toUpperCase();
@@ -71,15 +75,32 @@ export default function AdvisorsListPage() {
     return null;
   };
 
+  const actions: CardItemAction<PropertyAgent>[] = useMemo(() => [
+    {
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (agent) => navigate(`/real-estate/agents/${agent.id}/view`),
+    },
+    {
+      label: "ویرایش",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: (agent) => navigate(`/real-estate/agents/${agent.id}/edit`),
+    },
+    {
+      label: "حذف",
+      icon: <Trash2 className="h-4 w-4" />,
+      onClick: (agent) => console.log("حذف:", agent.id),
+      isDestructive: true,
+    },
+  ], [navigate]);
+
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت مشاورین املاک">
         <ProtectedButton 
           permission="property_agent.create"
           size="sm"
-          onClick={() => {
-            console.log("افزودن مشاور جدید");
-          }}
+          onClick={() => navigate("/real-estate/agents/create")}
         >
           <Plus className="h-4 w-4" />
           افزودن مشاور
@@ -159,119 +180,71 @@ export default function AdvisorsListPage() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {advisors.map((advisor) => {
               const imageUrl = getImageUrl(advisor);
               const initial = getInitial(advisor);
               const fullName = advisor.full_name || `${advisor.first_name} ${advisor.last_name}`.trim();
 
               return (
-                <Card 
+                <CardItem
                   key={advisor.id}
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/real-estate/advisors/${advisor.id}/view`)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          {imageUrl ? (
-                            <AvatarImage src={imageUrl} alt={fullName} />
-                          ) : (
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
-                              {initial}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            {fullName}
-                            {advisor.is_verified && (
-                              <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
-                            )}
-                          </CardTitle>
-                          <div className="flex gap-2 mt-1">
-                            <Badge variant={advisor.is_active ? "green" : "red"}>
-                              {advisor.is_active ? "فعال" : "غیرفعال"}
-                            </Badge>
-                            {advisor.is_verified && (
-                              <Badge variant="orange">تایید شده</Badge>
-                            )}
-                          </div>
+                  item={advisor}
+                  avatar={{
+                    src: imageUrl || undefined,
+                    fallback: initial,
+                    alt: fullName,
+                  }}
+                  title={fullName}
+                  status={{
+                    label: advisor.is_active ? "فعال" : "غیرفعال",
+                    variant: advisor.is_active ? "green" : "red",
+                  }}
+                  actions={actions}
+                  content={
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      {advisor.specialization && (
+                        <div className="text-right">
+                          <p className="text-xs text-font-s mb-1">تخصص</p>
+                          <p className="text-sm font-medium text-font-p">{advisor.specialization}</p>
                         </div>
-                      </div>
+                      )}
+                      {advisor.city_name && (
+                        <div className="text-left">
+                          <p className="text-xs text-font-s mb-1">شهر</p>
+                          <p className="text-sm font-medium text-font-p">{advisor.city_name}</p>
+                        </div>
+                      )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {advisor.phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{advisor.phone}</span>
-                      </div>
-                    )}
-                    {advisor.email && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground truncate">{advisor.email}</span>
-                      </div>
-                    )}
-                    {advisor.license_number && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Award className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">پروانه: {advisor.license_number}</span>
-                      </div>
-                    )}
-                    {advisor.experience_years && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {advisor.experience_years} سال سابقه کار
-                        </span>
-                      </div>
-                    )}
-                    {advisor.city_name && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">شهر: {advisor.city_name}</span>
-                      </div>
-                    )}
-                    <div className="pt-3 border-t flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/real-estate/agents/${advisor.id}/view`);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                        مشاهده
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/real-estate/agents/${advisor.id}/edit`);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                        ویرایش
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log("حذف:", advisor.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  }
+                  footer={
+                    <>
+                      {advisor.phone ? (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Phone className="size-4 shrink-0" />
+                          <span dir="ltr">{advisor.phone}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Phone className="size-4 shrink-0" />
+                          <span>-</span>
+                        </div>
+                      )}
+                      {advisor.email ? (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Mail className="size-4 shrink-0" />
+                          <span className="truncate" dir="ltr">{advisor.email}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Mail className="size-4 shrink-0" />
+                          <span>وارد نشده</span>
+                        </div>
+                      )}
+                    </>
+                  }
+                  onClick={(agent) => navigate(`/real-estate/agents/${agent.id}/view`)}
+                />
               );
             })}
           </div>

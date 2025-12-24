@@ -146,42 +146,62 @@ export function AgentOverviewTab({ agent }: AgentOverviewTabProps) {
           </CardWithIcon>
         )}
 
-        {(agent.rating || agent.total_sales || agent.total_reviews) && (
-          <CardWithIcon
-            icon={Star}
-            title="آمار و امتیاز"
-            iconBgColor="bg-orange"
-            iconColor="stroke-orange-2"
-            borderColor="border-b-orange-1"
-            headerClassName="pb-3"
-          >
-            <div className="space-y-4">
-              {agent.rating != null && !isNaN(Number(agent.rating)) && (
-                <div className="space-y-2">
-                  <label className="text-font-s">امتیاز:</label>
-                  <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 fill-orange-2 stroke-orange-2" />
-                    <span className="text-font-p font-medium">
-                      {typeof agent.rating === 'number' ? agent.rating.toFixed(1) : Number(agent.rating).toFixed(1)}
-                    </span>
-                  </div>
+        <CardWithIcon
+          icon={Star}
+          title="آمار و عملکرد"
+          iconBgColor="bg-orange"
+          iconColor="stroke-orange-2"
+          borderColor="border-b-orange-1"
+          headerClassName="pb-3"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            {agent.total_sales !== undefined && (
+              <div className="space-y-2">
+                <label className="text-font-s text-muted-foreground">تعداد فروش:</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-orange-2">
+                    {agent.total_sales}
+                  </span>
+                  <span className="text-font-s text-muted-foreground">مورد</span>
                 </div>
-              )}
-              {agent.total_sales !== undefined && (
-                <div className="space-y-2">
-                  <label className="text-font-s">تعداد فروش:</label>
-                  <Badge variant="orange">{agent.total_sales} مورد</Badge>
+              </div>
+            )}
+            {agent.property_count !== undefined && (
+              <div className="space-y-2">
+                <label className="text-font-s text-muted-foreground">تعداد املاک:</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-orange-2">
+                    {agent.property_count}
+                  </span>
+                  <span className="text-font-s text-muted-foreground">مورد</span>
                 </div>
-              )}
-              {agent.total_reviews !== undefined && (
-                <div className="space-y-2">
-                  <label className="text-font-s">تعداد نظرات:</label>
-                  <Badge variant="orange">{agent.total_reviews} مورد</Badge>
+              </div>
+            )}
+            {agent.rating != null && !isNaN(Number(agent.rating)) && (
+              <div className="space-y-2">
+                <label className="text-font-s text-muted-foreground">امتیاز:</label>
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 fill-orange-2 stroke-orange-2" />
+                  <span className="text-2xl font-bold text-orange-2">
+                    {typeof agent.rating === 'number' ? agent.rating.toFixed(1) : Number(agent.rating).toFixed(1)}
+                  </span>
+                  <span className="text-font-s text-muted-foreground">از 5</span>
                 </div>
-              )}
-            </div>
-          </CardWithIcon>
-        )}
+              </div>
+            )}
+            {agent.total_reviews !== undefined && (
+              <div className="space-y-2">
+                <label className="text-font-s text-muted-foreground">تعداد نظرات:</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-orange-2">
+                    {agent.total_reviews}
+                  </span>
+                  <span className="text-font-s text-muted-foreground">مورد</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardWithIcon>
       </div>
     </TabsContent>
   );

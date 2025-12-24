@@ -1,20 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
-import { Button } from "@/components/elements/Button";
-import { Badge } from "@/components/elements/Badge";
+import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { PaginationControls } from "@/components/shared/Pagination";
-import { Plus, Search, Phone, Mail, Award, Calendar, Edit, Trash2, Eye, Star, Loader2, MapPin, Building2 } from "lucide-react";
-import { formatDate } from "@/core/utils/format";
+import { Plus, Search, Phone, Mail, Edit, Trash2, Eye, Loader2, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import { mediaService } from "@/components/media/services";
 import { ProtectedButton } from "@/components/admins/permissions";
+import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 
 export default function AgenciesListPage() {
   const navigate = useNavigate();
@@ -56,6 +53,10 @@ export default function AgenciesListPage() {
 
   const getInitial = (agency: RealEstateAgency) => {
     if (agency.name) {
+      const parts = agency.name.split(" ");
+      if (parts.length >= 2) {
+        return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+      }
       return agency.name.charAt(0).toUpperCase();
     }
     return "؟";
@@ -68,15 +69,32 @@ export default function AgenciesListPage() {
     return null;
   };
 
+  const actions: CardItemAction<RealEstateAgency>[] = useMemo(() => [
+    {
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (agency) => navigate(`/real-estate/agencies/${agency.id}/view`),
+    },
+    {
+      label: "ویرایش",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: (agency) => navigate(`/real-estate/agencies/${agency.id}/edit`),
+    },
+    {
+      label: "حذف",
+      icon: <Trash2 className="h-4 w-4" />,
+      onClick: (agency) => console.log("حذف:", agency.id),
+      isDestructive: true,
+    },
+  ], [navigate]);
+
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت آژانس‌های املاک">
         <ProtectedButton 
           permission="real_estate_agency.create"
           size="sm"
-          onClick={() => {
-            console.log("افزودن آژانس جدید");
-          }}
+          onClick={() => navigate("/real-estate/agencies/create")}
         >
           <Plus className="h-4 w-4" />
           افزودن آژانس
@@ -156,122 +174,76 @@ export default function AgenciesListPage() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {agencies.map((agency) => {
               const imageUrl = getImageUrl(agency);
               const initial = getInitial(agency);
 
               return (
-                <Card 
+                <CardItem
                   key={agency.id}
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/real-estate/agencies/${agency.id}/view`)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          {imageUrl ? (
-                            <AvatarImage src={imageUrl} alt={agency.name} />
-                          ) : (
-                            <AvatarFallback className="bg-gradient-to-br from-green-500 to-teal-600 text-white text-lg">
-                              {initial}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            {agency.name}
-                            {agency.is_verified && (
-                              <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
-                            )}
-                          </CardTitle>
-                          <div className="flex gap-2 mt-1">
-                            <Badge variant={agency.is_active ? "green" : "red"}>
-                              {agency.is_active ? "فعال" : "غیرفعال"}
-                            </Badge>
-                            {agency.is_verified && (
-                              <Badge variant="orange">تایید شده</Badge>
-                            )}
-                            {agency.rating && (
-                              <Badge variant="blue">
-                                ⭐ {agency.rating.toFixed(1)}
-                              </Badge>
-                            )}
-                          </div>
+                  item={agency}
+                  avatar={{
+                    src: imageUrl || undefined,
+                    fallback: initial,
+                    alt: agency.name,
+                  }}
+                  title={agency.name}
+                  status={{
+                    label: agency.is_active ? "فعال" : "غیرفعال",
+                    variant: agency.is_active ? "green" : "red",
+                  }}
+                  actions={actions}
+                  content={
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      {agency.city_name && (
+                        <div className="text-right">
+                          <p className="text-xs text-font-s mb-1">شهر</p>
+                          <p className="text-sm font-medium text-font-p">{agency.city_name}</p>
                         </div>
-                      </div>
+                      )}
+                      {agency.rating && (
+                        <div className="text-left">
+                          <p className="text-xs text-font-s mb-1">امتیاز</p>
+                          <p className="text-sm font-medium text-font-p">⭐ {agency.rating.toFixed(1)}</p>
+                        </div>
+                      )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {agency.phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{agency.phone}</span>
-                      </div>
-                    )}
-                    {agency.email && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground truncate">{agency.email}</span>
-                      </div>
-                    )}
-                    {agency.address && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <span className="text-muted-foreground line-clamp-2">{agency.address}</span>
-                      </div>
-                    )}
-                    {agency.license_number && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Award className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">پروانه: {agency.license_number}</span>
-                      </div>
-                    )}
-                    {agency.city_name && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">شهر: {agency.city_name}</span>
-                      </div>
-                    )}
-                    <div className="pt-3 border-t flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/real-estate/agencies/${agency.id}/view`);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                        مشاهده
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/real-estate/agencies/${agency.id}/edit`);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                        ویرایش
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log("حذف:", agency.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  }
+                  footer={
+                    <>
+                      {agency.phone ? (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Phone className="size-4 shrink-0" />
+                          <span dir="ltr">{agency.phone}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Phone className="size-4 shrink-0" />
+                          <span>-</span>
+                        </div>
+                      )}
+                      {agency.email ? (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Mail className="size-4 shrink-0" />
+                          <span className="truncate" dir="ltr">{agency.email}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Mail className="size-4 shrink-0" />
+                          <span>وارد نشده</span>
+                        </div>
+                      )}
+                      {agency.address && (
+                        <div className="flex items-start gap-2 text-sm text-font-s">
+                          <MapPin className="size-4 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">{agency.address}</span>
+                        </div>
+                      )}
+                    </>
+                  }
+                  onClick={(agency) => navigate(`/real-estate/agencies/${agency.id}/view`)}
+                />
               );
             })}
           </div>

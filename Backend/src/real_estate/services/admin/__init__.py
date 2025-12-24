@@ -2,6 +2,7 @@ from .property_services import (
     PropertyAdminService,
     PropertyAdminStatusService,
 )
+from .property_statistics_service import PropertyStatisticsService
 from .property_seo_services import PropertyAdminSEOService
 from .property_media_services import PropertyAdminMediaService
 from .type_services import PropertyTypeAdminService
@@ -17,6 +18,7 @@ from .pdf_list_export_service import PropertyPDFListExportService
 __all__ = [
     'PropertyAdminService',
     'PropertyAdminStatusService',
+    'PropertyStatisticsService',
     'PropertyAdminSEOService',
     'PropertyAdminMediaService',
     'PropertyTypeAdminService',

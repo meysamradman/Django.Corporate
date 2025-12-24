@@ -312,12 +312,14 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         url: "/analytics",
         access: {
           module: "analytics",
+          fallbackModules: ["real_estate"],
           actions: ["manage"],
           allowReadOnly: true,
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "گزارش آماری", url: "/analytics", icon: BarChart3 },
+          { title: "گزارش آماری", url: "/analytics", icon: BarChart3, access: { module: "analytics", allowReadOnly: true } },
+          { title: "آمار املاک", url: "/real-estate/statistics", icon: Building2, access: { module: "real_estate", allowReadOnly: true } },
         ]
       },
     ]

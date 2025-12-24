@@ -94,6 +94,7 @@ import AgentCreatePage from './pages/real-estate/agents/create/page';
 import AgencyViewPage from './pages/real-estate/agencies/[id]/view/page';
 import AgencyEditPage from './pages/real-estate/agencies/[id]/edit/page';
 import AgencyCreatePage from './pages/real-estate/agencies/create/page';
+import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 
 import RealEstateStaticPage from './pages/Staticstyle/realstate/page';
 import RealEstateListPage from './pages/Staticstyle/realstate/list/page';
@@ -204,6 +205,7 @@ function App() {
                     <Route path="terms" element={<PageTerms />} />
                   </Route>
                   <Route path="real-estate">
+                    <Route path="statistics" element={<RealEstateStatisticsPage />} />
                     <Route path="properties">
                       <Route index element={<PropertiesPage />} />
                       {/* <Route path="create" element={<PropertiesCreatePage />} /> */}

@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
-import type { DataTableRowAction } from "@/types/shared/table";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
 import { Edit, Trash2, Plus, Search } from "lucide-react";
@@ -16,7 +15,11 @@ import type { SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { AdminCard } from "@/components/admins/AdminCard";
+import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
+import { mediaService } from "@/components/media/services";
+import { formatDate } from "@/core/utils/format";
+import { Mail, Phone } from "lucide-react";
+import { getPermissionTranslation } from "@/core/messages/permissions";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Loader } from "@/components/elements/Loader";
 import { DataTableSelectFilter } from "@/components/tables/DataTableSelectFilter";
@@ -160,7 +163,7 @@ export default function AdminsPage() {
   const isSuperAdmin = user?.is_superuser || false;
 
   const actions = useMemo(() => {
-    const adminActions: DataTableRowAction<AdminWithProfile>[] = [];
+    const adminActions: CardItemAction<AdminWithProfile>[] = [];
     
     adminActions.push({
       label: "ویرایش",
@@ -185,6 +188,49 @@ export default function AdminsPage() {
     
     return adminActions;
   }, [navigate, currentUserId, isSuperAdmin]);
+
+  const getAdminFullName = (admin: AdminWithProfile) => {
+    const profile = admin.profile;
+    return admin.full_name || 
+           `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+           admin.email || 
+           admin.mobile || 
+           '';
+  };
+
+  const getAdminInitial = (admin: AdminWithProfile) => {
+    const profile = admin.profile;
+    const firstName = profile?.first_name || "";
+    const lastName = profile?.last_name || "";
+    return (!firstName && !lastName) ? "؟" : `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const getAdminAvatarUrl = (admin: AdminWithProfile) => {
+    const profile = admin.profile;
+    return profile?.profile_picture 
+      ? mediaService.getMediaUrlFromObject(profile.profile_picture)
+      : null;
+  };
+
+  const getAdminRoleDisplay = (admin: AdminWithProfile) => {
+    if (admin.is_superuser) {
+      return getPermissionTranslation('super_admin', 'role') || "سوپر ادمین";
+    }
+    const roles = admin.roles || [];
+    if (roles.length > 0) {
+      const roleNames = roles.map((role: any) => {
+        if (typeof role === 'string') {
+          return getPermissionTranslation(role, 'role') || role;
+        }
+        if (role.is_system_role) {
+          return getPermissionTranslation(role.name, 'role') || role.display_name || role.name;
+        }
+        return role.display_name || role.name;
+      });
+      return roleNames.join(", ");
+    }
+    return null;
+  };
 
   const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
     if (filterId === "search") {
@@ -350,9 +396,70 @@ export default function AdminsPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {data.map((admin) => (
-              <AdminCard key={admin.id} admin={admin} actions={actions} />
-            ))}
+            {data.map((admin) => {
+              const fullName = getAdminFullName(admin);
+              const initial = getAdminInitial(admin);
+              const avatarUrl = getAdminAvatarUrl(admin);
+              const roleDisplay = getAdminRoleDisplay(admin);
+              const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
+
+              return (
+                <CardItem
+                  key={admin.id}
+                  item={admin}
+                  avatar={{
+                    src: avatarUrl || undefined,
+                    fallback: initial,
+                    alt: fullName,
+                  }}
+                  title={fullName}
+                  status={{
+                    label: admin.is_active ? "فعال" : "مرخصی",
+                    variant: admin.is_active ? "green" : "red",
+                  }}
+                  actions={actions}
+                  content={
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div className="text-right">
+                        <p className="text-xs text-font-s mb-1">نقش</p>
+                        <p className="text-sm font-medium text-font-p">{roleDisplay || "بدون نقش"}</p>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs text-font-s mb-1">تاریخ استخدام</p>
+                        <p className="text-sm font-medium text-font-p">{createdDate}</p>
+                      </div>
+                    </div>
+                  }
+                  footer={
+                    <>
+                      {admin.mobile ? (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Phone className="size-4 shrink-0" />
+                          <span dir="ltr">{admin.mobile}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Phone className="size-4 shrink-0" />
+                          <span>-</span>
+                        </div>
+                      )}
+                      {admin.email ? (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Mail className="size-4 shrink-0" />
+                          <span className="truncate" dir="ltr">{admin.email}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-font-s">
+                          <Mail className="size-4 shrink-0" />
+                          <span>وارد نشده</span>
+                        </div>
+                      )}
+                    </>
+                  }
+                  onClick={(admin) => navigate(`/admins/${admin.id}/edit`)}
+                />
+              );
+            })}
           </div>
 
           <PaginationControls
