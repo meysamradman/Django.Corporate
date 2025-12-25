@@ -15,10 +15,9 @@ export interface RealEstateCity extends Base {
     is_active: boolean;
 }
 
-export interface RealEstateDistrict extends Base {
+export interface RealEstateCityRegion extends Base {
     name: string;
-    region_id?: number;
-    region_name?: string;
+    code: number;
     city_id: number;
     city_name: string;
     province_id: number;

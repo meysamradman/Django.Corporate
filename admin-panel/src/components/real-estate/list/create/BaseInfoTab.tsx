@@ -6,7 +6,7 @@ import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { FolderOpen, Tag, X, Settings, FileText, MapPin } from "lucide-react";
+import { FolderOpen, Tag, X, Settings, FileText } from "lucide-react";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
@@ -16,9 +16,7 @@ import type { PropertyFeature } from "@/types/real_estate/feature/propertyFeatur
 import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
 import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
-import type { RealEstateProvince, RealEstateCity, RealEstateDistrict } from "@/types/real_estate/location";
 import { formatSlug, generateSlug } from '@/core/slug/generate';
-import PropertyLocationMap from "@/components/real-estate/PropertyLocationMap";
 
 interface BaseInfoTabProps {
     formData: any;
@@ -34,16 +32,12 @@ interface BaseInfoTabProps {
     onFeatureToggle: (feature: PropertyFeature) => void;
     onFeatureRemove: (featureId: number) => void;
     propertyId?: number | string;
-    latitude?: number | null;
-    longitude?: number | null;
-    onLocationChange?: (latitude: number | null, longitude: number | null) => void;
-    regionName?: string | null;
 }
 
 export default function BaseInfoTab(props: BaseInfoTabProps) {
     const { formData, handleInputChange, editMode, selectedLabels, selectedTags, selectedFeatures, 
             onLabelToggle, onLabelRemove, onTagToggle, onTagRemove, onFeatureToggle, onFeatureRemove, 
-            latitude, longitude, onLocationChange, regionName } = props;
+            } = props;
     
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
     const [propertyStates, setPropertyStates] = useState<PropertyState[]>([]);
@@ -52,10 +46,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [features, setFeatures] = useState<PropertyFeature[]>([]);
     const [agents, setAgents] = useState<PropertyAgent[]>([]);
     const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
-    const [provinces, setProvinces] = useState<RealEstateProvince[]>([]);
-    const [cities, setCities] = useState<RealEstateCity[]>([]);
-    const [districts, setDistricts] = useState<RealEstateDistrict[]>([]);
-    
+
+    // Location states
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [cities, setCities] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [cityRegions, setCityRegions] = useState<any[]>([]);
+
     const [loadingTypes, setLoadingTypes] = useState(true);
     const [loadingStates, setLoadingStates] = useState(true);
     const [loadingLabels, setLoadingLabels] = useState(true);
@@ -64,12 +61,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [loadingAgents, setLoadingAgents] = useState(true);
     const [loadingAgencies, setLoadingAgencies] = useState(true);
     const [loadingProvinces, setLoadingProvinces] = useState(true);
-    const [loadingCities, setLoadingCities] = useState(true);
+    const [loadingCities, setLoadingCities] = useState(false);
     const [loadingDistricts, setLoadingDistricts] = useState(false);
     // Note: loadingDistricts is kept for potential future use
     
     const selectedProvinceId = formData?.province;
     const selectedCityId = formData?.city;
+
+    // Extract city and province names for map component
 
     useEffect(() => {
         const fetchData = async () => {
@@ -177,19 +176,19 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         }
     }, []);
 
-    const fetchDistricts = useCallback(async (cityId: number | null) => {
+    const fetchCityRegions = useCallback(async (cityId: number | null) => {
         if (!cityId) {
-            setDistricts([]);
+            setCityRegions([]);
             return;
         }
-        
+
         setLoadingDistricts(true);
         try {
-            const districtsData = await realEstateApi.getCityDistricts(cityId);
-            setDistricts(districtsData);
+            const cityRegionsData = await realEstateApi.getCityRegions(cityId);
+            setCityRegions(cityRegionsData);
         } catch (error) {
-            console.error("Error fetching districts:", error);
-            setDistricts([]);
+            console.error("Error fetching city regions:", error);
+            setCityRegions([]);
         } finally {
             setLoadingDistricts(false);
         }
@@ -200,8 +199,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     }, [selectedProvinceId, fetchCities]);
 
     useEffect(() => {
-        fetchDistricts(selectedCityId);
-    }, [selectedCityId, fetchDistricts]);
+        fetchCityRegions(selectedCityId);
+    }, [selectedCityId, fetchCityRegions]);
 
     const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -242,32 +241,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         handleInputChange("agency", value && value !== "none" ? Number(value) : null);
     };
 
-    // Memoize handlers to prevent unnecessary re-renders
-    const handleProvinceChange = useCallback((value: string) => {
-        const provinceId = value ? Number(value) : null;
-        handleInputChange("province", provinceId);
-        handleInputChange("city", null);
-        handleInputChange("district", null);
-    }, [handleInputChange]);
-
-    const handleCityChange = useCallback((value: string) => {
-        const cityId = value ? Number(value) : null;
-        handleInputChange("city", cityId);
-        handleInputChange("district", null);
-    }, [handleInputChange]);
-
-    const handleDistrictChange = useCallback((value: string) => {
-        const districtId = value ? Number(value) : null;
-        handleInputChange("district", districtId);
-        // Auto-populate city and province from selected district (for display only)
-        if (districtId && districts.length > 0) {
-            const selectedDistrict = districts.find(d => d.id === districtId);
-            if (selectedDistrict) {
-                handleInputChange("city", selectedDistrict.city_id);
-                handleInputChange("province", selectedDistrict.province_id);
-            }
-        }
-    }, [handleInputChange, districts]);
 
     return (
         <TabsContent value="account" className="mt-0 space-y-6">
@@ -343,7 +316,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {propertyTypes.map((type) => (
+                                                    {(propertyTypes || []).map((type) => (
                                                         <SelectItem key={type.id} value={String(type.id)}>
                                                             {type.title}
                                                         </SelectItem>
@@ -363,13 +336,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             <SelectTrigger>
                                                 <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "وضعیت را انتخاب کنید"} />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                {propertyStates.map((state) => (
+                                                <SelectContent>
+                                                {(propertyStates || []).map((state) => (
                                                     <SelectItem key={state.id} value={String(state.id)}>
                                                         {state.title}
                                                     </SelectItem>
                                                 ))}
-                                            </SelectContent>
+                                                </SelectContent>
                                         </Select>
                                     </div>
                                 </div>
@@ -387,7 +360,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="none">هیچکدام</SelectItem>
-                                                {agents.map((agent) => (
+                                                {(agents || []).map((agent) => (
                                                     <SelectItem key={agent.id} value={String(agent.id)}>
                                                         {agent.first_name} {agent.last_name}
                                                     </SelectItem>
@@ -408,7 +381,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="none">هیچکدام</SelectItem>
-                                                {agencies.map((agency) => (
+                                                {(agencies || []).map((agency) => (
                                                     <SelectItem key={agency.id} value={String(agency.id)}>
                                                         {agency.name}
                                                     </SelectItem>
@@ -421,173 +394,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             </div>
                         </CardWithIcon>
 
-                        <CardWithIcon
-                            icon={MapPin}
-                            title="مکان و موقعیت"
-                            iconBgColor="bg-green"
-                            iconColor="stroke-green-2"
-                            borderColor="border-b-green-1"
-                        >
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label>استان <span className="text-xs text-muted-foreground">(برای فیلتر)</span></Label>
-                                        <Select
-                                            disabled={!editMode || loadingProvinces}
-                                            value={selectedProvinceId ? String(selectedProvinceId) : ""}
-                                            onValueChange={handleProvinceChange}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "استان را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {provinces.map((province) => (
-                                                    <SelectItem key={province.id} value={String(province.id)}>
-                                                        {province.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>شهر <span className="text-xs text-muted-foreground">(برای فیلتر)</span></Label>
-                                        <Select
-                                            disabled={!editMode || loadingCities || !selectedProvinceId}
-                                            value={selectedCityId ? String(selectedCityId) : ""}
-                                            onValueChange={handleCityChange}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingCities ? "در حال بارگذاری..." : !selectedProvinceId ? "ابتدا استان را انتخاب کنید" : "شهر را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {cities.map((city) => (
-                                                    <SelectItem key={city.id} value={String(city.id)}>
-                                                        {city.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label>منطقه <span className="text-xs text-muted-foreground">(از نقشه یا دستی)</span></Label>
-                                        {(() => {
-                                            // اگر district انتخاب شده باشد، فقط نمایش می‌دهیم
-                                            const selectedDistrict = districts.find(d => d.id === formData?.district);
-                                            if (selectedDistrict?.region_name) {
-                                                return (
-                                                    <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p min-h-[2.5rem] flex items-center">
-                                                        <span className="text-font-p">{selectedDistrict.region_name}</span>
-                                                    </div>
-                                                );
-                                            }
-                                            // در غیر این صورت، فیلد ورودی قابل ویرایش
-                                            return (
-                                                <FormFieldInput
-                                                    id="region_name"
-                                                    placeholder="نام منطقه را وارد کنید یا روی نقشه کلیک کنید"
-                                                    disabled={!editMode}
-                                                    value={formData?.region_name || ""}
-                                                    onChange={(e) => handleInputChange("region_name", e.target.value)}
-                                                />
-                                            );
-                                        })()}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>محله <span className="text-red-2">*</span> <span className="text-xs text-muted-foreground">(از نقشه یا دستی)</span></Label>
-                                        {(() => {
-                                            // اگر district انتخاب شده باشد، فقط نمایش می‌دهیم
-                                            const selectedDistrict = districts.find(d => d.id === formData?.district);
-                                            if (selectedDistrict) {
-                                                return (
-                                                    <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p min-h-[2.5rem] flex items-center">
-                                                        <span className="text-font-p">{selectedDistrict.name}</span>
-                                                    </div>
-                                                );
-                                            }
-                                            // در غیر این صورت، فیلد ورودی قابل ویرایش
-                                            return (
-                                                <>
-                                                    <FormFieldInput
-                                                        id="district_name"
-                                                        placeholder="نام محله را وارد کنید یا روی نقشه کلیک کنید"
-                                                        disabled={!editMode}
-                                                        value={formData?.district_name || ""}
-                                                        onChange={(e) => handleInputChange("district_name", e.target.value)}
-                                                    />
-                                                    {!selectedCityId && (
-                                                        <p className="text-xs text-orange-2 mt-1">
-                                                            ⚠️ برای استفاده از نقشه، ابتدا شهر را انتخاب کنید
-                                                        </p>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
-                                    </div>
-                                </div>
-
-                                <FormFieldTextarea
-                                    label="آدرس کامل"
-                                    id="address"
-                                    placeholder="آدرس کامل ملک..."
-                                    rows={3}
-                                    disabled={!editMode}
-                                    value={formData?.address || ""}
-                                    onChange={(e) => handleInputChange("address", e.target.value)}
-                                />
-
-                                <PropertyLocationMap
-                                    latitude={latitude ?? null}
-                                    longitude={longitude ?? null}
-                                    cityId={selectedCityId || null}
-                                    selectedCityName={useMemo(() => 
-                                        cities.find(c => c.id === selectedCityId)?.name || null,
-                                        [cities, selectedCityId]
-                                    )}
-                                    selectedProvinceName={useMemo(() => 
-                                        provinces.find(p => p.id === selectedProvinceId)?.name || null,
-                                        [provinces, selectedProvinceId]
-                                    )}
-                                    onLocationChange={useCallback((lat, lng) => {
-                                        onLocationChange?.(lat, lng);
-                                    }, [onLocationChange])}
-                                    onDistrictChange={useCallback((districtId: number | null, regionName?: string | null, districtName?: string | null) => {
-                                        if (districtId) {
-                                            // district موجود است
-                                            handleInputChange("district", districtId);
-                                            handleInputChange("region_name", null);
-                                            handleInputChange("district_name", null);
-                                            // Refresh districts list to get updated region_name
-                                            if (selectedCityId) {
-                                                fetchDistricts(selectedCityId);
-                                            }
-                                        } else if (regionName && districtName) {
-                                            // district موجود نیست - فقط نام‌ها را ذخیره می‌کنیم
-                                            // district هنگام ذخیره ملک ایجاد می‌شود
-                                            handleInputChange("district", null);
-                                            handleInputChange("region_name", regionName);
-                                            handleInputChange("district_name", districtName);
-                                        } else {
-                                            // پاک کردن
-                                            handleInputChange("district", null);
-                                            handleInputChange("region_name", null);
-                                            handleInputChange("district_name", null);
-                                        }
-                                    }, [handleInputChange, selectedCityId, fetchDistricts])}
-                                    disabled={!editMode || !selectedCityId}
-                                />
-                                
-                                {!selectedCityId && (
-                                    <p className="text-xs text-orange-2 mt-2">
-                                      ⚠️ برای استفاده از نقشه، ابتدا شهر را انتخاب کنید
-                                    </p>
-                                )}
-                            </div>
-                        </CardWithIcon>
                     </div>
                 </div>
 
@@ -641,7 +447,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             <SelectValue placeholder={loadingLabels ? "در حال بارگذاری..." : "برچسب‌ها را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {labels.map((label) => {
+                                            {(labels || []).map((label) => {
                                                 const isSelected = selectedLabels.some(l => l.id === label.id);
                                                 return (
                                                     <SelectItem 
@@ -706,7 +512,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {tags.map((tag) => {
+                                            {(tags || []).map((tag) => {
                                                 const isSelected = selectedTags.some(t => t.id === tag.id);
                                                 return (
                                                     <SelectItem 
@@ -770,7 +576,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             <SelectValue placeholder={loadingFeatures ? "در حال بارگذاری..." : "ویژگی‌ها را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {features.map((feature) => {
+                                            {(features || []).map((feature) => {
                                                 const isSelected = selectedFeatures.some(f => f.id === feature.id);
                                                 return (
                                                     <SelectItem 

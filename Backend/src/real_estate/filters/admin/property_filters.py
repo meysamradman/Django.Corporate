@@ -78,9 +78,9 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Filter by province ID"
     )
     
-    district = django_filters.NumberFilter(
-        field_name='district__id',
-        help_text="Filter by district ID"
+    region = django_filters.NumberFilter(
+        field_name='region__id',
+        help_text="Filter by region ID"
     )
     
     min_price = django_filters.NumberFilter(
@@ -215,7 +215,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
             'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
             'created_after', 'created_before', 'published_after', 'published_before',
             'property_type', 'state', 'agent', 'agency',
-            'city', 'province', 'district',
+            'city', 'province', 'region',
             'min_price', 'max_price', 'min_area', 'max_area',
             'bedrooms', 'bathrooms',
             'label', 'tag', 'feature',
@@ -261,7 +261,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
             Q(description__icontains=value) |
             Q(address__icontains=value) |
             Q(city__name__icontains=value) |
-            Q(district__name__icontains=value) |
+            Q(region__name__icontains=value) |
             Q(meta_title__icontains=value) |
             Q(meta_description__icontains=value) |
             Q(slug__icontains=value) |

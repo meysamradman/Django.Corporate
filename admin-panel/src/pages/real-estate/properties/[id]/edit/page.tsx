@@ -1,11 +1,11 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { 
+import {
   FileText, Edit2, Image, Search,
-  Loader2, Save, List
+  Loader2, Save, List, MapPin
 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import type { Property } from "@/types/real_estate/property";
@@ -80,6 +80,7 @@ const TabSkeleton = () => (
 const BaseInfoTab = lazy(() => import("@/components/real-estate/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
+const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
 
 export default function EditPropertyPage() {
   const navigate = useNavigate();
@@ -221,6 +222,10 @@ export default function EditPropertyPage() {
       }));
     }
   };
+
+  const handleLocationChange = useCallback((latitude: number | null, longitude: number | null) => {
+    setFormData(prev => ({ ...prev, latitude, longitude }));
+  }, []);
 
   const handleLabelToggle = (label: PropertyLabel) => {
     setSelectedLabels(prev => {
@@ -468,6 +473,10 @@ export default function EditPropertyPage() {
               <FileText className="h-4 w-4" />
               اطلاعات پایه
             </TabsTrigger>
+            <TabsTrigger value="location">
+              <MapPin className="h-4 w-4" />
+              لوکیشن
+            </TabsTrigger>
             <TabsTrigger value="media">
               <Image className="h-4 w-4" />
               مدیا
@@ -525,6 +534,10 @@ export default function EditPropertyPage() {
             <FileText className="h-4 w-4" />
             اطلاعات پایه
           </TabsTrigger>
+          <TabsTrigger value="location">
+            <MapPin className="h-4 w-4" />
+            لوکیشن
+          </TabsTrigger>
           <TabsTrigger value="media">
             <Image className="h-4 w-4" />
             مدیا
@@ -570,6 +583,19 @@ export default function EditPropertyPage() {
               featuredImage={propertyMedia.featuredImage}
               onFeaturedImageChange={handleFeaturedImageChange}
               propertyId={id}
+            />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="location">
+          <Suspense fallback={<TabSkeleton />}>
+            <LocationTab
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={editMode}
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              onLocationChange={handleLocationChange}
+              regionName={undefined}
             />
           </Suspense>
         </TabsContent>

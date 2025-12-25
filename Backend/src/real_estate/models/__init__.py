@@ -1,4 +1,4 @@
-from .location import Country, Province, City, Region, District
+from .location import Country, Province, City, CityRegion
 from .type import PropertyType
 from .state import PropertyState
 from .label import PropertyLabel
@@ -15,8 +15,7 @@ __all__ = [
     'Country',
     'Province',
     'City',
-    'Region',
-    'District',
+    'CityRegion',
     'PropertyType',
     'PropertyState',
     'PropertyLabel',

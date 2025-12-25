@@ -39,8 +39,8 @@ class PropertyAdminService:
                 queryset = queryset.filter(city_id=filters['city_id'])
             if filters.get('province_id'):
                 queryset = queryset.filter(province_id=filters['province_id'])
-            if filters.get('district_id'):
-                queryset = queryset.filter(district_id=filters['district_id'])
+            if filters.get('region_id'):
+                queryset = queryset.filter(region_id=filters['region_id'])
             if filters.get('min_price'):
                 queryset = queryset.filter(
                     Q(price__gte=filters['min_price']) |
@@ -69,7 +69,7 @@ class PropertyAdminService:
                 Q(description__icontains=search) |
                 Q(address__icontains=search) |
                 Q(city__name__icontains=search) |
-                Q(district__name__icontains=search) |
+                Q(region__name__icontains=search) |
                 Q(meta_title__icontains=search) |
                 Q(meta_description__icontains=search)
             ).distinct()

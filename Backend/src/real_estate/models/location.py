@@ -129,19 +129,12 @@ class City(BaseModel):
         return f"{self.name}, {self.province.name}, {self.province.country.name}"
 
 
-class Region(BaseModel):
+class CityRegion(BaseModel):
     """
-    Region model for real estate properties.
-    Represents regions or areas within a city.
-    Example: مناطق تهران (منطقه 1، منطقه 2، ...)
+    City Region model for real estate properties.
+    Only for major cities like Tehran (regions 1-22).
+    Simplified from previous Region model.
     """
-    name = models.CharField(
-        max_length=100,
-        db_index=True,
-        verbose_name="Region Name",
-        help_text="Name of the region or area"
-    )
-    
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
@@ -150,104 +143,30 @@ class Region(BaseModel):
         verbose_name="City",
         help_text="The city this region belongs to"
     )
-    
-    # Optional: برای ذخیره محدوده جغرافیایی منطقه (برای نقشه)
-    latitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        verbose_name="Latitude",
-        help_text="Geographic latitude (center of region)"
-    )
-    longitude = models.DecimalField(
-        max_digits=11,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        verbose_name="Longitude",
-        help_text="Geographic longitude (center of region)"
-    )
-    
-    class Meta(BaseModel.Meta):
-        db_table = 'real_estate_regions'
-        verbose_name = 'Region'
-        verbose_name_plural = 'Regions'
-        ordering = ['city__province__country__name', 'city__province__name', 'city__name', 'name']
-        unique_together = [('city', 'name')]
-        indexes = [
-            models.Index(fields=['city', 'name']),
-            models.Index(fields=['is_active', 'city']),
-            models.Index(fields=['latitude', 'longitude']),
-        ]
-    
-    def __str__(self):
-        return f"{self.name}, {self.city.name}"
-    
-    @property
-    def full_name(self):
-        return f"{self.name}, {self.city.name}, {self.city.province.name}, {self.city.province.country.name}"
-
-
-class District(BaseModel):
-    """
-    District/Neighborhood model for real estate properties.
-    Represents districts or neighborhoods within a region.
-    """
     name = models.CharField(
-        max_length=100,
-        db_index=True,
-        verbose_name="District Name",
-        help_text="Name of the district or neighborhood"
+        max_length=50,
+        verbose_name="Region Name",
+        help_text="Example: منطقه 1، منطقه 2"
     )
-    
-    region = models.ForeignKey(
-        Region,
-        on_delete=models.CASCADE,
-        related_name='districts',
-        db_index=True,
-        verbose_name="Region",
-        help_text="The region this district belongs to"
+    code = models.IntegerField(
+        verbose_name="Region Code",
+        help_text="Numeric code: 1، 2، 3، ..."
     )
-    
-    # Optional: برای ذخیره محدوده جغرافیایی محله (برای نقشه)
-    latitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        verbose_name="Latitude",
-        help_text="Geographic latitude (center of district)"
-    )
-    longitude = models.DecimalField(
-        max_digits=11,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        verbose_name="Longitude",
-        help_text="Geographic longitude (center of district)"
-    )
-    
+
     class Meta(BaseModel.Meta):
-        db_table = 'real_estate_districts'
-        verbose_name = 'District'
-        verbose_name_plural = 'Districts'
-        ordering = ['region__city__province__country__name', 'region__city__province__name', 'region__city__name', 'region__name', 'name']
-        unique_together = [('region', 'name')]
+        db_table = 'real_estate_city_regions'
+        verbose_name = 'City Region'
+        verbose_name_plural = 'City Regions'
+        unique_together = [('city', 'code')]
+        ordering = ['city', 'code']
         indexes = [
-            models.Index(fields=['region', 'name']),
-            models.Index(fields=['is_active', 'region']),
-            models.Index(fields=['latitude', 'longitude']),
+            models.Index(fields=['city', 'code']),
+            models.Index(fields=['is_active', 'city']),
         ]
-    
+
     def __str__(self):
-        return f"{self.name}, {self.region.name}, {self.region.city.name}"
-    
-    @property
-    def city(self):
-        """برای سازگاری با کدهای قدیمی"""
-        return self.region.city
-    
+        return f"{self.city.name} - {self.name}"
+
     @property
     def full_name(self):
-        return f"{self.name}, {self.region.name}, {self.region.city.name}, {self.region.city.province.name}, {self.region.city.province.country.name}"
+        return f"{self.name}, {self.city.name}, {self.city.province.name}"

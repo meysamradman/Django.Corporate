@@ -36,15 +36,14 @@ export interface Property extends Base {
   tags: PropertyTag[];
   features: PropertyFeature[];
   
-  district?: number | null;
-  city?: number | null;
-  city_name?: string;
+  // Simplified location fields
   province?: number | null;
   province_name?: string;
-  country?: number | null;
-  country_name?: string;
-  district_name?: string;
+  city?: number | null;
+  city_name?: string;
+  region?: number | null;  // CityRegion (optional)
   region_name?: string;
+  neighborhood?: string;  // text field
   address?: string | null;
   postal_code?: string | null;
   latitude?: number | null;
@@ -151,10 +150,11 @@ export interface PropertyUpdateData extends Partial<Omit<Property,
   labels_ids?: number[];
   tags_ids?: number[];
   features_ids?: number[];
-  district?: number | null;
-  city?: number | null;
+  // Simplified location fields for updates
   province?: number | null;
-  country?: number | null;
+  city?: number | null;
+  region?: number | null;  // optional CityRegion
+  neighborhood?: string;
   media_ids?: number[];
   media_files?: File[];
   main_image_id?: number | null;

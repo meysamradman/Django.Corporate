@@ -63,7 +63,7 @@ import FormBuilderPage from './pages/form-builder/page';
 import PageAbout from './pages/page/about/page';
 import PageTerms from './pages/page/terms/page';
 import PropertiesPage from './pages/real-estate/properties/page';
-// import PropertiesCreatePage from './pages/real-estate/properties/create/page';
+import PropertiesCreatePage from './pages/real-estate/properties/create/page';
 import PropertiesEditPage from './pages/real-estate/properties/[id]/edit/page';
 import PropertiesViewPage from './pages/real-estate/properties/[id]/view/page';
 import PropertyTypesPage from './pages/real-estate/types/page';
@@ -208,7 +208,7 @@ function App() {
                     <Route path="statistics" element={<RealEstateStatisticsPage />} />
                     <Route path="properties">
                       <Route index element={<PropertiesPage />} />
-                      {/* <Route path="create" element={<PropertiesCreatePage />} /> */}
+                      <Route path="create" element={<PropertiesCreatePage />} />
                       <Route path=":id/edit" element={<PropertiesEditPage />} />
                       <Route path=":id/view" element={<PropertiesViewPage />} />
                     </Route>

@@ -25,7 +25,7 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
-from src.real_estate.models.location import Country, Province, City, Region, District
+from src.real_estate.models.location import Country, Province, City, CityRegion
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.real_estate.signals import update_property_search_vector
 
@@ -66,40 +66,35 @@ def create_sample_media_files():
 
 def get_or_create_defaults():
     User = get_user_model()
-    
+
     admin_user = User.objects.filter(is_admin_full=True).first()
     if not admin_user:
-        admin_user = User.objects.filter(is_admin_active=True, user_type='admin').first()
-    
+        admin_user = User.objects.filter(user_type='admin', is_admin_active=True).first()
+
     if not admin_user:
         raise Exception("No admin user found. Please create one first.")
-    
+
+    # Create country first
     country, _ = Country.objects.get_or_create(
-        name="Iran",
-        defaults={'code': 'IRN', 'is_active': True}
+        code="IRN",
+        defaults={'name': 'Iran', 'is_active': True}
     )
-    
+
     province, _ = Province.objects.get_or_create(
         name="Tehran",
-        country=country,
-        defaults={'code': 'THR', 'is_active': True}
+        defaults={'code': 'THR', 'country': country, 'is_active': True}
     )
-    
+
     city, _ = City.objects.get_or_create(
         name="Tehran",
         province=province,
         defaults={'code': '001', 'is_active': True}
     )
-    
-    region, _ = Region.objects.get_or_create(
-        name="Region 1",
+
+    region, _ = CityRegion.objects.get_or_create(
+        name="منطقه ۱",
         city=city,
-        defaults={'is_active': True}
-    )
-    
-    district, _ = District.objects.get_or_create(
-        name="District 1",
-        region=region,
+        code=1,
         defaults={'is_active': True}
     )
     
@@ -126,16 +121,16 @@ def get_or_create_defaults():
             'email': 'agent@example.com',
             'license_number': f'LIC-{uuid.uuid4().hex[:8]}',
             'is_active': True,
+            'is_verified': True,
             'city': city
         }
     )
     
     return {
         'admin_user': admin_user,
-        'country': country,
         'province': province,
         'city': city,
-        'district': district,
+        'region': region,
         'property_type': property_type,
         'property_state': property_state,
         'agent': agent
@@ -160,10 +155,9 @@ def create_sample_property():
             agent=defaults['agent'],
             property_type=defaults['property_type'],
             state=defaults['property_state'],
-            district=defaults['district'],
-            city=defaults['city'],
             province=defaults['province'],
-            country=defaults['country'],
+            city=defaults['city'],
+            region=defaults['region'],  # City region field
             address="123 Sample Street, Tehran, Iran",
             postal_code="1234567890",
             latitude=Decimal('35.6892'),

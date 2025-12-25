@@ -209,11 +209,13 @@ function LocationMarker({ position, onPositionChange, disabled }: LocationMarker
 interface PropertyLocationMapProps {
   latitude: number | null;
   longitude: number | null;
-  onLocationChange: (latitude: number | null, longitude: number | null) => void;
-  onDistrictChange?: (districtId: number | null, regionName?: string | null, districtName?: string | null) => void;
+  onLocationChange: (lat: number, lng: number) => void;
+  onAddressUpdate?: (address: string) => void;
+  onNeighborhoodUpdate?: (neighborhood: string) => void;
+  onRegionUpdate?: (regionId: number) => void;
   cityId?: number | null;
-  selectedCityName?: string | null;
-  selectedProvinceName?: string | null;
+  cityName?: string | null;
+  provinceName?: string | null;
   disabled?: boolean;
   className?: string;
 }
@@ -222,10 +224,12 @@ export default function PropertyLocationMap({
   latitude,
   longitude,
   onLocationChange,
-  onDistrictChange,
+  onAddressUpdate,
+  onNeighborhoodUpdate,
+  onRegionUpdate,
   cityId,
-  selectedCityName,
-  selectedProvinceName,
+  cityName,
+  provinceName,
   disabled = false,
   className = "",
 }: PropertyLocationMapProps) {
@@ -233,15 +237,14 @@ export default function PropertyLocationMap({
   const [mapZoom, setMapZoom] = useState<number>(6);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
-  const [currentDistrict, setCurrentDistrict] = useState<{ id: number; name: string; region_name: string } | null>(null);
 
   // Set initial center based on coordinates, city, or province
   // Priority: 1) coordinates (if exists), 2) city, 3) province
   // اما اگر استان یا شهر تغییر کرد، نقشه را به‌روز می‌کنیم
   useEffect(() => {
     // اگر شهر انتخاب شده، نقشه را به مرکز شهر می‌بریم (اولویت بالاتر از مختصات)
-    if (selectedCityName) {
-      const cityCoords = IRAN_CITY_COORDINATES[selectedCityName];
+    if (cityName) {
+      const cityCoords = IRAN_CITY_COORDINATES[cityName];
       if (cityCoords) {
         setMapCenter(cityCoords);
         setMapZoom(12);
@@ -250,8 +253,8 @@ export default function PropertyLocationMap({
     }
     
     // اگر فقط استان انتخاب شده، نقشه را به مرکز استان می‌بریم
-    if (selectedProvinceName) {
-      const provinceCoords = IRAN_PROVINCE_COORDINATES[selectedProvinceName];
+    if (provinceName) {
+      const provinceCoords = IRAN_PROVINCE_COORDINATES[provinceName];
       if (provinceCoords) {
         setMapCenter(provinceCoords);
         setMapZoom(8);
@@ -269,10 +272,10 @@ export default function PropertyLocationMap({
       setMapCenter([35.6892, 51.3890]); // Default to Tehran
       setMapZoom(6);
     }
-  }, [latitude, longitude, selectedCityName, selectedProvinceName]);
+  }, [latitude, longitude, cityName, provinceName]);
 
-  // Fetch Nominatim reverse geocoding to get region and district names
-  const fetchAddressFromNominatim = async (lat: number, lng: number): Promise<{ regionName?: string; districtName?: string }> => {
+  // Fetch Nominatim reverse geocoding to get address string
+  const fetchAddressFromNominatim = async (lat: number, lng: number): Promise<string> => {
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`,
@@ -283,146 +286,240 @@ export default function PropertyLocationMap({
         }
       );
       const data = await response.json();
-      
-      if (data && data.address) {
-        const address = data.address;
-        
-        // برای ایران، سعی می‌کنیم از فیلدهای مختلف استفاده کنیم
-        // اولویت برای region: suburb > quarter > neighbourhood > city_district > town > village
-        const regionName = address.suburb || 
-                          address.quarter || 
-                          address.neighbourhood || 
-                          address.city_district ||
-                          address.town ||
-                          address.village ||
-                          address.municipality;
-        
-        // اولویت برای district: neighbourhood > quarter > suburb > hamlet
-        const districtName = address.neighbourhood || 
-                           address.quarter || 
-                           address.suburb ||
-                           address.hamlet;
-        
-        // اگر هنوز regionName یا districtName نداریم، از display_name استفاده می‌کنیم
-        if (!regionName || !districtName) {
-          const displayName = data.display_name || '';
-          
-          // سعی می‌کنیم از display_name استخراج کنیم
-          // معمولاً فرمت: "محله، منطقه، شهر، استان، کشور"
-          const parts = displayName.split(',').map((p: string) => p.trim());
-          
-          // اگر regionName نداریم، از قسمت‌های display_name استفاده می‌کنیم
-          if (!regionName && parts.length > 2) {
-            // معمولاً منطقه در قسمت‌های میانی است
-            const potentialRegion = parts.find((p: string) => 
-              p.includes('منطقه') || 
-              p.includes('Region') || 
-              p.includes('ناحیه') ||
-              p.length > 3 && p.length < 30
-            );
-            if (potentialRegion) {
-              return {
-                regionName: potentialRegion.replace(/منطقه\s*/i, '').trim() || potentialRegion,
-                districtName: districtName || parts[0] || 'محله جدید',
-              };
-            }
+
+      // Process and format the address
+      return formatAddress(data);
+    } catch (error) {
+      console.error('Error fetching address from Nominatim:', error);
+      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    }
+  };
+
+  // Format address to be more readable and standardized
+  const formatAddress = (data: any): string => {
+    if (!data) {
+      return `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
+    }
+
+    // If no address details, return display_name or coordinates
+    if (!data.address) {
+      return data.display_name || `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
+    }
+
+    const addr = data.address;
+    const parts: string[] = [];
+
+    // Priority order: City -> Province -> Country -> District/Region -> Neighborhood -> Street
+    // Start with city, then remove country for cleaner display
+
+    // City (شهر) - FIRST
+    if (addr.city || addr.town || addr.village) {
+      const city = addr.city || addr.town || addr.village;
+      // Clean city name - remove duplicates like "شهر تهران" if city is already "تهران"
+      let cleanCity = city;
+      if (city.includes('شهر تهران') && cityName === 'تهران') {
+        cleanCity = city.replace(/\s*شهر\s+تهران\s*/gi, '').trim();
+      }
+      parts.push(cleanCity);
+    }
+
+    // Province (استان) - Only add if different from city
+    if (addr.state) {
+      // Remove "استان" prefix if exists and add it back
+      const province = addr.state.replace(/^استان\s+/, '').replace(/^استان\s+/, '');
+      const provinceText = `استان ${province}`;
+
+      // Don't add province if it's the same as city (like تهران)
+      if (province !== 'تهران' || !parts.includes('تهران')) {
+        parts.push(provinceText);
+      }
+    }
+
+    // Country (ایران) - Skip for cleaner display
+    // if (addr.country) {
+    //   parts.push(addr.country);
+    // }
+
+    // District/Region (منطقه)
+    if (addr.suburb || addr.neighbourhood || addr.city_district) {
+      let district = addr.suburb || addr.neighbourhood || addr.city_district;
+
+      // Clean up duplicates for Tehran
+      if (cityName === 'تهران') {
+        // Remove "شهر تهران" from district if present
+        district = district.replace(/\s*شهر\s+تهران\s*/gi, '').trim();
+        district = district.replace(/\s*تهران\s*/gi, '').trim();
+
+        // Try to extract region number
+        if (district.includes('منطقه')) {
+          const regionMatch = district.match(/منطقه\s+(\d+)/i);
+          if (regionMatch) {
+            district = `منطقه ${regionMatch[1]}`;
           }
-          
-          // اگر districtName نداریم، از اولین قسمت استفاده می‌کنیم
-          if (!districtName && parts.length > 0) {
-            return {
-              regionName: regionName || parts[1] || 'منطقه جدید',
-              districtName: parts[0] || 'محله جدید',
-            };
-          }
-        }
-        
-        // اگر هر دو را داریم، برمی‌گردانیم
-        if (regionName && districtName) {
-          return {
-            regionName,
-            districtName,
-          };
-        }
-        
-        // اگر فقط یکی را داریم، دیگری را با یک نام پیش‌فرض می‌سازیم
-        if (regionName || districtName) {
-          return {
-            regionName: regionName || 'منطقه جدید',
-            districtName: districtName || 'محله جدید',
-          };
         }
       }
-    } catch (error) {
-      console.error("Error fetching from Nominatim:", error);
+
+      // Only add district if it's not empty after cleaning
+      if (district.trim()) {
+        parts.push(district);
+      }
     }
-    return {};
+
+    // Neighborhood/Local area (محله/ناحیه)
+    if (addr.locality || addr.hamlet) {
+      parts.push(addr.locality || addr.hamlet);
+    }
+
+    // Street (خیابان)
+    if (addr.road || addr.pedestrian || addr.path) {
+      const street = addr.road || addr.pedestrian || addr.path;
+      parts.push(`خیابان ${street}`);
+    }
+
+    // House number (پلاک)
+    if (addr.house_number) {
+      parts.push(`پلاک ${addr.house_number}`);
+    }
+
+    // If we have formatted parts, use them; otherwise fall back to display_name
+    if (parts.length > 0) {
+      // Clean final result to remove any remaining duplicates
+      let finalAddress = parts.join(', ');
+
+      // Remove duplicate "تهران" occurrences
+      const tehranMatches = finalAddress.match(/تهران/g);
+      if (tehranMatches && tehranMatches.length > 1) {
+        // Keep only the first occurrence
+        finalAddress = finalAddress.replace(/تهران/g, (match, offset, string) => {
+          return offset === string.indexOf('تهران') ? match : '';
+        }).replace(/,\s*,/g, ',').replace(/^,\s*|,?\s*$/g, '');
+      }
+
+      return finalAddress;
+    }
+
+    return data.display_name || `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
   };
 
   const handlePositionChange = async (lat: number, lng: number) => {
     onLocationChange(lat, lng);
-    
-    if (!onDistrictChange || !cityId) {
-      return;
-    }
 
-    setIsGeocoding(true);
-    try {
-      // ابتدا سعی می‌کنیم district موجود را پیدا کنیم
-      const result = await realEstateApi.reverseGeocode(lat, lng, cityId);
-      
-      if (result && result.district && result.district.id) {
-        // district موجود پیدا شد
-        setCurrentDistrict({
-          id: result.district.id,
-          name: result.district.name,
-          region_name: result.region?.name || '',
-        });
-        onDistrictChange(result.district.id, result.region?.name || null, result.district.name);
-        showSuccess(`محله "${result.district.name}" یافت شد`);
-      } else if (result && result.needs_info) {
-        // district پیدا نشد، باید region_name و district_name را از Nominatim بگیریم
-        // اما district را ایجاد نمی‌کنیم - فقط نام‌ها را ذخیره می‌کنیم تا هنگام ذخیره ملک ایجاد شود
-        const nominatimData = await fetchAddressFromNominatim(lat, lng);
-        
-        if (nominatimData.regionName && nominatimData.districtName) {
-          // فقط نام‌ها را ذخیره می‌کنیم - district هنگام ذخیره ملک ایجاد می‌شود
-          setCurrentDistrict({
-            id: 0, // موقت - هنگام ذخیره ملک ایجاد می‌شود
-            name: nominatimData.districtName,
-            region_name: nominatimData.regionName,
-          });
-          onDistrictChange(null, nominatimData.regionName, nominatimData.districtName);
-          showSuccess(`منطقه "${nominatimData.regionName}" و محله "${nominatimData.districtName}" پیدا شد. هنگام ذخیره ملک ایجاد می‌شود.`);
-        } else {
-          // اگر Nominatim نتوانست اطلاعات را برگرداند، از نام‌های پیش‌فرض استفاده می‌کنیم
-          // کاربر می‌تواند بعداً این نام‌ها را ویرایش کند
-          const defaultRegionName = 'منطقه جدید';
-          const defaultDistrictName = 'محله جدید';
-          
-          setCurrentDistrict({
-            id: 0,
-            name: defaultDistrictName,
-            region_name: defaultRegionName,
-          });
-          onDistrictChange(null, defaultRegionName, defaultDistrictName);
-          showSuccess(`موقعیت روی نقشه ثبت شد. لطفاً نام منطقه و محله را در فیلدهای مربوطه وارد کنید.`);
+    // Get address from Nominatim
+    if (onAddressUpdate) {
+      setIsGeocoding(true);
+
+      try {
+        const address = await fetchAddressFromNominatim(lat, lng);
+        if (address) {
+          onAddressUpdate(address);
+
+          // Extract neighborhood from formatted address
+          let extractedNeighborhood = '';
+
+          // Split by comma and find the most relevant neighborhood part
+          const addressParts = address.split(', ');
+
+          // Priority: look for parts that contain neighborhood indicators
+          for (const part of addressParts) {
+            const trimmedPart = part.trim();
+
+            // Skip system parts
+            if (trimmedPart.startsWith('ایران') ||
+                trimmedPart.startsWith('استان') ||
+                trimmedPart.startsWith('شهر') ||
+                trimmedPart.startsWith('منطقه') ||
+                trimmedPart.startsWith('پلاک')) {
+              continue;
+            }
+
+            // Check for neighborhood indicators
+            if (trimmedPart.includes('ناحیه') ||
+                trimmedPart.includes('کوی') ||
+                trimmedPart.includes('محله') ||
+                trimmedPart.includes('بلوار') ||
+                trimmedPart.includes('میدان') ||
+                trimmedPart.includes('چهارراه') ||
+                trimmedPart.includes('تقاطع')) {
+
+              // Clean and extract
+              let cleanPart = trimmedPart.replace(/\d{5}-\d{5}/g, '').trim();
+              cleanPart = cleanPart.replace(/\d{5}/g, '').trim();
+              cleanPart = cleanPart.replace(/\s+/g, ' ').trim();
+
+              if (cleanPart && cleanPart !== cityName && cleanPart.length > 2) {
+                extractedNeighborhood = cleanPart;
+                break;
+              }
+            }
+          }
+
+          // Fallback: use the most relevant remaining part
+          if (!extractedNeighborhood) {
+            for (const part of addressParts) {
+              const trimmedPart = part.trim();
+
+              // Skip all system parts
+              if (trimmedPart.startsWith('ایران') ||
+                  trimmedPart.startsWith('استان') ||
+                  trimmedPart.startsWith('شهر') ||
+                  trimmedPart.startsWith('منطقه') ||
+                  trimmedPart.startsWith('پلاک') ||
+                  trimmedPart.startsWith('خیابان') ||
+                  /^\d/.test(trimmedPart)) { // Skip numbers
+                continue;
+              }
+
+              if (trimmedPart && trimmedPart !== cityName && trimmedPart.length > 2) {
+                extractedNeighborhood = trimmedPart;
+                break;
+              }
+            }
+          }
+
+          // If we extracted a neighborhood and have a callback, use it
+          if (extractedNeighborhood && extractedNeighborhood !== cityName && onNeighborhoodUpdate) {
+            onNeighborhoodUpdate(extractedNeighborhood);
+            console.log('✅ Auto-filled neighborhood:', extractedNeighborhood);
+          } else {
+            console.log('⚠️ No valid neighborhood found or neighborhood is city name');
+          }
+
+          console.log('📍 All address parts:', addressParts);
+          console.log('🎯 Extracted neighborhood:', extractedNeighborhood);
+
+          // Try to detect region for Tehran based on coordinates and address
+          if (cityName === 'تهران' && onRegionUpdate && address) {
+            console.log('🔍 Starting region detection for Tehran...');
+            console.log('📍 Address:', address);
+
+            let detectedRegion: number | null = null;
+
+            // Simple region detection
+            if (address.includes('منطقه ۱۱')) {
+              detectedRegion = 11;
+            } else if (address.includes('منطقه ۶') || address.includes('دانشگاه')) {
+              detectedRegion = 6;
+            } else {
+              detectedRegion = 11; // Default for Tehran
+            }
+
+            if (detectedRegion && detectedRegion >= 1 && detectedRegion <= 22) {
+              onRegionUpdate(detectedRegion);
+              console.log('Final detected region:', detectedRegion);
+            }
+          }
         }
+      } catch (error) {
+        console.error("Error in reverse geocoding:", error);
+        showError("خطا در یافتن آدرس از موقعیت جغرافیایی");
+      } finally {
+        setIsGeocoding(false);
       }
-    } catch (error) {
-      console.error("Error in reverse geocoding:", error);
-      showError(error);
-    } finally {
-      setIsGeocoding(false);
     }
   };
 
   const handleClearLocation = () => {
     onLocationChange(null, null);
-    if (onDistrictChange) {
-      onDistrictChange(null, null, null);
-    }
-    setCurrentDistrict(null);
   };
 
   return (
@@ -487,12 +584,6 @@ export default function PropertyLocationMap({
         </div>
       )}
 
-      {currentDistrict && !isGeocoding && (
-        <div className="text-xs space-y-1 p-2 rounded-md bg-green-0/30 border border-green-1/40">
-          <p className="font-medium text-green-2">منطقه: {currentDistrict.region_name}</p>
-          <p className="font-medium text-green-2">محله: {currentDistrict.name}</p>
-        </div>
-      )}
 
       {latitude && longitude && (
         <div className="text-xs text-muted-foreground space-y-1">

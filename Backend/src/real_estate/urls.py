@@ -12,11 +12,10 @@ router.register(r'admin/property-feature', views.PropertyFeatureAdminViewSet, ba
 router.register(r'admin/property-tag', views.PropertyTagAdminViewSet, basename='admin-property-tag')
 router.register(r'admin/property-agent', views.PropertyAgentAdminViewSet, basename='admin-property-agent')
 router.register(r'admin/real-estate-agency', views.RealEstateAgencyAdminViewSet, basename='admin-real-estate-agency')
-# Real Estate Location APIs
+# Real Estate Location APIs - simplified
 router.register(r'admin/real-estate-provinces', location_views.RealEstateProvinceViewSet, basename='admin-real-estate-provinces')
 router.register(r'admin/real-estate-cities', location_views.RealEstateCityViewSet, basename='admin-real-estate-cities')
-router.register(r'admin/real-estate-regions', location_views.RealEstateRegionViewSet, basename='admin-real-estate-regions')
-router.register(r'admin/real-estate-districts', location_views.RealEstateDistrictViewSet, basename='admin-real-estate-districts')
+router.register(r'admin/real-estate-city-regions', location_views.RealEstateCityRegionViewSet, basename='admin-real-estate-city-regions')
 
 urlpatterns = [
     path('', include(router.urls)),

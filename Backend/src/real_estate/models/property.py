@@ -4,7 +4,7 @@ from django.contrib.postgres.indexes import GinIndex, BrinIndex
 from django.contrib.postgres.search import SearchVectorField
 from src.core.models import BaseModel
 from src.real_estate.models.seo import SEOMixin
-from src.real_estate.models.location import Country, Province, City, Region, District
+from src.real_estate.models.location import Country, Province, City, CityRegion
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.state import PropertyState
 from src.real_estate.models.label import PropertyLabel
@@ -100,13 +100,24 @@ class Property(BaseModel, SEOMixin):
         help_text="Property features (Parking, Elevator, etc.)"
     )
     
-    district = models.ForeignKey(
-        District,
-        on_delete=models.PROTECT,
+    region = models.ForeignKey(
+        CityRegion,
+        on_delete=models.SET_NULL,
         related_name='properties',
+        null=True,
+        blank=True,
         db_index=True,
-        verbose_name="District",
-        help_text="District or neighborhood (can be selected via map)"
+        verbose_name="Region",
+        help_text="City region (only for major cities like Tehran)"
+    )
+
+    # محله به صورت متنی آزاد (ساده و سریع)
+    neighborhood = models.CharField(
+        max_length=120,
+        blank=True,
+        db_index=True,
+        verbose_name="Neighborhood",
+        help_text="Neighborhood name as text (from map or user input)"
     )
     city = models.ForeignKey(
         City,
@@ -378,17 +389,34 @@ class Property(BaseModel, SEOMixin):
         verbose_name_plural = 'Properties'
         ordering = ['-is_featured', '-published_at', '-created_at']
         indexes = [
+            # Location indexes - ساده شده
+            models.Index(fields=['province', 'city', 'is_published']),
+            models.Index(fields=['city', 'region', 'is_published']),
+            models.Index(fields=['city', 'neighborhood']),
+
+            # Property type and features
+            models.Index(fields=['city', 'property_type', 'bedrooms']),
             models.Index(fields=['is_published', 'is_public', 'city', 'property_type', '-price']),
+
+            # Status and time
             models.Index(fields=['is_published', 'is_public', 'state', '-published_at']),
             models.Index(fields=['is_published', 'is_public', 'is_featured', '-views_count']),
-            models.Index(fields=['city', 'property_type', 'bedrooms', '-price']),
+
+            # Agent and agency
             models.Index(fields=['agent', 'is_published', 'is_public', '-created_at']),
             models.Index(fields=['agency', 'is_published', 'is_public', '-created_at']),
+
+            # Price indexes
             models.Index(fields=['is_published', 'is_public', 'price']),
             models.Index(fields=['is_published', 'is_public', 'sale_price']),
             models.Index(fields=['is_published', 'is_public', 'monthly_rent']),
             models.Index(fields=['is_published', 'is_public', 'rent_amount']),
+
+            # Area and map
             models.Index(fields=['land_area', 'built_area']),
+            models.Index(fields=['latitude', 'longitude']),
+
+            # Search and time
             GinIndex(fields=['search_vector']),
             BrinIndex(fields=['created_at', 'updated_at']),
         ]
@@ -522,6 +550,19 @@ class Property(BaseModel, SEOMixin):
             tags = list(self.tags.values_list('title', flat=True)[:5])
             features = list(self.features.values_list('title', flat=True)[:5])
             
+            # ایجاد آدرس کامل با منطق جدید
+            address_parts = []
+            if self.neighborhood:
+                address_parts.append(self.neighborhood)
+            if self.region:
+                address_parts.append(f"منطقه {self.region.code}")
+            if self.city:
+                address_parts.append(self.city.name)
+            if self.province:
+                address_parts.append(self.province.name)
+
+            full_address = ", ".join(address_parts) if address_parts else self.address
+
             structured_data = {
                 "@context": "https://schema.org",
                 "@type": "RealEstateListing",
@@ -556,7 +597,7 @@ class Property(BaseModel, SEOMixin):
                     "price": float(self.price),
                     "priceCurrency": self.currency,
                 },
-                "keywords": tags,
+                "keywords": tags + ([self.neighborhood] if self.neighborhood else []),
                 "amenityFeature": [
                     {
                         "@type": "LocationFeatureSpecification",
@@ -595,10 +636,7 @@ class Property(BaseModel, SEOMixin):
             elif self.pre_sale_price:
                 self.price_per_sqm = int(self.pre_sale_price / float(self.built_area))
         
-        # Auto-populate location (denormalization)
-        if self.district_id and not self.city_id:
-            # District now belongs to Region, Region belongs to City
-            self.city = self.district.region.city
+        # Auto-populate location (denormalization) - ساده شده
         if self.city_id and not self.province_id:
             self.province = self.city.province
         if self.province_id and not self.country_id:

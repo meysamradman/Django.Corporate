@@ -25,7 +25,7 @@ class PropertyQuerySet(models.QuerySet):
             'city',
             'province',
             'country',
-            'district'
+            'region'
         ).prefetch_related(
             'labels',
             'tags',
@@ -77,7 +77,7 @@ class PropertyQuerySet(models.QuerySet):
             'agent__agency',
             'agent__user',
             'agency',
-            'district',
+            'region',
             'city',
             'province',
             'country'
@@ -117,7 +117,7 @@ class PropertyQuerySet(models.QuerySet):
             Q(description__icontains=query) |
             Q(address__icontains=query) |
             Q(city__name__icontains=query) |
-            Q(district__name__icontains=query)
+            Q(region__name__icontains=query)
         ).distinct()
     
     def featured(self):
