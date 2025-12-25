@@ -146,7 +146,7 @@ export default function EditPropertyPage() {
       setIsLoading(true);
       const propertyData = await realEstateApi.getPropertyById(Number(id));
       setProperty(propertyData);
-      
+
       setFormData({
         title: propertyData.title || "",
         slug: propertyData.slug || "",
@@ -340,11 +340,11 @@ export default function EditPropertyPage() {
         bedrooms: formData.bedrooms !== null && formData.bedrooms !== undefined 
           ? formData.bedrooms 
           : (property.bedrooms || undefined),
-        bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined 
-          ? formData.bathrooms 
+        bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
+          ? formData.bathrooms
           : (property.bathrooms || undefined),
       };
-      
+
       await realEstateApi.partialUpdateProperty(property.id, updateData);
       showSuccess("ملک با موفقیت ویرایش شد");
       navigate("/real-estate/properties");

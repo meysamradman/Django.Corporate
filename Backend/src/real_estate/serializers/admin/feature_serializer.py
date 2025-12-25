@@ -44,8 +44,14 @@ class PropertyFeatureAdminUpdateSerializer(serializers.ModelSerializer):
         fields = ['title', 'category', 'is_active']
     
     def validate_title(self, value):
-        if PropertyFeature.objects.exclude(id=self.instance.id).filter(title=value).exists():
-            raise serializers.ValidationError(FEATURE_ERRORS.get("feature_not_found", "This feature already exists"))
+        # Check if we're updating an existing instance
+        if self.instance and hasattr(self.instance, 'id'):
+            if PropertyFeature.objects.exclude(id=self.instance.id).filter(title=value).exists():
+                raise serializers.ValidationError(FEATURE_ERRORS.get("feature_not_found", "This feature already exists"))
+        else:
+            # If no instance, check if title exists at all
+            if PropertyFeature.objects.filter(title=value).exists():
+                raise serializers.ValidationError(FEATURE_ERRORS.get("feature_not_found", "This feature already exists"))
         return value
 
 

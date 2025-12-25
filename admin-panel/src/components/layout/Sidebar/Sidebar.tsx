@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/elements/Collapsible";
 import { SidebarHeader } from "./SidebarHeader";
 import { NavMain } from "./NavMain";
 import { NavUser } from "./NavUser";
@@ -274,32 +279,177 @@ export function Sidebar({
           />
           <div className="flex-1 overflow-hidden p-4 overflow-y-auto">
             {selectedItem && 'items' in selectedItem && selectedItem.items?.length ? (
-              <div className="space-y-1">
-                {selectedItem.items.map((subItem, index, array) => {
-                  let prevNonTitleIndex = -1;
-                  for (let i = index - 1; i >= 0; i--) {
-                    if (!array[i].isTitle) {
-                      prevNonTitleIndex = i;
-                      break;
-                    }
-                  }
-                  const shouldShowSeparator = subItem.isTitle && prevNonTitleIndex !== -1;
-
-                  return (
-                    <SubMenuItem
-                      key={`${subItem.title}-${index}`}
-                      item={subItem}
-                      index={index}
-                      showSeparator={shouldShowSeparator}
-                    />
-                  );
-                })}
-              </div>
+              <MenuItemsList items={selectedItem.items} />
             ) : null}
           </div>
         </div>
       </aside>
     </>
+  );
+}
+
+interface MenuItemsListProps {
+  items: MenuItem[];
+}
+
+function MenuItemsList({ items }: MenuItemsListProps) {
+  const groupedItems = useMemo(() => {
+    const groups: Array<{ title?: string; items: MenuItem[] }> = [];
+    let currentGroup: { title?: string; items: MenuItem[] } | null = null;
+
+    items.forEach((item, index) => {
+      if (item.isTitle) {
+        if (currentGroup) {
+          groups.push(currentGroup);
+        }
+        currentGroup = { title: item.title, items: [] };
+      } else {
+        if (!currentGroup) {
+          currentGroup = { items: [] };
+        }
+        currentGroup.items.push(item);
+      }
+
+      if (index === items.length - 1 && currentGroup) {
+        groups.push(currentGroup);
+      }
+    });
+
+    return groups;
+  }, [items]);
+
+  // همه گروه‌ها همیشه باز هستند
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+  // وقتی groupedItems تغییر می‌کند، همه گروه‌ها را باز کن
+  useEffect(() => {
+    const allKeys = new Set<string>();
+    groupedItems.forEach((group, idx) => {
+      const key = group.title || `group-${idx}`;
+      allKeys.add(key);
+    });
+    setOpenGroups(allKeys);
+  }, [groupedItems]);
+
+  const toggleGroup = useCallback((title: string) => {
+    setOpenGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(title)) {
+        next.delete(title);
+      } else {
+        next.add(title);
+      }
+      return next;
+    });
+  }, []);
+
+
+  return (
+    <div className="space-y-1">
+      {groupedItems.map((group, groupIndex) => {
+        const hasTitle = !!group.title;
+        const groupKey = group.title || `group-${groupIndex}`;
+        const isOpen = openGroups.has(groupKey);
+
+        if (!hasTitle && group.items.length > 0) {
+          const prevGroup = groupIndex > 0 ? groupedItems[groupIndex - 1] : null;
+          const shouldShowSeparator = prevGroup && (prevGroup.items.length > 0 || prevGroup.title);
+
+          return (
+            <div key={groupKey} className="space-y-1">
+              {shouldShowSeparator && (
+                <div className="h-px bg-br my-2 -mx-4" />
+              )}
+              {group.items.map((item, itemIndex) => {
+                let prevNonTitleIndex = -1;
+                for (let i = itemIndex - 1; i >= 0; i--) {
+                  if (!group.items[i].isTitle) {
+                    prevNonTitleIndex = i;
+                    break;
+                  }
+                }
+                const shouldShowItemSeparator = item.isTitle && prevNonTitleIndex !== -1;
+
+                return (
+                  <SubMenuItem
+                    key={`${item.title}-${itemIndex}`}
+                    item={item}
+                    index={itemIndex}
+                    showSeparator={shouldShowItemSeparator}
+                  />
+                );
+              })}
+            </div>
+          );
+        }
+
+        if (!hasTitle || group.items.length === 0) {
+          return null;
+        }
+
+        const prevGroup = groupIndex > 0 ? groupedItems[groupIndex - 1] : null;
+        const shouldShowSeparator = prevGroup && (prevGroup.items.length > 0 || prevGroup.title);
+
+        return (
+          <Collapsible
+            key={groupKey}
+            open={isOpen}
+            onOpenChange={() => toggleGroup(groupKey)}
+            className="space-y-1"
+          >
+            {shouldShowSeparator && (
+              <div className="h-px bg-br my-2 -mx-4" />
+            )}
+            <CollapsibleTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center justify-between w-full px-3 py-2 text-sm font-semibold rounded-md transition-colors",
+                  "text-sdb-menu-ttl hover:bg-sdb-hv hover:text-primary",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                )}
+              >
+                <span>{group.title}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-transform duration-200",
+                    isOpen && "rotate-180"
+                  )}
+                />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent
+              className={cn(
+                "overflow-hidden",
+                "data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down",
+                "transition-all duration-200 ease-in-out"
+              )}
+            >
+              <div className="space-y-1 pt-2 pb-1">
+                {group.items.map((item, itemIndex) => {
+                  let prevNonTitleIndex = -1;
+                  for (let i = itemIndex - 1; i >= 0; i--) {
+                    if (!group.items[i].isTitle) {
+                      prevNonTitleIndex = i;
+                      break;
+                    }
+                  }
+                  const shouldShowItemSeparator = item.isTitle && prevNonTitleIndex !== -1;
+
+                  return (
+                    <SubMenuItem
+                      key={`${item.title}-${itemIndex}`}
+                      item={item}
+                      index={itemIndex}
+                      showSeparator={shouldShowItemSeparator}
+                    />
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </div>
   );
 }
 

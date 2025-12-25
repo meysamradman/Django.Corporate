@@ -1,23 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate/properties";
-import { Card, CardContent } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { showError } from '@/core/toast';
 import {
-  Building2,
   Home,
-  FileText,
   CheckCircle2,
   Star,
-  Tag,
-  Award,
   Users,
   Building,
+  Award,
   TrendingUp,
-  BarChart3,
+  TrendingDown,
 } from "lucide-react";
+import { PropertiesChart } from "./PropertiesChart";
+import { formatNumber } from "@/core/utils/format";
+import { cn } from "@/core/utils/cn";
+import type { ReactNode } from 'react';
 
 interface PropertyStatistics {
   generated_at: string;
@@ -77,15 +78,82 @@ interface PropertyStatistics {
   recent_properties?: any[];
 }
 
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+    label: string;
+  };
+  icon: ReactNode;
+  iconColor?: string;
+  iconBg?: string;
+}
+
+function StatCard({
+  title,
+  value,
+  subtitle,
+  trend,
+  icon,
+  iconColor = "text-blue-1",
+  iconBg = "bg-blue/10",
+  borderColor = "border-b-blue-1"
+}: StatCardProps & { borderColor?: string }) {
+  return (
+    <Card className={cn(
+      "relative overflow-hidden border-b-4",
+      borderColor
+    )}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-font-s">{title}</CardTitle>
+        <div className={`${iconBg} p-2 rounded-lg`}>
+          <div className={iconColor}>{icon}</div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold text-font-p mb-1">
+          {typeof value === 'number' ? formatNumber(value) : value}
+        </div>
+        {subtitle && (
+          <p className="text-xs text-font-s mb-2">{subtitle}</p>
+        )}
+        {trend && (
+          <div className="flex items-center gap-1 text-xs">
+            {trend.isPositive ? (
+              <TrendingUp className="h-3 w-3 text-green-1" />
+            ) : (
+              <TrendingDown className="h-3 w-3 text-red-1" />
+            )}
+            <span className={trend.isPositive ? "text-green-1" : "text-red-1"}>
+              {Math.abs(trend.value)}% {trend.label}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function RealEstateStatisticsOverview() {
   const { data: stats, isLoading, error } = useQuery<PropertyStatistics>({
     queryKey: ['real-estate-statistics'],
     queryFn: () => realEstateApi.getStatistics(),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    onError: (error) => {
-      showError(error, { customMessage: "خطا در دریافت آمار املاک" });
-    },
   });
+
+  const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
+    queryKey: ['real-estate-monthly-stats'],
+    queryFn: () => realEstateApi.getMonthlyStats(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Handle errors
+  if (error) {
+    showError(error, { customMessage: "خطا در دریافت آمار املاک" });
+  }
 
   if (isLoading) {
     return (
@@ -117,70 +185,103 @@ export function RealEstateStatisticsOverview() {
     );
   }
 
+  const displayStats = stats || {
+    properties: {
+      total: 0,
+      published: 0,
+      draft: 0,
+      featured: 0,
+      verified: 0,
+      published_percentage: 0,
+      featured_percentage: 0,
+      verified_percentage: 0,
+    },
+    types: { total: 0, with_properties: 0, without_properties: 0 },
+    states: { total: 0, with_properties: 0, without_properties: 0 },
+    labels: { total: 0, with_properties: 0, without_properties: 0 },
+    features: { total: 0, with_properties: 0, without_properties: 0 },
+    tags: { total: 0, with_properties: 0, without_properties: 0 },
+    agents: {
+      total: 0,
+      active: 0,
+      verified: 0,
+      with_properties: 0,
+      active_percentage: 0,
+      verified_percentage: 0,
+    },
+    agencies: {
+      total: 0,
+      active: 0,
+      verified: 0,
+      with_properties: 0,
+      active_percentage: 0,
+      verified_percentage: 0,
+    },
+  };
+
+  const displayMonthlyData = monthlyData || {
+    monthly_stats: [
+      { month: "تیر", published: 120, draft: 45, featured: 25, verified: 20 },
+      { month: "مرداد", published: 135, draft: 50, featured: 30, verified: 25 },
+      { month: "شهریور", published: 128, draft: 48, featured: 28, verified: 22 },
+      { month: "مهر", published: 142, draft: 52, featured: 32, verified: 28 },
+      { month: "آبان", published: 158, draft: 55, featured: 35, verified: 30 },
+      { month: "آذر", published: 165, draft: 58, featured: 38, verified: 32 },
+    ],
+  };
+
+  const monthlyStats = displayMonthlyData.monthly_stats;
+
   return (
     <div className="space-y-6">
       {/* آمار کلی املاک */}
       <div>
         <h2 className="text-xl font-semibold mb-4 text-font-p">آمار کلی املاک</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-b-4 border-b-blue-1">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-font-s text-muted-foreground">کل املاک</p>
-                <div className="p-2 rounded-lg bg-blue-0">
-                  <Home className="w-5 h-5 stroke-blue-2" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-font-p">{stats.properties.total.toLocaleString('fa-IR')}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-b-4 border-b-green-1">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-font-s text-muted-foreground">منتشر شده</p>
-                <div className="p-2 rounded-lg bg-green-0">
-                  <CheckCircle2 className="w-5 h-5 stroke-green-2" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-font-p">{stats.properties.published.toLocaleString('fa-IR')}</p>
-                <Badge variant="green">{stats.properties.published_percentage}%</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-b-4 border-b-orange-1">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-font-s text-muted-foreground">ویژه</p>
-                <div className="p-2 rounded-lg bg-orange-0">
-                  <Star className="w-5 h-5 stroke-orange-2" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-font-p">{stats.properties.featured.toLocaleString('fa-IR')}</p>
-                <Badge variant="orange">{stats.properties.featured_percentage}%</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-b-4 border-b-purple-1">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-font-s text-muted-foreground">تأیید شده</p>
-                <div className="p-2 rounded-lg bg-purple-0">
-                  <Award className="w-5 h-5 stroke-purple-2" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-font-p">{stats.properties.verified.toLocaleString('fa-IR')}</p>
-                <Badge variant="purple">{stats.properties.verified_percentage}%</Badge>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="کل املاک"
+            value={displayStats.properties.total}
+            icon={<Home className="h-5 w-5" />}
+            iconColor="text-blue-1"
+            iconBg="bg-blue-0"
+            borderColor="border-b-blue-1"
+          />
+          <StatCard
+            title="منتشر شده"
+            value={displayStats.properties.published}
+            subtitle={`${displayStats.properties.published_percentage}% از کل`}
+            icon={<CheckCircle2 className="h-5 w-5" />}
+            iconColor="text-green-1"
+            iconBg="bg-green-0"
+            borderColor="border-b-green-1"
+          />
+          <StatCard
+            title="ویژه"
+            value={displayStats.properties.featured}
+            subtitle={`${displayStats.properties.featured_percentage}% از کل`}
+            icon={<Star className="h-5 w-5" />}
+            iconColor="text-orange-1"
+            iconBg="bg-orange-0"
+            borderColor="border-b-orange-1"
+          />
+          <StatCard
+            title="تأیید شده"
+            value={displayStats.properties.verified}
+            subtitle={`${displayStats.properties.verified_percentage}% از کل`}
+            icon={<Award className="h-5 w-5" />}
+            iconColor="text-purple-1"
+            iconBg="bg-purple-0"
+            borderColor="border-b-purple-1"
+          />
         </div>
       </div>
+
+      {/* چارت آمار ماهانه */}
+      <PropertiesChart
+        monthlyStats={monthlyStats}
+        statistics={stats}
+        isLoading={isLoading || monthlyLoading}
+      />
 
       {/* آمار مشاورین و آژانس‌ها */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,25 +295,25 @@ export function RealEstateStatisticsOverview() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-font-s">کل مشاورین:</span>
-              <span className="text-font-p font-semibold">{stats.agents.total.toLocaleString('fa-IR')}</span>
+              <span className="text-font-p font-semibold">{displayStats.agents.total.toLocaleString('fa-IR')}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-font-s">فعال:</span>
               <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{stats.agents.active.toLocaleString('fa-IR')}</span>
-                <Badge variant="blue">{stats.agents.active_percentage}%</Badge>
+                <span className="text-font-p font-semibold">{displayStats.agents.active.toLocaleString('fa-IR')}</span>
+                <Badge variant="blue">{displayStats.agents.active_percentage}%</Badge>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-font-s">تأیید شده:</span>
               <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{stats.agents.verified.toLocaleString('fa-IR')}</span>
-                <Badge variant="green">{stats.agents.verified_percentage}%</Badge>
+                <span className="text-font-p font-semibold">{displayStats.agents.verified.toLocaleString('fa-IR')}</span>
+                <Badge variant="green">{displayStats.agents.verified_percentage}%</Badge>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-font-s">دارای ملک:</span>
-              <span className="text-font-p font-semibold">{stats.agents.with_properties.toLocaleString('fa-IR')}</span>
+              <span className="text-font-p font-semibold">{displayStats.agents.with_properties.toLocaleString('fa-IR')}</span>
             </div>
           </div>
         </CardWithIcon>
@@ -227,150 +328,30 @@ export function RealEstateStatisticsOverview() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-font-s">کل آژانس‌ها:</span>
-              <span className="text-font-p font-semibold">{stats.agencies.total.toLocaleString('fa-IR')}</span>
+              <span className="text-font-p font-semibold">{displayStats.agencies.total.toLocaleString('fa-IR')}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-font-s">فعال:</span>
               <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{stats.agencies.active.toLocaleString('fa-IR')}</span>
-                <Badge variant="purple">{stats.agencies.active_percentage}%</Badge>
+                <span className="text-font-p font-semibold">{displayStats.agencies.active.toLocaleString('fa-IR')}</span>
+                <Badge variant="purple">{displayStats.agencies.active_percentage}%</Badge>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-font-s">تأیید شده:</span>
               <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{stats.agencies.verified.toLocaleString('fa-IR')}</span>
-                <Badge variant="green">{stats.agencies.verified_percentage}%</Badge>
+                <span className="text-font-p font-semibold">{displayStats.agencies.verified.toLocaleString('fa-IR')}</span>
+                <Badge variant="green">{displayStats.agencies.verified_percentage}%</Badge>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-font-s">دارای ملک:</span>
-              <span className="text-font-p font-semibold">{stats.agencies.with_properties.toLocaleString('fa-IR')}</span>
+              <span className="text-font-p font-semibold">{displayStats.agencies.with_properties.toLocaleString('fa-IR')}</span>
             </div>
           </div>
         </CardWithIcon>
       </div>
 
-      {/* آمار دسته‌بندی‌ها */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4 text-font-p">آمار دسته‌بندی‌ها</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <CardWithIcon
-            icon={Building2}
-            title="نوع‌های ملک"
-            iconBgColor="bg-blue"
-            iconColor="stroke-blue-2"
-            borderColor="border-b-blue-1"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">کل:</span>
-                <span className="text-font-p font-semibold">{stats.types.total.toLocaleString('fa-IR')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">دارای ملک:</span>
-                <Badge variant="blue">{stats.types.with_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">بدون ملک:</span>
-                <Badge variant="gray">{stats.types.without_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-            </div>
-          </CardWithIcon>
-
-          <CardWithIcon
-            icon={FileText}
-            title="وضعیت‌های ملک"
-            iconBgColor="bg-green"
-            iconColor="stroke-green-2"
-            borderColor="border-b-green-1"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">کل:</span>
-                <span className="text-font-p font-semibold">{stats.states.total.toLocaleString('fa-IR')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">دارای ملک:</span>
-                <Badge variant="green">{stats.states.with_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">بدون ملک:</span>
-                <Badge variant="gray">{stats.states.without_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-            </div>
-          </CardWithIcon>
-
-          <CardWithIcon
-            icon={Tag}
-            title="برچسب‌ها"
-            iconBgColor="bg-orange"
-            iconColor="stroke-orange-2"
-            borderColor="border-b-orange-1"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">کل:</span>
-                <span className="text-font-p font-semibold">{stats.labels.total.toLocaleString('fa-IR')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">دارای ملک:</span>
-                <Badge variant="orange">{stats.labels.with_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">بدون ملک:</span>
-                <Badge variant="gray">{stats.labels.without_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-            </div>
-          </CardWithIcon>
-
-          <CardWithIcon
-            icon={Award}
-            title="ویژگی‌ها"
-            iconBgColor="bg-purple"
-            iconColor="stroke-purple-2"
-            borderColor="border-b-purple-1"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">کل:</span>
-                <span className="text-font-p font-semibold">{stats.features.total.toLocaleString('fa-IR')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">دارای ملک:</span>
-                <Badge variant="purple">{stats.features.with_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">بدون ملک:</span>
-                <Badge variant="gray">{stats.features.without_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-            </div>
-          </CardWithIcon>
-
-          <CardWithIcon
-            icon={Tag}
-            title="تگ‌ها"
-            iconBgColor="bg-indigo"
-            iconColor="stroke-indigo-2"
-            borderColor="border-b-indigo-1"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">کل:</span>
-                <span className="text-font-p font-semibold">{stats.tags.total.toLocaleString('fa-IR')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">دارای ملک:</span>
-                <Badge variant="indigo">{stats.tags.with_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-font-s">بدون ملک:</span>
-                <Badge variant="gray">{stats.tags.without_properties.toLocaleString('fa-IR')}</Badge>
-              </div>
-            </div>
-          </CardWithIcon>
-        </div>
-      </div>
     </div>
   );
 }

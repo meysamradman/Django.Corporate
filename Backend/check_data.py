@@ -17,3 +17,4 @@ print(f"Property (Real Estate): {Property.objects.count()}")
 print("=" * 60)
 
 
+

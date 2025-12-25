@@ -194,6 +194,11 @@ export const realEstateApi = {
     return response.data;
   },
 
+  getMonthlyStats: async (): Promise<{ monthly_stats: Array<{ month: string; published: number; draft: number; featured: number; verified: number }> }> => {
+    const response = await api.get<{ monthly_stats: Array<{ month: string; published: number; draft: number; featured: number; verified: number }> }>('/admin/property/monthly-stats/');
+    return response.data;
+  },
+
   getSeoReport: async (): Promise<any> => {
     const response = await api.get<any>('/admin/property/seo-report/');
     return response.data;

@@ -42,10 +42,16 @@ class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyType
         fields = ['title', 'display_order', 'is_active']
-    
+
     def validate_title(self, value):
-        if PropertyType.objects.exclude(id=self.instance.id).filter(title=value).exists():
-            raise serializers.ValidationError(TYPE_ERRORS.get("type_not_found", "This type already exists"))
+        # Check if we're updating an existing instance
+        if self.instance and hasattr(self.instance, 'id'):
+            if PropertyType.objects.exclude(id=self.instance.id).filter(title=value).exists():
+                raise serializers.ValidationError(TYPE_ERRORS.get("type_not_found", "This type already exists"))
+        else:
+            # If no instance, check if title exists at all
+            if PropertyType.objects.filter(title=value).exists():
+                raise serializers.ValidationError(TYPE_ERRORS.get("type_not_found", "This type already exists"))
         return value
 
 

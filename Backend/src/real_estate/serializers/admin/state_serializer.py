@@ -44,8 +44,14 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
         fields = ['title', 'is_active']
     
     def validate_title(self, value):
-        if PropertyState.objects.exclude(id=self.instance.id).filter(title=value).exists():
-            raise serializers.ValidationError(STATE_ERRORS.get("state_not_found", "This state already exists"))
+        # Check if we're updating an existing instance
+        if self.instance and hasattr(self.instance, 'id'):
+            if PropertyState.objects.exclude(id=self.instance.id).filter(title=value).exists():
+                raise serializers.ValidationError(STATE_ERRORS.get("state_not_found", "This state already exists"))
+        else:
+            # If no instance, check if title exists at all
+            if PropertyState.objects.filter(title=value).exists():
+                raise serializers.ValidationError(STATE_ERRORS.get("state_not_found", "This state already exists"))
         return value
 
 

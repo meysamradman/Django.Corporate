@@ -505,7 +505,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class PropertyAdminUpdateSerializer(serializers.ModelSerializer):
+class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
     labels_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
@@ -524,6 +524,8 @@ class PropertyAdminUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    latitude = serializers.DecimalField(max_digits=10, decimal_places=8, required=False, allow_null=True, coerce_to_string=False)
+    longitude = serializers.DecimalField(max_digits=11, decimal_places=8, required=False, allow_null=True, coerce_to_string=False)
     media_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
@@ -590,12 +592,84 @@ class PropertyAdminUpdateSerializer(serializers.ModelSerializer):
             'labels_ids', 'tags_ids', 'features_ids', 'media_ids', 'main_image_id', 'media_covers',
             'region_name', 'district_name',
         ]
-    
+
+    def to_internal_value(self, data):
+        """Override to quantize latitude/longitude before model validation"""
+        from decimal import Decimal, ROUND_DOWN
+
+        # Process latitude
+        if 'latitude' in data and data['latitude'] is not None:
+            if isinstance(data['latitude'], str):
+                lat_value = Decimal(data['latitude'])
+            elif isinstance(data['latitude'], (int, float)):
+                lat_value = Decimal(str(data['latitude']))
+            else:
+                lat_value = data['latitude']
+
+            if isinstance(lat_value, Decimal):
+                data['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
+        # Process longitude
+        if 'longitude' in data and data['longitude'] is not None:
+            if isinstance(data['longitude'], str):
+                lng_value = Decimal(data['longitude'])
+            elif isinstance(data['longitude'], (int, float)):
+                lng_value = Decimal(str(data['longitude']))
+            else:
+                lng_value = data['longitude']
+
+            if isinstance(lng_value, Decimal):
+                data['longitude'] = lng_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        """Ensure latitude/longitude are returned as numbers for frontend"""
+        data = super().to_representation(instance)
+
+        # Convert latitude and longitude to float for frontend
+        if hasattr(instance, 'latitude') and instance.latitude is not None:
+            try:
+                data['latitude'] = float(instance.latitude)
+            except (ValueError, TypeError):
+                data['latitude'] = None
+        else:
+            data['latitude'] = None
+
+        if hasattr(instance, 'longitude') and instance.longitude is not None:
+            try:
+                data['longitude'] = float(instance.longitude)
+            except (ValueError, TypeError):
+                data['longitude'] = None
+        else:
+            data['longitude'] = None
+
+        return data
+
     def validate(self, attrs):
+        # Quantize latitude and longitude to prevent validation errors
+        from decimal import Decimal, ROUND_DOWN
+
+        if 'latitude' in attrs and attrs['latitude'] is not None:
+            # Ensure latitude is quantized to 8 decimal places
+            if isinstance(attrs['latitude'], Decimal):
+                attrs['latitude'] = attrs['latitude'].quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+            else:
+                lat_value = Decimal(str(attrs['latitude']))
+                attrs['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
+        if 'longitude' in attrs and attrs['longitude'] is not None:
+            # Ensure longitude is quantized to 8 decimal places
+            if isinstance(attrs['longitude'], Decimal):
+                attrs['longitude'] = attrs['longitude'].quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+            else:
+                lng_value = Decimal(str(attrs['longitude']))
+                attrs['longitude'] = lng_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
         # Auto-populate city, province, country from district
         # Priority: 1) district from request, 2) create district from region_name/district_name, 3) existing district from instance
         # District is required - must be selected via map
-        
+
         district = None
         region_name = attrs.get('region_name')
         district_name = attrs.get('district_name')
@@ -691,6 +765,18 @@ class PropertyAdminUpdateSerializer(serializers.ModelSerializer):
         attrs['district'] = district
         
         return attrs
+
+    def to_representation(self, instance):
+        """Ensure latitude/longitude are returned as numbers for frontend"""
+        data = super().to_representation(instance)
+
+        # Convert latitude and longitude to float for frontend
+        if instance.latitude is not None:
+            data['latitude'] = float(instance.latitude)
+        if instance.longitude is not None:
+            data['longitude'] = float(instance.longitude)
+
+        return data
 
 
 class PropertyAdminSerializer(PropertyAdminDetailSerializer):
