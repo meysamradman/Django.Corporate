@@ -205,6 +205,7 @@ function App() {
                     <Route path="terms" element={<PageTerms />} />
                   </Route>
                   <Route path="real-estate">
+                    <Route index element={<PropertiesPage />} />
                     <Route path="statistics" element={<RealEstateStatisticsPage />} />
                     <Route path="properties">
                       <Route index element={<PropertiesPage />} />

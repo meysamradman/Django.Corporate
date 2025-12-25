@@ -1,12 +1,11 @@
-import { useState, type ChangeEvent } from "react";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { useState } from "react";
 import { Button } from "@/components/elements/Button";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Media } from "@/types/shared/media";
-import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, AlertCircle, Search, Image as ImageIcon, Globe } from "lucide-react";
+import { UploadCloud, X, Search, Image as ImageIcon, Globe } from "lucide-react";
 
 interface SEOTabProps {
     formData: any;
@@ -33,15 +32,15 @@ export default function SEOTab(props: SEOTabProps) {
     };
 
     return (
-        <TabsContent value="seo" className="mt-0 space-y-6">
+        <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 min-w-0 space-y-6">
                     <CardWithIcon
                         icon={Search}
-                        title="برچسب‌های Meta"
-                        iconBgColor="bg-emerald"
-                        iconColor="stroke-emerald-2"
-                        borderColor="border-b-emerald-1"
+                        title="بهینه‌سازی موتور جستجو"
+                        iconBgColor="bg-green"
+                        iconColor="stroke-green-2"
+                        borderColor="border-b-green-1"
                     >
                         <div className="space-y-6">
                             <div className="flex flex-col lg:flex-row gap-6">
@@ -185,17 +184,17 @@ export default function SEOTab(props: SEOTabProps) {
                     </CardWithIcon>
                 </div>
             </div>
-            
+
             <MediaLibraryModal
                 isOpen={isMediaModalOpen}
                 onClose={() => setIsMediaModalOpen(false)}
                 onSelect={handleOgImageSelect}
                 selectMultiple={false}
                 initialFileType="image"
-                context="property"
+                context="media_library"
                 contextId={propertyId}
             />
-        </TabsContent>
+        </div>
     );
 }
 

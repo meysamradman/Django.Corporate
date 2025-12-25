@@ -98,6 +98,8 @@ export default function EditPropertyPage() {
   });
   const [formData, setFormData] = useState({
     title: "",
+    region: undefined,
+    region_name: "",
     slug: "",
     short_description: "",
     description: "",
@@ -120,9 +122,9 @@ export default function EditPropertyPage() {
     city: null as number | null,
     district: null as number | null,
     country: null as number | null,
-    region_name: null as string | null,
     district_name: null as string | null,
     address: "",
+    neighborhood: "",
     latitude: null as number | null,
     longitude: null as number | null,
     land_area: null as number | null,
@@ -130,7 +132,7 @@ export default function EditPropertyPage() {
     bedrooms: null as number | null,
     bathrooms: null as number | null,
   });
-  
+
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
   const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
@@ -145,7 +147,7 @@ export default function EditPropertyPage() {
   const fetchPropertyData = async () => {
     try {
       setIsLoading(true);
-      const propertyData = await realEstateApi.getPropertyById(Number(id));
+      const propertyData: any = await realEstateApi.getPropertyById(Number(id));
       setProperty(propertyData);
 
       setFormData({
@@ -170,11 +172,14 @@ export default function EditPropertyPage() {
         agency: propertyData.agency?.id || null,
         province: propertyData.province || null,
         city: propertyData.city || null,
+        // Map backend 'district' to frontend 'region'
+        region: propertyData.district || null,
         district: propertyData.district || null,
         country: propertyData.country || null,
-        region_name: propertyData.region_name || null,
-        district_name: propertyData.district_name || null,
+        region_name: propertyData.region_name || "",
+        district_name: propertyData.district_name || "",
         address: propertyData.address || "",
+        neighborhood: propertyData.neighborhood || "",
         latitude: propertyData.latitude ? Number(propertyData.latitude) : null,
         longitude: propertyData.longitude ? Number(propertyData.longitude) : null,
         land_area: propertyData.land_area ? Number(propertyData.land_area) : null,
@@ -182,19 +187,19 @@ export default function EditPropertyPage() {
         bedrooms: propertyData.bedrooms || null,
         bathrooms: propertyData.bathrooms || null,
       });
-      
+
       if (propertyData.labels) {
         setSelectedLabels(propertyData.labels);
       }
-      
+
       if (propertyData.tags) {
         setSelectedTags(propertyData.tags);
       }
-      
+
       if (propertyData.features) {
         setSelectedFeatures(propertyData.features);
       }
-      
+
       if (propertyData.property_media || propertyData.media) {
         const parsedMedia = parsePropertyMedia(propertyData.property_media || propertyData.media || []);
         setPropertyMedia(parsedMedia);
@@ -209,7 +214,7 @@ export default function EditPropertyPage() {
   const handleInputChange = (field: string, value: string | Media | boolean | null | number) => {
     if (field === "title" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
-      
+
       setFormData(prev => ({
         ...prev,
         [field]: value,
@@ -278,7 +283,7 @@ export default function EditPropertyPage() {
 
   const handleSave = async () => {
     if (!property) return;
-    
+
     setIsSaving(true);
     try {
       const slugValidation = validateSlug(formData.slug, true);
@@ -287,17 +292,17 @@ export default function EditPropertyPage() {
         setIsSaving(false);
         return;
       }
-      
+
       let formattedSlug = formatSlug(formData.slug);
-      
+
       const labelIds = selectedLabels.map(label => label.id);
       const tagIds = selectedTags.map(tag => tag.id);
       const featureIds = selectedFeatures.map(feature => feature.id);
-      
+
       const allMediaIds = collectMediaIds(propertyMedia);
       const mainImageId = propertyMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(propertyMedia);
-      
+
       const updateData: PropertyUpdateData = {
         title: formData.title,
         slug: formattedSlug,
@@ -324,26 +329,32 @@ export default function EditPropertyPage() {
         state: formData.state || property.state?.id || undefined,
         agent: formData.agent || property.agent?.id || undefined,
         agency: formData.agency || property.agency?.id || undefined,
+        province: formData.province || undefined,
+        city: formData.city || undefined,
         // Only send district - city, province, country are auto-filled from district in backend
         // If district doesn't exist, send region_name and district_name to create it
-        district: formData.district || property.district || undefined,
+        region: formData.region || undefined,
+        region_name: formData.region_name || undefined,
+        district_name: formData.district_name || undefined,
         region_name: formData.region_name || undefined,
         district_name: formData.district_name || undefined,
         address: formData.address || property.address || undefined,
-        latitude: formData.latitude !== null && formData.latitude !== undefined 
-          ? formData.latitude 
+        // Add neighborhood - map fills it, backend needs it
+        neighborhood: formData.neighborhood || undefined,
+        latitude: formData.latitude !== null && formData.latitude !== undefined
+          ? formData.latitude
           : (property.latitude ? Number(property.latitude) : undefined),
-        longitude: formData.longitude !== null && formData.longitude !== undefined 
-          ? formData.longitude 
+        longitude: formData.longitude !== null && formData.longitude !== undefined
+          ? formData.longitude
           : (property.longitude ? Number(property.longitude) : undefined),
-        land_area: formData.land_area !== null && formData.land_area !== undefined 
-          ? formData.land_area 
+        land_area: formData.land_area !== null && formData.land_area !== undefined
+          ? formData.land_area
           : (property.land_area ? Number(property.land_area) : undefined),
-        built_area: formData.built_area !== null && formData.built_area !== undefined 
-          ? formData.built_area 
+        built_area: formData.built_area !== null && formData.built_area !== undefined
+          ? formData.built_area
           : (property.built_area ? Number(property.built_area) : undefined),
-        bedrooms: formData.bedrooms !== null && formData.bedrooms !== undefined 
-          ? formData.bedrooms 
+        bedrooms: formData.bedrooms !== null && formData.bedrooms !== undefined
+          ? formData.bedrooms
           : (property.bedrooms || undefined),
         bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
           ? formData.bathrooms
@@ -362,7 +373,7 @@ export default function EditPropertyPage() {
 
   const handleSaveDraft = async () => {
     if (!property) return;
-    
+
     setIsSaving(true);
     try {
       const slugValidation = validateSlug(formData.slug, true);
@@ -371,17 +382,17 @@ export default function EditPropertyPage() {
         setIsSaving(false);
         return;
       }
-      
+
       let formattedSlug = formatSlug(formData.slug);
-      
+
       const labelIds = selectedLabels.map(label => label.id);
       const tagIds = selectedTags.map(tag => tag.id);
       const featureIds = selectedFeatures.map(feature => feature.id);
-      
+
       const allMediaIds = collectMediaIds(propertyMedia);
       const mainImageId = propertyMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(propertyMedia);
-      
+
       const updateData: PropertyUpdateData = {
         title: formData.title,
         slug: formattedSlug,
@@ -404,36 +415,31 @@ export default function EditPropertyPage() {
         is_active: formData.is_active,
         is_published: false,
         is_featured: formData.is_featured,
-        property_type: formData.property_type || property.property_type?.id || undefined,
-        state: formData.state || property.state?.id || undefined,
-        agent: formData.agent || property.agent?.id || undefined,
-        agency: formData.agency || property.agency?.id || undefined,
+        property_type: formData.property_type || undefined,
+        state: formData.state || undefined,
+        agent: formData.agent || undefined,
+        agency: formData.agency || undefined,
+        province: formData.province || undefined,
+        city: formData.city || undefined,
         // Only send district - city, province, country are auto-filled from district in backend
         // If district doesn't exist, send region_name and district_name to create it
-        district: formData.district || property.district || undefined,
+        region: formData.region || undefined,
         region_name: formData.region_name || undefined,
-        district_name: formData.district_name || undefined,
-        address: formData.address || property.address || undefined,
-        latitude: formData.latitude !== null && formData.latitude !== undefined 
-          ? formData.latitude 
-          : (property.latitude ? Number(property.latitude) : undefined),
-        longitude: formData.longitude !== null && formData.longitude !== undefined 
-          ? formData.longitude 
-          : (property.longitude ? Number(property.longitude) : undefined),
-        land_area: formData.land_area !== null && formData.land_area !== undefined 
-          ? formData.land_area 
-          : (property.land_area ? Number(property.land_area) : undefined),
-        built_area: formData.built_area !== null && formData.built_area !== undefined 
-          ? formData.built_area 
-          : (property.built_area ? Number(property.built_area) : undefined),
-        bedrooms: formData.bedrooms !== null && formData.bedrooms !== undefined 
-          ? formData.bedrooms 
-          : (property.bedrooms || undefined),
-        bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined 
-          ? formData.bathrooms 
-          : (property.bathrooms || undefined),
+        region_name: formData.region_name || undefined,
+        address: formData.address || undefined,
+        // Add neighborhood - map fills it, backend needs it
+        neighborhood: formData.neighborhood || undefined,
+        // Send lat/lng even if null (to clear it) or number.
+        // If undefined, it won't update.
+        // formData.latitude is initialized to null or number.
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        land_area: formData.land_area,
+        built_area: formData.built_area,
+        bedrooms: formData.bedrooms,
+        bathrooms: formData.bathrooms,
       };
-      
+
       await realEstateApi.partialUpdateProperty(property.id, updateData);
       showSuccess("پیش‌نویس با موفقیت ذخیره شد");
       navigate("/real-estate/properties");
@@ -452,7 +458,7 @@ export default function EditPropertyPage() {
             <h1 className="page-title">ویرایش ملک</h1>
           </div>
           <div className="flex gap-2">
-            <Button 
+            <Button
               variant="outline"
               disabled
               onClick={() => navigate("/real-estate/properties")}
@@ -512,7 +518,7 @@ export default function EditPropertyPage() {
           <h1 className="page-title">ویرایش ملک</h1>
         </div>
         <div className="flex gap-2">
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate("/real-estate/properties")}
           >
@@ -550,7 +556,7 @@ export default function EditPropertyPage() {
 
         <TabsContent value="account">
           <Suspense fallback={<TabSkeleton />}>
-            <BaseInfoTab 
+            <BaseInfoTab
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
@@ -564,19 +570,12 @@ export default function EditPropertyPage() {
               onFeatureToggle={handleFeatureToggle}
               onFeatureRemove={handleFeatureRemove}
               propertyId={id}
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              regionName={property?.region_name || null}
-              onLocationChange={(lat, lng) => {
-                handleInputChange("latitude", lat);
-                handleInputChange("longitude", lng);
-              }}
             />
           </Suspense>
         </TabsContent>
         <TabsContent value="media">
           <Suspense fallback={<TabSkeleton />}>
-            <MediaTab 
+            <MediaTab
               propertyMedia={propertyMedia}
               setPropertyMedia={setPropertyMedia}
               editMode={editMode}
@@ -595,13 +594,12 @@ export default function EditPropertyPage() {
               latitude={formData.latitude}
               longitude={formData.longitude}
               onLocationChange={handleLocationChange}
-              regionName={undefined}
             />
           </Suspense>
         </TabsContent>
         <TabsContent value="seo">
           <Suspense fallback={<TabSkeleton />}>
-            <SEOTab 
+            <SEOTab
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
@@ -613,9 +611,9 @@ export default function EditPropertyPage() {
 
       {editMode && (
         <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-          <Button 
-            onClick={handleSaveDraft} 
-            variant="outline" 
+          <Button
+            onClick={handleSaveDraft}
+            variant="outline"
             size="lg"
             disabled={isSaving}
           >
@@ -631,8 +629,8 @@ export default function EditPropertyPage() {
               </>
             )}
           </Button>
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             size="lg"
             disabled={isSaving}
           >

@@ -136,7 +136,10 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
                 message=PROPERTY_ERRORS["property_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
-        
+
+        print(f"CREATE REQUEST DATA: {request.data}")
+        print(f"CREATE FILES: {request.FILES}")
+
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
@@ -175,7 +178,10 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
                 message=PROPERTY_ERRORS["property_not_authorized"],
                 status_code=status.HTTP_403_FORBIDDEN
             )
-        
+
+        print(f"UPDATE REQUEST DATA: {request.data}")
+        print(f"UPDATE FILES: {request.FILES}")
+
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         

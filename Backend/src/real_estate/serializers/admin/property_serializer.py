@@ -265,7 +265,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'tags', 'features', 'media', 'property_media',
             'region', 'city', 'city_name', 'province', 'province_name',
-            'country', 'country_name', 'district_name', 'region_name',
+            'country', 'country_name', 'district_name', 'region_name', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm', 'currency', 'is_negotiable',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
@@ -576,7 +576,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         fields = [
             'title', 'slug', 'short_description', 'description',
             'agent', 'agency', 'property_type', 'state',
-            'region', 'city', 'province', 'country',
+            'region', 'city', 'province', 'country', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price', 'currency', 'is_negotiable',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
@@ -644,6 +644,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         return data
 
     def validate(self, attrs):
+        print(f"VALIDATE ATTRS: {attrs}")
         # Quantize latitude and longitude to prevent validation errors
         from decimal import Decimal, ROUND_DOWN
 

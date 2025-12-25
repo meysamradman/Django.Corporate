@@ -1,7 +1,5 @@
 import { useState, lazy, Suspense } from "react";
-import { TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { MediaGallery } from "@/components/media/galleries/MediaGallery";
 import type { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
@@ -44,16 +42,10 @@ export default function MediaTab(props: MediaTabProps) {
     };
 
     return (
-        <TabsContent value="media" className="mt-0 space-y-6">
+        <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 min-w-0 space-y-6">
-                    <CardWithIcon
-                        icon={ImageIcon}
-                        title="گالری تصاویر"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                    >
+                    <div className="space-y-6">
                         <MediaGallery
                             mediaItems={propertyMedia?.imageGallery || []}
                             onMediaSelect={(media) => setPropertyMedia?.({ ...propertyMedia, imageGallery: media })}
@@ -64,15 +56,7 @@ export default function MediaTab(props: MediaTabProps) {
                             context="property"
                             contextId={propertyId}
                         />
-                    </CardWithIcon>
 
-                    <CardWithIcon
-                        icon={Video}
-                        title="ویدیو"
-                        iconBgColor="bg-purple"
-                        iconColor="stroke-purple-2"
-                        borderColor="border-b-purple-1"
-                    >
                         <MediaGallery
                             mediaItems={propertyMedia?.videoGallery || []}
                             onMediaSelect={(media) => setPropertyMedia?.({ ...propertyMedia, videoGallery: media })}
@@ -83,15 +67,7 @@ export default function MediaTab(props: MediaTabProps) {
                             context="property"
                             contextId={propertyId}
                         />
-                    </CardWithIcon>
 
-                    <CardWithIcon
-                        icon={Music}
-                        title="فایل صوتی"
-                        iconBgColor="bg-pink"
-                        iconColor="stroke-pink-2"
-                        borderColor="border-b-pink-1"
-                    >
                         <MediaGallery
                             mediaItems={propertyMedia?.audioGallery || []}
                             onMediaSelect={(media) => setPropertyMedia?.({ ...propertyMedia, audioGallery: media })}
@@ -102,15 +78,7 @@ export default function MediaTab(props: MediaTabProps) {
                             context="property"
                             contextId={propertyId}
                         />
-                    </CardWithIcon>
 
-                    <CardWithIcon
-                        icon={FileText}
-                        title="مستندات (PDF)"
-                        iconBgColor="bg-gray"
-                        iconColor="stroke-gray-2"
-                        borderColor="border-b-gray-1"
-                    >
                         <MediaGallery
                             mediaItems={propertyMedia?.pdfDocuments || []}
                             onMediaSelect={(media) => setPropertyMedia?.({ ...propertyMedia, pdfDocuments: media })}
@@ -121,23 +89,11 @@ export default function MediaTab(props: MediaTabProps) {
                             context="property"
                             contextId={propertyId}
                         />
-                    </CardWithIcon>
+                    </div>
                 </div>
 
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <CardWithIcon
-                        icon={ImageIcon}
-                        title={
-                            <>
-                                تصویر شاخص
-                                <span className="text-red-2">*</span>
-                            </>
-                        }
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                        className="lg:sticky lg:top-20"
-                    >
+                    <div className="space-y-6">
                         {currentFeaturedImage ? (
                             <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
                                 <img
@@ -179,10 +135,10 @@ export default function MediaTab(props: MediaTabProps) {
                                 </p>
                             </div>
                         )}
-                    </CardWithIcon>
+                    </div>
                 </div>
             </div>
-            
+
             <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div></div>}>
                 <MediaLibraryModal
                     isOpen={isMediaModalOpen}
@@ -194,7 +150,7 @@ export default function MediaTab(props: MediaTabProps) {
                     contextId={propertyId}
                 />
             </Suspense>
-        </TabsContent>
+        </div>
     );
 }
 

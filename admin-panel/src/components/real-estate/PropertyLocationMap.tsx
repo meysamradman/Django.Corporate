@@ -4,10 +4,35 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin, Loader2 } from "lucide-react";
 import { Label } from "@/components/elements/Label";
-import { realEstateApi } from "@/api/real-estate";
-import { showError, showSuccess } from "@/core/toast";
+import { showError } from "@/core/toast";
 
-// Province coordinates for Iran (approximate centers)
+// مختصات شهرهای بزرگ ایران - اولویت: شهر > استان
+const IRAN_CITY_COORDINATES: Record<string, [number, number]> = {
+  // شهرهای بزرگ (مرکز استان‌ها)
+  'تهران': [35.6892, 51.3890],
+  'اصفهان': [32.6546, 51.6680],
+  'مشهد': [36.2605, 59.6168],
+  'شیراز': [29.5918, 52.5837],
+  'تبریز': [38.0806, 46.2911],
+  'اهواز': [31.3183, 48.6706],
+  'کرمانشاه': [34.3142, 47.0650],
+  'رشت': [37.2808, 49.5832],
+  'ارومیه': [37.5527, 45.0759],
+  'یزد': [31.8974, 54.3569],
+  'کرمان': [30.2839, 57.0834],
+  'همدان': [34.7983, 48.5148],
+  'اردبیل': [38.2498, 48.2967],
+  'بندرعباس': [27.1833, 56.2667],
+  'زاهدان': [29.4960, 60.8629],
+  'گرگان': [36.8427, 54.4319],
+  'ساری': [36.5633, 53.0601],
+  'قزوین': [36.2797, 50.0049],
+  'سنندج': [35.3144, 46.9983],
+  'کرج': [35.8400, 50.9391],
+  'قم': [34.6401, 50.8769],
+};
+
+// مختصات مراکز استان‌ها (برای شهرهای کوچکتر)
 const IRAN_PROVINCE_COORDINATES: Record<string, [number, number]> = {
   'تهران': [35.6892, 51.3890],
   'اصفهان': [32.6546, 51.6680],
@@ -40,30 +65,6 @@ const IRAN_PROVINCE_COORDINATES: Record<string, [number, number]> = {
   'البرز': [35.8327, 50.9345],
   'خراسان شمالی': [37.4710, 57.1013],
   'خراسان جنوبی': [32.8649, 59.2262],
-};
-
-// City coordinates for Iran (approximate centers)
-const IRAN_CITY_COORDINATES: Record<string, [number, number]> = {
-  'تهران': [35.6892, 51.3890],
-  'اصفهان': [32.6546, 51.6680],
-  'مشهد': [36.2605, 59.6168],
-  'شیراز': [29.5918, 52.5837],
-  'تبریز': [38.0806, 46.2911],
-  'قم': [34.6401, 50.8769],
-  'اهواز': [31.3183, 48.6706],
-  'کرمانشاه': [34.3142, 47.0650],
-  'رشت': [37.2808, 49.5832],
-  'ارومیه': [37.5527, 45.0759],
-  'یزد': [31.8974, 54.3569],
-  'کرمان': [30.2839, 57.0834],
-  'همدان': [34.7983, 48.5148],
-  'اردبیل': [38.2498, 48.2967],
-  'بندرعباس': [27.1833, 56.2667],
-  'زاهدان': [29.4960, 60.8629],
-  'گرگان': [36.8427, 54.4319],
-  'ساری': [36.5633, 53.0601],
-  'قزوین': [36.2797, 50.0049],
-  'سنندج': [35.3144, 46.9983],
 };
 
 // Fix for default marker icon in React-Leaflet
@@ -112,19 +113,19 @@ interface LocationMarkerProps {
 }
 
 // Component to change map view when location changes
-function ChangeView({ 
-  center, 
-  zoom 
-}: { 
-  center: [number, number]; 
+function ChangeView({
+  center,
+  zoom
+}: {
+  center: [number, number];
   zoom: number;
 }) {
   const map = useMap();
-  
+
   useEffect(() => {
-    if (center && Array.isArray(center) && center.length === 2 && 
-        !isNaN(center[0]) && !isNaN(center[1]) && 
-        isFinite(center[0]) && isFinite(center[1])) {
+    if (center && Array.isArray(center) && center.length === 2 &&
+      !isNaN(center[0]) && !isNaN(center[1]) &&
+      isFinite(center[0]) && isFinite(center[1])) {
       // تابع برای به‌روزرسانی نقشه
       const updateMapView = () => {
         try {
@@ -140,7 +141,7 @@ function ChangeView({
         }
         return false;
       };
-      
+
       // تلاش فوری برای به‌روزرسانی
       if (!updateMapView()) {
         // اگر نقشه آماده نبود، کمی صبر می‌کنیم
@@ -151,21 +152,21 @@ function ChangeView({
             return () => clearTimeout(timer2);
           }
         }, 50);
-        
+
         return () => clearTimeout(timer1);
       }
     }
   }, [map, center, zoom]);
-  
+
   return null;
 }
 
 // Component to handle map click events
-function MapClickHandler({ 
-  onMapClick, 
+function MapClickHandler({
+  onMapClick,
   disabled
-}: { 
-  onMapClick: (lat: number, lng: number) => void; 
+}: {
+  onMapClick: (lat: number, lng: number) => void;
   disabled?: boolean;
 }) {
 
@@ -209,11 +210,10 @@ function LocationMarker({ position, onPositionChange, disabled }: LocationMarker
 interface PropertyLocationMapProps {
   latitude: number | null;
   longitude: number | null;
-  onLocationChange: (lat: number, lng: number) => void;
+  onLocationChange: (lat: number | null, lng: number | null) => void;
   onAddressUpdate?: (address: string) => void;
   onNeighborhoodUpdate?: (neighborhood: string) => void;
   onRegionUpdate?: (regionId: number) => void;
-  cityId?: number | null;
   cityName?: string | null;
   provinceName?: string | null;
   disabled?: boolean;
@@ -227,7 +227,6 @@ export default function PropertyLocationMap({
   onAddressUpdate,
   onNeighborhoodUpdate,
   onRegionUpdate,
-  cityId,
   cityName,
   provinceName,
   disabled = false,
@@ -238,38 +237,73 @@ export default function PropertyLocationMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Set initial center based on coordinates, city, or province
-  // Priority: 1) coordinates (if exists), 2) city, 3) province
-  // اما اگر استان یا شهر تغییر کرد، نقشه را به‌روز می‌کنیم
+  // Set initial center based on city, province or coordinates
+  // Priority: 1) city (major cities), 2) province (for smaller cities), 3) coordinates, 4) default
+  // هوشمند و کارآمد - شهرهای بزرگ روی خودشان، بقیه روی استان
   useEffect(() => {
-    // اگر شهر انتخاب شده، نقشه را به مرکز شهر می‌بریم (اولویت بالاتر از مختصات)
+    // اولویت 1: شهر انتخاب شده (اگر شهر بزرگ است)
     if (cityName) {
-      const cityCoords = IRAN_CITY_COORDINATES[cityName];
+      // Normalize city name for lookup
+      const normalizedCityName = cityName.replace(/^شهر\s+/, '').trim();
+      const cityCoords = IRAN_CITY_COORDINATES[normalizedCityName] || IRAN_CITY_COORDINATES[cityName];
+
       if (cityCoords) {
+        console.log(`📍 Moving map to city: ${normalizedCityName}`, cityCoords);
         setMapCenter(cityCoords);
         setMapZoom(12);
-        return; // اگر شهر انتخاب شده، از آن استفاده می‌کنیم
+        return;
+      } else {
+        // Fallback: Try to fetch city coordinates dynamically if not in hardcoded list
+        // Only try this if we don't have specific lat/long set for the property yet (or if we intentionally want to move to city)
+        // But since we want "Select City" to move map, we should try.
+        // To avoid excessive API calls, we could debounce or check a condition, 
+        // but for now let's try to geocode the city name.
+        if (!latitude || !longitude) {
+          const fetchCityCoords = async () => {
+            console.log(`🔍 Fetching coordinates for new city: ${normalizedCityName}`);
+            try {
+              // Construct query: City, Province (if available), Iran
+              const query = `${normalizedCityName}, ${provinceName || ''}, Iran`;
+              const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+              const data = await response.json();
+              if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                console.log(`✅ Found coordinates for ${normalizedCityName}:`, lat, lon);
+                setMapCenter([lat, lon]);
+                setMapZoom(12);
+              }
+            } catch (e) {
+              console.error("Error fetching city coords:", e);
+            }
+          };
+          fetchCityCoords();
+          return; // Don't fall through to province/default yet (async will update)
+        }
       }
     }
-    
-    // اگر فقط استان انتخاب شده، نقشه را به مرکز استان می‌بریم
-    if (provinceName) {
+
+    // اولویت 2: استان انتخاب شده (برای شهرهای کوچکتر یا وقتی شهر انتخاب نشده)
+    if (provinceName && !cityName) {
       const provinceCoords = IRAN_PROVINCE_COORDINATES[provinceName];
       if (provinceCoords) {
         setMapCenter(provinceCoords);
         setMapZoom(8);
-        return; // اگر استان انتخاب شده، از آن استفاده می‌کنیم
+        return;
       }
     }
-    
-    // اگر مختصات دقیق داریم و شهر/استان انتخاب نشده، از مختصات استفاده می‌کنیم
+
+    // اولویت 3: مختصات موجود (برای ویرایش ملک موجود)
     if (latitude && longitude) {
       setMapCenter([latitude, longitude]);
       setMapZoom(15);
-    } 
-    // پیش‌فرض: تهران
-    else {
-      setMapCenter([35.6892, 51.3890]); // Default to Tehran
+      return;
+    }
+
+    // اولویت 4: پیش‌فرض - مرکز ایران
+    // Only set default if we haven't matched anything else
+    if (!cityName && !provinceName && !latitude) {
+      setMapCenter([32.4279, 53.6880]); // مرکز ایران
       setMapZoom(6);
     }
   }, [latitude, longitude, cityName, provinceName]);
@@ -425,21 +459,21 @@ export default function PropertyLocationMap({
 
             // Skip system parts
             if (trimmedPart.startsWith('ایران') ||
-                trimmedPart.startsWith('استان') ||
-                trimmedPart.startsWith('شهر') ||
-                trimmedPart.startsWith('منطقه') ||
-                trimmedPart.startsWith('پلاک')) {
+              trimmedPart.startsWith('استان') ||
+              trimmedPart.startsWith('شهر') ||
+              trimmedPart.startsWith('منطقه') ||
+              trimmedPart.startsWith('پلاک')) {
               continue;
             }
 
             // Check for neighborhood indicators
             if (trimmedPart.includes('ناحیه') ||
-                trimmedPart.includes('کوی') ||
-                trimmedPart.includes('محله') ||
-                trimmedPart.includes('بلوار') ||
-                trimmedPart.includes('میدان') ||
-                trimmedPart.includes('چهارراه') ||
-                trimmedPart.includes('تقاطع')) {
+              trimmedPart.includes('کوی') ||
+              trimmedPart.includes('محله') ||
+              trimmedPart.includes('بلوار') ||
+              trimmedPart.includes('میدان') ||
+              trimmedPart.includes('چهارراه') ||
+              trimmedPart.includes('تقاطع')) {
 
               // Clean and extract
               let cleanPart = trimmedPart.replace(/\d{5}-\d{5}/g, '').trim();
@@ -460,12 +494,12 @@ export default function PropertyLocationMap({
 
               // Skip all system parts
               if (trimmedPart.startsWith('ایران') ||
-                  trimmedPart.startsWith('استان') ||
-                  trimmedPart.startsWith('شهر') ||
-                  trimmedPart.startsWith('منطقه') ||
-                  trimmedPart.startsWith('پلاک') ||
-                  trimmedPart.startsWith('خیابان') ||
-                  /^\d/.test(trimmedPart)) { // Skip numbers
+                trimmedPart.startsWith('استان') ||
+                trimmedPart.startsWith('شهر') ||
+                trimmedPart.startsWith('منطقه') ||
+                trimmedPart.startsWith('پلاک') ||
+                trimmedPart.startsWith('خیابان') ||
+                /^\d/.test(trimmedPart)) { // Skip numbers
                 continue;
               }
 
@@ -565,7 +599,7 @@ export default function PropertyLocationMap({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ChangeView center={mapCenter} zoom={mapZoom} />
-          <MapClickHandler 
+          <MapClickHandler
             onMapClick={handlePositionChange}
             disabled={disabled}
           />

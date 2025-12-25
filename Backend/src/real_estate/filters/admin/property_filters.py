@@ -82,6 +82,16 @@ class PropertyAdminFilter(django_filters.FilterSet):
         field_name='region__id',
         help_text="Filter by region ID"
     )
+
+    region_code = django_filters.NumberFilter(
+        field_name='region__code',
+        help_text="Filter by region code (1-22 for Tehran)"
+    )
+
+    neighborhood = django_filters.CharFilter(
+        lookup_expr='icontains',
+        help_text="Search in neighborhood name"
+    )
     
     min_price = django_filters.NumberFilter(
         method='filter_min_price',
@@ -215,7 +225,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
             'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
             'created_after', 'created_before', 'published_after', 'published_before',
             'property_type', 'state', 'agent', 'agency',
-            'city', 'province', 'region',
+            'city', 'province', 'region', 'region_code', 'neighborhood',
             'min_price', 'max_price', 'min_area', 'max_area',
             'bedrooms', 'bathrooms',
             'label', 'tag', 'feature',
@@ -260,6 +270,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
             Q(short_description__icontains=value) |
             Q(description__icontains=value) |
             Q(address__icontains=value) |
+            Q(neighborhood__icontains=value) |
             Q(city__name__icontains=value) |
             Q(region__name__icontains=value) |
             Q(meta_title__icontains=value) |

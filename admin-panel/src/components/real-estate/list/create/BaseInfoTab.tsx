@@ -1,6 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, type ChangeEvent } from "react";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
@@ -243,17 +241,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
 
     return (
-        <TabsContent value="account" className="mt-0 space-y-6">
+        <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 min-w-0">
                     <div className="space-y-6">
-                        <CardWithIcon
-                            icon={FileText}
-                            title="اطلاعات پایه"
-                            iconBgColor="bg-blue"
-                            iconColor="stroke-blue-2"
-                            borderColor="border-b-blue-1"
-                        >
+                        <div className="space-y-6">
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <FormFieldInput
@@ -297,6 +289,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
                                     />
                                 </FormField>
+                                </div>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div className="space-y-2">
@@ -336,13 +329,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             <SelectTrigger>
                                                 <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "وضعیت را انتخاب کنید"} />
                                             </SelectTrigger>
-                                                <SelectContent>
+                                            <SelectContent>
                                                 {(propertyStates || []).map((state) => (
                                                     <SelectItem key={state.id} value={String(state.id)}>
                                                         {state.title}
                                                     </SelectItem>
                                                 ))}
-                                                </SelectContent>
+                                            </SelectContent>
                                         </Select>
                                     </div>
                                 </div>
@@ -392,20 +385,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 </div>
 
                             </div>
-                        </CardWithIcon>
 
                     </div>
                 </div>
 
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <CardWithIcon
-                        icon={Settings}
-                        title="تنظیمات"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                        className="lg:sticky lg:top-20"
-                    >
+                    <div className="space-y-6">
                         <div className="space-y-8">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
@@ -675,10 +660,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 </div>
                             </div>
                         </div>
-                    </CardWithIcon>
                 </div>
             </div>
-        </TabsContent>
+        </div>
+        </div>
     );
 }
 
