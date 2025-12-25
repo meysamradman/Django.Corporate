@@ -7,102 +7,36 @@ import { Label } from "@/components/elements/Label";
 import { showError } from "@/core/toast";
 
 // مختصات شهرهای بزرگ ایران - اولویت: شهر > استان
-const IRAN_CITY_COORDINATES: Record<string, [number, number]> = {
-  // شهرهای بزرگ (مرکز استان‌ها)
-  'تهران': [35.6892, 51.3890],
-  'اصفهان': [32.6546, 51.6680],
-  'مشهد': [36.2605, 59.6168],
-  'شیراز': [29.5918, 52.5837],
-  'تبریز': [38.0806, 46.2911],
-  'اهواز': [31.3183, 48.6706],
-  'کرمانشاه': [34.3142, 47.0650],
-  'رشت': [37.2808, 49.5832],
-  'ارومیه': [37.5527, 45.0759],
-  'یزد': [31.8974, 54.3569],
-  'کرمان': [30.2839, 57.0834],
-  'همدان': [34.7983, 48.5148],
-  'اردبیل': [38.2498, 48.2967],
-  'بندرعباس': [27.1833, 56.2667],
-  'زاهدان': [29.4960, 60.8629],
-  'گرگان': [36.8427, 54.4319],
-  'ساری': [36.5633, 53.0601],
-  'قزوین': [36.2797, 50.0049],
-  'سنندج': [35.3144, 46.9983],
-  'کرج': [35.8400, 50.9391],
-  'قم': [34.6401, 50.8769],
-};
-
-// مختصات مراکز استان‌ها (برای شهرهای کوچکتر)
-const IRAN_PROVINCE_COORDINATES: Record<string, [number, number]> = {
-  'تهران': [35.6892, 51.3890],
-  'اصفهان': [32.6546, 51.6680],
-  'خراسان رضوی': [36.2605, 59.6168],
-  'فارس': [29.5918, 52.5837],
-  'آذربایجان شرقی': [38.0806, 46.2911],
-  'قم': [34.6401, 50.8769],
-  'خوزستان': [31.3183, 48.6706],
-  'کرمانشاه': [34.3142, 47.0650],
-  'گیلان': [37.2808, 49.5832],
-  'آذربایجان غربی': [37.5527, 45.0759],
-  'یزد': [31.8974, 54.3569],
-  'کرمان': [30.2839, 57.0834],
-  'همدان': [34.7983, 48.5148],
-  'اردبیل': [38.2498, 48.2967],
-  'هرمزگان': [27.1833, 56.2667],
-  'سیستان و بلوچستان': [29.4960, 60.8629],
-  'گلستان': [36.8427, 54.4319],
-  'مازندران': [36.5633, 53.0601],
-  'قزوین': [36.2797, 50.0049],
-  'کردستان': [35.3144, 46.9983],
-  'لرستان': [33.4878, 48.3558],
-  'مرکزی': [34.0809, 49.7012],
-  'بوشهر': [28.9234, 50.8203],
-  'چهارمحال و بختیاری': [32.3266, 50.8546],
-  'سمنان': [35.5728, 53.3971],
-  'زنجان': [36.5010, 48.4789],
-  'ایلام': [33.2958, 46.6707],
-  'کهگیلویه و بویراحمد': [30.6627, 51.5950],
-  'البرز': [35.8327, 50.9345],
-  'خراسان شمالی': [37.4710, 57.1013],
-  'خراسان جنوبی': [32.8649, 59.2262],
-};
-
-// Fix for default marker icon in React-Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-// Custom marker icon
+// Custom SVG marker icon that requires no external assets and looks great on Retina
 const createCustomIcon = (isSelected: boolean) => {
+  const color = isSelected ? "#3b82f6" : "#64748b"; // blue-500 or slate-500
+  const fillColor = isSelected ? "#2563eb" : "#475569"; // blue-600 or slate-600
+
+  // Lucide MapPin style SVG
+  const svgIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48">
+      <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+      </filter>
+      <path 
+        d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" 
+        fill="${color}" 
+        stroke="white" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        style="filter: url(#shadow);"
+      />
+      <circle cx="12" cy="10" r="3" fill="white"/>
+    </svg>
+  `;
+
   return L.divIcon({
-    className: "custom-marker",
-    html: `
-      <div style="
-        background-color: ${isSelected ? "#3b82f6" : "#ef4444"};
-        width: 32px;
-        height: 32px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <div style="
-          transform: rotate(45deg);
-          color: white;
-          font-size: 18px;
-          font-weight: bold;
-        ">📍</div>
-      </div>
-    `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
+    className: "custom-map-marker", // No default styles needed as we control everything in HTML
+    html: `<div style="transform: translate(-50%, -100%); width: 48px; height: 48px;">${svgIcon}</div>`,
+    iconSize: [0, 0], // Size managed by inner div
+    iconAnchor: [0, 0], // Position managed by inner div translation
+    // We position the Tip exactly at [0,0] (which is lat/lng point) by translating -50% (center x) and -100% (bottom y)
   });
 };
 
@@ -123,40 +57,24 @@ function ChangeView({
   const map = useMap();
 
   useEffect(() => {
+    if (!map) return;
+
+    // Ensure center is valid numbers
     if (center && Array.isArray(center) && center.length === 2 &&
-      !isNaN(center[0]) && !isNaN(center[1]) &&
-      isFinite(center[0]) && isFinite(center[1])) {
-      // تابع برای به‌روزرسانی نقشه
-      const updateMapView = () => {
-        try {
-          if (map && typeof map.setView === 'function') {
-            map.setView(center, zoom, {
-              animate: true,
-              duration: 0.5
-            });
-            return true;
-          }
-        } catch (error) {
-          console.warn("Error updating map view:", error);
-        }
-        return false;
-      };
+      !isNaN(center[0]) && !isNaN(center[1])) {
 
-      // تلاش فوری برای به‌روزرسانی
-      if (!updateMapView()) {
-        // اگر نقشه آماده نبود، کمی صبر می‌کنیم
-        const timer1 = setTimeout(() => {
-          if (!updateMapView()) {
-            // تلاش نهایی
-            const timer2 = setTimeout(updateMapView, 200);
-            return () => clearTimeout(timer2);
-          }
-        }, 50);
+      console.log("🗺️ ChangeView Triggered. Move from:", map.getCenter(), "to:", center);
 
-        return () => clearTimeout(timer1);
-      }
+      // Invalidate size to ensure map is rendered correctly
+      map.invalidateSize();
+
+      // Use setView for reliable instant movement
+      map.setView(center, zoom, {
+        animate: true,
+        duration: 0.5
+      });
     }
-  }, [map, center, zoom]);
+  }, [map, center[0], center[1], zoom]); // Desctructure center to ensure primitive comparison
 
   return null;
 }
@@ -216,6 +134,8 @@ interface PropertyLocationMapProps {
   onRegionUpdate?: (regionId: number) => void;
   cityName?: string | null;
   provinceName?: string | null;
+  viewLatitude?: number | null;
+  viewLongitude?: number | null;
   disabled?: boolean;
   className?: string;
 }
@@ -229,6 +149,8 @@ export default function PropertyLocationMap({
   onRegionUpdate,
   cityName,
   provinceName,
+  viewLatitude,
+  viewLongitude,
   disabled = false,
   className = "",
 }: PropertyLocationMapProps) {
@@ -237,76 +159,85 @@ export default function PropertyLocationMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Set initial center based on city, province or coordinates
-  // Priority: 1) city (major cities), 2) province (for smaller cities), 3) coordinates, 4) default
-  // هوشمند و کارآمد - شهرهای بزرگ روی خودشان، بقیه روی استان
+  // Handle Pin Location Changes (High Zoom)
   useEffect(() => {
-    // اولویت 1: شهر انتخاب شده (اگر شهر بزرگ است)
-    if (cityName) {
-      // Normalize city name for lookup
-      const normalizedCityName = cityName.replace(/^شهر\s+/, '').trim();
-      const cityCoords = IRAN_CITY_COORDINATES[normalizedCityName] || IRAN_CITY_COORDINATES[cityName];
+    if (latitude !== null && longitude !== null) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
 
-      if (cityCoords) {
-        console.log(`📍 Moving map to city: ${normalizedCityName}`, cityCoords);
-        setMapCenter(cityCoords);
-        setMapZoom(12);
-        return;
-      } else {
-        // Fallback: Try to fetch city coordinates dynamically if not in hardcoded list
-        // Only try this if we don't have specific lat/long set for the property yet (or if we intentionally want to move to city)
-        // But since we want "Select City" to move map, we should try.
-        // To avoid excessive API calls, we could debounce or check a condition, 
-        // but for now let's try to geocode the city name.
-        if (!latitude || !longitude) {
-          const fetchCityCoords = async () => {
-            console.log(`🔍 Fetching coordinates for new city: ${normalizedCityName}`);
-            try {
-              // Construct query: City, Province (if available), Iran
-              const query = `${normalizedCityName}, ${provinceName || ''}, Iran`;
-              const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-              const data = await response.json();
-              if (data && data.length > 0) {
-                const lat = parseFloat(data[0].lat);
-                const lon = parseFloat(data[0].lon);
-                console.log(`✅ Found coordinates for ${normalizedCityName}:`, lat, lon);
-                setMapCenter([lat, lon]);
-                setMapZoom(12);
-              }
-            } catch (e) {
-              console.error("Error fetching city coords:", e);
-            }
-          };
-          fetchCityCoords();
-          return; // Don't fall through to province/default yet (async will update)
-        }
-      }
-    }
-
-    // اولویت 2: استان انتخاب شده (برای شهرهای کوچکتر یا وقتی شهر انتخاب نشده)
-    if (provinceName && !cityName) {
-      const provinceCoords = IRAN_PROVINCE_COORDINATES[provinceName];
-      if (provinceCoords) {
-        setMapCenter(provinceCoords);
-        setMapZoom(8);
-        return;
-      }
-    }
-
-    // اولویت 3: مختصات موجود (برای ویرایش ملک موجود)
-    if (latitude && longitude) {
-      setMapCenter([latitude, longitude]);
+      console.log(`📍 Focusing on Pin:`, lat, lng);
+      setMapCenter([lat, lng]);
       setMapZoom(15);
+    }
+  }, [latitude, longitude]);
+
+  // Handle View/City Navigation Changes (City/Province Zoom)
+  useEffect(() => {
+    // Case 1: We have explicit Coordinates from DB (viewLatitude/viewLongitude)
+    if (viewLatitude !== null && viewLongitude !== null && viewLatitude !== undefined && viewLongitude !== undefined) {
+      const lat = Number(viewLatitude);
+      const lng = Number(viewLongitude);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        console.log(`🏙️ Navigating to City/View (DB):`, lat, lng);
+        setMapCenter([lat, lng]);
+        setMapZoom(12);
+      }
       return;
     }
 
-    // اولویت 4: پیش‌فرض - مرکز ایران
-    // Only set default if we haven't matched anything else
-    if (!cityName && !provinceName && !latitude) {
-      setMapCenter([32.4279, 53.6880]); // مرکز ایران
-      setMapZoom(6);
+    // Case 2: No DB Coordinates, but we have a City Name -> Try to fetch dynamically
+    if (cityName && (!viewLatitude || !viewLongitude)) {
+      const normalizedCityName = cityName.replace(/^شهر\s+/, '').trim();
+      console.log(`🔍 DB Coords missing. Fetching from Nominatim for: ${normalizedCityName}`);
+
+      const fetchCityCoords = async () => {
+        try {
+          setIsGeocoding(true);
+          const query = `${normalizedCityName}, ${provinceName || ''}, Iran`;
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=fa`);
+          const data = await response.json();
+
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            console.log(`✅ Found coordinates for ${normalizedCityName}:`, lat, lon);
+            setMapCenter([lat, lon]);
+            setMapZoom(12);
+          } else {
+            // Fallback to province center if city not found
+            console.warn(`⚠️ City not found in Nominatim: ${normalizedCityName}. Falling back to Province.`);
+            fallbackToProvince();
+          }
+        } catch (e) {
+          console.error("Error fetching city coords:", e);
+          fallbackToProvince();
+        } finally {
+          setIsGeocoding(false);
+        }
+      };
+
+      fetchCityCoords();
+      return;
     }
-  }, [latitude, longitude, cityName, provinceName]);
+
+    // Case 3: Just Province selected (no city), or fallback
+    if (provinceName && !cityName) {
+      // We might not have province coords via props if we are here (logic in parent handles province coords usually),
+      // but just in case or if parent logic changes.
+      // Actually parent passes province coords in viewLatitude if only province selected.
+      // So this block might be redundant but safe.
+    }
+
+  }, [viewLatitude, viewLongitude, cityName, provinceName]);
+
+  const fallbackToProvince = () => {
+    // If we can't find city, usually we can't do much unless we have province coords.
+    // But parent passes province coords ONLY if city is not selected.
+    // If city IS selected but has no coords, parent passes null.
+    // So we can try to geocode province? Or just do nothing.
+    // Let's rely on user to pick point.
+  };
 
   // Fetch Nominatim reverse geocoding to get address string
   const fetchAddressFromNominatim = async (lat: number, lng: number): Promise<string> => {

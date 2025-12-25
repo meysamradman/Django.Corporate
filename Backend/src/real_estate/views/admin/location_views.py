@@ -72,7 +72,7 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             
             class Meta:
                 model = Province
-                fields = ['id', 'public_id', 'name', 'code', 'country_name', 'is_active']
+                fields = ['id', 'public_id', 'name', 'code', 'country_name', 'latitude', 'longitude', 'is_active']
         
         return ProvinceSerializer
 
@@ -150,7 +150,7 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
             
             class Meta:
                 model = City
-                fields = ['id', 'public_id', 'name', 'code', 'province_id', 'province_name', 'is_active']
+                fields = ['id', 'public_id', 'name', 'code', 'province_id', 'province_name', 'latitude', 'longitude', 'is_active']
         
         return CitySerializer
 

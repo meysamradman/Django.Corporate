@@ -190,6 +190,24 @@ export default function LocationTab(props: LocationTabProps) {
         handleInputChange("region", regionId);
     }, [handleInputChange]);
 
+    // Calculate view coordinates for map
+    const selectedCity = selectedCityId ? cities.find(c => c.id === selectedCityId) : null;
+    const selectedProvince = selectedProvinceId ? provinces.find(p => p.id === selectedProvinceId) : null;
+
+    // Logic: 
+    // 1. If City is selected, use City coordinates (even if they are null - let Map component handle fetching)
+    // 2. If NO City selected, but Province is selected, use Province coordinates
+    let viewLatitude = undefined;
+    let viewLongitude = undefined;
+
+    if (selectedCityId) {
+        viewLatitude = selectedCity?.latitude;
+        viewLongitude = selectedCity?.longitude;
+    } else if (selectedProvinceId) {
+        viewLatitude = selectedProvince?.latitude;
+        viewLongitude = selectedProvince?.longitude;
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
@@ -303,6 +321,8 @@ export default function LocationTab(props: LocationTabProps) {
                             longitude={longitude ?? null}
                             cityName={cityName}
                             provinceName={provinceName}
+                            viewLatitude={viewLatitude}
+                            viewLongitude={viewLongitude}
                             onLocationChange={useCallback((lat, lng) => {
                                 onLocationChange?.(lat, lng);
                             }, [onLocationChange])}

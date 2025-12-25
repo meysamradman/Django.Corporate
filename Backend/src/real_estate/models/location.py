@@ -65,6 +65,23 @@ class Province(BaseModel):
         verbose_name="Country",
         help_text="The country this province belongs to"
     )
+
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        verbose_name="Latitude",
+        help_text="Center latitude of the province"
+    )
+    longitude = models.DecimalField(
+        max_digits=11,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        verbose_name="Longitude",
+        help_text="Center longitude of the province"
+    )
     
     class Meta(BaseModel.Meta):
         db_table = 'real_estate_provinces'
@@ -107,6 +124,23 @@ class City(BaseModel):
         db_index=True,
         verbose_name="Province",
         help_text="The province this city belongs to"
+    )
+
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        verbose_name="Latitude",
+        help_text="Center latitude of the city"
+    )
+    longitude = models.DecimalField(
+        max_digits=11,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        verbose_name="Longitude",
+        help_text="Center longitude of the city"
     )
     
     class Meta(BaseModel.Meta):
