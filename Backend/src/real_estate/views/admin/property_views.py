@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from django.conf import settings
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -142,6 +143,15 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
 
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
+        
+        upload_max = getattr(settings, 'REAL_ESTATE_MEDIA_UPLOAD_MAX', 10)
+        total_media = len(media_ids) + len(media_files)
+        if total_media > upload_max:
+            raise DRFValidationError({
+                'non_field_errors': [
+                    PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                ]
+            })
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -600,6 +610,15 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
         if not media_ids and not media_files:
             raise DRFValidationError({
                 'non_field_errors': ['At least one of media_ids or media_files must be provided.']
+            })
+            
+        upload_max = getattr(settings, 'REAL_ESTATE_MEDIA_UPLOAD_MAX', 10)
+        total_media = len(media_ids) + len(media_files)
+        if total_media > upload_max:
+            raise DRFValidationError({
+                'non_field_errors': [
+                    PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                ]
             })
         
         try:

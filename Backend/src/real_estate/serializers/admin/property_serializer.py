@@ -453,6 +453,12 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    
+    # Relaxed constraints for optional fields during creation
+    land_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    built_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    bedrooms = serializers.IntegerField(required=False, allow_null=True)
+    bathrooms = serializers.IntegerField(required=False, allow_null=True)
 
     # Location fields - simplified like Diwar
     province = serializers.PrimaryKeyRelatedField(
@@ -493,8 +499,46 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'labels_ids', 'tags_ids', 'features_ids',
+            'media_files',
         ]
     
+    
+    def to_internal_value(self, data):
+        """Override to quantize latitude/longitude before model validation"""
+        from decimal import Decimal, ROUND_DOWN
+
+        # Process latitude
+        if 'latitude' in data and data['latitude'] is not None:
+            if isinstance(data['latitude'], str):
+                try:
+                    lat_value = Decimal(data['latitude'])
+                except:
+                    lat_value = data['latitude']
+            elif isinstance(data['latitude'], (int, float)):
+                lat_value = Decimal(str(data['latitude']))
+            else:
+                lat_value = data['latitude']
+
+            if isinstance(lat_value, Decimal):
+                data['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
+        # Process longitude
+        if 'longitude' in data and data['longitude'] is not None:
+            if isinstance(data['longitude'], str):
+                try:
+                    lng_value = Decimal(data['longitude'])
+                except:
+                    lng_value = data['longitude']
+            elif isinstance(data['longitude'], (int, float)):
+                lng_value = Decimal(str(data['longitude']))
+            else:
+                lng_value = data['longitude']
+
+            if isinstance(lng_value, Decimal):
+                data['longitude'] = lng_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
+        return super().to_internal_value(data)
+
     def validate(self, attrs):
         # Validate that at least one price field is provided
         price_fields = ['price', 'sale_price', 'pre_sale_price', 'monthly_rent', 'rent_amount']

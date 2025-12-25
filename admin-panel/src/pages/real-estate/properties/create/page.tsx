@@ -73,9 +73,11 @@ const TabSkeleton = () => (
 );
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/list/create/BaseInfoTab"));
+const DetailsTab = lazy(() => import("@/components/real-estate/list/create/DetailsTab"));
 const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
 const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
+
 
 export default function PropertyCreatePage() {
   const navigate = useNavigate();
@@ -118,7 +120,13 @@ export default function PropertyCreatePage() {
             bathrooms: property.bathrooms || 0,
             land_area: property.land_area || 0,
             built_area: property.built_area || 0,
+            year_built: property.year_built || null,
+            floors_in_building: property.floors_in_building || null,
+            parking_spaces: property.parking_spaces || null,
+            storage_rooms: property.storage_rooms || null,
             price: property.price || 0,
+            mortgage_amount: property.mortgage_amount || 0,
+            rent_amount: property.rent_amount || 0,
             labels_ids: property.labels?.map((label: any) => label.id) || [],
             tags_ids: property.tags?.map((tag: any) => tag.id) || [],
             features_ids: property.features?.map((feature: any) => feature.id) || [],
@@ -185,8 +193,23 @@ export default function PropertyCreatePage() {
     built_area: null as number | null,
     bedrooms: null as number | null,
     bathrooms: null as number | null,
+    year_built: null as number | null,
+    floors_in_building: null as number | null,
+    parking_spaces: null as number | null,
+    storage_rooms: null as number | null,
     price: 0,
+    mortgage_amount: 0,
+    rent_amount: 0,
+    labels_ids: [] as number[],
+    tags_ids: [] as number[],
+    features_ids: [] as number[],
+    main_image_id: null as number | null,
+    og_image_id: null as number | null,
   });
+
+  // Errors state
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
 
   // Selected items state
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
@@ -320,8 +343,17 @@ export default function PropertyCreatePage() {
   // Handle form submission
   const handleSubmit = useCallback(async () => {
     setIsLoading(true);
+    setErrors({}); // Clear previous errors
     try {
-      // Validate required fields
+      // Basic Frontend Validation (optional, can relay on backend)
+      if (!formData.title?.trim()) {
+        setErrors(prev => ({ ...prev, title: "عنوان ملک الزامی است" }));
+        showError("لطفا خطاهای فرم را برطرف کنید");
+        setActiveTab("account");
+        setIsLoading(false);
+        return;
+      }
+
       if (!formData.title?.trim()) {
         showError("عنوان ملک الزامی است");
         setActiveTab("account");
@@ -335,10 +367,30 @@ export default function PropertyCreatePage() {
       }
 
       if (!formData.address?.trim()) {
-        showError("آدرس الزامی است");
-        setActiveTab("account");
+        setErrors(prev => ({ ...prev, address: "آدرس الزامی است" }));
+        showError("لطفا خطاهای فرم را برطرف کنید");
+        setActiveTab("location"); // Address is in Location tab now
+        setIsLoading(false);
         return;
       }
+
+      // Location Validation
+      if (!formData.province) {
+        setErrors(prev => ({ ...prev, province: "استان الزامی است" }));
+        showError("استان و شهر الزامی هستند");
+        setActiveTab("location");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!formData.city) {
+        setErrors(prev => ({ ...prev, city: "شهر الزامی است" }));
+        showError("استان و شهر الزامی هستند");
+        setActiveTab("location");
+        setIsLoading(false);
+        return;
+      }
+
 
       const labelIds = selectedLabels.map(label => label.id);
       const tagIds = selectedTags.map(tag => tag.id);
@@ -368,6 +420,8 @@ export default function PropertyCreatePage() {
         agent: formData.agent || undefined,
         agency: formData.agency || undefined,
         // Use region instead of district for PropertyUpdateData interface
+        province: formData.province || undefined,
+        city: formData.city || undefined,
         region: formData.district || undefined,
         region_name: formData.region_name || undefined,
         district_name: formData.district_name || undefined,
@@ -390,6 +444,27 @@ export default function PropertyCreatePage() {
         bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
           ? formData.bathrooms
           : undefined,
+        year_built: formData.year_built !== null && formData.year_built !== undefined
+          ? formData.year_built
+          : undefined,
+        floors_in_building: formData.floors_in_building !== null && formData.floors_in_building !== undefined
+          ? formData.floors_in_building
+          : undefined,
+        parking_spaces: formData.parking_spaces !== null && formData.parking_spaces !== undefined
+          ? formData.parking_spaces
+          : undefined,
+        storage_rooms: formData.storage_rooms !== null && formData.storage_rooms !== undefined
+          ? formData.storage_rooms
+          : undefined,
+        price: formData.price !== null && formData.price !== undefined
+          ? formData.price
+          : 0,
+        mortgage_amount: formData.mortgage_amount !== null && formData.mortgage_amount !== undefined
+          ? formData.mortgage_amount
+          : 0,
+        rent_amount: formData.rent_amount !== null && formData.rent_amount !== undefined
+          ? formData.rent_amount
+          : 0,
       };
 
       let property;
@@ -401,13 +476,38 @@ export default function PropertyCreatePage() {
 
       showSuccess(isEditMode ? "ملک با موفقیت ویرایش شد" : "ملک با موفقیت ایجاد شد");
       navigate(`/real-estate/properties/${property.id}/view`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating property:", error);
-      showError("خطا در ایجاد ملک");
+      if (error.response && error.response.status === 400) {
+        // Backend validation errors
+        const backendErrors = error.response.data;
+        const newErrors: Record<string, string> = {};
+
+        // Map backend errors to frontend fields
+        // Backend format might be { field: ["error1", "error2"] }
+        Object.keys(backendErrors).forEach(key => {
+          const err = backendErrors[key];
+          if (Array.isArray(err)) {
+            newErrors[key] = err[0];
+          } else if (typeof err === 'string') {
+            newErrors[key] = err;
+          }
+        });
+
+        setErrors(newErrors);
+        showError("لطفا خطاهای فرم را برطرف کنید");
+
+        // Log keys to help debug which tab to switch to
+        console.log("Validation keys:", Object.keys(newErrors));
+
+      } else {
+        showError("خطا در ایجاد ملک");
+      }
     } finally {
       setIsLoading(false);
     }
   }, [formData, selectedLabels, selectedTags, selectedFeatures, navigate, isEditMode, id]);
+
 
   return (
     <div className="space-y-6 pb-28 relative">
@@ -436,7 +536,12 @@ export default function PropertyCreatePage() {
             <MapPin className="h-4 w-4" />
             لوکیشن
           </TabsTrigger>
+          <TabsTrigger value="details">
+            <List className="h-4 w-4" />
+            جزییات و قیمت
+          </TabsTrigger>
           <TabsTrigger value="media">
+
             <Image className="h-4 w-4" />
             مدیا
           </TabsTrigger>
@@ -462,7 +567,9 @@ export default function PropertyCreatePage() {
               onFeatureToggle={handleFeatureToggle}
               onFeatureRemove={handleFeatureRemove}
               propertyId={undefined}
+              errors={errors}
             />
+
           </Suspense>
         </TabsContent>
         <TabsContent value="media">
@@ -496,6 +603,17 @@ export default function PropertyCreatePage() {
             />
           </Suspense>
         </TabsContent>
+        <TabsContent value="details">
+          <Suspense fallback={<TabSkeleton />}>
+            <DetailsTab
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={true}
+              errors={errors}
+            />
+          </Suspense>
+        </TabsContent>
+
         <TabsContent value="seo">
           <Suspense fallback={<TabSkeleton />}>
             <SEOTab

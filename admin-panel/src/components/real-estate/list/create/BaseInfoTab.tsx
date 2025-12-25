@@ -1,12 +1,14 @@
-import { useState, useEffect, useMemo, useCallback, type ChangeEvent } from "react";
+import { useState, useEffect, useCallback, type ChangeEvent } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { TipTapEditor } from "@/components/forms/TipTapEditor";
-import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FolderOpen, Tag, X, Settings, FileText } from "lucide-react";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { realEstateApi } from "@/api/real-estate";
+import { FormFieldInput, FormFieldTextarea, FormField } from "@/components/forms/FormField";
+
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { PropertyState } from "@/types/real_estate/state/propertyState";
 import type { PropertyLabel } from "@/types/real_estate/label/propertyLabel";
@@ -30,13 +32,15 @@ interface BaseInfoTabProps {
     onFeatureToggle: (feature: PropertyFeature) => void;
     onFeatureRemove: (featureId: number) => void;
     propertyId?: number | string;
+    errors?: Record<string, string>;
 }
 
 export default function BaseInfoTab(props: BaseInfoTabProps) {
-    const { formData, handleInputChange, editMode, selectedLabels, selectedTags, selectedFeatures, 
-            onLabelToggle, onLabelRemove, onTagToggle, onTagRemove, onFeatureToggle, onFeatureRemove, 
-            } = props;
-    
+    const { formData, handleInputChange, editMode, selectedLabels, selectedTags, selectedFeatures,
+        onLabelToggle, onLabelRemove, onTagToggle, onTagRemove, onFeatureToggle, onFeatureRemove,
+        errors
+    } = props;
+
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
     const [propertyStates, setPropertyStates] = useState<PropertyState[]>([]);
     const [labels, setLabels] = useState<PropertyLabel[]>([]);
@@ -45,12 +49,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [agents, setAgents] = useState<PropertyAgent[]>([]);
     const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
 
-    // Location states
-    const [provinces, setProvinces] = useState<any[]>([]);
-    const [cities, setCities] = useState<any[]>([]);
-    const [districts, setDistricts] = useState<any[]>([]);
-    const [cityRegions, setCityRegions] = useState<any[]>([]);
-
     const [loadingTypes, setLoadingTypes] = useState(true);
     const [loadingStates, setLoadingStates] = useState(true);
     const [loadingLabels, setLoadingLabels] = useState(true);
@@ -58,15 +56,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [loadingFeatures, setLoadingFeatures] = useState(true);
     const [loadingAgents, setLoadingAgents] = useState(true);
     const [loadingAgencies, setLoadingAgencies] = useState(true);
-    const [loadingProvinces, setLoadingProvinces] = useState(true);
-    const [loadingCities, setLoadingCities] = useState(false);
-    const [loadingDistricts, setLoadingDistricts] = useState(false);
-    // Note: loadingDistricts is kept for potential future use
-    
-    const selectedProvinceId = formData?.province;
-    const selectedCityId = formData?.city;
 
-    // Extract city and province names for map component
 
     useEffect(() => {
         const fetchData = async () => {
@@ -139,66 +129,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
             } finally {
                 setLoadingAgencies(false);
             }
-
-            try {
-                // Fetch Real Estate Provinces
-                const provincesData = await realEstateApi.getProvinces();
-                setProvinces(provincesData);
-            } catch (error) {
-                console.error("Error fetching provinces:", error);
-            } finally {
-                setLoadingProvinces(false);
-            }
         };
 
         fetchData();
     }, []);
 
-    // Memoize handlers to prevent unnecessary re-renders
-    const fetchCities = useCallback(async (provinceId: number | null) => {
-        if (!provinceId) {
-            setCities([]);
-            setDistricts([]);
-            return;
-        }
-        
-        setLoadingCities(true);
-        try {
-            const citiesData = await realEstateApi.getProvinceCities(provinceId);
-            setCities(citiesData);
-        } catch (error) {
-            console.error("Error fetching cities:", error);
-            setCities([]);
-        } finally {
-            setLoadingCities(false);
-        }
-    }, []);
-
-    const fetchCityRegions = useCallback(async (cityId: number | null) => {
-        if (!cityId) {
-            setCityRegions([]);
-            return;
-        }
-
-        setLoadingDistricts(true);
-        try {
-            const cityRegionsData = await realEstateApi.getCityRegions(cityId);
-            setCityRegions(cityRegionsData);
-        } catch (error) {
-            console.error("Error fetching city regions:", error);
-            setCityRegions([]);
-        } finally {
-            setLoadingDistricts(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchCities(selectedProvinceId);
-    }, [selectedProvinceId, fetchCities]);
-
-    useEffect(() => {
-        fetchCityRegions(selectedCityId);
-    }, [selectedCityId, fetchCityRegions]);
 
     const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -244,154 +179,166 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 min-w-0">
-                    <div className="space-y-6">
+                    <CardWithIcon
+                        icon={FileText}
+                        title="اطلاعات پایه"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        borderColor="border-b-blue-1"
+                    >
                         <div className="space-y-6">
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <FormFieldInput
-                                        label="عنوان"
-                                        id="title"
-                                        required
-                                        placeholder="عنوان ملک"
-                                        disabled={!editMode}
-                                        value={formData?.title || ""}
-                                        onChange={handleNameChange}
-                                    />
-                                    
-                                    <FormFieldInput
-                                        label="لینک (نامک)"
-                                        id="slug"
-                                        required
-                                        placeholder="نامک"
-                                        disabled={!editMode}
-                                        value={formData?.slug || ""}
-                                        onChange={handleSlugChange}
-                                    />
-                                </div>
-
-                                <FormFieldTextarea
-                                    label="توضیحات کوتاه"
-                                    id="short_description"
-                                    placeholder="یک توضیح کوتاه درباره ملک... (حداکثر ۳۰۰ کاراکتر)"
-                                    rows={3}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <FormFieldInput
+                                    label="عنوان"
+                                    id="title"
+                                    required
+                                    placeholder="عنوان ملک"
                                     disabled={!editMode}
-                                    maxLength={300}
-                                    value={formData?.short_description || ""}
-                                    onChange={handleShortDescriptionChange}
+                                    value={formData?.title || ""}
+                                    onChange={handleNameChange}
+                                    error={errors?.title}
                                 />
 
-                                <FormField
-                                    label="توضیحات بلند"
-                                >
-                                    <TipTapEditor
-                                        content={formData?.description || ""}
-                                        onChange={handleDescriptionChange}
-                                        placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
-                                    />
-                                </FormField>
-                                </div>
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label>نوع ملک <span className="text-red-2">*</span></Label>
-                                        {!editMode && formData?.property_type ? (
-                                            <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p">
-                                                {propertyTypes.find(t => t.id === formData.property_type)?.title || 
-                                                 (loadingTypes ? "در حال بارگذاری..." : "نوع ملک")}
-                                            </div>
-                                        ) : (
-                                            <Select
-                                                disabled={!editMode || loadingTypes}
-                                                value={formData?.property_type ? String(formData.property_type) : ""}
-                                                onValueChange={handlePropertyTypeChange}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {(propertyTypes || []).map((type) => (
-                                                        <SelectItem key={type.id} value={String(type.id)}>
-                                                            {type.title}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>وضعیت ملک <span className="text-red-2">*</span></Label>
-                                        <Select
-                                            disabled={!editMode || loadingStates}
-                                            value={formData?.state ? String(formData.state) : ""}
-                                            onValueChange={handleStateChange}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "وضعیت را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {(propertyStates || []).map((state) => (
-                                                    <SelectItem key={state.id} value={String(state.id)}>
-                                                        {state.title}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label>مشاور</Label>
-                                        <Select
-                                            disabled={!editMode || loadingAgents}
-                                            value={formData?.agent ? String(formData.agent) : "none"}
-                                            onValueChange={handleAgentChange}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">هیچکدام</SelectItem>
-                                                {(agents || []).map((agent) => (
-                                                    <SelectItem key={agent.id} value={String(agent.id)}>
-                                                        {agent.first_name} {agent.last_name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>آژانس</Label>
-                                        <Select
-                                            disabled={!editMode || loadingAgencies}
-                                            value={formData?.agency ? String(formData.agency) : "none"}
-                                            onValueChange={handleAgencyChange}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">هیچکدام</SelectItem>
-                                                {(agencies || []).map((agency) => (
-                                                    <SelectItem key={agency.id} value={String(agency.id)}>
-                                                        {agency.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
+                                <FormFieldInput
+                                    label="لینک (نامک)"
+                                    id="slug"
+                                    required
+                                    placeholder="نامک"
+                                    disabled={!editMode}
+                                    value={formData?.slug || ""}
+                                    onChange={handleSlugChange}
+                                    error={errors?.slug}
+                                />
                             </div>
 
-                    </div>
+                            <FormFieldTextarea
+                                label="توضیحات کوتاه"
+                                id="short_description"
+                                placeholder="یک توضیح کوتاه درباره ملک... (حداکثر ۳۰۰ کاراکتر)"
+                                rows={3}
+                                disabled={!editMode}
+                                maxLength={300}
+                                value={formData?.short_description || ""}
+                                onChange={handleShortDescriptionChange}
+                                error={errors?.short_description}
+                            />
+
+                            <FormField
+                                label="توضیحات بلند"
+                                error={errors?.description}
+                            >
+                                <TipTapEditor
+                                    content={formData?.description || ""}
+                                    onChange={handleDescriptionChange}
+                                    placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
+                                />
+                            </FormField>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className={errors?.property_type ? "text-red-1" : ""}>نوع ملک <span className="text-red-2">*</span></Label>
+                                    <Select
+                                        disabled={!editMode || loadingTypes}
+                                        value={formData?.property_type ? String(formData.property_type) : ""}
+                                        onValueChange={handlePropertyTypeChange}
+                                    >
+                                        <SelectTrigger className={errors?.property_type ? "border-red-1" : ""}>
+                                            <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {(propertyTypes || []).map((type) => (
+                                                <SelectItem key={type.id} value={String(type.id)}>
+                                                    {type.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors?.property_type && <span className="text-xs text-red-1">{errors.property_type}</span>}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className={errors?.state ? "text-red-1" : ""}>وضعیت ملک <span className="text-red-2">*</span></Label>
+                                    <Select
+                                        disabled={!editMode || loadingStates}
+                                        value={formData?.state ? String(formData.state) : ""}
+                                        onValueChange={handleStateChange}
+                                    >
+                                        <SelectTrigger className={errors?.state ? "border-red-1" : ""}>
+                                            <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "وضعیت را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {(propertyStates || []).map((state) => (
+                                                <SelectItem key={state.id} value={String(state.id)}>
+                                                    {state.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors?.state && <span className="text-xs text-red-1">{errors.state}</span>}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className={errors?.agent ? "text-red-1" : ""}>مشاور</Label>
+                                    <Select
+                                        disabled={!editMode || loadingAgents}
+                                        value={formData?.agent ? String(formData.agent) : "none"}
+                                        onValueChange={handleAgentChange}
+                                    >
+                                        <SelectTrigger className={errors?.agent ? "border-red-1" : ""}>
+                                            <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">هیچکدام</SelectItem>
+                                            {(agents || []).map((agent) => (
+                                                <SelectItem key={agent.id} value={String(agent.id)}>
+                                                    {agent.first_name} {agent.last_name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors?.agent && <span className="text-xs text-red-1">{errors.agent}</span>}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className={errors?.agency ? "text-red-1" : ""}>آژانس</Label>
+                                    <Select
+                                        disabled={!editMode || loadingAgencies}
+                                        value={formData?.agency ? String(formData.agency) : "none"}
+                                        onValueChange={handleAgencyChange}
+                                    >
+                                        <SelectTrigger className={errors?.agency ? "border-red-1" : ""}>
+                                            <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">هیچکدام</SelectItem>
+                                            {(agencies || []).map((agency) => (
+                                                <SelectItem key={agency.id} value={String(agency.id)}>
+                                                    {agency.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors?.agency && <span className="text-xs text-red-1">{errors.agency}</span>}
+                                </div>
+                            </div>
+                        </div>
+                    </CardWithIcon>
                 </div>
 
+
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <div className="space-y-6">
+                    <CardWithIcon
+                        icon={Settings}
+                        title="تنظیمات"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        borderColor="border-b-blue-1"
+                        className="lg:sticky lg:top-20"
+                    >
                         <div className="space-y-8">
+
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <div className="p-1.5 bg-purple rounded-lg">
@@ -403,13 +350,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     {selectedLabels.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {selectedLabels.map((label) => (
-                                                <span 
-                                                    key={label.id} 
+                                                <span
+                                                    key={label.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-purple text-purple-2 transition hover:shadow-sm"
                                                 >
                                                     {label.title}
-                                                    <button 
-                                                        type="button" 
+                                                    <button
+                                                        type="button"
                                                         className="text-purple-2 hover:text-purple-2 cursor-pointer"
                                                         title="حذف"
                                                         onClick={() => onLabelRemove(label.id)}
@@ -420,8 +367,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </div>
                                     )}
-                                    
-                                    <Select 
+
+                                    <Select
                                         disabled={!editMode || loadingLabels}
                                         onValueChange={(value) => {
                                             const label = labels.find(l => String(l.id) === value);
@@ -435,8 +382,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {(labels || []).map((label) => {
                                                 const isSelected = selectedLabels.some(l => l.id === label.id);
                                                 return (
-                                                    <SelectItem 
-                                                        key={label.id} 
+                                                    <SelectItem
+                                                        key={label.id}
                                                         value={String(label.id)}
                                                         disabled={isSelected}
                                                         className={isSelected ? "opacity-70" : undefined}
@@ -468,13 +415,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     {selectedTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {selectedTags.map((tag) => (
-                                                <span 
-                                                    key={tag.id} 
+                                                <span
+                                                    key={tag.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-indigo text-indigo-2 transition hover:shadow-sm"
                                                 >
                                                     {tag.title}
-                                                    <button 
-                                                        type="button" 
+                                                    <button
+                                                        type="button"
                                                         className="text-indigo-2 hover:text-indigo-2 cursor-pointer"
                                                         title="حذف"
                                                         onClick={() => onTagRemove(tag.id)}
@@ -485,8 +432,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </div>
                                     )}
-                                    
-                                    <Select 
+
+                                    <Select
                                         disabled={!editMode || loadingTags}
                                         onValueChange={(value) => {
                                             const tag = tags.find(t => String(t.id) === value);
@@ -500,8 +447,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {(tags || []).map((tag) => {
                                                 const isSelected = selectedTags.some(t => t.id === tag.id);
                                                 return (
-                                                    <SelectItem 
-                                                        key={tag.id} 
+                                                    <SelectItem
+                                                        key={tag.id}
                                                         value={String(tag.id)}
                                                         disabled={isSelected}
                                                         className={isSelected ? "opacity-70" : undefined}
@@ -533,13 +480,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     {selectedFeatures.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {selectedFeatures.map((feature) => (
-                                                <span 
-                                                    key={feature.id} 
+                                                <span
+                                                    key={feature.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-teal text-teal-2"
                                                 >
                                                     {feature.title}
-                                                    <button 
-                                                        type="button" 
+                                                    <button
+                                                        type="button"
                                                         className="text-teal-2 hover:text-teal-2"
                                                         onClick={() => onFeatureRemove(feature.id)}
                                                     >
@@ -549,8 +496,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </div>
                                     )}
-                                    
-                                    <Select 
+
+                                    <Select
                                         disabled={!editMode || loadingFeatures}
                                         onValueChange={(value) => {
                                             const feature = features.find(f => String(f.id) === value);
@@ -564,8 +511,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             {(features || []).map((feature) => {
                                                 const isSelected = selectedFeatures.some(f => f.id === feature.id);
                                                 return (
-                                                    <SelectItem 
-                                                        key={feature.id} 
+                                                    <SelectItem
+                                                        key={feature.id}
                                                         value={String(feature.id)}
                                                         disabled={isSelected}
                                                         className={isSelected ? "opacity-70" : undefined}
@@ -586,7 +533,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 </div>
                             </div>
 
-                            <div className="mt-6 space-y-4">
+                            <div className="space-y-4 pt-4 border-t border-br">
                                 <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
                                         <ItemContent>
@@ -604,7 +551,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemActions>
                                     </Item>
                                 </div>
-                                
+
                                 <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
                                         <ItemContent>
@@ -622,7 +569,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemActions>
                                     </Item>
                                 </div>
-                                
+
                                 <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
                                         <ItemContent>
@@ -640,7 +587,6 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemActions>
                                     </Item>
                                 </div>
-
                                 <div className="rounded-xl border border-purple-1/40 bg-purple-0/30 hover:border-purple-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
                                         <ItemContent>
@@ -660,9 +606,9 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 </div>
                             </div>
                         </div>
+                    </CardWithIcon>
                 </div>
             </div>
-        </div>
         </div>
     );
 }
