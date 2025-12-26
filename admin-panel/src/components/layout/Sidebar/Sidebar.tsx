@@ -221,7 +221,7 @@ export function Sidebar({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex items-center justify-center h-10 w-10 rounded-md text-sdb-menu-txt hover:bg-sdb-hv hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="flex items-center justify-center h-10 w-10 rounded-md text-sdb-menu-txt hover:bg-sdb-hv hover:text-primary transition-colors"
                   aria-label="User menu"
                 >
                   <NavUser size="sm" />
@@ -400,12 +400,12 @@ function MenuItemsList({ items }: MenuItemsListProps) {
             {shouldShowSeparator && (
               <div className="h-px bg-br my-2 -mx-4" />
             )}
-            <CollapsibleTrigger asChild>
+              <CollapsibleTrigger asChild>
               <button
                 className={cn(
                   "flex items-center justify-between w-full px-3 py-2 text-sm font-semibold rounded-md transition-colors",
                   "text-sdb-menu-ttl hover:bg-sdb-hv hover:text-primary",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  "cursor-pointer"
                 )}
               >
                 <span>{group.title}</span>
