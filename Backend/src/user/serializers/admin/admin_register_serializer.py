@@ -7,7 +7,7 @@ from src.user.utils.password_validator import validate_register_password
 from src.user.utils.phone_validator import validate_phone_number_optional
 from src.user.utils.validate_identifier import validate_identifier
 from src.user.models import User, AdminRole
-from src.user.models.location import Province, City
+from src.core.models import Province, City
 from src.media.models import ImageMedia
 from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
@@ -27,8 +27,16 @@ class AdminRegisterSerializer(serializers.Serializer):
         required=False
     )
     
+    # نوع ادمین: ادمین معمولی یا مشاور املاک
+    admin_role_type = serializers.ChoiceField(
+        choices=[('admin', 'Admin'), ('consultant', 'Real Estate Consultant')],
+        default='admin',
+        required=False
+    )
+    
     profile = serializers.DictField(required=False, allow_empty=True)
     
+    # فیلدهای AdminProfile (برای همه admin users)
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     last_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     birth_date = serializers.DateField(required=False, allow_null=True)
@@ -46,6 +54,27 @@ class AdminRegisterSerializer(serializers.Serializer):
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
     
     role_id = serializers.IntegerField(required=False, allow_null=True)
+    
+    # فیلدهای PropertyAgent (فقط برای مشاورین املاک)
+    license_number = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
+    license_expire_date = serializers.DateField(required=False, allow_null=True)
+    specialization = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
+    agency_id = serializers.IntegerField(required=False, allow_null=True)
+    is_verified = serializers.BooleanField(required=False, default=False)
+    
+    # فیلدهای SEO برای PropertyAgent (اختیاری)
+    meta_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
+    meta_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=300)
+    meta_keywords = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
+    og_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
+    og_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=300)
+    og_image_id = serializers.IntegerField(required=False, allow_null=True)
+    twitter_card = serializers.ChoiceField(
+        choices=[('summary', 'Summary'), ('summary_large_image', 'Summary Large Image')],
+        required=False,
+        allow_blank=True,
+        allow_null=True
+    )
 
     def validate_mobile(self, value):
         if value == "" or value is None:
@@ -163,6 +192,43 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         except City.DoesNotExist:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+    
+    def validate_license_number(self, value):
+        """اعتبارسنجی شماره پروانه مشاور"""
+        if not value or value.strip() == "":
+            return None
+        # چک یکتا بودن
+        from src.real_estate.models import PropertyAgent
+        if PropertyAgent.objects.filter(license_number=value).exists():
+            raise serializers.ValidationError("شماره پروانه تکراری است")
+        return value.strip()
+    
+    def validate_license_expire_date(self, value):
+        """اعتبارسنجی تاریخ انقضای پروانه"""
+        if value and value < datetime.now().date():
+            raise serializers.ValidationError("تاریخ انقضای پروانه نمی‌تواند در گذشته باشد")
+        return value
+    
+    def validate_agency_id(self, value):
+        """اعتبارسنجی آژانس املاک"""
+        if value is None:
+            return value
+        try:
+            from src.real_estate.models import RealEstateAgency
+            RealEstateAgency.objects.get(id=value, is_active=True)
+            return value
+        except Exception:
+            raise serializers.ValidationError("آژانس یافت نشد")
+    
+    def validate_og_image_id(self, value):
+        """اعتبارسنجی تصویر OG"""
+        if value is None:
+            return value
+        try:
+            ImageMedia.objects.get(id=value)
+            return value
+        except ImageMedia.DoesNotExist:
+            raise serializers.ValidationError("تصویر یافت نشد")
 
     def validate(self, data):
         admin_user = self.context.get('admin_user')
@@ -177,6 +243,7 @@ class AdminRegisterSerializer(serializers.Serializer):
                 'non_field_errors': AUTH_ERRORS.get("auth_email_or_mobile_required")
             })
         
+        # پردازش profile data
         profile_data = data.get('profile', {})
         if profile_data:
             for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'department', 'position', 'bio', 'notes', 'province_id', 'city_id']:
@@ -190,6 +257,21 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError({
                 'profile_picture': AUTH_ERRORS.get("auth_validation_error")
             })
+        
+        # اعتبارسنجی فیلدهای PropertyAgent برای مشاورین املاک
+        admin_role_type = data.get('admin_role_type', 'admin')
+        
+        if admin_role_type == 'consultant':
+            # برای مشاورین، license_number اجباری است
+            if not data.get('license_number'):
+                raise serializers.ValidationError({
+                    'license_number': 'شماره پروانه برای مشاورین املاک الزامی است'
+                })
+            # چک کنیم first_name و last_name برای PropertyAgent داشته باشیم
+            if not data.get('first_name') or not data.get('last_name'):
+                raise serializers.ValidationError({
+                    'non_field_errors': 'نام و نام خانوادگی برای مشاورین املاک الزامی است'
+                })
         
         return data
 

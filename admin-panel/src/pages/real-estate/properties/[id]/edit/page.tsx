@@ -88,6 +88,7 @@ const BaseInfoTab = lazy(() => import("@/components/real-estate/list/create/Base
 const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
 const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
+const DetailsTab = lazy(() => import("@/components/real-estate/list/create/DetailsTab"));
 
 export default function EditPropertyPage() {
   const navigate = useNavigate();
@@ -631,6 +632,16 @@ export default function EditPropertyPage() {
         </TabsContent>
         <TabsContent value="details">
           <Suspense fallback={<TabSkeleton />}>
+            <DetailsTab
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={editMode}
+              errors={{}}
+            />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="media">
+          <Suspense fallback={<TabSkeleton />}>
             <MediaTab
               propertyMedia={propertyMedia}
               setPropertyMedia={setPropertyMedia}
@@ -638,18 +649,6 @@ export default function EditPropertyPage() {
               featuredImage={propertyMedia.featuredImage}
               onFeaturedImageChange={handleFeaturedImageChange}
               propertyId={id}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="location">
-          <Suspense fallback={<TabSkeleton />}>
-            <LocationTab
-              formData={formData}
-              handleInputChange={handleInputChange}
-              editMode={editMode}
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              onLocationChange={handleLocationChange}
             />
           </Suspense>
         </TabsContent>

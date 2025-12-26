@@ -12,6 +12,7 @@ from src.user.access_control import BASE_ADMIN_PERMISSIONS
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
+from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdminDetailSerializer
 
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
@@ -21,11 +22,14 @@ class AdminListSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
+    user_role_type = serializers.SerializerMethodField()
+    has_agent_profile = serializers.SerializerMethodField()
+    agent_profile = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = ['id', 'public_id', 'full_name', 'mobile', 'email', 'is_active', 'is_staff', 'is_superuser', 
-                 'created_at', 'updated_at', 'profile', 'permissions', 'roles']
+                 'created_at', 'updated_at', 'profile', 'permissions', 'roles', 'user_role_type', 'has_agent_profile', 'agent_profile']
     
     def get_profile(self, obj):
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
@@ -81,6 +85,38 @@ class AdminListSerializer(serializers.ModelSerializer):
         
         return assigned_roles
     
+    def get_user_role_type(self, obj):
+        """تعیین اینکه کاربر admin است یا consultant"""
+        # SuperAdmin همیشه admin است نه consultant
+        if obj.is_superuser:
+            return 'admin'
+        # چک کنیم که واقعاً PropertyAgent profile داره (نه فقط hasattr)
+        try:
+            # بررسی کنیم آیا real_estate_agent_profile وجود داره و None نیست
+            if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
+                return 'consultant'
+        except Exception:
+            # اگر relation وجود نداره یا خطا بده، به عنوان admin در نظر بگیریم
+            pass
+        # بقیه ادمین معمولی هستند
+        return 'admin'
+    
+    def get_has_agent_profile(self, obj):
+        """چک کنیم که آیا PropertyAgent profile داره"""
+        try:
+            return hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None
+        except Exception:
+            return False
+    
+    def get_agent_profile(self, obj):
+        """دریافت agent_profile برای مشاورین"""
+        try:
+            if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
+                return PropertyAgentAdminDetailSerializer(obj.real_estate_agent_profile, context=self.context).data
+        except Exception:
+            pass
+        return None
+    
     def get_permissions(self, user):
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
             return {
@@ -126,11 +162,15 @@ class AdminDetailSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
+    user_role_type = serializers.SerializerMethodField()
+    has_agent_profile = serializers.SerializerMethodField()
+    agent_profile = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
-                 'created_at', 'updated_at', 'profile', 'full_name', 'permissions']
+                 'created_at', 'updated_at', 'profile', 'full_name', 'permissions', 'user_role_type', 
+                 'has_agent_profile', 'agent_profile']
     
     def get_profile(self, obj):
         if obj.user_type == 'admin' and hasattr(obj, 'admin_profile') and obj.admin_profile:
@@ -157,6 +197,33 @@ class AdminDetailSerializer(serializers.ModelSerializer):
             elif profile.last_name:
                 return profile.last_name
         return user.mobile or user.email or f"User {user.id}"
+    
+    def get_user_role_type(self, obj):
+        """تعیین اینکه کاربر admin است یا consultant"""
+        if obj.is_superuser:
+            return 'admin'
+        try:
+            if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
+                return 'consultant'
+        except Exception:
+            pass
+        return 'admin'
+    
+    def get_has_agent_profile(self, obj):
+        """چک کنیم که آیا PropertyAgent profile داره"""
+        try:
+            return hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None
+        except Exception:
+            return False
+    
+    def get_agent_profile(self, obj):
+        """دریافت agent_profile برای مشاورین"""
+        try:
+            if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
+                return PropertyAgentAdminDetailSerializer(obj.real_estate_agent_profile, context=self.context).data
+        except Exception:
+            pass
+        return None
     
     def get_permissions(self, user):
         if user.user_type == 'user' and not user.is_staff and not user.is_superuser:
@@ -382,7 +449,14 @@ class AdminFilterSerializer(serializers.Serializer):
         default='all',
         required=False
     )
+    user_role_type = serializers.ChoiceField(
+        choices=['all', 'admin', 'consultant'],
+        default='all',
+        required=False,
+        help_text="Filter by admin type: 'all' (همه), 'admin' (فقط ادمین‌ها), 'consultant' (فقط مشاورین)"
+    )
     is_superuser = serializers.BooleanField(required=False, allow_null=True)
+    is_active = serializers.BooleanField(required=False, allow_null=True)
     search = serializers.CharField(required=False, allow_blank=True)
 
 

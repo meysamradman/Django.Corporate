@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
 from src.user.models import User, UserProfile
-from src.user.models.location import Province, City
+from src.core.models import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models.media import ImageMedia
 

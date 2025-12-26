@@ -33,7 +33,8 @@ try:
     import django
     from django.db import transaction
     django.setup()
-    from src.real_estate.models.location import City, CityRegion
+    from src.core.models import City
+    from src.real_estate.models.location import CityRegion
 except ImportError as e:
     print(f"❌ خطا در import Django: {e}")
     print("مطمئن شوید که Django نصب شده و مسیر درست است")

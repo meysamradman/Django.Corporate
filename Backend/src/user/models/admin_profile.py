@@ -1,11 +1,12 @@
 from django.db import models
 from django.conf import settings
-from src.core.models import BaseModel
-from .location import Province, City
+from django.db import models
+from src.core.models import BaseModel, Province, City
 from src.media.models.media import ImageMedia
 
 
 class AdminProfile(BaseModel):
+    
     admin_user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

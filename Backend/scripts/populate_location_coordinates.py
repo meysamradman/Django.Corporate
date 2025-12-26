@@ -17,7 +17,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 try:
     import django
     django.setup()
-    from src.real_estate.models.location import City, Province
+    from src.core.models import City, Province
 except ImportError as e:
     print(f"❌ خطا در import Django: {e}")
     sys.exit(1)

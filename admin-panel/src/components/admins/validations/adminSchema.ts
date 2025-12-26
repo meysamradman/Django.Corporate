@@ -64,6 +64,11 @@ export const adminFormSchema = z.object({
     .optional()
     .or(z.literal("none")),
   
+  admin_role_type: z
+    .enum(["admin", "consultant"])
+    .default("admin")
+    .optional(),
+  
   profile_first_name: z
     .string()
     .max(50, { message: msg.validation("maxLength", { field: "نام", max: 50 }) })
@@ -159,6 +164,85 @@ export const adminFormSchema = z.object({
     .any()
     .nullable()
     .optional(),
+  
+  // PropertyAgent fields (consultant only)
+  license_number: z
+    .string()
+    .max(100, { message: msg.validation("maxLength", { field: "شماره پروانه", max: 100 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  license_expire_date: z
+    .string()
+    .optional()
+    .or(z.literal("")),
+  
+  specialization: z
+    .string()
+    .max(200, { message: msg.validation("maxLength", { field: "تخصص", max: 200 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  agency_id: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .or(z.literal(null)),
+  
+  bio: z
+    .string()
+    .max(1000, { message: msg.validation("maxLength", { field: "بیوگرافی", max: 1000 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  is_verified: z
+    .boolean()
+    .optional()
+    .default(false),
+  
+  // SEO fields for PropertyAgent
+  meta_title: z
+    .string()
+    .max(70, { message: msg.validation("maxLength", { field: "عنوان متا", max: 70 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  meta_description: z
+    .string()
+    .max(300, { message: msg.validation("maxLength", { field: "توضیحات متا", max: 300 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  meta_keywords: z
+    .string()
+    .max(200, { message: msg.validation("maxLength", { field: "کلمات کلیدی", max: 200 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  og_title: z
+    .string()
+    .max(70, { message: msg.validation("maxLength", { field: "عنوان OG", max: 70 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  og_description: z
+    .string()
+    .max(300, { message: msg.validation("maxLength", { field: "توضیحات OG", max: 300 }) })
+    .optional()
+    .or(z.literal("")),
+  
+  og_image_id: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .or(z.literal(null)),
+  
+  twitter_card: z
+    .enum(["summary", "summary_large_image"])
+    .optional()
+    .or(z.literal("")),
 });
 
 export type AdminFormValues = z.infer<typeof adminFormSchema>;
@@ -171,6 +255,23 @@ export const adminFormDefaults: Partial<AdminFormValues> = {
   is_superuser: false,
   is_active: true,
   role_id: "none",
+  admin_role_type: "admin",
+  // PropertyAgent fields
+  license_number: "",
+  license_expire_date: "",
+  specialization: "",
+  agency_id: null,
+  bio: "",
+  is_verified: false,
+  // SEO fields
+  meta_title: "",
+  meta_description: "",
+  meta_keywords: "",
+  og_title: "",
+  og_description: "",
+  og_image_id: null,
+  twitter_card: "",
+  // Profile fields
   profile_first_name: "",
   profile_last_name: "",
   profile_birth_date: "",

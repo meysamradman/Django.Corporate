@@ -1,7 +1,5 @@
 import type { Base } from "@/types/shared/base";
 import type { RealEstateAgency } from "../agency/realEstateAgency";
-import type { Media } from "@/types/shared/media";
-import type { PropertySEOMeta } from "../propertySeoMeta";
 
 export interface PropertyAgent extends Base {
   user: number;
@@ -12,19 +10,12 @@ export interface PropertyAgent extends Base {
   phone?: string | null;
   email?: string | null;
   license_number?: string | null;
+  license_expire_date?: string | null;
   bio?: string | null;
   specialization?: string | null;
-  experience_years?: number | null;
+  profile_picture_url?: string | null;
   
   agency?: RealEstateAgency | null;
-  city?: number | null;
-  city_name?: string;
-  province?: number | null;
-  province_name?: string;
-  address?: string | null;
-  
-  profile_image?: Media | null;
-  cover_image?: Media | null;
   
   is_verified: boolean;
   is_active: boolean;
@@ -34,12 +25,11 @@ export interface PropertyAgent extends Base {
   total_reviews?: number;
   property_count?: number;
   
-  seo?: PropertySEOMeta | null;
   meta_title?: string | null;
   meta_description?: string | null;
   og_title?: string | null;
   og_description?: string | null;
-  og_image?: Media | null;
   canonical_url?: string | null;
+  robots_meta?: string | null;
 }
 

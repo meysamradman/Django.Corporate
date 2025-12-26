@@ -9,7 +9,6 @@ from .roles import (
 )
 from .user_profile import UserProfile
 from .admin_profile import AdminProfile
-from .location import Province, City
 
 __all__ = [
     'User',
@@ -21,6 +20,4 @@ __all__ = [
     'RolePermission',
     'UserProfile',
     'AdminProfile',
-    'Province',
-    'City',
 ]

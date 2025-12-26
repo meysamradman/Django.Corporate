@@ -6,7 +6,7 @@ from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.user.utils.password_validator import validate_register_password
 from src.user.models import User, AdminProfile, UserProfile, AdminUserRole, AdminRole
-from src.user.models.location import Province, City
+from src.core.models import Province, City
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 
@@ -231,6 +231,11 @@ class AdminRegisterService:
         admin.set_password(password)
         admin.save()
         
+        # ایجاد PropertyAgent برای مشاورین املاک
+        admin_role_type = validated_data.get('admin_role_type', 'admin')
+        if admin_role_type == 'consultant':
+            cls._create_property_agent(admin, validated_data)
+        
         if role_id and admin.user_type == 'admin':
             try:
                 role = AdminRole.objects.get(id=role_id, is_active=True)
@@ -244,6 +249,53 @@ class AdminRegisterService:
                 pass
 
         return admin
+    
+    @classmethod
+    def _create_property_agent(cls, user, validated_data):
+        from src.real_estate.models import PropertyAgent, RealEstateAgency
+        from src.media.models import ImageMedia
+        
+        agent_data = {
+            'user': user,
+            'license_number': validated_data.get('license_number'),
+            'license_expire_date': validated_data.get('license_expire_date'),
+            'specialization': validated_data.get('specialization', ''),
+            'bio': validated_data.get('bio', ''),
+            'is_verified': validated_data.get('is_verified', False),
+            # SEO fields
+            'meta_title': validated_data.get('meta_title', ''),
+            'meta_description': validated_data.get('meta_description', ''),
+            'meta_keywords': validated_data.get('meta_keywords', ''),
+            'og_title': validated_data.get('og_title', ''),
+            'og_description': validated_data.get('og_description', ''),
+            'twitter_card': validated_data.get('twitter_card', ''),
+        }
+        
+        # Agency relationship
+        agency_id = validated_data.get('agency_id')
+        if agency_id:
+            try:
+                agent_data['agency'] = RealEstateAgency.objects.get(id=agency_id, is_active=True)
+            except RealEstateAgency.DoesNotExist:
+                pass
+        
+        # OG Image relationship
+        og_image_id = validated_data.get('og_image_id')
+        if og_image_id:
+            try:
+                agent_data['og_image'] = ImageMedia.objects.get(id=og_image_id)
+            except ImageMedia.DoesNotExist:
+                pass
+        
+        # پاکسازی مقادیر None
+        agent_data = {k: v for k, v in agent_data.items() if v is not None}
+        
+        try:
+            PropertyAgent.objects.create(**agent_data)
+        except Exception as e:
+            # اگر خطا داد، کاربر رو حذف کن
+            user.delete()
+            raise ValidationError(f"خطا در ایجاد PropertyAgent: {str(e)}")
 
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):

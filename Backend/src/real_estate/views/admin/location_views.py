@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 
-from src.real_estate.models.location import Province, City, CityRegion, Country
+from src.core.models import Province, City, Country
+from src.real_estate.models.location import CityRegion
 from rest_framework.response import Response
 from django.db.models import Q, F
 from decimal import Decimal

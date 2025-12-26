@@ -2,9 +2,9 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
 from django.contrib.postgres.search import SearchVectorField
-from src.core.models import BaseModel
+from src.core.models import BaseModel, Country, Province, City
 from src.real_estate.models.seo import SEOMixin
-from src.real_estate.models.location import Country, Province, City, CityRegion
+from src.real_estate.models.location import CityRegion
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.state import PropertyState
 from src.real_estate.models.label import PropertyLabel
@@ -641,7 +641,7 @@ class Property(BaseModel, SEOMixin):
             self.province = self.city.province
         if self.province_id and not self.country_id:
             # Assuming Iran as default country - adjust as needed
-            from src.real_estate.models.location import Country
+            from src.core.models import Country
             iran_country, _ = Country.objects.get_or_create(
                 code='IRN',
                 defaults={'name': 'Iran'}

@@ -23,22 +23,41 @@ def _clear_permission_cache(user_id):
 
 class AdminManagementService:
     @staticmethod
-    def get_admins_list(search=None, is_active=None, is_superuser=None, request=None):
-        queryset = User.objects.select_related('admin_profile').prefetch_related(
+    def get_admins_list(search=None, is_active=None, is_superuser=None, user_role_type=None, request=None):
+        # بهینه‌سازی: select_related برای جلوگیری از N+1 queries
+        queryset = User.objects.select_related(
+            'admin_profile',
+            'real_estate_agent_profile'
+        ).prefetch_related(
             'admin_profile__profile_picture',
             'admin_user_roles__role'
         ).filter(user_type='admin', is_staff=True, is_admin_active=True)
         
+        # فیلترهای پایه
         filters = {}
-        
         if is_active is not None:
             filters['is_active'] = is_active
-            
         if is_superuser is not None:
             filters['is_superuser'] = is_superuser
-            
-        queryset = queryset.filter(**filters)
         
+        if filters:
+            queryset = queryset.filter(**filters)
+        
+        # فیلتر بر اساس user_role_type (admin یا consultant)
+        if user_role_type and user_role_type != 'all':
+            if user_role_type == 'consultant':
+                # مشاورین: کسانی که PropertyAgent دارند ولی superuser نیستند
+                queryset = queryset.filter(
+                    real_estate_agent_profile__isnull=False,
+                    is_superuser=False
+                )
+            elif user_role_type == 'admin':
+                # ادمین‌ها: کسانی که PropertyAgent ندارند یا superuser هستند
+                queryset = queryset.filter(
+                    Q(real_estate_agent_profile__isnull=True) | Q(is_superuser=True)
+                )
+        
+        # فیلتر جستجو
         if search:
             queryset = queryset.filter(
                 Q(mobile__icontains=search) |
@@ -46,7 +65,7 @@ class AdminManagementService:
                 Q(admin_profile__first_name__icontains=search) |
                 Q(admin_profile__last_name__icontains=search)
             ).distinct()
-
+        
         return queryset.order_by('-created_at')
 
     @staticmethod

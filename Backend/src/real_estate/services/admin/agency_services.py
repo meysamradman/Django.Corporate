@@ -13,6 +13,7 @@ class RealEstateAgencyAdminService:
     @staticmethod
     def get_agency_queryset(filters=None, search=None):
         queryset = RealEstateAgency.objects.select_related(
+            'province',
             'city',
             'logo',
             'cover_image'
@@ -26,6 +27,8 @@ class RealEstateAgencyAdminService:
                 queryset = queryset.filter(is_active=filters['is_active'])
             if filters.get('is_verified') is not None:
                 queryset = queryset.filter(is_verified=filters['is_verified'])
+            if filters.get('province_id'):
+                queryset = queryset.filter(province_id=filters['province_id'])
             if filters.get('city_id'):
                 queryset = queryset.filter(city_id=filters['city_id'])
         
@@ -43,6 +46,7 @@ class RealEstateAgencyAdminService:
     def get_agency_by_id(agency_id):
         try:
             return RealEstateAgency.objects.select_related(
+                'province',
                 'city',
                 'logo',
                 'cover_image'

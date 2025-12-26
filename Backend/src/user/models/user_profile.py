@@ -1,17 +1,12 @@
 from django.db import models
 from django.conf import settings
-from src.core.models import BaseModel
-from .location import Province, City
+from django.db import models
+from src.core.models import BaseModel, Province, City
 from src.media.models.media import ImageMedia
 
 
 class UserProfile(BaseModel):
-    """
-    User profile model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Primary Relationship → Content → Other Relationships → Metadata
-    Note: user relationship is kept first as it's the primary identifier (OneToOneField)
-    """
-    # 5. Relationships (Primary - kept first as it's the primary identifier)
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -115,9 +110,7 @@ class UserProfile(BaseModel):
         verbose_name_plural = "User Profiles"
         ordering = ['-created_at']
         indexes = [
-            # Composite index for common queries
             models.Index(fields=['province', 'city']),
-            # Note: national_id and phone already have db_index=True, no need for separate Index()
         ]
 
     def __str__(self):

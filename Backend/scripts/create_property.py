@@ -25,7 +25,8 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
-from src.real_estate.models.location import Country, Province, City, CityRegion
+from src.core.models import Country, Province, City
+from src.real_estate.models.location import CityRegion
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.real_estate.signals import update_property_search_vector
 

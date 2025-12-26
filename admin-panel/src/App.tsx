@@ -14,7 +14,12 @@ import MediaPage from './pages/media/page';
 import AdminsPage from './pages/admins/page';
 import AdminsCreatePage from './pages/admins/create/page';
 import AdminsEditPage from './pages/admins/[id]/edit/page';
+import AdminsViewPage from './pages/admins/[id]/view/page';
 import AdminsPermissionsPage from './pages/admins/permissions/page';
+import AdminsMePage from './pages/admins/me/edit/page';
+import ConsultantsEditPage from './pages/admins/consultants/[id]/edit/page';
+import ConsultantsViewPage from './pages/admins/consultants/[id]/view/page';
+import ConsultantsMePage from './pages/admins/me-consultant/edit/page';
 import UsersPage from './pages/users/page';
 import UsersCreatePage from './pages/users/create/page';
 import UsersEditPage from './pages/users/[id]/edit/page';
@@ -86,14 +91,7 @@ import PropertyTagsPage from './pages/real-estate/tags/page';
 import PropertyTagCreatePage from './pages/real-estate/tags/create/page';
 import PropertyTagEditPage from './pages/real-estate/tags/[id]/edit/page';
 import PropertyTagViewPage from './pages/real-estate/tags/[id]/view/page';
-import AdvisorsListPage from './pages/real-estate/advisors/page';
-import AgenciesListPage from './pages/real-estate/agencies/page';
-import AgentViewPage from './pages/real-estate/agents/[id]/view/page';
-import AgentEditPage from './pages/real-estate/agents/[id]/edit/page';
-import AgentCreatePage from './pages/real-estate/agents/create/page';
-import AgencyViewPage from './pages/real-estate/agencies/[id]/view/page';
-import AgencyEditPage from './pages/real-estate/agencies/[id]/edit/page';
-import AgencyCreatePage from './pages/real-estate/agencies/create/page';
+// Agents and Agencies pages removed from top-level routes — managed via Admins section now.
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 
 import RealEstateStaticPage from './pages/Staticstyle/realstate/page';
@@ -132,7 +130,12 @@ function App() {
                   <Route path="admins">
                     <Route index element={<AdminsPage />} />
                     <Route path="create" element={<AdminsCreatePage />} />
+                    <Route path="me/edit" element={<AdminsMePage />} />
+                    <Route path=":id/view" element={<AdminsViewPage />} />
                     <Route path=":id/edit" element={<AdminsEditPage />} />
+                    <Route path="consultants/:id/view" element={<ConsultantsViewPage />} />
+                    <Route path="consultants/:id/edit" element={<ConsultantsEditPage />} />
+                    <Route path="me-consultant/edit" element={<ConsultantsMePage />} />
                     <Route path="permissions" element={<AdminsPermissionsPage />} />
                   </Route>
                   <Route path="users">
@@ -243,24 +246,7 @@ function App() {
                       <Route path=":id/edit" element={<PropertyTagEditPage />} />
                       <Route path=":id/view" element={<PropertyTagViewPage />} />
                     </Route>
-                    <Route path="agents">
-                      <Route index element={<AdvisorsListPage />} />
-                      <Route path="create" element={<AgentCreatePage />} />
-                      <Route path=":id/view" element={<AgentViewPage />} />
-                      <Route path=":id/edit" element={<AgentEditPage />} />
-                    </Route>
-                    <Route path="advisors">
-                      <Route index element={<AdvisorsListPage />} />
-                      <Route path="create" element={<AgentCreatePage />} />
-                      <Route path=":id/view" element={<AgentViewPage />} />
-                      <Route path=":id/edit" element={<AgentEditPage />} />
-                    </Route>
-                    <Route path="agencies">
-                      <Route index element={<AgenciesListPage />} />
-                      <Route path="create" element={<AgencyCreatePage />} />
-                      <Route path=":id/view" element={<AgencyViewPage />} />
-                      <Route path=":id/edit" element={<AgencyEditPage />} />
-                    </Route>
+                    {/* Agents and Agencies routes removed from real-estate section — managed via Admins now */}
                   </Route>
                   <Route path="staticstyle">
                     <Route path="realstate">

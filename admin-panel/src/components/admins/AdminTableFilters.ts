@@ -11,13 +11,26 @@ export const useAdminFilterOptions = () => {
         { label: "ادمین عادی", value: false }
     ];
 
-    return { booleanFilterOptions, roleFilterOptions };
+    const userRoleTypeOptions: FilterOption[] = [
+        { label: "ادمین‌ها", value: "admin" },
+        { label: "مشاورین املاک", value: "consultant" }
+    ];
+
+    return { booleanFilterOptions, roleFilterOptions, userRoleTypeOptions };
 };
 
 export const getAdminFilterConfig = (
     booleanFilterOptions: FilterOption[],
-    roleFilterOptions: FilterOption[]
+    roleFilterOptions: FilterOption[],
+    userRoleTypeOptions: FilterOption[]
 ): FilterConfig[] => [
+    {
+        columnId: "user_role_type",
+        title: "نوع کاربر",
+        options: userRoleTypeOptions,
+        placeholder: "نوع کاربر",
+        type: 'select'
+    },
     {
         columnId: "is_active",
         title: "وضعیت",

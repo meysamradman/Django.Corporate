@@ -3,7 +3,8 @@ from datetime import datetime
 from django.contrib.auth.models import Permission
 from src.media.models.media import ImageMedia
 from src.media.utils.validators import validate_image_file
-from src.user.models import AdminProfile, Province, City, User
+from src.user.models import AdminProfile, User
+from src.core.models import Province, City
 from src.user.serializers.location_serializer import ProvinceCompactSerializer, CityCompactSerializer
 from src.user.utils.national_id_validator import validate_national_id_format, validate_national_id
 from src.user.messages import AUTH_ERRORS

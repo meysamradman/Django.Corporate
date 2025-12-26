@@ -1,8 +1,9 @@
 from django.db import models
+from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from src.core.models import BaseModel
 from src.real_estate.models.seo import SEOMixin
-from src.real_estate.models.location import City
+from src.core.models import City, Province
 from src.real_estate.models.managers import RealEstateAgencyQuerySet
 
 
@@ -26,7 +27,14 @@ class RealEstateAgency(BaseModel, SEOMixin):
         unique=True,
         db_index=True,
         verbose_name="License Number",
-        help_text="Official license number"
+        help_text="Agent license number"
+    )
+    license_expire_date = models.DateField(
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="License Expiry Date",
+        help_text="Date when the license expires"
     )
     
     phone = models.CharField(
@@ -46,6 +54,16 @@ class RealEstateAgency(BaseModel, SEOMixin):
         help_text="Agency website URL"
     )
     
+    province = models.ForeignKey(
+        Province,
+        on_delete=models.PROTECT,
+        related_name='real_estate_agencies',
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Province",
+        help_text="Province where the agency is located"
+    )
     city = models.ForeignKey(
         City,
         on_delete=models.PROTECT,
@@ -57,22 +75,6 @@ class RealEstateAgency(BaseModel, SEOMixin):
     address = models.TextField(
         verbose_name="Address",
         help_text="Full address of the agency"
-    )
-    latitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        verbose_name="Latitude",
-        help_text="Geographic latitude"
-    )
-    longitude = models.DecimalField(
-        max_digits=11,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        verbose_name="Longitude",
-        help_text="Geographic longitude"
     )
     
     logo = models.ForeignKey(
@@ -131,6 +133,7 @@ class RealEstateAgency(BaseModel, SEOMixin):
         indexes = [
             # Composite indexes for common query patterns
             models.Index(fields=['is_active', 'is_verified', '-rating']),
+            models.Index(fields=['province', 'is_active']),
             models.Index(fields=['city', 'is_active']),
             models.Index(fields=['license_number']),
             models.Index(fields=['slug']),

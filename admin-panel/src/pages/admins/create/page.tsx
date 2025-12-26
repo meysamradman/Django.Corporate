@@ -16,7 +16,7 @@ import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, User, UserCircle, ShieldCheck, List } from "lucide-react";
+import { Loader2, Save, User, UserCircle, ShieldCheck, List, Building2 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 
 const TabSkeleton = () => (
@@ -59,6 +59,7 @@ const TabSkeleton = () => (
 const BaseInfoTab = lazy(() => import("@/components/admins/create/BaseInfoTab"));
 const ProfileTab = lazy(() => import("@/components/admins/create/ProfileTab"));
 const PermissionsTab = lazy(() => import("@/components/admins/create/PermissionsTab"));
+const ConsultantFields = lazy(() => import("@/components/admins/ConsultantFields"));
 
 export default function CreateAdminPage() {
     const navigate = useNavigate();
@@ -115,6 +116,7 @@ export default function CreateAdminPage() {
                 is_active: data.is_active ?? true,
                 is_superuser: data.is_superuser,
                 ...(data.role_id !== 'none' && { role_id: Number(data.role_id) }),
+                admin_role_type: data.admin_role_type || "admin",
             };
 
             if (Object.keys(profileData).length > 0) {
@@ -123,6 +125,24 @@ export default function CreateAdminPage() {
             
             if (selectedMedia?.id) {
                 adminDataToSubmit.profile_picture_id = selectedMedia.id;
+            }
+            
+            // اضافه کردن فیلدهای مشاور املاک
+            if (data.admin_role_type === "consultant") {
+                if (data.license_number) adminDataToSubmit.license_number = data.license_number;
+                if (data.license_expire_date) adminDataToSubmit.license_expire_date = data.license_expire_date;
+                if (data.specialization) adminDataToSubmit.specialization = data.specialization;
+                if (data.agency_id) adminDataToSubmit.agency_id = data.agency_id;
+                if (typeof data.is_verified === 'boolean') adminDataToSubmit.is_verified = data.is_verified;
+                        
+                // فیلدهای SEO
+                if (data.meta_title) adminDataToSubmit.meta_title = data.meta_title;
+                if (data.meta_description) adminDataToSubmit.meta_description = data.meta_description;
+                if (data.meta_keywords) adminDataToSubmit.meta_keywords = data.meta_keywords;
+                if (data.og_title) adminDataToSubmit.og_title = data.og_title;
+                if (data.og_description) adminDataToSubmit.og_description = data.og_description;
+                if (data.og_image_id) adminDataToSubmit.og_image_id = data.og_image_id;
+                if (data.twitter_card) adminDataToSubmit.twitter_card = data.twitter_card;
             }
 
             return await adminApi.createAdmin(adminDataToSubmit as any);
@@ -212,6 +232,12 @@ export default function CreateAdminPage() {
                         <UserCircle className="w-4 h-4" />
                         پروفایل
                     </TabsTrigger>
+                    {form.watch("admin_role_type") === "consultant" && (
+                        <TabsTrigger value="consultant">
+                            <Building2 className="w-4 h-4" />
+                            اطلاعات مشاور
+                        </TabsTrigger>
+                    )}
                     <TabsTrigger value="permissions">
                         <ShieldCheck className="w-4 h-4" />
                         دسترسی‌ها
@@ -236,6 +262,16 @@ export default function CreateAdminPage() {
                         />
                     </Suspense>
                 </TabsContent>
+                {form.watch("admin_role_type") === "consultant" && (
+                    <TabsContent value="consultant">
+                        <Suspense fallback={<TabSkeleton />}>
+                            <ConsultantFields
+                                form={form as any}
+                                isEdit={false}
+                            />
+                        </Suspense>
+                    </TabsContent>
+                )}
                 <TabsContent value="permissions">
                     <Suspense fallback={<TabSkeleton />}>
                         <PermissionsTab

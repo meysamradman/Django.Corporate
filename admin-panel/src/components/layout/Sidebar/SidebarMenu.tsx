@@ -142,12 +142,6 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         items: [
           { title: "لیست املاک", url: "/real-estate/properties", icon: ListTodo, access: { module: "real_estate", allowReadOnly: true } },
           { title: "ایجاد ملک", url: "/real-estate/properties/create", icon: FilePlus, access: { module: "real_estate", actions: ["create"] } },
-          { title: "مشاورین", isTitle: true },
-          { title: "لیست مشاورین", url: "/real-estate/agents", icon: UserCircle, access: { module: "property_agent", allowReadOnly: true } },
-          { title: "ایجاد مشاور", url: "/real-estate/agents/create", icon: UserPlus, access: { module: "property_agent", actions: ["create"] } },
-          { title: "آژانس‌ها", isTitle: true },
-          { title: "لیست آژانس‌ها", url: "/real-estate/agencies", icon: Building, access: { module: "real_estate_agency", allowReadOnly: true } },
-          { title: "ایجاد آژانس", url: "/real-estate/agencies/create", icon: Plus, access: { module: "real_estate_agency", actions: ["create"] } },
           { title: "نوع‌های ملک", isTitle: true },
           { title: "لیست نوع‌ها", url: "/real-estate/types", icon: Building, access: { module: "property_type", allowReadOnly: true } },
           { title: "ایجاد نوع", url: "/real-estate/types/create", icon: Plus, access: { module: "property_type", actions: ["create"] } },
@@ -198,7 +192,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         },
         items: [
           {
-            title: "لیست ادمین‌ها",
+            title: "لیست مشاورین و ادمین‌ها",
             url: "/admins",
             icon: ShieldUser,
             access: {
@@ -215,6 +209,25 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
               module: "admin",
               actions: ["create"],
               requireSuperAdmin: true
+            }
+          },
+          { title: "آژانس‌ها", isTitle: true },
+          {
+            title: "لیست آژانس‌ها",
+            url: "/admins/agencies",
+            icon: Building,
+            access: {
+              module: "real_estate_agency",
+              allowReadOnly: true
+            }
+          },
+          {
+            title: "ایجاد آژانس",
+            url: "/admins/agencies/create",
+            icon: Plus,
+            access: {
+              module: "real_estate_agency",
+              actions: ["create"]
             }
           },
         ],

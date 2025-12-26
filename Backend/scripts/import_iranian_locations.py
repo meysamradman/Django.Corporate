@@ -37,10 +37,8 @@ try:
     import django
     from django.db import transaction
     django.setup()
-    from src.user.models.location import Province as UserProvince, City as UserCity
-    from src.real_estate.models.location import (
-        Country, Province as RealEstateProvince, City as RealEstateCity
-    )
+    from src.core.models import Province as UserProvince, City as UserCity, Country
+    from src.real_estate.models.location import CityRegion
 except ImportError as e:
     print(f"❌ خطا در import Django: {e}")
     print("مطمئن شوید که Django نصب شده و مسیر درست است")
@@ -205,6 +203,17 @@ def import_user_locations(update_mode=True):
     
     try:
         with transaction.atomic():
+            # دریافت کشور ایران (باید از قبل ساخته شده باشه)
+            iran, created = Country.objects.get_or_create(
+                code='IRN',
+                defaults={
+                    'name': 'ایران',
+                    'phone_code': '+98',
+                    'is_active': True
+                }
+            )
+            print(f"🌍 کشور: {iran.name} (id={iran.id})")
+            
             total_provinces = len(PROVINCES_DATA)
             total_cities = sum(len(prov["cities"]) for prov in PROVINCES_DATA)
             
@@ -219,6 +228,7 @@ def import_user_locations(update_mode=True):
                     code=province_data["code"],
                     defaults={
                         "name": province_data["name"],
+                        "country": iran,
                         "is_active": True
                     }
                 )
@@ -276,120 +286,19 @@ def import_user_locations(update_mode=True):
         return False
 
 
-def import_real_estate_locations(update_mode=False):
-    """Import locations for real_estate app
+def import_real_estate_locations(update_mode=True):
+    """Import locations - استفاده از models مرکزی در core
     
     منطق:
-    - از get_or_create استفاده می‌کند تا duplicate ایجاد نشود
-    - اگر موجود بود، update می‌کند (نام، وضعیت)
-    - اگر موجود نبود، create می‌کند
-    - هیچ داده‌ای پاک نمی‌شود (حتی بدون update_mode)
+    - الان همه از core.models استفاده می‌کنند (Country, Province, City)
+    - real_estate فقط CityRegion مختص خودش داره
+    - این تابع همان import_user_locations رو صدا میزنه
     """
     print("\n" + "="*60)
-    print("🏠 Import برای Real Estate Location")
+    print("📍 Location Models مرکزی شدند - استفاده از core.models")
     print("="*60)
-    print("🔄 منطق: جلوگیری از duplicate + update موارد موجود + اضافه کردن موارد جدید")
-    
-    try:
-        with transaction.atomic():
-            # ایجاد یا دریافت کشور ایران
-            country, created = Country.objects.get_or_create(
-                code='IRN',
-                defaults={
-                    'name': 'Iran',
-                    'is_active': True
-                }
-            )
-            
-            # اگر موجود بود، update کن
-            if not created:
-                country.name = 'Iran'
-                country.is_active = True
-                country.save()
-            
-            status_country = "ایجاد شد" if created else "به‌روزرسانی شد"
-            print(f"🌍 کشور ایران {status_country}")
-            
-            total_provinces = len(PROVINCES_DATA)
-            total_cities = sum(len(prov["cities"]) for prov in PROVINCES_DATA)
-            
-            print(f"📊 آماده import {total_provinces} استان و {total_cities} شهر...")
-            
-            province_count = 0
-            city_count = 0
-            region_count = 0
-            district_count = 0
-            
-            for province_data in PROVINCES_DATA:
-                # ایجاد یا به‌روزرسانی استان (جلوگیری از duplicate)
-                province, created = RealEstateProvince.objects.get_or_create(
-                    code=province_data["code"],
-                    defaults={
-                        "name": province_data["name"],
-                        "country": country,
-                        "is_active": True
-                    }
-                )
-                
-                # اگر موجود بود، update کن (برای به‌روزرسانی نام یا وضعیت)
-                if not created:
-                    province.name = province_data["name"]
-                    province.country = country
-                    province.is_active = True
-                    province.save()
-                
-                province_count += 1
-                status = "ایجاد شد" if created else "به‌روزرسانی شد"
-                print(f"✅ استان '{province_data['name']}' با کد {province_data['code']} {status}")
-                
-                # ایجاد یا به‌روزرسانی شهرهای استان
-                cities = province_data["cities"]
-                cities_created = 0
-                cities_updated = 0
-                
-                for index, city_name in enumerate(cities, 1):
-                    city_code = f"{province_data['code']}{index:02d}"
-                    city, created = RealEstateCity.objects.get_or_create(
-                        code=city_code,
-                        province=province,
-                        defaults={
-                            "name": city_name,
-                            "is_active": True
-                        }
-                    )
-                    
-                    # اگر موجود بود، update کن
-                    if not created:
-                        city.name = city_name
-                        city.is_active = True
-                        city.save()
-                        cities_updated += 1
-                    else:
-                        cities_created += 1
-                    
-                    city_count += 1
-                    
-                    # منطقه و محله به صورت داینامیک از طریق نقشه در پنل ادمین ایجاد می‌شوند
-                    # هیچ region/district پیش‌فرضی ایجاد نمی‌شود
-                    # کاربران در پنل ادمین با انتخاب روی نقشه، region و district را ایجاد می‌کنند
-                
-                print(f"   📍 {len(cities)} شهر: {cities_created} ایجاد شد، {cities_updated} به‌روزرسانی شد")
-                print(f"   ℹ️  منطقه و محله به صورت داینامیک از طریق نقشه در پنل ادمین ایجاد می‌شوند")
-            
-            print(f"\n🎉 import Real Estate Location با موفقیت انجام شد!")
-            print(f"📊 نتایج نهایی:")
-            print(f"   • {province_count} استان")
-            print(f"   • {city_count} شهر")
-            print(f"   ℹ️  منطقه و محله به صورت داینامیک از طریق نقشه در پنل ادمین ایجاد می‌شوند")
-            
-            return True
-            
-    except Exception as e:
-        print(f"\n❌ خطا در import Real Estate Location: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return False
-
+    # چون models مرکزی شدند، فقط یکبار import میکنیم
+    return import_user_locations(update_mode)
 
 def main():
     """تابع اصلی"""
@@ -458,9 +367,9 @@ def main():
             print(f"   • شهرها: {db_cities}")
         
         if args.app in ['real_estate', 'both']:
-            db_provinces = RealEstateProvince.objects.count()
-            db_cities = RealEstateCity.objects.count()
-            print(f"\n📊 Real Estate Location:")
+            db_provinces = UserProvince.objects.count()
+            db_cities = UserCity.objects.count()
+            print(f"\n📊 Real Estate Location (مرکزی شده در core):")
             print(f"   • استان‌ها: {db_provinces}")
             print(f"   • شهرها: {db_cities}")
             print(f"   ℹ️  منطقه و محله به صورت داینامیک از طریق نقشه در پنل ادمین ایجاد می‌شوند")

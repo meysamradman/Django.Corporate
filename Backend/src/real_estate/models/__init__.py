@@ -1,4 +1,6 @@
-from .location import Country, Province, City, CityRegion
+# Location models - Country, Province, City از core import می‌شوند
+from src.core.models import Country, Province, City
+from .location import CityRegion
 from .type import PropertyType
 from .state import PropertyState
 from .label import PropertyLabel

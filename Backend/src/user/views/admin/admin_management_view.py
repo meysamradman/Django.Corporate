@@ -69,11 +69,13 @@ class AdminManagementView(AdminAuthMixin, APIView):
             validated_filters = filter_serializer.validated_data
             search_value = validated_filters.get('search')
             is_active_filter = validated_filters.get('is_active')
+            user_role_type_filter = validated_filters.get('user_role_type')
 
             admins_data = AdminManagementService.get_admins_list(
                 search=search_value,
                 is_active=is_active_filter,
                 is_superuser=validated_filters.get('is_superuser'),
+                user_role_type=user_role_type_filter,
                 request=request
             )
             

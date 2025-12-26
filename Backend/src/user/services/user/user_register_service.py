@@ -6,7 +6,7 @@ from src.user.utils.validate_identifier import validate_identifier
 from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.user.utils.password_validator import validate_register_password
 from src.user.models import User, UserProfile
-from src.user.models.location import Province, City
+from src.core.models import Province, City
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 

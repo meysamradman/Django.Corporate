@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from src.user.models import Province, City
+from src.core.models import Province, City
 
 
 class ProvinceSerializer(serializers.ModelSerializer):

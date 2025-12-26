@@ -2,7 +2,8 @@ from rest_framework import serializers
 from datetime import datetime
 from src.media.models.media import ImageMedia
 from src.media.utils.validators import validate_image_file
-from src.user.models import UserProfile, Province, City
+from src.user.models import UserProfile
+from src.core.models import Province, City
 from src.user.serializers.location_serializer import ProvinceCompactSerializer, CityCompactSerializer
 from src.user.utils.national_id_validator import validate_national_id_format, validate_national_id
 from src.user.messages import AUTH_ERRORS

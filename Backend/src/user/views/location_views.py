@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
-from src.user.models import Province, City
+from src.core.models import Province, City
 from src.user.serializers.location_serializer import (
     ProvinceSerializer, ProvinceDetailSerializer,
     CitySerializer, CityDetailSerializer

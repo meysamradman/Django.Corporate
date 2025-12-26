@@ -22,9 +22,9 @@ from src.real_estate.messages.messages import AGENT_SUCCESS, AGENT_ERRORS
 class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['first_name', 'last_name', 'phone', 'email', 'license_number']
-    ordering_fields = ['created_at', 'updated_at', 'rating', 'total_sales', 'last_name']
-    ordering = ['-rating', '-total_sales', 'last_name']
+    search_fields = ['user__mobile', 'user__email', 'user__admin_profile__first_name', 'user__admin_profile__last_name', 'license_number']
+    ordering_fields = ['created_at', 'updated_at', 'rating', 'total_sales', 'user__admin_profile__last_name']
+    ordering = ['-rating', '-total_sales', 'user__admin_profile__last_name']
     pagination_class = StandardLimitPagination
     
     def get_queryset(self):
@@ -158,12 +158,8 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
 
-        # make a mutable copy of incoming data and normalize numeric nulls
+        # make a mutable copy of incoming data
         data = request.data.copy()
-        # If frontend sends null/empty for experience_years, convert to 0
-        # (model doesn't allow NULL for this IntegerField).
-        if 'experience_years' in data and data.get('experience_years') in (None, '', 'null'):
-            data['experience_years'] = 0
 
         serializer = self.get_serializer(agent, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)

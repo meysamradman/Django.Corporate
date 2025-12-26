@@ -5,6 +5,7 @@ from src.media.serializers.media_serializer import MediaAdminSerializer
 
 
 class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
+    province_name = serializers.CharField(source='province.name', read_only=True)
     city_name = serializers.CharField(source='city.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
@@ -13,9 +14,9 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
         fields = [
-            'id', 'public_id', 'name', 'slug', 'license_number',
+            'id', 'public_id', 'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
-            'city_name',
+            'province_name', 'city_name',
             'property_count', 'agent_count',
             'is_verified', 'rating', 'total_reviews',
             'logo_url', 'is_active',
@@ -30,6 +31,7 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
 
 
 class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
+    province_name = serializers.CharField(source='province.name', read_only=True)
     city_name = serializers.CharField(source='city.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
@@ -39,9 +41,9 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
         fields = [
-            'id', 'public_id', 'name', 'slug', 'license_number',
+            'id', 'public_id', 'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
-            'city', 'city_name', 'address', 'latitude', 'longitude',
+            'province', 'province_name', 'city', 'city_name', 'address',
             'logo', 'cover_image',
             'property_count', 'agent_count',
             'is_verified', 'rating', 'total_reviews',
@@ -57,9 +59,9 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
         fields = [
-            'name', 'slug', 'license_number',
+            'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
-            'city', 'address', 'latitude', 'longitude',
+            'province', 'city', 'address',
             'logo', 'cover_image',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',
@@ -77,9 +79,9 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
         fields = [
-            'name', 'slug', 'license_number',
+            'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
-            'city', 'address', 'latitude', 'longitude',
+            'province', 'city', 'address',
             'logo', 'cover_image',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',

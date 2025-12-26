@@ -98,6 +98,24 @@ export default function BaseInfoTab({
           </div>
 
           <div className="mt-6 space-y-4">
+            <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+              <Item variant="default" size="default" className="py-5">
+                <ItemContent>
+                  <ItemTitle className="text-blue-2">مشاور املاک</ItemTitle>
+                  <ItemDescription>
+                    این کاربر مشاور املاک است؟ (اگر فعال باشد، فیلدهای مشاور در پروفایل نمایش داده می‌شود)
+                  </ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Switch
+                    checked={watch("admin_role_type") === "consultant"}
+                    disabled={!editMode}
+                    onCheckedChange={(checked) => setValue("admin_role_type", checked ? "consultant" : "admin")}
+                  />
+                </ItemActions>
+              </Item>
+            </div>
+
             <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
               <Item variant="default" size="default" className="py-5">
                 <ItemContent>
