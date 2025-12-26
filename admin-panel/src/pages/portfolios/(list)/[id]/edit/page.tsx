@@ -19,6 +19,7 @@ import { showError } from '@/core/toast';
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/components/portfolios/utils/portfolioMediaUtils";
 import type { PortfolioUpdateData } from "@/types/portfolio/portfolio";
+import AdminTabsFormWrapper from "@/components/elements/AdminTabsFormWrapper";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -428,104 +429,95 @@ export default function EditPortfolioPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="account">
-            <FileText className="h-4 w-4" />
-            اطلاعات پایه
-          </TabsTrigger>
-          <TabsTrigger value="media">
-            <Image className="h-4 w-4" />
-            مدیا
-          </TabsTrigger>
-          <TabsTrigger value="seo">
-            <Search className="h-4 w-4" />
-            سئو
-          </TabsTrigger>
-        </TabsList>
+      <AdminTabsFormWrapper
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={
+          <>
+            <TabsList>
+              <TabsTrigger value="account">
+                <FileText className="h-4 w-4" />
+                اطلاعات پایه
+              </TabsTrigger>
+              <TabsTrigger value="media">
+                <Image className="h-4 w-4" />
+                مدیا
+              </TabsTrigger>
+              <TabsTrigger value="seo">
+                <Search className="h-4 w-4" />
+                سئو
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="account">
-          <Suspense fallback={<TabSkeleton />}>
-            <BaseInfoTab 
-              formData={formData}
-              handleInputChange={handleInputChange}
-              editMode={editMode}
-              selectedCategories={selectedCategories}
-              selectedTags={selectedTags}
-              selectedOptions={selectedOptions}
-              onCategoryToggle={handleCategoryToggle}
-              onCategoryRemove={handleCategoryRemove}
-              onTagToggle={handleTagToggle}
-              onTagRemove={handleTagRemove}
-              onOptionToggle={handleOptionToggle}
-              onOptionRemove={handleOptionRemove}
-              portfolioId={id}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="media">
-          <Suspense fallback={<TabSkeleton />}>
-            <MediaTab 
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
-              editMode={editMode}
-              featuredImage={portfolioMedia.featuredImage}
-              onFeaturedImageChange={handleFeaturedImageChange}
-              portfolioId={id}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="seo">
-          <Suspense fallback={<TabSkeleton />}>
-            <SEOTab 
-              formData={formData}
-              handleInputChange={handleInputChange}
-              editMode={editMode}
-              portfolioId={id}
-            />
-          </Suspense>
-        </TabsContent>
-      </Tabs>
-
-      {editMode && (
-        <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-          <Button 
-            onClick={handleSaveDraft} 
-            variant="outline" 
-            size="lg"
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                در حال ذخیره...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                ذخیره پیش‌نویس
-              </>
-            )}
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            size="lg"
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                در حال ذخیره...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                ذخیره
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+            <TabsContent value="account">
+              <Suspense fallback={<TabSkeleton />}>
+                <BaseInfoTab 
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  editMode={editMode}
+                  selectedCategories={selectedCategories}
+                  selectedTags={selectedTags}
+                  selectedOptions={selectedOptions}
+                  onCategoryToggle={handleCategoryToggle}
+                  onCategoryRemove={handleCategoryRemove}
+                  onTagToggle={handleTagToggle}
+                  onTagRemove={handleTagRemove}
+                  onOptionToggle={handleOptionToggle}
+                  onOptionRemove={handleOptionRemove}
+                  portfolioId={id}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="media">
+              <Suspense fallback={<TabSkeleton />}>
+                <MediaTab 
+                  portfolioMedia={portfolioMedia}
+                  setPortfolioMedia={setPortfolioMedia}
+                  editMode={editMode}
+                  featuredImage={portfolioMedia.featuredImage}
+                  onFeaturedImageChange={handleFeaturedImageChange}
+                  portfolioId={id}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="seo">
+              <Suspense fallback={<TabSkeleton />}>
+                <SEOTab 
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  editMode={editMode}
+                  portfolioId={id}
+                />
+              </Suspense>
+            </TabsContent>
+          </>
+        }
+        saveBar={{
+          onSave: handleSave,
+          isSaving,
+          leftChildren: (
+            <Button 
+              onClick={handleSaveDraft} 
+              variant="outline" 
+              size="lg"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  در حال ذخیره...
+                </>
+              ) : (
+                <>
+                  <Save className="h-5 w-5" />
+                  ذخیره پیش‌نویس
+                </>
+              )}
+            </Button>
+          )
+        }}
+      >
+      </AdminTabsFormWrapper>
     </div>
   );
 }

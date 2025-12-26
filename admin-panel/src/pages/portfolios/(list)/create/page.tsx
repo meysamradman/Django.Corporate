@@ -20,6 +20,7 @@ import { env } from "@/core/config/environment";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaFilesAndIds } from "@/components/portfolios/utils/portfolioMediaUtils";
+import AdminTabsFormWrapper from "@/components/elements/AdminTabsFormWrapper";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -231,89 +232,80 @@ export default function CreatePortfolioPage() {
         </>
       </PageHeader>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="account">
-            <FileText className="h-4 w-4" />
-            اطلاعات پایه
-          </TabsTrigger>
-          <TabsTrigger value="media">
-            <Image className="h-4 w-4" />
-            مدیا
-          </TabsTrigger>
-          <TabsTrigger value="seo">
-            <Search className="h-4 w-4" />
-            سئو
-          </TabsTrigger>
-        </TabsList>
+      <AdminTabsFormWrapper
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={
+          <>
+            <TabsList>
+              <TabsTrigger value="account">
+                <FileText className="h-4 w-4" />
+                اطلاعات پایه
+              </TabsTrigger>
+              <TabsTrigger value="media">
+                <Image className="h-4 w-4" />
+                مدیا
+              </TabsTrigger>
+              <TabsTrigger value="seo">
+                <Search className="h-4 w-4" />
+                سئو
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="account">
-          <Suspense fallback={<TabSkeleton />}>
-            <BaseInfoTab 
-              form={form as any}
-              editMode={editMode}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="media">
-          <Suspense fallback={<TabSkeleton />}>
-            <MediaTab 
-              form={form as any}
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
-              editMode={editMode}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="seo">
-          <Suspense fallback={<TabSkeleton />}>
-            <SEOTab 
-              form={form as any}
-              editMode={editMode}
-            />
-          </Suspense>
-        </TabsContent>
-      </Tabs>
-
-      {editMode && (
-        <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-          <Button 
-            onClick={handleSaveDraft} 
-            variant="outline" 
-            size="lg"
-            disabled={createPortfolioMutation.isPending}
-          >
-            {createPortfolioMutation.isPending ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                در حال ذخیره...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                ذخیره پیش‌نویس
-              </>
-            )}
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            size="lg"
-            disabled={createPortfolioMutation.isPending}
-          >
-            {createPortfolioMutation.isPending ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                در حال ذخیره...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                ذخیره
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+            <TabsContent value="account">
+              <Suspense fallback={<TabSkeleton />}>
+                <BaseInfoTab 
+                  form={form as any}
+                  editMode={editMode}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="media">
+              <Suspense fallback={<TabSkeleton />}>
+                <MediaTab 
+                  form={form as any}
+                  portfolioMedia={portfolioMedia}
+                  setPortfolioMedia={setPortfolioMedia}
+                  editMode={editMode}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="seo">
+              <Suspense fallback={<TabSkeleton />}>
+                <SEOTab 
+                  form={form as any}
+                  editMode={editMode}
+                />
+              </Suspense>
+            </TabsContent>
+          </>
+        }
+        saveBar={{
+          onSave: handleSave,
+          isSaving: createPortfolioMutation.isPending,
+          leftChildren: (
+            <Button 
+              onClick={handleSaveDraft} 
+              variant="outline" 
+              size="lg"
+              disabled={createPortfolioMutation.isPending}
+            >
+              {createPortfolioMutation.isPending ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  در حال ذخیره...
+                </>
+              ) : (
+                <>
+                  <Save className="h-5 w-5" />
+                  ذخیره پیش‌نویس
+                </>
+              )}
+            </Button>
+          )
+        }}
+      >
+      </AdminTabsFormWrapper>
     </div>
   );
 }

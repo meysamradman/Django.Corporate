@@ -1,131 +1,181 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { TabsContent } from "@/components/elements/Tabs";
-import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { Input } from "@/components/elements/Input";
+import { FormField } from "@/components/forms/FormField";
+import type { UseFormReturn } from "react-hook-form";
+import type { AgencyFormValues } from "@/pages/admins/agencies/create/page";
+import { Building2 } from "lucide-react";
+import { filterNumericOnly } from "@/core/filters/numeric";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
-import { FileText, Settings } from "lucide-react";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 
 interface BaseInfoTabProps {
-    formData: Partial<RealEstateAgency>;
-    handleInputChange: (field: keyof RealEstateAgency, value: any) => void;
-    editMode: boolean;
+  form: UseFormReturn<AgencyFormValues>;
+  editMode: boolean;
+  agencyData?: any;
+  fieldErrors?: Record<string, string>;
+  handleInputChange?: (field: string, value: any) => void;
 }
 
-export default function BaseInfoTab({ formData, handleInputChange, editMode }: BaseInfoTabProps) {
-    return (
-        <TabsContent value="account" className="mt-0 space-y-6">
-            <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 min-w-0">
-                    <CardWithIcon
-                        icon={FileText}
-                        title="اطلاعات پایه"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                    >
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <FormFieldInput
-                                    label="نام آژانس"
-                                    value={formData.name || ""}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("name", e.target.value)}
-                                    required
-                                    disabled={!editMode}
-                                />
-                                <FormFieldInput
-                                    label="تلفن"
-                                    value={formData.phone || ""}
-                                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                                    type="tel"
-                                    disabled={!editMode}
-                                />
-                                <FormFieldInput
-                                    label="ایمیل"
-                                    value={formData.email || ""}
-                                    onChange={(e) => handleInputChange("email", e.target.value)}
-                                    type="email"
-                                    disabled={!editMode}
-                                />
-                                <FormFieldInput
-                                    label="وب‌سایت"
-                                    value={formData.website || ""}
-                                    onChange={(e) => handleInputChange("website", e.target.value)}
-                                    type="url"
-                                    disabled={!editMode}
-                                />
-                                <FormFieldInput
-                                    label="شماره پروانه"
-                                    value={formData.license_number || ""}
-                                    onChange={(e) => handleInputChange("license_number", e.target.value)}
-                                    disabled={!editMode}
-                                />
-                                <FormFieldInput
-                                    label="شهر"
-                                    value={formData.city?.toString() || ""}
-                                    onChange={(e) => handleInputChange("city", e.target.value ? Number(e.target.value) : null)}
-                                    type="number"
-                                    disabled={!editMode}
-                                />
-                            </div>
+export default function BaseInfoTab({
+  form,
+  editMode,
+  agencyData,
+  fieldErrors = {},
+  handleInputChange
+}: BaseInfoTabProps) {
+  const { register, formState: { errors }, setValue, watch } = form;
 
-                            <FormFieldTextarea
-                                label="توضیحات"
-                                value={formData.description || ""}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange("description", e.target.value)}
-                                rows={4}
-                                disabled={!editMode}
-                            />
+  const handleChange = (field: string, value: any) => {
+    if (handleInputChange) {
+      handleInputChange(field, value);
+    } else {
+      form.setValue(field as any, value);
+    }
+  };
 
-                            <FormFieldInput
-                                label="آدرس"
-                                value={formData.address || ""}
-                                onChange={(e) => handleInputChange("address", e.target.value)}
-                                disabled={!editMode}
-                            />
-                        </div>
-                    </CardWithIcon>
-                </div>
+  return (
+    <div className="space-y-6">
+      <CardWithIcon
+        icon={Building2}
+        title="اطلاعات احراز هویت"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        borderColor="border-b-primary"
+        className="hover:shadow-lg transition-all duration-300"
+      >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              label="نام آژانس"
+              htmlFor="name"
+              error={errors.name?.message || fieldErrors.name}
+              required
+            >
+              <Input
+                id="name"
+                type="text"
+                placeholder="نام آژانس املاک"
+                disabled={!editMode}
+                {...register("name")}
+              />
+            </FormField>
 
-                <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <CardWithIcon
-                        icon={Settings}
-                        title="تنظیمات"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                        className="lg:sticky lg:top-20"
-                    >
-                        <div className="space-y-8">
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 border rounded-lg">
-                                    <div>
-                                        <label className="text-font-p font-medium">وضعیت فعال</label>
-                                        <p className="text-font-s text-muted-foreground">آژانس در لیست نمایش داده می‌شود</p>
-                                    </div>
-                                    <Switch
-                                        checked={formData.is_active ?? true}
-                                        onCheckedChange={(checked) => handleInputChange("is_active", checked)}
-                                        disabled={!editMode}
-                                    />
-                                </div>
+            <FormField
+              label="شماره پروانه"
+              htmlFor="license_number"
+              error={errors.license_number?.message || fieldErrors.license_number}
+            >
+              <Input
+                id="license_number"
+                type="text"
+                placeholder="شماره پروانه کسب"
+                disabled={!editMode}
+                {...register("license_number")}
+              />
+            </FormField>
 
-                                <div className="flex items-center justify-between p-4 border rounded-lg">
-                                    <div>
-                                        <label className="text-font-p font-medium">وضعیت تأیید</label>
-                                        <p className="text-font-s text-muted-foreground">آژانس تأیید شده است</p>
-                                    </div>
-                                    <Switch
-                                        checked={formData.is_verified ?? false}
-                                        onCheckedChange={(checked) => handleInputChange("is_verified", checked)}
-                                        disabled={!editMode}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </CardWithIcon>
-                </div>
+            <FormField
+              label="شماره موبایل"
+              htmlFor="phone"
+              error={errors.phone?.message || fieldErrors.phone}
+            >
+              <Input
+                id="phone"
+                type="text"
+                inputMode="tel"
+                placeholder="09xxxxxxxxx"
+                disabled={!editMode}
+                {...register("phone", {
+                  onChange: (e) => {
+                    const filteredValue = filterNumericOnly(e.target.value);
+                    e.target.value = filteredValue;
+                    handleChange("phone", filteredValue);
+                  }
+                })}
+              />
+            </FormField>
+
+            <FormField
+              label="ایمیل"
+              htmlFor="email"
+              error={errors.email?.message || fieldErrors.email}
+            >
+              <Input
+                id="email"
+                type="email"
+                placeholder="example@domain.com"
+                disabled={!editMode}
+                {...register("email")}
+              />
+            </FormField>
+
+            <FormField
+              label="وب‌سایت"
+              htmlFor="website"
+              error={errors.website?.message || fieldErrors.website}
+            >
+              <Input
+                id="website"
+                type="url"
+                placeholder="https://example.com"
+                disabled={!editMode}
+                {...register("website")}
+              />
+            </FormField>
+
+            <FormField
+              label="تاریخ انقضای پروانه"
+              htmlFor="license_expire_date"
+              error={errors.license_expire_date?.message || fieldErrors.license_expire_date}
+            >
+              <Input
+                id="license_expire_date"
+                type="date"
+                disabled={!editMode}
+                {...register("license_expire_date")}
+              />
+            </FormField>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+              <Item variant="default" size="default" className="py-5">
+                <ItemContent>
+                  <ItemTitle className="text-blue-2">وضعیت فعال</ItemTitle>
+                  <ItemDescription>
+                    آژانس در لیست نمایش داده شده و امکان رزرو دارد.
+                  </ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Switch
+                    checked={watch("is_active") ?? true}
+                    disabled={!editMode}
+                    onCheckedChange={(checked) => setValue("is_active", checked)}
+                  />
+                </ItemActions>
+              </Item>
             </div>
-        </TabsContent>
-    );
+
+            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+              <Item variant="default" size="default" className="py-5">
+                <ItemContent>
+                  <ItemTitle className="text-green-2">تأیید شده</ItemTitle>
+                  <ItemDescription>
+                    آژانس توسط سیستم تأیید شده و نشان تأیید نمایش داده می‌شود.
+                  </ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Switch
+                    checked={watch("is_verified") ?? false}
+                    disabled={!editMode}
+                    onCheckedChange={(checked) => setValue("is_verified", checked)}
+                  />
+                </ItemActions>
+              </Item>
+            </div>
+          </div>
+      </CardWithIcon>
+    </div>
+  );
 }
 
