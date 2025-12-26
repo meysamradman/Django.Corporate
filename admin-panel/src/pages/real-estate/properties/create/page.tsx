@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   FileText, Image, Search,
-  Loader2, Save, List, MapPin
+  Loader2, Save, List, MapPin, Home, Settings
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug } from '@/core/slug/generate';
@@ -19,54 +21,59 @@ const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
       <div className="flex-1 min-w-0">
-        <div className="rounded-lg border border-br overflow-hidden">
-          <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
-                <FileText className="h-5 w-5 stroke-blue-2" />
-              </div>
-              <Skeleton className="h-6 w-32" />
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </div>
+        <CardWithIcon
+          icon={FileText}
+          title="اطلاعات پایه"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-        <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
-          <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
-                <FileText className="h-5 w-5 stroke-blue-2" />
-              </div>
-              <Skeleton className="h-6 w-24" />
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-8">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-10 w-full" />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
           </div>
-        </div>
+        </CardWithIcon>
+      </div>
+
+      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          className="lg:sticky lg:top-20"
+        >
+          <div className="space-y-8">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </CardWithIcon>
       </div>
     </div>
   </div>
@@ -100,10 +107,17 @@ export default function PropertyCreatePage() {
             slug: property.slug || "",
             short_description: property.short_description || "",
             description: property.description || "",
-            is_published: property.is_published || false,
-            is_featured: property.is_featured || false,
+            meta_title: property.meta_title || "",
+            meta_description: property.meta_description || "",
+            og_title: property.og_title || "",
+            og_description: property.og_description || "",
+            og_image: property.og_image || null,
+            canonical_url: property.canonical_url || "",
+            robots_meta: property.robots_meta || "",
             is_public: property.is_public ?? true,
             is_active: property.is_active ?? true,
+            is_published: property.is_published || false,
+            is_featured: property.is_featured || false,
             property_type: property.property_type?.id || null,
             state: property.state?.id || null,
             agent: property.agent ? (property.agent as any).id : null,
@@ -111,27 +125,28 @@ export default function PropertyCreatePage() {
             province: property.province ? (property.province as any).id : null,
             city: property.city ? (property.city as any).id : null,
             district: (property as any).district || null,
+            country: null,
+            region_name: "",
+            district_name: "",
             neighborhood: property.neighborhood || "",
             address: property.address || "",
             postal_code: property.postal_code || "",
             latitude: property.latitude || null,
             longitude: property.longitude || null,
-            bedrooms: property.bedrooms || 0,
-            bathrooms: property.bathrooms || 0,
-            land_area: property.land_area || 0,
-            built_area: property.built_area || 0,
+            land_area: property.land_area || null,
+            built_area: property.built_area || null,
+            bedrooms: property.bedrooms || null,
+            bathrooms: property.bathrooms || null,
             year_built: property.year_built || null,
             floors_in_building: property.floors_in_building || null,
             parking_spaces: property.parking_spaces || null,
             storage_rooms: property.storage_rooms || null,
-            price: property.price || 0,
-            mortgage_amount: property.mortgage_amount || 0,
-            rent_amount: property.rent_amount || 0,
+            price: property.price || null,
+            mortgage_amount: property.mortgage_amount || null,
+            rent_amount: property.rent_amount || null,
             labels_ids: property.labels?.map((label: any) => label.id) || [],
             tags_ids: property.tags?.map((tag: any) => tag.id) || [],
             features_ids: property.features?.map((feature: any) => feature.id) || [],
-            meta_title: property.meta_title || "",
-            meta_description: property.meta_description || "",
             main_image_id: property.main_image?.id || null,
             og_image_id: property.og_image?.id || null,
           });
@@ -197,9 +212,9 @@ export default function PropertyCreatePage() {
     floors_in_building: null as number | null,
     parking_spaces: null as number | null,
     storage_rooms: null as number | null,
-    price: 0,
-    mortgage_amount: 0,
-    rent_amount: 0,
+    price: null as number | null,
+    mortgage_amount: null as number | null,
+    rent_amount: null as number | null,
     labels_ids: [] as number[],
     tags_ids: [] as number[],
     features_ids: [] as number[],
@@ -511,20 +526,15 @@ export default function PropertyCreatePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">{isEditMode ? "ویرایش ملک" : "ایجاد ملک جدید"}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/properties")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </div>
-      </div>
+      <PageHeader title={isEditMode ? "ویرایش ملک" : "ایجاد ملک جدید"}>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/real-estate/properties")}
+        >
+          <List className="h-4 w-4" />
+          نمایش لیست
+        </Button>
+      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
@@ -537,11 +547,10 @@ export default function PropertyCreatePage() {
             لوکیشن
           </TabsTrigger>
           <TabsTrigger value="details">
-            <List className="h-4 w-4" />
+            <Home className="h-4 w-4" />
             جزییات و قیمت
           </TabsTrigger>
           <TabsTrigger value="media">
-
             <Image className="h-4 w-4" />
             مدیا
           </TabsTrigger>
@@ -572,23 +581,6 @@ export default function PropertyCreatePage() {
 
           </Suspense>
         </TabsContent>
-        <TabsContent value="media">
-          <Suspense fallback={<TabSkeleton />}>
-            <MediaTab
-              propertyMedia={propertyMedia}
-              setPropertyMedia={setPropertyMedia}
-              editMode={true}
-              featuredImage={propertyMedia.featuredImage}
-              onFeaturedImageChange={(media) => {
-                setPropertyMedia(prev => ({
-                  ...prev,
-                  featuredImage: media
-                }));
-              }}
-              propertyId={undefined}
-            />
-          </Suspense>
-        </TabsContent>
         <TabsContent value="location">
           <Suspense fallback={<TabSkeleton />}>
             <LocationTab
@@ -613,7 +605,23 @@ export default function PropertyCreatePage() {
             />
           </Suspense>
         </TabsContent>
-
+        <TabsContent value="media">
+          <Suspense fallback={<TabSkeleton />}>
+            <MediaTab
+              propertyMedia={propertyMedia}
+              setPropertyMedia={setPropertyMedia}
+              editMode={true}
+              featuredImage={propertyMedia.featuredImage}
+              onFeaturedImageChange={(media) => {
+                setPropertyMedia(prev => ({
+                  ...prev,
+                  featuredImage: media
+                }));
+              }}
+              propertyId={undefined}
+            />
+          </Suspense>
+        </TabsContent>
         <TabsContent value="seo">
           <Suspense fallback={<TabSkeleton />}>
             <SEOTab

@@ -147,16 +147,33 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
         
         partial = kwargs.pop('partial', False)
         agent_id = kwargs.get('pk')
-        
-        serializer = self.get_serializer(data=request.data, partial=partial)
+
+        # fetch the instance and pass it to the serializer so instance-aware
+        # validators (like excluding current object when checking uniqueness)
+        # work correctly.
+        agent = PropertyAgentAdminService.get_agent_by_id(agent_id)
+        if not agent:
+            return APIResponse.error(
+                message=AGENT_ERRORS["agent_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        # make a mutable copy of incoming data and normalize numeric nulls
+        data = request.data.copy()
+        # If frontend sends null/empty for experience_years, convert to 0
+        # (model doesn't allow NULL for this IntegerField).
+        if 'experience_years' in data and data.get('experience_years') in (None, '', 'null'):
+            data['experience_years'] = 0
+
+        serializer = self.get_serializer(agent, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        
+
         try:
             updated_agent = PropertyAgentAdminService.update_agent_by_id(
                 agent_id,
                 serializer.validated_data
             )
-            
+
             detail_serializer = PropertyAgentAdminDetailSerializer(updated_agent)
             return APIResponse.success(
                 message=AGENT_SUCCESS["agent_updated"],
@@ -168,7 +185,7 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
                 message=AGENT_ERRORS["agent_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except Exception:
             return APIResponse.error(
                 message=AGENT_ERRORS["agent_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST

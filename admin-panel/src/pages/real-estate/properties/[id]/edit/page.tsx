@@ -1,11 +1,13 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   FileText, Edit2, Image, Search,
-  Loader2, Save, List, MapPin
+  Loader2, Save, List, MapPin, Home, Settings
 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import type { Property } from "@/types/real_estate/property";
@@ -24,54 +26,59 @@ const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
       <div className="flex-1 min-w-0">
-        <div className="rounded-lg border border-br overflow-hidden">
-          <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
-                <FileText className="h-5 w-5 stroke-blue-2" />
-              </div>
-              <Skeleton className="h-6 w-32" />
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </div>
+        <CardWithIcon
+          icon={FileText}
+          title="اطلاعات پایه"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-        <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
-          <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
-                <FileText className="h-5 w-5 stroke-blue-2" />
-              </div>
-              <Skeleton className="h-6 w-24" />
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-8">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-10 w-full" />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
           </div>
-        </div>
+        </CardWithIcon>
+      </div>
+
+      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          className="lg:sticky lg:top-20"
+        >
+          <div className="space-y-8">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </CardWithIcon>
       </div>
     </div>
   </div>
@@ -131,6 +138,15 @@ export default function EditPropertyPage() {
     built_area: null as number | null,
     bedrooms: null as number | null,
     bathrooms: null as number | null,
+    // Price and details fields
+    price: null as number | null,
+    price_per_sqm: null as number | null,
+    mortgage_amount: null as number | null,
+    rent_amount: null as number | null,
+    year_built: null as number | null,
+    floors_in_building: null as number | null,
+    parking_spaces: null as number | null,
+    storage_rooms: null as number | null,
   });
 
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
@@ -186,6 +202,15 @@ export default function EditPropertyPage() {
         built_area: propertyData.built_area ? Number(propertyData.built_area) : null,
         bedrooms: propertyData.bedrooms || null,
         bathrooms: propertyData.bathrooms || null,
+        // Price and details fields
+        price: propertyData.price ? Number(propertyData.price) : null,
+        price_per_sqm: propertyData.price_per_sqm ? Number(propertyData.price_per_sqm) : null,
+        mortgage_amount: propertyData.mortgage_amount ? Number(propertyData.mortgage_amount) : null,
+        rent_amount: propertyData.rent_amount ? Number(propertyData.rent_amount) : null,
+        year_built: propertyData.year_built ? Number(propertyData.year_built) : null,
+        floors_in_building: propertyData.floors_in_building ? Number(propertyData.floors_in_building) : null,
+        parking_spaces: propertyData.parking_spaces ? Number(propertyData.parking_spaces) : null,
+        storage_rooms: propertyData.storage_rooms ? Number(propertyData.storage_rooms) : null,
       });
 
       if (propertyData.labels) {
@@ -335,9 +360,6 @@ export default function EditPropertyPage() {
         // If district doesn't exist, send region_name and district_name to create it
         region: formData.region || undefined,
         region_name: formData.region_name || undefined,
-        district_name: formData.district_name || undefined,
-        region_name: formData.region_name || undefined,
-        district_name: formData.district_name || undefined,
         address: formData.address || property.address || undefined,
         // Add neighborhood - map fills it, backend needs it
         neighborhood: formData.neighborhood || undefined,
@@ -359,6 +381,14 @@ export default function EditPropertyPage() {
         bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
           ? formData.bathrooms
           : (property.bathrooms || undefined),
+        // Price and details fields
+        price: formData.price,
+        mortgage_amount: formData.mortgage_amount,
+        rent_amount: formData.rent_amount,
+        year_built: formData.year_built,
+        floors_in_building: formData.floors_in_building,
+        parking_spaces: formData.parking_spaces,
+        storage_rooms: formData.storage_rooms,
       };
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
@@ -425,8 +455,6 @@ export default function EditPropertyPage() {
         // If district doesn't exist, send region_name and district_name to create it
         region: formData.region || undefined,
         region_name: formData.region_name || undefined,
-        region_name: formData.region_name || undefined,
-        address: formData.address || undefined,
         // Add neighborhood - map fills it, backend needs it
         neighborhood: formData.neighborhood || undefined,
         // Send lat/lng even if null (to clear it) or number.
@@ -438,6 +466,14 @@ export default function EditPropertyPage() {
         built_area: formData.built_area,
         bedrooms: formData.bedrooms,
         bathrooms: formData.bathrooms,
+        // Price and details fields
+        price: formData.price,
+        mortgage_amount: formData.mortgage_amount,
+        rent_amount: formData.rent_amount,
+        year_built: formData.year_built,
+        floors_in_building: formData.floors_in_building,
+        parking_spaces: formData.parking_spaces,
+        storage_rooms: formData.storage_rooms,
       };
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
@@ -453,11 +489,8 @@ export default function EditPropertyPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="page-title">ویرایش ملک</h1>
-          </div>
-          <div className="flex gap-2">
+        <PageHeader title="ویرایش ملک">
+          <>
             <Button
               variant="outline"
               disabled
@@ -470,14 +503,18 @@ export default function EditPropertyPage() {
               <Edit2 />
               ویرایش
             </Button>
-          </div>
-        </div>
+          </>
+        </PageHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="account">
               <FileText className="h-4 w-4" />
               اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="details">
+              <Home className="h-4 w-4" />
+              جزئیات و قیمت
             </TabsTrigger>
             <TabsTrigger value="location">
               <MapPin className="h-4 w-4" />
@@ -501,9 +538,15 @@ export default function EditPropertyPage() {
   if (!property) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="page-title">ویرایش ملک</h1>
-        </div>
+        <PageHeader title="ویرایش ملک">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/real-estate/properties")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
+        </PageHeader>
         <div className="text-center py-8">
           <p className="text-destructive">ملک مورد نظر یافت نشد.</p>
         </div>
@@ -513,11 +556,8 @@ export default function EditPropertyPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">ویرایش ملک</h1>
-        </div>
-        <div className="flex gap-2">
+      <PageHeader title="ویرایش ملک">
+        <>
           <Button
             variant="outline"
             onClick={() => navigate("/real-estate/properties")}
@@ -531,8 +571,8 @@ export default function EditPropertyPage() {
               ویرایش
             </Button>
           )}
-        </div>
-      </div>
+        </>
+      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
@@ -543,6 +583,10 @@ export default function EditPropertyPage() {
           <TabsTrigger value="location">
             <MapPin className="h-4 w-4" />
             لوکیشن
+          </TabsTrigger>
+          <TabsTrigger value="details">
+            <Home className="h-4 w-4" />
+            جزئیات و قیمت
           </TabsTrigger>
           <TabsTrigger value="media">
             <Image className="h-4 w-4" />
@@ -573,7 +617,19 @@ export default function EditPropertyPage() {
             />
           </Suspense>
         </TabsContent>
-        <TabsContent value="media">
+        <TabsContent value="location">
+          <Suspense fallback={<TabSkeleton />}>
+            <LocationTab
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={editMode}
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              onLocationChange={handleLocationChange}
+            />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="details">
           <Suspense fallback={<TabSkeleton />}>
             <MediaTab
               propertyMedia={propertyMedia}

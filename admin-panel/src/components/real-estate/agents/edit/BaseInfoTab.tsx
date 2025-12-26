@@ -1,8 +1,12 @@
+import { useState, useEffect, useCallback, type ChangeEvent } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { FileText, Settings } from "lucide-react";
+import { realEstateApi } from "@/api/real-estate";
 import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
 
 interface BaseInfoTabProps {
@@ -12,6 +16,68 @@ interface BaseInfoTabProps {
 }
 
 export default function BaseInfoTab({ formData, handleInputChange, editMode }: BaseInfoTabProps) {
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [cities, setCities] = useState<any[]>([]);
+    const [loadingLocation, setLoadingLocation] = useState<boolean>(false);
+    const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(formData.province ?? null);
+
+    useEffect(() => {
+        // load provinces on mount
+        const loadProvinces = async () => {
+            try {
+                setLoadingLocation(true);
+                const data = await realEstateApi.getProvinces();
+                setProvinces(data || []);
+            } catch (e) {
+                console.error("Error loading provinces:", e);
+                setProvinces([]);
+            } finally {
+                setLoadingLocation(false);
+            }
+        };
+        loadProvinces();
+    }, []);
+
+    useEffect(() => {
+        // keep local selectedProvince in sync with formData (when editing existing agent)
+        setSelectedProvinceId(formData.province ?? null);
+    }, [formData.province]);
+
+    useEffect(() => {
+        // load cities for selected province
+        if (!selectedProvinceId) {
+            setCities([]);
+            return;
+        }
+
+        const loadCities = async () => {
+            try {
+                setLoadingLocation(true);
+                const data = await realEstateApi.getProvinceCities(selectedProvinceId);
+                setCities(data || []);
+            } catch (e) {
+                console.error("Error loading cities:", e);
+                setCities([]);
+            } finally {
+                setLoadingLocation(false);
+            }
+        };
+        loadCities();
+    }, [selectedProvinceId]);
+
+    const handleProvinceChange = useCallback((value: string) => {
+        const provinceId = value ? Number(value) : null;
+        setSelectedProvinceId(provinceId);
+        handleInputChange("province" as keyof PropertyAgent, provinceId);
+        // reset city when province changes
+        handleInputChange("city" as keyof PropertyAgent, null);
+    }, [handleInputChange]);
+
+    const handleCityChange = useCallback((value: string) => {
+        const cityId = value ? Number(value) : null;
+        handleInputChange("city" as keyof PropertyAgent, cityId);
+    }, [handleInputChange]);
+
     return (
         <TabsContent value="account" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
@@ -72,13 +138,43 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                                     type="number"
                                     disabled={!editMode}
                                 />
-                                <FormFieldInput
-                                    label="شهر"
-                                    value={formData.city?.toString() || ""}
-                                    onChange={(e) => handleInputChange("city", e.target.value ? Number(e.target.value) : null)}
-                                    type="number"
-                                    disabled={!editMode}
-                                />
+                                <div className="space-y-2">
+                                    <Label>استان</Label>
+                                    <Select
+                                        disabled={!editMode || loadingLocation}
+                                        value={formData?.province ? String(formData.province) : "none"}
+                                        onValueChange={handleProvinceChange}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={loadingLocation ? "در حال بارگذاری..." : "استان را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">انتخاب کنید</SelectItem>
+                                            {(provinces || []).map((p) => (
+                                                <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>شهر</Label>
+                                    <Select
+                                        disabled={!editMode || loadingLocation}
+                                        value={formData?.city ? String(formData.city) : "none"}
+                                        onValueChange={handleCityChange}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={loadingLocation ? "در حال بارگذاری..." : "شهر را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">انتخاب کنید</SelectItem>
+                                            {(cities || []).map((c) => (
+                                                <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             <FormFieldTextarea
