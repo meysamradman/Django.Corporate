@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.state import PropertyState
 from src.real_estate.serializers.admin.state_serializer import (
@@ -19,8 +19,19 @@ from src.real_estate.services.admin.state_services import PropertyStateAdminServ
 from src.real_estate.messages.messages import STATE_SUCCESS, STATE_ERRORS
 
 
-class PropertyStateAdminViewSet(viewsets.ModelViewSet):
+class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.state.read',
+        'retrieve': 'real_estate.state.read',
+        'create': 'real_estate.state.create',
+        'update': 'real_estate.state.update',
+        'partial_update': 'real_estate.state.update',
+        'destroy': 'real_estate.state.delete',
+        'bulk_delete': 'real_estate.state.delete',
+    }
+    permission_denied_message = STATE_ERRORS["state_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title']
     ordering_fields = ['created_at', 'title']
@@ -46,12 +57,6 @@ class PropertyStateAdminViewSet(viewsets.ModelViewSet):
             return PropertyStateAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.state.read'):
-            return APIResponse.error(
-                message=STATE_ERRORS["state_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
         }
@@ -81,12 +86,6 @@ class PropertyStateAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.state.create'):
-            return APIResponse.error(
-                message=STATE_ERRORS["state_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -103,12 +102,6 @@ class PropertyStateAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.state.read'):
-            return APIResponse.error(
-                message=STATE_ERRORS["state_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         state_obj = PropertyStateAdminService.get_state_by_id(kwargs.get('pk'))
         
         if not state_obj:
@@ -125,12 +118,6 @@ class PropertyStateAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.state.update'):
-            return APIResponse.error(
-                message=STATE_ERRORS["state_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         state_id = kwargs.get('pk')
         
@@ -161,12 +148,6 @@ class PropertyStateAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.state.delete'):
-            return APIResponse.error(
-                message=STATE_ERRORS["state_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         state_id = kwargs.get('pk')
         
         try:

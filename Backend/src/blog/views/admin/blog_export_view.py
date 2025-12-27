@@ -11,14 +11,19 @@ from src.blog.services.admin.excel_export_service import BlogExcelExportService
 from src.blog.services.admin.pdf_list_export_service import BlogPDFListExportService
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.access_control import blog_permission
+from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.blog.messages.messages import BLOG_ERRORS
 
 
-class BlogExportView(APIView):
+class BlogExportView(PermissionRequiredMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [blog_permission]
+    
+    permission_map = {
+        'get': 'blog.read',
+    }
+    permission_denied_message = BLOG_ERRORS["blog_not_authorized"]
     format_suffix_kwarg = None
     
     def options(self, request, *args, **kwargs):

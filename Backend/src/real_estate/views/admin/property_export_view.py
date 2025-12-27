@@ -11,14 +11,19 @@ from src.real_estate.services.admin.excel_export_service import PropertyExcelExp
 from src.real_estate.services.admin.pdf_list_export_service import PropertyPDFListExportService
 from src.real_estate.filters.admin.property_filters import PropertyAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.access_control import real_estate_permission
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 
 
-class PropertyExportView(APIView):
+class PropertyExportView(PermissionRequiredMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'get': 'real_estate.property.read',
+    }
+    permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
     format_suffix_kwarg = None
     
     def options(self, request, *args, **kwargs):

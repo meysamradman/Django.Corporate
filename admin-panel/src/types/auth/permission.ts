@@ -193,7 +193,26 @@ export interface UIPermissions {
   canManageAllStats: boolean;
   
   canViewEmail: boolean;
+  canManageEmail: boolean;
   canManageTicket: boolean;
+  
+  canReadRealEstateProperty: boolean;
+  canCreateRealEstateProperty: boolean;
+  canUpdateRealEstateProperty: boolean;
+  canDeleteRealEstateProperty: boolean;
+  canReadRealEstateAgent: boolean;
+  canCreateRealEstateAgent: boolean;
+  canUpdateRealEstateAgent: boolean;
+  canDeleteRealEstateAgent: boolean;
+  canReadRealEstateAgency: boolean;
+  canCreateRealEstateAgency: boolean;
+  canUpdateRealEstateAgency: boolean;
+  canDeleteRealEstateAgency: boolean;
+  canManageRealEstateTypes: boolean;
+  canManageRealEstateStates: boolean;
+  canManageRealEstateLabels: boolean;
+  canManageRealEstateFeatures: boolean;
+  canManageRealEstateTags: boolean;
 }
 
 export interface PermissionContextValue {
@@ -204,7 +223,7 @@ export interface PermissionContextValue {
   hasAnyPermission: (permissionIds: string[]) => boolean;
   hasAllPermissions: (permissionIds: string[]) => boolean;
   check: (permissionId: string) => boolean; // Exact match without wildcards
-  canUploadInContext: (context: 'portfolio' | 'blog' | 'media_library') => boolean;
+  canUploadInContext: (context: 'portfolio' | 'blog' | 'media_library' | 'real_estate') => boolean;
   refresh: () => Promise<void>;
   ui: UIPermissions;
 }

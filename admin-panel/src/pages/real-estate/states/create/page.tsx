@@ -10,7 +10,7 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { showError, showSuccess } from "@/core/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyState } from "@/types/real_estate/state/propertyState";
+import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { FileText, Loader2, Save, List } from "lucide-react";
 
 export default function CreatePropertyStatePage() {

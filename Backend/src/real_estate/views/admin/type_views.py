@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.type import PropertyType
 from src.real_estate.serializers.admin.type_serializer import (
@@ -19,8 +19,19 @@ from src.real_estate.services.admin.type_services import PropertyTypeAdminServic
 from src.real_estate.messages.messages import TYPE_SUCCESS, TYPE_ERRORS
 
 
-class PropertyTypeAdminViewSet(viewsets.ModelViewSet):
+class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.type.read',
+        'retrieve': 'real_estate.type.read',
+        'create': 'real_estate.type.create',
+        'update': 'real_estate.type.update',
+        'partial_update': 'real_estate.type.update',
+        'destroy': 'real_estate.type.delete',
+        'bulk_delete': 'real_estate.type.delete',
+    }
+    permission_denied_message = TYPE_ERRORS["type_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title']
     ordering_fields = ['display_order', 'created_at', 'title']
@@ -46,12 +57,6 @@ class PropertyTypeAdminViewSet(viewsets.ModelViewSet):
             return PropertyTypeAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.type.read'):
-            return APIResponse.error(
-                message=TYPE_ERRORS["type_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
         }
@@ -81,12 +86,6 @@ class PropertyTypeAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.type.create'):
-            return APIResponse.error(
-                message=TYPE_ERRORS["type_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -103,12 +102,6 @@ class PropertyTypeAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.type.read'):
-            return APIResponse.error(
-                message=TYPE_ERRORS["type_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         type_obj = PropertyTypeAdminService.get_type_by_id(kwargs.get('pk'))
         
         if not type_obj:
@@ -125,12 +118,6 @@ class PropertyTypeAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.type.update'):
-            return APIResponse.error(
-                message=TYPE_ERRORS["type_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         type_id = kwargs.get('pk')
         
@@ -161,12 +148,6 @@ class PropertyTypeAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.type.delete'):
-            return APIResponse.error(
-                message=TYPE_ERRORS["type_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         type_id = kwargs.get('pk')
         
         try:

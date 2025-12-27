@@ -31,12 +31,12 @@ from src.blog.services.admin import (
 )
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import blog_permission, PermissionValidator
+from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
 
 
-class BlogAdminViewSet(viewsets.ModelViewSet):
+class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogAdminFilter
@@ -44,6 +44,31 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'title', 'status']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
+    
+    # ✅ Permission map - یکجا تعریف
+    permission_map = {
+        'list': 'blog.read',
+        'retrieve': 'blog.read',
+        'create': 'blog.create',
+        'update': 'blog.update',
+        'partial_update': 'blog.update',
+        'destroy': 'blog.delete',
+        'bulk_delete': 'blog.delete',
+        'bulk_update_status': 'blog.update',
+        'publish': 'blog.update',
+        'unpublish': 'blog.update',
+        'change_status': 'blog.update',
+        'add_media': 'blog.update',
+        'remove_media': 'blog.update',
+        'set_main_image': 'blog.update',
+        'generate_seo': 'blog.update',
+        'validate_seo': 'blog.read',
+        'bulk_generate_seo': 'blog.update',
+        'seo_report': 'blog.read',
+        'statistics': 'blog.read',
+        'export': 'blog.read',
+    }
+    permission_denied_message = BLOG_ERRORS["blog_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':
@@ -66,11 +91,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
             return Blog.objects.all()
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.read'):
-            return APIResponse.error(
-                message=BLOG_ERRORS["blog_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         queryset = Blog.objects.for_detail()
         pk = kwargs.get('pk')
         try:
@@ -88,11 +108,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.read'):
-            return APIResponse.error(
-                message=BLOG_ERRORS["blog_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
@@ -161,11 +176,6 @@ class BlogAdminViewSet(viewsets.ModelViewSet):
         return media_ids
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.create'):
-            return APIResponse.error(
-                message=BLOG_ERRORS["blog_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         

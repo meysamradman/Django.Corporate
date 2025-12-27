@@ -3,11 +3,14 @@ import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import type { UseFormReturn } from "react-hook-form";
 import type { AgencyFormValues } from "@/pages/admins/agencies/create/page";
-import { Building2 } from "lucide-react";
+import { Building2, MapPin } from "lucide-react";
 import { filterNumericOnly } from "@/core/filters/numeric";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
-import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import { locationApi } from "@/api/shared/location/location";
+import { useState, useEffect } from "react";
 
 interface BaseInfoTabProps {
   form: UseFormReturn<AgencyFormValues>;
@@ -25,6 +28,11 @@ export default function BaseInfoTab({
   handleInputChange
 }: BaseInfoTabProps) {
   const { register, formState: { errors }, setValue, watch } = form;
+  const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
+  const [cities, setCities] = useState<CityCompact[]>([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
 
   const handleChange = (field: string, value: any) => {
     if (handleInputChange) {
@@ -32,6 +40,65 @@ export default function BaseInfoTab({
     } else {
       form.setValue(field as any, value);
     }
+  };
+
+  // بارگذاری استان‌ها
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      setLoadingProvinces(true);
+      try {
+        const provincesData = await locationApi.getProvincesCompact();
+        setProvinces(provincesData);
+        
+        // اگر در حالت edit هستیم و province وجود دارد، انتخاب کن
+        const currentProvince = watch("province");
+        if (currentProvince) {
+          setSelectedProvinceId(Number(currentProvince));
+        }
+      } catch {
+      } finally {
+        setLoadingProvinces(false);
+      }
+    };
+
+    fetchProvinces();
+  }, []);
+
+  // بارگذاری شهرها بر اساس استان انتخاب شده
+  useEffect(() => {
+    if (selectedProvinceId) {
+      const fetchCities = async () => {
+        setLoadingCities(true);
+        try {
+          const citiesData = await locationApi.getCitiesCompactByProvince(selectedProvinceId);
+          setCities(citiesData);
+        } catch {
+        } finally {
+          setLoadingCities(false);
+        }
+      };
+
+      fetchCities();
+    } else {
+      setCities([]);
+      if (!agencyData) {
+        setValue("city", null);
+      }
+    }
+  }, [selectedProvinceId, setValue]);
+
+  const handleProvinceChange = (provinceId: string) => {
+    const provinceIdNum = Number(provinceId);
+    setSelectedProvinceId(provinceIdNum);
+    setValue("province", provinceIdNum);
+    setValue("city", null);
+    handleChange("province", provinceIdNum);
+  };
+
+  const handleCityChange = (cityId: string) => {
+    const cityIdNum = Number(cityId);
+    setValue("city", cityIdNum);
+    handleChange("city", cityIdNum);
   };
 
   return (
@@ -61,6 +128,21 @@ export default function BaseInfoTab({
             </FormField>
 
             <FormField
+              label="Slug (URL)"
+              htmlFor="slug"
+              error={errors.slug?.message || fieldErrors.slug}
+              description="برای نمایش در وب‌سایت. خالی بگذارید تا خودکار ساخته شود."
+            >
+              <Input
+                id="slug"
+                type="text"
+                placeholder="agency-name"
+                disabled={!editMode}
+                {...register("slug")}
+              />
+            </FormField>
+
+            <FormField
               label="شماره پروانه"
               htmlFor="license_number"
               error={errors.license_number?.message || fieldErrors.license_number}
@@ -78,6 +160,7 @@ export default function BaseInfoTab({
               label="شماره موبایل"
               htmlFor="phone"
               error={errors.phone?.message || fieldErrors.phone}
+              required
             >
               <Input
                 id="phone"
@@ -174,6 +257,78 @@ export default function BaseInfoTab({
               </Item>
             </div>
           </div>
+      </CardWithIcon>
+
+      <CardWithIcon
+        icon={MapPin}
+        title="موقعیت مکانی"
+        iconBgColor="bg-purple/10"
+        iconColor="stroke-purple"
+        borderColor="border-b-purple"
+        className="hover:shadow-lg transition-all duration-300"
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField
+            label="استان"
+            htmlFor="province"
+            error={errors.province?.message || fieldErrors.province}
+          >
+            <Select
+              value={watch("province")?.toString() || ""}
+              onValueChange={handleProvinceChange}
+              disabled={!editMode || loadingProvinces}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "انتخاب استان"} />
+              </SelectTrigger>
+              <SelectContent>
+                {provinces.map((province) => (
+                  <SelectItem key={province.id} value={province.id.toString()}>
+                    {province.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField
+            label="شهر"
+            htmlFor="city"
+            error={errors.city?.message || fieldErrors.city}
+          >
+            <Select
+              value={watch("city")?.toString() || ""}
+              onValueChange={handleCityChange}
+              disabled={!editMode || !selectedProvinceId || loadingCities}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={loadingCities ? "در حال بارگذاری..." : "انتخاب شهر"} />
+              </SelectTrigger>
+              <SelectContent>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id.toString()}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField
+            label="آدرس"
+            htmlFor="address"
+            error={errors.address?.message || fieldErrors.address}
+            className="md:col-span-2"
+          >
+            <Input
+              id="address"
+              type="text"
+              placeholder="آدرس کامل آژانس"
+              disabled={!editMode}
+              {...register("address")}
+            />
+          </FormField>
+        </div>
       </CardWithIcon>
     </div>
   );

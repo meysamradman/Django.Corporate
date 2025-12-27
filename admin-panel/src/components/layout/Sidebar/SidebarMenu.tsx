@@ -134,29 +134,29 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Building2,
         access: {
           module: "real_estate",
-          fallbackModules: ["property", "property_type", "property_state", "property_label", "property_feature", "property_tag", "property_agent", "real_estate_agency"],
+          fallbackModules: ["real_estate.property", "real_estate.type", "real_estate.state", "real_estate.label", "real_estate.feature", "real_estate.tag", "real_estate.agent", "real_estate.agency"],
           allowReadOnly: true,
           limitedLabel: "محدود",
           readOnlyLabel: "فقط مشاهده"
         },
         items: [
-          { title: "لیست املاک", url: "/real-estate/properties", icon: ListTodo, access: { module: "real_estate", allowReadOnly: true } },
-          { title: "ایجاد ملک", url: "/real-estate/properties/create", icon: FilePlus, access: { module: "real_estate", actions: ["create"] } },
+          { title: "لیست املاک", url: "/real-estate/properties", icon: ListTodo, access: { module: "real_estate.property", allowReadOnly: true } },
+          { title: "ایجاد ملک", url: "/real-estate/properties/create", icon: FilePlus, access: { module: "real_estate.property", actions: ["create"] } },
           { title: "نوع‌های ملک", isTitle: true },
-          { title: "لیست نوع‌ها", url: "/real-estate/types", icon: Building, access: { module: "property_type", allowReadOnly: true } },
-          { title: "ایجاد نوع", url: "/real-estate/types/create", icon: Plus, access: { module: "property_type", actions: ["create"] } },
+          { title: "لیست نوع‌ها", url: "/real-estate/types", icon: Building, access: { module: "real_estate.type", allowReadOnly: true } },
+          { title: "ایجاد نوع", url: "/real-estate/types/create", icon: Plus, access: { module: "real_estate.type", actions: ["create"] } },
           { title: "وضعیت‌های ملک", isTitle: true },
-          { title: "لیست وضعیت‌ها", url: "/real-estate/states", icon: Circle, access: { module: "property_state", allowReadOnly: true } },
-          { title: "ایجاد وضعیت", url: "/real-estate/states/create", icon: Plus, access: { module: "property_state", actions: ["create"] } },
+          { title: "لیست وضعیت‌ها", url: "/real-estate/states", icon: Circle, access: { module: "real_estate.state", allowReadOnly: true } },
+          { title: "ایجاد وضعیت", url: "/real-estate/states/create", icon: Plus, access: { module: "real_estate.state", actions: ["create"] } },
           { title: "برچسب‌های ملک", isTitle: true },
-          { title: "لیست برچسب‌ها", url: "/real-estate/labels", icon: Tag, access: { module: "property_label", allowReadOnly: true } },
-          { title: "ایجاد برچسب", url: "/real-estate/labels/create", icon: Plus, access: { module: "property_label", actions: ["create"] } },
+          { title: "لیست برچسب‌ها", url: "/real-estate/labels", icon: Tag, access: { module: "real_estate.label", allowReadOnly: true } },
+          { title: "ایجاد برچسب", url: "/real-estate/labels/create", icon: Plus, access: { module: "real_estate.label", actions: ["create"] } },
           { title: "ویژگی‌های ملک", isTitle: true },
-          { title: "لیست ویژگی‌ها", url: "/real-estate/features", icon: Star, access: { module: "property_feature", allowReadOnly: true } },
-          { title: "ایجاد ویژگی", url: "/real-estate/features/create", icon: Plus, access: { module: "property_feature", actions: ["create"] } },
+          { title: "لیست ویژگی‌ها", url: "/real-estate/features", icon: Star, access: { module: "real_estate.feature", allowReadOnly: true } },
+          { title: "ایجاد ویژگی", url: "/real-estate/features/create", icon: Plus, access: { module: "real_estate.feature", actions: ["create"] } },
           { title: "تگ‌های ملک", isTitle: true },
-          { title: "لیست تگ‌ها", url: "/real-estate/tags", icon: Tag, access: { module: "property_tag", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/real-estate/tags/create", icon: Plus, access: { module: "property_tag", actions: ["create"] } },
+          { title: "لیست تگ‌ها", url: "/real-estate/tags", icon: Tag, access: { module: "real_estate.tag", allowReadOnly: true } },
+          { title: "ایجاد تگ", url: "/real-estate/tags/create", icon: Plus, access: { module: "real_estate.tag", actions: ["create"] } },
         ],
       },
       {
@@ -217,7 +217,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             url: "/admins/agencies",
             icon: Building,
             access: {
-              module: "real_estate_agency",
+              module: "real_estate.agency",
               allowReadOnly: true
             }
           },
@@ -226,7 +226,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             url: "/admins/agencies/create",
             icon: Plus,
             access: {
-              module: "real_estate_agency",
+              module: "real_estate.agency",
               actions: ["create"]
             }
           },
@@ -332,7 +332,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         },
         items: [
           { title: "گزارش آماری", url: "/analytics", icon: BarChart3, access: { module: "analytics", allowReadOnly: true } },
-          { title: "آمار املاک", url: "/real-estate/statistics", icon: Building2, access: { module: "real_estate", allowReadOnly: true } },
+          { title: "آمار املاک", url: "/real-estate/statistics", icon: Building2, access: { module: "real_estate.property", allowReadOnly: true } },
         ]
       },
     ]

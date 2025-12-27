@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.serializers.admin.agent_serializer import (
@@ -19,8 +19,19 @@ from src.real_estate.services.admin.agent_services import PropertyAgentAdminServ
 from src.real_estate.messages.messages import AGENT_SUCCESS, AGENT_ERRORS
 
 
-class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
+class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.agent.read',
+        'retrieve': 'real_estate.agent.read',
+        'create': 'real_estate.agent.create',
+        'update': 'real_estate.agent.update',
+        'partial_update': 'real_estate.agent.update',
+        'destroy': 'real_estate.agent.delete',
+        'bulk_delete': 'real_estate.agent.delete',
+    }
+    permission_denied_message = AGENT_ERRORS["agent_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['user__mobile', 'user__email', 'user__admin_profile__first_name', 'user__admin_profile__last_name', 'license_number']
     ordering_fields = ['created_at', 'updated_at', 'rating', 'total_sales', 'user__admin_profile__last_name']
@@ -46,12 +57,6 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
             return PropertyAgentAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agent.read'):
-            return APIResponse.error(
-                message=AGENT_ERRORS["agent_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'is_verified': self._parse_bool(request.query_params.get('is_verified')),
@@ -84,12 +89,6 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agent.create'):
-            return APIResponse.error(
-                message=AGENT_ERRORS["agent_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -117,12 +116,6 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agent.read'):
-            return APIResponse.error(
-                message=AGENT_ERRORS["agent_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         agent = PropertyAgentAdminService.get_agent_by_id(kwargs.get('pk'))
         
         if not agent:
@@ -139,12 +132,6 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agent.update'):
-            return APIResponse.error(
-                message=AGENT_ERRORS["agent_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         agent_id = kwargs.get('pk')
 
@@ -188,12 +175,6 @@ class PropertyAgentAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agent.delete'):
-            return APIResponse.error(
-                message=AGENT_ERRORS["agent_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         agent_id = kwargs.get('pk')
         
         try:

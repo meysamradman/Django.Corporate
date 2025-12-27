@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Property } from "@/types/real_estate/property";
+import type { Property } from "@/types/real_estate/realEstate";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";

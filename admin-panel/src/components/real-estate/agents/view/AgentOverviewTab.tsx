@@ -1,6 +1,6 @@
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
+import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
 import {

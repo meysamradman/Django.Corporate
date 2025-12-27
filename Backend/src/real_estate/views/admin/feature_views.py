@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.serializers.admin.feature_serializer import (
@@ -17,8 +17,19 @@ from src.real_estate.services.admin.feature_services import PropertyFeatureAdmin
 from src.real_estate.messages.messages import FEATURE_SUCCESS, FEATURE_ERRORS
 
 
-class PropertyFeatureAdminViewSet(viewsets.ModelViewSet):
+class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.feature.read',
+        'retrieve': 'real_estate.feature.read',
+        'create': 'real_estate.feature.create',
+        'update': 'real_estate.feature.update',
+        'partial_update': 'real_estate.feature.update',
+        'destroy': 'real_estate.feature.delete',
+        'bulk_delete': 'real_estate.feature.delete',
+    }
+    permission_denied_message = FEATURE_ERRORS["feature_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'category']
     ordering_fields = ['category', 'created_at', 'title']
@@ -44,12 +55,6 @@ class PropertyFeatureAdminViewSet(viewsets.ModelViewSet):
             return PropertyFeatureAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.feature.read'):
-            return APIResponse.error(
-                message=FEATURE_ERRORS["feature_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'category': request.query_params.get('category'),
@@ -80,12 +85,6 @@ class PropertyFeatureAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.feature.create'):
-            return APIResponse.error(
-                message=FEATURE_ERRORS["feature_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -102,12 +101,6 @@ class PropertyFeatureAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.feature.read'):
-            return APIResponse.error(
-                message=FEATURE_ERRORS["feature_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         feature_obj = PropertyFeatureAdminService.get_feature_by_id(kwargs.get('pk'))
         
         if not feature_obj:
@@ -124,12 +117,6 @@ class PropertyFeatureAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.feature.update'):
-            return APIResponse.error(
-                message=FEATURE_ERRORS["feature_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         feature_id = kwargs.get('pk')
         
@@ -160,12 +147,6 @@ class PropertyFeatureAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.feature.delete'):
-            return APIResponse.error(
-                message=FEATURE_ERRORS["feature_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         feature_id = kwargs.get('pk')
         
         try:

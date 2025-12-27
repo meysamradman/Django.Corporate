@@ -113,7 +113,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
   );
 
   const canUploadInContext = useCallback(
-    (context: 'portfolio' | 'blog' | 'media_library'): boolean => {
+    (context: 'portfolio' | 'blog' | 'media_library' | 'real_estate'): boolean => {
       if (!permissionMap) return false;
       if (permissionMap.is_superadmin) return true;
 
@@ -131,6 +131,10 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
 
       if (context === 'blog') {
         return hasAnyPermission(['blog.create', 'blog.update']);
+      }
+      
+      if (context === 'real_estate') {
+        return hasAnyPermission(['real_estate.property.create', 'real_estate.property.update']);
       }
 
       return false;
@@ -201,8 +205,27 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageStatistics: check(PERMISSIONS.ANALYTICS.MANAGE),
       canManageAllStats: check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewEmail: check(PERMISSIONS.EMAIL.READ) || check(PERMISSIONS.EMAIL.VIEW),
+      canManageEmail: check(PERMISSIONS.EMAIL.MANAGE),
       canViewAI: check(PERMISSIONS.AI.MANAGE),
       canManageTicket: check(PERMISSIONS.TICKET.MANAGE),
+      
+      canReadRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_READ),
+      canCreateRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_CREATE),
+      canUpdateRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_UPDATE),
+      canDeleteRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_DELETE),
+      canReadRealEstateAgent: check(PERMISSIONS.REAL_ESTATE.AGENT_READ),
+      canCreateRealEstateAgent: check(PERMISSIONS.REAL_ESTATE.AGENT_CREATE),
+      canUpdateRealEstateAgent: check(PERMISSIONS.REAL_ESTATE.AGENT_UPDATE),
+      canDeleteRealEstateAgent: check(PERMISSIONS.REAL_ESTATE.AGENT_DELETE),
+      canReadRealEstateAgency: check(PERMISSIONS.REAL_ESTATE.AGENCY_READ),
+      canCreateRealEstateAgency: check(PERMISSIONS.REAL_ESTATE.AGENCY_CREATE),
+      canUpdateRealEstateAgency: check(PERMISSIONS.REAL_ESTATE.AGENCY_UPDATE),
+      canDeleteRealEstateAgency: check(PERMISSIONS.REAL_ESTATE.AGENCY_DELETE),
+      canManageRealEstateTypes: check(PERMISSIONS.REAL_ESTATE.TYPE_CREATE) || check(PERMISSIONS.REAL_ESTATE.TYPE_UPDATE) || check(PERMISSIONS.REAL_ESTATE.TYPE_DELETE),
+      canManageRealEstateStates: check(PERMISSIONS.REAL_ESTATE.STATE_CREATE) || check(PERMISSIONS.REAL_ESTATE.STATE_UPDATE) || check(PERMISSIONS.REAL_ESTATE.STATE_DELETE),
+      canManageRealEstateLabels: check(PERMISSIONS.REAL_ESTATE.LABEL_CREATE) || check(PERMISSIONS.REAL_ESTATE.LABEL_UPDATE) || check(PERMISSIONS.REAL_ESTATE.LABEL_DELETE),
+      canManageRealEstateFeatures: check(PERMISSIONS.REAL_ESTATE.FEATURE_CREATE) || check(PERMISSIONS.REAL_ESTATE.FEATURE_UPDATE) || check(PERMISSIONS.REAL_ESTATE.FEATURE_DELETE),
+      canManageRealEstateTags: check(PERMISSIONS.REAL_ESTATE.TAG_CREATE) || check(PERMISSIONS.REAL_ESTATE.TAG_UPDATE) || check(PERMISSIONS.REAL_ESTATE.TAG_DELETE),
     };
   }, [permissionMap, permissionSet]);
 

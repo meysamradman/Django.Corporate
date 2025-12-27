@@ -5,6 +5,10 @@ import { FormField } from "@/components/forms/FormField";
 import type { UseFormReturn } from "react-hook-form";
 import type { AgencyFormValues } from "@/pages/admins/agencies/create/page";
 import { Settings, Globe, MapPin } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
+import { locationApi } from "@/api/shared/location/location";
+import { useState, useEffect } from "react";
 
 interface SettingsTabProps {
   form: UseFormReturn<AgencyFormValues>;
@@ -16,6 +20,64 @@ export default function SettingsTab({
   editMode,
 }: SettingsTabProps) {
   const { register, formState: { errors }, setValue, watch } = form;
+  const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
+  const [cities, setCities] = useState<CityCompact[]>([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
+
+  // بارگذاری استان‌ها
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      setLoadingProvinces(true);
+      try {
+        const provincesData = await locationApi.getProvincesCompact();
+        setProvinces(provincesData);
+        
+        const currentProvince = watch("province");
+        if (currentProvince) {
+          setSelectedProvinceId(Number(currentProvince));
+        }
+      } catch {
+      } finally {
+        setLoadingProvinces(false);
+      }
+    };
+
+    fetchProvinces();
+  }, []);
+
+  // بارگذاری شهرها بر اساس استان انتخاب شده
+  useEffect(() => {
+    if (selectedProvinceId) {
+      const fetchCities = async () => {
+        setLoadingCities(true);
+        try {
+          const citiesData = await locationApi.getCitiesCompactByProvince(selectedProvinceId);
+          setCities(citiesData);
+        } catch {
+        } finally {
+          setLoadingCities(false);
+        }
+      };
+
+      fetchCities();
+    } else {
+      setCities([]);
+    }
+  }, [selectedProvinceId, setValue]);
+
+  const handleProvinceChange = (provinceId: string) => {
+    const provinceIdNum = Number(provinceId);
+    setSelectedProvinceId(provinceIdNum);
+    setValue("province", provinceIdNum);
+    setValue("city", null);
+  };
+
+  const handleCityChange = (cityId: string) => {
+    const cityIdNum = Number(cityId);
+    setValue("city", cityIdNum);
+  };
 
   return (
     <div className="space-y-6">
@@ -33,16 +95,22 @@ export default function SettingsTab({
             htmlFor="province"
             error={errors.province?.message}
           >
-            <Input
-              id="province"
-              type="number"
-              placeholder="شناسه استان"
-              disabled={!editMode}
-              {...register("province", {
-                valueAsNumber: true,
-                setValueAs: (value) => value === "" ? null : Number(value)
-              })}
-            />
+            <Select
+              value={watch("province")?.toString() || ""}
+              onValueChange={handleProvinceChange}
+              disabled={!editMode || loadingProvinces}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "انتخاب استان"} />
+              </SelectTrigger>
+              <SelectContent>
+                {provinces.map((province) => (
+                  <SelectItem key={province.id} value={province.id.toString()}>
+                    {province.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormField>
 
           <FormField
@@ -50,16 +118,22 @@ export default function SettingsTab({
             htmlFor="city"
             error={errors.city?.message}
           >
-            <Input
-              id="city"
-              type="number"
-              placeholder="شناسه شهر"
-              disabled={!editMode}
-              {...register("city", {
-                valueAsNumber: true,
-                setValueAs: (value) => value === "" ? null : Number(value)
-              })}
-            />
+            <Select
+              value={watch("city")?.toString() || ""}
+              onValueChange={handleCityChange}
+              disabled={!editMode || !selectedProvinceId || loadingCities}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={loadingCities ? "در حال بارگذاری..." : "انتخاب شهر"} />
+              </SelectTrigger>
+              <SelectContent>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.id.toString()}>
+                    {city.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormField>
         </div>
 

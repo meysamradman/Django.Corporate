@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";

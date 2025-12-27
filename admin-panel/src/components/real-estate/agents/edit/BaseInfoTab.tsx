@@ -7,7 +7,7 @@ import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { FileText, Settings } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
+import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 
 interface BaseInfoTabProps {
     formData: Partial<PropertyAgent>;

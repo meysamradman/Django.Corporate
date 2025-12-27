@@ -1,17 +1,19 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { showSuccess, showError } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Building2, ImageIcon, Settings2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { msg } from '@/core/messages';
-import { useAuth } from "@/core/auth/AuthContext";
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
 import { useNavigate } from "react-router-dom";
 import { mediaService } from "@/components/media/services";
 import type { Media } from "@/types/shared/media";
+import * as z from "zod";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -32,6 +34,30 @@ const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/Ba
 const MediaTab = lazy(() => import("@/components/real-estate/agencies/edit/MediaTab"));
 const SettingsTab = lazy(() => import("@/components/real-estate/agencies/edit/SettingsTab"));
 
+const agencySchema = z.object({
+    name: z.string().min(1, "نام آژانس لازم است"),
+    slug: z.string().optional().nullable(),
+    phone: z.string().min(1, "شماره موبایل لازم است"),
+    email: z.string().email("ایمیل معتبر وارد کنید").optional().or(z.literal("")),
+    website: z.string().url("وب‌سایت معتبر وارد کنید").optional().or(z.literal("")),
+    license_number: z.string().optional().nullable(),
+    license_expire_date: z.string().optional().nullable(),
+    city: z.number().int().optional().nullable(),
+    province: z.number().int().optional().nullable(),
+    description: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    is_active: z.boolean().optional(),
+    is_verified: z.boolean().optional(),
+    rating: z.number().min(0).max(5).optional(),
+    total_reviews: z.number().min(0).optional(),
+    meta_title: z.string().optional().nullable(),
+    meta_description: z.string().optional().nullable(),
+    og_title: z.string().optional().nullable(),
+    og_description: z.string().optional().nullable(),
+});
+
+export type AgencyFormValues = z.infer<typeof agencySchema>;
+
 interface EditAgencyFormProps {
     agencyId: string;
 }
@@ -41,7 +67,10 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     const [activeTab, setActiveTab] = useState("base-info");
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const { user, refreshUser } = useAuth();
+    const [editMode, setEditMode] = useState(false);
+    const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
+    const [selectedCoverImage, setSelectedCoverImage] = useState<Media | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const isNumericId = !Number.isNaN(Number(agencyId));
     const queryKey = ['agency', agencyId];
@@ -63,164 +92,105 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         },
     });
 
-    const [editMode, setEditMode] = useState(false);
-    const [formData, setFormData] = useState({
-        name: "",
-        phone: "",
-        email: "",
-        website: "",
-        license_number: "",
-        license_expire_date: "",
-        city: null as number | null,
-        province: null as number | null,
-        description: "",
-        address: "",
-        is_active: true,
-        is_verified: false,
-        rating: 0,
-        total_reviews: 0,
-        meta_title: "",
-        meta_description: "",
-        og_title: "",
-        og_description: "",
-        logo: null as Media | null,
-        cover_image: null as Media | null,
+    const form = useForm<AgencyFormValues>({
+        resolver: zodResolver(agencySchema) as any,
+        defaultValues: {
+            name: "",
+            slug: "",
+            phone: "",
+            email: "",
+            website: "",
+            license_number: "",
+            license_expire_date: "",
+            city: null,
+            province: null,
+            description: "",
+            address: "",
+            is_active: true,
+            is_verified: false,
+            rating: 0,
+            total_reviews: 0,
+            meta_title: "",
+            meta_description: "",
+            og_title: "",
+            og_description: "",
+        },
+        mode: "onSubmit",
     });
-    const [isSaving, setIsSaving] = useState(false);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-    const previousAgencyIdRef = useRef<number | undefined>(undefined);
-    const previousEditModeRef = useRef<boolean>(false);
 
     useEffect(() => {
         if (!agencyData) return;
 
-        const isFirstLoad = previousAgencyIdRef.current !== agencyData.id;
-        const editModeChanged = previousEditModeRef.current && !editMode;
+        form.reset({
+            name: agencyData.name || "",
+            slug: agencyData.slug || "",
+            phone: agencyData.phone || "",
+            email: agencyData.email || "",
+            website: agencyData.website || "",
+            license_number: agencyData.license_number || "",
+            license_expire_date: agencyData.license_expire_date || "",
+            city: agencyData.city || null,
+            province: agencyData.province || null,
+            description: agencyData.description || "",
+            address: agencyData.address || "",
+            is_active: agencyData.is_active ?? true,
+            is_verified: agencyData.is_verified ?? false,
+            rating: agencyData.rating || 0,
+            total_reviews: agencyData.total_reviews || 0,
+            meta_title: agencyData.meta_title || "",
+            meta_description: agencyData.meta_description || "",
+            og_title: agencyData.og_title || "",
+            og_description: agencyData.og_description || "",
+        });
 
-        if (isFirstLoad || editModeChanged) {
-            setFormData(prev => {
-                const currentLogoId = prev.logo?.id;
-                const newLogoId = agencyData.logo?.id;
-                const currentCoverId = prev.cover_image?.id;
-                const newCoverId = agencyData.cover_image?.id;
-
-                return {
-                    name: agencyData.name || "",
-                    phone: agencyData.phone || "",
-                    email: agencyData.email || "",
-                    website: agencyData.website || "",
-                    license_number: agencyData.license_number || "",
-                    license_expire_date: agencyData.license_expire_date || "",
-                    city: agencyData.city || null,
-                    province: agencyData.province || null,
-                    description: agencyData.description || "",
-                    address: agencyData.address || "",
-                    is_active: agencyData.is_active ?? true,
-                    is_verified: agencyData.is_verified ?? false,
-                    rating: agencyData.rating || 0,
-                    total_reviews: agencyData.total_reviews || 0,
-                    meta_title: agencyData.meta_title || "",
-                    meta_description: agencyData.meta_description || "",
-                    og_title: agencyData.og_title || "",
-                    og_description: agencyData.og_description || "",
-                    logo: currentLogoId === newLogoId ? prev.logo : (agencyData.logo || null),
-                    cover_image: currentCoverId === newCoverId ? prev.cover_image : (agencyData.cover_image || null),
-                };
-            });
-            previousAgencyIdRef.current = agencyData.id;
-        } else if (!editMode) {
-            setFormData(prev => {
-                const currentLogoId = prev.logo?.id;
-                const newLogoId = agencyData.logo?.id;
-                const currentCoverId = prev.cover_image?.id;
-                const newCoverId = agencyData.cover_image?.id;
-                const newLogoIsNull = !agencyData.logo;
-                const currentLogoIsNull = !prev.logo;
-                const newCoverIsNull = !agencyData.cover_image;
-                const currentCoverIsNull = !prev.cover_image;
-
-                let newData = { ...prev };
-
-                if (currentLogoId !== newLogoId) {
-                    newData.logo = agencyData.logo || null;
-                }
-
-                if (newLogoIsNull && !currentLogoIsNull) {
-                    newData.logo = null;
-                }
-
-                if (currentCoverId !== newCoverId) {
-                    newData.cover_image = agencyData.cover_image || null;
-                }
-
-                if (newCoverIsNull && !currentCoverIsNull) {
-                    newData.cover_image = null;
-                }
-
-                return newData;
-            });
-        }
-
-        previousEditModeRef.current = editMode;
-    }, [agencyData, editMode]);
-
-    const handleInputChange = (field: string, value: string | number | boolean | null | Media) => {
-        if (field === "cancel") {
-            setEditMode(false);
-            return;
-        }
-
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-
-        if (fieldErrors[field]) {
-            setFieldErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[field];
-                return newErrors;
-            });
-        }
-    };
+        setSelectedLogo(agencyData.logo || null);
+        setSelectedCoverImage(agencyData.cover_image || null);
+    }, [agencyData, form]);
 
     const handleSaveProfile = async () => {
         if (isSaving) return;
 
+        const isValid = await form.trigger();
+        if (!isValid) return;
+
         setIsSaving(true);
-        setFieldErrors({});
 
         try {
+            const data = form.getValues();
             const profileData: Record<string, any> = {
-                name: formData.name || null,
-                phone: formData.phone || null,
-                email: formData.email || null,
-                website: formData.website || null,
-                license_number: formData.license_number || null,
-                license_expire_date: formData.license_expire_date || null,
-                city: formData.city || null,
-                province: formData.province || null,
-                description: formData.description || null,
-                address: formData.address || null,
-                is_active: formData.is_active,
-                is_verified: formData.is_verified,
-                rating: formData.rating || 0,
-                total_reviews: formData.total_reviews || 0,
-                meta_title: formData.meta_title || null,
-                meta_description: formData.meta_description || null,
-                og_title: formData.og_title || null,
-                og_description: formData.og_description || null,
+                name: data.name,
+                slug: data.slug || null,
+                phone: data.phone,
+                email: data.email || null,
+                website: data.website || null,
+                license_number: data.license_number || null,
+                license_expire_date: data.license_expire_date || null,
+                city: data.city || null,
+                province: data.province || null,
+                description: data.description || null,
+                address: data.address || null,
+                is_active: data.is_active,
+                is_verified: data.is_verified,
+                rating: data.rating || 0,
+                total_reviews: data.total_reviews || 0,
+                meta_title: data.meta_title || null,
+                meta_description: data.meta_description || null,
+                og_title: data.og_title || null,
+                og_description: data.og_description || null,
             };
 
-            if (formData.logo?.id) {
-                profileData.logo_id = formData.logo.id;
-            } else if (formData.logo === null) {
+            // Backend will auto-regenerate slug from name if name changes
+            // No need to send slug explicitly
+
+            if (selectedLogo?.id) {
+                profileData.logo_id = selectedLogo.id;
+            } else if (selectedLogo === null) {
                 profileData.logo_id = null;
             }
 
-            if (formData.cover_image?.id) {
-                profileData.cover_image_id = formData.cover_image.id;
-            } else if (formData.cover_image === null) {
+            if (selectedCoverImage?.id) {
+                profileData.cover_image_id = selectedCoverImage.id;
+            } else if (selectedCoverImage === null) {
                 profileData.cover_image_id = null;
             }
 
@@ -241,29 +211,19 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         } catch (error: any) {
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
-                const newFieldErrors: Record<string, string> = {};
 
-                if (errorData.name) {
-                    newFieldErrors.name = msg.validation('required', { field: 'نام آژانس' });
-                }
-                if (errorData.phone) {
-                    newFieldErrors.phone = msg.validation('mobileInvalid');
-                }
-                if (errorData.email) {
-                    newFieldErrors.email = msg.validation('emailInvalid');
-                }
-                if (errorData.license_number) {
-                    newFieldErrors.license_number = msg.validation('required', { field: 'شماره پروانه' });
-                }
+                Object.entries(errorData).forEach(([field, message]) => {
+                    form.setError(field as any, {
+                        type: 'server',
+                        message: message as string
+                    });
+                });
 
-                if (Object.keys(newFieldErrors).length > 0) {
-                    setFieldErrors(newFieldErrors);
-                    return;
-                }
+                showError("لطفاً خطاهای فرم را بررسی کنید");
+            } else {
+                const errorMessage = msg.error('serverError');
+                showError(errorMessage);
             }
-
-            const errorMessage = msg.error('serverError');
-            showError(errorMessage);
         } finally {
             setIsSaving(false);
         }
@@ -278,8 +238,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             error instanceof ApiError
                 ? error.response.message
                 : error instanceof Error
-                ? error.message
-                : "خطا در دریافت اطلاعات آژانس";
+                    ? error.message
+                    : "خطا در دریافت اطلاعات آژانس";
 
         return (
             <div className="rounded-lg border p-6 text-center space-y-4">
@@ -360,7 +320,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                                     <>
                                         <Button
                                             variant="outline"
-                                            onClick={() => handleInputChange("cancel", "")}
+                                            onClick={() => setEditMode(false)}
                                             disabled={isSaving}
                                         >
                                             انصراف
@@ -391,7 +351,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                                 </div>
                             )}
 
-                            {agencyData.rating > 0 && (
+                            {(agencyData.rating ?? 0) > 0 && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm">⭐ {agencyData.rating}/5</span>
                                     <span className="text-sm text-muted-foreground">
@@ -423,11 +383,9 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="base-info">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <BaseInfoTab
-                            form={form}
+                            form={form as any}
                             editMode={editMode}
                             agencyData={agencyData}
-                            fieldErrors={fieldErrors}
-                            handleInputChange={handleInputChange}
                         />
                     </Suspense>
                 </TabsContent>
@@ -435,10 +393,10 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="media">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <MediaTab
-                            selectedLogo={formData.logo}
-                            setSelectedLogo={(media) => handleInputChange("logo", media)}
-                            selectedCoverImage={formData.cover_image}
-                            setSelectedCoverImage={(media) => handleInputChange("cover_image", media)}
+                            selectedLogo={selectedLogo}
+                            setSelectedLogo={setSelectedLogo}
+                            selectedCoverImage={selectedCoverImage}
+                            setSelectedCoverImage={setSelectedCoverImage}
                             editMode={editMode}
                         />
                     </Suspense>
@@ -447,10 +405,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="settings">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <SettingsTab
-                            form={form}
+                            form={form as any}
                             editMode={editMode}
-                            fieldErrors={fieldErrors}
-                            handleInputChange={handleInputChange}
                         />
                     </Suspense>
                 </TabsContent>

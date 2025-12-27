@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyColumns } from "@/components/real-estate/list/PropertyTableColumns";
 import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/list/PropertyTableFilters";
-import type { PropertyFilters } from "@/types/real_estate/propertyListParams";
+import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
@@ -26,13 +26,13 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 
-import type { Property } from "@/types/real_estate/property";
+import type { Property } from "@/types/real_estate/realEstate";
 import type { ColumnDef } from "@tanstack/react-table";
 import { realEstateApi } from "@/api/real-estate";
 import { exportProperties } from "@/api/real-estate/export";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
-import type { PropertyState } from "@/types/real_estate/state/propertyState";
+import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { env } from '@/core/config/environment';
 
 export default function PropertyPage() {

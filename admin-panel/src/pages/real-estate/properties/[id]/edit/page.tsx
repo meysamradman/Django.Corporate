@@ -10,17 +10,17 @@ import {
   Loader2, Save, List, MapPin, Home, Settings
 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import type { Property } from "@/types/real_estate/property";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
-import type { PropertyLabel } from "@/types/real_estate/label/propertyLabel";
-import type { PropertyFeature } from "@/types/real_estate/feature/propertyFeature";
+import type { Property } from "@/types/real_estate/realEstate";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
+import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
+import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from '@/core/toast';
-import type { PropertyMedia } from "@/types/real_estate/propertyMedia";
+import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 import { collectMediaIds, collectMediaCovers, parsePropertyMedia } from "@/components/real-estate/utils/propertyMediaUtils";
-import type { PropertyUpdateData } from "@/types/real_estate/property";
+import type { PropertyUpdateData } from "@/types/real_estate/realEstate";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">

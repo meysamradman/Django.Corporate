@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/elements/Card";
-import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
+import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 import { TruncatedText } from "@/components/elements/TruncatedText";

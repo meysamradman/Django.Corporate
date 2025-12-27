@@ -15,12 +15,12 @@ from src.portfolio.serializers.admin.category_serializer import (
 from src.portfolio.services.admin.category_services import PortfolioCategoryAdminService
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import portfolio_permission, PermissionValidator
+from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 
-class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
+class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioCategoryAdminFilter
@@ -28,6 +28,17 @@ class PortfolioCategoryAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['path', 'created_at', 'name']
     ordering = ['path']
     pagination_class = StandardLimitPagination
+    
+    permission_map = {
+        'list': 'portfolio.category.read',
+        'retrieve': 'portfolio.category.read',
+        'create': 'portfolio.category.create',
+        'update': 'portfolio.category.update',
+        'partial_update': 'portfolio.category.update',
+        'destroy': 'portfolio.category.delete',
+        'tree': 'portfolio.category.read',
+    }
+    permission_denied_message = CATEGORY_ERRORS["category_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':

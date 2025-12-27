@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.serializers.admin.tag_serializer import (
@@ -19,8 +19,20 @@ from src.real_estate.services.admin.tag_services import PropertyTagAdminService
 from src.real_estate.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
 
-class PropertyTagAdminViewSet(viewsets.ModelViewSet):
+class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.tag.read',
+        'retrieve': 'real_estate.tag.read',
+        'create': 'real_estate.tag.create',
+        'update': 'real_estate.tag.update',
+        'partial_update': 'real_estate.tag.update',
+        'destroy': 'real_estate.tag.delete',
+        'bulk_delete': 'real_estate.tag.delete',
+        'popular': 'real_estate.tag.read',
+    }
+    permission_denied_message = TAG_ERRORS["tag_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'updated_at', 'title']
@@ -46,12 +58,6 @@ class PropertyTagAdminViewSet(viewsets.ModelViewSet):
             return PropertyTagAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.tag.read'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'is_public': self._parse_bool(request.query_params.get('is_public')),
@@ -82,12 +88,6 @@ class PropertyTagAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.tag.create'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -104,12 +104,6 @@ class PropertyTagAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.tag.read'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         tag = PropertyTagAdminService.get_tag_by_id(kwargs.get('pk'))
         
         if not tag:
@@ -126,12 +120,6 @@ class PropertyTagAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.tag.update'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         tag_id = kwargs.get('pk')
         
@@ -162,12 +150,6 @@ class PropertyTagAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.tag.delete'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         tag_id = kwargs.get('pk')
         
         try:

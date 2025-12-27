@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/elements/Card";
-import type { Property } from "@/types/real_estate/property";
+import type { Property } from "@/types/real_estate/realEstate";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 import { TruncatedText } from "@/components/elements/TruncatedText";

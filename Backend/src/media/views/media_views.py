@@ -16,12 +16,25 @@ from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoM
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.user.access_control import PermissionValidator, media_permission
+from src.user.access_control import PermissionValidator, media_permission, PermissionRequiredMixin
 
 
-class MediaAdminViewSet(viewsets.ModelViewSet):
+class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [media_permission]
+    
+    permission_map = {
+        'list': 'media.read',
+        'retrieve': 'media.read',
+        'create': 'media.upload',
+        'update': 'media.update',
+        'partial_update': 'media.update',
+        'destroy': 'media.delete',
+        'bulk_delete': 'media.delete',
+        'bulk_update': 'media.update',
+        'update_cover': 'media.update',
+    }
+    permission_denied_message = MEDIA_ERRORS["UPLOAD_PERMISSION_DENIED"]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = MediaAdminSerializer
     pagination_class = StandardLimitPagination
@@ -235,11 +248,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
             )
 
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'media.update'):
-            return APIResponse.error(
-                message=MEDIA_ERRORS.get("UPLOAD_PERMISSION_DENIED", MEDIA_ERRORS.get("media_not_found", "Access denied")),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         media_id = kwargs.get("pk")
         media = None
         media_type = None
@@ -292,11 +300,6 @@ class MediaAdminViewSet(viewsets.ModelViewSet):
         return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'media.delete'):
-            return APIResponse.error(
-                message=MEDIA_ERRORS.get("UPLOAD_PERMISSION_DENIED", MEDIA_ERRORS.get("media_not_found", "Access denied")),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         media_id = kwargs.get("pk")
         media = None
         media_type = None

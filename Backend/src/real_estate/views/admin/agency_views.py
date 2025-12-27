@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.serializers.admin.agency_serializer import (
@@ -19,8 +19,19 @@ from src.real_estate.services.admin.agency_services import RealEstateAgencyAdmin
 from src.real_estate.messages.messages import AGENCY_SUCCESS, AGENCY_ERRORS
 
 
-class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
+class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.agency.read',
+        'retrieve': 'real_estate.agency.read',
+        'create': 'real_estate.agency.create',
+        'update': 'real_estate.agency.update',
+        'partial_update': 'real_estate.agency.update',
+        'destroy': 'real_estate.agency.delete',
+        'bulk_delete': 'real_estate.agency.delete',
+    }
+    permission_denied_message = AGENCY_ERRORS["agency_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'phone', 'email', 'license_number']
     ordering_fields = ['created_at', 'updated_at', 'rating', 'name']
@@ -46,12 +57,6 @@ class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
             return RealEstateAgencyAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agency.read'):
-            return APIResponse.error(
-                message=AGENCY_ERRORS["agency_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'is_verified': self._parse_bool(request.query_params.get('is_verified')),
@@ -84,12 +89,6 @@ class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agency.create'):
-            return APIResponse.error(
-                message=AGENCY_ERRORS["agency_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -106,12 +105,6 @@ class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agency.read'):
-            return APIResponse.error(
-                message=AGENCY_ERRORS["agency_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         agency = RealEstateAgencyAdminService.get_agency_by_id(kwargs.get('pk'))
         
         if not agency:
@@ -128,12 +121,6 @@ class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agency.update'):
-            return APIResponse.error(
-                message=AGENCY_ERRORS["agency_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         agency_id = kwargs.get('pk')
         
@@ -164,12 +151,6 @@ class RealEstateAgencyAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.agency.delete'):
-            return APIResponse.error(
-                message=AGENCY_ERRORS["agency_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         agency_id = kwargs.get('pk')
         
         try:

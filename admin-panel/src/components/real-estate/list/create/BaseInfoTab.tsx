@@ -10,11 +10,11 @@ import { realEstateApi } from "@/api/real-estate";
 import { FormFieldInput, FormFieldTextarea, FormField } from "@/components/forms/FormField";
 
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
-import type { PropertyState } from "@/types/real_estate/state/propertyState";
-import type { PropertyLabel } from "@/types/real_estate/label/propertyLabel";
-import type { PropertyFeature } from "@/types/real_estate/feature/propertyFeature";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
-import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
+import type { PropertyState } from "@/types/real_estate/state/realEstateState";
+import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
+import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
+import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import { formatSlug, generateSlug } from '@/core/slug/generate';
 

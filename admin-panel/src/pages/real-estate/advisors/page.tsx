@@ -8,7 +8,7 @@ import { PaginationControls } from "@/components/shared/Pagination";
 import { Plus, Search, Phone, Mail, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyAgent } from "@/types/real_estate/agent/propertyAgent";
+import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import { mediaService } from "@/components/media/services";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";

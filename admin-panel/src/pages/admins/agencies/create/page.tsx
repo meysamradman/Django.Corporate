@@ -16,36 +16,36 @@ import type { Media } from "@/types/shared/media";
 import * as z from "zod";
 
 const TabSkeleton = () => (
-  <div className="mt-0 space-y-6">
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="flex-1 min-w-0">
-        <CardWithIcon
-          icon={Building2}
-          title="اطلاعات پایه"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-10 w-full" />
-              </div>
+    <div className="mt-0 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+                <CardWithIcon
+                    icon={Building2}
+                    title="اطلاعات پایه"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                >
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardWithIcon>
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </div>
-        </CardWithIcon>
-      </div>
+        </div>
     </div>
-  </div>
 );
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
@@ -53,27 +53,28 @@ const MediaTab = lazy(() => import("@/components/real-estate/agencies/create/Med
 const SettingsTab = lazy(() => import("@/components/real-estate/agencies/create/SettingsTab"));
 
 const agencySchema = z.object({
-  name: z.string().min(1, "نام آژانس لازم است"),
-  phone: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable(),
-  website: z.string().url().optional().nullable(),
-  license_number: z.string().optional().nullable(),
-  license_expire_date: z.string().optional().nullable(),
-  city: z.number().int().optional().nullable(),
-  province: z.number().int().optional().nullable(),
-  description: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
-  is_active: z.boolean().optional(),
-  is_verified: z.boolean().optional(),
-  rating: z.number().min(0).max(5).optional(),
-  total_reviews: z.number().min(0).optional(),
-  meta_title: z.string().optional().nullable(),
-  meta_description: z.string().optional().nullable(),
-  og_title: z.string().optional().nullable(),
-  og_description: z.string().optional().nullable(),
+    name: z.string().min(1, "نام آژانس لازم است"),
+    slug: z.string().optional().nullable(),
+    phone: z.string().min(1, "شماره موبایل لازم است"),
+    email: z.string().email("ایمیل معتبر وارد کنید").optional().or(z.literal("")),
+    website: z.string().url("وب‌سایت معتبر وارد کنید").optional().or(z.literal("")),
+    license_number: z.string().optional().nullable(),
+    license_expire_date: z.string().optional().nullable(),
+    city: z.number().int().optional().nullable(),
+    province: z.number().int().optional().nullable(),
+    description: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    is_active: z.boolean().optional(),
+    is_verified: z.boolean().optional(),
+    rating: z.number().min(0).max(5).optional(),
+    total_reviews: z.number().min(0).optional(),
+    meta_title: z.string().optional().nullable(),
+    meta_description: z.string().optional().nullable(),
+    og_title: z.string().optional().nullable(),
+    og_description: z.string().optional().nullable(),
 });
 
-type AgencyFormValues = z.infer<typeof agencySchema>;
+export type AgencyFormValues = z.infer<typeof agencySchema>;
 
 export default function AdminsAgenciesCreatePage() {
     const navigate = useNavigate();
@@ -87,6 +88,7 @@ export default function AdminsAgenciesCreatePage() {
         resolver: zodResolver(agencySchema) as any,
         defaultValues: {
             name: "",
+            slug: "",
             phone: "",
             email: "",
             website: "",
@@ -112,7 +114,8 @@ export default function AdminsAgenciesCreatePage() {
         mutationFn: async (data: AgencyFormValues) => {
             const agencyData: Record<string, unknown> = {
                 name: data.name,
-                phone: data.phone || undefined,
+                slug: data.slug || undefined,
+                phone: data.phone,
                 email: data.email || undefined,
                 website: data.website || undefined,
                 license_number: data.license_number || undefined,
@@ -130,6 +133,9 @@ export default function AdminsAgenciesCreatePage() {
                 og_title: data.og_title || undefined,
                 og_description: data.og_description || undefined,
             };
+
+            // Backend will auto-generate slug from name
+            // No need to send slug explicitly
 
             if (selectedLogo?.id) {
                 agencyData.logo_id = selectedLogo.id;

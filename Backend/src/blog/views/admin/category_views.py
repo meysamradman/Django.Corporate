@@ -15,12 +15,12 @@ from src.blog.serializers.admin.category_serializer import (
 from src.blog.services.admin.category_services import BlogCategoryAdminService
 from src.blog.filters.admin.category_filters import BlogCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import blog_permission, PermissionValidator
+from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 
-class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
+class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BlogCategoryAdminFilter
@@ -28,6 +28,17 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['path', 'created_at', 'name']
     ordering = ['path']
     pagination_class = StandardLimitPagination
+    
+    permission_map = {
+        'list': 'blog.category.read',
+        'retrieve': 'blog.category.read',
+        'create': 'blog.category.create',
+        'update': 'blog.category.update',
+        'partial_update': 'blog.category.update',
+        'destroy': 'blog.category.delete',
+        'tree': 'blog.category.read',
+    }
+    permission_denied_message = CATEGORY_ERRORS["category_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':
@@ -50,11 +61,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
             return BlogCategoryAdminDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.category.read'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS["category_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         tree_mode = request.GET.get('tree', '').lower() == 'true'
         if tree_mode:
             tree_data = BlogCategoryAdminService.get_tree_data()
@@ -86,11 +92,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
 
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.category.create'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS["category_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         category = BlogCategoryAdminService.create_category(
@@ -105,11 +106,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.category.read'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS["category_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         category = BlogCategoryAdminService.get_category_by_id(kwargs.get('pk'))
         
         if not category:
@@ -126,11 +122,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
         )
 
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.category.update'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to update blog categories"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         partial = kwargs.pop('partial', False)
         category_id = kwargs.get('pk')
         
@@ -154,11 +145,6 @@ class BlogCategoryAdminViewSet(viewsets.ModelViewSet):
             )
 
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.category.delete'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to delete blog categories"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         category_id = kwargs.get('pk')
         
         try:

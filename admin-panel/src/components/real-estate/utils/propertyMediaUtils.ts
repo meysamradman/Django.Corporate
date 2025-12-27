@@ -1,5 +1,5 @@
-import type { PropertyMedia } from "@/types/real_estate/propertyMedia";
-import type { PropertyMediaItem } from "@/types/real_estate/property";
+import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
+import type { PropertyMediaItem } from "@/types/real_estate/realEstate";
 import type { Media } from "@/types/shared/media";
 
 export function parsePropertyMedia(propertyMediaArray: PropertyMediaItem[]): PropertyMedia {

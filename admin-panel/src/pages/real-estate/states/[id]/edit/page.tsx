@@ -10,7 +10,7 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { showError, showSuccess, showInfo } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyState } from "@/types/real_estate/state/propertyState";
+import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { Circle, Loader2, Save, List } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 

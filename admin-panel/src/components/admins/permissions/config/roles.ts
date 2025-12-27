@@ -164,6 +164,16 @@ export const SYSTEM_ROLES: Record<string, RoleConfig> = {
     level: 5,
     is_system_role: true
   },
+  real_estate_manager: {
+    name: 'real_estate_manager',
+    display_name: 'Real Estate Manager',
+    display_name_short: 'Real Estate',
+    description: 'Manages properties, agents, agencies, and real estate taxonomies.',
+    icon: 'Building',
+    color: 'blue',
+    level: 3,
+    is_system_role: true
+  },
 };
 
 export const getRoleConfig = (roleName: string): RoleConfig | null => {

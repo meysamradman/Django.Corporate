@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 
@@ -283,10 +283,10 @@ export default function AdminsAgenciesPage() {
           showDenyToast
           denyMessage="شما مجوز ایجاد آژانس ندارید"
         >
-          <Button>
+          <Link to="/admins/agencies/create">
             <Plus />
             افزودن آژانس
-          </Button>
+          </Link>
         </ProtectedButton>
       </PageHeader>
 
@@ -346,10 +346,10 @@ export default function AdminsAgenciesPage() {
                   sorting[0].id === "created_at"
                     ? (sorting[0].desc ? "جدیدترین" : "قدیمی‌ترین")
                     : sorting[0].id === "name"
-                    ? (sorting[0].desc ? "نام (نزولی)" : "نام (صعودی)")
-                    : sorting[0].id === "rating"
-                    ? (sorting[0].desc ? "رتبه (نزولی)" : "رتبه (صعودی)")
-                    : "مرتب‌سازی"
+                      ? (sorting[0].desc ? "نام (نزولی)" : "نام (صعودی)")
+                      : sorting[0].id === "rating"
+                        ? (sorting[0].desc ? "رتبه (نزولی)" : "رتبه (صعودی)")
+                        : "مرتب‌سازی"
                 )}
               </SelectValue>
             </SelectTrigger>

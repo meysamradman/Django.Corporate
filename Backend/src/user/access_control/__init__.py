@@ -36,6 +36,8 @@ from .classes import (
     super_admin_permission,
 )
 
+from .mixins import PermissionRequiredMixin, RealEstatePermissionMixin
+
 from .definitions import (
     Permission,
     PermissionRegistry,
@@ -64,8 +66,6 @@ from .definitions import (
     get_role_permissions_for_creation,
     get_all_role_configs,
 )
-
-ADMIN_ROLE_PERMISSIONS = SYSTEM_ROLES
 
 __all__ = [
     "AdminRolePermission",

@@ -10,7 +10,7 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { showError, showSuccess } from "@/core/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyLabel } from "@/types/real_estate/label/propertyLabel";
+import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import { Tag, Loader2, Save, List } from "lucide-react";
 
 export default function CreatePropertyLabelPage() {

@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.label import PropertyLabel
 from src.real_estate.serializers.admin.label_serializer import (
@@ -17,8 +17,18 @@ from src.real_estate.services.admin.label_services import PropertyLabelAdminServ
 from src.real_estate.messages.messages import LABEL_SUCCESS, LABEL_ERRORS
 
 
-class PropertyLabelAdminViewSet(viewsets.ModelViewSet):
+class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
+    
+    permission_map = {
+        'list': 'real_estate.label.read',
+        'retrieve': 'real_estate.label.read',
+        'create': 'real_estate.label.create',
+        'update': 'real_estate.label.update',
+        'partial_update': 'real_estate.label.update',
+        'destroy': 'real_estate.label.delete',
+    }
+    permission_denied_message = LABEL_ERRORS["label_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title']
     ordering_fields = ['created_at', 'title']
@@ -44,12 +54,6 @@ class PropertyLabelAdminViewSet(viewsets.ModelViewSet):
             return PropertyLabelAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.label.read'):
-            return APIResponse.error(
-                message=LABEL_ERRORS["label_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
         }
@@ -79,12 +83,6 @@ class PropertyLabelAdminViewSet(viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.label.create'):
-            return APIResponse.error(
-                message=LABEL_ERRORS["label_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -101,12 +99,6 @@ class PropertyLabelAdminViewSet(viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.label.read'):
-            return APIResponse.error(
-                message=LABEL_ERRORS["label_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         label_obj = PropertyLabelAdminService.get_label_by_id(kwargs.get('pk'))
         
         if not label_obj:
@@ -123,12 +115,6 @@ class PropertyLabelAdminViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.label.update'):
-            return APIResponse.error(
-                message=LABEL_ERRORS["label_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         label_id = kwargs.get('pk')
         
@@ -159,12 +145,6 @@ class PropertyLabelAdminViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.label.delete'):
-            return APIResponse.error(
-                message=LABEL_ERRORS["label_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         label_id = kwargs.get('pk')
         
         try:

@@ -1,13 +1,13 @@
 import type { Base } from "@/types/shared/base";
 import type { Media } from "@/types/shared/media";
 import type { PropertyType } from "./type/propertyType";
-import type { PropertyState } from "./state/propertyState";
-import type { PropertyLabel } from "./label/propertyLabel";
-import type { PropertyFeature } from "./feature/propertyFeature";
-import type { PropertyTag } from "./tags/propertyTag";
-import type { PropertyAgent } from "./agent/propertyAgent";
+import type { PropertyState } from "./state/realEstateState";
+import type { PropertyLabel } from "./label/realEstateLabel";
+import type { PropertyFeature } from "./feature/realEstateFeature";
+import type { PropertyTag } from "./tags/realEstateTag";
+import type { PropertyAgent } from "./agent/realEstateAgent";
 import type { RealEstateAgency } from "./agency/realEstateAgency";
-import type { PropertySEOMeta } from "./propertySeoMeta";
+import type { PropertySEOMeta } from "./realEstateSeoMeta";
 
 export interface Property extends Base {
   title: string;

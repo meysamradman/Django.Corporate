@@ -16,12 +16,12 @@ from src.portfolio.serializers.admin.option_serializer import (
 from src.portfolio.services.admin.option_services import PortfolioOptionAdminService
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import portfolio_permission, PermissionValidator
+from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 
 
-class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
+class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioOptionAdminFilter
@@ -29,6 +29,17 @@ class PortfolioOptionAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
+    
+    permission_map = {
+        'list': 'portfolio.option.read',
+        'retrieve': 'portfolio.option.read',
+        'create': 'portfolio.option.create',
+        'update': 'portfolio.option.update',
+        'partial_update': 'portfolio.option.update',
+        'destroy': 'portfolio.option.delete',
+        'grouped': 'portfolio.option.read',
+    }
+    permission_denied_message = OPTION_ERRORS["option_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':

@@ -31,12 +31,12 @@ from src.portfolio.services.admin import (
 )
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import portfolio_permission, PermissionValidator
+from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheManager
 
 
-class PortfolioAdminViewSet(viewsets.ModelViewSet):
+class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioAdminFilter
@@ -44,6 +44,31 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'title', 'status']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
+    
+    # ✅ Permission map
+    permission_map = {
+        'list': 'portfolio.read',
+        'retrieve': 'portfolio.read',
+        'create': 'portfolio.create',
+        'update': 'portfolio.update',
+        'partial_update': 'portfolio.update',
+        'destroy': 'portfolio.delete',
+        'bulk_delete': 'portfolio.delete',
+        'bulk_update_status': 'portfolio.update',
+        'publish': 'portfolio.update',
+        'unpublish': 'portfolio.update',
+        'change_status': 'portfolio.update',
+        'add_media': 'portfolio.update',
+        'remove_media': 'portfolio.update',
+        'set_main_image': 'portfolio.update',
+        'generate_seo': 'portfolio.update',
+        'validate_seo': 'portfolio.read',
+        'bulk_generate_seo': 'portfolio.update',
+        'seo_report': 'portfolio.read',
+        'statistics': 'portfolio.read',
+        'export': 'portfolio.read',
+    }
+    permission_denied_message = PORTFOLIO_ERRORS["portfolio_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':
@@ -67,11 +92,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
             return Portfolio.objects.all()
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
-            return APIResponse.error(
-                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         queryset = Portfolio.objects.for_detail()
         pk = kwargs.get('pk')
         try:
@@ -89,11 +109,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.read'):
-            return APIResponse.error(
-                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
@@ -162,11 +177,6 @@ class PortfolioAdminViewSet(viewsets.ModelViewSet):
         return media_ids
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.create'):
-            return APIResponse.error(
-                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         

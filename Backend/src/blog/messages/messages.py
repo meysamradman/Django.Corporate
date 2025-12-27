@@ -68,6 +68,7 @@ PDF_LABELS = {
 
 BLOG_ERRORS = {
     "blog_not_found": "مقاله یافت نشد.",
+    "blog_not_authorized": "شما اجازه دسترسی به مقالات بلاگ را ندارید.",
     "blog_invalid_status": "وضعیت نامعتبر است.",
     "blog_create_failed": "ایجاد مقاله ناموفق بود.",
     "blog_update_failed": "به‌روزرسانی مقاله ناموفق بود.",

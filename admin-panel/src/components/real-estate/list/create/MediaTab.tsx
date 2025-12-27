@@ -4,7 +4,7 @@ import { MediaGallery } from "@/components/media/galleries/MediaGallery";
 import type { Media } from "@/types/shared/media";
 import { Image as ImageIcon, UploadCloud, X, AlertCircle, Video, Music, FileText } from "lucide-react";
 import { mediaService } from "@/components/media/services";
-import type { PropertyMedia } from "@/types/real_estate/propertyMedia";
+import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 
 const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 

@@ -12,10 +12,10 @@ import {
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug } from '@/core/slug/generate';
 import { showError, showSuccess } from '@/core/toast';
-import type { PropertyLabel } from "@/types/real_estate/label/propertyLabel";
-import type { PropertyFeature } from "@/types/real_estate/feature/propertyFeature";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
-import type { PropertyMedia } from "@/types/real_estate/propertyMedia";
+import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
+import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
+import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">

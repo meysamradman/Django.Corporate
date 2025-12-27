@@ -11,7 +11,7 @@ import { Plus } from "lucide-react";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyFeature } from "@/types/real_estate/feature/propertyFeature";
+import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCrud, getConfirm, getStatus } from '@/core/messages';
 import {

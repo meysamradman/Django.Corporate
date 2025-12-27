@@ -17,17 +17,17 @@ export const PERMISSIONS = {
   },
   
   BLOG_CATEGORIES: {
-    CREATE: 'blog_categories.create',
-    READ: 'blog_categories.read',
-    UPDATE: 'blog_categories.update',
-    DELETE: 'blog_categories.delete',
+    CREATE: 'blog.category.create',
+    READ: 'blog.category.read',
+    UPDATE: 'blog.category.update',
+    DELETE: 'blog.category.delete',
   },
   
   BLOG_TAGS: {
-    CREATE: 'blog_tags.create',
-    READ: 'blog_tags.read',
-    UPDATE: 'blog_tags.update',
-    DELETE: 'blog_tags.delete',
+    CREATE: 'blog.tag.create',
+    READ: 'blog.tag.read',
+    UPDATE: 'blog.tag.update',
+    DELETE: 'blog.tag.delete',
   },
   PORTFOLIO: {
     CREATE: 'portfolio.create',
@@ -38,24 +38,24 @@ export const PERMISSIONS = {
   },
   
   PORTFOLIO_CATEGORIES: {
-    CREATE: 'portfolio_categories.create',
-    READ: 'portfolio_categories.read',
-    UPDATE: 'portfolio_categories.update',
-    DELETE: 'portfolio_categories.delete',
+    CREATE: 'portfolio.category.create',
+    READ: 'portfolio.category.read',
+    UPDATE: 'portfolio.category.update',
+    DELETE: 'portfolio.category.delete',
   },
   
   PORTFOLIO_TAGS: {
-    CREATE: 'portfolio_tags.create',
-    READ: 'portfolio_tags.read',
-    UPDATE: 'portfolio_tags.update',
-    DELETE: 'portfolio_tags.delete',
+    CREATE: 'portfolio.tag.create',
+    READ: 'portfolio.tag.read',
+    UPDATE: 'portfolio.tag.update',
+    DELETE: 'portfolio.tag.delete',
   },
   
   PORTFOLIO_OPTIONS: {
-    CREATE: 'portfolio_options.create',
-    READ: 'portfolio_options.read',
-    UPDATE: 'portfolio_options.update',
-    DELETE: 'portfolio_options.delete',
+    CREATE: 'portfolio.option.create',
+    READ: 'portfolio.option.read',
+    UPDATE: 'portfolio.option.update',
+    DELETE: 'portfolio.option.delete',
   },
   MEDIA: {
     READ: 'media.read',
@@ -120,10 +120,10 @@ export const PERMISSIONS = {
     UPDATE: 'email.update',
     DELETE: 'email.delete',
     VIEW: 'email.view',
+    MANAGE: 'email.manage',
   },
   
   TICKET: {
-    CREATE: 'ticket.create',
     READ: 'ticket.read',
     UPDATE: 'ticket.update',
     DELETE: 'ticket.delete',
@@ -159,13 +159,57 @@ export const PERMISSIONS = {
     READ: 'profile.read',
     UPDATE: 'profile.update',
   },
+  
+  REAL_ESTATE: {
+    PROPERTY_READ: 'real_estate.property.read',
+    PROPERTY_CREATE: 'real_estate.property.create',
+    PROPERTY_UPDATE: 'real_estate.property.update',
+    PROPERTY_DELETE: 'real_estate.property.delete',
+    AGENT_READ: 'real_estate.agent.read',
+    AGENT_CREATE: 'real_estate.agent.create',
+    AGENT_UPDATE: 'real_estate.agent.update',
+    AGENT_DELETE: 'real_estate.agent.delete',
+    AGENCY_READ: 'real_estate.agency.read',
+    AGENCY_CREATE: 'real_estate.agency.create',
+    AGENCY_UPDATE: 'real_estate.agency.update',
+    AGENCY_DELETE: 'real_estate.agency.delete',
+    TYPE_READ: 'real_estate.type.read',
+    TYPE_CREATE: 'real_estate.type.create',
+    TYPE_UPDATE: 'real_estate.type.update',
+    TYPE_DELETE: 'real_estate.type.delete',
+    STATE_READ: 'real_estate.state.read',
+    STATE_CREATE: 'real_estate.state.create',
+    STATE_UPDATE: 'real_estate.state.update',
+    STATE_DELETE: 'real_estate.state.delete',
+    LABEL_READ: 'real_estate.label.read',
+    LABEL_CREATE: 'real_estate.label.create',
+    LABEL_UPDATE: 'real_estate.label.update',
+    LABEL_DELETE: 'real_estate.label.delete',
+    FEATURE_READ: 'real_estate.feature.read',
+    FEATURE_CREATE: 'real_estate.feature.create',
+    FEATURE_UPDATE: 'real_estate.feature.update',
+    FEATURE_DELETE: 'real_estate.feature.delete',
+    TAG_READ: 'real_estate.tag.read',
+    TAG_CREATE: 'real_estate.tag.create',
+    TAG_UPDATE: 'real_estate.tag.update',
+    TAG_DELETE: 'real_estate.tag.delete',
+  },
 } as const;
 
 export type PermissionId = 
   | typeof PERMISSIONS.AI[keyof typeof PERMISSIONS.AI]
   | typeof PERMISSIONS.BLOG[keyof typeof PERMISSIONS.BLOG]
+  | typeof PERMISSIONS.BLOG_CATEGORIES[keyof typeof PERMISSIONS.BLOG_CATEGORIES]
+  | typeof PERMISSIONS.BLOG_TAGS[keyof typeof PERMISSIONS.BLOG_TAGS]
   | typeof PERMISSIONS.PORTFOLIO[keyof typeof PERMISSIONS.PORTFOLIO]
+  | typeof PERMISSIONS.PORTFOLIO_CATEGORIES[keyof typeof PERMISSIONS.PORTFOLIO_CATEGORIES]
+  | typeof PERMISSIONS.PORTFOLIO_TAGS[keyof typeof PERMISSIONS.PORTFOLIO_TAGS]
+  | typeof PERMISSIONS.PORTFOLIO_OPTIONS[keyof typeof PERMISSIONS.PORTFOLIO_OPTIONS]
   | typeof PERMISSIONS.MEDIA[keyof typeof PERMISSIONS.MEDIA]
+  | typeof PERMISSIONS.MEDIA_IMAGE[keyof typeof PERMISSIONS.MEDIA_IMAGE]
+  | typeof PERMISSIONS.MEDIA_VIDEO[keyof typeof PERMISSIONS.MEDIA_VIDEO]
+  | typeof PERMISSIONS.MEDIA_AUDIO[keyof typeof PERMISSIONS.MEDIA_AUDIO]
+  | typeof PERMISSIONS.MEDIA_DOCUMENT[keyof typeof PERMISSIONS.MEDIA_DOCUMENT]
   | typeof PERMISSIONS.ADMIN[keyof typeof PERMISSIONS.ADMIN]
   | typeof PERMISSIONS.USERS[keyof typeof PERMISSIONS.USERS]
   | typeof PERMISSIONS.ANALYTICS[keyof typeof PERMISSIONS.ANALYTICS]
@@ -177,7 +221,8 @@ export type PermissionId =
   | typeof PERMISSIONS.PAGES[keyof typeof PERMISSIONS.PAGES]
   | typeof PERMISSIONS.CHATBOT[keyof typeof PERMISSIONS.CHATBOT]
   | typeof PERMISSIONS.DASHBOARD[keyof typeof PERMISSIONS.DASHBOARD]
-  | typeof PERMISSIONS.PROFILE[keyof typeof PERMISSIONS.PROFILE];
+  | typeof PERMISSIONS.PROFILE[keyof typeof PERMISSIONS.PROFILE]
+  | typeof PERMISSIONS.REAL_ESTATE[keyof typeof PERMISSIONS.REAL_ESTATE];
 
 export function getAllPermissions(): string[] {
   const permissions: string[] = [];

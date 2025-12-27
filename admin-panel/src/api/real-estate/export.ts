@@ -1,5 +1,5 @@
 import { api } from '@/core/config/api';
-import type { PropertyExportParams } from "@/types/real_estate/propertyListParams";
+import type { PropertyExportParams } from "@/types/real_estate/realEstateListParams";
 
 export const exportPropertyPdf = async (propertyId: number): Promise<void> => {
   const url = `/admin/property/${propertyId}/export-pdf/`;

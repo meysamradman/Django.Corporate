@@ -20,11 +20,13 @@ class RealEstateAgency(BaseModel, SEOMixin):
         db_index=True,
         allow_unicode=True,
         verbose_name="URL Slug",
-        help_text="URL-friendly identifier"
+        help_text="URL-friendly identifier (auto-generated from name)"
     )
     license_number = models.CharField(
         max_length=100,
         unique=True,
+        blank=True,
+        null=True,
         db_index=True,
         verbose_name="License Number",
         help_text="Agent license number"
@@ -44,6 +46,7 @@ class RealEstateAgency(BaseModel, SEOMixin):
         help_text="Contact phone number"
     )
     email = models.EmailField(
+        blank=True,
         db_index=True,
         verbose_name="Email",
         help_text="Contact email address"
@@ -68,11 +71,14 @@ class RealEstateAgency(BaseModel, SEOMixin):
         City,
         on_delete=models.PROTECT,
         related_name='real_estate_agencies',
+        null=True,
+        blank=True,
         db_index=True,
         verbose_name="City",
         help_text="City where the agency is located"
     )
     address = models.TextField(
+        blank=True,
         verbose_name="Address",
         help_text="Full address of the agency"
     )
@@ -157,6 +163,17 @@ class RealEstateAgency(BaseModel, SEOMixin):
         return f"/agency/{self.slug}/"
     
     def save(self, *args, **kwargs):
+        # Auto-generate slug if empty
+        if not self.slug and self.name:
+            from django.utils.text import slugify
+            base_slug = slugify(self.name, allow_unicode=True)
+            slug = base_slug
+            counter = 1
+            while RealEstateAgency.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        
         if not self.meta_title and self.name:
             self.meta_title = self.name[:70]
         

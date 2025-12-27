@@ -8,7 +8,7 @@ from django.conf import settings
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, PermissionValidator
+from src.user.access_control import real_estate_permission, RealEstatePermissionMixin
 
 from src.real_estate.models.property import Property
 from src.real_estate.serializers.admin import (
@@ -29,7 +29,7 @@ from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 
 
-class PropertyAdminViewSet(viewsets.ModelViewSet):
+class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PropertyAdminFilter
@@ -37,6 +37,30 @@ class PropertyAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'title', 'price', 'published_at', 'views_count']
     ordering = ['-is_featured', '-published_at', '-created_at']
     pagination_class = StandardLimitPagination
+    
+    # ✅ تعریف یکجا برای همه permissions
+    permission_map = {
+        'list': 'real_estate.property.read',
+        'retrieve': 'real_estate.property.read',
+        'create': 'real_estate.property.create',
+        'update': 'real_estate.property.update',
+        'partial_update': 'real_estate.property.update',
+        'destroy': 'real_estate.property.delete',
+        'bulk_delete': 'real_estate.property.delete',
+        'bulk_update_status': 'real_estate.property.update',
+        'publish': 'real_estate.property.update',
+        'unpublish': 'real_estate.property.update',
+        'toggle_featured': 'real_estate.property.update',
+        'toggle_verified': 'real_estate.property.update',
+        'set_main_image': 'real_estate.property.update',
+        'statistics': 'real_estate.property.read',
+        'seo_report': 'real_estate.property.read',
+        'bulk_generate_seo': 'real_estate.property.update',
+        'generate_seo': 'real_estate.property.update',
+        'validate_seo': 'real_estate.property.read',
+        'add_media': 'real_estate.property.update',
+    }
+    permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':

@@ -25,28 +25,30 @@ from src.user.access_control import (
     SimpleAdminPermission,
     require_admin_roles,
     SuperAdminOnly,
-    user_permission,  # ✅ استفاده از instance
-    PermissionValidator
+    user_permission,
+    PermissionRequiredMixin
 )
 from src.core.pagination.pagination import StandardLimitPagination
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class UserManagementView(AdminAuthMixin, APIView):
+class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = StandardLimitPagination
+    
+    permission_map = {
+        'get': 'users.read',
+        'post': 'users.create',
+        'put': 'users.update',
+        'delete': 'users.delete',
+    }
+    permission_denied_message = AUTH_ERRORS["auth_not_authorized"]
 
     def get_permissions(self):
         return [user_permission()]  # ✅ instantiate می‌کند
 
     def get(self, request, user_id=None):
-        if not PermissionValidator.has_permission(request.user, 'users.read'):
-            return APIResponse.error(
-                message=AUTH_ERRORS["auth_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             if user_id:
                 try:
@@ -132,12 +134,6 @@ class UserManagementView(AdminAuthMixin, APIView):
             return self.create_user_post(request)
 
     def create_user_post(self, request):
-        if not PermissionValidator.has_permission(request.user, 'users.create'):
-            return APIResponse.error(
-                message=AUTH_ERRORS["auth_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = AdminCreateRegularUserSerializer(data=request.data, context={'admin_user': request.user})
         
         if not serializer.is_valid():
@@ -163,12 +159,6 @@ class UserManagementView(AdminAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def bulk_delete_post(self, request):
-        if not PermissionValidator.has_permission(request.user, 'users.delete'):
-            return APIResponse.error(
-                message=AUTH_ERRORS["auth_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = BulkDeleteSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
@@ -189,12 +179,6 @@ class UserManagementView(AdminAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def put(self, request, user_id):
-        if not PermissionValidator.has_permission(request.user, 'users.update'):
-            return APIResponse.error(
-                message=AUTH_ERRORS["auth_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             user = UserManagementService.get_user_detail(user_id)
             if user.is_staff:
@@ -237,12 +221,6 @@ class UserManagementView(AdminAuthMixin, APIView):
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
 
     def delete(self, request, user_id):
-        if not PermissionValidator.has_permission(request.user, 'users.delete'):
-            return APIResponse.error(
-                message=AUTH_ERRORS["auth_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             user = UserManagementService.get_user_detail(user_id)
             if user.is_staff:

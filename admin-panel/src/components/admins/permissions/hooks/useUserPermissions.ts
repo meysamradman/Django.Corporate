@@ -44,14 +44,17 @@ const normalizeModuleAction = (value?: string): ModuleAction => {
 
 const MODULE_NAMES = {
   BLOG: 'blog',
-  BLOG_CATEGORIES: 'blog_categories',
-  BLOG_TAGS: 'blog_tags',
+  BLOG_CATEGORY: 'blog.category',
+  BLOG_TAG: 'blog.tag',
   PORTFOLIO: 'portfolio',
-  PORTFOLIO_CATEGORIES: 'portfolio_categories',
-  PORTFOLIO_TAGS: 'portfolio_tags',
-  PORTFOLIO_OPTIONS: 'portfolio_options',
-  PORTFOLIO_OPTION_VALUES: 'portfolio_option_values',
+  PORTFOLIO_CATEGORY: 'portfolio.category',
+  PORTFOLIO_TAG: 'portfolio.tag',
+  PORTFOLIO_OPTION: 'portfolio.option',
   MEDIA: 'media',
+  MEDIA_IMAGE: 'media.image',
+  MEDIA_VIDEO: 'media.video',
+  MEDIA_AUDIO: 'media.audio',
+  MEDIA_DOCUMENT: 'media.document',
   FORMS: 'forms',
   PAGES: 'pages',
   SETTINGS: 'settings',
@@ -62,6 +65,16 @@ const MODULE_NAMES = {
   AI: 'ai',
   ANALYTICS: 'analytics',
   USERS: 'users',
+  ADMIN: 'admin',
+  REAL_ESTATE: 'real_estate',
+  REAL_ESTATE_PROPERTY: 'real_estate.property',
+  REAL_ESTATE_AGENT: 'real_estate.agent',
+  REAL_ESTATE_AGENCY: 'real_estate.agency',
+  REAL_ESTATE_TYPE: 'real_estate.type',
+  REAL_ESTATE_STATE: 'real_estate.state',
+  REAL_ESTATE_LABEL: 'real_estate.label',
+  REAL_ESTATE_FEATURE: 'real_estate.feature',
+  REAL_ESTATE_TAG: 'real_estate.tag',
 } as const;
 
 const ROLE_ACCESS_OVERRIDES: Record<
@@ -72,19 +85,18 @@ const ROLE_ACCESS_OVERRIDES: Record<
   }
 > = {
   blog_manager: {
-    full: [MODULE_NAMES.BLOG, MODULE_NAMES.BLOG_CATEGORIES, MODULE_NAMES.BLOG_TAGS],
+    full: [MODULE_NAMES.BLOG, MODULE_NAMES.BLOG_CATEGORY, MODULE_NAMES.BLOG_TAG],
   },
   portfolio_manager: {
     full: [
       MODULE_NAMES.PORTFOLIO,
-      MODULE_NAMES.PORTFOLIO_CATEGORIES,
-      MODULE_NAMES.PORTFOLIO_TAGS,
-      MODULE_NAMES.PORTFOLIO_OPTIONS,
-      MODULE_NAMES.PORTFOLIO_OPTION_VALUES,
+      MODULE_NAMES.PORTFOLIO_CATEGORY,
+      MODULE_NAMES.PORTFOLIO_TAG,
+      MODULE_NAMES.PORTFOLIO_OPTION,
     ],
   },
   media_manager: {
-    full: [MODULE_NAMES.MEDIA],
+    full: [MODULE_NAMES.MEDIA, MODULE_NAMES.MEDIA_IMAGE, MODULE_NAMES.MEDIA_VIDEO, MODULE_NAMES.MEDIA_AUDIO, MODULE_NAMES.MEDIA_DOCUMENT],
   },
   forms_manager: {
     full: [MODULE_NAMES.FORMS],
@@ -114,7 +126,20 @@ const ROLE_ACCESS_OVERRIDES: Record<
     full: [MODULE_NAMES.ANALYTICS],
   },
   user_manager: {
-    full: [MODULE_NAMES.USERS],
+    full: [MODULE_NAMES.USERS, MODULE_NAMES.ADMIN],
+  },
+  real_estate_manager: {
+    full: [
+      MODULE_NAMES.REAL_ESTATE,
+      MODULE_NAMES.REAL_ESTATE_PROPERTY,
+      MODULE_NAMES.REAL_ESTATE_AGENT,
+      MODULE_NAMES.REAL_ESTATE_AGENCY,
+      MODULE_NAMES.REAL_ESTATE_TYPE,
+      MODULE_NAMES.REAL_ESTATE_STATE,
+      MODULE_NAMES.REAL_ESTATE_LABEL,
+      MODULE_NAMES.REAL_ESTATE_FEATURE,
+      MODULE_NAMES.REAL_ESTATE_TAG,
+    ],
   },
 };
 

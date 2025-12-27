@@ -16,13 +16,12 @@ from src.portfolio.serializers.admin.tag_serializer import (
 from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import portfolio_permission, SimpleAdminPermission
+from src.user.access_control import portfolio_permission, SimpleAdminPermission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
-from src.user.access_control import PermissionValidator
 
 
-class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
+class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PortfolioTagAdminFilter
@@ -30,6 +29,17 @@ class PortfolioTagAdminViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
+    
+    permission_map = {
+        'list': 'portfolio.tag.read',
+        'retrieve': 'portfolio.tag.read',
+        'create': 'portfolio.tag.create',
+        'update': 'portfolio.tag.update',
+        'partial_update': 'portfolio.tag.update',
+        'destroy': 'portfolio.tag.delete',
+        'popular': 'portfolio.tag.read',
+    }
+    permission_denied_message = TAG_ERRORS["tag_not_authorized"]
     
     def get_queryset(self):
         if self.action == 'list':

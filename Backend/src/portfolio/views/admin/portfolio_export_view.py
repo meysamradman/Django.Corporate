@@ -11,14 +11,19 @@ from src.portfolio.services.admin.excel_export_service import PortfolioExcelExpo
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses.response import APIResponse
-from src.user.access_control import portfolio_permission
+from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 
-class PortfolioExportView(APIView):
+class PortfolioExportView(PermissionRequiredMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [portfolio_permission]
+    
+    permission_map = {
+        'get': 'portfolio.read',
+    }
+    permission_denied_message = PORTFOLIO_ERRORS["portfolio_not_authorized"]
     format_suffix_kwarg = None
     
     def options(self, request, *args, **kwargs):
