@@ -20,7 +20,7 @@ class RealEstateAgency(BaseModel, SEOMixin):
         db_index=True,
         allow_unicode=True,
         verbose_name="URL Slug",
-        help_text="URL-friendly identifier (auto-generated from name)"
+        help_text="URL-friendly identifier for the agency"
     )
     license_number = models.CharField(
         max_length=100,
@@ -83,23 +83,14 @@ class RealEstateAgency(BaseModel, SEOMixin):
         help_text="Full address of the agency"
     )
     
-    logo = models.ForeignKey(
+    profile_picture = models.ForeignKey(
         'media.ImageMedia',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='real_estate_agency_logos',
-        verbose_name="Logo",
-        help_text="Agency logo image"
-    )
-    cover_image = models.ForeignKey(
-        'media.ImageMedia',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='real_estate_agency_covers',
-        verbose_name="Cover Image",
-        help_text="Agency cover image"
+        related_name='real_estate_agency_profiles',
+        verbose_name="Profile Picture",
+        help_text="Agency profile picture"
     )
     
     is_verified = models.BooleanField(
@@ -163,17 +154,7 @@ class RealEstateAgency(BaseModel, SEOMixin):
         return f"/agency/{self.slug}/"
     
     def save(self, *args, **kwargs):
-        # Auto-generate slug if empty
-        if not self.slug and self.name:
-            from django.utils.text import slugify
-            base_slug = slugify(self.name, allow_unicode=True)
-            slug = base_slug
-            counter = 1
-            while RealEstateAgency.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            self.slug = slug
-        
+        # Auto-populate SEO fields
         if not self.meta_title and self.name:
             self.meta_title = self.name[:70]
         

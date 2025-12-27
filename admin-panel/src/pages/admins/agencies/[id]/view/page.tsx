@@ -1,44 +1,34 @@
-import { lazy, Suspense } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { useAuth } from "@/core/auth/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
+import { FileText, Image, Search, Edit2 } from "lucide-react";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { realEstateApi } from "@/api/real-estate/properties";
+import { AgencySidebar } from "@/components/real-estate/agencies/view/AgencySidebar";
+import { OverviewTab } from "@/components/real-estate/agencies/view/OverviewTab";
+import { MediaInfoTab } from "@/components/real-estate/agencies/view/MediaInfoTab";
+import { SEOInfoTab } from "@/components/real-estate/agencies/view/SEOInfoTab";
 
-const ViewSkeleton = () => (
-  <div className="space-y-6">
-    <div className="rounded-lg border p-6">
-      <Skeleton className="h-32 w-full mb-4" />
-      <Skeleton className="h-8 w-1/3 mb-2" />
-      <Skeleton className="h-4 w-2/3" />
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="rounded-lg border p-6">
-        <Skeleton className="h-6 w-1/4 mb-4" />
-        <Skeleton className="h-4 w-full mb-2" />
-        <Skeleton className="h-4 w-3/4" />
-      </div>
-      <div className="rounded-lg border p-6">
-        <Skeleton className="h-6 w-1/4 mb-4" />
-        <Skeleton className="h-4 w-full mb-2" />
-        <Skeleton className="h-4 w-3/4" />
-      </div>
-    </div>
-  </div>
-);
-
-const AgencyViewContent = lazy(() => import("@/components/real-estate/agencies/view/AgencyViewContent"));
-
-export default function AdminsAgenciesViewPage() {
+export default function AgencyViewPage() {
   const params = useParams();
-  const agencyId = params?.id as string;
-  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const agencyId = params?.id as string;
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const { data: agencyData, isLoading, error } = useQuery({
+    queryKey: ["agency", agencyId],
+    queryFn: () => realEstateApi.getAgencyById(Number(agencyId)),
+    staleTime: 0,
+    enabled: !!agencyId,
+  });
 
   if (!agencyId) {
     return (
       <div className="space-y-6">
-        <PageHeader title="مشاهده آژانس" />
+        <PageHeader title="نمایش آژانس" />
         <div className="text-center py-8">
           <p className="text-destructive">شناسه آژانس یافت نشد</p>
         </div>
@@ -46,24 +36,45 @@ export default function AdminsAgenciesViewPage() {
     );
   }
 
-  const canViewAgencies = Boolean(user?.is_superuser || user?.is_admin_full);
-
-  if (isLoading && !user) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="مشاهده آژانس" />
-        <ViewSkeleton />
+        <PageHeader title="اطلاعات آژانس">
+          <>
+            <Button disabled>
+              <Edit2 />
+              ویرایش آژانس
+            </Button>
+          </>
+        </PageHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+          <div className="lg:col-span-2">
+            <Skeleton className="h-96 w-full rounded-xl" />
+          </div>
+          <div className="lg:col-span-4 space-y-6">
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+            <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!canViewAgencies) {
+  if (error || !agencyData) {
     return (
       <div className="space-y-6">
-        <PageHeader title="مشاهده آژانس" />
-        <div className="rounded-lg border p-6 text-center space-y-4">
-          <p className="text-destructive">شما دسترسی مشاهده این صفحه را ندارید.</p>
-          <Button onClick={() => navigate("/admins/agencies")}>بازگشت به لیست</Button>
+        <PageHeader title="نمایش آژانس" />
+        <div className="rounded-lg border p-6">
+          <div className="text-center py-8">
+            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات آژانس</p>
+            <p className="text-font-s">
+              لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -71,17 +82,45 @@ export default function AdminsAgenciesViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="مشاهده آژانس">
-        <Button onClick={() => navigate(`/admins/agencies/${agencyId}/edit`)}>
-          ویرایش
-        </Button>
+      <PageHeader title="اطلاعات آژانس">
+        <>
+          <Button
+            onClick={() => navigate(`/admins/agencies/${agencyId}/edit`)}
+          >
+            <Edit2 />
+            ویرایش آژانس
+          </Button>
+        </>
       </PageHeader>
 
-      <Suspense fallback={<ViewSkeleton />}>
-        <AgencyViewContent agencyId={agencyId} />
-      </Suspense>
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+        <div className="lg:col-span-2">
+          <AgencySidebar agency={agencyData} />
+        </div>
+
+        <div className="lg:col-span-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList>
+              <TabsTrigger value="overview">
+                <FileText className="h-4 w-4" />
+                مرور کلی
+              </TabsTrigger>
+              <TabsTrigger value="media">
+                <Image className="h-4 w-4" />
+                مدیا
+              </TabsTrigger>
+              <TabsTrigger value="seo">
+                <Search className="h-4 w-4" />
+                سئو
+              </TabsTrigger>
+            </TabsList>
+
+            <OverviewTab agency={agencyData} />
+            <MediaInfoTab agency={agencyData} />
+            <SEOInfoTab agency={agencyData} />
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
-
-

@@ -11,6 +11,14 @@ class PropertyType(BaseModel):
         verbose_name="Title",
         help_text="Property type title (e.g., Apartment, Villa)"
     )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the property type"
+    )
     display_order = models.IntegerField(
         default=0,
         db_index=True,
@@ -28,6 +36,7 @@ class PropertyType(BaseModel):
         indexes = [
             models.Index(fields=['is_active', 'display_order']),
             models.Index(fields=['title']),
+            models.Index(fields=['slug']),
         ]
         constraints = [
             models.CheckConstraint(
@@ -38,3 +47,6 @@ class PropertyType(BaseModel):
     
     def __str__(self):
         return self.title
+    
+    def get_public_url(self):
+        return f"/properties/type/{self.slug}/"

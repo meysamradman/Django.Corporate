@@ -11,6 +11,15 @@ class PropertyLabel(BaseModel):
         verbose_name="Title",
         help_text="Label title (e.g., Featured, Hot Deal)"
     )
+    slug = models.SlugField(
+        max_length=100,
+        db_index=True,
+        allow_unicode=True,
+        blank=True,
+        default='',
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the property label"
+    )
     
     objects = PropertyLabelQuerySet.as_manager()
     
@@ -21,7 +30,11 @@ class PropertyLabel(BaseModel):
         ordering = ['title']
         indexes = [
             models.Index(fields=['is_active', 'title']),
+            models.Index(fields=['slug']),
         ]
     
     def __str__(self):
         return self.title
+    
+    def get_public_url(self):
+        return f"/properties/label/{self.slug}/"

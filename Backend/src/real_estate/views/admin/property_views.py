@@ -9,6 +9,7 @@ from django.conf import settings
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, RealEstatePermissionMixin
+from src.user.access_control.definitions import PermissionValidator
 
 from src.real_estate.models.property import Property
 from src.real_estate.serializers.admin import (

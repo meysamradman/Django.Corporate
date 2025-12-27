@@ -9,7 +9,7 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
-    logo_url = serializers.SerializerMethodField()
+    profile_picture_url = serializers.SerializerMethodField()
     
     class Meta:
         model = RealEstateAgency
@@ -19,14 +19,14 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
             'province_name', 'city_name',
             'property_count', 'agent_count',
             'is_verified', 'rating', 'total_reviews',
-            'logo_url', 'is_active',
+            'profile_picture_url', 'is_active',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
-    def get_logo_url(self, obj):
-        if obj.logo and obj.logo.file:
-            return obj.logo.file.url
+    def get_profile_picture_url(self, obj):
+        if obj.profile_picture and obj.profile_picture.file:
+            return obj.profile_picture.file.url
         return None
 
 
@@ -35,8 +35,7 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
-    logo = MediaAdminSerializer(read_only=True)
-    cover_image = MediaAdminSerializer(read_only=True)
+    profile_picture = MediaAdminSerializer(read_only=True)
     
     class Meta:
         model = RealEstateAgency
@@ -44,7 +43,7 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
             'id', 'public_id', 'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
             'province', 'province_name', 'city', 'city_name', 'address',
-            'logo', 'cover_image',
+            'profile_picture',
             'property_count', 'agent_count',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',
@@ -62,12 +61,20 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
             'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
             'province', 'city', 'address',
-            'logo', 'cover_image',
+            'profile_picture',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+    
+    def validate_slug(self, value):
+        """Validate that slug is unique"""
+        if not value:
+            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+        if RealEstateAgency.objects.filter(slug=value).exists():
+            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+        return value
     
     def validate_license_number(self, value):
         if RealEstateAgency.objects.filter(license_number=value).exists():
@@ -82,12 +89,20 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
             'name', 'slug', 'license_number', 'license_expire_date',
             'phone', 'email', 'website',
             'province', 'city', 'address',
-            'logo', 'cover_image',
+            'profile_picture',
             'is_verified', 'rating', 'total_reviews',
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+    
+    def validate_slug(self, value):
+        """Validate that slug is unique (excluding current instance)"""
+        if not value:
+            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+        if RealEstateAgency.objects.exclude(id=self.instance.id).filter(slug=value).exists():
+            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+        return value
     
     def validate_license_number(self, value):
         if RealEstateAgency.objects.exclude(id=self.instance.id).filter(license_number=value).exists():

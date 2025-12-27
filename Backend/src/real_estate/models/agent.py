@@ -48,16 +48,25 @@ class PropertyAgent(BaseModel, SEOMixin):
         unique=True,
         db_index=True,
         allow_unicode=True,
-        blank=True,
-        null=True,
         verbose_name="URL Slug",
-        help_text="URL-friendly identifier"
+        help_text="URL-friendly identifier for the agent"
     )
     specialization = models.CharField(
         max_length=200,
         blank=True,
         verbose_name="Specialization",
         help_text="Specialization (e.g., Residential, Commercial)"
+    )
+    
+    # Media
+    profile_picture = models.ForeignKey(
+        'media.ImageMedia',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='real_estate_agent_profiles',
+        verbose_name="Profile Picture",
+        help_text="Agent profile picture"
     )
     
     is_verified = models.BooleanField(
@@ -200,21 +209,6 @@ class PropertyAgent(BaseModel, SEOMixin):
     def save(self, *args, **kwargs):
         # Validate user is admin before saving
         self.full_clean()
-        
-        # Auto-generate slug if not provided
-        if not self.slug:
-            from django.utils.text import slugify
-            # Use first_name and last_name from AdminProfile
-            first_name = self.first_name
-            last_name = self.last_name
-            if first_name and last_name:
-                base_slug = slugify(f"{first_name} {last_name}")
-                slug = base_slug
-                counter = 1
-                while PropertyAgent.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                    slug = f"{base_slug}-{counter}"
-                    counter += 1
-                self.slug = slug
         
         # Auto-populate SEO fields
         if not self.meta_title and self.full_name:

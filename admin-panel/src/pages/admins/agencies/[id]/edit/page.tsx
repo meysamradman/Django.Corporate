@@ -1,23 +1,23 @@
 import { lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/components/elements/Button";
+import { List } from "lucide-react";
 
-const TabContentSkeleton = () => (
-    <div className="mt-6 space-y-6">
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
+const EditFormSkeleton = () => (
+  <div className="space-y-6">
+    <div className="rounded-lg border p-6">
+      <Skeleton className="h-32 w-full mb-4" />
+      <Skeleton className="h-8 w-1/3 mb-2" />
+      <Skeleton className="h-4 w-2/3" />
     </div>
+    <div className="space-y-4 rounded-lg border p-6">
+      <Skeleton className="h-8 w-1/4" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+  </div>
 );
 
 const EditAgencyForm = lazy(() => import("@/components/real-estate/agencies/edit/EditForm").then((mod) => ({ default: mod.EditAgencyForm })));
@@ -31,7 +31,9 @@ export default function AdminsAgenciesEditPage() {
   if (!agencyId) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش آژانس" />
+        <div>
+          <h1 className="page-title">ویرایش آژانس</h1>
+        </div>
         <div className="text-center py-8">
           <p className="text-destructive">شناسه آژانس یافت نشد</p>
         </div>
@@ -43,9 +45,19 @@ export default function AdminsAgenciesEditPage() {
 
   if (isLoading && !user) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش آژانس" />
-        <TabContentSkeleton />
+      <div className="space-y-6 pb-28 relative">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="page-title">ویرایش آژانس</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" disabled>
+              <List className="h-4 w-4" />
+              نمایش لیست
+            </Button>
+          </div>
+        </div>
+        <EditFormSkeleton />
       </div>
     );
   }
@@ -53,7 +65,9 @@ export default function AdminsAgenciesEditPage() {
   if (!canManageAgencies) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش آژانس" />
+        <div>
+          <h1 className="page-title">ویرایش آژانس</h1>
+        </div>
         <div className="rounded-lg border p-6 text-center space-y-4">
           <p className="text-destructive">شما مجوز ویرایش آژانس را ندارید.</p>
           <Button onClick={() => navigate("/admins/agencies")}>بازگشت به لیست</Button>
@@ -63,10 +77,23 @@ export default function AdminsAgenciesEditPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="ویرایش آژانس" />
+    <div className="space-y-6 pb-28 relative">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="page-title">ویرایش آژانس</h1>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => navigate("/admins/agencies")}
+          >
+            <List className="h-4 w-4" />
+            نمایش لیست
+          </Button>
+        </div>
+      </div>
 
-      <Suspense fallback={<TabContentSkeleton />}>
+      <Suspense fallback={<EditFormSkeleton />}>
         <EditAgencyForm agencyId={agencyId} />
       </Suspense>
     </div>

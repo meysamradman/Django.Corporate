@@ -16,34 +16,16 @@ import type { Media } from "@/types/shared/media";
 import * as z from "zod";
 
 const TabSkeleton = () => (
-    <div className="mt-0 space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 min-w-0">
-                <CardWithIcon
-                    icon={Building2}
-                    title="اطلاعات پایه"
-                    iconBgColor="bg-blue"
-                    iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
-                >
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-16" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-20" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                    </div>
-                </CardWithIcon>
-            </div>
+    <div className="mt-6 space-y-6">
+        <div className="space-y-4 rounded-lg border p-6">
+            <Skeleton className="h-8 w-1/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+        </div>
+        <div className="space-y-4 rounded-lg border p-6">
+            <Skeleton className="h-8 w-1/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
         </div>
     </div>
 );
@@ -82,7 +64,6 @@ export default function AdminsAgenciesCreatePage() {
     const [activeTab, setActiveTab] = useState<string>("base-info");
     const [editMode] = useState(true);
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
-    const [selectedCoverImage, setSelectedCoverImage] = useState<Media | null>(null);
 
     const form = useForm<AgencyFormValues>({
         resolver: zodResolver(agencySchema) as any,
@@ -141,10 +122,6 @@ export default function AdminsAgenciesCreatePage() {
                 agencyData.logo_id = selectedLogo.id;
             }
 
-            if (selectedCoverImage?.id) {
-                agencyData.cover_image_id = selectedCoverImage.id;
-            }
-
             return await realEstateApi.createAgency(agencyData as any);
         },
         onSuccess: () => {
@@ -189,8 +166,8 @@ export default function AdminsAgenciesCreatePage() {
     };
 
     return (
-        <div className="space-y-6 pb-28 relative">
-            <PageHeader title="ایجاد آژانس جدید">
+        <div className="space-y-6">
+            <PageHeader title="ایجاد آژانس جدید" description="افزودن آژانس املاک جدید به سیستم">
                 <Button
                     variant="outline"
                     onClick={() => navigate("/admins/agencies")}
@@ -211,7 +188,7 @@ export default function AdminsAgenciesCreatePage() {
                     </TabsTrigger>
                     <TabsTrigger value="settings">
                         <Settings className="w-4 h-4" />
-                        تنظیمات
+                        تنظیمات پیشرفته
                     </TabsTrigger>
                 </TabsList>
 
@@ -229,8 +206,6 @@ export default function AdminsAgenciesCreatePage() {
                         <MediaTab
                             selectedLogo={selectedLogo}
                             setSelectedLogo={setSelectedLogo}
-                            selectedCoverImage={selectedCoverImage}
-                            setSelectedCoverImage={setSelectedCoverImage}
                             editMode={editMode}
                         />
                     </Suspense>
@@ -248,6 +223,13 @@ export default function AdminsAgenciesCreatePage() {
 
             {editMode && (
                 <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate("/admins/agencies")}
+                        disabled={createAgencyMutation.isPending}
+                    >
+                        انصراف
+                    </Button>
                     <Button
                         onClick={handleSubmit}
                         size="lg"

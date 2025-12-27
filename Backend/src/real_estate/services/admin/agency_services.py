@@ -15,8 +15,7 @@ class RealEstateAgencyAdminService:
         queryset = RealEstateAgency.objects.select_related(
             'province',
             'city',
-            'logo',
-            'cover_image'
+            'profile_picture'
         ).annotate(
             property_count=Count('properties', distinct=True),
             agent_count=Count('agents', distinct=True)
@@ -48,8 +47,7 @@ class RealEstateAgencyAdminService:
             return RealEstateAgency.objects.select_related(
                 'province',
                 'city',
-                'logo',
-                'cover_image'
+                'profile_picture'
             ).annotate(
                 property_count=Count('properties', distinct=True),
                 agent_count=Count('agents', distinct=True)

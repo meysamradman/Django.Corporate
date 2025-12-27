@@ -11,6 +11,8 @@ import { showError, showSuccess } from "@/core/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { Building, Loader2, Save, List } from "lucide-react";
 
 export default function CreatePropertyTypePage() {
@@ -19,6 +21,7 @@ export default function CreatePropertyTypePage() {
   
   const [formData, setFormData] = useState({
     title: "",
+    slug: "",
     display_order: 0,
     is_active: true,
   });
@@ -40,10 +43,26 @@ export default function CreatePropertyTypePage() {
   });
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === "title" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -51,6 +70,12 @@ export default function CreatePropertyTypePage() {
     
     if (!formData.title.trim()) {
       showError("عنوان الزامی است");
+      return;
+    }
+    
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
     
@@ -93,6 +118,22 @@ export default function CreatePropertyTypePage() {
                   required
                 />
               </FormField>
+              <FormField
+                label="نامک"
+                htmlFor="slug"
+                required
+              >
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange("slug", e.target.value)}
+                  placeholder="نامک"
+                  required
+                />
+              </FormField>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="ترتیب نمایش"
                 htmlFor="display_order"

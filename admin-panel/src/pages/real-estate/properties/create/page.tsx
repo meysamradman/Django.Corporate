@@ -10,7 +10,8 @@ import {
   Loader2, Save, List, MapPin, Home, Settings
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
-import { generateSlug } from '@/core/slug/generate';
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from '@/core/toast';
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
@@ -248,6 +249,12 @@ export default function PropertyCreatePage() {
         [field]: value,
         slug: generatedSlug
       }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -371,6 +378,13 @@ export default function PropertyCreatePage() {
 
       if (!formData.title?.trim()) {
         showError("عنوان ملک الزامی است");
+        setActiveTab("account");
+        return;
+      }
+
+      const slugValidation = validateSlug(formData.slug, true);
+      if (!slugValidation.isValid) {
+        showError(slugValidation.error || "اسلاگ معتبر نیست");
         setActiveTab("account");
         return;
       }

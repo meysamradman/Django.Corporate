@@ -52,17 +52,6 @@ class PropertyTag(BaseModel, SEOMixin):
         return f"/property-tag/{self.slug}/"
     
     def save(self, *args, **kwargs):
-        # Auto-generate slug if not provided
-        if not self.slug and self.title:
-            from django.utils.text import slugify
-            base_slug = slugify(self.title)
-            slug = base_slug
-            counter = 1
-            while PropertyTag.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            self.slug = slug
-        
         # Auto-populate SEO fields
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]

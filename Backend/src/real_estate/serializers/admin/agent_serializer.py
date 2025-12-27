@@ -36,6 +36,10 @@ class PropertyAgentAdminListSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_profile_picture_url(self, obj):
+        # اول از PropertyAgent خودش بخوان
+        if obj.profile_picture and obj.profile_picture.file:
+            return obj.profile_picture.file.url
+        # اگر نبود، از AdminProfile بخوان (برای سازگاری با قبل)
         try:
             if obj.user and hasattr(obj.user, 'admin_profile'):
                 profile = obj.user.admin_profile
@@ -77,6 +81,11 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_profile_picture(self, obj):
+        # اول از PropertyAgent خودش بخوان
+        if obj.profile_picture:
+            from src.media.serializers.media_serializer import MediaAdminSerializer
+            return MediaAdminSerializer(obj.profile_picture).data
+        # اگر نبود، از AdminProfile بخوان (برای سازگاری با قبل)
         try:
             if obj.user and hasattr(obj.user, 'admin_profile'):
                 profile = obj.user.admin_profile
@@ -96,12 +105,21 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'user_id', 'agency',
             'license_number', 'license_expire_date', 'slug',
+            'profile_picture',
             'is_verified', 'rating', 'total_sales', 'total_reviews',
             'specialization', 'bio',
             'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+    
+    def validate_slug(self, value):
+        """Validate that slug is unique"""
+        if not value:
+            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+        if PropertyAgent.objects.filter(slug=value).exists():
+            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+        return value
     
     def validate_user_id(self, value):
         """Validate that user is an admin user"""
@@ -136,12 +154,21 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'user_id', 'agency',
             'license_number', 'license_expire_date', 'slug',
+            'profile_picture',
             'is_verified', 'rating', 'total_sales', 'total_reviews',
             'specialization', 'bio',
             'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+    
+    def validate_slug(self, value):
+        """Validate that slug is unique (excluding current instance)"""
+        if not value:
+            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+        if PropertyAgent.objects.exclude(id=self.instance.id).filter(slug=value).exists():
+            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+        return value
     
     def validate_user_id(self, value):
         """Validate that user is an admin user"""

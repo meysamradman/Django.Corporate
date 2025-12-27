@@ -11,6 +11,8 @@ import { showError, showSuccess, showInfo } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { Tag, Loader2, Save, List } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -22,6 +24,7 @@ export default function EditPropertyLabelPage() {
   
   const [formData, setFormData] = useState({
     title: "",
+    slug: "",
     is_active: true,
   });
 
@@ -35,6 +38,7 @@ export default function EditPropertyLabelPage() {
     if (label) {
       setFormData({
         title: label.title || "",
+        slug: label.slug || "",
         is_active: label.is_active,
       });
     }
@@ -58,10 +62,26 @@ export default function EditPropertyLabelPage() {
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === "title" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -69,10 +89,20 @@ export default function EditPropertyLabelPage() {
     
     if (!label) return;
     
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
+      return;
+    }
+    
     const submitData: Partial<PropertyLabel> = {};
     
     if (formData.title !== label.title) {
       submitData.title = formData.title;
+    }
+    
+    if (formData.slug !== label.slug) {
+      submitData.slug = formData.slug;
     }
     
     if (formData.is_active !== label.is_active) {
@@ -154,19 +184,34 @@ export default function EditPropertyLabelPage() {
           className="hover:shadow-lg transition-all duration-300"
         >
           <div className="space-y-6">
-            <FormField
-              label="عنوان"
-              htmlFor="title"
-              required
-            >
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                placeholder="عنوان برچسب ملک"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="عنوان"
+                htmlFor="title"
                 required
-              />
-            </FormField>
+              >
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  placeholder="عنوان برچسب ملک"
+                  required
+                />
+              </FormField>
+              <FormField
+                label="نامک"
+                htmlFor="slug"
+                required
+              >
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange("slug", e.target.value)}
+                  placeholder="نامک"
+                  required
+                />
+              </FormField>
+            </div>
 
             <div className="mt-6 space-y-4">
               <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">

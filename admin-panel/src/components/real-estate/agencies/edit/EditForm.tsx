@@ -3,16 +3,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { showSuccess, showError } from '@/core/toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Building2, ImageIcon, Settings2 } from "lucide-react";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { Building2, ImageIcon, Settings2, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { msg } from '@/core/messages';
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
 import { useNavigate } from "react-router-dom";
-import { mediaService } from "@/components/media/services";
 import type { Media } from "@/types/shared/media";
+import AdminTabsFormWrapper from "@/components/elements/AdminTabsFormWrapper";
 import * as z from "zod";
 
 const TabContentSkeleton = () => (
@@ -64,12 +64,11 @@ interface EditAgencyFormProps {
 
 export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 
-    const [activeTab, setActiveTab] = useState("base-info");
+    const [activeTab, setActiveTab] = useState("account");
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const [editMode, setEditMode] = useState(false);
+    const [editMode] = useState(true);
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
-    const [selectedCoverImage, setSelectedCoverImage] = useState<Media | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     const isNumericId = !Number.isNaN(Number(agencyId));
@@ -144,10 +143,9 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         });
 
         setSelectedLogo(agencyData.logo || null);
-        setSelectedCoverImage(agencyData.cover_image || null);
     }, [agencyData, form]);
 
-    const handleSaveProfile = async () => {
+    const handleSave = async () => {
         if (isSaving) return;
 
         const isValid = await form.trigger();
@@ -179,19 +177,10 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 og_description: data.og_description || null,
             };
 
-            // Backend will auto-regenerate slug from name if name changes
-            // No need to send slug explicitly
-
             if (selectedLogo?.id) {
                 profileData.logo_id = selectedLogo.id;
             } else if (selectedLogo === null) {
                 profileData.logo_id = null;
-            }
-
-            if (selectedCoverImage?.id) {
-                profileData.cover_image_id = selectedCoverImage.id;
-            } else if (selectedCoverImage === null) {
-                profileData.cover_image_id = null;
             }
 
             if (!agencyData) {
@@ -200,14 +189,13 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             }
 
             await realEstateApi.updateAgency(agencyData.id, profileData);
-            setEditMode(false);
 
             await queryClient.invalidateQueries({ queryKey: ['agency', agencyId] });
             await queryClient.refetchQueries({ queryKey: ['agency', agencyId] });
-
             await queryClient.invalidateQueries({ queryKey: ['agencies'] });
 
             showSuccess(msg.crud('updated', { item: 'آژانس' }));
+            navigate("/admins/agencies");
         } catch (error: any) {
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
@@ -269,148 +257,60 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Profile Header */}
-            <div className="rounded-lg border p-6">
-                <div className="flex items-start gap-6">
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                        {agencyData.logo ? (
-                            <img
-                                src={mediaService.getMediaUrlFromObject(agencyData.logo)}
-                                alt={agencyData.name}
-                                className="w-full h-full object-cover"
+        <AdminTabsFormWrapper
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={
+                <>
+                    <TabsList>
+                        <TabsTrigger value="account">
+                            <Building2 className="h-4 w-4" />
+                            اطلاعات پایه
+                        </TabsTrigger>
+                        <TabsTrigger value="media">
+                            <ImageIcon className="h-4 w-4" />
+                            رسانه‌ها
+                        </TabsTrigger>
+                        <TabsTrigger value="settings">
+                            <Settings2 className="h-4 w-4" />
+                            تنظیمات پیشرفته
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="account">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <BaseInfoTab
+                                form={form as any}
+                                editMode={editMode}
+                                agencyData={agencyData}
                             />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                                <Building2 className="h-8 w-8 text-primary" />
-                            </div>
-                        )}
-                    </div>
+                        </Suspense>
+                    </TabsContent>
 
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">{agencyData.name}</h1>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    آژانس املاک • ایجاد شده {new Date(agencyData.created_at).toLocaleDateString('fa-IR')}
-                                </p>
-                                {agencyData.city_name && (
-                                    <p className="text-sm text-muted-foreground mt-1">
-                                        📍 {agencyData.city_name}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="flex gap-2">
-                                {!editMode ? (
-                                    <>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => navigate(`/admins/agencies/${agencyId}/view`)}
-                                        >
-                                            مشاهده
-                                        </Button>
-                                        <Button
-                                            onClick={() => setEditMode(true)}
-                                        >
-                                            ویرایش
-                                        </Button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setEditMode(false)}
-                                            disabled={isSaving}
-                                        >
-                                            انصراف
-                                        </Button>
-                                        <Button
-                                            onClick={handleSaveProfile}
-                                            disabled={isSaving}
-                                        >
-                                            {isSaving ? "در حال ذخیره..." : "ذخیره"}
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 mt-4">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${agencyData.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                <span className="text-sm font-medium">
-                                    {agencyData.is_active ? 'فعال' : 'غیرفعال'}
-                                </span>
-                            </div>
-
-                            {agencyData.is_verified && (
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                    <span className="text-sm font-medium">تأیید شده</span>
-                                </div>
-                            )}
-
-                            {(agencyData.rating ?? 0) > 0 && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm">⭐ {agencyData.rating}/5</span>
-                                    <span className="text-sm text-muted-foreground">
-                                        ({agencyData.total_reviews} نظر)
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="base-info">
-                        <Building2 className="w-4 h-4" />
-                        اطلاعات پایه
-                    </TabsTrigger>
-                    <TabsTrigger value="media">
-                        <ImageIcon className="w-4 h-4" />
-                        رسانه‌ها
-                    </TabsTrigger>
-                    <TabsTrigger value="settings">
-                        <Settings2 className="w-4 h-4" />
-                        تنظیمات پیشرفته
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="base-info">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <BaseInfoTab
-                            form={form as any}
-                            editMode={editMode}
-                            agencyData={agencyData}
-                        />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="media">
-                    <Suspense fallback={<TabContentSkeleton />}>
+                    <TabsContent value="media">
+                        <Suspense fallback={<TabContentSkeleton />}>
                         <MediaTab
                             selectedLogo={selectedLogo}
                             setSelectedLogo={setSelectedLogo}
-                            selectedCoverImage={selectedCoverImage}
-                            setSelectedCoverImage={setSelectedCoverImage}
                             editMode={editMode}
                         />
-                    </Suspense>
-                </TabsContent>
+                        </Suspense>
+                    </TabsContent>
 
-                <TabsContent value="settings">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <SettingsTab
-                            form={form as any}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
-            </Tabs>
-        </div>
+                    <TabsContent value="settings">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <SettingsTab
+                                form={form as any}
+                                editMode={editMode}
+                            />
+                        </Suspense>
+                    </TabsContent>
+                </>
+            }
+            saveBar={{
+                onSave: handleSave,
+                isSaving,
+            }}
+        />
     );
 }

@@ -8,32 +8,20 @@ import { showError } from '@/core/toast';
 interface MediaTabProps {
   selectedLogo: Media | null;
   setSelectedLogo: (media: Media | null) => void;
-  selectedCoverImage: Media | null;
-  setSelectedCoverImage: (media: Media | null) => void;
   editMode: boolean;
 }
 
 export default function MediaTab({
   selectedLogo,
   setSelectedLogo,
-  selectedCoverImage,
-  setSelectedCoverImage,
   editMode
 }: MediaTabProps) {
   const handleLogoSelect = (media: Media) => {
     setSelectedLogo(media);
   };
 
-  const handleCoverSelect = (media: Media) => {
-    setSelectedCoverImage(media);
-  };
-
   const handleRemoveLogo = () => {
     setSelectedLogo(null);
-  };
-
-  const handleRemoveCover = () => {
-    setSelectedCoverImage(null);
   };
 
   const MediaPreview = ({
@@ -135,26 +123,6 @@ export default function MediaTab({
             media={selectedLogo}
             onRemove={handleRemoveLogo}
             title="لوگو"
-          />
-        </div>
-      </CardWithIcon>
-
-      <CardWithIcon
-        icon={ImageIcon}
-        title="تصویر کاور"
-        iconBgColor="bg-primary/10"
-        iconColor="stroke-primary"
-        borderColor="border-b-primary"
-        className="hover:shadow-lg transition-all duration-300"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            تصویر کاور آژانس که در صفحه جزئیات نمایش داده می‌شود.
-          </p>
-          <MediaPreview
-            media={selectedCoverImage}
-            onRemove={handleRemoveCover}
-            title="کاور"
           />
         </div>
       </CardWithIcon>

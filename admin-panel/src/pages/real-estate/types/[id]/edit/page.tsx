@@ -11,6 +11,8 @@ import { showError, showSuccess, showInfo } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import { Building, Loader2, Save, List } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -22,6 +24,7 @@ export default function EditPropertyTypePage() {
   
   const [formData, setFormData] = useState({
     title: "",
+    slug: "",
     display_order: 0,
     is_active: true,
   });
@@ -36,6 +39,7 @@ export default function EditPropertyTypePage() {
     if (type) {
       setFormData({
         title: type.title || "",
+        slug: type.slug || "",
         display_order: type.display_order || 0,
         is_active: type.is_active,
       });
@@ -60,10 +64,26 @@ export default function EditPropertyTypePage() {
   });
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === "title" && typeof value === "string") {
+      const generatedSlug = generateSlug(value);
+      
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+        slug: generatedSlug
+      }));
+    } else if (field === "slug" && typeof value === "string") {
+      const formattedSlug = formatSlug(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedSlug
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -71,10 +91,20 @@ export default function EditPropertyTypePage() {
     
     if (!type) return;
     
+    const slugValidation = validateSlug(formData.slug, true);
+    if (!slugValidation.isValid) {
+      showError(slugValidation.error || "اسلاگ معتبر نیست");
+      return;
+    }
+    
     const submitData: Partial<PropertyType> = {};
     
     if (formData.title !== type.title) {
       submitData.title = formData.title;
+    }
+    
+    if (formData.slug !== type.slug) {
+      submitData.slug = formData.slug;
     }
     
     if (formData.display_order !== type.display_order) {
@@ -184,6 +214,22 @@ export default function EditPropertyTypePage() {
                   required
                 />
               </FormField>
+              <FormField
+                label="نامک"
+                htmlFor="slug"
+                required
+              >
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange("slug", e.target.value)}
+                  placeholder="نامک"
+                  required
+                />
+              </FormField>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="ترتیب نمایش"
                 htmlFor="display_order"
