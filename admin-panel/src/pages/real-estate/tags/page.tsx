@@ -180,14 +180,14 @@ export default function PropertyTagsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (tag) => navigate(`/real-estate/tags/${tag.id}/edit`),
-      permission: "property_tag.update",
+      permission: "real_estate.tag.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (tag) => handleDeleteTag(tag.id),
       isDestructive: true,
-      permission: "property_tag.delete",
+      permission: "real_estate.tag.delete",
     },
   ];
   
@@ -279,7 +279,7 @@ export default function PropertyTagsPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت تگ‌های ملک">
         <ProtectedButton 
-          permission="property_tag.create"
+          permission="real_estate.tag.create"
           size="sm"
           onClick={() => navigate('/real-estate/tags/create')}
         >
@@ -308,7 +308,7 @@ export default function PropertyTagsPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "property_tag.delete",
+            permission: "real_estate.tag.delete",
             denyMessage: "اجازه حذف تگ ملک ندارید",
           }}
           filterConfig={tagFilterConfig}

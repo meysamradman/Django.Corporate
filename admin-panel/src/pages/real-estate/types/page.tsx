@@ -178,14 +178,14 @@ export default function PropertyTypesPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (type) => navigate(`/real-estate/types/${type.id}/edit`),
-      permission: "property_type.update",
+      permission: "real_estate.type.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (type) => handleDeleteType(type.id),
       isDestructive: true,
-      permission: "property_type.delete",
+      permission: "real_estate.type.delete",
     },
   ];
   
@@ -277,7 +277,7 @@ export default function PropertyTypesPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت نوع‌های ملک">
         <ProtectedButton 
-          permission="property_type.create"
+          permission="real_estate.type.create"
           size="sm"
           onClick={() => navigate('/real-estate/types/create')}
         >
@@ -306,7 +306,7 @@ export default function PropertyTypesPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "property_type.delete",
+            permission: "real_estate.type.delete",
             denyMessage: "اجازه حذف نوع ملک ندارید",
           }}
           filterConfig={typeFilterConfig}

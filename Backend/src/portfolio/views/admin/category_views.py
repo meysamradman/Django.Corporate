@@ -16,6 +16,7 @@ from src.portfolio.services.admin.category_services import PortfolioCategoryAdmi
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
+from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 

@@ -1,15 +1,18 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
+import { Textarea } from "@/components/elements/Textarea";
 import { FormField } from "@/components/forms/FormField";
+import { Button } from "@/components/elements/Button";
 import type { UseFormReturn } from "react-hook-form";
 import type { AgencyFormValues } from "@/pages/admins/agencies/create/page";
-import { Building2, MapPin } from "lucide-react";
+import { Building2, MapPin, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import { filterNumericOnly } from "@/core/filters/numeric";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { locationApi } from "@/api/shared/location/location";
+import { mediaService } from "@/components/media/services";
 import { useState, useEffect } from "react";
 
 interface BaseInfoTabProps {
@@ -18,6 +21,9 @@ interface BaseInfoTabProps {
   agencyData?: any;
   fieldErrors?: Record<string, string>;
   handleInputChange?: (field: string, value: any) => void;
+  selectedProfilePicture?: any;
+  onProfilePictureSelect?: () => void;
+  onProfilePictureRemove?: () => void;
 }
 
 export default function BaseInfoTab({
@@ -25,7 +31,10 @@ export default function BaseInfoTab({
   editMode,
   agencyData,
   fieldErrors = {},
-  handleInputChange
+  handleInputChange,
+  selectedProfilePicture,
+  onProfilePictureSelect,
+  onProfilePictureRemove
 }: BaseInfoTabProps) {
   const { register, formState: { errors }, setValue, watch } = form;
   const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
@@ -102,8 +111,10 @@ export default function BaseInfoTab({
   };
 
   return (
-    <div className="space-y-6">
-      <CardWithIcon
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex-1 min-w-0">
+        <div className="space-y-6">
+          <CardWithIcon
         icon={Building2}
         title="اطلاعات احراز هویت"
         iconBgColor="bg-primary/10"
@@ -123,22 +134,27 @@ export default function BaseInfoTab({
                 type="text"
                 placeholder="نام آژانس املاک"
                 disabled={!editMode}
-                {...register("name")}
+                {...register("name", {
+                  onChange: (e) => handleInputChange && handleInputChange("name", e.target.value)
+                })}
               />
             </FormField>
 
             <FormField
-              label="Slug (URL)"
+              label="نامک"
               htmlFor="slug"
               error={errors.slug?.message || fieldErrors.slug}
-              description="برای نمایش در وب‌سایت. خالی بگذارید تا خودکار ساخته شود."
+              description="برای نمایش در وب‌سایت"
+              required
             >
               <Input
                 id="slug"
                 type="text"
                 placeholder="agency-name"
                 disabled={!editMode}
-                {...register("slug")}
+                {...register("slug", {
+                  onChange: (e) => handleInputChange && handleInputChange("slug", e.target.value)
+                })}
               />
             </FormField>
 
@@ -330,6 +346,141 @@ export default function BaseInfoTab({
           </FormField>
         </div>
       </CardWithIcon>
+
+      <CardWithIcon
+        icon={Building2}
+        title="توضیحات"
+        iconBgColor="bg-blue/10"
+        iconColor="stroke-blue"
+        borderColor="border-b-blue"
+        className="hover:shadow-lg transition-all duration-300"
+      >
+          <FormField
+          label="توضیحات آژانس"
+          htmlFor="description"
+          error={errors.description?.message || fieldErrors.description}
+          description="توضیحات کامل درباره آژانس و خدمات آن"
+        >
+          <Textarea
+            id="description"
+            placeholder="توضیحات کامل درباره آژانس..."
+            disabled={!editMode}
+            rows={6}
+            {...register("description")}
+          />
+        </FormField>
+      </CardWithIcon>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+          <CardWithIcon
+            icon={ImageIcon}
+            title="عکس پروفایل"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
+            className="lg:sticky lg:top-20 hover:shadow-lg transition-all duration-300"
+          >
+            {selectedProfilePicture ? (
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
+                <img
+                  src={mediaService.getMediaUrlFromObject(selectedProfilePicture)}
+                  alt={selectedProfilePicture.alt_text || "عکس پروفایل"}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onProfilePictureSelect}
+                    className="mx-1"
+                    type="button"
+                  >
+                    تغییر تصویر
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={onProfilePictureRemove}
+                    className="mx-1"
+                    type="button"
+                  >
+                    <X className="w-4 h-4" />
+                    حذف
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={onProfilePictureSelect}
+                className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+              >
+                <UploadCloud className="w-12 h-12 text-font-s" />
+                <p className="mt-4 text-lg font-semibold">انتخاب عکس پروفایل</p>
+                <p className="mt-1 text-sm text-font-s text-center">
+                  برای انتخاب از کتابخانه کلیک کنید
+                </p>
+              </div>
+            )}
+          </CardWithIcon>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+        <CardWithIcon
+          icon={ImageIcon}
+          title="عکس پروفایل"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+          className="lg:sticky lg:top-20 hover:shadow-lg transition-all duration-300"
+        >
+          {selectedProfilePicture ? (
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
+              <img
+                src={mediaService.getMediaUrlFromObject(selectedProfilePicture)}
+                alt={selectedProfilePicture.alt_text || "عکس پروفایل"}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onProfilePictureSelect}
+                  className="mx-1"
+                  type="button"
+                >
+                  تغییر تصویر
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={onProfilePictureRemove}
+                  className="mx-1"
+                  type="button"
+                >
+                  <X className="w-4 h-4" />
+                  حذف
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={onProfilePictureSelect}
+              className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+            >
+              <UploadCloud className="w-12 h-12 text-font-s" />
+              <p className="mt-4 text-lg font-semibold">انتخاب عکس پروفایل</p>
+              <p className="mt-1 text-sm text-font-s text-center">
+                برای انتخاب از کتابخانه کلیک کنید
+              </p>
+            </div>
+          )}
+        </CardWithIcon>
+      </div>
     </div>
   );
 }

@@ -98,7 +98,7 @@ export default function AdvisorsListPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت مشاورین املاک">
         <ProtectedButton 
-          permission="property_agent.create"
+          permission="real_estate.agent.create"
           size="sm"
           onClick={() => navigate("/real-estate/agents/create")}
         >

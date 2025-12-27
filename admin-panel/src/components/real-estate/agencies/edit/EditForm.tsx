@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { showSuccess, showError } from '@/core/toast';
-import { TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Building2, ImageIcon, Settings2, Loader2, Save } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { Building2, Search, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { msg } from '@/core/messages';
@@ -12,7 +12,9 @@ import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
 import { useNavigate } from "react-router-dom";
 import type { Media } from "@/types/shared/media";
-import AdminTabsFormWrapper from "@/components/elements/AdminTabsFormWrapper";
+import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { validateSlug } from '@/core/slug/validate';
 import * as z from "zod";
 
 const TabContentSkeleton = () => (
@@ -31,8 +33,7 @@ const TabContentSkeleton = () => (
 );
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/real-estate/agencies/edit/MediaTab"));
-const SettingsTab = lazy(() => import("@/components/real-estate/agencies/edit/SettingsTab"));
+const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/SEOTab"));
 
 const agencySchema = z.object({
     name: z.string().min(1, "نام آژانس لازم است"),
@@ -54,6 +55,8 @@ const agencySchema = z.object({
     meta_description: z.string().optional().nullable(),
     og_title: z.string().optional().nullable(),
     og_description: z.string().optional().nullable(),
+    canonical_url: z.string().optional().nullable(),
+    robots_meta: z.string().optional().nullable(),
 });
 
 export type AgencyFormValues = z.infer<typeof agencySchema>;
@@ -68,8 +71,9 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const [editMode] = useState(true);
-    const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
+    const [selectedProfilePicture, setSelectedProfilePicture] = useState<Media | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
     const isNumericId = !Number.isNaN(Number(agencyId));
     const queryKey = ['agency', agencyId];
@@ -113,6 +117,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             meta_description: "",
             og_title: "",
             og_description: "",
+            canonical_url: "",
+            robots_meta: "",
         },
         mode: "onSubmit",
     });
@@ -140,10 +146,34 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             meta_description: agencyData.meta_description || "",
             og_title: agencyData.og_title || "",
             og_description: agencyData.og_description || "",
+            canonical_url: agencyData.canonical_url || "",
+            robots_meta: agencyData.robots_meta || "",
         });
 
-        setSelectedLogo(agencyData.logo || null);
+        setSelectedProfilePicture((agencyData as any).profile_picture || null);
     }, [agencyData, form]);
+
+    const handleInputChange = (field: string, value: string | boolean | number | null) => {
+        if (field === "name" && typeof value === "string") {
+            const generatedSlug = generateSlug(value);
+            form.setValue("slug", generatedSlug);
+        } else if (field === "slug" && typeof value === "string") {
+            const formattedSlug = formatSlug(value);
+            form.setValue("slug", formattedSlug);
+        } else {
+            form.setValue(field as any, value);
+        }
+    };
+
+    const handleImageSelect = (media: Media | Media[] | null) => {
+        const selected = Array.isArray(media) ? media[0] || null : media;
+        setSelectedProfilePicture(selected);
+        setIsMediaModalOpen(false);
+    };
+
+    const handleRemoveImage = () => {
+        setSelectedProfilePicture(null);
+    };
 
     const handleSave = async () => {
         if (isSaving) return;
@@ -175,12 +205,21 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 meta_description: data.meta_description || null,
                 og_title: data.og_title || null,
                 og_description: data.og_description || null,
+                canonical_url: data.canonical_url || null,
+                robots_meta: data.robots_meta || null,
             };
 
-            if (selectedLogo?.id) {
-                profileData.logo_id = selectedLogo.id;
-            } else if (selectedLogo === null) {
-                profileData.logo_id = null;
+            if (selectedProfilePicture?.id) {
+                profileData.profile_picture_id = selectedProfilePicture.id;
+            } else if (selectedProfilePicture === null) {
+                profileData.profile_picture_id = null;
+            }
+
+            const slugValidation = validateSlug(data.slug || "", true);
+            if (!slugValidation.isValid) {
+                showError(slugValidation.error || "نامک معتبر نیست");
+                setIsSaving(false);
+                return;
             }
 
             if (!agencyData) {
@@ -257,60 +296,73 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     }
 
     return (
-        <AdminTabsFormWrapper
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={
-                <>
-                    <TabsList>
-                        <TabsTrigger value="account">
-                            <Building2 className="h-4 w-4" />
-                            اطلاعات پایه
-                        </TabsTrigger>
-                        <TabsTrigger value="media">
-                            <ImageIcon className="h-4 w-4" />
-                            رسانه‌ها
-                        </TabsTrigger>
-                        <TabsTrigger value="settings">
-                            <Settings2 className="h-4 w-4" />
-                            تنظیمات پیشرفته
-                        </TabsTrigger>
-                    </TabsList>
+        <>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList>
+                    <TabsTrigger value="account">
+                        <Building2 className="h-4 w-4" />
+                        اطلاعات پایه
+                    </TabsTrigger>
+                    <TabsTrigger value="seo">
+                        <Search className="h-4 w-4" />
+                        سئو
+                    </TabsTrigger>
+                </TabsList>
 
-                    <TabsContent value="account">
-                        <Suspense fallback={<TabContentSkeleton />}>
-                            <BaseInfoTab
-                                form={form as any}
-                                editMode={editMode}
-                                agencyData={agencyData}
-                            />
-                        </Suspense>
-                    </TabsContent>
+                <TabsContent value="account" className="mt-0">
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <BaseInfoTab
+                            form={form as any}
+                            editMode={editMode}
+                            agencyData={agencyData}
+                            handleInputChange={handleInputChange}
+                            selectedProfilePicture={selectedProfilePicture}
+                            onProfilePictureSelect={() => setIsMediaModalOpen(true)}
+                            onProfilePictureRemove={handleRemoveImage}
+                        />
+                    </Suspense>
+                </TabsContent>
 
-                    <TabsContent value="media">
-                        <Suspense fallback={<TabContentSkeleton />}>
-                        <MediaTab
-                            selectedLogo={selectedLogo}
-                            setSelectedLogo={setSelectedLogo}
+                <TabsContent value="seo" className="mt-0">
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <SEOTab
+                            form={form as any}
                             editMode={editMode}
                         />
-                        </Suspense>
-                    </TabsContent>
+                    </Suspense>
+                </TabsContent>
+            </Tabs>
 
-                    <TabsContent value="settings">
-                        <Suspense fallback={<TabContentSkeleton />}>
-                            <SettingsTab
-                                form={form as any}
-                                editMode={editMode}
-                            />
-                        </Suspense>
-                    </TabsContent>
-                </>
-            }
-            saveBar={{
-                onSave: handleSave,
-                isSaving,
-            }}
-        />
+            <MediaLibraryModal
+                isOpen={isMediaModalOpen}
+                onClose={() => setIsMediaModalOpen(false)}
+                onSelect={handleImageSelect}
+                selectMultiple={false}
+                initialFileType="image"
+                showTabs={true}
+                context="media_library"
+            />
+
+            <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+                <Button
+                    type="button"
+                    onClick={handleSave}
+                    size="lg"
+                    disabled={isSaving}
+                >
+                    {isSaving ? (
+                        <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            در حال ذخیره...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="h-5 w-5" />
+                            ذخیره تغییرات
+                        </>
+                    )}
+                </Button>
+            </div>
+        </>
     );
 }

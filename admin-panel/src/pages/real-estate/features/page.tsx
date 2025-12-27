@@ -178,14 +178,14 @@ export default function PropertyFeaturesPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (feature) => navigate(`/real-estate/features/${feature.id}/edit`),
-      permission: "property_feature.update",
+      permission: "real_estate.feature.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (feature) => handleDeleteFeature(feature.id),
       isDestructive: true,
-      permission: "property_feature.delete",
+      permission: "real_estate.feature.delete",
     },
   ];
   
@@ -277,7 +277,7 @@ export default function PropertyFeaturesPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت ویژگی‌های ملک">
         <ProtectedButton 
-          permission="property_feature.create"
+          permission="real_estate.feature.create"
           size="sm"
           onClick={() => navigate('/real-estate/features/create')}
         >
@@ -306,7 +306,7 @@ export default function PropertyFeaturesPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "property_feature.delete",
+            permission: "real_estate.feature.delete",
             denyMessage: "اجازه حذف ویژگی ملک ندارید",
           }}
           filterConfig={featureFilterConfig}

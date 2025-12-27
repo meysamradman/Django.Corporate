@@ -4,12 +4,11 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
-import { FileText, Image, Search, Edit2 } from "lucide-react";
+import { FileText, Search, Edit2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { AgencySidebar } from "@/components/real-estate/agencies/view/AgencySidebar";
 import { OverviewTab } from "@/components/real-estate/agencies/view/OverviewTab";
-import { MediaInfoTab } from "@/components/real-estate/agencies/view/MediaInfoTab";
 import { SEOInfoTab } from "@/components/real-estate/agencies/view/SEOInfoTab";
 
 export default function AgencyViewPage() {
@@ -105,10 +104,6 @@ export default function AgencyViewPage() {
                 <FileText className="h-4 w-4" />
                 مرور کلی
               </TabsTrigger>
-              <TabsTrigger value="media">
-                <Image className="h-4 w-4" />
-                مدیا
-              </TabsTrigger>
               <TabsTrigger value="seo">
                 <Search className="h-4 w-4" />
                 سئو
@@ -116,7 +111,6 @@ export default function AgencyViewPage() {
             </TabsList>
 
             <OverviewTab agency={agencyData} />
-            <MediaInfoTab agency={agencyData} />
             <SEOInfoTab agency={agencyData} />
           </Tabs>
         </div>

@@ -178,14 +178,14 @@ export default function PropertyLabelsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (label) => navigate(`/real-estate/labels/${label.id}/edit`),
-      permission: "property_label.update",
+      permission: "real_estate.label.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (label) => handleDeleteLabel(label.id),
       isDestructive: true,
-      permission: "property_label.delete",
+      permission: "real_estate.label.delete",
     },
   ];
   
@@ -277,7 +277,7 @@ export default function PropertyLabelsPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت برچسب‌های ملک">
         <ProtectedButton 
-          permission="property_label.create"
+          permission="real_estate.label.create"
           size="sm"
           onClick={() => navigate('/real-estate/labels/create')}
         >
@@ -306,7 +306,7 @@ export default function PropertyLabelsPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "property_label.delete",
+            permission: "real_estate.label.delete",
             denyMessage: "اجازه حذف برچسب ملک ندارید",
           }}
           filterConfig={labelFilterConfig}

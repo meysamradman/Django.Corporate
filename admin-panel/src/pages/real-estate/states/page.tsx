@@ -178,14 +178,14 @@ export default function PropertyStatesPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (state) => navigate(`/real-estate/states/${state.id}/edit`),
-      permission: "property_state.update",
+      permission: "real_estate.state.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (state) => handleDeleteState(state.id),
       isDestructive: true,
-      permission: "property_state.delete",
+      permission: "real_estate.state.delete",
     },
   ];
   
@@ -277,7 +277,7 @@ export default function PropertyStatesPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت وضعیت‌های ملک">
         <ProtectedButton 
-          permission="property_state.create"
+          permission="real_estate.state.create"
           size="sm"
           onClick={() => navigate('/real-estate/states/create')}
         >
@@ -306,7 +306,7 @@ export default function PropertyStatesPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "property_state.delete",
+            permission: "real_estate.state.delete",
             denyMessage: "اجازه حذف وضعیت ملک ندارید",
           }}
           filterConfig={stateFilterConfig}

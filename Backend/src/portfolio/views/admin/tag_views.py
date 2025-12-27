@@ -17,6 +17,7 @@ from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, SimpleAdminPermission, PermissionRequiredMixin
+from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
 

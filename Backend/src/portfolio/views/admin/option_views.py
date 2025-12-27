@@ -17,6 +17,7 @@ from src.portfolio.services.admin.option_services import PortfolioOptionAdminSer
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
+from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 

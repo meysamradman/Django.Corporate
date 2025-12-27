@@ -12,8 +12,8 @@ class IPBanService:
     """
     BAN_CACHE_KEY = 'banned_ips'
     ATTEMPT_CACHE_KEY = 'honeypot_attempts:{ip}'
-    MAX_ATTEMPTS = 3  # بعد از 3 تلاش، بن میشه
-    BAN_DURATION = 3600  # 1 ساعت
+    MAX_ATTEMPTS = 8  # بعد از 8 تلاش، بن میشه
+    BAN_DURATION = 600  # 10 دقیقه
     
     @classmethod
     def record_attempt(cls, ip: str) -> bool:

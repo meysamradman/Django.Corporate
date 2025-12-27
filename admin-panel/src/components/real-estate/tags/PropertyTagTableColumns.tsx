@@ -58,7 +58,7 @@ export const usePropertyTagColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/tags/${tag.id}/edit`} 
-            permission="property_tag.read"
+            permission="real_estate.tag.read"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">

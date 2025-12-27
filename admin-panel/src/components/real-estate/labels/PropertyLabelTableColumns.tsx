@@ -59,7 +59,7 @@ export const usePropertyLabelColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/labels/${label.id}/edit`} 
-            permission="property_label.read"
+            permission="real_estate.label.read"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">

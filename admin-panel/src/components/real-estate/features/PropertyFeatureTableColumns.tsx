@@ -59,7 +59,7 @@ export const usePropertyFeatureColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/features/${feature.id}/edit`} 
-            permission="property_feature.read"
+            permission="real_estate.feature.read"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">

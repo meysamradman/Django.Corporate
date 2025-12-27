@@ -54,6 +54,8 @@ const agencySchema = z.object({
     meta_description: z.string().optional().nullable(),
     og_title: z.string().optional().nullable(),
     og_description: z.string().optional().nullable(),
+    canonical_url: z.string().optional().nullable(),
+    robots_meta: z.string().optional().nullable(),
 });
 
 export type AgencyFormValues = z.infer<typeof agencySchema>;

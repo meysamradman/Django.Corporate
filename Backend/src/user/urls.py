@@ -50,6 +50,21 @@ admin_urls = [
 
 urlpatterns += admin_urls
 
+# ✅ در حالت DEBUG، URLهای ساده‌تر هم اضافه می‌شوند (فقط برای development)
+if settings.DEBUG:
+    debug_admin_urls = [
+        path('admin/auth/login/', AdminLoginView.as_view(), name='admin-login-debug'),
+        path('admin/auth/register/', AdminRegisterView.as_view(), name='admin-register-debug'),
+        path('admin/auth/logout/', AdminLogoutView.as_view(), name='admin-logout-debug'),
+        path('admin/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha-debug')),
+        path('admin/management/', AdminManagementView.as_view(), name='admin-management-debug'),
+        path('admin/management/<int:admin_id>/', AdminManagementView.as_view(), name='admin-management-detail-debug'),
+        path('admin/management/me/', AdminManagementView.as_view(), {'action': 'me'}, name='admin-management-me-debug'),
+        path('admin/permissions/map/', get_permission_map, name='admin-permissions-map-debug'),
+        path('admin/permissions/check/', check_permission, name='admin-permissions-check-debug'),
+    ]
+    urlpatterns += debug_admin_urls
+
 # Router برای Role و Permission (همچنان با secret path)
 router = DefaultRouter()
 router.register(f'admin/{ADMIN_SECRET}/roles', AdminRoleView, basename='admin-roles')
