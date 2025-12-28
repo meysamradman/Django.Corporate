@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
 from django.contrib.postgres.search import SearchVectorField
 from src.core.models import BaseModel, Country, Province, City
@@ -14,6 +15,36 @@ from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
+
+
+def get_current_shamsi_year():
+    """محاسبه سال فعلی شمسی"""
+    try:
+        import jdatetime
+        return jdatetime.datetime.now().year
+    except ImportError:
+        from datetime import datetime
+        current_year = datetime.now().year
+        # تقریبی: سال شمسی ≈ سال میلادی - 621
+        return current_year - 621
+
+def validate_year_built_dynamic(value):
+    """
+    Validator دینامیک برای سال ساخت
+    سال min: 1300 (ثابت)
+    سال max: سال فعلی شمسی + 5 سال (برای پروژه‌های در دست ساخت)
+    """
+    if value is None:
+        return
+    
+    YEAR_MIN = 1300
+    YEAR_BUFFER = 5
+    year_max = get_current_shamsi_year() + YEAR_BUFFER
+    
+    if value < YEAR_MIN:
+        raise ValidationError(f"سال ساخت نباید کمتر از {YEAR_MIN} باشد.")
+    if value > year_max:
+        raise ValidationError(f"سال ساخت نباید بیشتر از {year_max} باشد.")
 
 
 class Property(BaseModel, SEOMixin):
@@ -260,9 +291,6 @@ class Property(BaseModel, SEOMixin):
         help_text="Built area in square meters"
     )
     
-    # =====================================================
-    # ✅ OPTIMIZED: Room Configuration (SmallInteger)
-    # =====================================================
     BEDROOM_CHOICES = [
         (0, 'استودیو / بدون خواب'),
         (1, '۱ خوابه'),
@@ -274,13 +302,23 @@ class Property(BaseModel, SEOMixin):
         (7, '۷ خوابه'),
         (8, '۸ خوابه'),
         (9, '۹ خوابه'),
-        (10, '۱۰+ خوابه'),
+        (10, '۱۰ خوابه'),
+        (11, '۱۱ خوابه'),
+        (12, '۱۲ خوابه'),
+        (13, '۱۳ خوابه'),
+        (14, '۱۴ خوابه'),
+        (15, '۱۵ خوابه'),
+        (16, '۱۶ خوابه'),
+        (17, '۱۷ خوابه'),
+        (18, '۱۸ خوابه'),
+        (19, '۱۹ خوابه'),
+        (20, '۲۰+ خوابه'),
     ]
     
     bedrooms = models.SmallIntegerField(
         choices=BEDROOM_CHOICES,
         default=1,
-        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
         db_index=True,
         verbose_name="Bedrooms",
         help_text="Number of bedrooms (0 = Studio)"
@@ -292,13 +330,28 @@ class Property(BaseModel, SEOMixin):
         (2, '۲ سرویس'),
         (3, '۳ سرویس'),
         (4, '۴ سرویس'),
-        (5, '۵+ سرویس'),
+        (5, '۵ سرویس'),
+        (6, '۶ سرویس'),
+        (7, '۷ سرویس'),
+        (8, '۸ سرویس'),
+        (9, '۹ سرویس'),
+        (10, '۱۰ سرویس'),
+        (11, '۱۱ سرویس'),
+        (12, '۱۲ سرویس'),
+        (13, '۱۳ سرویس'),
+        (14, '۱۴ سرویس'),
+        (15, '۱۵ سرویس'),
+        (16, '۱۶ سرویس'),
+        (17, '۱۷ سرویس'),
+        (18, '۱۸ سرویس'),
+        (19, '۱۹ سرویس'),
+        (20, '۲۰+ سرویس'),
     ]
     
     bathrooms = models.SmallIntegerField(
         choices=BATHROOM_CHOICES,
         default=1,
-        validators=[MinValueValidator(0), MaxValueValidator(5)],
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
         db_index=True,
         verbose_name="Bathrooms",
         help_text="Number of bathrooms"
@@ -318,21 +371,41 @@ class Property(BaseModel, SEOMixin):
     )
     
     # =====================================================
-    # ✅ OPTIMIZED: Year Built (سال شمسی ۱۳۰۰-۱۴۱۰)
+    # ✅ OPTIMIZED: Year Built (سال شمسی - Dynamic)
     # =====================================================
-    YEAR_MIN = 1300  # ۱۳۰۰ شمسی
-    YEAR_MAX = 1410  # ۱۴۱۰ شمسی
+    YEAR_MIN = 1300  # ۱۳۰۰ شمسی (ثابت)
+    YEAR_BUFFER = 5  # 5 سال آینده برای پروژه‌های در دست ساخت
+    
+    @classmethod
+    def get_year_max(cls):
+        """
+        محاسبه سال حداکثر به صورت دینامیک
+        سال فعلی شمسی + 5 سال (برای پروژه‌های در دست ساخت)
+        """
+        try:
+            import jdatetime
+            current_year = jdatetime.datetime.now().year
+            return current_year + cls.YEAR_BUFFER
+        except ImportError:
+            # اگر jdatetime نصب نیست، از سال میلادی تقریبی استفاده کن
+            from datetime import datetime
+            current_year = datetime.now().year
+            # تقریبی: سال شمسی ≈ سال میلادی - 621
+            shamsi_year = current_year - 621
+            return shamsi_year + cls.YEAR_BUFFER
+    
+    @classmethod
+    def get_year_min(cls):
+        """سال حداقل (ثابت)"""
+        return cls.YEAR_MIN
     
     year_built = models.SmallIntegerField(
         null=True,
         blank=True,
         db_index=True,
-        validators=[
-            MinValueValidator(YEAR_MIN, message=f"Year built should not be less than {YEAR_MIN}"),
-            MaxValueValidator(YEAR_MAX, message=f"Year built should not be more than {YEAR_MAX}")
-        ],
+        validators=[validate_year_built_dynamic],
         verbose_name="Year Built",
-        help_text="Year the property was built (Solar calendar, e.g., 1400)"
+        help_text="Year the property was built (Solar calendar, calculated dynamically based on current year)"
     )
     build_years = models.SmallIntegerField(
         null=True,
@@ -360,13 +433,28 @@ class Property(BaseModel, SEOMixin):
         (2, '۲ پارکینگ'),
         (3, '۳ پارکینگ'),
         (4, '۴ پارکینگ'),
-        (5, '۵+ پارکینگ'),
+        (5, '۵ پارکینگ'),
+        (6, '۶ پارکینگ'),
+        (7, '۷ پارکینگ'),
+        (8, '۸ پارکینگ'),
+        (9, '۹ پارکینگ'),
+        (10, '۱۰ پارکینگ'),
+        (11, '۱۱ پارکینگ'),
+        (12, '۱۲ پارکینگ'),
+        (13, '۱۳ پارکینگ'),
+        (14, '۱۴ پارکینگ'),
+        (15, '۱۵ پارکینگ'),
+        (16, '۱۶ پارکینگ'),
+        (17, '۱۷ پارکینگ'),
+        (18, '۱۸ پارکینگ'),
+        (19, '۱۹ پارکینگ'),
+        (20, '۲۰+ پارکینگ'),
     ]
     
     parking_spaces = models.SmallIntegerField(
         choices=PARKING_CHOICES,
         default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
         db_index=True,
         verbose_name="Parking Spaces",
         help_text="Number of parking spaces"
@@ -542,15 +630,15 @@ class Property(BaseModel, SEOMixin):
                 name='property_built_area_non_negative'
             ),
             models.CheckConstraint(
-                condition=models.Q(bedrooms__gte=0) & models.Q(bedrooms__lte=10),
+                condition=models.Q(bedrooms__gte=0) & models.Q(bedrooms__lte=20),
                 name='property_bedrooms_range'
             ),
             models.CheckConstraint(
-                condition=models.Q(bathrooms__gte=0) & models.Q(bathrooms__lte=5),
+                condition=models.Q(bathrooms__gte=0) & models.Q(bathrooms__lte=20),
                 name='property_bathrooms_range'
             ),
             models.CheckConstraint(
-                condition=models.Q(parking_spaces__gte=0) & models.Q(parking_spaces__lte=10),
+                condition=models.Q(parking_spaces__gte=0) & models.Q(parking_spaces__lte=20),
                 name='property_parking_range'
             ),
             models.CheckConstraint(
@@ -624,10 +712,11 @@ class Property(BaseModel, SEOMixin):
             return None
         
         from django.core.cache import cache
+        from src.media.models.media import ImageMedia
         cache_key = PropertyCacheKeys.main_image(self.pk)
-        main_image = cache.get(cache_key)
+        main_image_id = cache.get(cache_key)
         
-        if main_image is None:
+        if main_image_id is None:
             try:
                 main_media = self.images.select_related('image').filter(is_main=True).first()
                 if main_media:
@@ -644,12 +733,29 @@ class Property(BaseModel, SEOMixin):
                             document = self.documents.select_related('document__cover_image').first()
                             if document and document.document.cover_image:
                                 main_image = document.document.cover_image
+                            else:
+                                main_image = None
+                
+                # Cache only the ID, not the object
+                if main_image:
+                    cache.set(cache_key, main_image.id, 1800)
+                    return main_image
+                else:
+                    cache.set(cache_key, False, 1800)
+                    return None
             except Exception:
-                main_image = False
-            
-            cache.set(cache_key, main_image, 1800)
-        
-        return main_image if main_image else None
+                cache.set(cache_key, False, 1800)
+                return None
+        else:
+            # If cached value is False, return None
+            if main_image_id is False:
+                return None
+            # Otherwise, fetch the object by ID
+            try:
+                return ImageMedia.objects.get(id=main_image_id)
+            except ImageMedia.DoesNotExist:
+                cache.delete(cache_key)
+                return None
     
     def get_main_image_details(self):
         main_image = self.get_main_image()

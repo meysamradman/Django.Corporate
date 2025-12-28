@@ -59,6 +59,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'generate_seo': 'real_estate.property.update',
         'validate_seo': 'real_estate.property.read',
         'add_media': 'real_estate.property.update',
+        'field_options': 'real_estate.property.read',
     }
     permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
     
@@ -593,4 +594,28 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=str(e) or PROPERTY_ERRORS["property_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+    
+    @action(detail=False, methods=['get'], url_path='field-options')
+    def field_options(self, request):
+        """
+        Returns field options/choices for property form fields
+        """
+        from src.real_estate.models.property import Property
+        
+        options = {
+            'bedrooms': Property.BEDROOM_CHOICES,
+            'bathrooms': Property.BATHROOM_CHOICES,
+            'parking_spaces': Property.PARKING_CHOICES,
+            'year_built': {
+                'min': Property.YEAR_MIN,
+                'max': Property.get_year_max(),
+                'help_text': f'سال شمسی ({Property.YEAR_MIN}-{Property.get_year_max()}) - به صورت خودکار محاسبه می‌شود'
+            }
+        }
+        
+        return APIResponse.success(
+            message="Field options retrieved successfully",
+            data=options,
+            status_code=status.HTTP_200_OK
+        )
 

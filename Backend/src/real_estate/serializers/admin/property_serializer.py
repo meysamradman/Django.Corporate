@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.core.cache import cache
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
@@ -458,8 +459,34 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
     # Relaxed constraints for optional fields during creation
     land_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     built_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
-    bedrooms = serializers.IntegerField(required=False, allow_null=True)
-    bathrooms = serializers.IntegerField(required=False, allow_null=True)
+    
+    # ✅ OPTIMIZED: Room fields with validation
+    bedrooms = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Number of bedrooms (0-20)",
+        min_value=0,
+        max_value=20
+    )
+    bathrooms = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Number of bathrooms (0-20)",
+        min_value=0,
+        max_value=20
+    )
+    parking_spaces = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Number of parking spaces (0-20)",
+        min_value=0,
+        max_value=20
+    )
+    year_built = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Year built (Solar calendar - calculated dynamically)"
+    )
 
     # Location fields - simplified like Diwar
     province = serializers.PrimaryKeyRelatedField(
@@ -556,6 +583,28 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         if attrs.get('region'):
             if attrs['region'].city_id != attrs['city'].id:
                 raise serializers.ValidationError("منطقه انتخاب شده متعلق به این شهر نیست.")
+        
+        # ✅ Validate optimized fields
+        if attrs.get('bedrooms') is not None:
+            if attrs['bedrooms'] < 0 or attrs['bedrooms'] > 20:
+                raise serializers.ValidationError({"bedrooms": "تعداد خواب باید بین 0 تا 20 باشد."})
+        
+        if attrs.get('bathrooms') is not None:
+            if attrs['bathrooms'] < 0 or attrs['bathrooms'] > 20:
+                raise serializers.ValidationError({"bathrooms": "تعداد سرویس بهداشتی باید بین 0 تا 20 باشد."})
+        
+        if attrs.get('parking_spaces') is not None:
+            if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
+                raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
+        
+        if attrs.get('year_built') is not None:
+            from src.real_estate.models.property import Property
+            year_min = Property.YEAR_MIN
+            year_max = Property.get_year_max()
+            if attrs['year_built'] < year_min or attrs['year_built'] > year_max:
+                raise serializers.ValidationError({
+                    "year_built": f"سال ساخت باید بین {year_min} تا {year_max} (سال شمسی) باشد."
+                })
 
         return attrs
 
@@ -689,7 +738,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         return data
 
     def validate(self, attrs):
-        print(f"VALIDATE ATTRS: {attrs}")
         # Quantize latitude and longitude to prevent validation errors
         from decimal import Decimal, ROUND_DOWN
 
@@ -708,6 +756,28 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             else:
                 lng_value = Decimal(str(attrs['longitude']))
                 attrs['longitude'] = lng_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+
+        # ✅ Validate optimized fields
+        if attrs.get('bedrooms') is not None:
+            if attrs['bedrooms'] < 0 or attrs['bedrooms'] > 20:
+                raise serializers.ValidationError({"bedrooms": "تعداد خواب باید بین 0 تا 20 باشد."})
+        
+        if attrs.get('bathrooms') is not None:
+            if attrs['bathrooms'] < 0 or attrs['bathrooms'] > 20:
+                raise serializers.ValidationError({"bathrooms": "تعداد سرویس بهداشتی باید بین 0 تا 20 باشد."})
+        
+        if attrs.get('parking_spaces') is not None:
+            if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
+                raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
+        
+        if attrs.get('year_built') is not None:
+            from src.real_estate.models.property import Property
+            year_min = Property.YEAR_MIN
+            year_max = Property.get_year_max()
+            if attrs['year_built'] < year_min or attrs['year_built'] > year_max:
+                raise serializers.ValidationError({
+                    "year_built": f"سال ساخت باید بین {year_min} تا {year_max} (سال شمسی) باشد."
+                })
 
         # Handle location fields - region is now optional
         region = attrs.get('region')

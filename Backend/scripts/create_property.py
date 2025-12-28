@@ -101,29 +101,33 @@ def get_or_create_defaults():
     
     property_type, _ = PropertyType.objects.get_or_create(
         title="Apartment",
-        defaults={'is_active': True, 'display_order': 1}
+        defaults={
+            'slug': 'apartment',
+            'is_active': True, 
+            'display_order': 1
+        }
     )
     
     property_state, _ = PropertyState.objects.get_or_create(
         title="For Sale",
-        defaults={'is_active': True}
+        defaults={
+            'slug': 'for-sale',
+            'is_active': True
+        }
     )
     
     agent_user = User.objects.filter(user_type='admin').first()
     if not agent_user:
         agent_user = admin_user
     
+    license_num = f'SAMPLE-LIC-{uuid.uuid4().hex[:8]}'
     agent, _ = PropertyAgent.objects.get_or_create(
         user=agent_user,
         defaults={
-            'first_name': 'Sample',
-            'last_name': 'Agent',
-            'phone': '09123456789',
-            'email': 'agent@example.com',
-            'license_number': f'LIC-{uuid.uuid4().hex[:8]}',
+            'slug': f'sample-agent-{uuid.uuid4().hex[:8]}',
+            'license_number': license_num,
             'is_active': True,
-            'is_verified': True,
-            'city': city
+            'is_verified': True
         }
     )
     
@@ -172,7 +176,7 @@ def create_sample_property():
             bathrooms=2,
             kitchens=1,
             living_rooms=1,
-            year_built=2020,
+            year_built=1398,  # ✅ سال شمسی (معادل 2020 میلادی)
             build_years=4,
             floors_in_building=10,
             floor_number=5,
