@@ -152,19 +152,3 @@ class RealEstateAgency(BaseModel, SEOMixin):
     
     def get_public_url(self):
         return f"/agency/{self.slug}/"
-    
-    def save(self, *args, **kwargs):
-        # Auto-populate SEO fields
-        if not self.meta_title and self.name:
-            self.meta_title = self.name[:70]
-        
-        if not self.meta_description and self.description:
-            self.meta_description = self.description[:300]
-        
-        if not self.og_title and self.meta_title:
-            self.og_title = self.meta_title
-        
-        if not self.og_description and self.meta_description:
-            self.og_description = self.meta_description
-        
-        super().save(*args, **kwargs)

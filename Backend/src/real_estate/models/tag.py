@@ -51,26 +51,8 @@ class PropertyTag(BaseModel, SEOMixin):
     def get_public_url(self):
         return f"/property-tag/{self.slug}/"
     
-    def save(self, *args, **kwargs):
-        # Auto-populate SEO fields
-        if not self.meta_title and self.title:
-            self.meta_title = self.title[:70]
-        
-        if not self.meta_description and self.description:
-            self.meta_description = self.description[:300]
-        
-        super().save(*args, **kwargs)
-        
-        if self.pk:
-            from src.real_estate.utils.cache import PropertyTagCacheManager
-            PropertyTagCacheManager.invalidate_tag(self.pk)
-    
-    def delete(self, *args, **kwargs):
-        tag_id = self.pk
-        super().delete(*args, **kwargs)
-        if tag_id:
-            from src.real_estate.utils.cache import PropertyTagCacheManager
-            PropertyTagCacheManager.invalidate_tag(tag_id)
+    def __str__(self):
+        return self.title
     
     def generate_structured_data(self):
         return {

@@ -12,6 +12,56 @@ from src.real_estate.utils.cache import PropertyCacheManager, PropertyCacheKeys
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 
 
+class PropertyYearService:
+    """
+    سرویس ساده برای مدیریت سال ساخت
+    فقط برای API endpoint - منطق اصلی در Model است
+    """
+    
+    @staticmethod
+    def get_year_choices_for_dropdown():
+        """
+        لیست سال‌های مجاز برای dropdown در پنل ادمین
+        از Model.get_year_built_choices() استفاده می‌کند
+        """
+        from src.real_estate.models.property import Property
+        
+        cache_key = 'property_year_choices'
+        cached_choices = cache.get(cache_key)
+        
+        if cached_choices:
+            return cached_choices
+        
+        # دریافت CHOICES از Model
+        choices_tuples = Property.get_year_built_choices()
+        
+        # تبدیل به فرمت مناسب برای API
+        year_choices = [
+            {'value': year, 'label': label}
+            for year, label in choices_tuples
+        ]
+        
+        # کش برای 1 ساعت
+        cache.set(cache_key, year_choices, 3600)
+        
+        return year_choices
+    
+    @staticmethod
+    def get_year_range_info():
+        """
+        اطلاعات محدوده سال‌های مجاز
+        """
+        from src.real_estate.models.property import Property
+        
+        return {
+            'min': Property.YEAR_MIN,
+            'max': Property.get_year_max(),
+            'current_shamsi_year': Property.get_current_shamsi_year(),
+            'buffer': Property.YEAR_BUFFER,
+            'total_choices': Property.get_year_max() - Property.YEAR_MIN + 1
+        }
+
+
 class PropertyAdminService:
     
     @staticmethod

@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.db.models import Q
 from src.core.models import BaseModel, Country, Province, City
 from src.real_estate.models.seo import SEOMixin
 from src.real_estate.models.location import CityRegion
@@ -15,36 +16,6 @@ from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
-
-
-def get_current_shamsi_year():
-    """محاسبه سال فعلی شمسی"""
-    try:
-        import jdatetime
-        return jdatetime.datetime.now().year
-    except ImportError:
-        from datetime import datetime
-        current_year = datetime.now().year
-        # تقریبی: سال شمسی ≈ سال میلادی - 621
-        return current_year - 621
-
-def validate_year_built_dynamic(value):
-    """
-    Validator دینامیک برای سال ساخت
-    سال min: 1300 (ثابت)
-    سال max: سال فعلی شمسی + 5 سال (برای پروژه‌های در دست ساخت)
-    """
-    if value is None:
-        return
-    
-    YEAR_MIN = 1300
-    YEAR_BUFFER = 5
-    year_max = get_current_shamsi_year() + YEAR_BUFFER
-    
-    if value < YEAR_MIN:
-        raise ValidationError(f"سال ساخت نباید کمتر از {YEAR_MIN} باشد.")
-    if value > year_max:
-        raise ValidationError(f"سال ساخت نباید بیشتر از {year_max} باشد.")
 
 
 class Property(BaseModel, SEOMixin):
@@ -371,41 +342,44 @@ class Property(BaseModel, SEOMixin):
     )
     
     # =====================================================
-    # ✅ OPTIMIZED: Year Built (سال شمسی - Dynamic)
+    # ✅ OPTIMIZED: Year Built (سال شمسی - با CHOICES)
     # =====================================================
-    YEAR_MIN = 1300  # ۱۳۰۰ شمسی (ثابت)
-    YEAR_BUFFER = 5  # 5 سال آینده برای پروژه‌های در دست ساخت
+    YEAR_MIN = 1300
+    YEAR_BUFFER = 5
+    
+    @classmethod
+    def get_current_shamsi_year(cls):
+        """دریافت سال شمسی فعلی"""
+        try:
+            import jdatetime
+            return jdatetime.datetime.now().year
+        except ImportError:
+            from datetime import datetime
+            return datetime.now().year - 621
     
     @classmethod
     def get_year_max(cls):
-        """
-        محاسبه سال حداکثر به صورت دینامیک
-        سال فعلی شمسی + 5 سال (برای پروژه‌های در دست ساخت)
-        """
-        try:
-            import jdatetime
-            current_year = jdatetime.datetime.now().year
-            return current_year + cls.YEAR_BUFFER
-        except ImportError:
-            # اگر jdatetime نصب نیست، از سال میلادی تقریبی استفاده کن
-            from datetime import datetime
-            current_year = datetime.now().year
-            # تقریبی: سال شمسی ≈ سال میلادی - 621
-            shamsi_year = current_year - 621
-            return shamsi_year + cls.YEAR_BUFFER
+        """سال حداکثر: سال فعلی + 5 سال (پروژه‌های در دست ساخت)"""
+        return cls.get_current_shamsi_year() + cls.YEAR_BUFFER
     
     @classmethod
-    def get_year_min(cls):
-        """سال حداقل (ثابت)"""
-        return cls.YEAR_MIN
+    def get_year_built_choices(cls):
+        """
+        تولید CHOICES دینامیک برای year_built
+        از سال جدید به قدیم (برای راحتی انتخاب)
+        """
+        year_max = cls.get_year_max()
+        return [
+            (year, f'{year}')
+            for year in range(year_max, cls.YEAR_MIN - 1, -1)
+        ]
     
     year_built = models.SmallIntegerField(
         null=True,
         blank=True,
         db_index=True,
-        validators=[validate_year_built_dynamic],
-        verbose_name="Year Built",
-        help_text="Year the property was built (Solar calendar, calculated dynamically based on current year)"
+        verbose_name="Year Built (Shamsi)",
+        help_text="Year the property was built in Solar calendar (e.g., 1402). Updated automatically."
     )
     build_years = models.SmallIntegerField(
         null=True,
@@ -641,10 +615,11 @@ class Property(BaseModel, SEOMixin):
                 condition=models.Q(parking_spaces__gte=0) & models.Q(parking_spaces__lte=20),
                 name='property_parking_range'
             ),
+            # Year Built: Constraint ثابت تا سال 1500 (هیچ Migration سالانه لازم نیست)
             models.CheckConstraint(
-                condition=models.Q(year_built__isnull=True) | 
-                         (models.Q(year_built__gte=1300) & models.Q(year_built__lte=1410)),
-                name='property_year_built_range'
+                condition=Q(year_built__isnull=True) | 
+                         (Q(year_built__gte=1300) & Q(year_built__lte=1500)),
+                name='property_year_built_safe_range'
             ),
             models.CheckConstraint(
                 condition=models.Q(storage_rooms__gte=0),
@@ -841,6 +816,27 @@ class Property(BaseModel, SEOMixin):
             cache.set(cache_key, structured_data, 1800)
         
         return structured_data
+    
+    def clean(self):
+        """
+        Validation دینامیک برای فیلدهای Model
+        برای year_built: validation بر اساس سال فعلی
+        """
+        super().clean()
+        
+        # Validation دینامیک برای year_built
+        if self.year_built is not None:
+            year_max = self.get_year_max_dynamic()
+            
+            if self.year_built < self.YEAR_MIN:
+                raise ValidationError({
+                    'year_built': f'سال ساخت نباید کمتر از {self.YEAR_MIN} باشد.'
+                })
+            
+            if self.year_built > year_max:
+                raise ValidationError({
+                    'year_built': f'سال ساخت نباید بیشتر از {year_max} (سال فعلی + {self.YEAR_BUFFER}) باشد.'
+                })
     
     def save(self, *args, **kwargs):
         # Auto-populate SEO fields

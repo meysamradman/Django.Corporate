@@ -530,7 +530,6 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'media_files',
         ]
     
-    
     def to_internal_value(self, data):
         """Override to quantize latitude/longitude before model validation"""
         from decimal import Decimal, ROUND_DOWN
@@ -597,14 +596,8 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
                 raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
         
-        if attrs.get('year_built') is not None:
-            from src.real_estate.models.property import Property
-            year_min = Property.YEAR_MIN
-            year_max = Property.get_year_max()
-            if attrs['year_built'] < year_min or attrs['year_built'] > year_max:
-                raise serializers.ValidationError({
-                    "year_built": f"سال ساخت باید بین {year_min} تا {year_max} (سال شمسی) باشد."
-                })
+        # year_built: Django validates automatically via model choices
+        # No manual validation needed here!
 
         return attrs
 
@@ -770,14 +763,8 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
                 raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
         
-        if attrs.get('year_built') is not None:
-            from src.real_estate.models.property import Property
-            year_min = Property.YEAR_MIN
-            year_max = Property.get_year_max()
-            if attrs['year_built'] < year_min or attrs['year_built'] > year_max:
-                raise serializers.ValidationError({
-                    "year_built": f"سال ساخت باید بین {year_min} تا {year_max} (سال شمسی) باشد."
-                })
+        # year_built: Django validates automatically via model choices
+        # No manual validation needed here!
 
         # Handle location fields - region is now optional
         region = attrs.get('region')
