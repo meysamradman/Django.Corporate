@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/core/auth/AuthContext';
+import { usePermissions } from './useRoles';
 import type { PermissionProfile, UserRole, ModuleAction, Role } from '@/types/auth/permission';
 
 const ACTION_SYNONYMS: Record<ModuleAction, ModuleAction[]> = {
@@ -77,6 +78,36 @@ const MODULE_NAMES = {
   REAL_ESTATE_TAG: 'real_estate.tag',
 } as const;
 
+// Auto-generate mapping from permissions API
+const generateModuleMapping = (permissionsData: any[]): Record<string, string> => {
+  const mapping: Record<string, string> = {};
+  
+  if (!permissionsData || !Array.isArray(permissionsData)) {
+    return mapping;
+  }
+
+  permissionsData.forEach((group: any) => {
+    group.permissions?.forEach((perm: any) => {
+      const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
+      const parts = originalKey.split('.');
+      
+      if (parts.length > 2) {
+        // Nested resource (e.g., 'blog.category.read' -> 'blog.category')
+        const nestedResource = parts.slice(0, -1).join('.');
+        
+        // Create frontend-to-backend mapping (e.g., 'blog_categories' -> 'blog.category')
+        // Convert dot notation to underscore for frontend (legacy compatibility)
+        const frontendName = nestedResource.replace(/\./g, '_');
+        if (!mapping[frontendName]) {
+          mapping[frontendName] = nestedResource;
+        }
+      }
+    });
+  });
+
+  return mapping;
+};
+
 const ROLE_ACCESS_OVERRIDES: Record<
   string,
   {
@@ -145,6 +176,12 @@ const ROLE_ACCESS_OVERRIDES: Record<
 
 export function useUserPermissions() {
   const { user } = useAuth();
+  const { data: permissionsData } = usePermissions();
+
+  // Auto-generate mapping from permissions API
+  const FRONTEND_TO_BACKEND_MODULE_MAP = useMemo(() => {
+    return generateModuleMapping(permissionsData || []);
+  }, [permissionsData]);
 
   const permissions = useMemo(() => {
     if (!user?.permissions) return [];
@@ -211,15 +248,24 @@ export function useUserPermissions() {
         return;
       }
 
-      const resource = parts[0];
       const lastPart = parts[parts.length - 1];
-
       const normalizedAction = normalizeModuleAction(lastPart);
 
       if (normalizedAction && lastPart !== '') {
-        const actionSet = map.get(resource) ?? new Set<ModuleAction>();
-        actionSet.add(normalizedAction);
-        map.set(resource, actionSet);
+        // Add to base module (e.g., 'real_estate' from 'real_estate.property.read')
+        const baseResource = parts[0];
+        const baseActionSet = map.get(baseResource) ?? new Set<ModuleAction>();
+        baseActionSet.add(normalizedAction);
+        map.set(baseResource, baseActionSet);
+
+        // Add to nested module if exists (e.g., 'real_estate.property' from 'real_estate.property.read')
+        if (parts.length > 2) {
+          // Join all parts except the last one (action)
+          const nestedResource = parts.slice(0, -1).join('.');
+          const nestedActionSet = map.get(nestedResource) ?? new Set<ModuleAction>();
+          nestedActionSet.add(normalizedAction);
+          map.set(nestedResource, nestedActionSet);
+        }
       }
     });
     return map;
@@ -285,12 +331,17 @@ export function useUserPermissions() {
     return false;
   }, [isSuperAdmin, permissions]);
 
-  const hasModuleAction = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
+  // Check module action without checking parent (strict checking for nested modules)
+  const hasModuleActionStrict = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
     if (!resource) return false;
+    
+    // Map frontend module name to backend module name if needed
+    const backendResource = FRONTEND_TO_BACKEND_MODULE_MAP[resource] || resource;
+    
     const actionList = Array.isArray(action) ? action : (ACTION_SYNONYMS[action] || [action]);
     const isReadAction = actionList.every(act => READ_ACTIONS.has(act as ModuleAction));
 
-    const moduleSpecificActions = moduleActionMap.get(resource);
+    const moduleSpecificActions = moduleActionMap.get(backendResource);
     if (moduleSpecificActions) {
       if (moduleSpecificActions.has('manage') || moduleSpecificActions.has('admin')) {
         return true;
@@ -309,15 +360,15 @@ export function useUserPermissions() {
       }
     }
 
-    if (roleDerivedAccess.fullModules.has(resource)) {
+    if (roleDerivedAccess.fullModules.has(backendResource) || roleDerivedAccess.fullModules.has(resource)) {
       return true;
     }
 
-    if (isReadAction && roleDerivedAccess.readOnlyModules.has(resource)) {
+    if (isReadAction && (roleDerivedAccess.readOnlyModules.has(backendResource) || roleDerivedAccess.readOnlyModules.has(resource))) {
       return true;
     }
 
-    if (permissionProfile?.modules?.includes(resource)) {
+    if (permissionProfile?.modules?.includes(backendResource) || permissionProfile?.modules?.includes(resource)) {
       if (
         isReadAction ||
         actionList.some(act => permissionProfile?.actions?.includes(act as ModuleAction))
@@ -326,13 +377,92 @@ export function useUserPermissions() {
       }
     }
 
-    const hasDirectPermission = actionList.some(act => hasPermission(`${resource}.${act}`));
+    const hasDirectPermission = actionList.some(act => 
+      hasPermission(`${backendResource}.${act}`) || hasPermission(`${resource}.${act}`)
+    );
     if (hasDirectPermission) {
       return true;
     }
 
     return false;
-  }, [roleDerivedAccess, permissionProfile, hasPermission, moduleActionMap]);
+  }, [roleDerivedAccess, permissionProfile, hasPermission, moduleActionMap, FRONTEND_TO_BACKEND_MODULE_MAP]);
+
+  const hasModuleAction = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
+    if (!resource) return false;
+    
+    // Map frontend module name to backend module name if needed
+    const backendResource = FRONTEND_TO_BACKEND_MODULE_MAP[resource] || resource;
+    
+    const actionList = Array.isArray(action) ? action : (ACTION_SYNONYMS[action] || [action]);
+    const isReadAction = actionList.every(act => READ_ACTIONS.has(act as ModuleAction));
+
+    const moduleSpecificActions = moduleActionMap.get(backendResource);
+    if (moduleSpecificActions) {
+      if (moduleSpecificActions.has('manage') || moduleSpecificActions.has('admin')) {
+        return true;
+      }
+
+      if (isReadAction) {
+        const hasReadAccess = Array.from(READ_ACTIONS).some(readAction => moduleSpecificActions.has(readAction));
+        if (hasReadAccess) {
+          return true;
+        }
+      }
+
+      const hasRequestedAction = actionList.some(act => moduleSpecificActions.has(act as ModuleAction));
+      if (hasRequestedAction) {
+        return true;
+      }
+    }
+
+    // Check parent module if nested module not found (e.g., check 'real_estate' for 'real_estate.property')
+    // This is useful for fallback modules, but NOT for primary nested modules
+    if (backendResource.includes('.')) {
+      const parentResource = backendResource.split('.')[0];
+      const parentActions = moduleActionMap.get(parentResource);
+      if (parentActions) {
+        if (parentActions.has('manage') || parentActions.has('admin')) {
+          return true;
+        }
+        if (isReadAction) {
+          const hasReadAccess = Array.from(READ_ACTIONS).some(readAction => parentActions.has(readAction));
+          if (hasReadAccess) {
+            return true;
+          }
+        }
+        const hasRequestedAction = actionList.some(act => parentActions.has(act as ModuleAction));
+        if (hasRequestedAction) {
+          return true;
+        }
+      }
+    }
+
+    if (roleDerivedAccess.fullModules.has(backendResource) || roleDerivedAccess.fullModules.has(resource)) {
+      return true;
+    }
+
+    if (isReadAction && (roleDerivedAccess.readOnlyModules.has(backendResource) || roleDerivedAccess.readOnlyModules.has(resource))) {
+      return true;
+    }
+
+    if (permissionProfile?.modules?.includes(backendResource) || permissionProfile?.modules?.includes(resource)) {
+      if (
+        isReadAction ||
+        actionList.some(act => permissionProfile?.actions?.includes(act as ModuleAction))
+      ) {
+        return true;
+      }
+    }
+
+    const hasDirectPermission = actionList.some(act => 
+      hasPermission(`${backendResource}.${act}`) || hasPermission(`${resource}.${act}`)
+    );
+    if (hasDirectPermission) {
+      return true;
+    }
+
+    return false;
+  }, [roleDerivedAccess, permissionProfile, hasPermission, moduleActionMap, FRONTEND_TO_BACKEND_MODULE_MAP]);
 
   const hasAnyPermission = (permissionList: string[]): boolean => {
     return permissionList.some(permission => hasPermission(permission));
@@ -403,6 +533,7 @@ export function useUserPermissions() {
     getResourceAccess,
     getModuleAccessProfile,
     hasModuleAction,
+    hasModuleActionStrict,
     hasRole,
   };
 }

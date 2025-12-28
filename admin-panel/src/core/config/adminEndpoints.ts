@@ -2,18 +2,33 @@ import { env } from './environment';
 
 const ADMIN_SECRET = env.ADMIN_SECRET;
 
-export function getAdminEndpoint(path: string): string {
+/**
+ * فقط برای login و captcha از secret path استفاده می‌شود
+ */
+function getSecretEndpoint(path: string): string {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const finalPath = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
-  
   return `/admin/${ADMIN_SECRET}/${finalPath}`;
 }
 
+/**
+ * برای بقیه endpointها بدون secret path
+ */
+function getAdminEndpoint(path: string): string {
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  const finalPath = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
+  return `/admin/${finalPath}`;
+}
+
 export const adminEndpoints = {
-  login: () => getAdminEndpoint('auth/login'),
+  // ✅ فقط login و captcha با secret path
+  login: () => getSecretEndpoint('auth/login'),
+  csrfToken: () => getSecretEndpoint('auth/login'),
+  captchaGenerate: () => `${getSecretEndpoint('auth/captcha')}generate/`,
+  
+  // ✅ بقیه بدون secret path
   logout: () => getAdminEndpoint('auth/logout'),
   register: () => getAdminEndpoint('auth/register'),
-  csrfToken: () => getAdminEndpoint('auth/login'),
   
   profile: () => getAdminEndpoint('profile'),
   profileMe: () => getAdminEndpoint('management/me'),
@@ -35,7 +50,5 @@ export const adminEndpoints = {
   permissions: () => getAdminEndpoint('permissions'),
   permissionsMap: () => getAdminEndpoint('permissions/map'),
   permissionsCheck: () => getAdminEndpoint('permissions/check'),
-  
-  captchaGenerate: () => `${getAdminEndpoint('auth/captcha')}generate/`,
 } as const;
 

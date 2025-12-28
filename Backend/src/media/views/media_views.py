@@ -16,7 +16,7 @@ from src.media.models.media import AudioMedia, DocumentMedia, ImageMedia, VideoM
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPublicSerializer
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
-from src.user.access_control import PermissionValidator, media_permission, PermissionRequiredMixin
+from src.user.access_control import media_permission, PermissionRequiredMixin
 
 
 class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -354,12 +354,6 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        if not PermissionValidator.has_permission(request.user, 'media.delete'):
-            return APIResponse.error(
-                message=MEDIA_ERRORS.get("media_not_authorized"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         media_data = request.data.get('media_data', [])
         if not media_data:
             return APIResponse.error(

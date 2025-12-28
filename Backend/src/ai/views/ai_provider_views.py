@@ -16,12 +16,27 @@ from src.ai.serializers.ai_provider_serializer import (
     AdminProviderSettingsUpdateSerializer,
 )
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
-from src.user.access_control import ai_permission, PermissionValidator, RequirePermission
+from src.user.access_control import ai_permission, PermissionRequiredMixin
+from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 
 
-class AIProviderViewSet(viewsets.ModelViewSet):
+class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
+    
+    permission_map = {
+        'list': 'ai.manage',
+        'retrieve': 'ai.manage',
+        'create': 'ai.manage',
+        'update': 'ai.manage',
+        'partial_update': 'ai.manage',
+        'destroy': 'ai.manage',
+        'activate': 'ai.manage',
+        'deactivate': 'ai.manage',
+        'available_providers': ['ai.view', 'ai.manage'],  # Check if user has ai.view OR ai.manage
+        'stats': 'ai.manage',
+    }
+    permission_denied_message = AI_ERRORS['settings_not_authorized']
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'display_name', 'description']
     ordering_fields = ['name', 'sort_order', 'total_requests', 'created_at']
@@ -49,36 +64,21 @@ class AIProviderViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
     
-    def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
-        return super().retrieve(request, *args, **kwargs)
-    
     def perform_create(self, serializer):
-        if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         serializer.save()
         AIProvider.clear_all_cache()
     
     def perform_update(self, serializer):
-        if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         serializer.save()
         AIProvider.clear_all_cache()
     
     def perform_destroy(self, instance):
-        if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
-        
         instance.is_active = False
         instance.save()
         AIProvider.clear_all_cache()
     
     @action(detail=True, methods=['post'], url_path='activate')
     def activate_provider(self, request, pk=None, id=None):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
-        
         provider = self.get_object()
         provider.is_active = True
         provider.save(update_fields=['is_active', 'updated_at'])
@@ -94,9 +94,6 @@ class AIProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='deactivate')
     def deactivate_provider(self, request, pk=None, id=None):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
-        
         provider = self.get_object()
         provider.is_active = False
         provider.save(update_fields=['is_active', 'updated_at'])
@@ -121,12 +118,7 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         - تشخیص داشتن/نداشتن مدل فقط در پاپ‌آپ مشخص می‌شه
         - فقط Provider هایی که is_active=True هستند برگردونده می‌شن
         """
-        has_view_permission = PermissionValidator.has_permission(request.user, 'ai.view')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        
-        if not (has_view_permission or has_manage_permission):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
-        
+        # Permission is checked by PermissionRequiredMixin via permission_map
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
@@ -177,8 +169,6 @@ class AIProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         providers = self.get_queryset()
         return APIResponse.success(
             message=AI_SUCCESS.get('statistics_retrieved', 'Statistics retrieved successfully'),
@@ -191,8 +181,21 @@ class AIProviderViewSet(viewsets.ModelViewSet):
         )
 
 
-class AIModelViewSet(viewsets.ModelViewSet):
+class AIModelViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
+    
+    permission_map = {
+        'list': 'ai.manage',
+        'retrieve': 'ai.manage',
+        'create': 'ai.manage',
+        'update': 'ai.manage',
+        'partial_update': 'ai.manage',
+        'destroy': 'ai.manage',
+        'by_capability': 'ai.manage',
+        'by_provider': 'ai.manage',
+        'active_model': 'ai.manage',
+    }
+    permission_denied_message = AI_ERRORS['settings_not_authorized']
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['provider', 'is_active']
     search_fields = ['name', 'display_name', 'description', 'model_id']
@@ -222,42 +225,16 @@ class AIModelViewSet(viewsets.ModelViewSet):
         context['request'] = self.request
         return context
     
-    def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        return super().list(request, *args, **kwargs)
-    
-    def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        return super().retrieve(request, *args, **kwargs)
-    
     def perform_create(self, serializer):
-        if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         serializer.save()
         AICacheManager.invalidate_models()
     
     def perform_update(self, serializer):
-        if not PermissionValidator.has_permission(self.request.user, 'ai.manage'):
-            raise PermissionDenied(AI_ERRORS['settings_not_authorized'])
         serializer.save()
         AICacheManager.invalidate_models()
     
     @action(detail=False, methods=['get'])
     def by_capability(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         capability = request.query_params.get('capability')
         if not capability:
             return APIResponse.error(
@@ -281,12 +258,6 @@ class AIModelViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def by_provider(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         provider_slug = request.query_params.get('provider')
         if not provider_slug:
             return APIResponse.error(
@@ -324,12 +295,6 @@ class AIModelViewSet(viewsets.ModelViewSet):
         Get the single active model for a provider+capability combination.
         Required params: provider (slug), capability
         """
-        if not PermissionValidator.has_permission(request.user, 'ai.view'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         provider_slug = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         
@@ -357,9 +322,20 @@ class AIModelViewSet(viewsets.ModelViewSet):
     
 
 
-class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
+class AdminProviderSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
     serializer_class = AdminProviderSettingsSerializer
+    
+    permission_map = {
+        'list': 'ai.settings.personal.manage',
+        'retrieve': 'ai.settings.personal.manage',
+        'create': 'ai.settings.personal.manage',
+        'update': 'ai.settings.personal.manage',
+        'partial_update': 'ai.settings.personal.manage',
+        'destroy': 'ai.settings.personal.manage',
+        'my_settings': 'ai.settings.personal.manage',
+    }
+    permission_denied_message = AI_ERRORS['settings_not_authorized']
     
     def get_queryset(self):
         return AdminProviderSettings.objects.filter(
@@ -378,12 +354,6 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
         return context
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ai.settings.personal.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
@@ -446,12 +416,6 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
             serializer.save()
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'ai.settings.personal.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -475,12 +439,6 @@ class AdminProviderSettingsViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def my_settings(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.settings.personal.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS['settings_not_authorized'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         settings = self.get_queryset()
         serializer = self.get_serializer(settings, many=True)
         return APIResponse.success(

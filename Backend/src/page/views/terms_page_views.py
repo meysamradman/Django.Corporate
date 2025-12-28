@@ -13,17 +13,24 @@ from src.page.services.terms_page_service import (
     update_terms_page,
 )
 from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
 
-class TermsPageViewSet(viewsets.ModelViewSet):
+class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = TermsPage.objects.all()
     serializer_class = TermsPageSerializer
     
-    def get_permissions(self):
-        return [RequirePermission('pages.manage')]
+    permission_map = {
+        'list': 'pages.manage',
+        'retrieve': 'pages.manage',
+        'create': 'pages.manage',
+        'update': 'pages.manage',
+        'partial_update': 'pages.manage',
+        'destroy': 'pages.manage',
+    }
+    permission_denied_message = TERMS_PAGE_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:

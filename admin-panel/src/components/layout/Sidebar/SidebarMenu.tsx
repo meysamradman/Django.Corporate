@@ -45,12 +45,15 @@ import {
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
 import { useUserPermissions } from "@/components/admins/permissions/hooks/useUserPermissions"
+import { usePermissions } from "@/components/admins/permissions"
 import type { ModuleAction } from "@/types/auth/permission"
 import { useFeatureFlags } from "@/core/feature-flags/useFeatureFlags"
 import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/feature-flags/featureFlags"
 import type { MenuItem, MenuAccessConfig } from '@/types/shared/menu';
 
 const MODULE_TO_FEATURE_FLAG = CONFIG_MODULE_TO_FEATURE_FLAG;
+
+const READ_ACTIONS = new Set<ModuleAction>(['read', 'view', 'list']);
 
 type MenuItemConfig = Omit<MenuItem, "items"> & {
   items?: MenuItemConfig[];
@@ -91,7 +94,6 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: BookOpen,
         access: {
           module: "blog",
-          fallbackModules: ["blog_categories", "blog_tags"],
           allowReadOnly: true,
           limitedLabel: "محدود",
           readOnlyLabel: "فقط مشاهده",
@@ -101,11 +103,11 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "لیست بلاگ‌ها", url: "/blogs", icon: ListTodo, access: { module: "blog", allowReadOnly: true } },
           { title: "ایجاد بلاگ", url: "/blogs/create", icon: BookPlus, access: { module: "blog", actions: ["create"] } },
           { title: "دسته‌بندی‌های بلاگ", isTitle: true },
-          { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories", icon: Folder, access: { module: "blog_categories", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create", icon: FolderPlus, access: { module: "blog_categories", actions: ["create"] } },
+          { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories", icon: Folder, access: { module: "blog.category", allowReadOnly: true } },
+          { title: "ایجاد دسته‌بندی", url: "/blogs/categories/create", icon: FolderPlus, access: { module: "blog.category", actions: ["create"] } },
           { title: "تگ‌های بلاگ", isTitle: true },
-          { title: "لیست تگ‌ها", url: "/blogs/tags", icon: Tag, access: { module: "blog_tags", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/blogs/tags/create", icon: Plus, access: { module: "blog_tags", actions: ["create"] } },
+          { title: "لیست تگ‌ها", url: "/blogs/tags", icon: Tag, access: { module: "blog.tag", allowReadOnly: true } },
+          { title: "ایجاد تگ", url: "/blogs/tags/create", icon: Plus, access: { module: "blog.tag", actions: ["create"] } },
         ],
       },
       {
@@ -113,7 +115,6 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Layers,
         access: {
           module: "portfolio",
-          fallbackModules: ["portfolio_categories", "portfolio_tags", "portfolio_options", "portfolio_option_values"],
           allowReadOnly: true,
           limitedLabel: "محدود",
           readOnlyLabel: "فقط مشاهده"
@@ -122,11 +123,11 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "لیست نمونه کارها", url: "/portfolios", icon: ListTodo, access: { module: "portfolio", allowReadOnly: true } },
           { title: "ایجاد نمونه کار", url: "/portfolios/create", icon: FilePlus, access: { module: "portfolio", actions: ["create"] } },
           { title: "دسته‌بندی‌های نمونه کار", isTitle: true },
-          { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories", icon: Folder, access: { module: "portfolio_categories", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create", icon: FolderPlus, access: { module: "portfolio_categories", actions: ["create"] } },
+          { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories", icon: Folder, access: { module: "portfolio.category", allowReadOnly: true } },
+          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories/create", icon: FolderPlus, access: { module: "portfolio.category", actions: ["create"] } },
           { title: "تگ‌های نمونه کار", isTitle: true },
-          { title: "لیست تگ‌ها", url: "/portfolios/tags", icon: Tag, access: { module: "portfolio_tags", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/portfolios/tags/create", icon: Plus, access: { module: "portfolio_tags", actions: ["create"] } },
+          { title: "لیست تگ‌ها", url: "/portfolios/tags", icon: Tag, access: { module: "portfolio.tag", allowReadOnly: true } },
+          { title: "ایجاد تگ", url: "/portfolios/tags/create", icon: Plus, access: { module: "portfolio.tag", actions: ["create"] } },
         ],
       },
       {
@@ -134,7 +135,6 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Building2,
         access: {
           module: "real_estate",
-          fallbackModules: ["real_estate.property", "real_estate.type", "real_estate.state", "real_estate.label", "real_estate.feature", "real_estate.tag", "real_estate.agent", "real_estate.agency"],
           allowReadOnly: true,
           limitedLabel: "محدود",
           readOnlyLabel: "فقط مشاهده"
@@ -374,11 +374,59 @@ export const useMenuData = () => {
     userRoles,
     getModuleAccessProfile,
     hasModuleAction,
+    hasModuleActionStrict,
     hasRole,
     isSuperAdmin
   } = useUserPermissions();
 
+  const { data: permissionsData } = usePermissions();
+
   const { data: featureFlagsRaw = {} } = useFeatureFlags();
+
+  // Auto-generate fallbackModules and mapping from permissions API
+  const moduleFallbacksMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    const frontendToBackendMap: Record<string, string> = {};
+    
+    if (!permissionsData || !Array.isArray(permissionsData)) {
+      return { fallbacks: map, mapping: frontendToBackendMap };
+    }
+
+    permissionsData.forEach((group: any) => {
+      const baseResource = group.resource;
+      if (!baseResource) return;
+
+      const nestedResources: string[] = [];
+      
+      // Extract nested resources from permissions
+      group.permissions?.forEach((perm: any) => {
+        const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
+        const parts = originalKey.split('.');
+        
+        if (parts.length > 2) {
+          // Nested resource (e.g., 'blog.category.read' -> 'blog.category')
+          const nestedResource = parts.slice(0, -1).join('.');
+          
+          if (nestedResource !== baseResource && !nestedResources.includes(nestedResource)) {
+            nestedResources.push(nestedResource);
+            
+            // Create frontend-to-backend mapping (e.g., 'blog_categories' -> 'blog.category')
+            // Convert dot notation to underscore for frontend (legacy compatibility)
+            const frontendName = nestedResource.replace(/\./g, '_');
+            if (!frontendToBackendMap[frontendName]) {
+              frontendToBackendMap[frontendName] = nestedResource;
+            }
+          }
+        }
+      });
+
+      if (nestedResources.length > 0) {
+        map[baseResource] = nestedResources;
+      }
+    });
+
+    return { fallbacks: map, mapping: frontendToBackendMap };
+  }, [permissionsData]);
 
   const featureFlagsKey = useMemo(() => {
     return JSON.stringify(featureFlagsRaw);
@@ -439,16 +487,54 @@ export const useMenuData = () => {
     const hideIfNoAccess = access.hideIfNoAccess ?? true;
     const primaryModule = access.module;
     const fallbackModules = access.fallbackModules || [];
-    const actions: ModuleAction[] = access.actions && access.actions.length > 0
+    const requestedActions: ModuleAction[] = access.actions && access.actions.length > 0
       ? (access.actions.map(a => a as ModuleAction))
       : ["read"];
 
-    const primaryProfile = primaryModule ? getModuleAccessProfile(primaryModule) : null;
-    const fallbackProfiles = fallbackModules.map(module => getModuleAccessProfile(module));
+    // Use auto-generated mapping from permissions API
+    const FRONTEND_TO_BACKEND_MODULE_MAP = moduleFallbacksMap.mapping;
+    
+    // Map primary module if needed
+    const mappedPrimaryModule = primaryModule 
+      ? (FRONTEND_TO_BACKEND_MODULE_MAP[primaryModule] || primaryModule)
+      : null;
+    
+    // Check if primaryModule is a nested module (e.g., 'real_estate.type')
+    // For nested modules, we should NOT use fallbackModules - only check the specific module
+    const isNestedModule = mappedPrimaryModule && mappedPrimaryModule.includes('.');
+    
+    // Auto-generate fallbackModules only if primaryModule is NOT a nested module
+    // For nested modules, we want strict checking - only check that specific module
+    const autoFallbackModules = !isNestedModule && primaryModule && moduleFallbacksMap.fallbacks[primaryModule]
+      ? moduleFallbacksMap.fallbacks[primaryModule]
+      : [];
+    
+    // Combine provided fallbackModules with auto-generated ones (only if not nested)
+    const allFallbackModules = isNestedModule 
+      ? [] // No fallbacks for nested modules - strict checking only
+      : [...new Set([...fallbackModules, ...autoFallbackModules])];
+    
+    const mappedFallbackModules = allFallbackModules.map(module => 
+      FRONTEND_TO_BACKEND_MODULE_MAP[module] || module
+    );
+
+    const primaryProfile = mappedPrimaryModule ? getModuleAccessProfile(mappedPrimaryModule) : null;
+    const fallbackProfiles = mappedFallbackModules.map(module => getModuleAccessProfile(module));
     const hasFallbackRead = fallbackProfiles.some(profile => profile.canRead);
-    const hasPrimaryRead = primaryProfile?.canRead ?? false;
-    const hasPrimaryActions = primaryModule
-      ? actions.some(action => hasModuleAction(primaryModule, action))
+    
+    // For nested modules, use strict checking (don't check parent)
+    // For base modules, use normal checking (can check fallbacks)
+    const hasPrimaryRead = mappedPrimaryModule
+      ? (isNestedModule 
+          ? hasModuleActionStrict(mappedPrimaryModule, 'read')
+          : (primaryProfile?.canRead ?? false))
+      : false;
+    
+    // Check if user has access to requested actions (use mapped primary module)
+    const hasPrimaryActions = mappedPrimaryModule
+      ? (isNestedModule 
+          ? requestedActions.some(action => hasModuleActionStrict(mappedPrimaryModule, action))
+          : requestedActions.some(action => hasModuleAction(mappedPrimaryModule, action)))
       : false;
 
     if (!primaryModule) {
@@ -461,32 +547,49 @@ export const useMenuData = () => {
       return { visible: hideIfNoAccess ? hasFallbackRead : true };
     }
 
-    if (!hasPrimaryRead) {
-      if (hasFallbackRead) {
+    // If specific actions are requested (not just read), check them strictly
+    const hasSpecificActions = access.actions && access.actions.length > 0 && !requestedActions.every(a => READ_ACTIONS.has(a));
+    
+    if (hasSpecificActions) {
+      // For items with specific actions (like "create"), check if user has that action
+      if (!hasPrimaryActions) {
+        // Check fallback modules (with mapping)
+        const hasFallbackActions = mappedFallbackModules.some(module => 
+          requestedActions.some(action => hasModuleAction(module, action))
+        );
+        if (hasFallbackActions) {
+          return {
+            visible: true,
+            state: "limited" as const,
+          };
+        }
+        if (hideIfNoAccess) {
+          return { visible: false } as const;
+        }
         return {
           visible: true,
-          state: "limited" as const,
+          state: "locked" as const,
+          disabled: true
         };
       }
-      if (hideIfNoAccess) {
-        return { visible: false } as const;
+    } else {
+      // For items that only need read access
+      if (!hasPrimaryRead) {
+        if (hasFallbackRead) {
+          return {
+            visible: true,
+            state: "limited" as const,
+          };
+        }
+        if (hideIfNoAccess) {
+          return { visible: false } as const;
+        }
+        return {
+          visible: true,
+          state: "locked" as const,
+          disabled: true
+        };
       }
-      return {
-        visible: true,
-        state: "locked" as const,
-        disabled: true
-      };
-    }
-
-    if (!hasPrimaryActions) {
-      if (hideIfNoAccess) {
-        return { visible: false } as const;
-      }
-      return {
-        visible: true,
-        state: "locked" as const,
-        disabled: true
-      };
     }
 
     if (!primaryProfile?.hasWrite && (access.allowReadOnly ?? true)) {
@@ -497,7 +600,7 @@ export const useMenuData = () => {
     }
 
     return { visible: true } as const;
-  }, [hasRole, isSuperAdmin, getModuleAccessProfile, hasModuleAction, permissionsKey, featureFlags]);
+  }, [hasRole, isSuperAdmin, getModuleAccessProfile, hasModuleAction, hasModuleActionStrict, permissionsKey, featureFlags, moduleFallbacksMap]);
 
   const groups = useMemo(() => {
     const processItem = (item: MenuItemConfig): MenuItem | null => {

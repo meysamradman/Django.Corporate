@@ -9,6 +9,7 @@ import {
 } from "@/components/elements/Table";
 import { Shield } from "lucide-react";
 import { getPermissionTranslation } from "@/core/messages/permissions";
+import { useMemo } from "react";
 import type { ReactElement } from "react";
 
 interface Permission {
@@ -38,11 +39,12 @@ interface StandardPermissionsTableProps {
   areAllResourcePermissionsSelected: (resourcePermissions: Permission[]) => boolean;
   getActionPermission: (resourcePermissions: Permission[], action: string) => Permission | undefined;
   getResourceIcon: (resourceKey: string) => ReactElement;
+  allPermissions?: Permission[];
 }
 
 export function StandardPermissionsTable({
   resources,
-  selectedPermissions: _selectedPermissions,
+  selectedPermissions,
   isSuperAdmin,
   logicalPermissionErrors,
   onTogglePermission,
@@ -52,7 +54,16 @@ export function StandardPermissionsTable({
   areAllResourcePermissionsSelected,
   getActionPermission,
   getResourceIcon,
+  allPermissions = [],
 }: StandardPermissionsTableProps) {
+  // بررسی اینکه آیا admin.manage انتخاب شده است
+  const isAdminManageSelected = useMemo(() => {
+    const adminManagePerm = allPermissions.find((p: any) => {
+      const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
+      return pKey === 'admin.manage' || ((p as any).resource === 'admin' && (p as any).action?.toLowerCase() === 'manage');
+    });
+    return adminManagePerm ? isPermissionSelected(adminManagePerm.id) : false;
+  }, [allPermissions, isPermissionSelected, selectedPermissions]);
   if (resources.length === 0) {
     return null;
   }
@@ -110,11 +121,13 @@ export function StandardPermissionsTable({
                         <Checkbox
                           checked={isPermissionSelected(viewPerm.id)}
                           disabled={
-                            !isSuperAdmin && viewPerm.requires_superadmin
+                            (!isSuperAdmin && viewPerm.requires_superadmin) ||
+                            (resource.resource === 'admin' && isAdminManageSelected)
                           }
                           onCheckedChange={() => {
                             if (
-                              isSuperAdmin || !viewPerm.requires_superadmin
+                              (isSuperAdmin || !viewPerm.requires_superadmin) &&
+                              !(resource.resource === 'admin' && isAdminManageSelected)
                             ) {
                               onTogglePermission(viewPerm.id);
                             }
@@ -157,12 +170,14 @@ export function StandardPermissionsTable({
                       <Checkbox
                         checked={isPermissionSelected(createPerm?.id)}
                         disabled={
-                          !isSuperAdmin && createPerm?.requires_superadmin
+                          (!isSuperAdmin && createPerm?.requires_superadmin) ||
+                          (resource.resource === 'admin' && isAdminManageSelected)
                         }
                         onCheckedChange={() => {
                           if (
                             createPerm &&
-                            (isSuperAdmin || !createPerm.requires_superadmin)
+                            (isSuperAdmin || !createPerm.requires_superadmin) &&
+                            !(resource.resource === 'admin' && isAdminManageSelected)
                           ) {
                             onTogglePermission(createPerm.id);
                           }
@@ -183,11 +198,15 @@ export function StandardPermissionsTable({
                   <div className="flex justify-center relative group">
                     <Checkbox
                       checked={isPermissionSelected(editPerm?.id)}
-                      disabled={!isSuperAdmin && editPerm?.requires_superadmin}
+                      disabled={
+                        (!isSuperAdmin && editPerm?.requires_superadmin) ||
+                        (resource.resource === 'admin' && isAdminManageSelected)
+                      }
                       onCheckedChange={() => {
                         if (
                           editPerm &&
-                          (isSuperAdmin || !editPerm.requires_superadmin)
+                          (isSuperAdmin || !editPerm.requires_superadmin) &&
+                          !(resource.resource === 'admin' && isAdminManageSelected)
                         ) {
                           onTogglePermission(editPerm.id);
                         }
@@ -208,12 +227,14 @@ export function StandardPermissionsTable({
                     <Checkbox
                       checked={isPermissionSelected(deletePerm?.id)}
                       disabled={
-                        !isSuperAdmin && deletePerm?.requires_superadmin
+                        (!isSuperAdmin && deletePerm?.requires_superadmin) ||
+                        (resource.resource === 'admin' && isAdminManageSelected)
                       }
                       onCheckedChange={() => {
                         if (
                           deletePerm &&
-                          (isSuperAdmin || !deletePerm.requires_superadmin)
+                          (isSuperAdmin || !deletePerm.requires_superadmin) &&
+                          !(resource.resource === 'admin' && isAdminManageSelected)
                         ) {
                           onTogglePermission(deletePerm.id);
                         }

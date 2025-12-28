@@ -1,30 +1,36 @@
 from django.http import JsonResponse
 from django.conf import settings
-from src.core.security.ip_ban import IPBanService
+from src.core.security.ip_management import IPBanService
 import logging
 
 logger = logging.getLogger('admin_security')
 
 
 class AdminSecurityMiddleware:
-    """
-    امنیت چندلایه برای پنل ادمین
-    - چک کردن HTTPS در production
-    - IP Whitelist (اختیاری)
-    - لاگ کردن تمام دسترسی‌ها
-    """
     
     def __init__(self, get_response):
         self.get_response = get_response
     
     def __call__(self, request):
-        admin_secret = getattr(settings, 'ADMIN_URL_SECRET', '')
-        admin_path = f'/api/admin/{admin_secret}/'
-        
         # چک کردن آیا درخواست برای ادمین است
-        if request.path.startswith(admin_path):
-            # ✅ استثنا: login, logout و کپتچا نیازی به چک‌های امنیتی ندارن
-            if '/auth/login/' in request.path or '/auth/logout/' in request.path or '/captcha/' in request.path:
+        # حالا فقط login با secret path است، بقیه URLها معمولی هستند
+        is_admin_path = (
+            request.path.startswith('/api/admin/') and
+            not request.path.startswith('/api/admin/login/') and  # Honeypot
+            not request.path.startswith('/api/admin/user/')  # User URLs
+        )
+        
+        if is_admin_path:
+            admin_secret = getattr(settings, 'ADMIN_URL_SECRET', '')
+            secret_login_path = f'/api/admin/{admin_secret}/auth/login/'
+            secret_captcha_path = f'/api/admin/{admin_secret}/auth/captcha/'
+            
+            # ✅ استثنا: login با secret و captcha نیازی به چک‌های امنیتی ندارن
+            if request.path == secret_login_path or request.path.startswith(secret_captcha_path):
+                return self.get_response(request)
+            
+            # ✅ استثنا: logout و register هم نیازی به چک‌های امنیتی ندارن (بعد از login)
+            if '/auth/logout/' in request.path or '/auth/register/' in request.path:
                 return self.get_response(request)
             
             client_ip = self._get_client_ip(request)

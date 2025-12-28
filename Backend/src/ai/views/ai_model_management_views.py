@@ -18,12 +18,6 @@ class AIModelManagementViewSet(viewsets.ViewSet):
         GET /api/admin/ai-models/
         List all selected models stored in database
         """
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS.get("provider_not_authorized", "Not authorized"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         provider_id = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         search = request.query_params.get('search')
@@ -89,12 +83,6 @@ class AIModelManagementViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='browse-models')
     def browse_models(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS.get("provider_not_authorized", "Not authorized"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         provider_slug = request.query_params.get('provider')
         if not provider_slug:
             return APIResponse.error(
@@ -173,12 +161,6 @@ class AIModelManagementViewSet(viewsets.ViewSet):
         - model_id: Model identifier
         - model_name: Model display name
         """
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS.get("provider_not_authorized", "Not authorized"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         provider_slug = request.data.get('provider')
         capability = request.data.get('capability')
         model_id = request.data.get('model_id')
@@ -280,12 +262,6 @@ class AIModelManagementViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='selected-models')
     def get_selected_models(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS.get("provider_not_authorized", "Not authorized"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         provider_slug = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         

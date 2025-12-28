@@ -3,12 +3,15 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { Switch } from "@/components/elements/Switch";
 import { Sparkles, Shield, Info } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
+import { useMemo } from "react";
 import type { ReactElement } from "react";
 
 interface Permission {
   id: number;
   original_key?: string;
   display_name: string;
+  action?: string;
+  is_standalone?: boolean;
   requires_superadmin?: boolean;
 }
 
@@ -56,33 +59,81 @@ export function AIPermissionsCard({
   const aiManagePermission = filteredPermissions.find(
     (p) => p.original_key === "ai.manage"
   );
-  const isAiManageSelected = aiManagePermission
-    ? isPermissionSelected(aiManagePermission.id)
-    : false;
   
-  const hasImagePermission = filteredPermissions.some(
-    (p) => (p.original_key === "ai.image.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
-  );
+  // استفاده مستقیم از selectedPermissions برای محاسبه دقیق‌تر
+  const isAiManageSelected = useMemo(() => {
+    if (!aiManagePermission?.id) return false;
+    return _selectedPermissions.includes(aiManagePermission.id);
+  }, [aiManagePermission?.id, _selectedPermissions]);
   
-  const hasContentPermission = filteredPermissions.some(
-    (p) => (p.original_key === "ai.content.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
-  );
+  const hasImagePermission = useMemo(() => {
+    return filteredPermissions.some(
+      (p) => {
+        if (!p.id) return false;
+        const isSelected = _selectedPermissions.includes(p.id);
+        return (p.original_key === "ai.image.manage" || p.original_key === "ai.manage") && isSelected;
+      }
+    );
+  }, [filteredPermissions, _selectedPermissions]);
   
-  const hasAudioPermission = filteredPermissions.some(
-    (p) => (p.original_key === "ai.audio.manage" || p.original_key === "ai.manage") && isPermissionSelected(p.id)
-  );
+  const hasContentPermission = useMemo(() => {
+    return filteredPermissions.some(
+      (p) => {
+        if (!p.id) return false;
+        const isSelected = _selectedPermissions.includes(p.id);
+        return (p.original_key === "ai.content.manage" || p.original_key === "ai.manage") && isSelected;
+      }
+    );
+  }, [filteredPermissions, _selectedPermissions]);
   
-  const hasMediaPermission = allPermissions.some(
-    (p: any) => (p.original_key === "media.manage" || p.resource === "media") && isPermissionSelected(p.id)
-  );
+  const hasAudioPermission = useMemo(() => {
+    return filteredPermissions.some(
+      (p) => {
+        if (!p.id) return false;
+        const isSelected = _selectedPermissions.includes(p.id);
+        return (p.original_key === "ai.audio.manage" || p.original_key === "ai.manage") && isSelected;
+      }
+    );
+  }, [filteredPermissions, _selectedPermissions]);
   
-  const hasBlogPermission = allPermissions.some(
-    (p: any) => (p.original_key === "blog.manage" || p.resource === "blog") && isPermissionSelected(p.id)
-  );
+  const hasMediaPermission = useMemo(() => {
+    if (!allPermissions || allPermissions.length === 0) return false;
+    return allPermissions.some(
+      (p: any) => {
+        if (!p?.id) return false;
+        const isSelected = _selectedPermissions.includes(p.id);
+        const hasMediaKey = p.original_key === "media.manage" || p.original_key?.startsWith("media.");
+        const hasMediaResource = p.resource === "media";
+        return (hasMediaKey || hasMediaResource) && isSelected;
+      }
+    );
+  }, [allPermissions, _selectedPermissions]);
   
-  const hasPortfolioPermission = allPermissions.some(
-    (p: any) => (p.original_key === "portfolio.manage" || p.resource === "portfolio") && isPermissionSelected(p.id)
-  );
+  const hasBlogPermission = useMemo(() => {
+    if (!allPermissions || allPermissions.length === 0) return false;
+    return allPermissions.some(
+      (p: any) => {
+        if (!p?.id) return false;
+        const isSelected = _selectedPermissions.includes(p.id);
+        const hasBlogKey = p.original_key === "blog.manage" || p.original_key?.startsWith("blog.");
+        const hasBlogResource = p.resource === "blog";
+        return (hasBlogKey || hasBlogResource) && isSelected;
+      }
+    );
+  }, [allPermissions, _selectedPermissions]);
+  
+  const hasPortfolioPermission = useMemo(() => {
+    if (!allPermissions || allPermissions.length === 0) return false;
+    return allPermissions.some(
+      (p: any) => {
+        if (!p?.id) return false;
+        const isSelected = _selectedPermissions.includes(p.id);
+        const hasPortfolioKey = p.original_key === "portfolio.manage" || p.original_key?.startsWith("portfolio.");
+        const hasPortfolioResource = p.resource === "portfolio";
+        return (hasPortfolioKey || hasPortfolioResource) && isSelected;
+      }
+    );
+  }, [allPermissions, _selectedPermissions]);
 
   return (
     <Card className="border-2 border-dashed border-yellow-500/20 bg-yellow-500/5">
@@ -167,32 +218,92 @@ export function AIPermissionsCard({
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredPermissions
-            .sort((a, b) => {
-              return (
-                aiUsedPermissions.indexOf(a.original_key || "") -
-                aiUsedPermissions.indexOf(b.original_key || "")
-              );
-            })
-            .map((perm) => {
-              const isSelected = isPermissionSelected(perm.id);
-              const isDisabled =
-                isAiManageSelected &&
-                perm.original_key !== "ai.manage" &&
-                perm.original_key?.startsWith("ai.");
-
-              const canToggle = !(perm.requires_superadmin && !isSuperAdmin) && !isDisabled;
-
-              return (
+        <div className="space-y-4">
+          {/* نمایش ai.manage */}
+          {aiManagePermission && (
+            <div
+              className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
+                isAiManageSelected
+                  ? "border-yellow-600 bg-yellow-500/10"
+                  : "border-br bg-card"
+              }`}
+            >
+              <div className="flex-shrink-0">
                 <div
-                  key={perm.id}
-                  className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
-                    isSelected
-                      ? "border-yellow-600 bg-yellow-500/10"
-                      : "border-br bg-card"
-                  } ${!canToggle ? "opacity-50" : ""}`}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isAiManageSelected
+                      ? "bg-yellow-500/20"
+                      : "bg-bg"
+                  }`}
                 >
+                  {getResourceIcon("ai")}
+                </div>
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <h3 className={`text-sm font-medium leading-tight ${
+                      isAiManageSelected ? "text-yellow-600" : "text-font-p"
+                    }`}>
+                      {getPermissionTranslation(aiManagePermission.display_name, "description")}
+                    </h3>
+                    {(() => {
+                      const descriptionKey = aiManagePermission.display_name as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
+                      const description = PERMISSION_TRANSLATIONS.descriptions[descriptionKey];
+                      return description && description !== getPermissionTranslation(aiManagePermission.display_name, "description") ? (
+                        <p className="text-xs text-font-s mt-1">
+                          {description}
+                        </p>
+                      ) : null;
+                    })()}
+                  </div>
+                  
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    {aiManagePermission.requires_superadmin && !isSuperAdmin && (
+                      <div title="نیازمند دسترسی سوپر ادمین">
+                        <Shield className="h-4 w-4 text-amber-500" />
+                      </div>
+                    )}
+                    <Switch
+                      checked={isAiManageSelected}
+                      onCheckedChange={(_checked) => {
+                        if (!(isSuperAdmin || !aiManagePermission.requires_superadmin)) return;
+                        onTogglePermission(aiManagePermission.id);
+                      }}
+                      disabled={!(isSuperAdmin || !aiManagePermission.requires_superadmin)}
+                      aria-label={getPermissionTranslation(aiManagePermission.display_name, "description")}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* نمایش permissions جزئی (فقط اگر ai.manage انتخاب نشده باشد) */}
+          {!isAiManageSelected && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredPermissions
+                .filter((p) => p.original_key !== "ai.manage")
+                .sort((a, b) => {
+                  return (
+                    aiUsedPermissions.indexOf(a.original_key || "") -
+                    aiUsedPermissions.indexOf(b.original_key || "")
+                  );
+                })
+                .map((perm) => {
+                  const isSelected = isPermissionSelected(perm.id);
+                  const canToggle = !(perm.requires_superadmin && !isSuperAdmin);
+
+                  return (
+                    <div
+                      key={perm.id}
+                      className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
+                        isSelected
+                          ? "border-yellow-600 bg-yellow-500/10"
+                          : "border-br bg-card"
+                      } ${!canToggle ? "opacity-50" : ""}`}
+                    >
                   <div className="flex-shrink-0">
                     <div
                       className={`p-2 rounded-lg transition-colors ${
@@ -230,11 +341,6 @@ export function AIPermissionsCard({
                             <Shield className="h-4 w-4 text-amber-500" />
                           </div>
                         )}
-                        {isDisabled && (
-                          <div title="دسترسی کامل AI انتخاب شده است">
-                            <Shield className="h-4 w-4 text-yellow-600" />
-                          </div>
-                        )}
                         <Switch
                           checked={isSelected}
                           onCheckedChange={(_checked) => {
@@ -250,6 +356,8 @@ export function AIPermissionsCard({
                 </div>
               );
             })}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

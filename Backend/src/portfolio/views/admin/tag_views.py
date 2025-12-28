@@ -17,7 +17,6 @@ from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, SimpleAdminPermission, PermissionRequiredMixin
-from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
@@ -51,11 +50,6 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return PortfolioTag.objects.all()
 
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.tag.read'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
         }
@@ -96,11 +90,6 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @method_decorator(csrf_exempt)
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.tag.create'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -117,11 +106,6 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.tag.read'):
-            return APIResponse.error(
-                message=TAG_ERRORS["tag_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         tag = PortfolioTagAdminService.get_tag_by_id(kwargs.get('pk'))
         
         if not tag:
@@ -138,11 +122,6 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.tag.update'):
-            return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to update portfolio tags"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         partial = kwargs.pop('partial', False)
         tag = PortfolioTagAdminService.get_tag_by_id(kwargs.get('pk'))
         
@@ -168,11 +147,6 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.tag.delete'):
-            return APIResponse.error(
-                message=TAG_ERRORS.get("tag_not_authorized", "You don't have permission to delete portfolio tags"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         tag_id = kwargs.get('pk')
         
         try:

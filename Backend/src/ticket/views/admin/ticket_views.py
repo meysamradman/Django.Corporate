@@ -8,11 +8,22 @@ from src.ticket.serializers.ticket_serializer import TicketSerializer, TicketLis
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
-from src.user.access_control import ticket_permission, PermissionValidator
+from src.user.access_control import ticket_permission, PermissionRequiredMixin
 
 
-class AdminTicketViewSet(viewsets.ModelViewSet):
+class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ticket_permission]
+    
+    permission_map = {
+        'list': ['ticket.manage', 'ticket.read'],  # Check if user has ticket.manage OR ticket.read
+        'retrieve': ['ticket.manage', 'ticket.read'],
+        'update': ['ticket.manage', 'ticket.update'],
+        'destroy': ['ticket.manage', 'ticket.delete'],
+        'mark_as_read': ['ticket.manage', 'ticket.read'],
+        'update_status': ['ticket.manage', 'ticket.update'],
+        'stats': ['ticket.manage', 'ticket.read'],
+    }
+    permission_denied_message = TICKET_ERRORS['permission_denied']
     serializer_class = TicketSerializer
     
     def get_queryset(self):
@@ -57,19 +68,9 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return TicketSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         return super().list(request, *args, **kwargs)
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         return super().retrieve(request, *args, **kwargs)
     
     def create(self, request, *args, **kwargs):
@@ -79,11 +80,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         response = super().update(request, *args, **kwargs)
         ticket = self.get_object()
         TicketCacheManager.invalidate_ticket(ticket.id)
@@ -97,11 +93,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
         return response
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.delete']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         ticket_id = self.get_object().id
         response = super().destroy(request, *args, **kwargs)
         TicketCacheManager.invalidate_ticket(ticket_id)
@@ -115,12 +106,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             ticket = self.get_object()
             
@@ -151,12 +136,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.update']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             ticket = self.get_object()
             new_status = request.data.get('status')
@@ -195,12 +174,6 @@ class AdminTicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
-        if not PermissionValidator.has_any_permission(request.user, ['ticket.manage', 'ticket.read']):
-            return APIResponse.error(
-                message=TICKET_ERRORS['permission_denied'],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             has_unread = TicketMessage.objects.filter(
                 ticket=OuterRef('pk'),

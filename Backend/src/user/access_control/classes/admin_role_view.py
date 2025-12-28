@@ -561,6 +561,9 @@ class AdminRoleView(viewsets.ViewSet):
                 'analytics.dashboard.read'
             }
             
+            # Group permissions by resource (extracted from perm_key)
+            resource_map = {}
+            
             for module_key, module_info in modules.items():
                 if module_key == 'all':
                     continue
@@ -570,8 +573,6 @@ class AdminRoleView(viewsets.ViewSet):
                 if not real_perms:
                     continue
                     
-                permissions_for_module = []
-                
                 for perm_key, perm_data in real_perms:
                     if perm_key in base_permission_keys:
                         continue
@@ -579,9 +580,45 @@ class AdminRoleView(viewsets.ViewSet):
                     if module_key == 'analytics' and perm_key not in ANALYTICS_USED_PERMISSIONS:
                         continue
                     
-                    permissions_for_module.append({
+                    # Extract resource from perm_key (everything except the last part which is action)
+                    # e.g., 'blog.category.read' -> 'blog.category', 'blog.read' -> 'blog'
+                    perm_parts = perm_key.split('.')
+                    if len(perm_parts) < 2:
+                        continue
+                    
+                    # Resource is all parts except the last one (action)
+                    resource = '.'.join(perm_parts[:-1])
+                    
+                    if resource not in resource_map:
+                        # Generate display_name for nested resources
+                        # e.g., 'blog.category' -> 'Blog Categories', 'blog.tag' -> 'Blog Tags'
+                        if resource == module_key:
+                            # Base module
+                            display_name = module_info['display_name']
+                        else:
+                            # Nested resource (e.g., blog.category, blog.tag)
+                            # Extract the nested part (e.g., 'category', 'tag')
+                            nested_part = perm_parts[-2] if len(perm_parts) > 2 else resource.split('.')[-1]
+                            # Use the display_name from the permission and remove action part
+                            # e.g., 'View Blog Categories' -> 'Blog Categories'
+                            perm_display = perm_data.get('display_name', '')
+                            # Remove action words from the beginning
+                            action_words = ['View ', 'Create ', 'Update ', 'Delete ', 'Manage ', 'Edit ']
+                            for action_word in action_words:
+                                if perm_display.startswith(action_word):
+                                    perm_display = perm_display[len(action_word):]
+                                    break
+                            display_name = perm_display or f"{module_info['display_name']} - {nested_part.title()}"
+                        
+                        resource_map[resource] = {
+                            'resource': resource,
+                            'display_name': display_name,
+                            'permissions': []
+                        }
+                    
+                    resource_map[resource]['permissions'].append({
                         'id': permission_id,
-                        'resource': module_key,
+                        'resource': resource,
                         'action': perm_data['action'],
                         'display_name': perm_data['display_name'],
                         'description': perm_data['description'],
@@ -590,13 +627,9 @@ class AdminRoleView(viewsets.ViewSet):
                         'original_key': perm_key
                     })
                     permission_id += 1
-                
-                if permissions_for_module:
-                    permission_groups.append({
-                        'resource': module_key,
-                        'display_name': module_info['display_name'],
-                        'permissions': permissions_for_module
-                    })
+            
+            # Convert resource_map to list
+            permission_groups = list(resource_map.values())
             
             return APIResponse.success(
                 message=ROLE_SUCCESS["available_permissions_retrieved"],

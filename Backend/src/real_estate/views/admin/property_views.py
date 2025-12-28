@@ -8,8 +8,7 @@ from django.conf import settings
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import real_estate_permission, RealEstatePermissionMixin
-from src.user.access_control.definitions import PermissionValidator
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.property import Property
 from src.real_estate.serializers.admin import (
@@ -30,7 +29,7 @@ from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 
 
-class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
+class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PropertyAdminFilter
@@ -85,12 +84,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
             return PropertyAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.read'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
@@ -106,12 +99,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.read'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return APIResponse.success(
@@ -157,12 +144,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
         return media_ids
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.create'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-
         print(f"CREATE REQUEST DATA: {request.data}")
         print(f"CREATE FILES: {request.FILES}")
 
@@ -208,12 +189,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-
         print(f"UPDATE REQUEST DATA: {request.data}")
         print(f"UPDATE FILES: {request.FILES}")
 
@@ -282,12 +257,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.delete'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         instance = self.get_object()
         
         success = PropertyAdminService.delete_property(instance.id)
@@ -305,12 +274,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.delete'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         property_ids = request.data.get('ids', [])
         
         if not property_ids:
@@ -341,12 +304,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-update-status')
     def bulk_update_status(self, request):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         property_ids = request.data.get('ids', [])
         is_published = request.data.get('is_published')
         is_featured = request.data.get('is_featured')
@@ -385,12 +342,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def publish(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             result = PropertyAdminStatusService.publish_property(pk)
             
@@ -414,12 +365,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def unpublish(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             property_obj = PropertyAdminStatusService.unpublish_property(pk)
             serializer = PropertyAdminDetailSerializer(property_obj)
@@ -437,12 +382,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def toggle_featured(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             property_obj = PropertyAdminStatusService.toggle_featured(pk)
             serializer = PropertyAdminDetailSerializer(property_obj)
@@ -460,12 +399,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def toggle_verified(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             property_obj = PropertyAdminStatusService.toggle_verified(pk)
             serializer = PropertyAdminDetailSerializer(property_obj)
@@ -483,12 +416,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         media_id = request.data.get('media_id')
         
         if not media_id:
@@ -516,12 +443,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.read'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         stats = PropertyAdminService.get_property_statistics()
         
         return APIResponse.success(
@@ -532,12 +453,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='seo-report')
     def seo_report(self, request):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.read'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         report = PropertyAdminService.get_seo_report()
         
         return APIResponse.success(
@@ -548,12 +463,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='bulk-generate-seo')
     def bulk_generate_seo(self, request):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         property_ids = request.data.get('ids', [])
         
         if not property_ids:
@@ -578,12 +487,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='generate-seo')
     def generate_seo(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             property_obj = PropertyAdminSEOService.auto_generate_seo(pk)
             serializer = PropertyAdminDetailSerializer(property_obj)
@@ -600,12 +503,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='validate-seo')
     def validate_seo(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.read'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             validation_result = PropertyAdminSEOService.validate_seo_data(pk)
             return APIResponse.success(
@@ -621,12 +518,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='add-media')
     def add_media(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         media_files = request.FILES.getlist('media_files')
         serializer = PropertyMediaSerializer(data=request.data.copy())
         serializer.is_valid(raise_exception=True)
@@ -671,12 +562,6 @@ class PropertyAdminViewSet(RealEstatePermissionMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='set-main-image')
     def set_main_image(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'real_estate.property.update'):
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         media_id = request.data.get('media_id')
         
         if not media_id:

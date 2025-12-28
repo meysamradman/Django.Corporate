@@ -56,10 +56,10 @@ export function ManagementPermissionsCard({
             </div>
             <div>
               <CardTitle>
-                {getPermissionTranslation("Settings", "resource")}
+                دسترسی‌های کلیدی سیستم
               </CardTitle>
               <p className="text-sm text-font-s mt-1">
-                {PERMISSION_TRANSLATIONS.cardDescriptions.management}
+                دسترسی‌های مدیریتی که به صورت کامل (همه یا هیچ) اعمال می‌شوند
               </p>
             </div>
           </div>

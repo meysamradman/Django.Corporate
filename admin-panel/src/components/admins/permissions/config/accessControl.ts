@@ -3,12 +3,12 @@ import type { ModuleAction } from "@/types/auth/permission";
 const MODULES = {
   AI: 'ai',
   BLOG: 'blog',
-  BLOG_CATEGORIES: 'blog_categories',
-  BLOG_TAGS: 'blog_tags',
+  BLOG_CATEGORIES: 'blog.category',
+  BLOG_TAGS: 'blog.tag',
   PORTFOLIO: 'portfolio',
-  PORTFOLIO_CATEGORIES: 'portfolio_categories',
-  PORTFOLIO_TAGS: 'portfolio_tags',
-  PORTFOLIO_OPTIONS: 'portfolio_options',
+  PORTFOLIO_CATEGORIES: 'portfolio.category',
+  PORTFOLIO_TAGS: 'portfolio.tag',
+  PORTFOLIO_OPTIONS: 'portfolio.option',
   REAL_ESTATE: 'real_estate',
   REAL_ESTATE_PROPERTY: 'real_estate.property',
   REAL_ESTATE_TYPE: 'real_estate.type',
@@ -194,6 +194,7 @@ const settingsRoutes: RouteRule[] = [
     module: MODULES.PANEL,
     action: "manage",
     description: "تنظیمات پنل",
+    requireSuperAdmin: true,  // IP Management حساس است، فقط Super Admin
   }),
   createRule({
     id: "settings-general",

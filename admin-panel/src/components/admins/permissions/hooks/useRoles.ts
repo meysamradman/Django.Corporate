@@ -35,6 +35,9 @@ export const usePermissions = () => {
     },
     staleTime: 0,
     gcTime: 0,
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid rate limiting
+    refetchOnMount: true, // Fetch on mount (first load) - this is necessary!
+    refetchOnReconnect: false, // Don't refetch on reconnect to avoid rate limiting
   })
 }
 
@@ -47,6 +50,9 @@ export const useBasePermissions = () => {
     },
     staleTime: 0,
     gcTime: 0,
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid rate limiting
+    refetchOnMount: true, // Fetch on mount (first load) - this is necessary!
+    refetchOnReconnect: false, // Don't refetch on reconnect to avoid rate limiting
   })
 }
 

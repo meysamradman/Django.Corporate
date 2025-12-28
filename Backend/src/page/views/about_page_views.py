@@ -13,17 +13,24 @@ from src.page.services.about_page_service import (
     update_about_page,
 )
 from src.page.messages.messages import ABOUT_PAGE_SUCCESS, ABOUT_PAGE_ERRORS
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
 
-class AboutPageViewSet(viewsets.ModelViewSet):
+class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = AboutPage.objects.all()
     serializer_class = AboutPageSerializer
     
-    def get_permissions(self):
-        return [RequirePermission('pages.manage')]
+    permission_map = {
+        'list': 'pages.manage',
+        'retrieve': 'pages.manage',
+        'create': 'pages.manage',
+        'update': 'pages.manage',
+        'partial_update': 'pages.manage',
+        'destroy': 'pages.manage',
+    }
+    permission_denied_message = ABOUT_PAGE_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:

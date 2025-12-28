@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.http import StreamingHttpResponse, HttpResponse
 from django.conf import settings
 
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.panel.services import PanelSettingsService
 from src.panel.services.database_export_service import (
@@ -19,9 +19,20 @@ from src.panel.messages.messages import PANEL_SUCCESS, PANEL_ERRORS
 from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
 
 
-class AdminPanelSettingsViewSet(viewsets.ViewSet):
+class AdminPanelSettingsViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     serializer_class = PanelSettingsSerializer
+    
+    permission_map = {
+        'list': 'panel.manage',
+        'update': 'panel.manage',
+        'partial_update': 'panel.manage',
+        'update_settings': 'panel.manage',
+        'get_database_export_info': 'panel.manage',
+        'download_database_export': 'panel.manage',
+    }
+    permission_denied_message = PANEL_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_serializer(self, *args, **kwargs):
         kwargs.setdefault('context', self.get_serializer_context())
@@ -33,10 +44,6 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             'format': self.format_kwarg,
             'view': self
         }
-    
-    def get_permissions(self):
-        return [RequirePermission('panel.manage')]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def list(self, request, *args, **kwargs):
         instance = PanelSettingsService.get_panel_settings()

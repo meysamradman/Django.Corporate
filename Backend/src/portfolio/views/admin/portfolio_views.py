@@ -216,11 +216,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
-            return APIResponse.error(
-                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
@@ -261,11 +256,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.delete'):
-            return APIResponse.error(
-                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         instance = self.get_object()
         
         success = PortfolioAdminService.delete_portfolio(instance.id)
@@ -437,11 +427,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.update'):
-            return APIResponse.error(
-                message=PORTFOLIO_ERRORS["portfolio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         media_files = request.FILES.getlist('media_files')
         serializer = PortfolioMediaSerializer(data=request.data.copy())
         serializer.is_valid(raise_exception=True)

@@ -10,26 +10,22 @@ from src.media.serializers.media_serializer import MediaAdminSerializer
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
-from src.user.access_control import ai_permission, PermissionValidator
+from src.user.access_control import ai_permission, PermissionRequiredMixin
 import base64
 
 
-class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
+class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [ai_permission]
     
+    permission_map = {
+        'available_providers': ['ai.audio.manage', 'ai.manage'],  # Check if user has ai.audio.manage OR ai.manage
+        'generate_audio': ['ai.audio.manage', 'ai.manage'],
+    }
+    permission_denied_message = AI_ERRORS["audio_not_authorized"]
+    
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_audio_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["audio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -80,16 +76,6 @@ class AIAudioGenerationRequestViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_audio(self, request):
-        has_audio_permission = PermissionValidator.has_permission(request.user, 'ai.audio.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_audio_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["audio_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = AIAudioGenerationRequestSerializer(data=request.data)
         
         if not serializer.is_valid():

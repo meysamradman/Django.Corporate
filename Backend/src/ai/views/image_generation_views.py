@@ -110,12 +110,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS["provider_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
             
@@ -146,12 +140,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='openrouter-models')
     def openrouter_models(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS["provider_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             try:
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
@@ -209,12 +197,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='huggingface-models')
     def huggingface_models(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS["provider_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             try:
                 provider = AIProvider.objects.get(slug='huggingface', is_active=True)
@@ -272,12 +254,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'], url_path='clear-openrouter-cache')
     def clear_openrouter_cache(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS["provider_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             OpenRouterModelCache.clear_all()
             
@@ -391,12 +367,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_image(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.image.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS["image_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = AIImageGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(

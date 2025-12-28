@@ -28,10 +28,12 @@ class PermissionRequiredMixin:
     permission_map = {}
     permission_denied_message = "شما اجازه دسترسی به این بخش را ندارید"
     
-    def check_permissions(self, request):
-        """Override DRF's check_permissions"""
-        super().check_permissions(request)
+    def initial(self, request, *args, **kwargs):
+        """Override DRF's initial to check permissions after action is set"""
+        # Call parent first - this will call check_permissions
+        super().initial(request, *args, **kwargs)
         
+        # After initial, action should be set (it's set in dispatch before initial)
         action = getattr(self, 'action', None)
         if not action:
             return
@@ -46,12 +48,17 @@ class PermissionRequiredMixin:
         if getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False):
             return
         
-        # Check permission
-        if not PermissionValidator.has_permission(user, required_permission):
-            self.permission_denied(
-                request,
-                message=self.permission_denied_message
-            )
+        # Check permission - support both single permission and list of permissions (OR logic)
+        if isinstance(required_permission, list):
+            # If it's a list, check if user has ANY of the permissions
+            has_permission = PermissionValidator.has_any_permission(user, required_permission)
+        else:
+            # If it's a single permission string, check normally
+            has_permission = PermissionValidator.has_permission(user, required_permission)
+        
+        if not has_permission:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied(self.permission_denied_message)
 
 
 class RealEstatePermissionMixin(PermissionRequiredMixin):

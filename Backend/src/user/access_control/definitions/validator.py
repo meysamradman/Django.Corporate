@@ -42,7 +42,23 @@ class PermissionValidator:
                 return True
 
         user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
-        has_module = "all" in user_modules or perm.module in user_modules
+        
+        # Check if user has module access
+        # For nested modules, check if perm.module matches any user_module or if user_module starts with perm.module
+        # e.g., perm.module='real_estate' matches user_module='real_estate.property'
+        has_module = False
+        if "all" in user_modules:
+            has_module = True
+        elif perm.module in user_modules:
+            has_module = True
+        else:
+            # Check if any user_module starts with perm.module (for nested modules)
+            # e.g., 'real_estate.property' starts with 'real_estate.'
+            for user_module in user_modules:
+                if user_module.startswith(perm.module + '.'):
+                    has_module = True
+                    break
+        
         has_action = "all" in user_actions or perm.action in user_actions
         return has_module and has_action
 

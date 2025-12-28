@@ -9,7 +9,7 @@ from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationResponseSerializer
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-from src.user.access_control import ai_permission, PermissionValidator
+from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider
@@ -18,8 +18,18 @@ from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.utils.destination_handler import ContentDestinationHandler
 
 
-class AIContentGenerationViewSet(viewsets.ViewSet):
+class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
+    
+    permission_map = {
+        'available_providers': ['ai.content.manage', 'ai.manage'],  # Check if user has ai.content.manage OR ai.manage
+        'openrouter_models': ['ai.content.manage', 'ai.manage'],
+        'groq_models': ['ai.content.manage', 'ai.manage'],
+        'huggingface_models': ['ai.content.manage', 'ai.manage'],
+        'clear_openrouter_cache': ['ai.content.manage', 'ai.manage'],
+        'generate_content': ['ai.content.manage', 'ai.manage'],
+    }
+    permission_denied_message = AI_ERRORS["content_not_authorized"]
     
     @action(detail=False, methods=['get'], url_path='capabilities')
     def get_capabilities(self, request):
@@ -50,16 +60,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_content_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["content_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -110,16 +110,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='openrouter-models')
     def openrouter_models(self, request):
-        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_content_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["openrouter_permission_denied"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             try:
                 provider = AIProvider.objects.get(slug='openrouter', is_active=True)
@@ -173,16 +163,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='groq-models')
     def groq_models(self, request):
-        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_content_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["groq_permission_denied"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             try:
                 provider = AIProvider.objects.get(slug='groq', is_active=True)
@@ -234,16 +214,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='huggingface-models')
     def huggingface_models(self, request):
-        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_content_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["provider_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         try:
             try:
                 provider = AIProvider.objects.get(slug='huggingface', is_active=True)
@@ -301,11 +271,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='clear-openrouter-cache')
     def clear_openrouter_cache(self, request):
-        if not PermissionValidator.has_permission(request.user, 'ai.manage'):
-            return APIResponse.error(
-                message=AI_ERRORS["cache_clear_permission_denied"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         
         try:
             OpenRouterModelCache.clear_all()
@@ -323,15 +288,6 @@ class AIContentGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_content(self, request):
-        has_content_permission = PermissionValidator.has_permission(request.user, 'ai.content.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_content_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["content_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = AIContentGenerationRequestSerializer(data=request.data)
         
         if not serializer.is_valid():

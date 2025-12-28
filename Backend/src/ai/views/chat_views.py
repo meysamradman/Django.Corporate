@@ -9,27 +9,23 @@ from src.ai.serializers.chat_serializer import (
     AIChatResponseSerializer,
 )
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-from src.user.access_control import ai_permission, PermissionValidator
+from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.models import AIProvider, AdminProviderSettings
 
 
-class AIChatViewSet(viewsets.ViewSet):
+class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
+    
+    permission_map = {
+        'send_message': ['ai.chat.manage', 'ai.manage'],  # Check if user has ai.chat.manage OR ai.manage
+        'available_providers': ['ai.chat.manage', 'ai.manage'],
+    }
+    permission_denied_message = AI_ERRORS["chat_not_authorized"]
     
     @action(detail=False, methods=['post'], url_path='send-message')
     def send_message(self, request):
-        has_chat_permission = PermissionValidator.has_permission(request.user, 'ai.chat.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_chat_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["chat_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         serializer = AIChatRequestSerializer(data=request.data)
         
         if not serializer.is_valid():
@@ -112,16 +108,6 @@ class AIChatViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        has_chat_permission = PermissionValidator.has_permission(request.user, 'ai.chat.manage')
-        has_manage_permission = PermissionValidator.has_permission(request.user, 'ai.manage')
-        has_permission = has_chat_permission or has_manage_permission
-        
-        if not has_permission:
-            return APIResponse.error(
-                message=AI_ERRORS["chat_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-        
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:

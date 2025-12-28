@@ -13,10 +13,10 @@ from src.email.serializers.email_serializer import (
     EmailMessageSerializer
 )
 from src.email.services.email_service import EmailService
-from src.user.access_control import email_permission, PermissionValidator
+from src.user.access_control import email_permission, PermissionRequiredMixin
 
 
-class EmailMessageViewSet(viewsets.ModelViewSet):
+class EmailMessageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = EmailMessage.objects.all()
     pagination_class = StandardLimitPagination
@@ -26,12 +26,20 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'status']
     ordering = ['-created_at']
     
+    permission_map = {
+        'list': 'email.read',
+        'retrieve': 'email.read',
+        'update': 'email.update',
+        'partial_update': 'email.update',
+        'destroy': 'email.delete',
+        'mark_as_read': 'email.update',
+        'mark_as_replied': 'email.update',
+        'stats': 'email.read',
+        'save_as_draft': 'email.update',
+    }
+    permission_denied_message = EMAIL_ERRORS["message_not_authorized"]
+    
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'email.read'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         
@@ -86,11 +94,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'email.read'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -107,11 +110,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'email.update'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -142,11 +140,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'email.delete'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             instance = self.get_object()
             instance.delete()
@@ -168,11 +161,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[email_permission])
     def mark_as_read(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'email.update'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             message = self.get_object()
             
@@ -198,11 +186,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[email_permission])
     def mark_as_replied(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'email.update'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             message = self.get_object()
             reply_text = request.data.get('reply_message', '')
@@ -236,11 +219,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[email_permission])
     def stats(self, request):
-        if not PermissionValidator.has_permission(request.user, 'email.read'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             stats = EmailService.get_statistics()
             stats['draft'] = EmailMessage.objects.filter(status='draft').count()
@@ -258,11 +236,6 @@ class EmailMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[email_permission])
     def save_as_draft(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'email.update'):
-            return APIResponse.error(
-                message=EMAIL_ERRORS["message_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         try:
             message = self.get_object()
             message.save_as_draft(request.user)

@@ -16,7 +16,6 @@ from src.portfolio.services.admin.category_services import PortfolioCategoryAdmi
 from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
-from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
@@ -62,11 +61,6 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
             return PortfolioCategoryAdminDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.category.read'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS["category_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         tree_mode = request.GET.get('tree', '').lower() == 'true'
         if tree_mode:
             tree_data = PortfolioCategoryAdminService.get_tree_data()
@@ -99,11 +93,6 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
         return value.lower() in ('1', 'true', 'yes', 'on')
 
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.category.create'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS["category_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -120,11 +109,6 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
         )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.category.read'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS["category_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         category = PortfolioCategoryAdminService.get_category_by_id(kwargs.get('pk'))
         
         if not category:
@@ -141,11 +125,6 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
         )
 
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.category.update'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to update portfolio categories"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         partial = kwargs.pop('partial', False)
         category_id = kwargs.get('pk')
         
@@ -171,11 +150,6 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
             )
 
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.category.delete'):
-            return APIResponse.error(
-                message=CATEGORY_ERRORS.get("category_not_authorized", "You don't have permission to delete portfolio categories"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         category_id = kwargs.get('pk')
         
         try:

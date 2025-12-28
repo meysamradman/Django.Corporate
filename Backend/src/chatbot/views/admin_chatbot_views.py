@@ -10,15 +10,22 @@ from src.chatbot.serializers.faq_serializer import FAQSerializer, FAQListSeriali
 from src.chatbot.serializers.settings_serializer import ChatbotSettingsSerializer
 from src.chatbot.services.rule_based_service import RuleBasedChatService
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 
-class AdminFAQViewSet(viewsets.ModelViewSet):
+class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     
-    def get_permissions(self):
-        return [RequirePermission('chatbot.manage')]
+    permission_map = {
+        'list': 'chatbot.manage',
+        'retrieve': 'chatbot.manage',
+        'create': 'chatbot.manage',
+        'update': 'chatbot.manage',
+        'partial_update': 'chatbot.manage',
+        'destroy': 'chatbot.manage',
+    }
+    permission_denied_message = CHATBOT_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     
     def get_queryset(self):
         return FAQ.objects.all().order_by('order', '-created_at')
@@ -79,11 +86,19 @@ class AdminFAQViewSet(viewsets.ModelViewSet):
         )
 
 
-class AdminChatbotSettingsViewSet(viewsets.ModelViewSet):
+class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     serializer_class = ChatbotSettingsSerializer
     
-    def get_permissions(self):
-        return [RequirePermission('chatbot.manage')]
+    permission_map = {
+        'list': 'chatbot.manage',
+        'retrieve': 'chatbot.manage',
+        'create': 'chatbot.manage',
+        'update': 'chatbot.manage',
+        'partial_update': 'chatbot.manage',
+        'destroy': 'chatbot.manage',
+        'update_settings': 'chatbot.manage',
+    }
+    permission_denied_message = CHATBOT_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     
     def get_queryset(self):
         return ChatbotSettings.objects.all()

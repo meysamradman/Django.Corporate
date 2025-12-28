@@ -215,11 +215,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.update'):
-            return APIResponse.error(
-                message=BLOG_ERRORS["blog_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
@@ -260,11 +255,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'blog.delete'):
-            return APIResponse.error(
-                message=BLOG_ERRORS["blog_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         instance = self.get_object()
         
         success = BlogAdminService.delete_blog(instance.id)
@@ -436,11 +426,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        if not PermissionValidator.has_permission(request.user, 'blog.update'):
-            return APIResponse.error(
-                message=BLOG_ERRORS["blog_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         media_files = request.FILES.getlist('media_files')
         serializer = BlogMediaSerializer(data=request.data.copy())
         serializer.is_valid(raise_exception=True)

@@ -9,7 +9,7 @@ from .services import get_all_feature_flags, invalidate_feature_flag_cache
 from .serializers import FeatureFlagSerializer, FeatureFlagListSerializer
 from .messages.messages import FEATURE_FLAG_SUCCESS, FEATURE_FLAG_ERRORS
 from .feature_config import FEATURE_CONFIG, get_module_to_feature_flag
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
 
@@ -40,15 +40,23 @@ def feature_config_api(request):
     })
 
 
-class FeatureFlagAdminViewSet(viewsets.ModelViewSet):
+class FeatureFlagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = FeatureFlag.objects.all()
     serializer_class = FeatureFlagSerializer
     authentication_classes = [CSRFExemptSessionAuthentication]
     lookup_field = 'key'
     lookup_url_kwarg = 'key'
     
-    def get_permissions(self):
-        return [RequirePermission('settings.manage')]
+    permission_map = {
+        'list': 'settings.manage',
+        'retrieve': 'settings.manage',
+        'create': 'settings.manage',
+        'update': 'settings.manage',
+        'partial_update': 'settings.manage',
+        'destroy': 'settings.manage',
+        'toggle': 'settings.manage',
+    }
+    permission_denied_message = FEATURE_FLAG_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     
     def get_queryset(self):
         return FeatureFlag.objects.all().order_by('key')

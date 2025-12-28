@@ -25,10 +25,11 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     },
     staleTime: 0,
     gcTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    retry: 2,
-    retryDelay: 1000,
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid rate limiting
+    refetchOnMount: true, // Fetch on mount (first load) - this is necessary!
+    refetchOnReconnect: false, // Don't refetch on reconnect to avoid rate limiting
+    retry: false, // Don't retry on error to avoid rate limiting (429 errors)
+    retryOnMount: false, // Don't retry on mount if there was an error
   });
 
   const permissionMap = useMemo(() => {

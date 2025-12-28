@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { Switch } from "@/components/elements/Switch";
 import { PieChart, Shield } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
+import { useMemo } from "react";
 import type { ReactElement } from "react";
 
 interface Permission {
@@ -25,7 +26,7 @@ interface StatisticsPermissionsCardProps {
 
 export function StatisticsPermissionsCard({
   permissions,
-  selectedPermissions: _selectedPermissions,
+  selectedPermissions,
   isSuperAdmin,
   statisticsUsedPermissions,
   onTogglePermission,
@@ -50,6 +51,15 @@ export function StatisticsPermissionsCard({
   const selectedCount = filteredPermissions.filter((p) =>
     isPermissionSelected(p.id)
   ).length;
+
+  // بررسی اینکه آیا analytics.manage یا analytics.stats.manage انتخاب شده است
+  const analyticsManagePermission = filteredPermissions.find(
+    (p) => p.original_key === "analytics.manage" || p.original_key === "analytics.stats.manage"
+  );
+  const isAnalyticsManageSelected = useMemo(() => {
+    if (!analyticsManagePermission) return false;
+    return isPermissionSelected(analyticsManagePermission.id);
+  }, [analyticsManagePermission, isPermissionSelected, selectedPermissions]);
 
   return (
     <Card className="border-2 border-dashed border-blue-0 bg-blue">
@@ -80,27 +90,83 @@ export function StatisticsPermissionsCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredPermissions
-            .sort((a, b) => {
-              return (
-                statisticsUsedPermissions.indexOf(a.original_key || "") -
-                statisticsUsedPermissions.indexOf(b.original_key || "")
-              );
-            })
-            .map((perm) => {
-              const isSelected = isPermissionSelected(perm.id);
-              const canToggle = !(perm.requires_superadmin && !isSuperAdmin);
-
-              return (
+        <div className="space-y-4">
+          {/* نمایش analytics.manage */}
+          {analyticsManagePermission && (
+            <div
+              className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
+                isAnalyticsManageSelected
+                  ? "border-blue-1 bg-blue-0"
+                  : "border-br bg-card"
+              }`}
+            >
+              <div className="flex-shrink-0">
                 <div
-                  key={perm.id}
-                  className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
-                    isSelected
-                      ? "border-blue-1 bg-blue-0"
-                      : "border-br bg-card"
-                  } ${!canToggle ? "opacity-50" : ""}`}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isAnalyticsManageSelected
+                      ? "bg-blue-1/20"
+                      : "bg-bg"
+                  }`}
                 >
+                  {getResourceIcon("analytics")}
+                </div>
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <h3 className={`text-sm font-medium leading-tight ${
+                      isAnalyticsManageSelected ? "text-blue-1" : "text-font-p"
+                    }`}>
+                      {getPermissionTranslation(analyticsManagePermission.display_name, "description")}
+                    </h3>
+                  </div>
+                  
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    {analyticsManagePermission.requires_superadmin && (
+                      <div title="دسترسی حساس - فقط برای مدیران کل">
+                        <Shield className="h-4 w-4 text-blue-1" />
+                      </div>
+                    )}
+                    <Switch
+                      checked={isAnalyticsManageSelected}
+                      onCheckedChange={() => {
+                        if (!(isSuperAdmin || !analyticsManagePermission.requires_superadmin)) return;
+                        onTogglePermission(analyticsManagePermission.id);
+                      }}
+                      disabled={!(isSuperAdmin || !analyticsManagePermission.requires_superadmin)}
+                      aria-label={getPermissionTranslation(analyticsManagePermission.display_name, "description")}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* نمایش permissions جزئی (فقط اگر analytics.manage انتخاب نشده باشد) */}
+          {!isAnalyticsManageSelected && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredPermissions
+                .filter((p) => p.original_key !== "analytics.manage" && p.original_key !== "analytics.stats.manage")
+                .sort((a, b) => {
+                  return (
+                    statisticsUsedPermissions.indexOf(a.original_key || "") -
+                    statisticsUsedPermissions.indexOf(b.original_key || "")
+                  );
+                })
+                .map((perm) => {
+                  const isSelected = isPermissionSelected(perm.id);
+                  const canToggle = !(perm.requires_superadmin && !isSuperAdmin);
+
+                  return (
+                    <div
+                      key={perm.id}
+                      className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
+                        isSelected
+                          ? "border-blue-1 bg-blue-0"
+                          : "border-br bg-card"
+                      } ${!canToggle ? "opacity-50" : ""}`}
+                    >
                   <div className="flex-shrink-0">
                     <div
                       className={`p-2 rounded-lg transition-colors ${
@@ -153,6 +219,8 @@ export function StatisticsPermissionsCard({
                 </div>
               );
             })}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

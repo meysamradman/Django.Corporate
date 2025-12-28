@@ -17,7 +17,6 @@ from src.portfolio.services.admin.option_services import PortfolioOptionAdminSer
 from src.portfolio.filters.admin.option_filters import PortfolioOptionAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
-from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
 
@@ -51,11 +50,6 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             return PortfolioOption.objects.all()
 
     def list(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.option.read'):
-            return APIResponse.error(
-                message=OPTION_ERRORS["option_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         filters = {
             'is_active': self._parse_bool(request.query_params.get('is_active')),
             'name': request.query_params.get('name'),
@@ -96,11 +90,6 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             return PortfolioOptionAdminDetailSerializer
     
     def create(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.option.create'):
-            return APIResponse.error(
-                message=OPTION_ERRORS["option_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -129,11 +118,6 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             )
     
     def retrieve(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.option.read'):
-            return APIResponse.error(
-                message=OPTION_ERRORS["option_not_authorized"],
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         option = PortfolioOptionAdminService.get_option_by_id(kwargs.get('pk'))
         
         if not option:
@@ -150,11 +134,6 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         )
     
     def update(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.option.update'):
-            return APIResponse.error(
-                message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to update portfolio options"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         partial = kwargs.pop('partial', False)
         option = PortfolioOptionAdminService.get_option_by_id(kwargs.get('pk'))
         
@@ -192,11 +171,6 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             )
     
     def destroy(self, request, *args, **kwargs):
-        if not PermissionValidator.has_permission(request.user, 'portfolio.option.delete'):
-            return APIResponse.error(
-                message=OPTION_ERRORS.get("option_not_authorized", "You don't have permission to delete portfolio options"),
-                status_code=status.HTTP_403_FORBIDDEN
-            )
         option_id = kwargs.get('pk')
         
         try:

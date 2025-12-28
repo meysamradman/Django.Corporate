@@ -23,11 +23,11 @@ from src.form.services.contact_form_field_service import (
     get_active_fields_for_platform,
 )
 from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 from src.form.utils.cache import FormCacheKeys, FormCacheManager
 
 
-class ContactFormFieldViewSet(viewsets.ModelViewSet):
+class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = ContactFormField.objects.all()
     pagination_class = StandardLimitPagination
@@ -37,17 +37,23 @@ class ContactFormFieldViewSet(viewsets.ModelViewSet):
     ordering_fields = ['order', 'created_at', 'field_key']
     ordering = ['order', 'field_key']
     
+    permission_map = {
+        'list': 'forms.manage',
+        'retrieve': 'forms.manage',
+        'create': 'forms.manage',
+        'update': 'forms.manage',
+        'partial_update': 'forms.manage',
+        'destroy': 'forms.manage',
+        # 'get_fields_for_platform' is public (AllowAny) - not in permission_map
+    }
+    permission_denied_message = FORM_FIELD_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
+    
     def get_serializer_class(self):
         if self.action == 'create':
             return ContactFormFieldCreateSerializer
         elif self.action in ['update', 'partial_update']:
             return ContactFormFieldUpdateSerializer
         return ContactFormFieldSerializer
-    
-    def get_permissions(self):
-        if self.action == 'get_fields_for_platform':
-            return [AllowAny()]
-        return [RequirePermission('forms.manage')]
     
     def list(self, request, *args, **kwargs):
         try:

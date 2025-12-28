@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from src.core.responses.response import APIResponse
-from src.core.security.ip_ban import IPBanService
+from src.core.security.ip_management import IPBanService
 from django.middleware.csrf import get_token
 import logging
 import time

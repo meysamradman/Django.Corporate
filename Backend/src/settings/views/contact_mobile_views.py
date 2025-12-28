@@ -13,16 +13,23 @@ from src.settings.services.contact_mobile_service import (
     delete_contact_mobile,
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
-from src.user.access_control import RequirePermission
+from src.user.access_control import PermissionRequiredMixin
 
 
-class ContactMobileViewSet(viewsets.ModelViewSet):
+class ContactMobileViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = ContactMobile.objects.all()
     serializer_class = ContactMobileSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     
-    def get_permissions(self):
-        return [RequirePermission('settings.manage')]
+    permission_map = {
+        'list': 'settings.manage',
+        'retrieve': 'settings.manage',
+        'create': 'settings.manage',
+        'update': 'settings.manage',
+        'partial_update': 'settings.manage',
+        'destroy': 'settings.manage',
+    }
+    permission_denied_message = SETTINGS_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     filterset_fields = ['is_active']
     search_fields = ['mobile_number', 'label']
     ordering_fields = ['order', 'created_at']
