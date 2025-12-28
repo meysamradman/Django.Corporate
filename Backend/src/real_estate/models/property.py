@@ -260,67 +260,120 @@ class Property(BaseModel, SEOMixin):
         help_text="Built area in square meters"
     )
     
-    bedrooms = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(50)],
+    # =====================================================
+    # ✅ OPTIMIZED: Room Configuration (SmallInteger)
+    # =====================================================
+    BEDROOM_CHOICES = [
+        (0, 'استودیو / بدون خواب'),
+        (1, '۱ خوابه'),
+        (2, '۲ خوابه'),
+        (3, '۳ خوابه'),
+        (4, '۴ خوابه'),
+        (5, '۵ خوابه'),
+        (6, '۶ خوابه'),
+        (7, '۷ خوابه'),
+        (8, '۸ خوابه'),
+        (9, '۹ خوابه'),
+        (10, '۱۰+ خوابه'),
+    ]
+    
+    bedrooms = models.SmallIntegerField(
+        choices=BEDROOM_CHOICES,
+        default=1,
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
         db_index=True,
         verbose_name="Bedrooms",
-        help_text="Number of bedrooms"
+        help_text="Number of bedrooms (0 = Studio)"
     )
-    bathrooms = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(50)],
+    
+    BATHROOM_CHOICES = [
+        (0, 'بدون سرویس بهداشتی'),
+        (1, '۱ سرویس'),
+        (2, '۲ سرویس'),
+        (3, '۳ سرویس'),
+        (4, '۴ سرویس'),
+        (5, '۵+ سرویس'),
+    ]
+    
+    bathrooms = models.SmallIntegerField(
+        choices=BATHROOM_CHOICES,
+        default=1,
+        validators=[MinValueValidator(0), MaxValueValidator(5)],
         db_index=True,
         verbose_name="Bathrooms",
         help_text="Number of bathrooms"
     )
-    kitchens = models.IntegerField(
+    
+    kitchens = models.SmallIntegerField(
         default=1,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
         verbose_name="Kitchens",
         help_text="Number of kitchens"
     )
-    living_rooms = models.IntegerField(
+    living_rooms = models.SmallIntegerField(
         default=1,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
         verbose_name="Living Rooms",
         help_text="Number of living rooms"
     )
     
-    year_built = models.IntegerField(
+    # =====================================================
+    # ✅ OPTIMIZED: Year Built (سال شمسی ۱۳۰۰-۱۴۱۰)
+    # =====================================================
+    YEAR_MIN = 1300  # ۱۳۰۰ شمسی
+    YEAR_MAX = 1410  # ۱۴۱۰ شمسی
+    
+    year_built = models.SmallIntegerField(
         null=True,
         blank=True,
         db_index=True,
+        validators=[
+            MinValueValidator(YEAR_MIN, message=f"Year built should not be less than {YEAR_MIN}"),
+            MaxValueValidator(YEAR_MAX, message=f"Year built should not be more than {YEAR_MAX}")
+        ],
         verbose_name="Year Built",
-        help_text="Year the property was built"
+        help_text="Year the property was built (Solar calendar, e.g., 1400)"
     )
-    build_years = models.IntegerField(
+    build_years = models.SmallIntegerField(
         null=True,
         blank=True,
         db_index=True,
         verbose_name="Build Years",
         help_text="Number of years since the property was built"
     )
-    floors_in_building = models.IntegerField(
+    floors_in_building = models.SmallIntegerField(
         null=True,
         blank=True,
         verbose_name="Floors in Building",
         help_text="Total floors in the building"
     )
-    floor_number = models.IntegerField(
+    floor_number = models.SmallIntegerField(
         null=True,
         blank=True,
         verbose_name="Floor Number",
         help_text="Floor number of the property"
     )
     
-    parking_spaces = models.IntegerField(
+    PARKING_CHOICES = [
+        (0, 'بدون پارکینگ'),
+        (1, '۱ پارکینگ'),
+        (2, '۲ پارکینگ'),
+        (3, '۳ پارکینگ'),
+        (4, '۴ پارکینگ'),
+        (5, '۵+ پارکینگ'),
+    ]
+    
+    parking_spaces = models.SmallIntegerField(
+        choices=PARKING_CHOICES,
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        db_index=True,
         verbose_name="Parking Spaces",
         help_text="Number of parking spaces"
     )
-    storage_rooms = models.IntegerField(
+    storage_rooms = models.SmallIntegerField(
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
         verbose_name="Storage Rooms",
         help_text="Number of storage rooms"
     )
@@ -389,9 +442,43 @@ class Property(BaseModel, SEOMixin):
         verbose_name_plural = 'Properties'
         ordering = ['-is_featured', '-published_at', '-created_at']
         indexes = [
-            # Location indexes - ساده شده
+            # ═══════════════════════════════════════════════════
+            # 1. Composite Index برای فیلتر اصلی (80% queries)
+            # ═══════════════════════════════════════════════════
+            models.Index(
+                fields=['city', 'property_type', 'bedrooms', 'bathrooms', '-price'],
+                name='idx_main_filter',
+            ),
+            
+            # ═══════════════════════════════════════════════════
+            # 2. Partial Index برای املاک منتشر شده (کاهش 50% سایز)
+            # ═══════════════════════════════════════════════════
+            models.Index(
+                fields=['city', 'bedrooms', '-created_at'],
+                condition=models.Q(is_published=True, is_public=True, is_active=True),
+                name='idx_published_fast'
+            ),
+            
+            # ═══════════════════════════════════════════════════
+            # 3. Index برای جستجوی منطقه‌ای (Region)
+            # ═══════════════════════════════════════════════════
+            models.Index(
+                fields=['city', 'region', 'neighborhood'],
+                condition=models.Q(region__isnull=False),
+                name='idx_region_search'
+            ),
+            
+            # ═══════════════════════════════════════════════════
+            # 4. Index برای فیلتر سال ساخت (Decade-based)
+            # ═══════════════════════════════════════════════════
+            models.Index(
+                fields=['city', 'year_built', '-price'],
+                condition=models.Q(year_built__isnull=False),
+                name='idx_year_filter'
+            ),
+            
+            # Location indexes
             models.Index(fields=['province', 'city', 'is_published']),
-            models.Index(fields=['city', 'region', 'is_published']),
             models.Index(fields=['city', 'neighborhood']),
 
             # Property type and features
@@ -417,8 +504,9 @@ class Property(BaseModel, SEOMixin):
             models.Index(fields=['latitude', 'longitude']),
 
             # Search and time
-            GinIndex(fields=['search_vector']),
-            BrinIndex(fields=['created_at', 'updated_at']),
+            GinIndex(fields=['search_vector'], name='idx_gin_search'),
+            BrinIndex(fields=['created_at'], pages_per_range=64, name='idx_brin_created'),
+            BrinIndex(fields=['published_at'], pages_per_range=64, name='idx_brin_published'),
         ]
         constraints = [
             models.CheckConstraint(
@@ -454,16 +542,21 @@ class Property(BaseModel, SEOMixin):
                 name='property_built_area_non_negative'
             ),
             models.CheckConstraint(
-                condition=models.Q(bedrooms__gte=0) & models.Q(bedrooms__lte=50),
+                condition=models.Q(bedrooms__gte=0) & models.Q(bedrooms__lte=10),
                 name='property_bedrooms_range'
             ),
             models.CheckConstraint(
-                condition=models.Q(bathrooms__gte=0) & models.Q(bathrooms__lte=50),
+                condition=models.Q(bathrooms__gte=0) & models.Q(bathrooms__lte=5),
                 name='property_bathrooms_range'
             ),
             models.CheckConstraint(
-                condition=models.Q(parking_spaces__gte=0),
-                name='property_parking_spaces_non_negative'
+                condition=models.Q(parking_spaces__gte=0) & models.Q(parking_spaces__lte=10),
+                name='property_parking_range'
+            ),
+            models.CheckConstraint(
+                condition=models.Q(year_built__isnull=True) | 
+                         (models.Q(year_built__gte=1300) & models.Q(year_built__lte=1410)),
+                name='property_year_built_range'
             ),
             models.CheckConstraint(
                 condition=models.Q(storage_rooms__gte=0),
@@ -482,6 +575,39 @@ class Property(BaseModel, SEOMixin):
                 name='property_living_rooms_non_negative'
             ),
         ]
+    
+    # =====================================================
+    # ✅ Helper Methods
+    # =====================================================
+    
+    @property
+    def decade_built(self):
+        """گروه‌بندی دهه‌ای سال ساخت (برای فیلتر)"""
+        if not self.year_built:
+            return None
+        return (self.year_built // 10) * 10  # مثلاً 1395 → 1390
+    
+    @property
+    def age_years(self):
+        """سن ملک به سال (شمسی)"""
+        if not self.year_built:
+            return None
+        try:
+            import jdatetime
+            current_year = jdatetime.datetime.now().year
+            return current_year - self.year_built
+        except ImportError:
+            # اگر jdatetime نصب نیست، از سال میلادی تقریبی استفاده کن
+            from datetime import datetime
+            current_year = datetime.now().year
+            # تقریبی: سال شمسی ≈ سال میلادی - 621
+            shamsi_year = current_year - 621
+            return shamsi_year - self.year_built
+    
+    @property
+    def has_region(self):
+        """آیا این شهر منطقه دارد؟"""
+        return self.region is not None and self.city is not None
     
     def __str__(self):
         return self.title
