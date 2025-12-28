@@ -219,6 +219,22 @@ export const realEstateApi = {
     return response.data;
   },
 
+  // ✅ NEW: Get field options for dropdowns
+  getFieldOptions: async (): Promise<{
+    bedrooms: [number, string][];
+    bathrooms: [number, string][];
+    parking_spaces: [number, string][];
+    year_built: {
+      min: number;
+      max: number;
+      help_text: string;
+      placeholder?: string;
+    };
+  }> => {
+    const response = await api.get('/admin/property/field-options/');
+    return response.data;
+  },
+
   getTypes: async (params?: { page?: number; size?: number; is_active?: boolean }): Promise<PaginatedResponse<PropertyType>> => {
     let url = '/admin/property-type/';
     if (params) {

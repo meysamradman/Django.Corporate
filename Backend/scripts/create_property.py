@@ -68,12 +68,17 @@ def create_sample_media_files():
 def get_or_create_defaults():
     User = get_user_model()
 
-    admin_user = User.objects.filter(is_admin_full=True).first()
-    if not admin_user:
-        admin_user = User.objects.filter(user_type='admin', is_admin_active=True).first()
+    # ✅ جستجوی کاربر ادمین با فیلدهای درست
+    admin_user = User.objects.filter(
+        user_type='admin',
+        is_admin_active=True,
+        is_active=True
+    ).first()
 
     if not admin_user:
-        raise Exception("No admin user found. Please create one first.")
+        raise Exception(
+            "No admin user found. Please run: python scripts/create_admin_super.py"
+        )
 
     # Create country first
     country, _ = Country.objects.get_or_create(
@@ -120,14 +125,24 @@ def get_or_create_defaults():
     if not agent_user:
         agent_user = admin_user
     
+    # ✅ تعریف license_num و slug قبل از استفاده
     license_num = f'SAMPLE-LIC-{uuid.uuid4().hex[:8]}'
+    agent_slug = f'sample-agent-{uuid.uuid4().hex[:8]}'
+    
+    # ✅ ساخت PropertyAgent با فیلدهای درست
+    # نکته: first_name, last_name, phone فیلدهای مستقیم نیستند - از User.admin_profile میخوانند
     agent, _ = PropertyAgent.objects.get_or_create(
         user=agent_user,
         defaults={
-            'slug': f'sample-agent-{uuid.uuid4().hex[:8]}',
             'license_number': license_num,
+            'slug': agent_slug,
+            'specialization': 'Residential Properties',
+            'bio': 'Sample real estate agent for testing purposes',
             'is_active': True,
-            'is_verified': True
+            'is_verified': True,
+            'rating': 4.5,
+            'total_sales': 10,
+            'total_reviews': 8
         }
     )
     

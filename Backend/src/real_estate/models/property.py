@@ -394,11 +394,51 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Floors in Building",
         help_text="Total floors in the building"
     )
+    
+    # ✅ طبقه با همکف و زیرهمکف
+    FLOOR_CHOICES = [
+        (-2, 'زیرزمین دوم'),
+        (-1, 'زیرزمین / زیرهمکف'),
+        (0, 'همکف'),
+        (1, 'طبقه ۱'),
+        (2, 'طبقه ۲'),
+        (3, 'طبقه ۳'),
+        (4, 'طبقه ۴'),
+        (5, 'طبقه ۵'),
+        (6, 'طبقه ۶'),
+        (7, 'طبقه ۷'),
+        (8, 'طبقه ۸'),
+        (9, 'طبقه ۹'),
+        (10, 'طبقه ۱۰'),
+        (11, 'طبقه ۱۱'),
+        (12, 'طبقه ۱۲'),
+        (13, 'طبقه ۱۳'),
+        (14, 'طبقه ۱۴'),
+        (15, 'طبقه ۱۵'),
+        (16, 'طبقه ۱۶'),
+        (17, 'طبقه ۱۷'),
+        (18, 'طبقه ۱۸'),
+        (19, 'طبقه ۱۹'),
+        (20, 'طبقه ۲۰'),
+        (21, 'طبقه ۲۱'),
+        (22, 'طبقه ۲۲'),
+        (23, 'طبقه ۲۳'),
+        (24, 'طبقه ۲۴'),
+        (25, 'طبقه ۲۵'),
+        (30, 'طبقه ۳۰'),
+        (35, 'طبقه ۳۵'),
+        (40, 'طبقه ۴۰'),
+        (45, 'طبقه ۴۵'),
+        (50, 'طبقه ۵۰+'),
+    ]
+    
     floor_number = models.SmallIntegerField(
         null=True,
         blank=True,
+        choices=FLOOR_CHOICES,
+        db_index=True,
         verbose_name="Floor Number",
-        help_text="Floor number of the property"
+        help_text="Floor number of the property (-2 to 50, -1=Basement, 0=Ground floor)"
     )
     
     PARKING_CHOICES = [
@@ -433,11 +473,67 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Parking Spaces",
         help_text="Number of parking spaces"
     )
+    # ✅ انباری با CHOICES (دارد/ندارد + تعداد)
+    STORAGE_CHOICES = [
+        (0, 'بدون انباری'),
+        (1, '۱ انباری'),
+        (2, '۲ انباری'),
+        (3, '۳ انباری'),
+        (4, '۴ انباری'),
+        (5, '۵+ انباری'),
+    ]
+    
     storage_rooms = models.SmallIntegerField(
+        choices=STORAGE_CHOICES,
         default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        validators=[MinValueValidator(0), MaxValueValidator(5)],
+        db_index=True,
         verbose_name="Storage Rooms",
-        help_text="Number of storage rooms"
+        help_text="Number of storage rooms (0 = No storage)"
+    )
+    
+    # ✅ نوع کاربری ملک (مسکونی، تجاری، اداری)
+    USAGE_TYPE_CHOICES = [
+        ('residential', 'مسکونی'),
+        ('commercial', 'تجاری'),
+        ('office', 'اداری'),
+        ('industrial', 'صنعتی'),
+        ('agricultural', 'کشاورزی'),
+        ('warehouse', 'انبار'),
+        ('clinic', 'مطب / کلینیک'),
+        ('educational', 'آموزشی'),
+        ('mixed', 'مختلط'),
+    ]
+    
+    usage_type = models.CharField(
+        max_length=20,
+        choices=USAGE_TYPE_CHOICES,
+        default='residential',
+        db_index=True,
+        verbose_name="Usage Type",
+        help_text="Type of property usage (residential, commercial, office, etc.)"
+    )
+    
+    # ✅ نوع سند (اداری، قولنامه‌ای، فاقد سند)
+    DOCUMENT_TYPE_CHOICES = [
+        ('official', 'سند اداری / ششدانگ'),
+        ('pre_official', 'در حال اخذ سند'),
+        ('contract', 'قولنامه‌ای'),
+        ('cooperative', 'تعاونی'),
+        ('agricultural', 'سند زراعی'),
+        ('endowment', 'وقفی'),
+        ('court', 'حکم دادگاه'),
+        ('none', 'فاقد سند'),
+    ]
+    
+    document_type = models.CharField(
+        max_length=20,
+        choices=DOCUMENT_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="Document Type",
+        help_text="Type of property ownership document"
     )
     
     is_published = models.BooleanField(
@@ -569,6 +665,13 @@ class Property(BaseModel, SEOMixin):
             GinIndex(fields=['search_vector'], name='idx_gin_search'),
             BrinIndex(fields=['created_at'], pages_per_range=64, name='idx_brin_created'),
             BrinIndex(fields=['published_at'], pages_per_range=64, name='idx_brin_published'),
+            
+            # ✅ Index برای فیلدهای جدید
+            models.Index(fields=['usage_type', 'is_published', 'is_public']),
+            models.Index(fields=['document_type', 'is_published', 'is_public']),
+            models.Index(fields=['city', 'usage_type', 'document_type', '-price']),
+            models.Index(fields=['floor_number', 'is_published']),
+            models.Index(fields=['storage_rooms', 'is_published']),
         ]
         constraints = [
             models.CheckConstraint(
@@ -826,7 +929,7 @@ class Property(BaseModel, SEOMixin):
         
         # Validation دینامیک برای year_built
         if self.year_built is not None:
-            year_max = self.get_year_max_dynamic()
+            year_max = self.__class__.get_year_max()  # استفاده از classmethod
             
             if self.year_built < self.YEAR_MIN:
                 raise ValidationError({

@@ -33,6 +33,11 @@ class CacheNamespace:
     
     PERMISSION_MAP: Final[str] = "perm:map"
     PERMISSION_DISPLAY: Final[str] = "perm:display"
+    
+    PROPERTY_LIST: Final[str] = "property:list"
+    PROPERTY_DETAIL: Final[str] = "property:detail"
+    PROPERTY_SEO: Final[str] = "property:seo"
+    PROPERTY_STATS: Final[str] = "property:stats"
 
 
 class CacheTTL:

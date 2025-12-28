@@ -1,83 +1,157 @@
-from django.core.cache import cache
+"""Real Estate Cache Management - Using Core Cache System"""
+from src.core.cache import CacheKeyBuilder, CacheService, CacheTTL
 
 
 class PropertyCacheKeys:
-    """Cache key generators for Property model"""
+    """Cache key generators for Property model - Wrapper around Core"""
     
     @staticmethod
-    def property(property_id):
-        return f"real_estate:property:{property_id}"
+    def property_detail(property_id: int) -> str:
+        """Property detail cache key"""
+        return CacheKeyBuilder.property_detail(property_id)
     
     @staticmethod
-    def main_image(property_id):
-        return f"real_estate:property:{property_id}:main_image"
+    def main_image(property_id: int) -> str:
+        """Property main image cache key"""
+        return CacheKeyBuilder.property_main_image(property_id)
     
     @staticmethod
-    def structured_data(property_id):
-        return f"real_estate:property:{property_id}:structured_data"
+    def structured_data(property_id: int) -> str:
+        """Property structured data cache key"""
+        return CacheKeyBuilder.property_structured_data(property_id)
     
     @staticmethod
-    def list(filters_hash=None):
-        if filters_hash:
-            return f"real_estate:property:list:{filters_hash}"
-        return "real_estate:property:list"
+    def seo_preview(property_id: int) -> str:
+        """Property SEO preview cache key"""
+        return CacheKeyBuilder.property_seo_preview(property_id)
     
     @staticmethod
-    def featured():
-        return "real_estate:property:featured"
+    def seo_completeness(property_id: int) -> str:
+        """Property SEO completeness cache key"""
+        return CacheKeyBuilder.property_seo_completeness(property_id)
     
     @staticmethod
-    def statistics():
-        return "real_estate:property:statistics"
+    def seo_data(property_id: int) -> str:
+        """Property SEO data cache key"""
+        return CacheKeyBuilder.property_seo_data(property_id)
     
     @staticmethod
-    def seo_preview(property_id):
-        return f"real_estate:property:{property_id}:seo_preview"
+    def list_admin(params: dict) -> str:
+        """Property admin list cache key with filters"""
+        return CacheKeyBuilder.property_list_admin(params)
     
     @staticmethod
-    def seo_completeness(property_id):
-        return f"real_estate:property:{property_id}:seo_completeness"
+    def featured() -> str:
+        """Featured properties cache key"""
+        return CacheKeyBuilder.property_featured()
+    
+    @staticmethod
+    def statistics() -> str:
+        """Property statistics cache key"""
+        return CacheKeyBuilder.property_statistics()
+    
+    @staticmethod
+    def all_keys(property_id: int) -> list[str]:
+        """Get all cache keys for a specific property"""
+        return CacheKeyBuilder.property_all_keys(property_id)
 
 
 class PropertyCacheManager:
-    """Cache management for Property model"""
+    """Cache management for Property model - Safe & Simple"""
+    
+    # Cache timeouts (TTL)
+    TTL_DETAIL = CacheTTL.DETAIL_MEDIUM      # 30 minutes
+    TTL_LIST = CacheTTL.LIST_SHORT           # 5 minutes
+    TTL_SEO = CacheTTL.DETAIL_LONG          # 60 minutes
+    TTL_STATS = CacheTTL.LIST_MEDIUM        # 15 minutes
     
     @staticmethod
-    def invalidate_property(property_id):
-        """Invalidate all caches for a specific property"""
-        keys = [
-            PropertyCacheKeys.property(property_id),
-            PropertyCacheKeys.main_image(property_id),
-            PropertyCacheKeys.structured_data(property_id),
-        ]
-        cache.delete_many(keys)
+    def get(key: str, default=None):
+        """Safe get from cache"""
+        return CacheService.get(key, default)
     
     @staticmethod
-    def invalidate_list():
-        """Invalidate property list caches"""
-        cache.delete_pattern("real_estate:property:list*")
-        cache.delete(PropertyCacheKeys.featured())
+    def set(key: str, value, timeout: int | None = None):
+        """Safe set to cache"""
+        return CacheService.set(key, value, timeout)
     
     @staticmethod
-    def invalidate_all():
-        """Invalidate all property-related caches"""
-        PropertyCacheManager.invalidate_list()
-        cache.delete_pattern("real_estate:property:*")
+    def delete(key: str):
+        """Safe delete from cache"""
+        return CacheService.delete(key)
+    
+    @staticmethod
+    def invalidate_property(property_id: int) -> int:
+        """
+        Invalidate all caches for a specific property
+        Returns: number of keys deleted
+        """
+        return CacheService.clear_property_cache(property_id)
+    
+    @staticmethod
+    def invalidate_properties(property_ids: list[int]) -> int:
+        """
+        Invalidate caches for multiple properties
+        Returns: number of keys deleted
+        """
+        return CacheService.clear_properties_cache(property_ids)
+    
+    @staticmethod
+    def invalidate_list() -> int:
+        """
+        Invalidate property list caches
+        Returns: number of keys deleted
+        """
+        return CacheService.clear_property_lists()
+    
+    @staticmethod
+    def invalidate_statistics() -> int:
+        """
+        Invalidate property statistics cache
+        Returns: number of keys deleted
+        """
+        return CacheService.clear_property_statistics()
+    
+    @staticmethod
+    def invalidate_all() -> int:
+        """
+        Invalidate ALL property-related caches
+        Returns: number of keys deleted
+        """
+        from src.core.cache import CacheNamespace
+        pattern = f"{CacheNamespace.PROPERTY_LIST}:*"
+        deleted = CacheService.delete_pattern(pattern)
+        
+        pattern = f"{CacheNamespace.PROPERTY_DETAIL}:*"
+        deleted += CacheService.delete_pattern(pattern)
+        
+        pattern = f"{CacheNamespace.PROPERTY_SEO}:*"
+        deleted += CacheService.delete_pattern(pattern)
+        
+        deleted += PropertyCacheManager.invalidate_statistics()
+        
+        return deleted
 
+
+# ============================================
+# Property Tag Cache (Simple)
+# ============================================
 
 class PropertyTagCacheKeys:
     """Cache key generators for PropertyTag model"""
     
-    @staticmethod
-    def tag(tag_id):
-        return f"real_estate:tag:{tag_id}"
+    NAMESPACE = "property:tag"
     
     @staticmethod
-    def popular():
-        return "real_estate:tag:popular"
+    def tag(tag_id: int) -> str:
+        return f"{PropertyTagCacheKeys.NAMESPACE}:{tag_id}"
     
     @staticmethod
-    def all_keys(tag_ids=None):
+    def popular() -> str:
+        return f"{PropertyTagCacheKeys.NAMESPACE}:popular"
+    
+    @staticmethod
+    def all_keys(tag_ids: list[int] | None = None) -> list[str]:
         keys = [PropertyTagCacheKeys.popular()]
         if tag_ids:
             keys.extend([PropertyTagCacheKeys.tag(tid) for tid in tag_ids])
@@ -88,19 +162,22 @@ class PropertyTagCacheManager:
     """Cache management for PropertyTag model"""
     
     @staticmethod
-    def invalidate_tag(tag_id):
-        """Invalidate all caches for a specific tag"""
-        cache.delete(PropertyTagCacheKeys.tag(tag_id))
-        cache.delete(PropertyTagCacheKeys.popular())
+    def invalidate_tag(tag_id: int) -> int:
+        """Invalidate cache for a specific tag"""
+        keys = [
+            PropertyTagCacheKeys.tag(tag_id),
+            PropertyTagCacheKeys.popular()
+        ]
+        return CacheService.delete_many(keys)
     
     @staticmethod
-    def invalidate_tags(tag_ids):
+    def invalidate_tags(tag_ids: list[int]) -> int:
         """Invalidate caches for multiple tags"""
         keys = PropertyTagCacheKeys.all_keys(tag_ids)
-        if keys:
-            cache.delete_many(keys)
+        return CacheService.delete_many(keys)
     
     @staticmethod
-    def invalidate_all():
+    def invalidate_all() -> int:
         """Invalidate all tag-related caches"""
-        cache.delete(PropertyTagCacheKeys.popular())
+        pattern = f"{PropertyTagCacheKeys.NAMESPACE}:*"
+        return CacheService.delete_pattern(pattern)

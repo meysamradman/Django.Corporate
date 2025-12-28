@@ -1,7 +1,11 @@
-import { ChangeEvent } from "react";
+import { useEffect, useState } from "react";
+import type { ChangeEvent } from "react";
 import { FormFieldInput } from "@/components/forms/FormField";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Home, DollarSign, Car, Box } from "lucide-react";
+import { Home, DollarSign, Car, Box, Info } from "lucide-react";
+import { realEstateApi } from "@/api/real-estate";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { Label } from "@/components/elements/Label";
 
 interface DetailsTabProps {
     formData: any;
@@ -11,6 +15,25 @@ interface DetailsTabProps {
 }
 
 export default function DetailsTab({ formData, handleInputChange, editMode, errors }: DetailsTabProps) {
+    const [fieldOptions, setFieldOptions] = useState<any>(null);
+    const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+
+    // Load field options from API
+    useEffect(() => {
+        const loadFieldOptions = async () => {
+            try {
+                setIsLoadingOptions(true);
+                const options = await realEstateApi.getFieldOptions();
+                setFieldOptions(options);
+            } catch (error) {
+                console.error('Failed to load field options:', error);
+            } finally {
+                setIsLoadingOptions(false);
+            }
+        };
+        loadFieldOptions();
+    }, []);
+
     // Generic handler for numeric inputs
     const handleNumericChange = (field: string) => (e: ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -22,6 +45,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
         if (!isNaN(num)) {
             handleInputChange(field, num);
         }
+    };
+
+    // Dropdown handler for select fields
+    const handleSelectChange = (field: string) => (value: string) => {
+        const num = value === "" ? null : Number(value);
+        handleInputChange(field, num);
     };
 
     return (
@@ -54,36 +83,81 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         onChange={handleNumericChange("built_area")}
                         error={errors?.built_area}
                     />
-                    <FormFieldInput
-                        label="تعداد خواب"
-                        id="bedrooms"
-                        type="number"
-                        placeholder="0"
-                        disabled={!editMode}
-                        value={formData?.bedrooms ?? ""}
-                        onChange={handleNumericChange("bedrooms")}
-                        error={errors?.bedrooms}
-                    />
-                    <FormFieldInput
-                        label="تعداد سرویس/حمام"
-                        id="bathrooms"
-                        type="number"
-                        placeholder="0"
-                        disabled={!editMode}
-                        value={formData?.bathrooms ?? ""}
-                        onChange={handleNumericChange("bathrooms")}
-                        error={errors?.bathrooms}
-                    />
-                    <FormFieldInput
-                        label="سال ساخت"
-                        id="year_built"
-                        type="number"
-                        placeholder="1402"
-                        disabled={!editMode}
-                        value={formData?.year_built ?? ""}
-                        onChange={handleNumericChange("year_built")}
-                        error={errors?.year_built}
-                    />
+                    {/* Bedrooms - Dropdown */}
+                    <div className="space-y-2">
+                        <Label htmlFor="bedrooms">تعداد خواب *</Label>
+                        <Select
+                            value={formData?.bedrooms?.toString() ?? ""}
+                            onValueChange={handleSelectChange("bedrooms")}
+                            disabled={!editMode || isLoadingOptions}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="انتخاب کنید" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fieldOptions?.bedrooms?.map((item: [number, string]) => (
+                                    <SelectItem key={item[0]} value={item[0].toString()}>
+                                        {item[1]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors?.bedrooms && <p className="text-sm text-red-500">{errors.bedrooms}</p>}
+                    </div>
+
+                    {/* Bathrooms - Dropdown */}
+                    <div className="space-y-2">
+                        <Label htmlFor="bathrooms">تعداد سرویس/حمام *</Label>
+                        <Select
+                            value={formData?.bathrooms?.toString() ?? ""}
+                            onValueChange={handleSelectChange("bathrooms")}
+                            disabled={!editMode || isLoadingOptions}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="انتخاب کنید" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fieldOptions?.bathrooms?.map((item: [number, string]) => (
+                                    <SelectItem key={item[0]} value={item[0].toString()}>
+                                        {item[1]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors?.bathrooms && <p className="text-sm text-red-500">{errors.bathrooms}</p>}
+                    </div>
+
+                    {/* Year Built - Number Input با راهنما */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="year_built">
+                                سال ساخت (شمسی)
+                            </Label>
+                            {fieldOptions?.year_built && (
+                                <span className="text-xs text-muted-foreground">
+                                    ({fieldOptions.year_built.min} - {fieldOptions.year_built.max})
+                                </span>
+                            )}
+                        </div>
+                        <FormFieldInput
+                            id="year_built"
+                            label="" 
+                            type="number"
+                            placeholder={fieldOptions?.year_built?.placeholder || "مثلاً 1402"}
+                            disabled={!editMode || isLoadingOptions}
+                            value={formData?.year_built ?? ""}
+                            onChange={handleNumericChange("year_built")}
+                            error={errors?.year_built}
+                            min={fieldOptions?.year_built?.min}
+                            max={fieldOptions?.year_built?.max}
+                        />
+                        {fieldOptions?.year_built?.help_text && (
+                            <div className="flex items-start gap-2 text-xs text-muted-foreground mt-1">
+                                <Info className="w-3 h-3 mt-0.5" />
+                                <span>{fieldOptions.year_built.help_text}</span>
+                            </div>
+                        )}
+                    </div>
                     <FormFieldInput
                         label="تعداد طبقات ساختمان"
                         id="floors_in_building"
@@ -94,19 +168,30 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         onChange={handleNumericChange("floors_in_building")}
                         error={errors?.floors_in_building}
                     />
+                    {/* Parking Spaces - Dropdown */}
                     <div className="flex gap-4">
-                        <div className="flex-1">
-                            <FormFieldInput
-                                label="پارکینگ"
-                                id="parking_spaces"
-                                type="number"
-                                placeholder="0"
-                                disabled={!editMode}
-                                value={formData?.parking_spaces ?? ""}
-                                onChange={handleNumericChange("parking_spaces")}
-                                error={errors?.parking_spaces}
-                                icon={<Car className="w-4 h-4 text-muted-foreground" />}
-                            />
+                        <div className="flex-1 space-y-2">
+                            <Label htmlFor="parking_spaces">
+                                <Car className="w-4 h-4 inline ml-1" />
+                                پارکینگ
+                            </Label>
+                            <Select
+                                value={formData?.parking_spaces?.toString() ?? ""}
+                                onValueChange={handleSelectChange("parking_spaces")}
+                                disabled={!editMode || isLoadingOptions}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="انتخاب کنید" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {fieldOptions?.parking_spaces?.map((item: [number, string]) => (
+                                        <SelectItem key={item[0]} value={item[0].toString()}>
+                                            {item[1]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors?.parking_spaces && <p className="text-sm text-red-500">{errors.parking_spaces}</p>}
                         </div>
                         <div className="flex-1">
                             <FormFieldInput
@@ -118,7 +203,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 value={formData?.storage_rooms ?? ""}
                                 onChange={handleNumericChange("storage_rooms")}
                                 error={errors?.storage_rooms}
-                                icon={<Box className="w-4 h-4 text-muted-foreground" />}
                             />
                         </div>
                     </div>

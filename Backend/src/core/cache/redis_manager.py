@@ -424,6 +424,43 @@ class CacheService:
     def get_redis_info(cls, section: Optional[str] = None) -> Optional[dict]:
         """دریافت Redis info"""
         return cls.get_default_manager().get_redis_info(section)
+    
+    # ============================================
+    # Real Estate Cache Methods
+    # ============================================
+    
+    @classmethod
+    def clear_property_cache(cls, property_id: int) -> int:
+        """Clear all cache for a specific property"""
+        from .keys import CacheKeyBuilder
+        keys = CacheKeyBuilder.property_all_keys(property_id)
+        return cls.delete_many(keys)
+    
+    @classmethod
+    def clear_properties_cache(cls, property_ids: list[int]) -> int:
+        """Clear cache for multiple properties"""
+        from .keys import CacheKeyBuilder
+        all_keys = []
+        for pid in property_ids:
+            all_keys.extend(CacheKeyBuilder.property_all_keys(pid))
+        return cls.delete_many(all_keys)
+    
+    @classmethod
+    def clear_property_lists(cls) -> int:
+        """Clear all property list caches"""
+        from .namespaces import CacheNamespace
+        from .keys import CacheKeyBuilder
+        pattern = CacheKeyBuilder.pattern(f"{CacheNamespace.PROPERTY_LIST}:admin")
+        deleted = cls.delete_pattern(pattern)
+        # Clear featured list
+        deleted += cls.delete(CacheKeyBuilder.property_featured())
+        return deleted
+    
+    @classmethod
+    def clear_property_statistics(cls) -> int:
+        """Clear property statistics cache"""
+        from .keys import CacheKeyBuilder
+        return cls.delete(CacheKeyBuilder.property_statistics())
 
 
 def cache_result(key_builder: Callable, timeout: Optional[int] = None):
