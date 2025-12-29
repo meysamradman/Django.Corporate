@@ -27,6 +27,7 @@ class PermissionRequiredMixin:
     """
     permission_map = {}
     permission_denied_message = "شما اجازه دسترسی به این بخش را ندارید"
+    permission_require_all = False  # اگر True باشه، برای list permissions همه رو چک می‌کنه (AND logic)
     
     def initial(self, request, *args, **kwargs):
         """Override DRF's initial to check permissions after action is set"""
@@ -48,10 +49,15 @@ class PermissionRequiredMixin:
         if getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False):
             return
         
-        # Check permission - support both single permission and list of permissions (OR logic)
+        # Check permission - support both single permission and list of permissions
         if isinstance(required_permission, list):
-            # If it's a list, check if user has ANY of the permissions
-            has_permission = PermissionValidator.has_any_permission(user, required_permission)
+            # Check if user has ANY (OR logic) or ALL (AND logic) of the permissions
+            if getattr(self, 'permission_require_all', False):
+                # AND logic: باید همه permissions رو داشته باشه
+                has_permission = PermissionValidator.has_all_permissions(user, required_permission)
+            else:
+                # OR logic (default): کافیه یکی از permissions رو داشته باشه
+                has_permission = PermissionValidator.has_any_permission(user, required_permission)
         else:
             # If it's a single permission string, check normally
             has_permission = PermissionValidator.has_permission(user, required_permission)

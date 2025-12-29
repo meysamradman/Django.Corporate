@@ -11,6 +11,62 @@ from src.media.services.media_services import MediaAdminService
 class PropertyAdminMediaService:
 
     @staticmethod
+    def get_main_image_for_model(property_instance):
+        """
+        دریافت تصویر اصلی ملک با cache
+        این method منطق پیچیده را از model جدا می‌کنه
+        """
+        from src.real_estate.cache.keys import PropertyCacheKeys
+        
+        cache_key = PropertyCacheKeys.main_image(property_instance.pk)
+        main_image_id = cache.get(cache_key)
+        
+        if main_image_id is None:
+            try:
+                # 1. جستجوی تصویر اصلی
+                main_media = property_instance.images.select_related('image').filter(is_main=True).first()
+                if main_media:
+                    main_image = main_media.image
+                else:
+                    # 2. جستجوی cover ویدئو
+                    video = property_instance.videos.select_related('video__cover_image').first()
+                    if video and video.video.cover_image:
+                        main_image = video.video.cover_image
+                    else:
+                        # 3. جستجوی cover audio
+                        audio = property_instance.audios.select_related('audio__cover_image').first()
+                        if audio and audio.audio.cover_image:
+                            main_image = audio.audio.cover_image
+                        else:
+                            # 4. جستجوی cover document
+                            document = property_instance.documents.select_related('document__cover_image').first()
+                            if document and document.document.cover_image:
+                                main_image = document.document.cover_image
+                            else:
+                                main_image = None
+                
+                # Cache کردن نتیجه
+                if main_image:
+                    cache.set(cache_key, main_image.id, 1800)  # 30 minutes
+                    return main_image
+                else:
+                    cache.set(cache_key, False, 1800)
+                    return None
+            except Exception:
+                cache.set(cache_key, False, 1800)
+                return None
+        else:
+            # اگر cache داشت False، None برگردون
+            if main_image_id is False:
+                return None
+            # وگرنه، object رو از database بگیر
+            try:
+                return ImageMedia.objects.get(id=main_image_id)
+            except ImageMedia.DoesNotExist:
+                cache.delete(cache_key)
+                return None
+
+    @staticmethod
     def get_next_media_order(property_id):
         max_order_result = Property.objects.filter(
             id=property_id

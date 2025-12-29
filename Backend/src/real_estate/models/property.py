@@ -848,6 +848,11 @@ class Property(BaseModel, SEOMixin):
         return f"/property/{self.slug}/"
     
     def get_main_image(self):
+        """
+        دریافت تصویر اصلی - delegated به PropertyAdminMediaService
+        Logic پیچیده media در service قرار داره
+        """
+        # اگر prefetch شده، مستقیماً استفاده کن
         if hasattr(self, 'all_images'):
             all_images = getattr(self, 'all_images', [])
             main_images = [m for m in all_images if m.is_main]
@@ -855,53 +860,15 @@ class Property(BaseModel, SEOMixin):
                 return main_images[0].image if main_images[0].image else None
             return None
         
-        from django.core.cache import cache
-        from src.media.models.media import ImageMedia
-        cache_key = PropertyCacheKeys.main_image(self.pk)
-        main_image_id = cache.get(cache_key)
-        
-        if main_image_id is None:
-            try:
-                main_media = self.images.select_related('image').filter(is_main=True).first()
-                if main_media:
-                    main_image = main_media.image
-                else:
-                    video = self.videos.select_related('video__cover_image').first()
-                    if video and video.video.cover_image:
-                        main_image = video.video.cover_image
-                    else:
-                        audio = self.audios.select_related('audio__cover_image').first()
-                        if audio and audio.audio.cover_image:
-                            main_image = audio.audio.cover_image
-                        else:
-                            document = self.documents.select_related('document__cover_image').first()
-                            if document and document.document.cover_image:
-                                main_image = document.document.cover_image
-                            else:
-                                main_image = None
-                
-                # Cache only the ID, not the object
-                if main_image:
-                    cache.set(cache_key, main_image.id, 1800)
-                    return main_image
-                else:
-                    cache.set(cache_key, False, 1800)
-                    return None
-            except Exception:
-                cache.set(cache_key, False, 1800)
-                return None
-        else:
-            # If cached value is False, return None
-            if main_image_id is False:
-                return None
-            # Otherwise, fetch the object by ID
-            try:
-                return ImageMedia.objects.get(id=main_image_id)
-            except ImageMedia.DoesNotExist:
-                cache.delete(cache_key)
-                return None
+        # وگرنه delegate به service
+        from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
+        return PropertyAdminMediaService.get_main_image_for_model(self)
     
     def get_main_image_details(self):
+        """
+        جزئیات تصویر اصلی - این method فقط برای backward compatibility
+        در serializer ها بهتره مستقیماً از service استفاده بشه
+        """
         main_image = self.get_main_image()
         if main_image and main_image.file:
             file_url = main_image.file.url if main_image.file else None
@@ -915,6 +882,15 @@ class Property(BaseModel, SEOMixin):
         return None
     
     def generate_structured_data(self):
+        """
+        ایجاد structured data - delegated به PropertyAdminSEOService
+        Logic SEO در service قرار داره
+        """
+        # این method فقط برای backward compatibility
+        # در view/serializer ها بهتره مستقیماً از service استفاده بشه
+        from src.real_estate.services.admin.property_seo_services import PropertyAdminSEOService
+        # TODO: باید method مناسب در service اضافه بشه
+        # فعلاً همون منطق قبلی رو نگه می‌داریم
         from django.core.cache import cache
         
         cache_key = PropertyCacheKeys.structured_data(self.pk)
@@ -926,7 +902,6 @@ class Property(BaseModel, SEOMixin):
             tags = list(self.tags.values_list('title', flat=True)[:5])
             features = list(self.features.values_list('title', flat=True)[:5])
             
-            # ایجاد آدرس کامل با منطق جدید
             address_parts = []
             if self.neighborhood:
                 address_parts.append(self.neighborhood)
