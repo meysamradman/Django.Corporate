@@ -55,27 +55,22 @@ def upload_media_path(instance, filename):
     return f"{folder_name}/{today.year}/{today.month:02d}/{today.day:02d}/{identifier}{ext}"
 
 class AbstractMedia(BaseModel):
-    """
-    Abstract base model for media files following DJANGO_MODEL_STANDARDS.md conventions.
-    """
-    # 2. Primary Content Fields
+
     title = models.CharField(
-        max_length=200,
+        max_length=100,
         blank=True,
         db_index=True,
         verbose_name="Title",
         help_text="Media file title"
     )
-    
-    # 3. Description Fields
+
     alt_text = models.CharField(
-        max_length=255,
+        max_length=150,
         blank=True,
         verbose_name="Alt Text",
         help_text="Alternative text for accessibility"
     )
-    
-    # File Fields
+
     file = models.FileField(
         upload_to=upload_media_path,
         verbose_name="File",

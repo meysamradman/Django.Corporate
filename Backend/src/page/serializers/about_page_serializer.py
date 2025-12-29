@@ -26,6 +26,7 @@ class AboutPageSerializer(serializers.ModelSerializer):
             'id',
             'public_id',
             'title',
+            'slug',
             'content',
             'short_description',
             'meta_title',
@@ -52,6 +53,7 @@ class AboutPageSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id',
             'public_id',
+            'slug',
             'created_at',
             'updated_at',
             'computed_meta_title',
@@ -82,6 +84,7 @@ class AboutPageUpdateSerializer(serializers.ModelSerializer):
         model = AboutPage
         fields = [
             'title',
+            'slug',
             'content',
             'short_description',
             'meta_title',
@@ -100,6 +103,11 @@ class AboutPageUpdateSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if value and len(value.strip()) < 3:
             raise serializers.ValidationError(ABOUT_PAGE_ERRORS["title_min_length"])
+        return value.strip() if value else value
+    
+    def validate_slug(self, value):
+        if value and len(value.strip()) < 3:
+            raise serializers.ValidationError(ABOUT_PAGE_ERRORS.get("slug_min_length", "Slug must be at least 3 characters."))
         return value.strip() if value else value
     
     def validate_content(self, value):

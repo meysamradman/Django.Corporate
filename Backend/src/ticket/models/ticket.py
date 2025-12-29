@@ -22,11 +22,7 @@ TICKET_PRIORITY_CHOICES = [
 
 
 class Ticket(BaseModel):
-    """
-    Ticket model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Status → Content → Relationships → Timestamps
-    """
-    # 1. Status/State Fields
+
     status = models.CharField(
         max_length=20,
         choices=TICKET_STATUS_CHOICES,

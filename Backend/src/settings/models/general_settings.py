@@ -8,19 +8,15 @@ from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 
 
 class GeneralSettings(BaseModel):
-    """
-    General settings model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Relationships → Metadata
-    """
-    # 2. Primary Content Fields
+
     site_name = models.CharField(
-        max_length=200,
+        max_length=100,
         db_index=True,
         verbose_name="Site Name",
         help_text="System or brand name"
     )
     copyright_text = models.CharField(
-        max_length=500,
+        max_length=300,
         blank=True,
         verbose_name="Copyright Text",
         help_text="Copyright text (e.g., All rights reserved © 2024)"
@@ -73,10 +69,7 @@ class GeneralSettings(BaseModel):
         verbose_name = "General Settings"
         verbose_name_plural = "General Settings"
         ordering = ['-created_at']
-        indexes = [
-            # Note: site_name already has db_index=True (automatic index)
-            # BaseModel already provides indexes for public_id, is_active, created_at
-        ]
+        indexes = []
     
     def __str__(self):
         return f"General Settings: {self.site_name}"

@@ -3,12 +3,7 @@ from src.core.models import BaseModel
 
 
 class PageView(BaseModel):
-    """
-    بازدید صفحات - جدا برای وب و اپ
-    
-    توجه: فقط بازدیدهای مهمان‌ها (Guest) ثبت می‌شود
-    user همیشه NULL است چون کاربران ثبت‌نام شده شمارش نمی‌شوند
-    """
+
     
     SOURCE_CHOICES = [
         ('web', 'Website'),

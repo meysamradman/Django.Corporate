@@ -25,13 +25,13 @@ class Blog(BaseModel, SEOMixin):
     )
     
     title = models.CharField(
-        max_length=200,
+        max_length=100,
         db_index=True,
         verbose_name="Title",
         help_text="Blog post title"
     )
     slug = models.SlugField(
-        max_length=200,
+        max_length=100,
         unique=True,
         db_index=True,
         allow_unicode=True,

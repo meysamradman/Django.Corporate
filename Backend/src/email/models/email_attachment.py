@@ -13,12 +13,7 @@ def email_attachment_upload_path(instance, filename):
 
 
 class EmailAttachment(models.Model):
-    """
-    Email attachment model following DJANGO_MODEL_STANDARDS.md conventions.
-    Note: This model doesn't inherit from BaseModel as it's a simple attachment model.
-    Field ordering: Relationships → Content → Metadata → Timestamps
-    """
-    # 5. Relationships
+
     message = models.ForeignKey(
         'email.EmailMessage',
         on_delete=models.CASCADE,

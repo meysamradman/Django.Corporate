@@ -9,23 +9,27 @@ from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
 
 class AboutPage(BaseModel, SEOMixin):
-    """
-    About page model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Description → Relationships → Metadata
-    """
-    # 2. Primary Content Fields
+
     title = models.CharField(
-        max_length=200,
+        max_length=100,
         default="About Us",
         db_index=True,
         verbose_name="Page Title",
         help_text="About page title",
         validators=[MinLengthValidator(3, message="Title must be at least 3 characters.")]
     )
+    slug = models.SlugField(
+        max_length=120,
+        unique=True,
+        default="about-us",
+        db_index=True,
+        allow_unicode=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly version of the title (e.g., 'about-us' or 'درباره-ما')"
+    )
     
-    # 3. Description Fields
     short_description = models.CharField(
-        max_length=500,
+        max_length=300,
         blank=True,
         null=True,
         verbose_name="Short Description",

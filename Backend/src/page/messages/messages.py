@@ -11,6 +11,8 @@ ABOUT_PAGE_ERRORS = {
     'invalid_title': 'عنوان نامعتبر است',
     'invalid_content': 'محتوای صفحه نامعتبر است',
     'title_min_length': 'عنوان باید حداقل 3 کاراکتر باشد',
+    'slug_min_length': 'Slug باید حداقل 3 کاراکتر باشد',
+    'slug_already_exists': 'این Slug قبلاً استفاده شده است',
     'meta_title_max_length': 'Meta title باید حداکثر 70 کاراکتر باشد',
     'meta_description_max_length': 'Meta description باید حداکثر 300 کاراکتر باشد',
 }
@@ -28,6 +30,8 @@ TERMS_PAGE_ERRORS = {
     'invalid_title': 'عنوان نامعتبر است',
     'invalid_content': 'محتوای صفحه نامعتبر است',
     'title_min_length': 'عنوان باید حداقل 3 کاراکتر باشد',
+    'slug_min_length': 'Slug باید حداقل 3 کاراکتر باشد',
+    'slug_already_exists': 'این Slug قبلاً استفاده شده است',
     'meta_title_max_length': 'Meta title باید حداکثر 70 کاراکتر باشد',
     'meta_description_max_length': 'Meta description باید حداکثر 300 کاراکتر باشد',
 }

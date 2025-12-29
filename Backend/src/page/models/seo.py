@@ -3,9 +3,7 @@ from django.core.exceptions import ValidationError
 
 
 class SEOMixin(models.Model):
-    """
-    SEO Mixin providing SEO-related fields following DJANGO_MODEL_STANDARDS.md conventions.
-    """
+
     meta_title = models.CharField(
         max_length=70,
         null=True, blank=True,

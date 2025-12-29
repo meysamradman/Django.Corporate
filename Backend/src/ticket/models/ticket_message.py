@@ -12,11 +12,7 @@ SENDER_TYPE_CHOICES = [
 
 
 class TicketMessage(BaseModel):
-    """
-    Ticket message model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Status → Content → Flags → Relationships → Metadata
-    """
-    # 1. Status/State Fields
+
     sender_type = models.CharField(
         max_length=10,
         choices=SENDER_TYPE_CHOICES,

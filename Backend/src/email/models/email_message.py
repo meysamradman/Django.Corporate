@@ -7,10 +7,7 @@ from src.email.utils.cache import EmailCacheManager
 
 
 class EmailMessage(BaseModel):
-    """
-    Email message model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Status → Content → Flags → Relationships → Metadata → Timestamps
-    """
+
     STATUS_CHOICES = [
         ('new', 'New'),
         ('read', 'Read'),

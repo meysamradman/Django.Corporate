@@ -5,11 +5,7 @@ from src.core.models.base import BaseModel
 
 
 class ContactEmail(BaseModel):
-    """
-    Contact email model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Order
-    """
-    # 2. Primary Content Fields
+
     email = models.EmailField(
         max_length=255,
         unique=True,

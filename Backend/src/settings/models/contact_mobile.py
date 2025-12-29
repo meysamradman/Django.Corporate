@@ -11,11 +11,7 @@ mobile_validator = RegexValidator(
 
 
 class ContactMobile(BaseModel):
-    """
-    Contact mobile model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Order
-    """
-    # 2. Primary Content Fields
+
     mobile_number = models.CharField(
         max_length=15,
         unique=True,

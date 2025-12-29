@@ -7,11 +7,7 @@ from .ticket_message import TicketMessage
 
 
 class TicketAttachment(BaseModel):
-    """
-    Ticket attachment model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships
-    """
-    # 5. Relationships
+
     ticket_message = models.ForeignKey(
         TicketMessage,
         on_delete=models.CASCADE,

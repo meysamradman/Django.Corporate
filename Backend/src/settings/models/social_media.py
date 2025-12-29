@@ -6,11 +6,7 @@ from src.media.models.media import ImageMedia
 
 
 class SocialMedia(BaseModel):
-    """
-    Social media model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Relationships → Order
-    """
-    # 2. Primary Content Fields
+
     name = models.CharField(
         max_length=100,
         db_index=True,
@@ -19,7 +15,7 @@ class SocialMedia(BaseModel):
     )
     
     url = models.URLField(
-        max_length=500,
+        max_length=300,
         verbose_name="URL",
         help_text="Full social media page link",
         validators=[URLValidator()]

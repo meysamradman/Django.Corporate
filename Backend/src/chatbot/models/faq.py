@@ -4,11 +4,7 @@ from src.chatbot.utils.cache import ChatbotCacheManager
 
 
 class FAQ(BaseModel):
-    """
-    FAQ model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Description → Order
-    """
-    # 2. Primary Content Fields
+
     question = models.CharField(
         max_length=500,
         db_index=True,

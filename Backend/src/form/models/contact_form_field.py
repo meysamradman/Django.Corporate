@@ -5,10 +5,7 @@ from src.core.models.base import BaseModel
 
 
 class ContactFormField(BaseModel):
-    """
-    Contact form field model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Status → Content → Flags → Order → Metadata
-    """
+
     FIELD_TYPE_CHOICES = [
         ('text', 'Text'),
         ('email', 'Email'),

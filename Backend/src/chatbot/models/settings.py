@@ -5,11 +5,7 @@ from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 
 class ChatbotSettings(BaseModel):
-    """
-    Chatbot settings model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Flags → Content → Configuration
-    """
-    # 4. Boolean Flags
+
     is_enabled = models.BooleanField(
         default=True,
         db_index=True,
