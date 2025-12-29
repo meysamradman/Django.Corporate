@@ -643,81 +643,100 @@ class Property(BaseModel, SEOMixin):
         verbose_name_plural = 'Properties'
         ordering = ['-is_featured', '-published_at', '-created_at']
         indexes = [
-            # ═══════════════════════════════════════════════════
-            # 1. Composite Index برای فیلتر اصلی (80% queries)
-            # ═══════════════════════════════════════════════════
-            models.Index(
-                fields=['city', 'property_type', 'bedrooms', 'bathrooms', '-price'],
-                name='idx_main_filter',
-            ),
+            # ═══════════════════════════════════════════════════════════════════════
+            # 🎯 PRIMARY INDEXES: 80% of queries use these (Optimized for 1M+ properties)
+            # ═══════════════════════════════════════════════════════════════════════
             
-            # ═══════════════════════════════════════════════════
-            # 2. Partial Index برای املاک منتشر شده (کاهش 50% سایز)
-            # ═══════════════════════════════════════════════════
+            # 1. Main Search & Filter (Most Common Query Pattern)
             models.Index(
-                fields=['city', 'bedrooms', '-created_at'],
+                fields=['is_published', 'is_public', 'city', 'property_type', 'bedrooms', '-price'],
                 condition=models.Q(is_published=True, is_public=True, is_active=True),
-                name='idx_published_fast'
+                name='idx_main_search'
             ),
             
-            # ═══════════════════════════════════════════════════
-            # 3. Index برای جستجوی منطقه‌ای (Region)
-            # ═══════════════════════════════════════════════════
+            # 2. Location-Based Search (City + Region + Neighborhood)
             models.Index(
-                fields=['city', 'region', 'neighborhood'],
-                condition=models.Q(region__isnull=False),
-                name='idx_region_search'
+                fields=['city', 'region', 'neighborhood', '-created_at'],
+                condition=models.Q(is_published=True, is_public=True),
+                name='idx_location_search'
             ),
             
-            # ═══════════════════════════════════════════════════
-            # 4. Index برای فیلتر سال ساخت (Decade-based)
-            # ═══════════════════════════════════════════════════
+            # 3. Price Range Filter (Most Filtered Field)
             models.Index(
-                fields=['city', 'year_built', '-price'],
-                condition=models.Q(year_built__isnull=False),
-                name='idx_year_filter'
+                fields=['is_published', 'is_public', 'price', 'sale_price', 'monthly_rent'],
+                condition=models.Q(is_published=True, is_public=True),
+                name='idx_price_range'
             ),
             
-            # Location indexes
-            models.Index(fields=['province', 'city', 'is_published']),
-            models.Index(fields=['city', 'neighborhood']),
-
-            # Property type and features
-            models.Index(fields=['city', 'property_type', 'bedrooms']),
-            models.Index(fields=['is_published', 'is_public', 'city', 'property_type', '-price']),
-
-            # Status and time
-            models.Index(fields=['is_published', 'is_public', 'state', '-published_at']),
-            models.Index(fields=['is_published', 'is_public', 'is_featured', '-views_count']),
-
-            # Agent and agency
-            models.Index(fields=['agent', 'is_published', 'is_public', '-created_at']),
-            models.Index(fields=['agency', 'is_published', 'is_public', '-created_at']),
-
-            # Price indexes
-            models.Index(fields=['is_published', 'is_public', 'price']),
-            models.Index(fields=['is_published', 'is_public', 'sale_price']),
-            models.Index(fields=['is_published', 'is_public', 'monthly_rent']),
-            models.Index(fields=['is_published', 'is_public', 'rent_amount']),
-
-            # Area and map
-            models.Index(fields=['land_area', 'built_area']),
-            models.Index(fields=['latitude', 'longitude']),
-
-            # Search and time
-            GinIndex(fields=['search_vector'], name='idx_gin_search'),
-            BrinIndex(fields=['created_at'], pages_per_range=64, name='idx_brin_created'),
-            BrinIndex(fields=['published_at'], pages_per_range=64, name='idx_brin_published'),
+            # 4. Property Details Filter (Year, Floor, Parking, Storage)
+            models.Index(
+                fields=['city', 'year_built', 'floor_number', 'parking_spaces', 'storage_rooms'],
+                condition=models.Q(is_published=True, year_built__isnull=False),
+                name='idx_property_details'
+            ),
             
-            # ✅ Index برای فیلدهای جدید
-            models.Index(fields=['usage_type', 'is_published', 'is_public']),
-            models.Index(fields=['document_type', 'is_published', 'is_public']),
-            models.Index(fields=['city', 'usage_type', 'document_type', '-price']),
-            models.Index(fields=['floor_number', 'is_published']),
-            models.Index(fields=['storage_rooms', 'is_published']),
+            # 5. Usage & Document Type Filter (Commercial/Residential)
+            models.Index(
+                fields=['city', 'usage_type', 'document_type', '-price'],
+                condition=models.Q(is_published=True, is_public=True),
+                name='idx_usage_document'
+            ),
             
-            # ✅ GIN Index برای JSON Field (فیلتر روی extra_attributes)
-            GinIndex(fields=['extra_attributes'], name='idx_gin_extra_attrs'),
+            # ═══════════════════════════════════════════════════════════════════════
+            # 🔍 SECONDARY INDEXES: For specific use cases
+            # ═══════════════════════════════════════════════════════════════════════
+            
+            # 6. Featured Properties (Homepage, Landing Pages)
+            models.Index(
+                fields=['is_featured', '-views_count', '-created_at'],
+                condition=models.Q(is_published=True, is_public=True, is_featured=True),
+                name='idx_featured_props'
+            ),
+            
+            # 7. Agent/Agency Dashboard (Admin Panel)
+            models.Index(
+                fields=['agent', 'is_published', '-created_at'],
+                name='idx_agent_dashboard'
+            ),
+            models.Index(
+                fields=['agency', 'is_published', '-created_at'],
+                name='idx_agency_dashboard'
+            ),
+            
+            # 8. Map Search (Geo-spatial)
+            models.Index(
+                fields=['latitude', 'longitude', 'city'],
+                condition=models.Q(latitude__isnull=False, longitude__isnull=False),
+                name='idx_map_search'
+            ),
+            
+            # ═══════════════════════════════════════════════════════════════════════
+            # 🚀 SPECIALIZED INDEXES: PostgreSQL-specific optimizations
+            # ═══════════════════════════════════════════════════════════════════════
+            
+            # 9. Full-Text Search (GIN Index for search_vector)
+            GinIndex(
+                fields=['search_vector'],
+                name='idx_gin_fulltext'
+            ),
+            
+            # 10. JSON Field Search (Extra Attributes for Short-term Rent, Pre-sale)
+            GinIndex(
+                fields=['extra_attributes'],
+                name='idx_gin_json_attrs'
+            ),
+            
+            # 11. Time-Series Data (BRIN for large datasets)
+            BrinIndex(
+                fields=['created_at'],
+                pages_per_range=128,
+                name='idx_brin_created'
+            ),
+            BrinIndex(
+                fields=['published_at'],
+                pages_per_range=128,
+                name='idx_brin_published'
+            ),
         ]
         constraints = [
             models.CheckConstraint(
